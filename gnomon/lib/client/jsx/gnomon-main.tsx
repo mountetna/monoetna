@@ -61,25 +61,25 @@ const GnomonMain = ({ project_name }: { project_name: string }) => {
   }, []);
 
   const onClickBulkCreate = () => {
-    window.location.href = `/${project_name}/create`
-  }
+    window.location.href = `/${project_name}/create`;
+  };
 
   const onClickBrowse = () => {
-    window.location.href = `/${project_name}/browse`
-  }
+    window.location.href = `/${project_name}/browse`;
+  };
 
   useEffect(() => {
     async function fetchRules() {
       try {
-        const { config }: { config: MagmaRulesResponse } = await json_get(magmaPath(`gnomon/${project_name}`))
-        setRules(Object.keys(config.rules))
+        const { config }: { config: MagmaRulesResponse } = await json_get(magmaPath(`gnomon/${project_name}`));
+        setRules(Object.keys(config.rules));
       } catch (error) {
-        setRules([])
-        console.error(`Error fetching rules: ${error}`)
+        setRules([]);
+        console.error(`Error fetching rules: ${error}`);
       }
     }
 
-    fetchRules()
+    fetchRules();
   }, []);
 
   return (

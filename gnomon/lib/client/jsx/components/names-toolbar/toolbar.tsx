@@ -1,25 +1,25 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
-import GrowShrinkButton from "../names-toolbar/grow-shrink-button";
+import GrowShrinkButton from '../names-toolbar/grow-shrink-button';
 
 
 
 const useStyles = makeStyles((theme) => ({
     container: {
-        textAlign: "center",
+        textAlign: 'center',
     },
     buttonsOuterContainer: {
-        display: "inline-block",
-        borderTop: "none",
+        display: 'inline-block',
+        borderTop: 'none',
     },
     buttonsContainer: {
-        display: "inline-block",
-        padding: "1.25em 0",
+        display: 'inline-block',
+        padding: '1.25em 0',
     },
     growShrinkButton: {
-        "& svg": {
-            fontSize: "1rem",
+        '& svg': {
+            fontSize: '1rem',
         }
     },
 }));
@@ -34,7 +34,7 @@ const NamesToolbar = ({ buttons, canBeSmall = true }: {
     buttons: React.ReactElement<ButtonProps>[],
     canBeSmall?: boolean,
 }) => {
-    const classes = useStyles()
+    const classes = useStyles();
 
     const [small, setSmall] = useState<boolean>(canBeSmall);
 
@@ -54,7 +54,7 @@ const NamesToolbar = ({ buttons, canBeSmall = true }: {
                 </div>
             </div>
         </div>
-    )
+    );
 };
 
 export default NamesToolbar;

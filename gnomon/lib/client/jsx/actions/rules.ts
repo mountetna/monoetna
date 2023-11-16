@@ -1,14 +1,14 @@
 import { Rule, RuleParent, RuleToken, Synonym, Token, TokenValue } from '../models';
 import { makeActionObject } from './utils';
 import { fetchRulesFromMagma as _fetchRulesFromMagma } from '../utils/rules';
-import { useDispatch } from "../utils/redux"
+import { useDispatch } from '../utils/redux';
 
 
-export const ADD_RULES_FROM_MAGMA = "ADD_RULES_FROM_MAGMA"
+export const ADD_RULES_FROM_MAGMA = 'ADD_RULES_FROM_MAGMA';
 
 
 export async function fetchRulesFromMagma(projectName: string) {
-    const rules = await _fetchRulesFromMagma(projectName)
+    const rules = await _fetchRulesFromMagma(projectName);
 
     return (dispatch: ReturnType<typeof useDispatch>) => {
         dispatch(addRulesFromMagma(
@@ -18,8 +18,8 @@ export async function fetchRulesFromMagma(projectName: string) {
             rules.ruleTokens,
             rules.tokenValues,
             rules.synonyms,
-        ))
-    }
+        ));
+    };
 }
 
 
@@ -39,7 +39,7 @@ export function addRulesFromMagma(
         ruleTokens,
         tokenValues,
         synonyms,
-    })
+    });
 }
 
 

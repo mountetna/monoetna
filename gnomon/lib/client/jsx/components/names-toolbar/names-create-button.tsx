@@ -1,73 +1,73 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
-import Button from "@material-ui/core/Button";
+import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import SaveOutlinedIcon from "@material-ui/icons/SaveOutlined";
+import SaveOutlinedIcon from '@material-ui/icons/SaveOutlined';
 import AutorenewIcon from '@material-ui/icons/Autorenew';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useTheme } from '@material-ui/core/styles';
-import _ from "lodash"
+import _ from 'lodash';
 
-import { useDispatch } from "../../utils/redux";
-import NamesTable from "./names-create-table";
-import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
-import { selectCompleteCreateNamesCreationPayloads, selectComposeErrorCount, selectNamesCreationRequestState, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from "../../selectors/names";
-import { makeCreateNamesCreationRequest } from "../../actions/names";
-import { selectPathParts } from "../../selectors/location"
-import { exportDataToBlob, FILE_FORMATS_TO_MIME } from "../../utils/export";
-import { Status } from "../../utils/models";
-import MultiOptionButton from "../multi-option-button";
-import { difference } from "../../utils/set";
+import { useDispatch } from '../../utils/redux';
+import NamesTable from './names-create-table';
+import ToolbarButtonWithPopper from './toolbar-button-with-popper';
+import { selectCompleteCreateNamesCreationPayloads, selectComposeErrorCount, selectNamesCreationRequestState, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from '../../selectors/names';
+import { makeCreateNamesCreationRequest } from '../../actions/names';
+import { selectPathParts } from '../../selectors/location';
+import { exportDataToBlob, FILE_FORMATS_TO_MIME } from '../../utils/export';
+import { Status } from '../../utils/models';
+import MultiOptionButton from '../multi-option-button';
+import { difference } from '../../utils/set';
 
 
 
 const useStyles = makeStyles((theme) => ({
     dialogRoot: {
         '& [aria-labelledby="create-all-dialog-title"]': {
-            padding: "0.5em",
+            padding: '0.5em',
         },
     },
     dialogTitle: {
-        paddingBottom: "0",
+        paddingBottom: '0',
     },
     tableControls: {
-        marginBottom: "1em",
-        textAlign: "right",
+        marginBottom: '1em',
+        textAlign: 'right',
     },
     showImplicitSwitchLabel: {
-        margin: "0",
+        margin: '0',
     },
     dialogActions: {
-        "&.withStatus": {
-            justifyContent: "space-between",
+        '&.withStatus': {
+            justifyContent: 'space-between',
         },
     },
     requestStatus: {
-        display: "inline-flex",
-        alignItems: "center",
-        marginRight: "2em",
-        "& svg": {
-            marginRight: "0.25em",
+        display: 'inline-flex',
+        alignItems: 'center',
+        marginRight: '2em',
+        '& svg': {
+            marginRight: '0.25em',
         },
-        "&.inProgress": { color: "orange", },
-        "&.success": { color: "green", },
-        "&.error": { color: "red", },
+        '&.inProgress': { color: 'orange', },
+        '&.success': { color: 'green', },
+        '&.error': { color: 'red', },
     },
     buttonsContainer: {
-        "& > button:not(:last-child)": {
-            marginRight: "0.75em",
+        '& > button:not(:last-child)': {
+            marginRight: '0.75em',
         },
     },
     createButton: {
-        "&:not(:disabled)": {
+        '&:not(:disabled)': {
             backgroundImage: 'url(/images/distort.svg)',
             '&:hover': {
                 backgroundImage: 'url(/images/distort2.svg)',
@@ -85,14 +85,14 @@ const useStyles = makeStyles((theme) => ({
         },
     },
     exportButton: {
-        "&, & *": {
-            fontSize: "13px",
+        '&, & *': {
+            fontSize: '13px',
         },
-        "& button": {
-            padding: "4px 10px",
-            minWidth: "unset",
-            "&.menuToggle": {
-                padding: "4px 8px",
+        '& button': {
+            padding: '4px 10px',
+            minWidth: 'unset',
+            '&.menuToggle': {
+                padding: '4px 8px',
             },
         },
     },
@@ -100,49 +100,49 @@ const useStyles = makeStyles((theme) => ({
 
 
 const NamesCreateButton = ({ small }: { small: boolean }) => {
-    const classes = useStyles()
-    const dispatch = useDispatch()
+    const classes = useStyles();
+    const dispatch = useDispatch();
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
     const [open, setOpen] = useState<boolean>(false);
     const [showImplicit, setShowImplicit] = useState<boolean>(false);
-    const [exportStatus, setExportStatus] = useState<Status>("idle")
+    const [exportStatus, setExportStatus] = useState<Status>('idle');
 
-    const projectName = useSelector(selectPathParts)[0]
-    const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length
-    const creationRequestPayloads = useSelector(selectCompleteCreateNamesCreationPayloads)
-    const creationRequestState = useSelector(selectNamesCreationRequestState)
-    const composeErrorCount = useSelector(selectComposeErrorCount)
+    const projectName = useSelector(selectPathParts)[0];
+    const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length;
+    const creationRequestPayloads = useSelector(selectCompleteCreateNamesCreationPayloads);
+    const creationRequestState = useSelector(selectNamesCreationRequestState);
+    const composeErrorCount = useSelector(selectComposeErrorCount);
 
-    let foundImplicit = false
+    let foundImplicit = false;
     const rows = creationRequestPayloads
         .filter(payload => {
             if (payload.implicit) {
-                foundImplicit = true
+                foundImplicit = true;
             }
-            return !payload.implicit || showImplicit
+            return !payload.implicit || showImplicit;
         })
         .map(payload => ({
             name: payload.renderedName,
             rule: payload.ruleName,
             implicit: payload.implicit
-        }))
+        }));
 
     const handleToggle = () => {
         setOpen(prev => !prev);
-    }
+    };
 
     const handleClose = () => {
         // lock out the main view if request made
-        if (creationRequestState.status != "idle") {
-            return
+        if (creationRequestState.status != 'idle') {
+            return;
         }
         setOpen(false);
-    }
+    };
 
     const handleChangeShowImplicit = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setShowImplicit(event.target.checked)
-    }
+        setShowImplicit(event.target.checked);
+    };
 
     const handleCreateAll = () => {
         dispatch(
@@ -150,11 +150,11 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                 projectName,
                 creationRequestPayloads.filter(payload => !payload.implicit)
             )
-        )
-    }
+        );
+    };
 
     const handleExportFile = async (fileFormat: keyof typeof FILE_FORMATS_TO_MIME) => {
-        setExportStatus("inProgress")
+        setExportStatus('inProgress');
 
         try {
             const blob = await exportDataToBlob(
@@ -163,66 +163,66 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                     rule: row.rule,
                 })),
                 fileFormat,
-            )
-            const filename = `names-${Date.now()}.${fileFormat}`
+            );
+            const filename = `names-${Date.now()}.${fileFormat}`;
 
-            const a = document.createElement("a")
-            a.setAttribute("href", window.URL.createObjectURL(blob))
-            a.setAttribute("download", filename);
-            a.click()
-            a.remove()
+            const a = document.createElement('a');
+            a.setAttribute('href', window.URL.createObjectURL(blob));
+            a.setAttribute('download', filename);
+            a.click();
+            a.remove();
 
-            setExportStatus("idle")
+            setExportStatus('idle');
         } catch (err) {
-            console.error(`Error export names file: ${err}`)
-            setExportStatus("error")
+            console.error(`Error export names file: ${err}`);
+            setExportStatus('error');
         }
-    }
+    };
 
     const handleNavigateBack = () => {
-        window.location.href = `/${projectName}`
-    }
+        window.location.href = `/${projectName}`;
+    };
 
     const renderCreationRequestStatus = (status: Status) => {
-        let icon: JSX.Element | undefined = undefined
+        let icon: JSX.Element | undefined = undefined;
 
         switch (status) {
-            case "idle":
-                return
-            case "inProgress":
-                icon = <AutorenewIcon />
-                break
-            case "success":
-                icon = <CheckCircleOutlineIcon />
-                break
-            case "error":
-                icon = <ErrorOutlineIcon />
-                break
+            case 'idle':
+                return;
+            case 'inProgress':
+                icon = <AutorenewIcon />;
+                break;
+            case 'success':
+                icon = <CheckCircleOutlineIcon />;
+                break;
+            case 'error':
+                icon = <ErrorOutlineIcon />;
+                break;
         }
 
         return <span className={`${classes.requestStatus} ${creationRequestState.status}`}>
             {icon} {_.startCase(creationRequestState.status)}
-        </span>
-    }
+        </span>;
+    };
 
     const allNamesCreated = () => {
-        if (creationRequestState.status != "success") {
-            return false
+        if (creationRequestState.status != 'success') {
+            return false;
         }
 
         const notCreated = difference(
             new Set(creationRequestPayloads.filter(payload => !payload.implicit).map(val => val.renderedName)),
             new Set((creationRequestState.response?.created || []).map(val => val.identifier)),
-        )
-        return notCreated.size == 0
-    }
+        );
+        return notCreated.size == 0;
+    };
 
     return (
         <React.Fragment>
             <ToolbarButtonWithPopper
                 text="Create All"
                 iconComponent={<SaveOutlinedIcon />}
-                variant={small ? "compact" : "full"}
+                variant={small ? 'compact' : 'full'}
                 color="#0057FF"
                 popperId="create-all-dialog"
                 disabled={completeCreateNameGroupsCount - composeErrorCount == 0}
@@ -240,7 +240,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                     id="create-all-dialog-title"
                     className={classes.dialogTitle}
                 >
-                    {"Create All Names"}
+                    {'Create All Names'}
                 </DialogTitle>
                 <DialogContent>
                     <div className={classes.tableControls}>
@@ -263,18 +263,18 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                     />
                 </DialogContent>
                 <DialogActions
-                    className={`${classes.dialogActions} ${creationRequestState.status != "idle" ? "withStatus" : ""}`}
+                    className={`${classes.dialogActions} ${creationRequestState.status != 'idle' ? 'withStatus' : ''}`}
                 >
-                    {renderCreationRequestStatus(exportStatus != "idle" ? exportStatus : creationRequestState.status)}
+                    {renderCreationRequestStatus(exportStatus != 'idle' ? exportStatus : creationRequestState.status)}
                     <div className={classes.buttonsContainer}>
                         {
-                            creationRequestState.status != "success" || !allNamesCreated()
+                            creationRequestState.status != 'success' || !allNamesCreated()
                                 ? (<React.Fragment>
                                     <Button
                                         onClick={handleClose}
                                         color="secondary"
                                         disableElevation
-                                        disabled={creationRequestState.status != "idle"}
+                                        disabled={creationRequestState.status != 'idle'}
                                         autoFocus
                                     >
                                         Cancel
@@ -283,7 +283,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                                         onClick={handleCreateAll}
                                         color="primary"
                                         disableElevation
-                                        disabled={creationRequestState.status != "idle"}
+                                        disabled={creationRequestState.status != 'idle'}
                                         className={classes.createButton}
                                         autoFocus
                                     >
@@ -301,12 +301,12 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                                     </Button>
                                     <MultiOptionButton
                                         onClick={handleExportFile}
-                                        options={["xlsx", "csv", "tsv"]}
+                                        options={['xlsx', 'csv', 'tsv']}
                                         optionPrefix="Export "
                                         color="primary"
                                         disableElevation
                                         disableRipple
-                                        disabled={exportStatus != "idle"}
+                                        disabled={exportStatus != 'idle'}
                                         className={classes.exportButton}
                                         autoFocus
                                     >
@@ -318,7 +318,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                 </DialogActions>
             </Dialog>
         </React.Fragment >
-    )
-}
+    );
+};
 
-export default NamesCreateButton
+export default NamesCreateButton;

@@ -35,7 +35,7 @@ const createStore = () => {
 
   const middleWares = [thunk];
 
-  let composeEnhancers = Redux.compose
+  let composeEnhancers = Redux.compose;
 
   // @ts-ignore
   if (process.env.NODE_ENV != 'production') {
@@ -47,7 +47,7 @@ const createStore = () => {
       composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
         // options: https://github.com/zalmoxisus/redux-devtools-extension/blob/master/docs/API/Arguments.md
         // trace: true,
-      })
+      });
     }
   }
 

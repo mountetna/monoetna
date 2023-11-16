@@ -1,7 +1,7 @@
-import React from "react";
+import React from 'react';
 
-import ExportButton from "../names-toolbar/export-button";
-import NamesToolbar from "../names-toolbar/toolbar";
+import ExportButton from '../names-toolbar/export-button';
+import NamesToolbar from '../names-toolbar/toolbar';
 
 
 
@@ -19,7 +19,7 @@ const NamesBrowseToolbar = ({ exportData, exportButtonText }: {
                 />
             ]}
         />
-    )
+    );
 };
 
 export default NamesBrowseToolbar;

@@ -1,5 +1,5 @@
 export async function asyncSetTimeout(waitIntervalMs: number) {
-    await new Promise(resolve => setTimeout(resolve, waitIntervalMs))
+    await new Promise(resolve => setTimeout(resolve, waitIntervalMs));
 }
 
 
@@ -9,24 +9,24 @@ export function createFnConcurrencyWrapper<TFunc extends (...args: any[]) => any
     waitIntervalMs: number = 100
 ): (...args: Parameters<TFunc>) => Promise<ReturnType<typeof func>> {
 
-    let concurrentCalls = 0
+    let concurrentCalls = 0;
 
     return async function (...args: Parameters<TFunc>) {
         while (concurrentCalls >= concurrencyLimit) {
-            await asyncSetTimeout(waitIntervalMs)
+            await asyncSetTimeout(waitIntervalMs);
         }
 
         try {
-            concurrentCalls += 1
-            const res = func(...args)
+            concurrentCalls += 1;
+            const res = func(...args);
 
             if (res instanceof Promise) {
-                return await res
+                return await res;
             }
-            return res
+            return res;
 
         } finally {
-            concurrentCalls -= 1
+            concurrentCalls -= 1;
         }
     };
 }

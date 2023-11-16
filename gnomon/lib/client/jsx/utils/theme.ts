@@ -5,7 +5,7 @@ import Color from 'color';
 
 
 export function createCustomColorButtonTheme(color: string, baseTheme?: Theme): Theme {
-    const primary = Color(color)
+    const primary = Color(color);
 
     return createTheme(baseTheme, {
         palette: {
@@ -27,5 +27,5 @@ export function createCustomColorButtonTheme(color: string, baseTheme?: Theme): 
                 },
             },
         }
-    })
+    });
 }

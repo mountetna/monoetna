@@ -13,8 +13,8 @@ export function defaultDict<K extends keyof any, V>(createValue: (property: any)
 export function listToIdObject<T extends Record<any, any>>(list: T[], idPropName: string): Record<any, T> {
     const idObject: Record<any, T> = {};
     list.forEach(item => {
-        idObject[item[idPropName]] = item
-    })
+        idObject[item[idPropName]] = item;
+    });
 
     return idObject;
 }
@@ -23,7 +23,7 @@ export function listToIdObject<T extends Record<any, any>>(list: T[], idPropName
 export function listToIdGroupObject<T extends Record<any, any>>(list: T[], groupPropName: string, idPropName: string): Record<any, string[]> {
     const idObject = defaultDict<string, string[]>(_ => []);
 
-    list.forEach(item => idObject[item[groupPropName]].push(item[idPropName]))
+    list.forEach(item => idObject[item[groupPropName]].push(item[idPropName]));
 
-    return { ...idObject } // remove default value getter
+    return { ...idObject }; // remove default value getter
 }

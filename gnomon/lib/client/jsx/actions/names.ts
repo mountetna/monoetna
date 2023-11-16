@@ -1,37 +1,37 @@
-import _ from "lodash"
+import _ from 'lodash';
 
-import { CreateName, CreateNameGroup, CreateNameTokenValue } from "../models"
-import { makeActionObject } from "./utils"
-import { createLocalId } from "../utils/models"
-import { defaultDict } from "../utils/object"
-import { NamesCreationRequestState, NamesListRequestState, NamesState } from "../reducers/names"
-import { createSearchReplaceCriteriaFromGroups, postNameBatchToMagma } from "../utils/names"
-import { State } from "../store"
-import { RulesStateSliceForCompleteCreateNames, selectRulesStateSliceForCompleteCreateNames } from "../selectors/global"
-import { CompleteCreateNameRequestPayload } from "../selectors/names"
-import { useDispatch } from "../utils/redux"
+import { CreateName, CreateNameGroup, CreateNameTokenValue } from '../models';
+import { makeActionObject } from './utils';
+import { createLocalId } from '../utils/models';
+import { defaultDict } from '../utils/object';
+import { NamesCreationRequestState, NamesListRequestState, NamesState } from '../reducers/names';
+import { createSearchReplaceCriteriaFromGroups, postNameBatchToMagma } from '../utils/names';
+import { State } from '../store';
+import { RulesStateSliceForCompleteCreateNames, selectRulesStateSliceForCompleteCreateNames } from '../selectors/global';
+import { CompleteCreateNameRequestPayload } from '../selectors/names';
+import { useDispatch } from '../utils/redux';
 
 
 
-export const ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES = "ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES"
-export const ADD_AND_REMOVE_CREATE_NAME_TOKEN_VALUES = "ADD_AND_REMOVE_CREATE_NAME_TOKEN_VALUES"
-export const DELETE_CREATE_NAME_TOKEN_VALUE = "DELETE_CREATE_NAME_TOKEN_VALUE"
-export const SET_COUNTER_VALUE_FOR_CREATE_NAMES = "SET_COUNTER_VALUE_FOR_CREATE_NAMES"
-export const ADD_CREATE_NAME_GROUPS_TO_SELECTION = "ADD_CREATE_NAME_GROUPS_TO_SELECTION"
-export const REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION = "REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION"
-export const CLEAR_CREATE_NAME_GROUPS_SELECTION = "CLEAR_CREATE_NAME_GROUPS_SELECTION"
-export const CLEAR_CREATE_NAME_GROUPS_FILTER = "CLEAR_CREATE_NAME_GROUPS_FILTER"
-export const DELETE_GROUPS_WITH_NAMES = "DELETE_GROUPS_WITH_NAMES"
-export const DELETE_SELECTED_GROUPS_WITH_NAMES = "DELETE_SELECTED_GROUPS_WITH_NAMES"
-export const ADD_CREATE_NAME_GROUPS_TO_SEARCH_CRITERIA = "ADD_CREATE_NAME_GROUPS_TO_SEARCH_CRITERIA"
-export const REMOVE_CREATE_NAME_GROUPS_FROM_SEARCH_CRITERIA = "REMOVE_CREATE_NAME_GROUPS_FROM_SEARCH_CRITERIA"
-export const SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA = "SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA"
-export const SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA = "SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA"
-export const ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA = "ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA"
-export const REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA = "REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA"
-export const SET_MAGMA_NAMES_CREATION_REQUEST = "SET_MAGMA_NAMES_CREATION_REQUEST"
-export const SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP = "SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP"
-export const SET_MAGMA_NAMES_LIST_REQUEST = "SET_MAGMA_NAMES_LIST_REQUEST"
+export const ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES = 'ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES';
+export const ADD_AND_REMOVE_CREATE_NAME_TOKEN_VALUES = 'ADD_AND_REMOVE_CREATE_NAME_TOKEN_VALUES';
+export const DELETE_CREATE_NAME_TOKEN_VALUE = 'DELETE_CREATE_NAME_TOKEN_VALUE';
+export const SET_COUNTER_VALUE_FOR_CREATE_NAMES = 'SET_COUNTER_VALUE_FOR_CREATE_NAMES';
+export const ADD_CREATE_NAME_GROUPS_TO_SELECTION = 'ADD_CREATE_NAME_GROUPS_TO_SELECTION';
+export const REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION = 'REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION';
+export const CLEAR_CREATE_NAME_GROUPS_SELECTION = 'CLEAR_CREATE_NAME_GROUPS_SELECTION';
+export const CLEAR_CREATE_NAME_GROUPS_FILTER = 'CLEAR_CREATE_NAME_GROUPS_FILTER';
+export const DELETE_GROUPS_WITH_NAMES = 'DELETE_GROUPS_WITH_NAMES';
+export const DELETE_SELECTED_GROUPS_WITH_NAMES = 'DELETE_SELECTED_GROUPS_WITH_NAMES';
+export const ADD_CREATE_NAME_GROUPS_TO_SEARCH_CRITERIA = 'ADD_CREATE_NAME_GROUPS_TO_SEARCH_CRITERIA';
+export const REMOVE_CREATE_NAME_GROUPS_FROM_SEARCH_CRITERIA = 'REMOVE_CREATE_NAME_GROUPS_FROM_SEARCH_CRITERIA';
+export const SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA = 'SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA';
+export const SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA = 'SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA';
+export const ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA = 'ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA';
+export const REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA = 'REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA';
+export const SET_MAGMA_NAMES_CREATION_REQUEST = 'SET_MAGMA_NAMES_CREATION_REQUEST';
+export const SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP = 'SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP';
+export const SET_MAGMA_NAMES_LIST_REQUEST = 'SET_MAGMA_NAMES_LIST_REQUEST';
 
 
 export function addNamesWithGroupsWithTokenValues(
@@ -47,7 +47,7 @@ export function addNamesWithGroupsWithTokenValues(
         createNameTokenValues,
         updateCompletionStatus,
         rulesStateSliceForCompleteCreateNames,
-    })
+    });
 }
 
 export function createNamesWithGroupForRule(
@@ -56,40 +56,40 @@ export function createNamesWithGroupForRule(
     updateCompletionStatus: boolean,
 ) {
 
-    const rulesState = state.rules
-    const createNames: CreateName[] = []
-    const ruleNamesToScan: string[] = [primaryRuleName]
+    const rulesState = state.rules;
+    const createNames: CreateName[] = [];
+    const ruleNamesToScan: string[] = [primaryRuleName];
 
     const createNameGroup: CreateNameGroup = {
         localId: createLocalId(),
-        primaryCreateNameLocalId: "TODO",
-    }
+        primaryCreateNameLocalId: 'TODO',
+    };
 
-    const createNameTokenValues: CreateNameTokenValue[] = []
+    const createNameTokenValues: CreateNameTokenValue[] = [];
 
     // make all CreateNames
     while (ruleNamesToScan.length) {
-        const ruleName = ruleNamesToScan.pop()
+        const ruleName = ruleNamesToScan.pop();
         // typescript needs this check even though
         // we're already checking ruleNamesToScan.length
         if (!ruleName) {
-            break
+            break;
         }
         const createName: CreateName = {
             localId: createLocalId(),
             ruleName,
             createNameGroupLocalId: createNameGroup.localId
-        }
+        };
 
-        createNames.push(createName)
+        createNames.push(createName);
         if (ruleName == primaryRuleName) {
-            createNameGroup.primaryCreateNameLocalId = createName.localId
+            createNameGroup.primaryCreateNameLocalId = createName.localId;
         }
 
         // make CreateNameTokenValue if only one value for a given token
-        const ruleTokens = rulesState.ruleTokens.byRuleName[ruleName].map(rtLocalId => rulesState.ruleTokens.byLocalId[rtLocalId])
+        const ruleTokens = rulesState.ruleTokens.byRuleName[ruleName].map(rtLocalId => rulesState.ruleTokens.byLocalId[rtLocalId]);
         ruleTokens.forEach(ruleToken => {
-            const tokenValueLocalIds = rulesState.tokenValues.byTokenName[ruleToken.tokenName]
+            const tokenValueLocalIds = rulesState.tokenValues.byTokenName[ruleToken.tokenName];
 
             if (tokenValueLocalIds.length == 1) {
                 createNameTokenValues.push({
@@ -97,17 +97,17 @@ export function createNamesWithGroupForRule(
                     tokenValueLocalId: tokenValueLocalIds[0],
                     createNameLocalId: createName.localId,
                     ruleTokenLocalId: ruleToken.localId,
-                })
+                });
             }
-        })
+        });
 
         if (rulesState.ruleParents.byRuleName[ruleName]) {
             const parentRuleNames = rulesState.ruleParents.byRuleName[ruleName].map(rpLocalId => {
-                return rulesState.ruleParents.byLocalId[rpLocalId].parentRuleName
-            })
+                return rulesState.ruleParents.byLocalId[rpLocalId].parentRuleName;
+            });
             // TODO: properly handle multiple parents
             // (will be ok with one for now)
-            ruleNamesToScan.push(...parentRuleNames)
+            ruleNamesToScan.push(...parentRuleNames);
         }
     }
 
@@ -117,7 +117,7 @@ export function createNamesWithGroupForRule(
         createNameTokenValues,
         updateCompletionStatus,
         selectRulesStateSliceForCompleteCreateNames(state)
-    )
+    );
 }
 
 
@@ -136,42 +136,42 @@ function _duplicateCreateNameGroup(
 
     const newCng: CreateNameGroup = {
         localId: createLocalId(),
-        primaryCreateNameLocalId: "TODO",
-    }
-    const newCntvs: CreateNameTokenValue[] = []
+        primaryCreateNameLocalId: 'TODO',
+    };
+    const newCntvs: CreateNameTokenValue[] = [];
 
     const newCns: CreateName[] = namesState.createNames.byCreateNameGroupLocalId[createNameGroup.localId].map(oldCnLocalId => {
-        const oldCn = namesState.createNames.byLocalId[oldCnLocalId]
+        const oldCn = namesState.createNames.byLocalId[oldCnLocalId];
 
         const newCn: CreateName = {
             ...oldCn,
             localId: createLocalId(),
             createNameGroupLocalId: newCng.localId,
-        }
+        };
 
         if (newCn.ruleName in ruleCounterValuesByRuleName) {
-            newCn.ruleCounterValue = ruleCounterValuesByRuleName[newCn.ruleName]
+            newCn.ruleCounterValue = ruleCounterValuesByRuleName[newCn.ruleName];
         }
 
         if (createNameGroup.primaryCreateNameLocalId == oldCn.localId) {
-            newCng.primaryCreateNameLocalId = newCn.localId
+            newCng.primaryCreateNameLocalId = newCn.localId;
         }
 
         const _newCnTvs: CreateNameTokenValue[] = (namesState.createNameTokenValues.byCreateNameLocalId[oldCn.localId] || []).map(oldCntvLocalId => {
-            const oldCntv = namesState.createNameTokenValues.byLocalId[oldCntvLocalId]
+            const oldCntv = namesState.createNameTokenValues.byLocalId[oldCntvLocalId];
 
             return {
                 ...oldCntv,
                 localId: createLocalId(),
                 createNameLocalId: newCn.localId,
-            }
-        })
-        newCntvs.push(..._newCnTvs)
+            };
+        });
+        newCntvs.push(..._newCnTvs);
 
-        return newCn
-    })
+        return newCn;
+    });
 
-    return { createNames: newCns, createNameGroup: newCng, createNameTokenValues: newCntvs }
+    return { createNames: newCns, createNameGroup: newCng, createNameTokenValues: newCntvs };
 }
 
 // maybe just pass entire state?
@@ -183,9 +183,9 @@ export function duplicateCreateNameGroups(
     overrideRuleCounterValuesByRuleName: Record<string, number> = {},
 ) {
 
-    const newCreateNames: CreateName[] = []
-    const newCreateNameGroups: CreateNameGroup[] = []
-    const newCreateNameTokenValues: CreateNameTokenValue[] = []
+    const newCreateNames: CreateName[] = [];
+    const newCreateNameGroups: CreateNameGroup[] = [];
+    const newCreateNameTokenValues: CreateNameTokenValue[] = [];
 
     createNameGroups.forEach(cng => {
 
@@ -199,13 +199,13 @@ export function duplicateCreateNameGroups(
                 cng,
                 state.names,
                 overrideRuleCounterValuesByRuleName,
-            )
+            );
 
-            newCreateNames.push(..._newCreateNames)
-            newCreateNameGroups.push(_newCreateNameGroup)
-            newCreateNameTokenValues.push(..._newCreateNameTokenValues)
+            newCreateNames.push(..._newCreateNames);
+            newCreateNameGroups.push(_newCreateNameGroup);
+            newCreateNameTokenValues.push(..._newCreateNameTokenValues);
         }
-    })
+    });
 
     return addNamesWithGroupsWithTokenValues(
         newCreateNames,
@@ -213,7 +213,7 @@ export function duplicateCreateNameGroups(
         newCreateNameTokenValues,
         updateCompletionStatus,
         selectRulesStateSliceForCompleteCreateNames(state),
-    )
+    );
 }
 
 export function iterateOnCreateNameGroupsByRule(
@@ -225,17 +225,17 @@ export function iterateOnCreateNameGroupsByRule(
     updateCompletionStatus: boolean = true,
 ) {
 
-    const createNameGroupsByPrimaryRuleName = defaultDict<string, CreateNameGroup[]>(_ => [])
+    const createNameGroupsByPrimaryRuleName = defaultDict<string, CreateNameGroup[]>(_ => []);
 
     createNameGroups.forEach(cng => {
-        const primaryRuleName = state.names.createNames.byLocalId[cng.primaryCreateNameLocalId].ruleName
+        const primaryRuleName = state.names.createNames.byLocalId[cng.primaryCreateNameLocalId].ruleName;
 
-        createNameGroupsByPrimaryRuleName[primaryRuleName].push(cng)
-    })
+        createNameGroupsByPrimaryRuleName[primaryRuleName].push(cng);
+    });
 
-    const newCreateNames: CreateName[] = []
-    const newCreateNameGroups: CreateNameGroup[] = []
-    const newCreateNameTokenValues: CreateNameTokenValue[] = []
+    const newCreateNames: CreateName[] = [];
+    const newCreateNameGroups: CreateNameGroup[] = [];
+    const newCreateNameTokenValues: CreateNameTokenValue[] = [];
 
     Object.entries(createNameGroupsByPrimaryRuleName).forEach(([_, createNameGroups]) => {
 
@@ -243,7 +243,7 @@ export function iterateOnCreateNameGroupsByRule(
 
             createNameGroups.forEach(cng => {
 
-                const overrideRuleCounterValuesByRuleName = { [ruleName]: index }
+                const overrideRuleCounterValuesByRuleName = { [ruleName]: index };
 
                 const {
                     createNames: _newCreateNames,
@@ -253,14 +253,14 @@ export function iterateOnCreateNameGroupsByRule(
                     cng,
                     state.names,
                     overrideRuleCounterValuesByRuleName,
-                )
+                );
 
-                newCreateNames.push(..._newCreateNames)
-                newCreateNameGroups.push(_newCreateNameGroup)
-                newCreateNameTokenValues.push(..._newCreateNameTokenValues)
-            })
+                newCreateNames.push(..._newCreateNames);
+                newCreateNameGroups.push(_newCreateNameGroup);
+                newCreateNameTokenValues.push(..._newCreateNameTokenValues);
+            });
         }
-    })
+    });
 
     return addNamesWithGroupsWithTokenValues(
         newCreateNames,
@@ -268,7 +268,7 @@ export function iterateOnCreateNameGroupsByRule(
         newCreateNameTokenValues,
         updateCompletionStatus,
         selectRulesStateSliceForCompleteCreateNames(state),
-    )
+    );
 }
 
 export function addOrReplaceCreateNameTokenValues(
@@ -282,7 +282,7 @@ export function addOrReplaceCreateNameTokenValues(
         oldCreateNameTokenValueLocalIds,
         updateCompletionStatus,
         rulesStateSliceForCompleteCreateNames: selectRulesStateSliceForCompleteCreateNames(state),
-    })
+    });
 }
 
 export function deleteCreateNameTokenValue(
@@ -294,7 +294,7 @@ export function deleteCreateNameTokenValue(
         createNameTokenValue,
         updateCompletionStatus,
         rulesStateSliceForCompleteCreateNames: selectRulesStateSliceForCompleteCreateNames(state),
-    })
+    });
 }
 
 export function setCreateNameRuleCounterValues(
@@ -306,31 +306,31 @@ export function setCreateNameRuleCounterValues(
         ruleCounterValuesByCreateNameLocalId,
         updateCompletionStatus,
         rulesStateSliceForCompleteCreateNames: selectRulesStateSliceForCompleteCreateNames(state),
-    })
+    });
 }
 
 export function addCreateNameGroupsToSelection(createNameGroupIds: string[]) {
-    return makeActionObject(ADD_CREATE_NAME_GROUPS_TO_SELECTION, { createNameGroupIds })
+    return makeActionObject(ADD_CREATE_NAME_GROUPS_TO_SELECTION, { createNameGroupIds });
 }
 
 export function removeCreateNameGroupsFromSelection(createNameGroupIds: string[]) {
-    return makeActionObject(REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION, { createNameGroupIds })
+    return makeActionObject(REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION, { createNameGroupIds });
 }
 
 export function clearCreateNameGroupsSelection() {
-    return makeActionObject(CLEAR_CREATE_NAME_GROUPS_SELECTION, {})
+    return makeActionObject(CLEAR_CREATE_NAME_GROUPS_SELECTION, {});
 }
 
 export function setCreateNameGroupsSelectionFromSearchCriteria() {
-    return makeActionObject(SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA, {})
+    return makeActionObject(SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA, {});
 }
 
 export function setCreateNameGroupsFilterFromSearchCriteria() {
-    return makeActionObject(SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA, {})
+    return makeActionObject(SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA, {});
 }
 
 export function clearCreateNameGroupsFilter() {
-    return makeActionObject(CLEAR_CREATE_NAME_GROUPS_FILTER, {})
+    return makeActionObject(CLEAR_CREATE_NAME_GROUPS_FILTER, {});
 }
 
 export function deleteGroupsWithNames(
@@ -342,7 +342,7 @@ export function deleteGroupsWithNames(
         createNameGroupIds,
         updateCompletionStatus,
         rulesStateSliceForCompleteCreateNames: selectRulesStateSliceForCompleteCreateNames(state),
-    })
+    });
 }
 
 export function deleteSelectedGroupsWithNames(
@@ -352,60 +352,60 @@ export function deleteSelectedGroupsWithNames(
     return makeActionObject(DELETE_SELECTED_GROUPS_WITH_NAMES, {
         updateCompletionStatus,
         rulesStateSliceForCompleteCreateNames: selectRulesStateSliceForCompleteCreateNames(state),
-    })
+    });
 }
 
 export function addCreateNameGroupsToSearchCriteria(createNameGroupLocalIds: string[]) {
-    return makeActionObject(ADD_CREATE_NAME_GROUPS_TO_SEARCH_CRITERIA, { createNameGroupLocalIds })
+    return makeActionObject(ADD_CREATE_NAME_GROUPS_TO_SEARCH_CRITERIA, { createNameGroupLocalIds });
 }
 
 export function removeCreateNameGroupsFromSearchCriteria(createNameGroupLocalIds: string[]) {
-    return makeActionObject(REMOVE_CREATE_NAME_GROUPS_FROM_SEARCH_CRITERIA, { createNameGroupLocalIds })
+    return makeActionObject(REMOVE_CREATE_NAME_GROUPS_FROM_SEARCH_CRITERIA, { createNameGroupLocalIds });
 }
 
 export function addCreateNameGroupsToReplaceCriteria(createNameGroupLocalIds: string[]) {
-    return makeActionObject(ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA, { createNameGroupLocalIds })
+    return makeActionObject(ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA, { createNameGroupLocalIds });
 }
 
 export function removeCreateNameGroupsFromReplaceCriteria(createNameGroupLocalIds: string[]) {
-    return makeActionObject(REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA, { createNameGroupLocalIds })
+    return makeActionObject(REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA, { createNameGroupLocalIds });
 }
 
 export function addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria(
     state: State,
     updateCompletionStatus: boolean = true,
 ) {
-    const namesState = state.names
+    const namesState = state.names;
 
     // TODO: support multiple CreateNameGroups for criteria?
     const replaceCriteria = createSearchReplaceCriteriaFromGroups(
         namesState, namesState.createNameGroups.replaceLocalIds
-    )[0].byRuleName
+    )[0].byRuleName;
 
-    const newCntvs: CreateNameTokenValue[] = []
-    const oldCntvLocalIds: string[] = []
-    const newCounterValuesByCnLocalId: Record<string, number | undefined> = {}
+    const newCntvs: CreateNameTokenValue[] = [];
+    const oldCntvLocalIds: string[] = [];
+    const newCounterValuesByCnLocalId: Record<string, number | undefined> = {};
 
     for (const selectionGroupId of namesState.createNameGroups.selectionLocalIds) {
-        const selectionCnLocalIds = namesState.createNames.byCreateNameGroupLocalId[selectionGroupId]
+        const selectionCnLocalIds = namesState.createNames.byCreateNameGroupLocalId[selectionGroupId];
 
         for (const selectionCnLocalId of selectionCnLocalIds) {
-            const selectionCn = namesState.createNames.byLocalId[selectionCnLocalId]
+            const selectionCn = namesState.createNames.byLocalId[selectionCnLocalId];
 
             const selectionCntvs = (namesState.createNameTokenValues.byCreateNameLocalId[selectionCnLocalId] || [])
-                .map(cntvLocalId => namesState.createNameTokenValues.byLocalId[cntvLocalId])
+                .map(cntvLocalId => namesState.createNameTokenValues.byLocalId[cntvLocalId]);
             const replaceCntvs = (replaceCriteria[selectionCn.ruleName]?.createNameTokenValueLocalIds || [])
-                .map(cntvLocalId => namesState.createNameTokenValues.byLocalId[cntvLocalId])
+                .map(cntvLocalId => namesState.createNameTokenValues.byLocalId[cntvLocalId]);
 
             for (const replaceCntv of replaceCntvs) {
 
                 // create or replace TokenValues
                 const selectionCntv: CreateNameTokenValue | undefined = selectionCntvs.find(cntv => {
-                    return cntv.ruleTokenLocalId == replaceCntv.ruleTokenLocalId
-                })
+                    return cntv.ruleTokenLocalId == replaceCntv.ruleTokenLocalId;
+                });
 
                 if (selectionCntv?.tokenValueLocalId == replaceCntv.tokenValueLocalId) {
-                    continue
+                    continue;
                 }
 
                 newCntvs.push({
@@ -413,18 +413,18 @@ export function addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplace
                     tokenValueLocalId: replaceCntv.tokenValueLocalId,
                     createNameLocalId: selectionCn.localId,
                     ruleTokenLocalId: replaceCntv.ruleTokenLocalId,
-                })
+                });
 
                 if (selectionCntv) {
-                    oldCntvLocalIds.push(selectionCntv.localId)
+                    oldCntvLocalIds.push(selectionCntv.localId);
                 }
             }
 
             // update counterValue
-            const newCounterValue = replaceCriteria[selectionCn.ruleName]?.ruleCounterValue
+            const newCounterValue = replaceCriteria[selectionCn.ruleName]?.ruleCounterValue;
 
             if (newCounterValue != undefined && selectionCn.ruleCounterValue != newCounterValue) {
-                newCounterValuesByCnLocalId[selectionCn.localId] = newCounterValue
+                newCounterValuesByCnLocalId[selectionCn.localId] = newCounterValue;
             }
         }
     }
@@ -432,7 +432,7 @@ export function addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplace
     return [
         addOrReplaceCreateNameTokenValues(newCntvs, oldCntvLocalIds, state, updateCompletionStatus),
         setCreateNameRuleCounterValues(newCounterValuesByCnLocalId, state, updateCompletionStatus),
-    ]
+    ];
 }
 
 
@@ -441,7 +441,7 @@ function setMagmaNamesCreationRequest(requestState: NamesCreationRequestState) {
         status: requestState.status,
         statusMessage: requestState.statusMessage,
         response: requestState.response,
-    })
+    });
 }
 
 
@@ -449,30 +449,30 @@ export function makeCreateNamesCreationRequest(projectName: string, payloads: Co
     const names = payloads.map(payload => ({
         rule_name: payload.ruleName,
         name: payload.renderedName,
-    }))
+    }));
 
     return async (dispatch: ReturnType<typeof useDispatch>) => {
-        dispatch(setMagmaNamesCreationRequest({ status: "inProgress" }))
+        dispatch(setMagmaNamesCreationRequest({ status: 'inProgress' }));
 
         try {
-            const response = await postNameBatchToMagma(projectName, names)
+            const response = await postNameBatchToMagma(projectName, names);
 
             dispatch(setMagmaNamesCreationRequest({
-                status: "success",
+                status: 'success',
                 response,
-            }))
+            }));
         } catch (error) {
             dispatch(setMagmaNamesCreationRequest({
-                status: "error",
+                status: 'error',
                 statusMessage: String(error)
-            }))
+            }));
         }
-    }
+    };
 }
 
 
 export function setCreateNameGroupComposeError(createNameGroupLocalId: string, hasError: boolean) {
-    return makeActionObject(SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP, { createNameGroupLocalId, hasError })
+    return makeActionObject(SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP, { createNameGroupLocalId, hasError });
 }
 
 
@@ -482,7 +482,7 @@ export function setMagmaNamesListRequest(requestState: NamesListRequestState, ru
         statusMessage: requestState.statusMessage,
         response: requestState.response,
         ruleName,
-    })
+    });
 }
 
 

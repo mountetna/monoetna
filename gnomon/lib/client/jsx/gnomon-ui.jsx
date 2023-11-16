@@ -63,6 +63,6 @@ const GnomonUI = () => {
       </div>
     </ThemeProvider>
   );
-}
+};
 
 export default GnomonUI;

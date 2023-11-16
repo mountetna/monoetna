@@ -1,24 +1,24 @@
-import React, { useState, useRef } from "react";
-import Grid from "@material-ui/core/Grid";
-import { useSelector, batch } from 'react-redux'
-import ButtonBase from "@material-ui/core/ButtonBase";
-import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
-import Checkbox from "@material-ui/core/Checkbox";
+import React, { useState, useRef } from 'react';
+import Grid from '@material-ui/core/Grid';
+import { useSelector, batch } from 'react-redux';
+import ButtonBase from '@material-ui/core/ButtonBase';
+import DeleteOutlineOutlinedIcon from '@material-ui/icons/DeleteOutlineOutlined';
+import Checkbox from '@material-ui/core/Checkbox';
 import { makeStyles } from '@material-ui/core/styles';
-import _ from "lodash";
+import _ from 'lodash';
 import UnfoldLessOutlinedIcon from '@material-ui/icons/UnfoldLessOutlined';
 import UnfoldMoreOutlinedIcon from '@material-ui/icons/UnfoldMoreOutlined';
-import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
-import { useVirtualizer } from '@tanstack/react-virtual'
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
-import { CreateNameGroup } from "../../models";
-import CreateNameGroupComposer from "./name-composer/name-composer";
-import { selectComposeErrorsByCreateNameGroupLocalId, selectCreateNameGroupsWithLocalIds, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names";
-import { deleteGroupsWithNames, createNamesWithGroupForRule, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../actions/names";
-import { useDispatch } from "../../utils/redux";
-import { selectGlobalState } from "../../selectors/global";
-import Counts, { Count } from "./counts";
-import ConfirmationPopper from "../../utils/confirmation-popper";
+import { CreateNameGroup } from '../../models';
+import CreateNameGroupComposer from './name-composer/name-composer';
+import { selectComposeErrorsByCreateNameGroupLocalId, selectCreateNameGroupsWithLocalIds, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectSelectedCreateNameGroupIds } from '../../selectors/names';
+import { deleteGroupsWithNames, createNamesWithGroupForRule, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from '../../actions/names';
+import { useDispatch } from '../../utils/redux';
+import { selectGlobalState } from '../../selectors/global';
+import Counts, { Count } from './counts';
+import ConfirmationPopper from '../../utils/confirmation-popper';
 
 
 
@@ -28,133 +28,133 @@ function createReadyCounts(
     composeErrorsByCreateNameGroupLocalId: Record<string, boolean>,
 ): Count[] {
 
-    let total = 0
-    let notReady = 0
+    let total = 0;
+    let notReady = 0;
 
     for (const cng of createNameGroups) {
-        total += 1
+        total += 1;
         if (
             !(cng.localId in renderedCompleteCreateNamesByCreateNameGroupLocalId)
             || composeErrorsByCreateNameGroupLocalId[cng.localId]
         ) {
-            notReady += 1
+            notReady += 1;
         }
     }
 
-    const counts: Count[] = []
+    const counts: Count[] = [];
     counts.push({
-        name: "total",
-        description: `name${total > 1 ? "s" : ""}`,
+        name: 'total',
+        description: `name${total > 1 ? 's' : ''}`,
         value: total,
-    })
+    });
     counts.push({
-        name: "not-ready",
-        description: "not ready",
+        name: 'not-ready',
+        description: 'not ready',
         value: notReady,
         hideAtZero: true,
-    })
-    return counts
+    });
+    return counts;
 }
 
 
 const useStyles = makeStyles((theme) => ({
     gridContainer: {
-        display: "inline-block",
-        width: "34em",
-        maxWidth: "100%",
-        marginBottom: "4em",
+        display: 'inline-block',
+        width: '34em',
+        maxWidth: '100%',
+        marginBottom: '4em',
     },
     innerContainer: {},
     headerContainer: {
-        alignItems: "center",
-        marginBottom: "0.5em",
+        alignItems: 'center',
+        marginBottom: '0.5em',
     },
     tools: {
-        textAlign: "left",
+        textAlign: 'left',
     },
     checkbox: {
-        padding: "0",
+        padding: '0',
     },
     ruleNameTitle: {
-        textAlign: "center",
-        fontWeight: "bold",
-        fontSize: "18px",
+        textAlign: 'center',
+        fontWeight: 'bold',
+        fontSize: '18px',
     },
     readyCounts: {
-        fontWeight: "bold",
-        textAlign: "right",
-        "& .count-not-ready": {
-            color: "red",
+        fontWeight: 'bold',
+        textAlign: 'right',
+        '& .count-not-ready': {
+            color: 'red',
         },
     },
     composersContainer: {
-        maxHeight: "50vh",
-        overflow: "scroll",
-        border: "2px solid black",
-        borderRadius: "6px",
-        "&.some-not-ready": {
-            borderColor: "red"
+        maxHeight: '50vh',
+        overflow: 'scroll',
+        border: '2px solid black',
+        borderRadius: '6px',
+        '&.some-not-ready': {
+            borderColor: 'red'
         },
-        padding: "2em",
-        "& .placeholder": {
-            display: "none",
+        padding: '2em',
+        '& .placeholder': {
+            display: 'none',
         },
-        "&.collapsed": {
-            transition: "background 0.2s ease-out",
-            "& > .placeholder": {
-                display: "block",
+        '&.collapsed': {
+            transition: 'background 0.2s ease-out',
+            '& > .placeholder': {
+                display: 'block',
             },
-            "& > :not(.placeholder)": {
-                display: "none",
+            '& > :not(.placeholder)': {
+                display: 'none',
             },
         },
-        "&.collapsed:hover": {
-            cursor: "pointer",
-            background: "rgba(0, 0, 0, 0.05)",
+        '&.collapsed:hover': {
+            cursor: 'pointer',
+            background: 'rgba(0, 0, 0, 0.05)',
         },
     },
     composerList: {},
     composerRowContainer: {
-        "&:not(:last-child) > div": {
-            paddingBottom: "1em",
+        '&:not(:last-child) > div': {
+            paddingBottom: '1em',
         }
     },
     composerContainer: {
-        textAlign: "left",
+        textAlign: 'left',
     },
 }));
 
 
 const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createNameGroupLocalIds: string[], ruleName: string }) => {
     const [collapsed, setCollapsed] = useState<boolean>(false);
-    const [deleteConfirmationPopperOpen, setDeleteConfirmationPopperOpen] = useState<boolean>(false)
+    const [deleteConfirmationPopperOpen, setDeleteConfirmationPopperOpen] = useState<boolean>(false);
 
-    const deleteButtonRef = useRef(null)
+    const deleteButtonRef = useRef(null);
 
-    const dispatch = useDispatch()
-    const classes = useStyles()
+    const dispatch = useDispatch();
+    const classes = useStyles();
 
-    const createNameGroups = useSelector(selectCreateNameGroupsWithLocalIds(createNameGroupLocalIds))
-    const globalState = useSelector(selectGlobalState)
-    const selectedCreateNameGroupLocalIds = useSelector(selectSelectedCreateNameGroupIds)
-    const renderedCompleteCreateNamesByCreateNameGroupLocalId = useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)
-    const composeErrorsByCreateNameGroupLocalId = useSelector(selectComposeErrorsByCreateNameGroupLocalId)
+    const createNameGroups = useSelector(selectCreateNameGroupsWithLocalIds(createNameGroupLocalIds));
+    const globalState = useSelector(selectGlobalState);
+    const selectedCreateNameGroupLocalIds = useSelector(selectSelectedCreateNameGroupIds);
+    const renderedCompleteCreateNamesByCreateNameGroupLocalId = useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId);
+    const composeErrorsByCreateNameGroupLocalId = useSelector(selectComposeErrorsByCreateNameGroupLocalId);
 
     const readyCounts = createReadyCounts(
         createNameGroups,
         renderedCompleteCreateNamesByCreateNameGroupLocalId,
         composeErrorsByCreateNameGroupLocalId
-    )
-    const someNotReady = readyCounts[1].value > 0
+    );
+    const someNotReady = readyCounts[1].value > 0;
 
     // handle rendering composers with virtual
-    const virtualizerParentRef = React.useRef<HTMLDivElement>(null)
+    const virtualizerParentRef = React.useRef<HTMLDivElement>(null);
     const virtualizer = useVirtualizer({
         count: createNameGroups.length,
         getScrollElement: () => virtualizerParentRef.current,
         estimateSize: () => 65,
         overscan: 500,
-    })
+    });
 
     // TODO: switch to this rendering strategy when it's performant
     const renderComposersWithVirtual = () => {
@@ -163,22 +163,22 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                 className={classes.composerList}
                 style={{
                     height: virtualizer.getTotalSize(),
-                    width: "100%",
-                    position: "relative",
+                    width: '100%',
+                    position: 'relative',
                 }}
             >
                 {
                     virtualizer.getVirtualItems().map((row) => {
-                        const createNameGroup = createNameGroups[row.index]
+                        const createNameGroup = createNameGroups[row.index];
 
                         return (
                             <div
                                 key={createNameGroup.localId}
                                 style={{
-                                    position: "absolute",
+                                    position: 'absolute',
                                     top: 0,
                                     left: 0,
-                                    width: "100%",
+                                    width: '100%',
                                     height: `${row.size}px`,
                                     transform: `translateY(${row.start}px)`,
                                 }}
@@ -192,12 +192,12 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                                     <CreateNameGroupComposer createNameGroup={createNameGroup} includeTools />
                                 </div>
                             </div>
-                        )
+                        );
                     })
                 }
             </div>
-        )
-    }
+        );
+    };
 
     const renderComposers = () => {
         return (
@@ -214,36 +214,36 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                                     <CreateNameGroupComposer createNameGroup={cng} includeTools />
                                 </div>
                             </div>
-                        )
+                        );
                     })
                 }
             </div>
-        )
-    }
+        );
+    };
 
     const handleClickAdd = () => {
-        dispatch(createNamesWithGroupForRule(ruleName, globalState, true))
-    }
+        dispatch(createNamesWithGroupForRule(ruleName, globalState, true));
+    };
 
     const handleClickSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
-            dispatch(addCreateNameGroupsToSelection(createNameGroupLocalIds))
-            return
+            dispatch(addCreateNameGroupsToSelection(createNameGroupLocalIds));
+            return;
         }
-        dispatch(removeCreateNameGroupsFromSelection(createNameGroupLocalIds))
-    }
+        dispatch(removeCreateNameGroupsFromSelection(createNameGroupLocalIds));
+    };
 
     const handleConfirmDelete = (confirmed: boolean) => {
         if (!confirmed) {
-            setDeleteConfirmationPopperOpen(false)
-            return
+            setDeleteConfirmationPopperOpen(false);
+            return;
         }
 
         batch(() => {
-            dispatch(deleteGroupsWithNames(createNameGroupLocalIds, globalState))
-            setDeleteConfirmationPopperOpen(false)
-        })
-    }
+            dispatch(deleteGroupsWithNames(createNameGroupLocalIds, globalState));
+            setDeleteConfirmationPopperOpen(false);
+        });
+    };
 
     return (
         <div className={classes.gridContainer}>
@@ -259,7 +259,7 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                             />
                             <ButtonBase
                                 onClick={() => setCollapsed(prev => !prev)}
-                                aria-label={"Toggle Expand/Collapse"}
+                                aria-label={'Toggle Expand/Collapse'}
                                 disableRipple
                                 disableTouchRipple
                             >
@@ -301,7 +301,7 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                     </Grid>
                 </Grid>
                 <div
-                    className={`${classes.composersContainer} ${someNotReady ? "some-not-ready" : ""} ${collapsed ? "collapsed" : ""}`}
+                    className={`${classes.composersContainer} ${someNotReady ? 'some-not-ready' : ''} ${collapsed ? 'collapsed' : ''}`}
                     onClick={() => collapsed && setCollapsed(false)}
                     ref={virtualizerParentRef}
                 >
@@ -310,7 +310,7 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default CreateNameGroupRuleGroupCompose;

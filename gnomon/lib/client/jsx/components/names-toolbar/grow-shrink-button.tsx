@@ -1,7 +1,7 @@
-import React from "react";
+import React from 'react';
 import UnfoldLessOutlinedIcon from '@material-ui/icons/UnfoldLessOutlined';
 import UnfoldMoreOutlinedIcon from '@material-ui/icons/UnfoldMoreOutlined';
-import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
+import ToolbarButtonWithPopper from './toolbar-button-with-popper';
 
 
 
@@ -11,13 +11,13 @@ const GrowShrinkButton = ({ small, onClick }: {
 }) => {
     return (
         <ToolbarButtonWithPopper
-            text={small ? "Grow" : "Shrink"}
+            text={small ? 'Grow' : 'Shrink'}
             iconComponent={small ? <UnfoldMoreOutlinedIcon /> : <UnfoldLessOutlinedIcon />}
-            variant={small ? "compact" : "full"}
+            variant={small ? 'compact' : 'full'}
             color="secondary"
             onClickOrPopperChange={onClick}
         />
-    )
+    );
 };
 
 export default GrowShrinkButton;

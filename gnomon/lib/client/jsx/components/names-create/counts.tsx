@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
 
@@ -13,14 +13,14 @@ export interface Count {
 
 const useStyles = makeStyles((theme) => ({
     container: {
-        display: "block",
+        display: 'block',
     },
     count: {
-        fontStyle: "italic",
-        fontWeight: "bold",
+        fontStyle: 'italic',
+        fontWeight: 'bold',
     },
     separator: {
-        fontWeight: "bold",
+        fontWeight: 'bold',
     }
 }));
 
@@ -31,13 +31,13 @@ const Counts = ({ counts, className, separator, onClick }: {
     separator?: string,
     onClick?: (countName: string) => void,
 }) => {
-    const classes = useStyles()
+    const classes = useStyles();
 
-    counts = counts.filter(count => !(count.hideAtZero && count.value == 0))
+    counts = counts.filter(count => !(count.hideAtZero && count.value == 0));
 
     return (
         <div
-            className={`${classes.container} ${className ? className : ""}`}
+            className={`${classes.container} ${className ? className : ''}`}
         >
             {counts.map((count, idx) =>
                 <React.Fragment key={count.name}>
@@ -54,8 +54,8 @@ const Counts = ({ counts, className, separator, onClick }: {
                 </React.Fragment>
             )}
         </div>
-    )
-}
+    );
+};
 
 
-export default Counts
+export default Counts;

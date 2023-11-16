@@ -1,70 +1,70 @@
-import React from "react";
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { useSelector } from 'react-redux'
-import ButtonBase from "@material-ui/core/ButtonBase";
+import { useSelector } from 'react-redux';
+import ButtonBase from '@material-ui/core/ButtonBase';
 import FormControl from '@material-ui/core/FormControl';
-import _ from "lodash";
+import _ from 'lodash';
 
-import { selectCompleteCreateNameParentLocalIdsByRenderedValues, selectRenderedCompleteCreateNamesByLocalId } from "../../../selectors/names";
-import { fetchNextCounterValueFromMagma } from "../../../utils/names";
-import { selectRuleParentLocalIdsByRuleName } from "../../../selectors/rules";
-import { UNSET_VALUE } from "../../../models";
-import AutosizeTextInput from "../../../utils/autosize-text-input";
-import { createLocalId } from "../../../utils/models";
+import { selectCompleteCreateNameParentLocalIdsByRenderedValues, selectRenderedCompleteCreateNamesByLocalId } from '../../../selectors/names';
+import { fetchNextCounterValueFromMagma } from '../../../utils/names';
+import { selectRuleParentLocalIdsByRuleName } from '../../../selectors/rules';
+import { UNSET_VALUE } from '../../../models';
+import AutosizeTextInput from '../../../utils/autosize-text-input';
+import { createLocalId } from '../../../utils/models';
 
 
 
 const useStyles = makeStyles((theme) => {
-    const fontSize = "16px"
-    const lineHeight = "1em"
+    const fontSize = '16px';
+    const lineHeight = '1em';
 
     return {
         ruleCounterField: {
-            display: "inline-block",
+            display: 'inline-block',
             lineHeight: lineHeight,
-            "&:not(:last-child)": {
-                marginRight: "0.35em",
+            '&:not(:last-child)': {
+                marginRight: '0.35em',
             },
         },
         form: {
-            alignItems: "flex-end",
+            alignItems: 'flex-end',
         },
         autoIncrementButton: {
-            opacity: "0.25",
-            transition: "opacity 0.2s ease-in",
-            position: "absolute",
-            bottom: "1.5em",
+            opacity: '0.25',
+            transition: 'opacity 0.2s ease-in',
+            position: 'absolute',
+            bottom: '1.5em',
             fontSize: fontSize,
             lineHeight: lineHeight,
-            "&:hover, &:active": {
-                opacity: "1"
+            '&:hover, &:active': {
+                opacity: '1'
             },
         },
         ruleCounterInput: {
-            fontWeight: "bold",
+            fontWeight: 'bold',
             fontSize: fontSize,
-            "& input": {
-                "-moz-appearance": "textfield",
-                padding: "0",
-                height: "unset",
+            '& input': {
+                '-moz-appearance': 'textfield',
+                padding: '0',
+                height: 'unset',
                 lineHeight: lineHeight,
             },
-            "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
-                display: "none",
-                margin: "0",
+            '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
+                display: 'none',
+                margin: '0',
             },
         },
         unset: {
-            color: "red",
-            "& button": {
-                opacity: "1",
+            color: 'red',
+            '& button': {
+                opacity: '1',
             },
-            "& input::placeholder": {
-                opacity: "1",
-                color: "red",
+            '& input::placeholder': {
+                opacity: '1',
+                color: 'red',
             },
         },
-    }
+    };
 });
 
 
@@ -85,30 +85,30 @@ const RuleCounterField = ({
     handleSetCounterValue: (value?: number) => void,
 }) => {
 
-    const classes = useStyles()
-    const formId = createLocalId()
+    const classes = useStyles();
+    const formId = createLocalId();
 
-    const completeCreateNameParentLocalIdsByRenderedValues = useSelector(selectCompleteCreateNameParentLocalIdsByRenderedValues)
-    const needsParentCompleteCreateName = useSelector(selectRuleParentLocalIdsByRuleName)[ruleName] != undefined
-    const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId)
+    const completeCreateNameParentLocalIdsByRenderedValues = useSelector(selectCompleteCreateNameParentLocalIdsByRenderedValues);
+    const needsParentCompleteCreateName = useSelector(selectRuleParentLocalIdsByRuleName)[ruleName] != undefined;
+    const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId);
 
-    let fullRenderedTokensPrefix: string | undefined
+    let fullRenderedTokensPrefix: string | undefined;
     
     if (parentCompleteCreateNameLocalId) {
-        fullRenderedTokensPrefix = renderedCompleteCreateNamesByLocalId[parentCompleteCreateNameLocalId]
+        fullRenderedTokensPrefix = renderedCompleteCreateNamesByLocalId[parentCompleteCreateNameLocalId];
     }
 
     if (
         renderedTokensPrefix != undefined
         && parentCompleteCreateNameLocalId != undefined
     ) {
-        fullRenderedTokensPrefix += renderedTokensPrefix
+        fullRenderedTokensPrefix += renderedTokensPrefix;
 
     } else if (!needsParentCompleteCreateName) {
-        fullRenderedTokensPrefix = renderedTokensPrefix
+        fullRenderedTokensPrefix = renderedTokensPrefix;
     }
 
-    const hasValue = value != undefined
+    const hasValue = value != undefined;
 
     const handleClickAutoIncrement = async () => {
         if (!(
@@ -118,10 +118,10 @@ const RuleCounterField = ({
                 || !needsParentCompleteCreateName
             )
             && fullRenderedTokensPrefix != undefined
-        )) { return }
+        )) { return; }
 
-        const ccnpLocalId: string = parentCompleteCreateNameLocalId != undefined ? parentCompleteCreateNameLocalId : UNSET_VALUE
-        const hierarchyValues: number[] = []
+        const ccnpLocalId: string = parentCompleteCreateNameLocalId != undefined ? parentCompleteCreateNameLocalId : UNSET_VALUE;
+        const hierarchyValues: number[] = [];
 
         if (
             ccnpLocalId in completeCreateNameParentLocalIdsByRenderedValues
@@ -130,34 +130,34 @@ const RuleCounterField = ({
             hierarchyValues.push(
                 ...Object.keys(completeCreateNameParentLocalIdsByRenderedValues[ccnpLocalId][renderedTokensPrefix])
                     .map(el => {
-                        const asNum = Number.parseInt(el)
-                        return Number.isNaN(asNum) ? -1 : asNum
+                        const asNum = Number.parseInt(el);
+                        return Number.isNaN(asNum) ? -1 : asNum;
                     })
-            )
+            );
         }
 
-        const localMaxValue = hierarchyValues.length ? Math.max(...hierarchyValues) : -1
+        const localMaxValue = hierarchyValues.length ? Math.max(...hierarchyValues) : -1;
 
         try {
             const remoteNextValue = await fetchNextCounterValueFromMagma(
                 projectName,
                 ruleName,
                 fullRenderedTokensPrefix,
-            )
-            handleSetCounterValue(Math.max(localMaxValue + 1, remoteNextValue))
+            );
+            handleSetCounterValue(Math.max(localMaxValue + 1, remoteNextValue));
         } catch (err) {
-            console.error(`Error auto-incrementing counterValue: ${err}`)
+            console.error(`Error auto-incrementing counterValue: ${err}`);
         }
-    }
+    };
 
     const handleChangeInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const eventValue = event.target.value
-        const counterValue = eventValue == "" ? undefined : Number(eventValue)
-        handleSetCounterValue(counterValue)
-    }
+        const eventValue = event.target.value;
+        const counterValue = eventValue == '' ? undefined : Number(eventValue);
+        handleSetCounterValue(counterValue);
+    };
 
     return (
-        <span className={classes.ruleCounterField + " " + (!hasValue ? `${classes.unset}` : "")}>
+        <span className={classes.ruleCounterField + ' ' + (!hasValue ? `${classes.unset}` : '')}>
             <FormControl className={classes.form}>
                 <ButtonBase
                     onClick={handleClickAutoIncrement}
@@ -171,7 +171,7 @@ const RuleCounterField = ({
                     +1
                 </ButtonBase>
                 <AutosizeTextInput
-                    value={hasValue ? String(value) : ""}
+                    value={hasValue ? String(value) : ''}
                     onChange={handleChangeInput}
                     type="number"
                     inputMode="numeric"
@@ -183,8 +183,8 @@ const RuleCounterField = ({
                 />
             </FormControl>
         </span>
-    )
-}
+    );
+};
 
 
-export default RuleCounterField
+export default RuleCounterField;

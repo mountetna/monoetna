@@ -1,73 +1,73 @@
-import React, { useEffect } from "react"
-import Grid from "@material-ui/core/Grid"
+import React, { useEffect } from 'react';
+import Grid from '@material-ui/core/Grid';
 import { makeStyles } from '@material-ui/core/styles';
-import { useSelector } from 'react-redux'
-import _ from "lodash"
+import { useSelector } from 'react-redux';
+import _ from 'lodash';
 
-import ProjectHeader from "etna-js/components/project-header";
+import ProjectHeader from 'etna-js/components/project-header';
 
-import NamesCreateToolbar from "./toolbar";
-import CreateNameRuleGroupCompose from "./rule-group-composer";
-import { selectComposeErrorCount, selectCreateNameGroupIdsByPrimaryRule, selectCreateNameGroupsByLocalId, selectFilterCreateNameGroupIds, selectFilterEnabledStatus, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectReplaceCreateNameGroupIds, selectSearchCreateNameGroupIds, selectSelectedCreateNameGroupIds } from "../../selectors/names";
-import { useDispatch } from "../../utils/redux";
-import Counts from "./counts";
-import { clearCreateNameGroupsFilter, clearCreateNameGroupsSelection } from "../../actions/names";
-import { State } from "../../store";
-import { fetchRulesFromMagma } from "../../actions/rules";
+import NamesCreateToolbar from './toolbar';
+import CreateNameRuleGroupCompose from './rule-group-composer';
+import { selectComposeErrorCount, selectCreateNameGroupIdsByPrimaryRule, selectCreateNameGroupsByLocalId, selectFilterCreateNameGroupIds, selectFilterEnabledStatus, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectReplaceCreateNameGroupIds, selectSearchCreateNameGroupIds, selectSelectedCreateNameGroupIds } from '../../selectors/names';
+import { useDispatch } from '../../utils/redux';
+import Counts from './counts';
+import { clearCreateNameGroupsFilter, clearCreateNameGroupsSelection } from '../../actions/names';
+import { State } from '../../store';
+import { fetchRulesFromMagma } from '../../actions/rules';
 
 
 
 const useStyles = makeStyles((theme) => ({
     projectAndToolbarContainer: {
-        display: "flex",
-        borderBottom: "1px solid #ccc",
-        "& > :first-child, & > :last-child": {
-            flex: "1"
+        display: 'flex',
+        borderBottom: '1px solid #ccc',
+        '& > :first-child, & > :last-child': {
+            flex: '1'
         },
-        "& > .placeholder": {
-            visibility: "hidden",
+        '& > .placeholder': {
+            visibility: 'hidden',
         },
     },
     countsList: {
-        marginTop: "0.5em",
-        textAlign: "center"
+        marginTop: '0.5em',
+        textAlign: 'center'
     },
     readyCounts: {
-        display: "inline-block",
+        display: 'inline-block',
         '& .count, & .separator': {
-            display: "inline-block",
+            display: 'inline-block',
         },
-        "& .separator": {
-            margin: "0 0.5em"
+        '& .separator': {
+            margin: '0 0.5em'
         },
-        "& .count-not-ready": {
-            color: "red",
+        '& .count-not-ready': {
+            color: 'red',
         },
     },
     selectedAndFilteredCounts: {
-        display: "inline-block",
-        marginLeft: "4em",
+        display: 'inline-block',
+        marginLeft: '4em',
         '& .count, & .separator': {
-            display: "inline-block",
+            display: 'inline-block',
         },
-        "& .separator": {
-            margin: "0 0.5em"
+        '& .separator': {
+            margin: '0 0.5em'
         },
-        "& .count-filtered": {
-            color: "purple",
+        '& .count-filtered': {
+            color: 'purple',
         },
-        "& .count-selected:hover, .count-filtered:hover": {
-            cursor: "pointer",
-            textDecoration: "line-through",
+        '& .count-selected:hover, .count-filtered:hover': {
+            cursor: 'pointer',
+            textDecoration: 'line-through',
         },
     },
     composerList: {
-        padding: "0 5em",
-        margin: "5.5em 0"
+        padding: '0 5em',
+        margin: '5.5em 0'
     },
     composer: {
-        textAlign: "center",
-        padding: "0 2em",
+        textAlign: 'center',
+        padding: '0 2em',
     },
 }));
 
@@ -83,31 +83,31 @@ function createCountsList(
 ) {
     const readyCounts = [
         {
-            name: "total",
-            description: `name${total > 1 ? "s" : ""}`,
+            name: 'total',
+            description: `name${total > 1 ? 's' : ''}`,
             value: total,
         },
         {
-            name: "not-ready",
-            description: "not ready",
+            name: 'not-ready',
+            description: 'not ready',
             value: notReady,
             hideAtZero: true,
         },
-    ]
+    ];
     const selectedAndFilteredCounts = [
         {
-            name: "selected",
-            description: "selected",
+            name: 'selected',
+            description: 'selected',
             value: selected,
             hideAtZero: true,
         },
         {
-            name: "filtered",
-            description: "hidden by filter",
+            name: 'filtered',
+            description: 'hidden by filter',
             value: filtered,
             hideAtZero: true,
         },
-    ]
+    ];
 
     return (
         <div className={classes.countsList}>
@@ -129,46 +129,46 @@ function createCountsList(
                             counts={selectedAndFilteredCounts}
                             className={classes.selectedAndFilteredCounts}
                             separator="•"
-                            onClick={(countName => countName == "selected" ? handleClickSelected() : handleClickFiltered())}
+                            onClick={(countName => countName == 'selected' ? handleClickSelected() : handleClickFiltered())}
                         />
                     </React.Fragment>)
                     : undefined
             }
         </div>
-    )
+    );
 }
 
 
 const NamesCreate = ({ project_name }: { project_name: string }) => {
-    const dispatch = useDispatch()
-    const classes = useStyles()
+    const dispatch = useDispatch();
+    const classes = useStyles();
 
     // @ts-ignore
-    const createNameGroupsIdsByPrimaryRule = useSelector((state: State) => selectCreateNameGroupIdsByPrimaryRule(state, true, true))
-    const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length
-    let totalCreateNameGroupsCount = Object.keys(useSelector(selectCreateNameGroupsByLocalId)).length
-    const searchCreateNameGroupIds = useSelector(selectSearchCreateNameGroupIds).size
-    const replaceCreateNameGroupIds = useSelector(selectReplaceCreateNameGroupIds).size
-    totalCreateNameGroupsCount -= (searchCreateNameGroupIds + replaceCreateNameGroupIds)
-    const selectionCreateNameGroupsCount = useSelector(selectSelectedCreateNameGroupIds).size
-    const filterCreateNameGroupsCount = useSelector(selectFilterCreateNameGroupIds).size
-    const filterEnabled = useSelector(selectFilterEnabledStatus)
-    const composeErrorCount = useSelector(selectComposeErrorCount)
+    const createNameGroupsIdsByPrimaryRule = useSelector((state: State) => selectCreateNameGroupIdsByPrimaryRule(state, true, true));
+    const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length;
+    let totalCreateNameGroupsCount = Object.keys(useSelector(selectCreateNameGroupsByLocalId)).length;
+    const searchCreateNameGroupIds = useSelector(selectSearchCreateNameGroupIds).size;
+    const replaceCreateNameGroupIds = useSelector(selectReplaceCreateNameGroupIds).size;
+    totalCreateNameGroupsCount -= (searchCreateNameGroupIds + replaceCreateNameGroupIds);
+    const selectionCreateNameGroupsCount = useSelector(selectSelectedCreateNameGroupIds).size;
+    const filterCreateNameGroupsCount = useSelector(selectFilterCreateNameGroupIds).size;
+    const filterEnabled = useSelector(selectFilterEnabledStatus);
+    const composeErrorCount = useSelector(selectComposeErrorCount);
 
     useEffect(() => {
         async function addRulesFromMagma() {
-            dispatch(await fetchRulesFromMagma(project_name))
+            dispatch(await fetchRulesFromMagma(project_name));
         }
-        addRulesFromMagma()
+        addRulesFromMagma();
     }, []);
 
     const handleClickSelected = () => {
-        dispatch(clearCreateNameGroupsSelection())
-    }
+        dispatch(clearCreateNameGroupsSelection());
+    };
 
     const handleClickFiltered = () => {
-        dispatch(clearCreateNameGroupsFilter())
-    }
+        dispatch(clearCreateNameGroupsFilter());
+    };
 
     return (
         <React.Fragment>
@@ -200,12 +200,12 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
                                     ruleName={ruleName}
                                 />
                             </Grid>
-                        )
+                        );
                     })
                 }
             </Grid>
         </React.Fragment>
-    )
+    );
 };
 
 export default NamesCreate;

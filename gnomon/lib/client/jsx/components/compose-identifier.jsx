@@ -121,21 +121,21 @@ const Letters = ({seq, className }) => {
         (l,i) => <Letter key={i} letter={l}/>
       )
     }
-  </Grid>
-}
+  </Grid>;
+};
 
 const Token = ({token, value}) => {
   const classes = useStyles();
 
   return <Grid style={{position: 'relative'}}>
     <Letters className={classes[(value ? 'resolved' : token.type)]} seq={ token.seq }/>
-  </Grid>
-}
+  </Grid>;
+};
 
 function matchIds(ids, idRegex) {
-  if (ids == null) return null
-  const re = new RegExp('^'+idRegex+'$')
-  return ids.filter(id => re.test(id.identifier))
+  if (ids == null) return null;
+  const re = new RegExp('^'+idRegex+'$');
+  return ids.filter(id => re.test(id.identifier));
 }
 
 const CreateButton = ({project_name, rule_name, identifier, onMouseOver, onMouseOut, update}) => {
@@ -146,8 +146,8 @@ const CreateButton = ({project_name, rule_name, identifier, onMouseOver, onMouse
     onMouseOver={onMouseOver}
     onMouseOut={onMouseOut}
     size='large'
-    color='primary'>Create</Button>
-}
+    color='primary'>Create</Button>;
+};
 
 const firstValue = token => Object.values(token.values)[0];
 const firstKey = token => Object.keys(token.values)[0];
@@ -167,7 +167,7 @@ const regexForTokens = (tokens) => {
   }).join('');
 
   return regex;
-}
+};
 
 const setTokens = (state, action) => {
   const [ _, tokens ] = action.tokens.reduce(
@@ -207,8 +207,8 @@ const setTokens = (state, action) => {
     seq: tokens.map( t => t.seq ).join(''),
     height: tokens.length ? tokens[tokens.length - 1].height : 0,
     regex: regexForTokens(tokens)
-  }
-}
+  };
+};
 
 const setValue = (state, action) => {
   const token = state.tokens[action.pos];
@@ -236,7 +236,7 @@ const setValue = (state, action) => {
             from,
             to: from + token.seq.length
           }
-        )
+        );
         return afterTokens;
       }, []
     )
@@ -247,8 +247,8 @@ const setValue = (state, action) => {
     tokens,
     seq: tokens.map(t => t.seq).join(''),
     regex: regexForTokens(tokens)
-  }
-}
+  };
+};
 export const reducer = (state, action) => {
   switch(action.type) {
     case 'SET_TOKENS':
@@ -258,7 +258,7 @@ export const reducer = (state, action) => {
     default:
       return state;
   }
-}
+};
 
 const ComposeIdentifier = ({project_name, rule_name}) => {
   // 'MVIR1-HS169-D0PL1-CTK1';
@@ -278,10 +278,10 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
   useEffect( () => {
     json_get(magmaPath(`gnomon/${project_name}/list/${rule_name}`)).then(
       id_list => setNames(id_list)
-    )
+    );
     json_get(magmaPath(`gnomon/${project_name}/rule/${rule_name}`)).then(
       ({rule}) => dispatch({ type: 'SET_TOKENS', tokens: rule })
-    )
+    );
   }, [] );
 
   useEffect( () => {
@@ -364,7 +364,7 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
           title='Matching Names' boxClassName={classes.table_column}/>
       </Grid>
     </Grid>
-  </Grid>
-}
+  </Grid>;
+};
 
 export default ComposeIdentifier;

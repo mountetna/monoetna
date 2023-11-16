@@ -1,29 +1,29 @@
-import React from "react";
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import Button from "@material-ui/core/Button";
-import Popper from "@material-ui/core/Popper";
-import Grow from "@material-ui/core/Grow";
-import ClickAwayListener from "@material-ui/core/ClickAwayListener";
-import Paper from "@material-ui/core/Paper";
+import Button from '@material-ui/core/Button';
+import Popper from '@material-ui/core/Popper';
+import Grow from '@material-ui/core/Grow';
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Paper from '@material-ui/core/Paper';
 
 
 
 const useStyles = makeStyles((theme) => ({
     paper: {
-        borderRadius: "6px",
-        padding: "1em",
+        borderRadius: '6px',
+        padding: '1em',
     },
     popper: {
-        maxWidth: "min-content",
-        "& > :not(:last-child)": {
-            marginBottom: "1em",
+        maxWidth: 'min-content',
+        '& > :not(:last-child)': {
+            marginBottom: '1em',
         }
     },
     buttonsContainer: {
-        display: "flex",
-        justifyContent: "center",
-        "& button:not(:last-child)": {
-            marginRight: "1em",
+        display: 'flex',
+        justifyContent: 'center',
+        '& button:not(:last-child)': {
+            marginRight: '1em',
         },
     },
 }));
@@ -37,7 +37,7 @@ const ConfirmationPopper = ({ text, open, onConfirm, onClose, className, anchorR
     className?: string
     anchorRef: React.RefObject<HTMLElement>,
 }) => {
-    const classes = useStyles()
+    const classes = useStyles();
 
     return (
         <Popper
@@ -50,13 +50,13 @@ const ConfirmationPopper = ({ text, open, onConfirm, onClose, className, anchorR
             {({ TransitionProps }) => (
                 <Grow
                     {...TransitionProps}
-                    style={{ transformOrigin: "center top" }}
+                    style={{ transformOrigin: 'center top' }}
                     exit={false}
                 >
                     <Paper variant="outlined" className={classes.paper}>
                         <ClickAwayListener onClickAway={onClose}>
 
-                            <div className={`${classes.popper} ${className != undefined ? className : ""}`}>
+                            <div className={`${classes.popper} ${className != undefined ? className : ''}`}>
                                 {text?.length && <div>{text}</div>}
 
                                 <div className={classes.buttonsContainer}>
@@ -87,8 +87,8 @@ const ConfirmationPopper = ({ text, open, onConfirm, onClose, className, anchorR
                 </Grow>
             )}
         </Popper>
-    )
-}
+    );
+};
 
 
-export default ConfirmationPopper
+export default ConfirmationPopper;

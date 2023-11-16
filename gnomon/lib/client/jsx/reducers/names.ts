@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash';
 
 import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue, UNSET_VALUE } from '../models';
 import {
@@ -24,8 +24,8 @@ import {
     SET_MAGMA_NAMES_LIST_REQUEST,
 } from '../actions/names';
 import { listToIdObject, listToIdGroupObject, defaultDict } from '../utils/object';
-import { difference, intersection } from '../utils/set'
-import { MagmaBulkGenerateResponse, MagmaListName, SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups, renderCounter, renderTokens } from '../utils/names'
+import { difference, intersection } from '../utils/set';
+import { MagmaBulkGenerateResponse, MagmaListName, SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups, renderCounter, renderTokens } from '../utils/names';
 import { RulesStateSliceForCompleteCreateNames } from '../selectors/global';
 import { createLocalId } from '../utils/models';
 import { MagmaRequestState } from '../utils/names';
@@ -163,9 +163,9 @@ const initialState: NamesState = {
         filterEnabled: false,
         composeErrorsByLocalId: {},
     },
-    creationRequest: { status: "idle" },
+    creationRequest: { status: 'idle' },
     magmaNamesListRequestsByRuleName: {},
-}
+};
 
 
 export function namesReducer(state: NamesState = initialState, action: ACTION_TYPE): NamesState {
@@ -178,20 +178,20 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                 action.updateCompletionStatus,
                 action.rulesStateSliceForCompleteCreateNames,
                 state,
-            )
+            );
         case DELETE_GROUPS_WITH_NAMES:
             return deleteGroupsWithNames(
                 action.createNameGroupIds,
                 action.updateCompletionStatus,
                 action.rulesStateSliceForCompleteCreateNames,
                 state,
-            )
+            );
         case DELETE_SELECTED_GROUPS_WITH_NAMES:
             return deleteSelectedGroupsWithNames(
                 action.updateCompletionStatus,
                 action.rulesStateSliceForCompleteCreateNames,
                 state,
-            )
+            );
         case ADD_AND_REMOVE_CREATE_NAME_TOKEN_VALUES:
             return addCreateNameTokenValues(
                 action.newCreateNameTokenValues,
@@ -203,55 +203,55 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                     action.rulesStateSliceForCompleteCreateNames,
                     state
                 ),
-            )
+            );
         case DELETE_CREATE_NAME_TOKEN_VALUE:
             return deleteCreateNameTokenValues(
                 [action.createNameTokenValue.localId],
                 action.updateCompletionStatus,
                 action.rulesStateSliceForCompleteCreateNames,
                 state
-            )
+            );
         case SET_COUNTER_VALUE_FOR_CREATE_NAMES:
             return setRuleCounterValueForCreateNames(
                 action.ruleCounterValuesByCreateNameLocalId,
                 action.updateCompletionStatus,
                 action.rulesStateSliceForCompleteCreateNames,
                 state
-            )
+            );
         case ADD_CREATE_NAME_GROUPS_TO_SELECTION:
-            return addGroupsToSelection(action.createNameGroupIds, state)
+            return addGroupsToSelection(action.createNameGroupIds, state);
         case REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION:
-            return removeGroupsFromSelection(action.createNameGroupIds, state)
+            return removeGroupsFromSelection(action.createNameGroupIds, state);
         case CLEAR_CREATE_NAME_GROUPS_SELECTION:
-            return deselectAllGroups(state)
+            return deselectAllGroups(state);
         case CLEAR_CREATE_NAME_GROUPS_FILTER:
-            return disableGroupFilter(state)
+            return disableGroupFilter(state);
         case ADD_CREATE_NAME_GROUPS_TO_SEARCH_CRITERIA:
-            return addGroupsToSearch(action.createNameGroupLocalIds, state)
+            return addGroupsToSearch(action.createNameGroupLocalIds, state);
         case REMOVE_CREATE_NAME_GROUPS_FROM_SEARCH_CRITERIA:
-            return removeGroupsFromSearch(action.createNameGroupLocalIds, state)
+            return removeGroupsFromSearch(action.createNameGroupLocalIds, state);
         case SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA:
-            return setGroupsSelectionFromSearchCriteria(state)
+            return setGroupsSelectionFromSearchCriteria(state);
         case SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA:
-            return setGroupsFilterFromSearchCriteria(state)
+            return setGroupsFilterFromSearchCriteria(state);
         case ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA:
-            return addGroupsToReplace(action.createNameGroupLocalIds, state)
+            return addGroupsToReplace(action.createNameGroupLocalIds, state);
         case REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA:
-            return removeGroupsFromReplace(action.createNameGroupLocalIds, state)
+            return removeGroupsFromReplace(action.createNameGroupLocalIds, state);
         case SET_MAGMA_NAMES_CREATION_REQUEST:
             return {
                 ...state,
                 creationRequest: {
                     ...state.creationRequest,
-                    ..._.omit(action, ["type"])
+                    ..._.omit(action, ['type'])
                 }
-            }
+            };
         case SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP:
             return setComposeErrorForCreateNameGroup(
                 action.createNameGroupLocalId,
                 action.hasError,
                 state,
-            )
+            );
         case SET_MAGMA_NAMES_LIST_REQUEST:
             return {
                 ...state,
@@ -259,10 +259,10 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                     ...state.magmaNamesListRequestsByRuleName,
                     [action.ruleName]: {
                         ...state.magmaNamesListRequestsByRuleName[action.ruleName] || {},
-                        ..._.omit(action, ["type", "ruleName"])
+                        ..._.omit(action, ['type', 'ruleName'])
                     },
                 }
-            }
+            };
         default: {
             return state;
         }
@@ -284,40 +284,40 @@ function addNamesWithGroupsAndTokensValues(
         createNames: {
             byLocalId: {
                 ...state.createNames.byLocalId,
-                ...listToIdObject(createNames, "localId"),
+                ...listToIdObject(createNames, 'localId'),
             },
             byCreateNameGroupLocalId: {
                 ...state.createNames.byCreateNameGroupLocalId,
-                ...listToIdGroupObject(createNames, "createNameGroupLocalId", "localId"),
+                ...listToIdGroupObject(createNames, 'createNameGroupLocalId', 'localId'),
             },
         },
         createNameGroups: {
             ...state.createNameGroups,
             byLocalId: {
                 ...state.createNameGroups.byLocalId,
-                ...listToIdObject(createNameGroups, "localId"),
+                ...listToIdObject(createNameGroups, 'localId'),
             }
         },
-    }
+    };
 
     newState.createNameTokenValues = addCreateNameTokenValues(
         createNameTokenValues,
         false,
         rulesStateSliceForCompleteCreateNames,
         newState,
-    ).createNameTokenValues
+    ).createNameTokenValues;
 
-    const cngLocalIds = createNameGroups.map(cng => cng.localId)
+    const cngLocalIds = createNameGroups.map(cng => cng.localId);
 
     if (updateCompletionStatus) {
         newState = addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
             cngLocalIds,
             rulesStateSliceForCompleteCreateNames,
             newState,
-        )
+        );
     }
 
-    return newState
+    return newState;
 }
 
 function deleteGroupsWithNames(
@@ -326,28 +326,28 @@ function deleteGroupsWithNames(
     rulesStateSliceForCompleteCreateNames: RulesStateSliceForCompleteCreateNames,
     state: NamesState,
 ): NamesState {
-    const newGroupsById = { ...state.createNameGroups.byLocalId }
-    const newNamesById = { ...state.createNames.byLocalId }
-    const newNamesByGroupId = { ...state.createNames.byCreateNameGroupLocalId }
+    const newGroupsById = { ...state.createNameGroups.byLocalId };
+    const newNamesById = { ...state.createNames.byLocalId };
+    const newNamesByGroupId = { ...state.createNames.byCreateNameGroupLocalId };
 
-    const cntvLocalIdsToDelete: string[] = []
+    const cntvLocalIdsToDelete: string[] = [];
 
     createNameGroupIds.forEach((cngId) => {
-        delete newGroupsById[cngId]
+        delete newGroupsById[cngId];
 
         state.createNames.byCreateNameGroupLocalId[cngId].forEach((cnId) => {
-            delete newNamesById[cnId]
+            delete newNamesById[cnId];
 
             // keep track of CreateNameTokenValue.localIds to cleanup
-            cntvLocalIdsToDelete.push(...(state.createNameTokenValues.byCreateNameLocalId[cnId] || []))
-        })
-        delete newNamesByGroupId[cngId]
-    })
+            cntvLocalIdsToDelete.push(...(state.createNameTokenValues.byCreateNameLocalId[cnId] || []));
+        });
+        delete newNamesByGroupId[cngId];
+    });
 
-    let newState = { ...state }
+    let newState = { ...state };
 
     if (updateCompletionStatus) {
-        newState = removeCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(createNameGroupIds, newState)
+        newState = removeCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(createNameGroupIds, newState);
     }
 
     return {
@@ -370,7 +370,7 @@ function deleteGroupsWithNames(
             replaceLocalIds: removeGroupsFromReplace(createNameGroupIds, newState).createNameGroups.replaceLocalIds,
             selectionLocalIds: removeGroupsFromSelection(createNameGroupIds, newState).createNameGroups.selectionLocalIds,
         },
-    }
+    };
 }
 
 function deleteSelectedGroupsWithNames(
@@ -383,7 +383,7 @@ function deleteSelectedGroupsWithNames(
         updateCompletionStatus,
         rulesStateSliceForCompleteCreateNames,
         state
-    )
+    );
 }
 
 function addGroupsToSelection(createNameGroupIds: string[], state: NamesState): NamesState {
@@ -393,7 +393,7 @@ function addGroupsToSelection(createNameGroupIds: string[], state: NamesState): 
             ...state.createNameGroups,
             selectionLocalIds: new Set([...state.createNameGroups.selectionLocalIds, ...createNameGroupIds]),
         }
-    }
+    };
 }
 
 function removeGroupsFromSelection(createNameGroupIds: string[], state: NamesState): NamesState {
@@ -403,7 +403,7 @@ function removeGroupsFromSelection(createNameGroupIds: string[], state: NamesSta
             ...state.createNameGroups,
             selectionLocalIds: difference(state.createNameGroups.selectionLocalIds, new Set(createNameGroupIds)),
         }
-    }
+    };
 }
 
 function deselectAllGroups(state: NamesState): NamesState {
@@ -413,7 +413,7 @@ function deselectAllGroups(state: NamesState): NamesState {
             ...state.createNameGroups,
             selectionLocalIds: new Set(),
         }
-    }
+    };
 }
 
 // TODO add tests
@@ -427,20 +427,20 @@ function getMatchedGroupIdsFromSearchCriteria(
     const searchCriteriaCreateNameTokenValues = Object.values(searchCriteria.byRuleName)
         .map(searchCriteriaByRule => {
             return searchCriteriaByRule.createNameTokenValueLocalIds
-                .map(cntvLocalId => state.createNameTokenValues.byLocalId[cntvLocalId])
+                .map(cntvLocalId => state.createNameTokenValues.byLocalId[cntvLocalId]);
         })
-        .reduce((cntvList, cntvsToAdd) => [...cntvList, ...cntvsToAdd], [])
+        .reduce((cntvList, cntvsToAdd) => [...cntvList, ...cntvsToAdd], []);
 
-    const groupIdsToMatchingValuesCount = defaultDict<string, number>(_ => 0)
-    const createNamesToCheckRuleCounter = new Set<CreateName>()
+    const groupIdsToMatchingValuesCount = defaultDict<string, number>(_ => 0);
+    const createNamesToCheckRuleCounter = new Set<CreateName>();
 
     searchCriteriaCreateNameTokenValues.forEach(searchCriteriaCntv => {
-        const cntvIdsToCheck = state.createNameTokenValues.byTokenValueLocalId[searchCriteriaCntv.tokenValueLocalId]
+        const cntvIdsToCheck = state.createNameTokenValues.byTokenValueLocalId[searchCriteriaCntv.tokenValueLocalId];
 
         cntvIdsToCheck.forEach(cntvId => {
-            const cntvToCheck = state.createNameTokenValues.byLocalId[cntvId]
-            const createName = state.createNames.byLocalId[cntvToCheck.createNameLocalId]
-            const ruleSearchCriteria = searchCriteria.byRuleName[createName.ruleName]
+            const cntvToCheck = state.createNameTokenValues.byLocalId[cntvId];
+            const createName = state.createNames.byLocalId[cntvToCheck.createNameLocalId];
+            const ruleSearchCriteria = searchCriteria.byRuleName[createName.ruleName];
 
             if (
                 !ruleSearchCriteria
@@ -452,73 +452,73 @@ function getMatchedGroupIdsFromSearchCriteria(
                 || state.createNameGroups.searchLocalIds.has(createName.createNameGroupLocalId)
                 || state.createNameGroups.replaceLocalIds.has(createName.createNameGroupLocalId)
             ) {
-                return
+                return;
             }
 
             // match if same token value and position in rule
             if (cntvToCheck.ruleTokenLocalId == searchCriteriaCntv.ruleTokenLocalId) {
-                ++groupIdsToMatchingValuesCount[createName.createNameGroupLocalId]
+                ++groupIdsToMatchingValuesCount[createName.createNameGroupLocalId];
             }
 
-            createNamesToCheckRuleCounter.add(createName)
-        })
-    })
+            createNamesToCheckRuleCounter.add(createName);
+        });
+    });
 
     // match if same ruleCounterValue
     // (relies on the fact that a Rule will show up only once per CreateNameGroup)
     createNamesToCheckRuleCounter.forEach(cn => {
-        const ruleSearchCriteria = searchCriteria.byRuleName[cn.ruleName]
+        const ruleSearchCriteria = searchCriteria.byRuleName[cn.ruleName];
 
         if (
             ruleSearchCriteria.ruleCounterValue != undefined
             && cn.ruleCounterValue == ruleSearchCriteria.ruleCounterValue
         ) {
-            ++groupIdsToMatchingValuesCount[cn.createNameGroupLocalId]
+            ++groupIdsToMatchingValuesCount[cn.createNameGroupLocalId];
         }
-    })
+    });
 
     const targetMatchCount = Object.values(searchCriteria.byRuleName)
         .reduce((totalCount, ruleSearchCriteria): number => {
 
             const ruleCount = ruleSearchCriteria.createNameTokenValueLocalIds.length
-                + (ruleSearchCriteria.ruleCounterValue != undefined ? 1 : 0)
+                + (ruleSearchCriteria.ruleCounterValue != undefined ? 1 : 0);
 
-            return totalCount + ruleCount
-        }, 0)
+            return totalCount + ruleCount;
+        }, 0);
 
 
 
-    const matchingGroupIds: string[] = []
+    const matchingGroupIds: string[] = [];
 
     Object.entries(groupIdsToMatchingValuesCount).forEach(([groupId, matchCount]) => {
         if (matchCount == targetMatchCount) {
-            matchingGroupIds.push(groupId)
+            matchingGroupIds.push(groupId);
         }
-    })
+    });
 
-    return matchingGroupIds
+    return matchingGroupIds;
 }
 
 function setGroupsSelectionFromSearchCriteria(state: NamesState): NamesState {
-    const searchCriteriaList = createSearchReplaceCriteriaFromGroups(state, state.createNameGroups.searchLocalIds)
-    state = deselectAllGroups(state)
+    const searchCriteriaList = createSearchReplaceCriteriaFromGroups(state, state.createNameGroups.searchLocalIds);
+    state = deselectAllGroups(state);
 
     searchCriteriaList.forEach(searchCriteria => {
-        state = addGroupsToSelection(getMatchedGroupIdsFromSearchCriteria(searchCriteria, state), state)
-    })
+        state = addGroupsToSelection(getMatchedGroupIdsFromSearchCriteria(searchCriteria, state), state);
+    });
 
-    return state
+    return state;
 }
 
 function setGroupsFilterFromSearchCriteria(state: NamesState): NamesState {
-    const searchCriteriaList = createSearchReplaceCriteriaFromGroups(state, state.createNameGroups.searchLocalIds)
-    state = disableGroupFilter(state)
+    const searchCriteriaList = createSearchReplaceCriteriaFromGroups(state, state.createNameGroups.searchLocalIds);
+    state = disableGroupFilter(state);
 
     searchCriteriaList.forEach(searchCriteria => {
-        state = addGroupsToFilter(getMatchedGroupIdsFromSearchCriteria(searchCriteria, state), state)
-    })
+        state = addGroupsToFilter(getMatchedGroupIdsFromSearchCriteria(searchCriteria, state), state);
+    });
 
-    return state
+    return state;
 }
 
 function addGroupsToSearch(createNameGroupIds: string[], state: NamesState): NamesState {
@@ -528,7 +528,7 @@ function addGroupsToSearch(createNameGroupIds: string[], state: NamesState): Nam
             ...state.createNameGroups,
             searchLocalIds: new Set([...state.createNameGroups.searchLocalIds, ...createNameGroupIds]),
         }
-    }
+    };
 }
 
 function removeGroupsFromSearch(createNameGroupIds: string[], state: NamesState): NamesState {
@@ -538,7 +538,7 @@ function removeGroupsFromSearch(createNameGroupIds: string[], state: NamesState)
             ...state.createNameGroups,
             searchLocalIds: difference(state.createNameGroups.searchLocalIds, new Set(createNameGroupIds)),
         }
-    }
+    };
 }
 
 function addGroupsToReplace(createNameGroupIds: string[], state: NamesState): NamesState {
@@ -548,7 +548,7 @@ function addGroupsToReplace(createNameGroupIds: string[], state: NamesState): Na
             ...state.createNameGroups,
             replaceLocalIds: new Set([...state.createNameGroups.replaceLocalIds, ...createNameGroupIds]),
         }
-    }
+    };
 }
 
 function removeGroupsFromReplace(createNameGroupIds: string[], state: NamesState): NamesState {
@@ -558,14 +558,14 @@ function removeGroupsFromReplace(createNameGroupIds: string[], state: NamesState
             ...state.createNameGroups,
             replaceLocalIds: difference(state.createNameGroups.replaceLocalIds, new Set(createNameGroupIds)),
         }
-    }
+    };
 }
 
 function addGroupsToFilter(createNameGroupIds: string[], state: NamesState): NamesState {
     // also need to remove groups from selection if not in filter
-    const newFilterIds = new Set([...state.createNameGroups.filterLocalIds, ...createNameGroupIds])
-    const newSelectionIds = intersection(state.createNameGroups.selectionLocalIds, newFilterIds)
-    const newSelectionState = addGroupsToSelection([...newSelectionIds], deselectAllGroups(state))
+    const newFilterIds = new Set([...state.createNameGroups.filterLocalIds, ...createNameGroupIds]);
+    const newSelectionIds = intersection(state.createNameGroups.selectionLocalIds, newFilterIds);
+    const newSelectionState = addGroupsToSelection([...newSelectionIds], deselectAllGroups(state));
 
     return {
         ...newSelectionState,
@@ -574,7 +574,7 @@ function addGroupsToFilter(createNameGroupIds: string[], state: NamesState): Nam
             filterLocalIds: newFilterIds,
             filterEnabled: true,
         }
-    }
+    };
 }
 
 function removeGroupsFromFilter(createNameGroupIds: string[], state: NamesState): NamesState {
@@ -584,7 +584,7 @@ function removeGroupsFromFilter(createNameGroupIds: string[], state: NamesState)
             ...state.createNameGroups,
             filterLocalIds: difference(state.createNameGroups.filterLocalIds, new Set(createNameGroupIds)),
         }
-    }
+    };
 }
 
 function disableGroupFilter(state: NamesState): NamesState {
@@ -595,7 +595,7 @@ function disableGroupFilter(state: NamesState): NamesState {
             filterLocalIds: new Set(),
             filterEnabled: false,
         }
-    }
+    };
 }
 
 function addCreateNameTokenValues(
@@ -604,26 +604,26 @@ function addCreateNameTokenValues(
     rulesStateSliceForCompleteCreateNames: RulesStateSliceForCompleteCreateNames,
     state: NamesState,
 ): NamesState {
-    const newByCreateNameLocalId = { ...state.createNameTokenValues.byCreateNameLocalId }
-    const newByTokenValueLocalId = { ...state.createNameTokenValues.byTokenValueLocalId }
-    const newByRuleTokenLocalId = { ...state.createNameTokenValues.byRuleTokenLocalId }
-    const newByLocalId = { ...state.createNameTokenValues.byLocalId }
+    const newByCreateNameLocalId = { ...state.createNameTokenValues.byCreateNameLocalId };
+    const newByTokenValueLocalId = { ...state.createNameTokenValues.byTokenValueLocalId };
+    const newByRuleTokenLocalId = { ...state.createNameTokenValues.byRuleTokenLocalId };
+    const newByLocalId = { ...state.createNameTokenValues.byLocalId };
 
     createNameTokenValues.forEach(cntv => {
-        newByLocalId[cntv.localId] = cntv
+        newByLocalId[cntv.localId] = cntv;
         newByCreateNameLocalId[cntv.createNameLocalId] = [
             ...newByCreateNameLocalId[cntv.createNameLocalId] || [],
             cntv.localId
-        ]
+        ];
         newByTokenValueLocalId[cntv.tokenValueLocalId] = [
             ...newByTokenValueLocalId[cntv.tokenValueLocalId] || [],
             cntv.localId
-        ]
+        ];
         newByRuleTokenLocalId[cntv.ruleTokenLocalId] = [
             ...newByRuleTokenLocalId[cntv.ruleTokenLocalId] || [],
             cntv.localId
-        ]
-    })
+        ];
+    });
 
     let newState = {
         ...state,
@@ -633,14 +633,14 @@ function addCreateNameTokenValues(
             byTokenValueLocalId: newByTokenValueLocalId,
             byRuleTokenLocalId: newByRuleTokenLocalId,
         }
-    }
+    };
 
-    const cngLocalIds = new Set<string>()
+    const cngLocalIds = new Set<string>();
 
     for (const cntv of createNameTokenValues) {
         cngLocalIds.add(
             state.createNames.byLocalId[cntv.createNameLocalId].createNameGroupLocalId
-        )
+        );
     }
 
     if (updateCompletionStatus === true) {
@@ -648,10 +648,10 @@ function addCreateNameTokenValues(
             [...cngLocalIds],
             rulesStateSliceForCompleteCreateNames,
             newState,
-        )
+        );
     }
 
-    return newState
+    return newState;
 }
 
 function deleteCreateNameTokenValues(
@@ -660,41 +660,41 @@ function deleteCreateNameTokenValues(
     rulesStateSliceForCompleteCreateNames: RulesStateSliceForCompleteCreateNames,
     state: NamesState,
 ): NamesState {
-    const newByCreateNameLocalId = { ...state.createNameTokenValues.byCreateNameLocalId }
-    const newByTokenValueLocalId = { ...state.createNameTokenValues.byTokenValueLocalId }
-    const newByRuleTokenLocalId = { ...state.createNameTokenValues.byRuleTokenLocalId }
-    const newByLocalId = { ...state.createNameTokenValues.byLocalId }
+    const newByCreateNameLocalId = { ...state.createNameTokenValues.byCreateNameLocalId };
+    const newByTokenValueLocalId = { ...state.createNameTokenValues.byTokenValueLocalId };
+    const newByRuleTokenLocalId = { ...state.createNameTokenValues.byRuleTokenLocalId };
+    const newByLocalId = { ...state.createNameTokenValues.byLocalId };
 
     createNameTokenValueLocalIds.forEach(cntvLocalId => {
-        const cntv = state.createNameTokenValues.byLocalId[cntvLocalId]
+        const cntv = state.createNameTokenValues.byLocalId[cntvLocalId];
 
-        delete newByLocalId[cntv.localId]
+        delete newByLocalId[cntv.localId];
 
         if (cntv.createNameLocalId in newByCreateNameLocalId) {
             newByCreateNameLocalId[cntv.createNameLocalId] = newByCreateNameLocalId[cntv.createNameLocalId]
-                .filter(cntvLocalId => cntvLocalId != cntv.localId)
+                .filter(cntvLocalId => cntvLocalId != cntv.localId);
 
             if (newByCreateNameLocalId[cntv.createNameLocalId].length == 0) {
-                delete newByCreateNameLocalId[cntv.createNameLocalId]
+                delete newByCreateNameLocalId[cntv.createNameLocalId];
             }
         }
         if (cntv.tokenValueLocalId in newByTokenValueLocalId) {
             newByTokenValueLocalId[cntv.tokenValueLocalId] = newByTokenValueLocalId[cntv.tokenValueLocalId]
-                .filter(cntvLocalId => cntvLocalId != cntv.localId)
+                .filter(cntvLocalId => cntvLocalId != cntv.localId);
 
             if (newByTokenValueLocalId[cntv.tokenValueLocalId].length == 0) {
-                delete newByTokenValueLocalId[cntv.tokenValueLocalId]
+                delete newByTokenValueLocalId[cntv.tokenValueLocalId];
             }
         }
         if (cntv.ruleTokenLocalId in newByRuleTokenLocalId) {
             newByRuleTokenLocalId[cntv.ruleTokenLocalId] = newByRuleTokenLocalId[cntv.ruleTokenLocalId]
-                .filter(cntvLocalId => cntvLocalId != cntv.localId)
+                .filter(cntvLocalId => cntvLocalId != cntv.localId);
 
             if (newByRuleTokenLocalId[cntv.ruleTokenLocalId].length == 0) {
-                delete newByRuleTokenLocalId[cntv.ruleTokenLocalId]
+                delete newByRuleTokenLocalId[cntv.ruleTokenLocalId];
             }
         }
-    })
+    });
 
     let newState = {
         ...state,
@@ -704,16 +704,16 @@ function deleteCreateNameTokenValues(
             byTokenValueLocalId: newByTokenValueLocalId,
             byRuleTokenLocalId: newByRuleTokenLocalId,
         }
-    }
+    };
 
-    const cngLocalIds = new Set<string>()
+    const cngLocalIds = new Set<string>();
 
     for (const cntvLocalId of createNameTokenValueLocalIds) {
-        const cnLocalId = state.createNameTokenValues.byLocalId[cntvLocalId].createNameLocalId
+        const cnLocalId = state.createNameTokenValues.byLocalId[cntvLocalId].createNameLocalId;
 
         cngLocalIds.add(
             state.createNames.byLocalId[cnLocalId].createNameGroupLocalId
-        )
+        );
     }
 
     if (updateCompletionStatus === true) {
@@ -721,10 +721,10 @@ function deleteCreateNameTokenValues(
             [...cngLocalIds],
             rulesStateSliceForCompleteCreateNames,
             newState,
-        )
+        );
     }
 
-    return newState
+    return newState;
 }
 
 function setRuleCounterValueForCreateNames(
@@ -733,14 +733,14 @@ function setRuleCounterValueForCreateNames(
     rulesStateSliceForCompleteCreateNames: RulesStateSliceForCompleteCreateNames,
     state: NamesState,
 ): NamesState {
-    const newCreateNamesByLocalId = { ...state.createNames.byLocalId }
+    const newCreateNamesByLocalId = { ...state.createNames.byLocalId };
 
     for (const [cnLocalId, ruleCounterValue] of Object.entries(ruleCounterValuesByCreateNameLocalId)) {
 
         newCreateNamesByLocalId[cnLocalId] = {
             ...newCreateNamesByLocalId[cnLocalId],
             ruleCounterValue
-        }
+        };
     }
 
     let newState = {
@@ -749,14 +749,14 @@ function setRuleCounterValueForCreateNames(
             ...state.createNames,
             byLocalId: newCreateNamesByLocalId,
         },
-    }
+    };
 
-    const cngLocalIds = new Set<string>()
+    const cngLocalIds = new Set<string>();
 
     for (const cnLocalId of Object.keys(ruleCounterValuesByCreateNameLocalId)) {
         cngLocalIds.add(
             state.createNames.byLocalId[cnLocalId].createNameGroupLocalId
-        )
+        );
     }
 
     if (updateCompletionStatus === true) {
@@ -764,10 +764,10 @@ function setRuleCounterValueForCreateNames(
             [...cngLocalIds],
             rulesStateSliceForCompleteCreateNames,
             newState,
-        )
+        );
     }
 
-    return newState
+    return newState;
 }
 
 function addCompleteCreateNames(
@@ -779,65 +779,65 @@ function addCompleteCreateNames(
     const newCompleteCreateNames = {
         byLocalId: {
             ...state.completeCreateNames.byLocalId,
-            ...listToIdObject(completeCreateNames, "localId"),
+            ...listToIdObject(completeCreateNames, 'localId'),
         }
-    }
+    };
 
     const newCreateNameCompleteCreateNames = {
         byLocalId: { ...state.createNameCompleteCreateNames.byLocalId },
         byCreateNameLocalId: { ...state.createNameCompleteCreateNames.byCreateNameLocalId },
         byCompleteCreateNameLocalId: { ...state.createNameCompleteCreateNames.byCompleteCreateNameLocalId },
-    }
+    };
 
     for (const cnccn of createNameCompleteCreateNames) {
-        newCreateNameCompleteCreateNames.byLocalId[cnccn.localId] = cnccn
-        newCreateNameCompleteCreateNames.byCreateNameLocalId[cnccn.createNameLocalId] = cnccn.localId
+        newCreateNameCompleteCreateNames.byLocalId[cnccn.localId] = cnccn;
+        newCreateNameCompleteCreateNames.byCreateNameLocalId[cnccn.createNameLocalId] = cnccn.localId;
 
         if (!(cnccn.completeCreateNameLocalId in newCreateNameCompleteCreateNames.byCompleteCreateNameLocalId)) {
-            newCreateNameCompleteCreateNames.byCompleteCreateNameLocalId[cnccn.completeCreateNameLocalId] = []
+            newCreateNameCompleteCreateNames.byCompleteCreateNameLocalId[cnccn.completeCreateNameLocalId] = [];
         }
-        newCreateNameCompleteCreateNames.byCompleteCreateNameLocalId[cnccn.completeCreateNameLocalId].push(cnccn.localId)
+        newCreateNameCompleteCreateNames.byCompleteCreateNameLocalId[cnccn.completeCreateNameLocalId].push(cnccn.localId);
     }
 
     const newCompleteCreateNameParents = {
         byLocalId: {
             ...state.completeCreateNameParents.byLocalId,
-            ...listToIdObject(completeCreateNameParents, "localId"),
+            ...listToIdObject(completeCreateNameParents, 'localId'),
         },
         byParentLocalId: { ...state.completeCreateNameParents.byParentLocalId },
         byChildLocalId: { ...state.completeCreateNameParents.byChildLocalId },
         byParentLocalIdByChildRenderedTokensByChildCounterValue: _.cloneDeep(
             state.completeCreateNameParents.byParentLocalIdByChildRenderedTokensByChildCounterValue
         ),
-    }
+    };
 
     for (const ccnp of completeCreateNameParents) {
         if (!(ccnp.parentCompleteCreateNameLocalId in newCompleteCreateNameParents.byParentLocalId)) {
-            newCompleteCreateNameParents.byParentLocalId[ccnp.parentCompleteCreateNameLocalId] = []
+            newCompleteCreateNameParents.byParentLocalId[ccnp.parentCompleteCreateNameLocalId] = [];
         }
-        newCompleteCreateNameParents.byParentLocalId[ccnp.parentCompleteCreateNameLocalId].push(ccnp.localId)
+        newCompleteCreateNameParents.byParentLocalId[ccnp.parentCompleteCreateNameLocalId].push(ccnp.localId);
 
         if (!(ccnp.completeCreateNameLocalId in newCompleteCreateNameParents.byChildLocalId)) {
-            newCompleteCreateNameParents.byChildLocalId[ccnp.completeCreateNameLocalId] = []
+            newCompleteCreateNameParents.byChildLocalId[ccnp.completeCreateNameLocalId] = [];
         }
-        newCompleteCreateNameParents.byChildLocalId[ccnp.completeCreateNameLocalId].push(ccnp.localId)
+        newCompleteCreateNameParents.byChildLocalId[ccnp.completeCreateNameLocalId].push(ccnp.localId);
 
 
-        const childCompleteCreateName = state.completeCreateNames.byLocalId[ccnp.completeCreateNameLocalId] = newCompleteCreateNames.byLocalId[ccnp.completeCreateNameLocalId]
+        const childCompleteCreateName = state.completeCreateNames.byLocalId[ccnp.completeCreateNameLocalId] = newCompleteCreateNames.byLocalId[ccnp.completeCreateNameLocalId];
 
-        const hierarchyCounterValue = childCompleteCreateName.counterValue != undefined ? childCompleteCreateName.counterValue : UNSET_VALUE
+        const hierarchyCounterValue = childCompleteCreateName.counterValue != undefined ? childCompleteCreateName.counterValue : UNSET_VALUE;
 
         if (!(ccnp.parentCompleteCreateNameLocalId in newCompleteCreateNameParents.byParentLocalIdByChildRenderedTokensByChildCounterValue)) {
-            newCompleteCreateNameParents.byParentLocalIdByChildRenderedTokensByChildCounterValue[ccnp.parentCompleteCreateNameLocalId] = {}
+            newCompleteCreateNameParents.byParentLocalIdByChildRenderedTokensByChildCounterValue[ccnp.parentCompleteCreateNameLocalId] = {};
         }
 
-        const byParentLocalId = newCompleteCreateNameParents.byParentLocalIdByChildRenderedTokensByChildCounterValue[ccnp.parentCompleteCreateNameLocalId]
+        const byParentLocalId = newCompleteCreateNameParents.byParentLocalIdByChildRenderedTokensByChildCounterValue[ccnp.parentCompleteCreateNameLocalId];
 
         if (!(childCompleteCreateName.value in byParentLocalId)) {
             // @ts-ignore
-            byParentLocalId[childCompleteCreateName.value] = {}
+            byParentLocalId[childCompleteCreateName.value] = {};
         }
-        byParentLocalId[childCompleteCreateName.value][hierarchyCounterValue] = ccnp.localId
+        byParentLocalId[childCompleteCreateName.value][hierarchyCounterValue] = ccnp.localId;
     }
 
     return {
@@ -845,7 +845,7 @@ function addCompleteCreateNames(
         completeCreateNames: newCompleteCreateNames,
         createNameCompleteCreateNames: newCreateNameCompleteCreateNames,
         completeCreateNameParents: newCompleteCreateNameParents,
-    }
+    };
 }
 
 function removeCompleteCreateNames(
@@ -853,48 +853,48 @@ function removeCompleteCreateNames(
     state: NamesState,
 ): NamesState {
     // find CompleteCreateNames and Parents from CreateNameCompleteCreateName
-    const completeCreateNames: CompleteCreateName[] = []
-    const completeCreateNameParents = new Set<CompleteCreateNameParent>()
+    const completeCreateNames: CompleteCreateName[] = [];
+    const completeCreateNameParents = new Set<CompleteCreateNameParent>();
 
     const newCreateNameCompleteCreateNames = {
         byLocalId: { ...state.createNameCompleteCreateNames.byLocalId },
         byCreateNameLocalId: { ...state.createNameCompleteCreateNames.byCreateNameLocalId },
         byCompleteCreateNameLocalId: { ...state.createNameCompleteCreateNames.byCompleteCreateNameLocalId },
-    }
+    };
 
     for (const cnccn of createNameCompleteCreateNames) {
-        delete newCreateNameCompleteCreateNames.byLocalId[cnccn.localId]
-        delete newCreateNameCompleteCreateNames.byCreateNameLocalId[cnccn.createNameLocalId]
+        delete newCreateNameCompleteCreateNames.byLocalId[cnccn.localId];
+        delete newCreateNameCompleteCreateNames.byCreateNameLocalId[cnccn.createNameLocalId];
 
         if (cnccn.completeCreateNameLocalId in newCreateNameCompleteCreateNames.byCompleteCreateNameLocalId) {
 
             newCreateNameCompleteCreateNames.byCompleteCreateNameLocalId[cnccn.completeCreateNameLocalId] =
                 newCreateNameCompleteCreateNames.byCompleteCreateNameLocalId[cnccn.completeCreateNameLocalId]
-                    .filter(candidateCnccnLocalId => candidateCnccnLocalId != cnccn.localId)
+                    .filter(candidateCnccnLocalId => candidateCnccnLocalId != cnccn.localId);
 
             if (newCreateNameCompleteCreateNames.byCompleteCreateNameLocalId[cnccn.completeCreateNameLocalId].length == 0) {
-                delete newCreateNameCompleteCreateNames.byCompleteCreateNameLocalId[cnccn.completeCreateNameLocalId]
+                delete newCreateNameCompleteCreateNames.byCompleteCreateNameLocalId[cnccn.completeCreateNameLocalId];
 
                 // and delete CompleteCreateName and Parents since there aren't any CreateName associations left
-                completeCreateNames.push(state.completeCreateNames.byLocalId[cnccn.completeCreateNameLocalId])
+                completeCreateNames.push(state.completeCreateNames.byLocalId[cnccn.completeCreateNameLocalId]);
 
                 const parentsToDelete = [
                     ...(state.completeCreateNameParents.byParentLocalId[cnccn.completeCreateNameLocalId] || []),
                     ...(state.completeCreateNameParents.byChildLocalId[cnccn.completeCreateNameLocalId] || []),
-                ]
+                ];
                 parentsToDelete.forEach(ccnpLocalId => {
-                    completeCreateNameParents.add(state.completeCreateNameParents.byLocalId[ccnpLocalId])
-                })
+                    completeCreateNameParents.add(state.completeCreateNameParents.byLocalId[ccnpLocalId]);
+                });
             }
         }
     }
 
     const newCompleteCreateNames = {
         byLocalId: { ...state.completeCreateNames.byLocalId },
-    }
+    };
 
     for (const ccn of completeCreateNames) {
-        delete newCompleteCreateNames.byLocalId[ccn.localId]
+        delete newCompleteCreateNames.byLocalId[ccn.localId];
     }
 
     const newCompleteCreateNameParents = {
@@ -904,19 +904,19 @@ function removeCompleteCreateNames(
         byParentLocalIdByChildRenderedTokensByChildCounterValue: _.cloneDeep(
             state.completeCreateNameParents.byParentLocalIdByChildRenderedTokensByChildCounterValue
         ),
-    }
+    };
 
     for (const ccnp of completeCreateNameParents) {
-        delete newCompleteCreateNameParents.byLocalId[ccnp.localId]
+        delete newCompleteCreateNameParents.byLocalId[ccnp.localId];
 
         if (ccnp.parentCompleteCreateNameLocalId in newCompleteCreateNameParents.byParentLocalId) {
 
             newCompleteCreateNameParents.byParentLocalId[ccnp.parentCompleteCreateNameLocalId] =
                 newCompleteCreateNameParents.byParentLocalId[ccnp.parentCompleteCreateNameLocalId]
-                    .filter(candidateCcnpLocalId => candidateCcnpLocalId != ccnp.localId)
+                    .filter(candidateCcnpLocalId => candidateCcnpLocalId != ccnp.localId);
 
             if (newCompleteCreateNameParents.byParentLocalId[ccnp.parentCompleteCreateNameLocalId].length == 0) {
-                delete newCompleteCreateNameParents.byParentLocalId[ccnp.parentCompleteCreateNameLocalId]
+                delete newCompleteCreateNameParents.byParentLocalId[ccnp.parentCompleteCreateNameLocalId];
             }
         }
 
@@ -924,26 +924,26 @@ function removeCompleteCreateNames(
 
             newCompleteCreateNameParents.byChildLocalId[ccnp.completeCreateNameLocalId] =
                 newCompleteCreateNameParents.byChildLocalId[ccnp.completeCreateNameLocalId]
-                    .filter(candidateCcnpLocalId => candidateCcnpLocalId != ccnp.localId)
+                    .filter(candidateCcnpLocalId => candidateCcnpLocalId != ccnp.localId);
 
             if (newCompleteCreateNameParents.byChildLocalId[ccnp.completeCreateNameLocalId].length == 0) {
-                delete newCompleteCreateNameParents.byChildLocalId[ccnp.completeCreateNameLocalId]
+                delete newCompleteCreateNameParents.byChildLocalId[ccnp.completeCreateNameLocalId];
             }
         }
 
         // remove from byParentLocalIdByChildRenderedTokensByChildCounterValue
-        const childCompleteCreateName = state.completeCreateNames.byLocalId[ccnp.completeCreateNameLocalId]
+        const childCompleteCreateName = state.completeCreateNames.byLocalId[ccnp.completeCreateNameLocalId];
 
         delete newCompleteCreateNameParents.byParentLocalIdByChildRenderedTokensByChildCounterValue
         [ccnp.parentCompleteCreateNameLocalId][childCompleteCreateName.value]
-        [childCompleteCreateName.counterValue != undefined ? childCompleteCreateName.counterValue : UNSET_VALUE]
+        [childCompleteCreateName.counterValue != undefined ? childCompleteCreateName.counterValue : UNSET_VALUE];
 
         if (
             Object.keys(newCompleteCreateNameParents.byParentLocalIdByChildRenderedTokensByChildCounterValue
             [ccnp.parentCompleteCreateNameLocalId][childCompleteCreateName.value]).length == 0
         ) {
             delete newCompleteCreateNameParents.byParentLocalIdByChildRenderedTokensByChildCounterValue
-            [ccnp.parentCompleteCreateNameLocalId][childCompleteCreateName.value]
+            [ccnp.parentCompleteCreateNameLocalId][childCompleteCreateName.value];
         }
 
         if (
@@ -951,7 +951,7 @@ function removeCompleteCreateNames(
             [ccnp.parentCompleteCreateNameLocalId]).length == 0
         ) {
             delete newCompleteCreateNameParents.byParentLocalIdByChildRenderedTokensByChildCounterValue
-            [ccnp.parentCompleteCreateNameLocalId]
+            [ccnp.parentCompleteCreateNameLocalId];
         }
     }
 
@@ -960,14 +960,14 @@ function removeCompleteCreateNames(
         completeCreateNames: newCompleteCreateNames,
         createNameCompleteCreateNames: newCreateNameCompleteCreateNames,
         completeCreateNameParents: newCompleteCreateNameParents,
-    }
+    };
 }
 
 function isReplaceOrSearchGroup(createNameGroupLocalId: string, state: NamesState): boolean {
     return (
         state.createNameGroups.replaceLocalIds.has(createNameGroupLocalId)
         || state.createNameGroups.searchLocalIds.has(createNameGroupLocalId)
-    )
+    );
 }
 
 // TODO: handle multiparent rules
@@ -977,51 +977,51 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
     rulesStateSlice: RulesStateSliceForCompleteCreateNames,
     state: NamesState,
 ): NamesState {
-    let newState = { ...state }
+    let newState = { ...state };
 
     // for each CreateNameGroup
     for (const cngLocalId of createNameGroupsLocalIds) {
-        const completeCreateNamesToAdd: CompleteCreateName[] = []
-        const createNameCompleteCreateNamesToAdd: CreateNameCompleteCreateName[] = []
-        const createNameCompleteCreateNamesToRemove: CreateNameCompleteCreateName[] = []
-        const completeCreateNameParentsToAdd: CompleteCreateNameParent[] = []
+        const completeCreateNamesToAdd: CompleteCreateName[] = [];
+        const createNameCompleteCreateNamesToAdd: CreateNameCompleteCreateName[] = [];
+        const createNameCompleteCreateNamesToRemove: CreateNameCompleteCreateName[] = [];
+        const completeCreateNameParentsToAdd: CompleteCreateNameParent[] = [];
 
         if (isReplaceOrSearchGroup(cngLocalId, newState)) {
-            continue
+            continue;
         }
 
-        const createNameGroup = newState.createNameGroups.byLocalId[cngLocalId]
-        const primaryRuleName = newState.createNames.byLocalId[createNameGroup.primaryCreateNameLocalId].ruleName
-        const ruleNamesHierarchicalList = rulesStateSlice.ruleNamesHierarchicalListByPrimaryRuleName[primaryRuleName]
+        const createNameGroup = newState.createNameGroups.byLocalId[cngLocalId];
+        const primaryRuleName = newState.createNames.byLocalId[createNameGroup.primaryCreateNameLocalId].ruleName;
+        const ruleNamesHierarchicalList = rulesStateSlice.ruleNamesHierarchicalListByPrimaryRuleName[primaryRuleName];
 
         const createNames = newState.createNames.byCreateNameGroupLocalId[cngLocalId]
-            .map(cnLocalId => newState.createNames.byLocalId[cnLocalId])
+            .map(cnLocalId => newState.createNames.byLocalId[cnLocalId]);
 
         const sortedCreateNames: CreateName[] = _.sortBy(createNames, [(cn: CreateName) => {
-            return ruleNamesHierarchicalList.indexOf(cn.ruleName)
-        }])
+            return ruleNamesHierarchicalList.indexOf(cn.ruleName);
+        }]);
 
         // keep track of hierarchy completeness
-        const completeCreateNames: (CompleteCreateName | undefined)[] = []
-        let completeHierarchy = true
+        const completeCreateNames: (CompleteCreateName | undefined)[] = [];
+        let completeHierarchy = true;
 
         // for each CreateName
         for (const [idx, createName] of sortedCreateNames.entries()) {
             const createNameTokenValues = (newState.createNameTokenValues.byCreateNameLocalId[createName.localId] || [])
-                .map(cntvLocalId => newState.createNameTokenValues.byLocalId[cntvLocalId])
+                .map(cntvLocalId => newState.createNameTokenValues.byLocalId[cntvLocalId]);
 
-            const actualTokenCount = createNameTokenValues.length
-            const targetTokenCount = rulesStateSlice.ruleTokenLocalIdsByRuleName[createName.ruleName].length
-            const counterRequired = rulesStateSlice.counterRequiredByRuleName[createName.ruleName]
-            const hasCounterValue = createName.ruleCounterValue != undefined
+            const actualTokenCount = createNameTokenValues.length;
+            const targetTokenCount = rulesStateSlice.ruleTokenLocalIdsByRuleName[createName.ruleName].length;
+            const counterRequired = rulesStateSlice.counterRequiredByRuleName[createName.ruleName];
+            const hasCounterValue = createName.ruleCounterValue != undefined;
 
-            let parentCompleteCreateName: CompleteCreateName | undefined = undefined
+            let parentCompleteCreateName: CompleteCreateName | undefined = undefined;
 
             if (idx > 0) {
-                parentCompleteCreateName = completeCreateNames[idx - 1]
+                parentCompleteCreateName = completeCreateNames[idx - 1];
 
                 if (parentCompleteCreateName == undefined) {
-                    completeHierarchy = false
+                    completeHierarchy = false;
                 }
             }
 
@@ -1036,39 +1036,39 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
             ) {
                 // is complete (at this level)
 
-                let completeCreateNameParentLocalId: string | undefined = undefined
+                let completeCreateNameParentLocalId: string | undefined = undefined;
                 const hierarchyRenderedTokenValue = renderTokens(
                     createNameTokenValues,
                     rulesStateSlice.ruleTokensByLocalId,
                     rulesStateSlice.tokenValuesByLocalId,
-                )
-                const hierarchyRenderedCounterValue = Number.parseInt(createName.ruleCounterValue != undefined ? renderCounter(createName) : UNSET_VALUE)
+                );
+                const hierarchyRenderedCounterValue = Number.parseInt(createName.ruleCounterValue != undefined ? renderCounter(createName) : UNSET_VALUE);
 
                 // find completeCreateNameParentLocalId
                 if (parentCompleteCreateName != undefined || idx == 0) {
-                    const parentCompleteCreateNameLocalId = parentCompleteCreateName != undefined ? parentCompleteCreateName.localId : UNSET_VALUE
+                    const parentCompleteCreateNameLocalId = parentCompleteCreateName != undefined ? parentCompleteCreateName.localId : UNSET_VALUE;
 
                     const renderedTokenValuesDict = newState.completeCreateNameParents
-                        .byParentLocalIdByChildRenderedTokensByChildCounterValue[parentCompleteCreateNameLocalId]
+                        .byParentLocalIdByChildRenderedTokensByChildCounterValue[parentCompleteCreateNameLocalId];
 
                     if (renderedTokenValuesDict != undefined) {
-                        const renderedCounterValuesDict = renderedTokenValuesDict[hierarchyRenderedTokenValue]
+                        const renderedCounterValuesDict = renderedTokenValuesDict[hierarchyRenderedTokenValue];
 
                         if (renderedCounterValuesDict != undefined) {
-                            completeCreateNameParentLocalId = renderedCounterValuesDict[hierarchyRenderedCounterValue]
+                            completeCreateNameParentLocalId = renderedCounterValuesDict[hierarchyRenderedCounterValue];
                         }
                     }
                 }
 
-                let completeCreateNameParent: CompleteCreateNameParent | undefined = undefined
+                let completeCreateNameParent: CompleteCreateNameParent | undefined = undefined;
 
                 if (completeCreateNameParentLocalId) {
-                    completeCreateNameParent = newState.completeCreateNameParents.byLocalId[completeCreateNameParentLocalId]
+                    completeCreateNameParent = newState.completeCreateNameParents.byLocalId[completeCreateNameParentLocalId];
                 }
 
 
                 // create CompleteCreateName and CreateName association if doesn't exist
-                let completeCreateName: CompleteCreateName | undefined = undefined
+                let completeCreateName: CompleteCreateName | undefined = undefined;
 
                 if (completeCreateNameParent == undefined) {
                     completeCreateName = {
@@ -1079,16 +1079,16 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
                             rulesStateSlice.tokenValuesByLocalId,
                         ),
                         counterValue: createName.ruleCounterValue,
-                    }
+                    };
 
-                    completeCreateNamesToAdd.push(completeCreateName)
+                    completeCreateNamesToAdd.push(completeCreateName);
 
                     // remove existing association and its parents if exist
-                    const existingAssociationLocalId = newState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
-                    const existingAssociation = newState.createNameCompleteCreateNames.byLocalId[existingAssociationLocalId]
+                    const existingAssociationLocalId = newState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId];
+                    const existingAssociation = newState.createNameCompleteCreateNames.byLocalId[existingAssociationLocalId];
 
                     if (existingAssociation) {
-                        createNameCompleteCreateNamesToRemove.push(existingAssociation)
+                        createNameCompleteCreateNamesToRemove.push(existingAssociation);
                     }
 
                     // create new association
@@ -1096,12 +1096,12 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
                         localId: createLocalId(),
                         createNameLocalId: createName.localId,
                         completeCreateNameLocalId: completeCreateName.localId,
-                    }
-                    createNameCompleteCreateNamesToAdd.push(completeCreateNameAssociation)
+                    };
+                    createNameCompleteCreateNamesToAdd.push(completeCreateNameAssociation);
                 } else {
-                    completeCreateName = newState.completeCreateNames.byLocalId[completeCreateNameParent.completeCreateNameLocalId]
-                    const existingAssociationLocalId = newState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
-                    const existingAssociation = newState.createNameCompleteCreateNames.byLocalId[existingAssociationLocalId]
+                    completeCreateName = newState.completeCreateNames.byLocalId[completeCreateNameParent.completeCreateNameLocalId];
+                    const existingAssociationLocalId = newState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId];
+                    const existingAssociation = newState.createNameCompleteCreateNames.byLocalId[existingAssociationLocalId];
 
                     if (existingAssociation?.completeCreateNameLocalId != completeCreateName.localId) {
                         // create association
@@ -1109,11 +1109,11 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
                             localId: createLocalId(),
                             createNameLocalId: createName.localId,
                             completeCreateNameLocalId: completeCreateName.localId,
-                        }
-                        createNameCompleteCreateNamesToAdd.push(completeCreateNameAssociation)
+                        };
+                        createNameCompleteCreateNamesToAdd.push(completeCreateNameAssociation);
 
                         if (existingAssociation) {
-                            createNameCompleteCreateNamesToRemove.push(existingAssociation)
+                            createNameCompleteCreateNamesToRemove.push(existingAssociation);
                         }
                     }
                 }
@@ -1124,25 +1124,25 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
                         localId: createLocalId(),
                         completeCreateNameLocalId: completeCreateName.localId,
                         parentCompleteCreateNameLocalId: parentCompleteCreateName?.localId || UNSET_VALUE,
-                    }
+                    };
 
-                    completeCreateNameParentsToAdd.push(parent)
+                    completeCreateNameParentsToAdd.push(parent);
                 }
 
-                completeCreateNames.push(completeCreateName)
+                completeCreateNames.push(completeCreateName);
 
             } else {
                 // is not complete (at this level)
                 // remove all records if exist
 
-                const completeCreateNameAssociationLocalId = newState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
+                const completeCreateNameAssociationLocalId = newState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId];
 
                 if (completeCreateNameAssociationLocalId != undefined) {
-                    const completeCreateNameAssociation = newState.createNameCompleteCreateNames.byLocalId[completeCreateNameAssociationLocalId]
-                    createNameCompleteCreateNamesToRemove.push(completeCreateNameAssociation)
+                    const completeCreateNameAssociation = newState.createNameCompleteCreateNames.byLocalId[completeCreateNameAssociationLocalId];
+                    createNameCompleteCreateNamesToRemove.push(completeCreateNameAssociation);
                 }
 
-                completeCreateNames.push(undefined)
+                completeCreateNames.push(undefined);
             }
         }
 
@@ -1151,10 +1151,10 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
             createNameCompleteCreateNamesToAdd,
             completeCreateNameParentsToAdd,
             removeCompleteCreateNames(createNameCompleteCreateNamesToRemove, newState),
-        )
+        );
     }
 
-    return newState
+    return newState;
 }
 
 // TODO: handle multiparent rules
@@ -1162,33 +1162,33 @@ function removeCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
     createNameGroupsLocalIds: string[],
     state: NamesState,
 ): NamesState {
-    let newState = { ...state }
+    let newState = { ...state };
 
     // for each CreateNameGroup
     for (const cngLocalId of createNameGroupsLocalIds) {
-        const createNameCompleteCreateNamesToRemove: CreateNameCompleteCreateName[] = []
+        const createNameCompleteCreateNamesToRemove: CreateNameCompleteCreateName[] = [];
 
         if (isReplaceOrSearchGroup(cngLocalId, newState)) {
-            continue
+            continue;
         }
 
         const createNames = newState.createNames.byCreateNameGroupLocalId[cngLocalId]
-            .map(cnLocalId => newState.createNames.byLocalId[cnLocalId])
+            .map(cnLocalId => newState.createNames.byLocalId[cnLocalId]);
 
         for (const createName of createNames) {
 
-            const completeCreateNameAssociationLocalId = newState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
-            const completeCreateNameAssociation = newState.createNameCompleteCreateNames.byLocalId[completeCreateNameAssociationLocalId]
+            const completeCreateNameAssociationLocalId = newState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId];
+            const completeCreateNameAssociation = newState.createNameCompleteCreateNames.byLocalId[completeCreateNameAssociationLocalId];
 
             if (completeCreateNameAssociation) {
-                createNameCompleteCreateNamesToRemove.push(completeCreateNameAssociation)
+                createNameCompleteCreateNamesToRemove.push(completeCreateNameAssociation);
             }
         }
 
-        newState = removeCompleteCreateNames(createNameCompleteCreateNamesToRemove, newState)
+        newState = removeCompleteCreateNames(createNameCompleteCreateNamesToRemove, newState);
     }
 
-    return newState
+    return newState;
 }
 
 
@@ -1202,5 +1202,5 @@ function setComposeErrorForCreateNameGroup(createNameGroupLocalId: string, hasEr
                 [createNameGroupLocalId]: hasError,
             },
         },
-    }
+    };
 }

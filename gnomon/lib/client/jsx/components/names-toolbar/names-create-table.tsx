@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import { batch } from 'react-redux';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
@@ -39,13 +39,13 @@ const useStyles = makeStyles((theme: Theme) =>
             width: 1,
         },
         rowData: {
-            "& > *": {
-                fontWeight: "bold",
+            '& > *': {
+                fontWeight: 'bold',
             },
-            "&.implicit > *": {
-                fontStyle: "italic",
-                fontWeight: "normal",
-                opacity: "0.5",
+            '&.implicit > *': {
+                fontStyle: 'italic',
+                fontWeight: 'normal',
+                opacity: '0.5',
             },
         },
     }),
@@ -153,7 +153,7 @@ const NamesTable = ({ rows }: { rows: Data[] }) => {
         batch(() => {
             setOrder(isAsc ? 'desc' : 'asc');
             setOrderBy(property);
-        })
+        });
     };
 
     const handleChangePage = (event: unknown, newPage: number) => {
@@ -164,7 +164,7 @@ const NamesTable = ({ rows }: { rows: Data[] }) => {
         batch(() => {
             setRowsPerPage(parseInt(event.target.value, 10));
             setPage(0);
-        })
+        });
     };
 
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
@@ -195,7 +195,7 @@ const NamesTable = ({ rows }: { rows: Data[] }) => {
                                     <TableRow
                                         tabIndex={-1}
                                         key={row.name}
-                                        className={`${classes.rowData} ${row.implicit ? "implicit" : ""}`}
+                                        className={`${classes.rowData} ${row.implicit ? 'implicit' : ''}`}
                                     >
                                         <TableCell component="th" id={labelId} scope="row" padding="none">
                                             {row.name}
@@ -223,7 +223,7 @@ const NamesTable = ({ rows }: { rows: Data[] }) => {
             />
         </div>
     );
-}
+};
 
 
-export default NamesTable
+export default NamesTable;

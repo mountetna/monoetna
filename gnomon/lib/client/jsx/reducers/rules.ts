@@ -66,7 +66,7 @@ const initialState: RulesState = {
         byValue: {},
         byTokenName: {}
     },
-}
+};
 
 
 export function rulesReducer(state: RulesState = initialState, action: ACTION_TYPE): RulesState {
@@ -76,61 +76,61 @@ export function rulesReducer(state: RulesState = initialState, action: ACTION_TY
                 ...state,
                 rules: {
                     ...state.rules,
-                    ...listToIdObject(action.rules, "name")
+                    ...listToIdObject(action.rules, 'name')
                 },
                 ruleParents: {
                     byLocalId: {
                         ...state.ruleParents.byLocalId,
-                        ...listToIdObject(action.ruleParents, "localId"),
+                        ...listToIdObject(action.ruleParents, 'localId'),
                     },
                     byRuleName: {
                         ...state.ruleParents.byRuleName,
-                        ...listToIdGroupObject(action.ruleParents, "ruleName", "localId"),
+                        ...listToIdGroupObject(action.ruleParents, 'ruleName', 'localId'),
                     },
                     byParentRuleName: {
                         ...state.ruleParents.byParentRuleName,
-                        ...listToIdGroupObject(action.ruleParents, "parentRuleName", "localId"),
+                        ...listToIdGroupObject(action.ruleParents, 'parentRuleName', 'localId'),
                     },
                 },
                 tokens: {
                     ...state.tokens,
-                    ...listToIdObject(action.tokens, "name")
+                    ...listToIdObject(action.tokens, 'name')
                 },
                 ruleTokens: {
                     byLocalId: {
                         ...state.ruleTokens.byLocalId,
-                        ...listToIdObject(action.ruleTokens, "localId")
+                        ...listToIdObject(action.ruleTokens, 'localId')
                     },
                     byTokenName: {
                         ...state.ruleTokens.byTokenName,
-                        ...listToIdGroupObject(action.ruleTokens, "tokenName", "localId"),
+                        ...listToIdGroupObject(action.ruleTokens, 'tokenName', 'localId'),
                     },
                     byRuleName: {
                         ...state.ruleTokens.byRuleName,
-                        ...listToIdGroupObject(action.ruleTokens, "ruleName", "localId"),
+                        ...listToIdGroupObject(action.ruleTokens, 'ruleName', 'localId'),
                     },
                 },
                 tokenValues: {
                     byLocalId: {
                         ...state.tokenValues.byLocalId,
-                        ...listToIdObject(action.tokenValues, "localId"),
+                        ...listToIdObject(action.tokenValues, 'localId'),
                     },
                     byTokenName: {
                         ...state.tokenValues.byTokenName,
-                        ...listToIdGroupObject(action.tokenValues, "tokenName", "localId"),
+                        ...listToIdGroupObject(action.tokenValues, 'tokenName', 'localId'),
                     },
                 },
                 synonyms: {
                     byValue: {
                         ...state.synonyms.byValue,
-                        ...listToIdObject(action.synonyms, "value")
+                        ...listToIdObject(action.synonyms, 'value')
                     },
                     byTokenName: {
                         ...state.synonyms.byTokenName,
-                        ...listToIdGroupObject(action.synonyms, "tokenName", "value")
+                        ...listToIdGroupObject(action.synonyms, 'tokenName', 'value')
                     },
                 },
-            }
+            };
         default: {
             return state;
         }

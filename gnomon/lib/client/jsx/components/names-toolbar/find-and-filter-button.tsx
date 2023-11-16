@@ -1,42 +1,42 @@
-import React, { useState, useRef } from "react";
-import { useSelector, batch } from 'react-redux'
+import React, { useState, useRef } from 'react';
+import { useSelector, batch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
-import Button from "@material-ui/core/Button";
-import ButtonGroup from "@material-ui/core/ButtonGroup";
+import Button from '@material-ui/core/Button';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
 import SearchIcon from '@material-ui/icons/Search';
 import FormControl from '@material-ui/core/FormControl';
-import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import DeleteOutlineOutlinedIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import Tooltip from '@material-ui/core/Tooltip';
-import _ from "lodash"
+import _ from 'lodash';
 
-import { selectCreateNameGroupIdsByPrimaryRule, selectFilterStatus, selectSelectedCreateNameGroupIds } from "../../selectors/names";
-import { CreateNameGroup, Rule } from "../../models";
-import { RuleSelect } from "../names-create/name-composer/select";
-import { selectGlobalState, selectVisibleRules } from "../../selectors/global";
-import { addCreateNameGroupsToSearchCriteria, clearCreateNameGroupsFilter, clearCreateNameGroupsSelection, createNamesWithGroupForRule, deleteGroupsWithNames, setCreateNameGroupsFilterFromSearchCriteria, setCreateNameGroupsSelectionFromSearchCriteria } from "../../actions/names";
-import CreateNameGroupComposer from "../names-create/name-composer/name-composer";
-import { useDispatch } from "../../utils/redux";
-import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
+import { selectCreateNameGroupIdsByPrimaryRule, selectFilterStatus, selectSelectedCreateNameGroupIds } from '../../selectors/names';
+import { CreateNameGroup, Rule } from '../../models';
+import { RuleSelect } from '../names-create/name-composer/select';
+import { selectGlobalState, selectVisibleRules } from '../../selectors/global';
+import { addCreateNameGroupsToSearchCriteria, clearCreateNameGroupsFilter, clearCreateNameGroupsSelection, createNamesWithGroupForRule, deleteGroupsWithNames, setCreateNameGroupsFilterFromSearchCriteria, setCreateNameGroupsSelectionFromSearchCriteria } from '../../actions/names';
+import CreateNameGroupComposer from '../names-create/name-composer/name-composer';
+import { useDispatch } from '../../utils/redux';
+import ToolbarButtonWithPopper from './toolbar-button-with-popper';
 
 
 
 const useStyles = makeStyles((theme) => ({
     formContainer: {
-        padding: "1em",
+        padding: '1em',
     },
     ruleSelect: {
-        marginBottom: "2em",
-        "&:not(:last-child)": {
-            marginBottom: "1em",
+        marginBottom: '2em',
+        '&:not(:last-child)': {
+            marginBottom: '1em',
         },
     },
     cngComposer: {
-        margin: "0 0 2em 1em",
+        margin: '0 0 2em 1em',
     },
     buttonsContainer: {
-        textAlign: "center",
-        "& > div:not(:last-child)": {
-            marginRight: "1em",
+        textAlign: 'center',
+        '& > div:not(:last-child)': {
+            marginRight: '1em',
         },
     },
 }));
@@ -49,84 +49,84 @@ interface RuleAndCreateNameGroupState {
 
 
 const FindAndFilterButton = ({ small }: { small: boolean }) => {
-    const classes = useStyles()
+    const classes = useStyles();
 
     const [open, setOpen] = useState<boolean>(false);
-    const [ruleAndCreateNameGroup, setRuleAndCreateNameGroup] = useState<RuleAndCreateNameGroupState | undefined>()
+    const [ruleAndCreateNameGroup, setRuleAndCreateNameGroup] = useState<RuleAndCreateNameGroupState | undefined>();
 
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
 
-    const createNameGroupIdsByPrimaryRule = useSelector(selectCreateNameGroupIdsByPrimaryRule)
-    const filterEnabled = useSelector(selectFilterStatus)
-    const selectedCreateNameGroupLocalIds = useSelector(selectSelectedCreateNameGroupIds)
-    const visibleRules = useSelector(selectVisibleRules)
-    const globalState = useSelector(selectGlobalState)
+    const createNameGroupIdsByPrimaryRule = useSelector(selectCreateNameGroupIdsByPrimaryRule);
+    const filterEnabled = useSelector(selectFilterStatus);
+    const selectedCreateNameGroupLocalIds = useSelector(selectSelectedCreateNameGroupIds);
+    const visibleRules = useSelector(selectVisibleRules);
+    const globalState = useSelector(selectGlobalState);
 
     const clearRuleAndCreateNameGroup = () => {
         if (ruleAndCreateNameGroup) {
             batch(() => {
-                dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId], globalState))
-                setRuleAndCreateNameGroup(undefined)
-            })
+                dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId], globalState));
+                setRuleAndCreateNameGroup(undefined);
+            });
         }
-    }
+    };
 
     const handleSetRule = (rule?: Rule) => {
         if (!rule) {
             if (ruleAndCreateNameGroup) {
-                clearRuleAndCreateNameGroup()
-                return
+                clearRuleAndCreateNameGroup();
+                return;
             }
-            setRuleAndCreateNameGroup(undefined)
-            return
+            setRuleAndCreateNameGroup(undefined);
+            return;
         }
 
-        const actionPayload = createNamesWithGroupForRule(rule.name, globalState, false)
+        const actionPayload = createNamesWithGroupForRule(rule.name, globalState, false);
         const newState: RuleAndCreateNameGroupState = {
             rule,
             createNameGroup: actionPayload.createNameGroups[0]
-        }
+        };
 
         if (ruleAndCreateNameGroup) {
             batch(() => {
-                dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId], globalState))
-                dispatch(actionPayload)
-                dispatch(addCreateNameGroupsToSearchCriteria([newState.createNameGroup.localId]))
-                setRuleAndCreateNameGroup(newState)
-            })
+                dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId], globalState));
+                dispatch(actionPayload);
+                dispatch(addCreateNameGroupsToSearchCriteria([newState.createNameGroup.localId]));
+                setRuleAndCreateNameGroup(newState);
+            });
         } else {
             batch(() => {
-                dispatch(actionPayload)
-                dispatch(addCreateNameGroupsToSearchCriteria([newState.createNameGroup.localId]))
-                setRuleAndCreateNameGroup(newState)
-            })
+                dispatch(actionPayload);
+                dispatch(addCreateNameGroupsToSearchCriteria([newState.createNameGroup.localId]));
+                setRuleAndCreateNameGroup(newState);
+            });
         }
-    }
+    };
 
     const handleClickFindAndSelect = () => {
-        dispatch(setCreateNameGroupsSelectionFromSearchCriteria())
-    }
+        dispatch(setCreateNameGroupsSelectionFromSearchCriteria());
+    };
 
     const handleClickClearSelection = () => {
         batch(() => {
-            dispatch(clearCreateNameGroupsSelection())
-            clearRuleAndCreateNameGroup()
-        })
-    }
+            dispatch(clearCreateNameGroupsSelection());
+            clearRuleAndCreateNameGroup();
+        });
+    };
 
     const handleClickFilter = () => {
-        dispatch(setCreateNameGroupsFilterFromSearchCriteria())
-    }
+        dispatch(setCreateNameGroupsFilterFromSearchCriteria());
+    };
 
     const handleClickClearFilter = () => {
         batch(() => {
-            dispatch(clearCreateNameGroupsFilter())
-            clearRuleAndCreateNameGroup()
-        })
-    }
+            dispatch(clearCreateNameGroupsFilter());
+            clearRuleAndCreateNameGroup();
+        });
+    };
 
     const renderClearSelectionButton = () => {
-        const disabled = !ruleAndCreateNameGroup && selectedCreateNameGroupLocalIds.size == 0
+        const disabled = !ruleAndCreateNameGroup && selectedCreateNameGroupLocalIds.size == 0;
         const button = <Button
             onClick={handleClickClearSelection}
             color="secondary"
@@ -134,17 +134,17 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
             disabled={disabled}
         >
             <DeleteOutlineOutlinedIcon />
-        </Button>
+        </Button>;
 
         return disabled ? button : (
             <Tooltip title="Clear Selection">
                 {button}
             </Tooltip>
-        )
-    }
+        );
+    };
 
     const renderClearFilterButton = () => {
-        const disabled = !ruleAndCreateNameGroup && !filterEnabled
+        const disabled = !ruleAndCreateNameGroup && !filterEnabled;
         const button = <Button
             onClick={handleClickClearFilter}
             color="secondary"
@@ -152,20 +152,20 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
             disabled={disabled}
         >
             <DeleteOutlineOutlinedIcon />
-        </Button>
+        </Button>;
 
         return disabled ? button : (
             <Tooltip title="Clear Filter">
                 {button}
             </Tooltip>
-        )
-    }
+        );
+    };
 
     return (
         <ToolbarButtonWithPopper
             text="Find and Filter"
             iconComponent={<SearchIcon />}
-            variant={small ? "compact" : "full"}
+            variant={small ? 'compact' : 'full'}
             color="#9747FF"
             popperComponent={
                 <FormControl component="fieldset" id="find-and-filter-dialogue" className={classes.formContainer}>
@@ -221,7 +221,7 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
             popperOpen={open}
             disabled={Object.keys(createNameGroupIdsByPrimaryRule).length == 0 && !filterEnabled}
         />
-    )
-}
+    );
+};
 
-export default FindAndFilterButton
+export default FindAndFilterButton;

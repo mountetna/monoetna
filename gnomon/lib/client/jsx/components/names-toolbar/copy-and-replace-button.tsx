@@ -1,67 +1,67 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useSelector, batch } from 'react-redux'
+import React, { useState, useEffect, useRef } from 'react';
+import { useSelector, batch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
-import Button from "@material-ui/core/Button";
-import LibraryAddOutlinedIcon from "@material-ui/icons/LibraryAddOutlined";
+import Button from '@material-ui/core/Button';
+import LibraryAddOutlinedIcon from '@material-ui/icons/LibraryAddOutlined';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
-import _ from "lodash"
+import _ from 'lodash';
 
-import { CreateNameGroup, Rule } from "../../models";
-import { RuleSelect } from "../names-create/name-composer/select";
-import CreateNameGroupComposer from "../names-create/name-composer/name-composer";
-import { inputEventValueToNumber } from "../../utils/input";
-import { selectCreateNameGroupsByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names"
-import { selectCommonRulesFromSelection, selectGlobalState, selectReplaceRuleFromSelection } from "../../selectors/global";
-import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria } from "../../actions/names";
-import { useDispatch } from "../../utils/redux";
-import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
-import AutosizeInput from "../../utils/autosize-text-input";
+import { CreateNameGroup, Rule } from '../../models';
+import { RuleSelect } from '../names-create/name-composer/select';
+import CreateNameGroupComposer from '../names-create/name-composer/name-composer';
+import { inputEventValueToNumber } from '../../utils/input';
+import { selectCreateNameGroupsByLocalId, selectSelectedCreateNameGroupIds } from '../../selectors/names';
+import { selectCommonRulesFromSelection, selectGlobalState, selectReplaceRuleFromSelection } from '../../selectors/global';
+import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria } from '../../actions/names';
+import { useDispatch } from '../../utils/redux';
+import ToolbarButtonWithPopper from './toolbar-button-with-popper';
+import AutosizeInput from '../../utils/autosize-text-input';
 
 
 
 const useStyles = makeStyles((theme) => ({
     formContainer: {
-        padding: "1em",
+        padding: '1em',
     },
     radioGroup: {
-        marginBottom: "2em",
+        marginBottom: '2em',
     },
     radioOption: {
-        "&:not(:last-child)": {
-            marginBottom: "0.5em",
+        '&:not(:last-child)': {
+            marginBottom: '0.5em',
         },
-        opacity: "0.5",
-        transition: "opacity 0.2s ease-in",
-        "&:hover, &.selected": {
-            opacity: "1",
+        opacity: '0.5',
+        transition: 'opacity 0.2s ease-in',
+        '&:hover, &.selected': {
+            opacity: '1',
         },
-        "& .radio-row": {
-            display: "flex",
-            alignItems: "center",
+        '& .radio-row': {
+            display: 'flex',
+            alignItems: 'center',
         },
-        "& .form-row": {
+        '& .form-row': {
             // TODO: make this align perfectly
-            marginLeft: "2em",
+            marginLeft: '2em',
         },
-        "& .form-row > :not(:last-child), & .radio-row > :not(:last-child)": {
-            marginRight: "1em",
+        '& .form-row > :not(:last-child), & .radio-row > :not(:last-child)': {
+            marginRight: '1em',
         },
     },
     iterateBoundaryInputs: {
-        flexDirection: "row",
-        alignItems: "center",
-        "& label": {
-            marginRight: "1em",
+        flexDirection: 'row',
+        alignItems: 'center',
+        '& label': {
+            marginRight: '1em',
         },
     },
     buttonsContainer: {
-        textAlign: "center",
-        "& > button:not(:last-child)": {
-            marginRight: "1em",
+        textAlign: 'center',
+        '& > button:not(:last-child)': {
+            marginRight: '1em',
         },
     },
 }));
@@ -74,16 +74,16 @@ const CopyCreateNameGroupRadio = ({ radioValue, currentRadioValue, label, quanti
     quantityValue: number | undefined,
     onChangeQuantity: (value?: number) => void
 }) => {
-    const classes = useStyles()
+    const classes = useStyles();
 
     const handleChangeQuantity = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const eventValue = event.target.value
-        const quantity = eventValue == "" ? undefined : Number(eventValue)
-        onChangeQuantity(quantity)
-    }
+        const eventValue = event.target.value;
+        const quantity = eventValue == '' ? undefined : Number(eventValue);
+        onChangeQuantity(quantity);
+    };
 
     return (
-        <div className={`${classes.radioOption} ${radioValue == currentRadioValue ? "selected" : ""}`}>
+        <div className={`${classes.radioOption} ${radioValue == currentRadioValue ? 'selected' : ''}`}>
             <div className="radio-row">
                 <FormControlLabel
                     value={radioValue}
@@ -92,10 +92,10 @@ const CopyCreateNameGroupRadio = ({ radioValue, currentRadioValue, label, quanti
                 />
                 <FormControl>
                     <AutosizeInput
-                        value={quantityValue != undefined ? String(quantityValue) : ""}
+                        value={quantityValue != undefined ? String(quantityValue) : ''}
                         onChange={handleChangeQuantity}
                         type="number"
-                        inputProps={{ min: 1, "aria-label": "copy-radio-quantity" }}
+                        inputProps={{ min: 1, 'aria-label': 'copy-radio-quantity' }}
                         id="copy-radio-quantity"
                         placeholder="n"
                     />
@@ -103,7 +103,7 @@ const CopyCreateNameGroupRadio = ({ radioValue, currentRadioValue, label, quanti
             </div>
         </div>
     );
-}
+};
 
 
 interface IterationBoundaries {
@@ -122,26 +122,26 @@ const IterateRuleRadio = ({ radioValue, currentRadioValue, label, rules, ruleVal
     boundaries: IterationBoundaries,
     onChangeBoundaries: (boundaries: IterationBoundaries) => void,
 }) => {
-    const classes = useStyles()
+    const classes = useStyles();
 
-    const minInputRef = useRef()
-    const maxInputRef = useRef()
+    const minInputRef = useRef();
+    const maxInputRef = useRef();
 
     const handleChangeBoundaries = (start: number | undefined, end: number | undefined) => {
-        onChangeBoundaries({ start, end })
-    }
+        onChangeBoundaries({ start, end });
+    };
 
     const getBoundaryValue = (boundary: number | undefined): string => {
-        return boundary != undefined ? String(boundary) : ""
-    }
+        return boundary != undefined ? String(boundary) : '';
+    };
 
     const handleFormClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const container = event.currentTarget
-        container.getElementsByTagName("input")[0].focus()
-    }
+        const container = event.currentTarget;
+        container.getElementsByTagName('input')[0].focus();
+    };
 
     return (
-        <div className={`${classes.radioOption} ${radioValue == currentRadioValue ? "selected" : ""}`}>
+        <div className={`${classes.radioOption} ${radioValue == currentRadioValue ? 'selected' : ''}`}>
             <div className="radio-row">
                 <FormControlLabel
                     value={radioValue}
@@ -166,7 +166,7 @@ const IterateRuleRadio = ({ radioValue, currentRadioValue, label, rules, ruleVal
                         value={getBoundaryValue(boundaries.start)}
                         onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleChangeBoundaries(inputEventValueToNumber(event), boundaries.end)}
                         type="number"
-                        inputProps={{ min: 0, "aria-label": "iterate-radio-boundary-minimum" }}
+                        inputProps={{ min: 0, 'aria-label': 'iterate-radio-boundary-minimum' }}
                         id="iterate-radio-boundary-minimum"
                         placeholder="n"
                     />
@@ -178,15 +178,15 @@ const IterateRuleRadio = ({ radioValue, currentRadioValue, label, rules, ruleVal
                         value={getBoundaryValue(boundaries.end)}
                         onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleChangeBoundaries(boundaries.start, inputEventValueToNumber(event))}
                         type="number"
-                        inputProps={{ min: 0, "aria-label": "iterate-radio-boundary-maximum" }}
+                        inputProps={{ min: 0, 'aria-label': 'iterate-radio-boundary-maximum' }}
                         id="iterate-radio-boundary-maximum"
                         placeholder="n"
                     />
                 </FormControl>
             </div>
         </div>
-    )
-}
+    );
+};
 
 
 const ReplaceValuesForRuleRadio = ({ radioValue, currentRadioValue, label, createNameGroup }: {
@@ -195,10 +195,10 @@ const ReplaceValuesForRuleRadio = ({ radioValue, currentRadioValue, label, creat
     label: string,
     createNameGroup?: CreateNameGroup,
 }) => {
-    const classes = useStyles()
+    const classes = useStyles();
 
     return (
-        <div className={`${classes.radioOption} ${radioValue == currentRadioValue ? "selected" : ""}`}>
+        <div className={`${classes.radioOption} ${radioValue == currentRadioValue ? 'selected' : ''}`}>
             <div className="radio-row">
                 <FormControlLabel
                     value={radioValue}
@@ -211,82 +211,82 @@ const ReplaceValuesForRuleRadio = ({ radioValue, currentRadioValue, label, creat
                     createNameGroup ?
                         <CreateNameGroupComposer
                             createNameGroup={createNameGroup}
-                        /> : "Select a Name first"
+                        /> : 'Select a Name first'
                 }
             </div>
         </div>
-    )
-}
+    );
+};
 
 
 const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
-    const classes = useStyles()
+    const classes = useStyles();
 
     const [open, setOpen] = useState<boolean>(false);
-    const [rule, setRule] = useState<Rule>()
-    const [radioValue, setRadioValue] = useState<string>("copy")
-    const [boundaries, setBoundaries] = useState<IterationBoundaries>({ start: undefined, end: undefined })
-    const [quantity, setQuantity] = useState<number | undefined>(undefined)
-    const [replaceCreateNameGroup, setReplaceCreateNameGroup] = useState<CreateNameGroup | undefined>()
+    const [rule, setRule] = useState<Rule>();
+    const [radioValue, setRadioValue] = useState<string>('copy');
+    const [boundaries, setBoundaries] = useState<IterationBoundaries>({ start: undefined, end: undefined });
+    const [quantity, setQuantity] = useState<number | undefined>(undefined);
+    const [replaceCreateNameGroup, setReplaceCreateNameGroup] = useState<CreateNameGroup | undefined>();
 
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
 
-    const globalState = useSelector(selectGlobalState)
-    const selectedCreateNameGroupLocalIds = useSelector(selectSelectedCreateNameGroupIds)
-    const createNameGroupsByLocalId = useSelector(selectCreateNameGroupsByLocalId)
+    const globalState = useSelector(selectGlobalState);
+    const selectedCreateNameGroupLocalIds = useSelector(selectSelectedCreateNameGroupIds);
+    const createNameGroupsByLocalId = useSelector(selectCreateNameGroupsByLocalId);
 
-    const selectedCreateNameGroups = [...selectedCreateNameGroupLocalIds].map(cngLocalId => createNameGroupsByLocalId[cngLocalId])
+    const selectedCreateNameGroups = [...selectedCreateNameGroupLocalIds].map(cngLocalId => createNameGroupsByLocalId[cngLocalId]);
 
-    const iterableRules = useSelector(selectCommonRulesFromSelection).filter(rule => rule.hasCounter)
+    const iterableRules = useSelector(selectCommonRulesFromSelection).filter(rule => rule.hasCounter);
 
-    const replaceRule = useSelector(selectReplaceRuleFromSelection)
+    const replaceRule = useSelector(selectReplaceRuleFromSelection);
 
     // manage CreateNameGroup for <ReplaceValuesForRuleRadio />
     useEffect(() => {
         if (!replaceRule) {
             if (replaceCreateNameGroup) {
                 batch(() => {
-                    dispatch(deleteGroupsWithNames([replaceCreateNameGroup.localId], globalState))
-                    setReplaceCreateNameGroup(undefined)
-                })
-                return
+                    dispatch(deleteGroupsWithNames([replaceCreateNameGroup.localId], globalState));
+                    setReplaceCreateNameGroup(undefined);
+                });
+                return;
             }
-            setReplaceCreateNameGroup(undefined)
-            return
+            setReplaceCreateNameGroup(undefined);
+            return;
         }
 
-        const actionPayload = createNamesWithGroupForRule(replaceRule.name, globalState, false)
-        const newCng = actionPayload.createNameGroups[0]
+        const actionPayload = createNamesWithGroupForRule(replaceRule.name, globalState, false);
+        const newCng = actionPayload.createNameGroups[0];
 
         if (replaceCreateNameGroup) {
             batch(() => {
-                dispatch(deleteGroupsWithNames([replaceCreateNameGroup.localId], globalState))
-                dispatch(actionPayload)
-                dispatch(addCreateNameGroupsToReplaceCriteria([newCng.localId]))
-                setReplaceCreateNameGroup(newCng)
-            })
+                dispatch(deleteGroupsWithNames([replaceCreateNameGroup.localId], globalState));
+                dispatch(actionPayload);
+                dispatch(addCreateNameGroupsToReplaceCriteria([newCng.localId]));
+                setReplaceCreateNameGroup(newCng);
+            });
         } else {
             batch(() => {
-                dispatch(actionPayload)
-                dispatch(addCreateNameGroupsToReplaceCriteria([newCng.localId]))
-                setReplaceCreateNameGroup(newCng)
-            })
+                dispatch(actionPayload);
+                dispatch(addCreateNameGroupsToReplaceCriteria([newCng.localId]));
+                setReplaceCreateNameGroup(newCng);
+            });
         }
-    }, [replaceRule?.name])
+    }, [replaceRule?.name]);
 
     const handleClose = () => {
         setOpen(false);
     };
 
     const handleChangeRadioValue = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setRadioValue(event.target.value)
-    }
+        setRadioValue(event.target.value);
+    };
 
     const handleClickAdd = () => {
         switch (radioValue) {
-            case "copy":
+            case 'copy':
                 if (quantity == undefined) {
-                    break
+                    break;
                 }
 
                 dispatch(duplicateCreateNameGroups(
@@ -295,15 +295,15 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
                     true,
                     quantity,
                     {},
-                ))
-                break
-            case "iterate":
+                ));
+                break;
+            case 'iterate':
                 if (
                     rule == undefined
                     || boundaries.start == undefined
                     || boundaries.end == undefined
                 ) {
-                    break
+                    break;
                 }
 
                 dispatch(iterateOnCreateNameGroupsByRule(
@@ -312,21 +312,21 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
                     boundaries.start,
                     boundaries.end,
                     globalState,
-                ))
-                break
-            case "replace":
-                dispatch(addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria(globalState))
-                break
+                ));
+                break;
+            case 'replace':
+                dispatch(addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria(globalState));
+                break;
             default:
-                console.error(`Unsupported radio value: ${radioValue}`)
+                console.error(`Unsupported radio value: ${radioValue}`);
         }
-    }
+    };
 
     return (
         <ToolbarButtonWithPopper
             text="Copy and Replace"
             iconComponent={<LibraryAddOutlinedIcon />}
-            variant={small ? "compact" : "full"}
+            variant={small ? 'compact' : 'full'}
             color="primary"
             popperComponent={
                 <FormControl
@@ -390,7 +390,7 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
             popperOpen={open}
             disabled={selectedCreateNameGroupLocalIds.size == 0}
         />
-    )
+    );
 };
 
 export default CopyAndReplaceButton;
