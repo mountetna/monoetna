@@ -19,7 +19,7 @@ import Counts, { Count } from '../names-create/counts';
 import { useWindowDimensions } from '../../utils/responsive';
 
 import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
+import 'ag-grid-community/styles/ag-theme-material.css';
 
 
 
@@ -56,16 +56,35 @@ const useStyles = makeStyles((theme) => {
         },
         outerContainer: {
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            margin: '5.5em 0',
+            justifyContent: 'center',
         },
-        selectedValueContainer: {
+        container: {
+            display: 'flex',
+            flexDirection: 'column',
+            margin: '5.5em 0',
             width: `${gridSize}vw`,
+            height: `${gridSize}vh`,
             [theme.breakpoints.down('sm')]: {
                 width: `${gridSizeSm}vw`,
             },
+            border: '1px solid rgb(204, 204, 204)',
+
+            // checked checkbox
+            '& .ag-checkbox-input-wrapper.ag-checked::after, & .ag-checkbox-input-wrapper.ag-indeterminate::after': {
+                color: 'rgb(153, 153, 153)'
+            },
+            // focused cell
+            '& .ag-ltr .ag-cell-focus:not(.ag-cell-range-selected):focus-within': {
+                borderColor: 'unset',
+            },
+            // selected row
+            '& .ag-row-selected::before, & .ag-row-focus::before, & .ag-row-hover::before': {
+                background: 'rgba(153, 153, 153, 0.1)',
+            },
+        },
+        selectedValueContainer: {
             display: 'flex',
+            width: '100%',
             alignItems: 'center',
             textAlign: 'left',
             background: 'rgba(153, 153, 153, 0.1)',
@@ -74,11 +93,8 @@ const useStyles = makeStyles((theme) => {
             padding: '1em',
         },
         gridContainer: {
-            width: `${gridSize}vw`,
-            height: `${gridSize}vh`,
-            [theme.breakpoints.down('sm')]: {
-                width: `${gridSizeSm}vw`,
-            },
+            width: '100%',
+            height: '100%',
         },
     };
 });
@@ -229,24 +245,26 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
             </div>
             {renderCounts()}
             <div className={classes.outerContainer}>
-                <div className={classes.selectedValueContainer}>
-                    <span className={classes.selectedValue}>
-                        {focusedCell ? focusedCell : '‎'}
-                    </span>
+                <div className={classes.container}>
+                    <div className={classes.selectedValueContainer}>
+                        <span className={classes.selectedValue}>
+                            {focusedCell ? focusedCell : '‎'}
+                        </span>
+                    </div>
+                    <div className={`ag-theme-material ${classes.gridContainer}`}>
+                        <AgGridReact
+                            ref={gridRef}
+                            rowData={rowData}
+                            columnDefs={columnDefs}
+                            defaultColDef={defaultColDef}
+                            rowSelection='multiple'
+                            suppressRowClickSelection={true}
+                            onFirstDataRendered={sizeColumnsToFit}
+                            onCellClicked={handleCellClicked}
+                            onSelectionChanged={handleSelectionChanged}
+                        />
+                    </div >
                 </div>
-                <div className={`ag-theme-alpine ${classes.gridContainer}`}>
-                    <AgGridReact
-                        ref={gridRef}
-                        rowData={rowData}
-                        columnDefs={columnDefs}
-                        defaultColDef={defaultColDef}
-                        rowSelection='multiple'
-                        suppressRowClickSelection={true}
-                        onFirstDataRendered={sizeColumnsToFit}
-                        onCellClicked={handleCellClicked}
-                        onSelectionChanged={handleSelectionChanged}
-                    />
-                </div >
             </div>
         </React.Fragment>
     );
