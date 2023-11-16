@@ -2,7 +2,7 @@ import { json_get } from 'etna-js/utils/fetch';
 import { magmaPath } from 'etna-js/api/magma_api';
 
 import { Rule, RuleParent, RuleToken, Synonym, Token, TokenValue } from '../models';
-import { createLocalId } from '../utils/models';
+import { createLocalId } from './models';
 
 
 

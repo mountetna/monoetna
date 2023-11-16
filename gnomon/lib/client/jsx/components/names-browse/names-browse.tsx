@@ -1,7 +1,5 @@
-import React, { useCallback, useMemo, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { ColDef, CellClickedEvent } from 'ag-grid-community';
-import { AgGridReact } from 'ag-grid-react';
 import { makeStyles } from '@material-ui/core/styles';
 
 import ProjectHeader from 'etna-js/components/project-header';
@@ -16,10 +14,10 @@ import { fetchRulesFromMagma } from '../../actions/rules';
 import { selectMagmaNamesListsByRuleName } from '../../selectors/names';
 import NamesBrowseToolbar from './toolbar';
 import Counts, { Count } from '../names-create/counts';
-import { useWindowDimensions } from '../../utils/responsive';
 
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-material.css';
+import Table from '../table';
 
 
 
@@ -54,51 +52,17 @@ const useStyles = makeStyles((theme) => {
                 color: 'red',
             },
         },
-        outerContainer: {
+        tableContainer: {
             display: 'flex',
             justifyContent: 'center',
-        },
-        container: {
-            display: 'flex',
-            flexDirection: 'column',
             margin: '5.5em 0',
+        },
+        table: {
             width: `${gridSize}vw`,
             height: `${gridSize}vh`,
             [theme.breakpoints.down('sm')]: {
                 width: `${gridSizeSm}vw`,
             },
-            border: '1px solid rgb(204, 204, 204)',
-
-            // text input
-            '& input[class^=ag-][type=text]:focus': {
-                borderBottomColor: 'unset',
-            },
-            // checked checkbox
-            '& .ag-checkbox-input-wrapper.ag-checked::after, & .ag-checkbox-input-wrapper.ag-indeterminate::after, & .ag-radio-button-input-wrapper.ag-checked::after': {
-                color: 'rgb(153, 153, 153)',
-            },
-            // focused cell
-            '& .ag-ltr .ag-cell-focus:not(.ag-cell-range-selected):focus-within': {
-                borderColor: 'unset',
-            },
-            // selected row
-            '& .ag-row-selected::before, & .ag-row-focus::before, & .ag-row-hover::before': {
-                background: 'rgba(153, 153, 153, 0.1)',
-            },
-        },
-        selectedValueContainer: {
-            display: 'flex',
-            width: '100%',
-            alignItems: 'center',
-            textAlign: 'left',
-            background: 'rgba(153, 153, 153, 0.1)',
-        },
-        selectedValue: {
-            padding: '1em',
-        },
-        gridContainer: {
-            width: '100%',
-            height: '100%',
         },
     };
 });
@@ -116,17 +80,12 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
     const classes = useStyles();
     const dispatch = useDispatch();
 
-    const [focusedCell, setFocusedCell] = useState<string>();
     const [selection, setSelection] = useState<Name[]>([]);
     const [rowData, setRowData] = useState<Name[]>([]);
-
-    const gridRef = useRef<AgGridReact<Name>>(null);
 
     const allRules = Object.keys(useSelector(selectRulesByName));
     const projectName = useSelector(selectPathParts)[0];
     const magmaNamesListsByRuleName = useSelector(selectMagmaNamesListsByRuleName);
-
-    const windowDimensions = useWindowDimensions();
 
     useEffect(() => {
         async function addRulesFromMagma() {
@@ -179,45 +138,6 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
         setRowData(newRowData);
     }, [magmaNamesListsByRuleName]);
 
-    const commonColumnSettings: ColDef<Name, any> = {
-        filter: true,
-        resizable: true,
-        headerCheckboxSelection: params => {
-            const displayedColumns = params.columnApi.getAllDisplayedColumns();
-            return displayedColumns[0] === params.column;
-        },
-        headerCheckboxSelectionFilteredOnly: true,
-    };
-    const [columnDefs, setColumnDefs] = useState<ColDef<Name, any>[]>([
-        { field: 'name', checkboxSelection: true, ...commonColumnSettings },
-        { field: 'ruleName', ...commonColumnSettings },
-        { field: 'author', ...commonColumnSettings },
-        { field: 'createdAt', ...commonColumnSettings },
-    ]);
-
-    const defaultColDef = useMemo(() => ({
-        sortable: true
-    }), []);
-
-    const sizeColumnsToFit = useCallback(() => {
-        if (gridRef.current?.api == undefined) { return; }
-
-        gridRef.current.api.sizeColumnsToFit();
-    }, []);
-
-    useEffect(sizeColumnsToFit, [windowDimensions]);
-
-    const handleCellClicked = useCallback((event: CellClickedEvent) => {
-        setFocusedCell(event.value);
-    }, []);
-
-    const handleSelectionChanged = useCallback(() => {
-        if (gridRef.current?.api == undefined) { return; }
-
-        setSelection(
-            gridRef.current.api.getSelectedRows()
-        );
-    }, []);
 
     const renderCounts = () => {
         const counts: Count[] = [{
@@ -248,27 +168,14 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
                 <ProjectHeader project_name={project_name} className="placeholder" />
             </div>
             {renderCounts()}
-            <div className={classes.outerContainer}>
-                <div className={classes.container}>
-                    <div className={classes.selectedValueContainer}>
-                        <span className={classes.selectedValue}>
-                            {focusedCell ? focusedCell : '‎'}
-                        </span>
-                    </div>
-                    <div className={`ag-theme-material ${classes.gridContainer}`}>
-                        <AgGridReact
-                            ref={gridRef}
-                            rowData={rowData}
-                            columnDefs={columnDefs}
-                            defaultColDef={defaultColDef}
-                            rowSelection='multiple'
-                            suppressRowClickSelection={true}
-                            onFirstDataRendered={sizeColumnsToFit}
-                            onCellClicked={handleCellClicked}
-                            onSelectionChanged={handleSelectionChanged}
-                        />
-                    </div >
-                </div>
+            <div className={classes.tableContainer}>
+                <Table
+                    rows={rowData}
+                    columns={['name', 'ruleName', 'author', 'createdAt']}
+                    selectable={false}
+                    onSelectionChanged={setSelection}
+                    className={classes.table}
+                />
             </div>
         </React.Fragment>
     );

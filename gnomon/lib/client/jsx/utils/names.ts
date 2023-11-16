@@ -107,8 +107,8 @@ export interface MagmaName {
 
 
 export interface MagmaBulkGenerateResponse {
-    created: MagmaName[]
-    existing?: MagmaName[]
+    created: MagmaBulkGenerateName[]
+    existing?: MagmaBulkGenerateName[]
 }
 
 

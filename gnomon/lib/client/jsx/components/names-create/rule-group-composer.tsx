@@ -18,7 +18,7 @@ import { deleteGroupsWithNames, createNamesWithGroupForRule, addCreateNameGroups
 import { useDispatch } from '../../utils/redux';
 import { selectGlobalState } from '../../selectors/global';
 import Counts, { Count } from './counts';
-import ConfirmationPopper from '../../utils/confirmation-popper';
+import ConfirmationPopper from '../confirmation-popper';
 
 
 

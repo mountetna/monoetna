@@ -7,7 +7,7 @@ import ToolbarButtonWithPopper from './toolbar-button-with-popper';
 import { deleteSelectedGroupsWithNames } from '../../actions/names';
 import { selectGlobalState } from '../../selectors/global';
 import { selectSelectedCreateNameGroupIds } from '../../selectors/names';
-import ConfirmationPopper from '../../utils/confirmation-popper';
+import ConfirmationPopper from '../confirmation-popper';
 
 
 

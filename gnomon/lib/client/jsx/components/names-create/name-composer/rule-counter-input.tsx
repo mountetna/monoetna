@@ -9,7 +9,7 @@ import { selectCompleteCreateNameParentLocalIdsByRenderedValues, selectRenderedC
 import { fetchNextCounterValueFromMagma } from '../../../utils/names';
 import { selectRuleParentLocalIdsByRuleName } from '../../../selectors/rules';
 import { UNSET_VALUE } from '../../../models';
-import AutosizeTextInput from '../../../utils/autosize-text-input';
+import AutosizeTextInput from '../../autosize-text-input';
 import { createLocalId } from '../../../utils/models';
 
 

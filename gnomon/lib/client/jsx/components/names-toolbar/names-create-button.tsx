@@ -17,7 +17,6 @@ import { useTheme } from '@material-ui/core/styles';
 import _ from 'lodash';
 
 import { useDispatch } from '../../utils/redux';
-import NamesTable from './names-create-table';
 import ToolbarButtonWithPopper from './toolbar-button-with-popper';
 import { selectCompleteCreateNamesCreationPayloads, selectComposeErrorCount, selectNamesCreationRequestState, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from '../../selectors/names';
 import { makeCreateNamesCreationRequest } from '../../actions/names';
@@ -25,7 +24,8 @@ import { selectPathParts } from '../../selectors/location';
 import { exportDataToBlob, FILE_FORMATS_TO_MIME } from '../../utils/export';
 import { Status } from '../../utils/models';
 import MultiOptionButton from '../multi-option-button';
-import { difference } from '../../utils/set';
+import { difference, isSuperset, union } from '../../utils/set';
+import Table from '../table';
 
 
 
@@ -38,12 +38,29 @@ const useStyles = makeStyles((theme) => ({
     dialogTitle: {
         paddingBottom: '0',
     },
+    dialogContent: {
+        '& > *': {
+            marginBottom: '1em',
+        }
+    },
     tableControls: {
-        marginBottom: '1em',
         textAlign: 'right',
     },
     showImplicitSwitchLabel: {
         margin: '0',
+    },
+    table: {
+        height: '60vh',
+        minWidth: '300px',
+        width: '25vw',
+        '& .explicit': {
+            fontWeight: 'bold',
+        },
+        '& .implicit': {
+            fontStyle: 'italic',
+            fontWeight: 'normal',
+            opacity: '0.5',
+        },
     },
     dialogActions: {
         '&.withStatus': {
@@ -210,11 +227,10 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
             return false;
         }
 
-        const notCreated = difference(
-            new Set(creationRequestPayloads.filter(payload => !payload.implicit).map(val => val.renderedName)),
-            new Set((creationRequestState.response?.created || []).map(val => val.identifier)),
-        );
-        return notCreated.size == 0;
+        const expected = new Set(creationRequestPayloads.filter(val => !val.implicit).map(val => val.renderedName));
+        const created = new Set((creationRequestState.response?.created || []).map(val => val.name));
+
+        return isSuperset(created, expected);
     };
 
     return (
@@ -242,7 +258,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                 >
                     {'Create All Names'}
                 </DialogTitle>
-                <DialogContent>
+                <DialogContent className={classes.dialogContent}>
                     <div className={classes.tableControls}>
                         {foundImplicit &&
                             <FormControlLabel
@@ -258,8 +274,11 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                                 label="Show Implicit"
                             />}
                     </div>
-                    <NamesTable
+                    <Table
                         rows={rows}
+                        columns={['name', 'rule']}
+                        className={classes.table}
+                        getRowClass={row => row.implicit ? 'implicit' : 'explicit'}
                     />
                 </DialogContent>
                 <DialogActions
