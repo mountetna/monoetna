@@ -1,16 +1,17 @@
 export function defaultDict<K extends keyof any, V>(createValue: (property: any) => V): Record<K, V> {
     return new Proxy(Object.create(null), {
-        get(storage: object, property: any) {
-            if (!(property in storage))
+        get(storage: Record<any, any>, property: any) {
+            if (!(property in storage)) {
                 storage[property] = createValue(property);
+            }
             return storage[property];
         }
     });
 }
 
 // TODO: type to enforce idPropName in T
-export function listToIdObject<T>(list: T[], idPropName: string): Record<string, T> {
-    const idObject = {};
+export function listToIdObject<T extends Record<any, any>>(list: T[], idPropName: string): Record<any, T> {
+    const idObject: Record<any, T> = {};
     list.forEach(item => {
         idObject[item[idPropName]] = item
     })
@@ -19,7 +20,7 @@ export function listToIdObject<T>(list: T[], idPropName: string): Record<string,
 }
 
 // TODO: type to enforce groupPropName in T and idPropName in T
-export function listToIdGroupObject(list: object[], groupPropName: string, idPropName: string): Record<string, string[]> {
+export function listToIdGroupObject<T extends Record<any, any>>(list: T[], groupPropName: string, idPropName: string): Record<any, string[]> {
     const idObject = defaultDict<string, string[]>(_ => []);
 
     list.forEach(item => idObject[item[groupPropName]].push(item[idPropName]))

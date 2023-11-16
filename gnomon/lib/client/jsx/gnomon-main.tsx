@@ -7,11 +7,14 @@ import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
-import ProjectHeader from 'etna-js/components/project-header';
 
-import { requestAnswer } from 'etna-js/actions/magma_actions';
+import ProjectHeader from 'etna-js/components/project-header';
 import { json_get } from 'etna-js/utils/fetch';
 import { magmaPath } from 'etna-js/api/magma_api';
+
+import { MagmaRulesResponse } from './utils/rules';
+
+
 
 const useStyles = makeStyles((theme) => ({
   frame: {
@@ -66,9 +69,17 @@ const GnomonMain = ({ project_name }: { project_name: string }) => {
   }
 
   useEffect(() => {
-    json_get(magmaPath(`gnomon/${project_name}`)).then(
-      ({ config }) => setRules(Object.keys(config.rules || {}))
-    )
+    async function fetchRules() {
+      try {
+        const { config }: { config: MagmaRulesResponse } = await json_get(magmaPath(`gnomon/${project_name}`))
+        setRules(Object.keys(config.rules))
+      } catch (error) {
+        setRules([])
+        console.error(`Error fetching rules: ${error}`)
+      }
+    }
+
+    fetchRules()
   }, []);
 
   return (

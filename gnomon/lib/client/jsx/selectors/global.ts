@@ -103,7 +103,7 @@ export interface RulesStateSliceForCompleteCreateNames {
 export const selectRulesStateSliceForCompleteCreateNames: (state: State) => RulesStateSliceForCompleteCreateNames = createSelector(
     [(state: State) => state],
     (state: State): RulesStateSliceForCompleteCreateNames => {
-        const counterRequiredByRuleName = {}
+        const counterRequiredByRuleName: Record<string, boolean> = {}
 
         for (const [ruleName, rule] of Object.entries(state.rules.rules)) {
             counterRequiredByRuleName[ruleName] = rule.hasCounter

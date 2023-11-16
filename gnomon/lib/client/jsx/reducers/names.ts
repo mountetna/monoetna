@@ -1042,7 +1042,7 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
                     rulesStateSlice.ruleTokensByLocalId,
                     rulesStateSlice.tokenValuesByLocalId,
                 )
-                const hierarchyRenderedCounterValue = createName.ruleCounterValue != undefined ? renderCounter(createName) : UNSET_VALUE
+                const hierarchyRenderedCounterValue = Number.parseInt(createName.ruleCounterValue != undefined ? renderCounter(createName) : UNSET_VALUE)
 
                 // find completeCreateNameParentLocalId
                 if (parentCompleteCreateName != undefined || idx == 0) {

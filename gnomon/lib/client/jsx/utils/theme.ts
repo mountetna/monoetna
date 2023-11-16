@@ -1,4 +1,5 @@
 import { createTheme, Theme } from '@material-ui/core/styles';
+// @ts-ignore
 import Color from 'color';
 
 

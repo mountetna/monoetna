@@ -185,6 +185,7 @@ const NamesTable = ({ rows }: { rows: Data[] }) => {
                         onRequestSort={handleRequestSort}
                     />
                     <TableBody>
+                        {/* @ts-ignore */}
                         {stableSort(rows, getComparator(order, orderBy))
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                             .map((row, index) => {

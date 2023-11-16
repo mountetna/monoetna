@@ -6,21 +6,21 @@ import { createLocalId } from "../utils/models";
 
 
 
-interface MagmaToken {
+export interface MagmaToken {
     name: string
     label: string
     values: Record<string, string>
 }
 
 
-interface MagmaRulesResponse {
+export interface MagmaRulesResponse {
     rules: Record<string, string>
     tokens: Record<string, MagmaToken>
     synonyms: string[][]
 }
 
 
-interface ParsedRules {
+export interface ParsedRules {
     rules: Rule[]
     ruleParents: RuleParent[]
     tokens: Token[]
@@ -122,8 +122,8 @@ const parseMagmaRulesResponse = (res: MagmaRulesResponse): ParsedRules => {
 }
 
 
-export async function fetchRulesFromMagma(project_name): Promise<ParsedRules> {
-    const { config }: { config: MagmaRulesResponse } = await json_get(magmaPath(`gnomon/${project_name}`))
+export async function fetchRulesFromMagma(projectName: string): Promise<ParsedRules> {
+    const { config }: { config: MagmaRulesResponse } = await json_get(magmaPath(`gnomon/${projectName}`))
 
     return parseMagmaRulesResponse(config)
 }

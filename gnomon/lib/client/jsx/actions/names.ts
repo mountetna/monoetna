@@ -5,10 +5,11 @@ import { makeActionObject } from "./utils"
 import { createLocalId } from "../utils/models"
 import { defaultDict } from "../utils/object"
 import { NamesCreationRequestState, NamesListRequestState, NamesState } from "../reducers/names"
-import { MagmaBulkGenerateResponse, createSearchReplaceCriteriaFromGroups, postNameBatchToMagma } from "../utils/names"
+import { createSearchReplaceCriteriaFromGroups, postNameBatchToMagma } from "../utils/names"
 import { State } from "../store"
 import { RulesStateSliceForCompleteCreateNames, selectRulesStateSliceForCompleteCreateNames } from "../selectors/global"
 import { CompleteCreateNameRequestPayload } from "../selectors/names"
+import { useDispatch } from "../utils/redux"
 
 
 
@@ -450,7 +451,7 @@ export function makeCreateNamesCreationRequest(projectName: string, payloads: Co
         name: payload.renderedName,
     }))
 
-    return async (dispatch) => {
+    return async (dispatch: ReturnType<typeof useDispatch>) => {
         dispatch(setMagmaNamesCreationRequest({ status: "inProgress" }))
 
         try {
@@ -463,7 +464,7 @@ export function makeCreateNamesCreationRequest(projectName: string, payloads: Co
         } catch (error) {
             dispatch(setMagmaNamesCreationRequest({
                 status: "error",
-                statusMessage: error
+                statusMessage: String(error)
             }))
         }
     }
