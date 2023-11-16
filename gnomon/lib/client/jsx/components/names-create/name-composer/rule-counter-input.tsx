@@ -74,6 +74,7 @@ const RuleCounterField = ({
     parentCompleteCreateNameLocalId,
     projectName,
     ruleName,
+    includeRuleCounterIncrementer = true,
     handleSetCounterValue
 }: {
     value: number | undefined,
@@ -82,6 +83,7 @@ const RuleCounterField = ({
     parentCompleteCreateNameLocalId: string | undefined,
     projectName: string,
     ruleName: string,
+    includeRuleCounterIncrementer?: boolean,
     handleSetCounterValue: (value?: number) => void,
 }) => {
 
@@ -93,7 +95,7 @@ const RuleCounterField = ({
     const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId);
 
     let fullRenderedTokensPrefix: string | undefined;
-    
+
     if (parentCompleteCreateNameLocalId) {
         fullRenderedTokensPrefix = renderedCompleteCreateNamesByLocalId[parentCompleteCreateNameLocalId];
     }
@@ -159,7 +161,7 @@ const RuleCounterField = ({
     return (
         <span className={classes.ruleCounterField + ' ' + (!hasValue ? `${classes.unset}` : '')}>
             <FormControl className={classes.form}>
-                <ButtonBase
+                {includeRuleCounterIncrementer && <ButtonBase
                     onClick={handleClickAutoIncrement}
                     aria-label={`Set Counter Value for "${ruleName}"`}
                     aria-haspopup="false"
@@ -169,7 +171,7 @@ const RuleCounterField = ({
                     className={classes.autoIncrementButton}
                 >
                     +1
-                </ButtonBase>
+                </ButtonBase>}
                 <AutosizeTextInput
                     value={hasValue ? String(value) : ''}
                     onChange={handleChangeInput}

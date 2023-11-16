@@ -1,8 +1,10 @@
 import React, { useCallback, useMemo, useEffect, useRef, useState } from 'react';
 import { batch } from 'react-redux';
-import { ColDef, CellClickedEvent } from 'ag-grid-community';
+import { ColDef, CellClickedEvent, CellFocusedEvent } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import { makeStyles } from '@material-ui/core/styles';
+// @ts-ignore
+import Color from 'color';
 
 import { useWindowDimensions } from '../utils/responsive';
 
@@ -12,6 +14,7 @@ import 'ag-grid-community/styles/ag-theme-material.css';
 
 
 const useStyles = makeStyles((theme) => {
+    const secondaryColor = Color(theme.palette.secondary.main);
 
     return {
         container: {
@@ -19,7 +22,7 @@ const useStyles = makeStyles((theme) => {
             flexDirection: 'column',
             width: '100%',
             height: '100%',
-            border: '1px solid rgb(204, 204, 204)',
+            border: '1px solid #ccc',
 
             // text input
             '& input[class^=ag-][type=text]:focus': {
@@ -27,25 +30,30 @@ const useStyles = makeStyles((theme) => {
             },
             // checked checkbox
             '& .ag-checkbox-input-wrapper.ag-checked::after, & .ag-checkbox-input-wrapper.ag-indeterminate::after, & .ag-radio-button-input-wrapper.ag-checked::after': {
-                color: 'rgb(153, 153, 153)',
+                color: secondaryColor.string(),
             },
             // focused cell
             '& .ag-ltr .ag-cell-focus:not(.ag-cell-range-selected):focus-within': {
-                borderColor: 'unset',
+                borderColor: 'transparent',
             },
             // selected row
             '& .ag-row-selected::before, & .ag-row-focus::before, & .ag-row-hover::before': {
-                background: 'rgba(153, 153, 153, 0.1)',
+                background: secondaryColor.alpha(0.1).string(),
             },
+            // popups and field pickers
+            '& .ag-popup-child:not(.ag-tooltip-custom), & .ag-picker-field-wrapper:focus-within': {
+                boxShadow: 'none',
+                border: `1px solid ${secondaryColor.string()}`,
+            }
         },
-        selectedValueContainer: {
+        focusedValueContainer: {
             display: 'flex',
             width: '100%',
             alignItems: 'center',
             textAlign: 'left',
-            background: 'rgba(153, 153, 153, 0.1)',
+            background: secondaryColor.alpha(0.1).string(),
         },
-        selectedValue: {
+        focusedValue: {
             padding: '1em',
         },
         gridContainer: {
@@ -56,10 +64,11 @@ const useStyles = makeStyles((theme) => {
 });
 
 
-const Table = <RowData extends Record<string, any>>({ rows, columns, selectable = false, onCellFocused, onSelectionChanged, className, getRowClass }: {
+const Table = <RowData extends Record<string, any>>({ rows, columns, selectable = false, showFocusedCell = false, onCellFocused, onSelectionChanged, className, getRowClass }: {
     rows: RowData[],
     columns: (keyof RowData)[],
     selectable?: boolean,
+    showFocusedCell?: boolean,
     onCellFocused?: (data: any) => void,
     onSelectionChanged?: (selection: RowData[]) => void,
     className?: string
@@ -95,15 +104,31 @@ const Table = <RowData extends Record<string, any>>({ rows, columns, selectable 
     }), []);
 
     const sizeColumnsToFit = useCallback(() => {
-        if (gridRef.current?.api == undefined) { return; }
+        const grid = gridRef.current?.api
+        if (grid == undefined) { return; }
 
-        gridRef.current.api.sizeColumnsToFit();
+        grid.sizeColumnsToFit();
     }, []);
 
     useEffect(sizeColumnsToFit, [windowDimensions]);
 
-    const handleCellClicked = useCallback((event: CellClickedEvent) => {
-        const cellValue = event.value;
+    const handleCellClicked = useCallback((event: CellClickedEvent | CellFocusedEvent) => {
+        const grid = gridRef.current?.api
+        if (grid == undefined) { return; }
+
+        if (!showFocusedCell) {
+            grid.clearFocusedCell()
+        }
+
+        const cell = grid.getFocusedCell();
+        if (cell === null) {
+            return
+        }
+        const row = grid.getDisplayedRowAtIndex(cell.rowIndex);
+        if (row === undefined) {
+            return
+        }
+        const cellValue = grid.getValue(cell.column, row)
 
         batch(() => {
             onCellFocused && onCellFocused(cellValue);
@@ -112,30 +137,32 @@ const Table = <RowData extends Record<string, any>>({ rows, columns, selectable 
     }, []);
 
     const handleSelectionChanged = useCallback(() => {
-        if (gridRef.current?.api == undefined) { return; }
+        const grid = gridRef.current?.api
+        if (grid == undefined) { return; }
 
         onSelectionChanged && onSelectionChanged(
-            gridRef.current.api.getSelectedRows()
+            grid.getSelectedRows()
         );
     }, []);
 
     return (
         <div className={`${classes.container} ${className ? className : ''}`}>
-            <div className={classes.selectedValueContainer}>
-                <span className={classes.selectedValue}>
+            {showFocusedCell && <div className={classes.focusedValueContainer}>
+                <span className={classes.focusedValue}>
                     {focusedCell ? focusedCell : '‎'}
                 </span>
-            </div>
+            </div>}
             <div className={`ag-theme-material ${classes.gridContainer}`}>
                 <AgGridReact
                     ref={gridRef}
                     rowData={rows}
                     columnDefs={columnDefs}
                     defaultColDef={defaultColDef}
-                    rowSelection='multiple'
+                    rowSelection={selectable ? 'multiple' : undefined}
                     suppressRowClickSelection={true}
                     onFirstDataRendered={sizeColumnsToFit}
                     onCellClicked={handleCellClicked}
+                    onCellFocused={handleCellClicked}
                     onSelectionChanged={handleSelectionChanged}
                     getRowClass={getRowClass ? params => getRowClass(params.node.data) : undefined}
                 />

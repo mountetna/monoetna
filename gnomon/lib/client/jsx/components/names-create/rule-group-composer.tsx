@@ -74,6 +74,9 @@ const useStyles = makeStyles((theme) => ({
     },
     checkbox: {
         padding: '0',
+        '&.MuiCheckbox-indeterminate': {
+            color: theme.palette.secondary.main,
+        },
     },
     ruleNameTitle: {
         textAlign: 'center',
@@ -245,6 +248,9 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
         });
     };
 
+    const allSelected = _.every(createNameGroups, (cng) => selectedCreateNameGroupLocalIds.has(cng.localId))
+    const someSelected = _.some(createNameGroups, (cng) => selectedCreateNameGroupLocalIds.has(cng.localId))
+
     return (
         <div className={classes.gridContainer}>
             <div className={classes.innerContainer}>
@@ -252,7 +258,8 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                     <Grid item xs={4}>
                         <div className={classes.tools}>
                             <Checkbox
-                                checked={_.every(createNameGroups, (cng) => selectedCreateNameGroupLocalIds.has(cng.localId))}
+                                checked={allSelected}
+                                indeterminate={allSelected ? false : someSelected}
                                 onChange={handleClickSelect}
                                 inputProps={{ 'aria-label': 'Select the Name Group' }}
                                 className={classes.checkbox}

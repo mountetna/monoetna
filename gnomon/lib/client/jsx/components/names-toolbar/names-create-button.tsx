@@ -13,7 +13,7 @@ import AutorenewIcon from '@material-ui/icons/Autorenew';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { useTheme } from '@material-ui/core/styles';
+import { useTheme , Theme} from '@material-ui/core/styles';
 import _ from 'lodash';
 
 import { useDispatch } from '../../utils/redux';
@@ -24,7 +24,7 @@ import { selectPathParts } from '../../selectors/location';
 import { exportDataToBlob, FILE_FORMATS_TO_MIME } from '../../utils/export';
 import { Status } from '../../utils/models';
 import MultiOptionButton from '../multi-option-button';
-import { difference, isSuperset, union } from '../../utils/set';
+import { isSuperset } from '../../utils/set';
 import Table from '../table';
 
 
@@ -50,9 +50,16 @@ const useStyles = makeStyles((theme) => ({
         margin: '0',
     },
     table: {
-        height: '60vh',
+        minHeight: '400px',
+        height: '25vh',
+        maxHeight: '100%',
         minWidth: '300px',
         width: '25vw',
+        maxWidth: '100%',
+        [theme.breakpoints.down('sm')]: {
+            width: '100%',
+            height: '90%',
+        },
         '& .explicit': {
             fontWeight: 'bold',
         },

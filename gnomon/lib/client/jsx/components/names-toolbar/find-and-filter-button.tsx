@@ -172,8 +172,8 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
                     <RuleSelect
                         values={visibleRules}
                         value={ruleAndCreateNameGroup?.rule}
-                        label="Rule"
-                        placeholder="rule"
+                        label="Common Element"
+                        placeholder="common element"
                         onSetRule={handleSetRule}
                         className={classes.ruleSelect}
                     />
@@ -181,6 +181,7 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
                         ruleAndCreateNameGroup?.createNameGroup &&
                         <CreateNameGroupComposer
                             createNameGroup={ruleAndCreateNameGroup.createNameGroup}
+                            includeRuleCounterIncrementer={false}
                             className={classes.cngComposer}
                         />
                     }

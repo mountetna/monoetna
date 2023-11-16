@@ -172,7 +172,8 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
                 <Table
                     rows={rowData}
                     columns={['name', 'ruleName', 'author', 'createdAt']}
-                    selectable={false}
+                    selectable={true}
+                    showFocusedCell={true}
                     onSelectionChanged={setSelection}
                     className={classes.table}
                 />

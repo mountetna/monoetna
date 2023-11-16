@@ -97,7 +97,7 @@ const CopyCreateNameGroupRadio = ({ radioValue, currentRadioValue, label, quanti
                         type="number"
                         inputProps={{ min: 1, 'aria-label': 'copy-radio-quantity' }}
                         id="copy-radio-quantity"
-                        placeholder="n"
+                        placeholder="n times"
                     />
                 </FormControl>
             </div>
@@ -152,8 +152,8 @@ const IterateRuleRadio = ({ radioValue, currentRadioValue, label, rules, ruleVal
                     <RuleSelect
                         values={rules}
                         value={ruleValue}
-                        label="Rule"
-                        placeholder="rule"
+                        label="Element"
+                        placeholder="element"
                         onSetRule={onChangeRule}
                     />
                 </FormControl>
@@ -344,14 +344,14 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
                         <CopyCreateNameGroupRadio
                             radioValue="copy"
                             currentRadioValue={radioValue}
-                            label="Quantity"
+                            label="Copy"
                             quantityValue={quantity}
                             onChangeQuantity={setQuantity}
                         />
                         <IterateRuleRadio
                             radioValue="iterate"
                             currentRadioValue={radioValue}
-                            label="Iterate on Rule"
+                            label="Iterate on Element"
                             rules={iterableRules}
                             ruleValue={rule}
                             onChangeRule={setRule}

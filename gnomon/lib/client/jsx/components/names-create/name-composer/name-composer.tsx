@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, batch } from 'react-redux';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, Theme } from '@material-ui/core/styles';
 import FormGroup from '@material-ui/core/FormGroup';
 import ButtonBase from '@material-ui/core/ButtonBase';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -34,10 +34,11 @@ const useEditorStyles = makeStyles((theme) => ({
 }));
 
 
-const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, parentCompleteCreateNameLocalId, error }: {
+const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, includeRuleCounterIncrementer, parentCompleteCreateNameLocalId, error }: {
     createName: CreateName,
     rule: Rule,
     includeUnsetAsValue: boolean,
+    includeRuleCounterIncrementer: boolean,
     parentCompleteCreateNameLocalId: string | undefined,
     error?: boolean
 }) => {
@@ -139,6 +140,7 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, paren
                     parentCompleteCreateNameLocalId={parentCompleteCreateNameLocalId}
                     projectName={projectName}
                     ruleName={rule.name}
+                    includeRuleCounterIncrementer={includeRuleCounterIncrementer}
                     handleSetCounterValue={setRuleCounterValue}
                 />
             }
@@ -147,13 +149,20 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, paren
 };
 
 
-const useComposerStyles = makeStyles((theme) => ({
+
+interface ComposerStylesProps {
+    includeRuleCounterIncrementer: boolean
+}
+
+
+
+const useComposerStyles = makeStyles<Theme, ComposerStylesProps>((theme) => ({
     container: {
         display: 'inline-flex',
         flexWrap: 'wrap',
         '& > *': {
-            // account for absolute positioning of <RuleCounterField>
-            paddingTop: '1.5em',
+            // account for absolute positioning of RuleCounter Incrementer
+            paddingTop: props => props.includeRuleCounterIncrementer ? '1.5em' : 'none',
         },
     },
     toolsContainer: {
@@ -187,14 +196,15 @@ const useComposerStyles = makeStyles((theme) => ({
 }));
 
 
-const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = false, includeUnsetAsValue = false }: {
+const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = false, includeRuleCounterIncrementer = true, includeUnsetAsValue = false }: {
     createNameGroup: CreateNameGroup,
     className?: string,
     includeTools?: boolean
+    includeRuleCounterIncrementer?: boolean,
     includeUnsetAsValue?: boolean
 }) => {
     const dispatch = useDispatch();
-    const classes = useComposerStyles();
+    const classes = useComposerStyles({ includeRuleCounterIncrementer });
     const [duplicateTracker, setDuplicateTracker] = useState({ local: 0, remote: 0 });
 
     const globalState = useSelector(selectGlobalState);
@@ -336,6 +346,7 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
                                     createName={createNamesByLocalId[createNameLocalId]}
                                     rule={rule}
                                     parentCompleteCreateNameLocalId={parentCompleteCreateName?.localId}
+                                    includeRuleCounterIncrementer={includeRuleCounterIncrementer}
                                     includeUnsetAsValue={includeUnsetAsValue}
                                     error={errorMessage != undefined}
                                 />
