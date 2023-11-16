@@ -69,9 +69,13 @@ const useStyles = makeStyles((theme) => {
             },
             border: '1px solid rgb(204, 204, 204)',
 
+            // text input
+            '& input[class^=ag-][type=text]:focus': {
+                borderBottomColor: 'unset',
+            },
             // checked checkbox
-            '& .ag-checkbox-input-wrapper.ag-checked::after, & .ag-checkbox-input-wrapper.ag-indeterminate::after': {
-                color: 'rgb(153, 153, 153)'
+            '& .ag-checkbox-input-wrapper.ag-checked::after, & .ag-checkbox-input-wrapper.ag-indeterminate::after, & .ag-radio-button-input-wrapper.ag-checked::after': {
+                color: 'rgb(153, 153, 153)',
             },
             // focused cell
             '& .ag-ltr .ag-cell-focus:not(.ag-cell-range-selected):focus-within': {

@@ -1,4 +1,4 @@
-import { reducer }  from '../compose-identifier';
+import { reducer }  from '../components/compose-identifier';
 
 describe('reducer', () => {
   it('sets some tokens', () => {
