@@ -7,7 +7,7 @@ export function createFnConcurrencyWrapper<TFunc extends (...args: any[]) => any
     func: TFunc,
     concurrencyLimit: number,
     waitIntervalMs: number = 100
-): (...args: Parameters<TFunc>) => Promise<Awaited<ReturnType<typeof func>>> {
+): (...args: Parameters<TFunc>) => Promise<ReturnType<typeof func>> {
 
     let concurrentCalls = 0
 
