@@ -1,1 +1,1 @@
-from mountetna import Magma, TokenAuth
+from mountetna import *

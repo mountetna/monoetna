@@ -6,6 +6,7 @@ from inspect import isgenerator
 from typing import Dict, Optional, List
 from serde import serialize, deserialize
 from serde.json import from_json, to_json
+from random import shuffle
 
 import pandas as pd
 
@@ -66,6 +67,7 @@ class UpdateRequest:
     )
     project_name: str = ""
     dry_run: bool = False
+    autolink: bool = False
 
     def __bool__(self):
         return not self.empty()
@@ -193,6 +195,16 @@ class RetrievalResponse:
                 return False
         return True
 
+    def is_table(self, model_name):
+        try:
+            parent_name = self.models[model_name].template.parent
+
+            parent = self.models[parent_name]
+
+            return parent.template.attributes[ model_name ].attribute_type == 'table'
+        except:
+            return False
+
     def extend(self, other: "RetrievalResponse"):
         for model_name, model in other.models.items():
             self.models.setdefault(model_name, Model()).extend(model)
@@ -214,6 +226,90 @@ class QueryRequest:
 class QueryResponse:
     answer: List[typing.Any] = dataclasses.field(default_factory=list)
     format: List[typing.Any] = dataclasses.field(default_factory=list)
+
+class Pager:
+    def __init__(self, magma):
+        self.magma = magma
+
+    def flat_records(self, update: UpdateRequest):
+        project = self.magma.retrieve(update.project_name, hide_templates=False)
+
+        # flatten records for pagination
+        flat_records = {} 
+        for model_name, records in update.revisions.items():
+            for record_name, record in records.items():
+                flat = {
+                    'model_name': model_name,
+                    'record_name': record_name,
+                    'record': record
+                }
+                flat_name = f'{model_name}.{record_name}'
+
+                # if the update sets a table attribute, attach table records to their parent so they are submitted together
+                flat_tables = []
+                for attribute_name, value in record.items():
+                    att = project.models[model_name].template.attributes[attribute_name]
+
+                    if att.attribute_type == 'table':
+                        for table_entry_name in value:
+                            table_record = update.revisions[ att.link_model_name ][table_entry_name]
+                            flat_tables.append(
+                                {
+                                  'model_name': att.link_model_name,
+                                  'record_name': table_entry_name,
+                                  'record': table_record
+                                }
+                            )
+
+                            # exclude the attached table record from the flattened list of records
+                            flat_records[ f'{ att.link_model_name }.{table_entry_name}' ] = None
+
+                flat['tables'] = flat_tables
+
+                if flat_name not in flat_records:
+                    flat_records[ f'{model_name}.{record_name}' ] = flat
+
+        # unlist records that are in tables
+        flat_record_list = [ flat_record for flat_name, flat_record in flat_records.items() if flat_record ]
+        shuffle(flat_record_list)
+
+        return flat_record_list
+
+
+    def paged_update(self, update: UpdateRequest, page_size:int):
+        if page_size < 2:
+            page_size = 2
+
+        page_count = 0
+        page = {}
+        results = RetrievalResponse()
+
+        for flat_record in self.flat_records(update):
+            page_count += 1 + len(flat_record['tables'])
+
+            self.add_to_page( page, flat_record )
+
+            for table_record in flat_record['tables']:
+                self.add_to_page(page, table_record)
+
+            if page_count > page_size:
+                results.extend(
+                    self.magma.update(UpdateRequest(project_name=update.project_name, revisions=page, dry_run=update.dry_run, autolink=update.autolink))
+                )
+
+                page = {}
+                page_count = 0
+
+        results.extend(
+            self.magma.update(UpdateRequest(project_name=update.project_name, revisions=page, dry_run=update.dry_run, autolink=update.autolink))
+        )
+
+        return results
+
+    def add_to_page(self, page, entry):
+        page.setdefault( entry['model_name'], {} )
+        page[ entry['model_name'] ][ entry['record_name'] ] = entry['record']
+
 
 class Magma(EtnaClientBase):
     def retrieve(
@@ -287,7 +383,10 @@ class Magma(EtnaClientBase):
 
     batch_size = 300
 
-    def update(self, update: UpdateRequest):
+    def update(self, update: UpdateRequest, page_size=None):
+        if page_size:
+            return Pager(self).paged_update(update, page_size)
+
         response = self.session.post(
             self.prepare_url("update"),
             data=to_json(update),

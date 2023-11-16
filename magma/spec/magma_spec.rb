@@ -78,4 +78,50 @@ describe Magma do
       Labors::Monster.attributes.delete(:size)
     end
   end
+
+  context 'hold file' do
+    it 'writes the hold file' do
+      Magma.instance.write_hold_file
+
+      expect(::File.exists?(Magma.instance.config(:hold_file))).to be_truthy
+
+      ::File.unlink(Magma.instance.config(:hold_file))
+    end
+
+    it 'removes the hold file' do
+      Magma.instance.write_hold_file
+
+      Magma.instance.remove_hold_file
+
+      expect(::File.exists?(Magma.instance.config(:hold_file))).to be_falsy
+    end
+
+    it 'passes the healthcheck if hold file exists and is not expired' do
+      Magma.instance.write_hold_file
+
+      status = system("bin/healthcheck")
+
+      ::File.unlink(Magma.instance.config(:hold_file))
+
+      expect(status).to be_truthy
+    end
+
+    it 'runs the healthcheck if hold file does not exist' do
+      status = system("bin/healthcheck")
+
+      expect(status).to be_falsy
+    end
+
+    it 'runs the healthcheck if hold file is expired' do
+      Timecop.freeze(DateTime.now-Magma.instance.config(:hold_interval)-1)
+      Magma.instance.write_hold_file
+      Timecop.return
+
+      status = system("bin/healthcheck")
+
+      ::File.unlink(Magma.instance.config(:hold_file))
+
+      expect(status).to be_falsy
+    end
+  end
 end

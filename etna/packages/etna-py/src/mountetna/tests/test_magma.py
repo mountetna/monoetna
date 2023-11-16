@@ -1,4 +1,4 @@
-from .. import Magma, TokenAuth, Model
+from .. import Magma, TokenAuth, Model, UpdateRequest
 import pytest
 import responses
 from typing import Dict
@@ -22,15 +22,45 @@ def test_magma_retrieve(labor_template: Dict):
     client = Magma(
         auth=TokenAuth(token='token'),
         hostname='magma.test'
-    )
+        )
     response = client.retrieve('ipi')
 
     assert 'labor' in response.models
     assert type(response.models['labor']) == Model
 
 @responses.activate
-def test_magma_update(labor_template: Dict):
+def test_magma_update(project_template: Dict, labor_template: Dict):
     ''' it updates records in magma '''
+    responses.add(
+        responses.POST,
+        "https://magma.test/update",
+        json={
+			"models": {
+				"labor": {
+					"documents": {
+                        "The Nemean Lion" : {
+                            "country" : "Nemea"
+                        }
+                    },
+                    "template": labor_template
+				},
+				"project": {
+                    "template": project_template
+                }
+			}
+        },
+        status=200
+    )
+    client = Magma(
+        auth=TokenAuth(token='token'),
+        hostname='magma.test'
+    )
+    response = client.update(UpdateRequest(**{ "project_name":"ipi", "revisions": { "labor": { "The Nemean Lion" : { "country" : "Nemea" } } } }) )
+    assert response.models['labor'].documents['The Nemean Lion']['country'] == 'Nemea'
+
+@responses.activate
+def test_magma_update_pages(labor_template: Dict):
+    ''' it updates records in magma by pages, with dry_run and autolink passed through'''
     responses.add(
         responses.POST,
         "https://magma.test/update",
@@ -48,12 +78,50 @@ def test_magma_update(labor_template: Dict):
         },
         status=200
     )
+    responses.add(
+        responses.POST,
+        "https://magma.test/retrieve",
+        json={
+			"models": {
+				"labor": {
+					"documents": {},
+                    "template": labor_template
+				}
+			}
+        },
+        status=200
+    )
     client = Magma(
         auth=TokenAuth(token='token'),
         hostname='magma.test'
     )
-    response = client.update({ "project_name":"ipi", "revisions": { "labor": { "The Nemean Lion" : { "country" : "Nemea" } } } } )
-    assert response.models['labor'].documents['The Nemean Lion']['country'] == 'Nemea'
+    response = client.update(UpdateRequest(**{ "project_name":"ipi", "revisions": { "labor": {
+        "The Nemean Lion" : { "country" : "Nemea" },
+        "The Lernean Hydra" : { "country" : "Lerna" },
+        "The Ceryneian Hind" : { "country" : "Ceryneia" },
+        "The Erymanthian Boar" : { "country" : "Erymanthia" }
+    } },
+    "dry_run": True, "autolink": True}), page_size=2 )
+
+    assert responses.assert_call_count("https://magma.test/update", 2) is True
+    len_calls=len(responses.calls)
+    last2=[len_calls-2, len_calls-1]
+    assert all(['"dry_run":true' in str(responses.calls[i].request.body) for i in last2]) is True
+    assert all(['"autolink":true' in str(responses.calls[i].request.body) for i in last2]) is True
+
+    response = client.update(UpdateRequest(**{ "project_name":"ipi", "revisions": { "labor": {
+        "The Nemean Lion" : { "country" : "Nemea" },
+        "The Lernean Hydra" : { "country" : "Lerna" },
+        "The Ceryneian Hind" : { "country" : "Ceryneia" },
+        "The Erymanthian Boar" : { "country" : "Erymanthia" }
+    } },
+    "dry_run": False, "autolink": False}), page_size=2 )
+
+    assert responses.assert_call_count("https://magma.test/update", 4) is True
+    len_calls=len(responses.calls)
+    last2=[len_calls-2, len_calls-1]
+    assert all(['"dry_run":false' in str(responses.calls[i].request.body) for i in last2]) is True
+    assert all(['"autolink":false' in str(responses.calls[i].request.body) for i in last2]) is True
 
 @responses.activate
 def test_magma_query():
