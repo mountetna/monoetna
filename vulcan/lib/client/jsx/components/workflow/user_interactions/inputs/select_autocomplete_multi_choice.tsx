@@ -7,7 +7,21 @@ import {useSetsDefault} from './useSetsDefault';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import {useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
-import { pullRecommendation, filterOptions, getOptionsAsync, } from './select_autocomplete'
+import { pullRecommendation } from './select_autocomplete'
+
+// Compared to select_autocomplete, also filter selected options
+function filterOptions(query: string, opts: string[], value: string[]) {
+  return opts.filter((o) => {
+    return query == null ? true : !value.includes(o) && o.toLowerCase().indexOf(query.toLowerCase()) > -1;
+  });
+}
+const getOptionsAsync = (query: string, opts: string[], value: string[]) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(filterOptions(query, opts, value));
+    }, 3000);
+  });
+};
 
 export function determineHelperText(
     setHelperText: React.Dispatch<React.SetStateAction<string | undefined>>,
@@ -86,9 +100,10 @@ export default function SelectAutocompleteMultiPickInput({
   const [getOptionsDelayed] = useAsyncCallback(function* (
     text: string,
     options_in: string[],
+    value: string[],
     callback: Function
   ) {
-    const options = yield getOptionsAsync(text, [...options_in]);
+    const options = yield getOptionsAsync(text, [...options_in], value);
     callback(options);
   },
   []);
@@ -100,13 +115,13 @@ export default function SelectAutocompleteMultiPickInput({
     if (options_in.length > 1000) {
       setLoadingOptions(true);
       // console.log('calculating options - slow')
-      getOptionsDelayed(query, options_in, (filteredOptions: string[]) => {
+      getOptionsDelayed(query, options_in, value, (filteredOptions: string[]) => {
         setLoadingOptions(false);
         setOptions(filteredOptions);
       });
     } else {
       // console.log('calculating options - fast')
-      setOptions(filterOptions(query, options_in));
+      setOptions(filterOptions(query, options_in, value));
     }
   }, [inputState, getOptionsDelayed, options_in, value]);
 
@@ -166,6 +181,7 @@ export default function SelectAutocompleteMultiPickInput({
           error={value==null ? true : value.includes(inputState)}
           label={disp_label}
           placeholder={placeholder}
+          fullWidth
           size='small'
           InputLabelProps={{shrink: true}}
         />

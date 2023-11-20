@@ -36,7 +36,7 @@ function leafParentPaths(pathMap: ReturnType<typeof flattenOptionPaths>, _sep: s
 
 function targettedPathValues(values: string[] | null, pathMap: ReturnType<typeof flattenOptionPaths>): {[key:string]: string[]} {
   // Output: keys = Used "Option Paths", a.k.a. ones that a 'value' was selected from; values = selected 'value's from those paths.
-  if (values == null || Object.keys(pathMap).length<1) return {}
+  if (values == null || values.length<1 || Object.keys(pathMap).length<1) return {}
   let pathVals = {} as {[key:string]: string[]}
   for (let value of values) {
     const vals_path = pathMap[value].join(sep)
@@ -93,12 +93,12 @@ export default function NestedSelectAutocompleteMultiPickInput({ label, data, on
   }, [flattenedPaths])
 
   useEffect(() => {
-    if (value!=null && value.length>0) {
+    if (value!=null) {
       const vals_per_path = targettedPathValues(value, flattenedPaths)
       const needed_paths = arrayLevels(Object.keys(vals_per_path))
       setValuesPerPath(vals_per_path)
       // Re-add missing paths (likely from page reload)
-      if ( ! needed_paths.every( (path) => paths.includes(path) )) {
+      if ( needed_paths.length>0 && ! needed_paths.every( (path) => paths.includes(path) )) {
         setPaths(arrayLevels(paths.concat(Object.keys(vals_per_path))));
       }
     }
@@ -112,8 +112,8 @@ export default function NestedSelectAutocompleteMultiPickInput({ label, data, on
       const prevPaths = paths.filter((path:string) => e_use.includes(path))
       setPaths(e_use)
       // Remove associated values if user removed an option path
-      // (prevPaths = chosen paths that would exist in valuesPerPath)
-      if (prevPaths.length>0 && currentPaths != prevPaths) {
+      // (prevPaths = chosen paths that had previously been chosen)
+      if (currentPaths.length > prevPaths.length) {
         onChange(some(valuesFromValuesPerPath(valuesPerSelectPaths(valuesPerPath, prevPaths))))
       }
     }
@@ -125,7 +125,8 @@ export default function NestedSelectAutocompleteMultiPickInput({ label, data, on
         onChangeOverride={handlePickedOptionPaths}
         value={some(paths)}
         data={{a: pathOptions}}
-        label={label? label+' - Option Paths' : 'Option Paths'}
+        placeholder={paths.length<1 ? 'Option Sets' : undefined}
+        label={label}
       />
     </Grid>
 
@@ -137,23 +138,26 @@ export default function NestedSelectAutocompleteMultiPickInput({ label, data, on
     const newValues = valuesFromValuesPerPath(newValuesPerPath)
     onChange(some(newValues))
   }, [valuesPerPath])
-  const singleValuePicker = (pathString: string, values: string[], disabled = false) => <Grid item container direction='row' key={pathString}>
-    <Grid item container alignItems='flex-start' style={{width: 'auto', paddingTop: '3px', paddingRight: '2px'}}>
-      <SubdirectoryArrowRightOutlinedIcon fontSize='small' color="secondary"/>
-    </Grid>
-    <Grid item style={{flex: '1 1 auto'}}>
-      <SelectAutocompleteMultiPickInput
-        key={pathString+'-leaves'}
-        data={disabled ? {a: ['']} : {a: pathValues(pathString, allOptions)}}
-        disabled={disabled}
-        placeholder={disabled ? 'Awaiting Option Set selection' : undefined}
-        label={pathString+' choices'}
-        value={some(values)}
-        onChangeOverride={ (event: any, e: string[]) => handlePickedValues(event, e, pathString) }
-        onChange={(v) => {}}
-      />
-    </Grid>
-  </Grid>
+  const singleValuePicker = (pathString: string, values: string[], disabled = false) => {
+    return(
+      <Grid item container direction='row' key={pathString} alignItems='flex-start'>
+        <Grid item xs={1} container justifyContent='flex-end'>
+          <SubdirectoryArrowRightOutlinedIcon fontSize='small' color="secondary" style={{paddingTop: '3px', paddingRight: '2px'}}/>
+        </Grid>
+        <Grid item xs={11}>
+          <SelectAutocompleteMultiPickInput
+            key={pathString+'-leaves'}
+            data={disabled ? {a: ['']} : {a: pathValues(pathString, allOptions)}}
+            disabled={disabled}
+            placeholder={disabled ? 'Awaiting Option Set selection' : undefined}
+            label={pathString+' options'}
+            value={some(values)}
+            onChangeOverride={ (event: any, e: string[]) => handlePickedValues(event, e, pathString) }
+            onChange={(v) => {}}
+          />
+        </Grid>
+      </Grid>
+    )}
   const allValuePickers = paths.length==0 ? singleValuePicker('TBD', [], true) : <Grid item>
       {paths.map( (pathString) => {
         const values_use = Object.keys(valuesPerPath).includes(pathString) ? valuesPerPath[pathString] : []
