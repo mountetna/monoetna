@@ -30,9 +30,6 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flex: '0 0 200px'
   },
-  values: {
-    flex: '1 1 auto'
-  },
   params: {
     flex: '1 1 auto'
   },
@@ -236,7 +233,7 @@ const RunPane = ({
         <Grid className={classes.title} item>
           <Typography>Interval</Typography>
         </Grid>
-        <Grid className={classes.values} item>
+        <Grid item xs={3}>
           <Select
             value={runState}
             onChange={(e) => setRunState(parseInt(e.target.value as string))}
@@ -247,13 +244,13 @@ const RunPane = ({
           </Select>
         </Grid>
         {runState == RUN_INTERVAL && (
-          <Grid item>
+          <Grid item xs={4}>
             {' '}
             <TextField
               size='small'
               InputProps={{
                 endAdornment: (
-                  <InputAdornment position='end'>seconds</InputAdornment>
+                  <InputAdornment position='end'>{'seconds (300 minimum)'}</InputAdornment>
                 )
               }}
               value={runIntervalTime}
