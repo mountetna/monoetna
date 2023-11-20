@@ -12,7 +12,6 @@ import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 
 import { Rule, Token, TokenValue, UNSET_TOKEN_VALUE } from '../../../models';
 import { selectTokenValueLocalIdsWithTokenName, selectTokenValuesByLocalId } from '../../../selectors/rules';
-import { createLocalId } from '../../../utils/models';
 
 
 
@@ -79,7 +78,6 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
 }) => {
 
     const classes = useStyles();
-    const formId = createLocalId();
 
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null);
@@ -146,7 +144,7 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
                     >
                         <Paper variant="outlined">
                             <ClickAwayListener onClickAway={handleClose}>
-                                <MenuList autoFocusItem={open} id={formId}>
+                                <MenuList autoFocusItem={open}>
                                     <MenuItem key={label} disabled>
                                         <em>Choose a {label}</em>
                                     </MenuItem>

@@ -120,7 +120,7 @@ export interface MagmaListName {
     identifier: string
     author: string
     name_created_at: string
-    record_created_at: string
+    record_created_at?: string
 }
 
 export async function fetchNamesWithRuleAndRegexFromMagma(projectName: string, ruleName: string, regex: string = '.*'): Promise<MagmaListName[]> {

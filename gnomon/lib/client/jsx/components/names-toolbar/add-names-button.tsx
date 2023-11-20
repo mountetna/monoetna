@@ -52,8 +52,9 @@ const AddNamesButton = ({ small }: { small: boolean }) => {
                 </MenuList>
             }
             popperId="add-names-rules-menu"
-            onClickOrPopperChange={(open: boolean) => setOpen(open)}
+            onClickOrPopperChange={open => setOpen(open)}
             popperOpen={open}
+            disabled={Object.keys(rules).length == 0}
         />
     );
 };

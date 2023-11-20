@@ -14,6 +14,11 @@ export interface MagmaToken {
 
 
 export interface MagmaRulesResponse {
+    config: MagmaRules
+}
+
+
+export interface MagmaRules {
     rules: Record<string, string>
     tokens: Record<string, MagmaToken>
     synonyms: string[][]
@@ -29,7 +34,7 @@ export interface ParsedRules {
     synonyms: Synonym[]
 }
 
-const parseMagmaRulesResponse = (res: MagmaRulesResponse): ParsedRules => {
+const parseMagmaRulesResponse = (res: MagmaRules): ParsedRules => {
     const tokenValues: TokenValue[] = [];
 
     const tokens = Object.values(res.tokens).map((res_token) => {
@@ -123,7 +128,7 @@ const parseMagmaRulesResponse = (res: MagmaRulesResponse): ParsedRules => {
 
 
 export async function fetchRulesFromMagma(projectName: string): Promise<ParsedRules> {
-    const { config }: { config: MagmaRulesResponse } = await json_get(magmaPath(`gnomon/${projectName}`));
+    const res: MagmaRulesResponse = await json_get(magmaPath(`gnomon/${projectName}`))
 
-    return parseMagmaRulesResponse(config);
+    return parseMagmaRulesResponse(res.config)
 }

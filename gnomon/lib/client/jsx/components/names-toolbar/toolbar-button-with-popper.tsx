@@ -73,7 +73,7 @@ const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color = 'defaul
             aria-label={text}
             aria-haspopup={popperComponent != undefined ? 'true' : 'false'}
             aria-controls={popperOpen ? popperId : undefined}
-            size={variant == 'full' ? 'medium' : 'small'}
+            size={'medium'}
             className={classes.button}
             disableRipple
             disableFocusRipple

@@ -16,12 +16,15 @@ export async function exportDataToBlob<T extends Record<string, any>>(
     fileFormat: keyof typeof FILE_FORMATS_TO_MIME
 ): Promise<Blob> {
 
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet();
-
     if (data.length == 0) {
         throw new Error('cannot export empty data');
     }
+    if (!(fileFormat in FILE_FORMATS_TO_MIME)) {
+        throw new Error(`unsupported file format: ${fileFormat}`);
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet();
 
     // set headers
     sheet.columns = Object.keys(data[0]).map(key => ({
@@ -37,14 +40,13 @@ export async function exportDataToBlob<T extends Record<string, any>>(
     switch (fileFormat) {
         case 'csv':
             buffer = await workbook.csv.writeBuffer();
+            break;
         case 'tsv':
             buffer = await workbook.csv.writeBuffer({ formatterOptions: { delimiter: '\t' } });
             break;
         case 'xlsx':
             buffer = await workbook.xlsx.writeBuffer();
             break;
-        default:
-            throw new Error(`unsupported file format: ${fileFormat}`);
     }
 
     return new Blob([buffer], { type: FILE_FORMATS_TO_MIME[fileFormat] });

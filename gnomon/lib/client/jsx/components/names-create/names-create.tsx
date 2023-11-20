@@ -13,14 +13,14 @@ import { useDispatch } from '../../utils/redux';
 import Counts from './counts';
 import { clearCreateNameGroupsFilter, clearCreateNameGroupsSelection } from '../../actions/names';
 import { State } from '../../store';
-import { fetchRulesFromMagma } from '../../actions/rules';
+import { fetchAndAddRulesFromMagma } from '../../actions/rules';
 
 
 
 const useStyles = makeStyles((theme) => ({
     projectAndToolbarContainer: {
         display: 'flex',
-        borderBottom: '1px solid #ccc',
+        borderBottom: '1px solid #eee',
         '& > :first-child, & > :last-child': {
             flex: '1'
         },
@@ -157,7 +157,7 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
 
     useEffect(() => {
         async function addRulesFromMagma() {
-            dispatch(await fetchRulesFromMagma(project_name));
+            dispatch(await fetchAndAddRulesFromMagma(project_name));
         }
         addRulesFromMagma();
     }, []);

@@ -7,16 +7,12 @@ import ProjectHeader from 'etna-js/components/project-header';
 import { selectRulesByName } from '../../selectors/rules';
 import { fetchNamesWithRuleAndRegexFromMagma } from '../../utils/names';
 import { createFnConcurrencyWrapper } from '../../utils/async';
-import { selectPathParts } from '../../selectors/location';
 import { useDispatch } from '../../utils/redux';
 import { setMagmaNamesListRequest } from '../../actions/names';
-import { fetchRulesFromMagma } from '../../actions/rules';
+import { fetchAndAddRulesFromMagma } from '../../actions/rules';
 import { selectMagmaNamesListsByRuleName } from '../../selectors/names';
 import NamesBrowseToolbar from './toolbar';
 import Counts, { Count } from '../names-create/counts';
-
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-material.css';
 import Table from '../table';
 
 
@@ -28,7 +24,7 @@ const useStyles = makeStyles((theme) => {
     return {
         projectAndToolbarContainer: {
             display: 'flex',
-            borderBottom: '1px solid #ccc',
+            borderBottom: '1px solid #eee',
             '& > :first-child, & > :last-child': {
                 flex: '1'
             },
@@ -68,7 +64,7 @@ const useStyles = makeStyles((theme) => {
 });
 
 
-interface Name {
+export interface Name {
     name: string
     ruleName: string
     author: string
@@ -84,12 +80,11 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
     const [rowData, setRowData] = useState<Name[]>([]);
 
     const allRules = Object.keys(useSelector(selectRulesByName));
-    const projectName = useSelector(selectPathParts)[0];
     const magmaNamesListsByRuleName = useSelector(selectMagmaNamesListsByRuleName);
 
     useEffect(() => {
         async function addRulesFromMagma() {
-            dispatch(await fetchRulesFromMagma(projectName));
+            dispatch(await fetchAndAddRulesFromMagma(project_name));
         }
         addRulesFromMagma();
     }, []);
@@ -99,7 +94,7 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
 
         async function fetchNamesFromMagma(ruleName: string) {
             try {
-                const response = await fetchNamesForRule(projectName, ruleName);
+                const response = await fetchNamesForRule(project_name, ruleName);
 
                 dispatch(setMagmaNamesListRequest(
                     { status: 'success', response },

@@ -12,7 +12,7 @@ import ProjectHeader from 'etna-js/components/project-header';
 import { json_get } from 'etna-js/utils/fetch';
 import { magmaPath } from 'etna-js/api/magma_api';
 
-import { MagmaRulesResponse } from './utils/rules';
+import { MagmaRules } from './utils/rules';
 
 
 
@@ -24,6 +24,9 @@ const useStyles = makeStyles((theme) => ({
     width: 'auto',
     flex: '1 1 auto',
     padding: '100px 0px 200px',
+    '& > div:not(:last-child)': {
+      marginBottom: '2em',
+    },
   },
   admin: {
     flex: '1 1 auto',
@@ -71,7 +74,7 @@ const GnomonMain = ({ project_name }: { project_name: string }) => {
   useEffect(() => {
     async function fetchRules() {
       try {
-        const { config }: { config: MagmaRulesResponse } = await json_get(magmaPath(`gnomon/${project_name}`));
+        const { config }: { config: MagmaRules } = await json_get(magmaPath(`gnomon/${project_name}`));
         setRules(Object.keys(config.rules));
       } catch (error) {
         setRules([]);
@@ -88,7 +91,7 @@ const GnomonMain = ({ project_name }: { project_name: string }) => {
 
       <Grid container className={classes.frame} direction='row'>
 
-        <Grid item className={classes.main} alignItems='center' container justifyContent='space-around' direction='column'>
+        <Grid item className={classes.main} alignItems='center' container justifyContent='center' direction='column'>
           <Grid>
             <TextField variant='outlined'
               onKeyPress={onEnterIdentifier}
@@ -118,7 +121,7 @@ const GnomonMain = ({ project_name }: { project_name: string }) => {
               <Select value='' onChange={onSelectRule} displayEmpty>
                 <MenuItem value='' disabled>Create an identifier</MenuItem>
                 {
-                  rules && rules?.map(rule => <MenuItem key={rule} value={rule}>{rule}</MenuItem>)
+                  rules && rules.map(rule => <MenuItem key={rule} value={rule}>{rule}</MenuItem>)
                 }
               </Select>
             </FormControl>

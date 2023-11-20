@@ -161,6 +161,7 @@ const Table = <RowData extends Record<string, any>>({ rows, columns, selectable 
                     rowSelection={selectable ? 'multiple' : undefined}
                     suppressRowClickSelection={true}
                     onFirstDataRendered={sizeColumnsToFit}
+                    
                     onCellClicked={handleCellClicked}
                     onCellFocused={handleCellClicked}
                     onSelectionChanged={handleSelectionChanged}

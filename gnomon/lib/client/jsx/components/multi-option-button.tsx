@@ -10,8 +10,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import MenuList from '@material-ui/core/MenuList';
 import _ from 'lodash';
 
-import { createLocalId } from '../utils/models';
-
 
 
 const MultiOptionButton = <Option extends string>({ options, optionPrefix, onClick, ...buttonProps }: {
@@ -20,8 +18,6 @@ const MultiOptionButton = <Option extends string>({ options, optionPrefix, onCli
     onClick: (option: Option) => void,
     [buttonProps: string]: any,
 }) => {
-    const formId = createLocalId();
-
     const [open, setOpen] = React.useState(false);
     const anchorRef = React.useRef<HTMLButtonElement>(null);
     const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -67,7 +63,7 @@ const MultiOptionButton = <Option extends string>({ options, optionPrefix, onCli
                 </Button>
                 <Button
                     size="small"
-                    aria-controls={open ? formId : undefined}
+                    // aria-controls={open ? formId : undefined}
                     aria-expanded={open ? 'true' : undefined}
                     aria-label="select option"
                     aria-haspopup="menu"
@@ -93,7 +89,7 @@ const MultiOptionButton = <Option extends string>({ options, optionPrefix, onCli
                     >
                         <Paper>
                             <ClickAwayListener onClickAway={handleClose}>
-                                <MenuList id={formId}>
+                                <MenuList>
                                     {options.map((option, index) => (
                                         <MenuItem
                                             key={option}

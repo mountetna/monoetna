@@ -24,7 +24,7 @@ export interface State {
 }
 
 
-const createStore = () => {
+const createStore = (preloadedState: Partial<State> = {}) => {
   const reducers = {
     user,
     janus,
@@ -58,7 +58,7 @@ const createStore = () => {
 
   return Redux.createStore(
     Redux.combineReducers(reducers),
-    {},
+    preloadedState,
     enhancer,
   );
 };
