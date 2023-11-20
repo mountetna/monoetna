@@ -2,6 +2,7 @@
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
 import React, {useState, useEffect, useCallback} from 'react';
+import * as _ from 'lodash';
 import {WithInputParams} from './input_types';
 import {some} from '../../../../selectors/maybe';
 import {useMemoized} from '../../../../selectors/workflow_selectors';

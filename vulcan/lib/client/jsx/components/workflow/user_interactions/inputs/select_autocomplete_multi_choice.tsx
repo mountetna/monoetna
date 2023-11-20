@@ -42,6 +42,7 @@ export default function SelectAutocompleteMultiPickInput({
   maxOptions = 100,
   disableClearable = true,
   disabled = false,
+  placeholder,
   onChangeOverride,
   onChange,
   ...props
@@ -49,9 +50,10 @@ export default function SelectAutocompleteMultiPickInput({
   {
     label?: string;
     minWidth?: number;
-    disableClearable: boolean;
-    disabled: boolean;
-    maxOptions: number;
+    disableClearable?: boolean;
+    disabled?: boolean;
+    placeholder?: string;
+    maxOptions?: number;
     onChangeOverride?: (event: any, e: string[]) => void;
   },
   string[],
@@ -163,6 +165,7 @@ export default function SelectAutocompleteMultiPickInput({
           helperText={helperText}
           error={value==null ? true : value.includes(inputState)}
           label={disp_label}
+          placeholder={placeholder}
           size='small'
           InputLabelProps={{shrink: true}}
         />

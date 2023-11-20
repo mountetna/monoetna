@@ -73,13 +73,13 @@ function valuesPerSelectPaths(valuesPerPath: {[key:string]: string[]}, paths: st
 
 function valuesFromValuesPerPath(valuesPerPath: {[key:string]: string[]}) {
   // Output: single array containing all chosen 'value's / all values from a 'targettedPathValues()' or 'valuesPerSelectPaths()' output
-  return arrayLevels([].concat.apply([], Object.values(valuesPerPath))) as string[]
+  return arrayLevels(([] as string[]).concat.apply([] as string[], Object.values(valuesPerPath))) as string[]
 }
 
 export default function NestedSelectAutocompleteMultiPickInput({ label, data, onChange, ...props }: WithInputParams<{
   label?: string
 }, string[], OptionSet>) {
-  const value = useSetsDefault(null, props.value, onChange) as Maybe<string[]>;
+  const value: string[] = useSetsDefault([] as string[], props.value, onChange);
   const allOptions = useMemoized(joinNesting, data);
   const [valuesPerPath, setValuesPerPath] = useState({} as {[key:string]: string[]});
   const [paths, setPaths] = useState([] as string[]);
