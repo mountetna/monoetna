@@ -20,7 +20,8 @@ import {
   sliderPiece,
   reductionSetupPiece,
   nestedDropdownPiece,
-  MultiselectAfterDataChoicePiece
+  MultiselectAfterDataChoicePiece,
+  nestedDropdownMultiPickPiece
 } from './user_input_pieces';
 import {subsetDataFramePiece} from './subsetDataFrame_piece';
 import {ReorderCustomOnlyPiece, ReorderPiece} from './reorder_piece';
@@ -204,6 +205,12 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
     'output style': ['legend_show'],
     'data focus': ['group_order', 'cells_use'],
   },
+  dittoDotPlot: {
+    'primary features': ['vars', 'group_by', 'scale'],
+    titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
+    'output style': ['legend_show'],
+    'data focus': ['cells_use'],
+  },
   dittoFreqPlot: {
     'primary features': ['var', 'vars_use', 'group_by', 'sample_by', 'scale_by', 'plots', 'color_by'],
     titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
@@ -221,6 +228,7 @@ const plot_relabels_dittoseq: DataEnvelope<string> = {
   'dittoScatterPlot: e.g. gene x gene': 'dittoScatterPlot',
   'dittoBarPlot: compositional stacked bar plot': 'dittoBarPlot',
   'dittoPlot: violin, box, or ridge plot': 'dittoPlot',
+  'dittoDotPlot: expression comparisons across cell groups': 'dittoDotPlot',
   'dittoFreqPlot: compositional violin, box, or ridge plot': 'dittoFreqPlot'
 }
 
@@ -228,10 +236,12 @@ const defaults_dittoseq: DataEnvelope<any> = {
   x_by: null,
   y_by: null,
   var: null,
+  vars: null,
   group_by: null,
   color_by: null,
   sample_by: 'make',
   plots: ['jitter', 'vlnplot'],
+  scale: true,
   scale_by: 'fraction',
   size: 1,
   opacity: 1,
@@ -353,6 +363,11 @@ const input_constraints: DataEnvelope<DataEnvelope<'continuous' | 'discrete'>> =
       var: 'discrete',
       split_by: 'discrete'
     },
+    dittoDotPlot: {
+      group_by: 'discrete',
+      vars: 'continuous',
+      split_by: 'discrete'
+    },
     dittoPlot: {
       group_by: 'discrete',
       var: 'continuous',
@@ -412,6 +427,7 @@ function useExtraInputs(
       x_by: ['X-Axis Data', get_options('x_by'), false],
       y_by: ['Y-Axis Data', get_options('y_by'), false],
       var: ['Primary Data', get_options('var'), false],
+      vars: ['Primary Data', get_options('vars')],
       group_by: ['Groupings Data (often the x-axis)', get_options('group_by'), false],
       color_by: [
         is_ditto() ? 'Color Data (\'make\' = same as Groupings Data)' : 'Color Data',
@@ -439,6 +455,7 @@ function useExtraInputs(
         200,
         !is_ditto() ? x_by == y_by : false
       ],
+      scale: ['scale (z-score) summary values?'],
       x_scale: [
         'Adjust scaling of the X-Axis',
         ['linear', 'log10', 'log10(val+1)']
@@ -570,6 +587,7 @@ const components_dittoseq: DataEnvelope<Function> = {
   x_by: nestedDropdownPiece,
   y_by: nestedDropdownPiece,
   var: nestedDropdownPiece,
+  vars: nestedDropdownMultiPickPiece,
   group_by: nestedDropdownPiece,
   color_by: nestedDropdownPiece,
   sample_by: nestedDropdownPiece,
@@ -579,6 +597,7 @@ const components_dittoseq: DataEnvelope<Function> = {
   size: sliderPiece,
   opacity: sliderPiece,
   scale_by: dropdownPiece,
+  scale: checkboxPiece,
   x_scale: dropdownPiece,
   y_scale: dropdownPiece,
   cells_use: subsetDataFramePiece,
@@ -846,6 +865,13 @@ export function DittoBarPlot({
   return VisualizationUI({data, onChange, value}, 'dittoBarPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
 
+export function DittoDotPlot({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'dittoDotPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+}
 export function DittoPlot({
   data,
   onChange,

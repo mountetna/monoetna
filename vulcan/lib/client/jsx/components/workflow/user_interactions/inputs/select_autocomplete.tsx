@@ -35,7 +35,7 @@ function dispValue(value: string | null) {
 
 export function filterOptions(query: string, opts: string[]) {
   return opts.filter((o) => {
-    return query == null ? true : o.indexOf(query) > -1;
+    return query == null ? true : o.toLowerCase().indexOf(query.toLowerCase()) > -1;
   });
 }
 

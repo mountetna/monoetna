@@ -34,8 +34,9 @@ function leafParentPaths(pathMap: ReturnType<typeof flattenOptionPaths>, _sep: s
   return arrayLevels(Object.values(pathMap).map(val => val.join(_sep)))
 }
 
-function targettedPathValues(values: string[], pathMap: ReturnType<typeof flattenOptionPaths>): {[key:string]: string[]} {
+function targettedPathValues(values: string[] | null, pathMap: ReturnType<typeof flattenOptionPaths>): {[key:string]: string[]} {
   // Output: keys = Used "Option Paths", a.k.a. ones that a 'value' was selected from; values = selected 'value's from those paths.
+  if (values == null || Object.keys(pathMap).length<1) return {}
   let pathVals = {} as {[key:string]: string[]}
   for (let value of values) {
     const vals_path = pathMap[value].join(sep)
