@@ -21,10 +21,11 @@ import {
   reductionSetupPiece,
   nestedDropdownPiece,
   MultiselectAfterDataChoicePiece,
-  nestedDropdownMultiPickPiece
+  nestedDropdownMultiPickPiece,
+  nestedDropdownMultiPickAndReorderPiece
 } from './user_input_pieces';
 import {subsetDataFramePiece} from './subsetDataFrame_piece';
-import {ReorderCustomOnlyPiece, ReorderPiece} from './reorder_piece';
+import {ReorderCustomOnlyPiece, ReorderVizPiece} from './reorder_piece';
 
 /*
 Docmentation last updated: Apr 15, 2022
@@ -567,15 +568,15 @@ const components_plotly: DataEnvelope<Function> = {
   y_by: dropdownPiece,
   color_by: dropdownPiece,
   plots: MultiselectPiece,
-  color_order: ReorderPiece,
+  color_order: ReorderVizPiece,
   order_when_continuous_color: checkboxPiece,
   size: sliderPiece,
   scale_by: dropdownPiece,
   x_scale: dropdownPiece,
   y_scale: dropdownPiece,
   rows_use: subsetDataFramePiece,
-  x_order: ReorderPiece,
-  y_order: ReorderPiece
+  x_order: ReorderVizPiece,
+  y_order: ReorderVizPiece
 };
 
 const components_dittoseq: DataEnvelope<Function> = {
@@ -587,13 +588,13 @@ const components_dittoseq: DataEnvelope<Function> = {
   x_by: nestedDropdownPiece,
   y_by: nestedDropdownPiece,
   var: nestedDropdownPiece,
-  vars: nestedDropdownMultiPickPiece,
+  vars: nestedDropdownMultiPickAndReorderPiece,
   group_by: nestedDropdownPiece,
   color_by: nestedDropdownPiece,
   sample_by: nestedDropdownPiece,
   plots: MultiselectPiece,
   vars_use: MultiselectAfterDataChoicePiece,
-  color_order: ReorderPiece,
+  color_order: ReorderVizPiece,
   size: sliderPiece,
   opacity: sliderPiece,
   scale_by: dropdownPiece,

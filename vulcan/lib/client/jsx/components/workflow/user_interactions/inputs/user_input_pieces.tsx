@@ -2,15 +2,18 @@ import React, {useEffect, useMemo} from 'react';
 import {DataEnvelope} from './input_types';
 import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
 import MultiselectStringInput from './multiselect_string';
-import { InputLabel, Slider } from '@material-ui/core';
+import InputLabel from '@material-ui/core/InputLabel';
+import Slider from '@material-ui/core/Slider';
 import StringInput from './string';
 import BooleanInput from './boolean';
 import SelectAutocompleteInput from './select_autocomplete';
 import FloatInput from './float';
-import { Grid, TextField } from '@material-ui/core';
+import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 import { nestedOptionSet } from './visualizations'
 import NestedSelectAutocompleteMultiPickInput from './nested_select_autocomplete_multi_choice';
+import { ReorderOptionalPiece } from './reorder_piece';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v};
@@ -139,21 +142,35 @@ export function nestedDropdownPiece(
     />
   }
 
-  export function nestedDropdownMultiPickPiece(
-    key: string, changeFxn: Function, value: string[] = [] as string[],
-    label: string|undefined, options: nestedOptionSet | string[], sorted: boolean = false) {
-      // sorted not implemented, but kept for compatibility with inputs that might be designed for either this or dropdownPiece and given a boolean for the sorted input there.
-      if (Array.isArray(options)) {
-        options = key_wrap([...options])
-      }
-      return <NestedSelectAutocompleteMultiPickInput
-        key={key}
-        label={label}
-        value={some(value)}
-        data={val_wrap(options)}
-        onChange={ (value) => changeFxn(withDefault(value,null), key) }
-      />
+export function nestedDropdownMultiPickPiece(
+  key: string, changeFxn: Function, value: string[] = [] as string[],
+  label: string|undefined, options: nestedOptionSet | string[], sorted: boolean = false) {
+    // sorted not implemented, but kept for compatibility with inputs that might be designed for either this or dropdownPiece and given a boolean for the sorted input there.
+    if (Array.isArray(options)) {
+      options = key_wrap([...options])
     }
+    return <NestedSelectAutocompleteMultiPickInput
+      key={key}
+      label={label}
+      value={some(value)}
+      data={val_wrap(options)}
+      onChange={ (value) => changeFxn(withDefault(value,null), key) }
+    />
+  }
+
+export function nestedDropdownMultiPickAndReorderPiece(
+  key: string, changeFxn: Function, value: string[] = [] as string[],
+  label: string|undefined, options: nestedOptionSet | string[], sorted: boolean = false) {
+    // sorted not implemented, but kept for compatibility with inputs that might be designed for either this or dropdownPiece and given a boolean for the sorted input there.
+    return <Grid container direction='column'>
+      <Grid item>
+        {nestedDropdownMultiPickPiece(`${key}-selection`, (value: string[]) => changeFxn(value, key), value, `${label} - selection`, options)}
+      </Grid>
+      <Grid item>
+        {ReorderOptionalPiece(`${key}-reorder`, (value: string[]) => changeFxn(value, key), value, `${label} - reorder`)}
+      </Grid>
+    </Grid>
+  }
 
 export function nestedDropdownFullPathPiece(
   key: string, changeFxn: Function, value: (string | null)[] | null = null,

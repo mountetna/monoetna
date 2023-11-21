@@ -1,6 +1,12 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {DataEnvelope} from './input_types';
-import {Paper} from '@material-ui/core';
+import Paper from '@material-ui/core/Paper';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp';
 import {some} from '../../../../selectors/maybe';
 import SelectAutocompleteInput from './select_autocomplete';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
@@ -25,11 +31,68 @@ const LevelComponent = (props: any) => {
   );
 };
 
-/*
-reorderPiece is configured around the VizualizationUI.
-It could be generalized fairly easily, if needed.
-*/
-export function ReorderPiece(
+export function ReorderOptionalPiece(
+  key: string,
+  changeFxn: Function,
+  value: string[] = [] as string[],
+  label: string = "Reorder"
+) {
+  const [open, setOpen] = useState(false)
+
+  const handleOnDragEnd = (result: any) => {
+    if (!result.destination) {
+      return;
+    }
+
+    if (result.destination.index === result.source.index) {
+      return;
+    }
+
+    const newValues = Array.from(value);
+    const [removed] = newValues.splice(result.source.index, 1);
+    newValues.splice(result.destination.index, 0, removed);
+    changeFxn(newValues);
+  };
+
+  const openToggle = <Grid item xs={1}>
+    <IconButton aria-label="open-close" size='small' disabled={value.length<2} onClick={()=>setOpen(!open)}>
+      {open ?
+        <ArrowDropUpIcon fontSize='small' color="secondary"/> :
+        <ArrowDropDownIcon fontSize='small' color="secondary"/>
+      }
+    </IconButton>
+  </Grid>
+
+  const reorder = open && value.length>=2 ? <DragDropContext onDragEnd={handleOnDragEnd}>
+    <Droppable droppableId='columns'>
+      {(provided: any) => (
+        <Paper ref={provided.innerRef} {...provided.droppableProps}
+          style={{paddingTop: 15}}>
+          {(value as string[]).map((level: string, index: number) => {
+            return (
+              <LevelComponent key={index} level={level} levelIndex={index} />
+            );
+          })}
+          {provided.placeholder}
+        </Paper>
+      )}
+    </Droppable>
+  </DragDropContext> : null
+
+  return (
+    <Grid key={key} item container direction='row'>
+      {openToggle}
+      <Grid item xs={11} style={{paddingTop: '8px'}}>
+        <FormControl>
+          <InputLabel shrink disabled={value.length<2} htmlFor="reorder" style={{width: 'max-content'}}>{label}</InputLabel>
+          {reorder}
+        </FormControl>
+      </Grid>
+    </Grid>
+  );
+}
+
+export function ReorderVizPiece(
   key: string,
   changeFxn: Function,
   value: string | string[] = 'unordered',
