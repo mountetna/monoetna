@@ -74,6 +74,8 @@ updateMatrix <- function(
     modelName,
     attributeName,
     matrix,
+    autolink = FALSE,
+    dryRun = FALSE,
     separator = ",",
     auto.proceed = FALSE,
     revisions.only = FALSE,
@@ -141,6 +143,8 @@ updateMatrix <- function(
         projectName = projectName,
         revisions = revs,
         auto.proceed = auto.proceed,
+        autolink = autolink,
+        dryRun = dryRun,
         ...)
 }
 
@@ -236,6 +240,8 @@ updateFromDF <- function(
     projectName,
     modelName,
     df,
+    autolink = FALSE,
+    dryRun = FALSE,
     separator = ",",
     auto.proceed = FALSE,
     revisions.only = FALSE,
@@ -299,6 +305,8 @@ updateFromDF <- function(
         target = target,
         projectName = projectName,
         revisions = revs,
+        autolink = autolink,
+        dryRun = dryRun,
         auto.proceed = auto.proceed,
         ...)
 }
