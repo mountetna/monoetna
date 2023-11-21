@@ -84,7 +84,7 @@ export function ReorderOptionalPiece(
       {openToggle}
       <Grid item xs={11} style={{paddingTop: '8px'}}>
         <FormControl>
-          <InputLabel shrink disabled={value.length<2} htmlFor="reorder" style={{width: 'max-content'}}>{label}</InputLabel>
+          <InputLabel shrink disabled={value.length<2} style={{width: 'max-content'}}>{label}</InputLabel>
           {reorder}
         </FormControl>
       </Grid>
