@@ -2,7 +2,7 @@ import _ from 'lodash';
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue } from '../models';
 import { makeActionObject } from './utils';
-import { createLocalId } from '../utils/models';
+import { Status, createLocalId } from '../utils/models';
 import { defaultDict } from '../utils/object';
 import { NamesCreationRequestState, NamesListRequestState, NamesState } from '../reducers/names';
 import { createSearchReplaceCriteriaFromGroups, postNameBatchToMagma } from '../utils/names';
@@ -471,8 +471,8 @@ export function makeCreateNamesCreationRequest(projectName: string, payloads: Co
 }
 
 
-export function setCreateNameGroupComposeError(createNameGroupLocalId: string, hasError: boolean) {
-    return makeActionObject(SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP, { createNameGroupLocalId, hasError });
+export function setCreateNameGroupComposeError(createNameGroupLocalId: string, checkStatus: Status, hasError?: boolean) {
+    return makeActionObject(SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP, { createNameGroupLocalId, checkStatus, hasError });
 }
 
 

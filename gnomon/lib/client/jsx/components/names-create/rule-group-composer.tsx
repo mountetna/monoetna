@@ -19,13 +19,14 @@ import { useDispatch } from '../../utils/redux';
 import { selectGlobalState } from '../../selectors/global';
 import Counts, { Count } from './counts';
 import ConfirmationPopper from '../confirmation-popper';
+import { ComposeErrorState } from '../../reducers/names';
 
 
 
 function createReadyCounts(
     createNameGroups: CreateNameGroup[],
     renderedCompleteCreateNamesByCreateNameGroupLocalId: Record<string, string>,
-    composeErrorsByCreateNameGroupLocalId: Record<string, boolean>,
+    composeErrorsByCreateNameGroupLocalId: Record<string, ComposeErrorState>,
 ): Count[] {
 
     let total = 0;
@@ -35,7 +36,7 @@ function createReadyCounts(
         total += 1;
         if (
             !(cng.localId in renderedCompleteCreateNamesByCreateNameGroupLocalId)
-            || composeErrorsByCreateNameGroupLocalId[cng.localId]
+            || composeErrorsByCreateNameGroupLocalId[cng.localId].error
         ) {
             notReady += 1;
         }

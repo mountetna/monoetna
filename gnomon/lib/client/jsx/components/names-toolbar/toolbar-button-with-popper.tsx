@@ -79,8 +79,6 @@ const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color = 'defaul
         </Button>;
     };
 
-    console.log(className);
-
     return (
         <div className={`${classes.container} ${className != undefined ? className : ''}`}>
             <ThemeProvider theme={theme}>

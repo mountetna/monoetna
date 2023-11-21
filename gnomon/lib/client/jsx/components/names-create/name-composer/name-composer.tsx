@@ -228,11 +228,12 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
 
     useEffect(() => {
         async function checkForDuplicates() {
+            dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'inProgress', false));
 
             if (!primaryCompleteCreateName) {
                 batch(() => {
                     setDuplicateTracker({ local: 0, remote: 0 });
-                    dispatch(setCreateNameGroupComposeError(createNameGroup.localId, false));
+                    dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', false));
                 });
                 return;
             }
@@ -250,13 +251,14 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
                     setDuplicateTracker({ local: localInstanceCount, remote: remoteDuplicate ? 1 : 0 });
 
                     if (localInstanceCount > 1 || remoteDuplicate) {
-                        dispatch(setCreateNameGroupComposeError(createNameGroup.localId, true));
+                        dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', true));
                     } else {
-                        dispatch(setCreateNameGroupComposeError(createNameGroup.localId, false));
+                        dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', false));
                     }
                 });
             } catch (err) {
                 console.error(`Error determining whether name "${renderedName}" has remote duplicate: ${err}"`);
+                dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'error'));
             }
         }
 
@@ -311,7 +313,7 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
                     />
                     <ButtonBase
                         onClick={handleClickCopy}
-                        aria-label={'Copy Name with Values"'}
+                        aria-label={'Copy Name with Values'}
                         disableRipple
                         disableTouchRipple
                     >
@@ -319,7 +321,7 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
                     </ButtonBase>
                     <ButtonBase
                         onClick={handleClickDelete}
-                        aria-label={'Delete Name"'}
+                        aria-label={'Delete Name'}
                         disableRipple
                         disableTouchRipple
                     >

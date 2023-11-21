@@ -27,7 +27,7 @@ import { listToIdObject, listToIdGroupObject, defaultDict } from '../utils/objec
 import { difference, intersection } from '../utils/set';
 import { MagmaBulkGenerateResponse, MagmaListName, SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups, renderCounter, renderTokens } from '../utils/names';
 import { RulesStateSliceForCompleteCreateNames } from '../selectors/global';
-import { createLocalId } from '../utils/models';
+import { Status, createLocalId } from '../utils/models';
 import { MagmaRequestState } from '../utils/names';
 
 
@@ -100,6 +100,12 @@ interface CreateNameTokenValuesState {
 }
 
 
+export interface ComposeErrorState {
+    checkStatus: Status
+    error: boolean
+}
+
+
 interface CreateNameGroupsState {
     byLocalId: Record<string, CreateNameGroup>
     searchLocalIds: Set<string>
@@ -107,7 +113,7 @@ interface CreateNameGroupsState {
     selectionLocalIds: Set<string>
     filterLocalIds: Set<string>
     filterEnabled: boolean
-    composeErrorsByLocalId: Record<string, boolean>
+    composeErrorsByLocalId: Record<string, ComposeErrorState>
 }
 
 
@@ -249,8 +255,9 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
         case SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP:
             return setComposeErrorForCreateNameGroup(
                 action.createNameGroupLocalId,
-                action.hasError,
+                action.checkStatus,
                 state,
+                action.hasError,
             );
         case SET_MAGMA_NAMES_LIST_REQUEST:
             return {
@@ -1193,14 +1200,22 @@ function removeCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
 }
 
 
-function setComposeErrorForCreateNameGroup(createNameGroupLocalId: string, hasError: boolean, state: NamesState): NamesState {
+function setComposeErrorForCreateNameGroup(createNameGroupLocalId: string, checkStatus: Status, state: NamesState, hasError?: boolean): NamesState {
+    const newComposeErrorState = {
+        ...(state.createNameGroups.composeErrorsByLocalId[createNameGroupLocalId] || {}),
+        checkStatus,
+    };
+    if (hasError != undefined) {
+        newComposeErrorState.error = hasError;
+    }
+
     return {
         ...state,
         createNameGroups: {
             ...state.createNameGroups,
             composeErrorsByLocalId: {
                 ...state.createNameGroups.composeErrorsByLocalId,
-                [createNameGroupLocalId]: hasError,
+                [createNameGroupLocalId]: newComposeErrorState,
             },
         },
     };

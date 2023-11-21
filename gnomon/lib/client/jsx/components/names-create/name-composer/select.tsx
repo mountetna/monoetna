@@ -162,7 +162,7 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
                                                 key={val.name}
                                                 disableRipple
                                             >
-                                                {val.name}{val.label ? ` - ${val.label}` : ''}
+                                                {val.name + (val.label ? ` - ${val.label}` : '')}
                                             </MenuItem>
                                         )
                                     }

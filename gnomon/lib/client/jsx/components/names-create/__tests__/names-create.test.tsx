@@ -32,10 +32,9 @@ const server = setupServer(
     }),
 
     rest.get(`${magmaHost}/gnomon/:projectName/list/subject`, (req, res, ctx) => {
-        const url = new URL(req.url);
         const existingNames: MagmaListName[] = [];
 
-        if (url.searchParams.get('regex')?.indexOf(existingName.identifier) != -1) {
+        if (req.url.searchParams.get('regex')?.indexOf(existingName.identifier) != -1) {
             existingNames.push(existingName);
         }
 
@@ -68,9 +67,6 @@ describe('NamesCreate', () => {
 
         // open menu; add a rule name
         fireEvent.click(screen.getByLabelText('Add Names'));
-        // await waitFor(() => {
-        //     expect(screen.queryByText(rule)).toBeTruthy();
-        // });
         fireEvent.click(screen.getByText(rule));
 
         // wait for menu to close; wait for rule group
@@ -96,9 +92,6 @@ describe('NamesCreate', () => {
 
         // open menu; add a rule name
         fireEvent.click(screen.getByLabelText('Add Names'));
-        // await waitFor(() => {
-        //     expect(screen.queryByText(rule)).toBeTruthy();
-        // });
         fireEvent.click(screen.getByText(rule));
 
         // wait for menu to close; wait for rule group
@@ -118,10 +111,10 @@ describe('NamesCreate', () => {
             expect(document.querySelector(
                 'div.hasError span[class*="infoTooltipIconContainer"]'
             )).toBeFalsy();
-            
+
             const composeErrors = Object.entries(store.getState().names.createNameGroups.composeErrorsByLocalId);
             expect(composeErrors.length).toBe(1);
-            expect(composeErrors[0][1]).toBe(false);
+            expect(composeErrors[0][1].error).toBe(false);
         });
     });
 
@@ -163,7 +156,189 @@ describe('NamesCreate', () => {
 
             const composeErrors = Object.entries(store.getState().names.createNameGroups.composeErrorsByLocalId);
             expect(composeErrors.length).toBe(1);
-            expect(composeErrors[0][1]).toBe(true);
+            expect(composeErrors[0][1].error).toBe(true);
+        });
+    });
+
+    it('selects names based on search criteria', async () => {
+
+        /*
+        1. create two names with different subject values
+        2. do a search with one value
+        3. assert only one name is selected
+        */
+
+        const { renderResult, store } = renderWithProviders(
+            <NamesCreate project_name={projectName} />
+        );
+
+        await waitFor(() => {
+            expect(document.querySelector(
+                'button[aria-label="Add Names"]:not(.Mui-disabled)'
+            )).toBeTruthy();
+        });
+
+        const rule = 'subject';
+
+        // open menu; add a rule name
+        fireEvent.click(screen.getByLabelText('Add Names'));
+        fireEvent.click(screen.getByText(rule));
+
+        // wait for menu to close; wait for rule group
+        await waitForElementToBeRemoved(() => document.getElementById('add-names-rules-menu'));
+        await screen.findByText(rule);
+
+        fireEvent.click(screen.getByLabelText('Copy Name with Values'));
+
+        await waitFor(() => {
+            expect(document.querySelectorAll(
+                'div[class*="composerRowContainer"]'
+            ).length).toBe(2);
+        });
+
+        const selectButtons = screen.getAllByLabelText('Select Value for species');
+        const counterInputs = screen.getAllByPlaceholderText('n');
+
+        fireEvent.click(selectButtons[0]);
+        fireEvent.click(screen.getByText('HS - Homo sapiens'));
+        fireEvent.change(counterInputs[0], { target: { value: String(existingNameCounter + 1) } });
+
+        await waitFor(() => {
+            const composeErrors = Object.values(store.getState().names.createNameGroups.composeErrorsByLocalId);
+            expect(composeErrors.length).toBe(2);
+            expect(composeErrors.map(el => el.checkStatus)).toStrictEqual(['idle', 'idle']);
+        });
+
+        fireEvent.click(selectButtons[1]);
+        fireEvent.click(screen.getByText('MM - Mus musculus'));
+        fireEvent.change(counterInputs[1], { target: { value: String(existingNameCounter + 1) } });
+
+        await waitFor(() => {
+            const composeErrors = Object.values(store.getState().names.createNameGroups.composeErrorsByLocalId);
+            expect(composeErrors.length).toBe(2);
+            expect(composeErrors.map(el => el.checkStatus)).toStrictEqual(['idle', 'idle']);
+        });
+
+        // enter search criteria
+        fireEvent.click(screen.getByLabelText('Find and Filter'));
+        fireEvent.click(screen.getByLabelText('Select Value for Common Element'));
+        // @ts-ignore
+        fireEvent.click(document.querySelector(
+            'li[role="menuitem"][aria-disabled="false"]')
+        );
+
+        await waitFor(() => {
+            expect(document.querySelector(
+                '#find-and-filter-dialogue div[class*="elementsEditorContainer"]'
+            )).toBeTruthy();
+        });
+
+        // @ts-ignore
+        fireEvent.click(document.querySelector(
+            '#find-and-filter-dialogue [aria-label="Select Value for species"]'
+        ));
+        fireEvent.click(screen.getByText('HS - Homo sapiens'));
+
+        // do search
+        fireEvent.click(screen.getByText('Find + Select'));
+
+        // wait for only one name to be selected
+        await waitFor(() => {
+            const checkboxStates = screen.getAllByLabelText('Select Name')
+                // @ts-ignore
+                .map(checkbox => checkbox.checked);
+
+            expect(checkboxStates).toStrictEqual([true, false]);
+        });
+    });
+
+    it('filters names based on search criteria', async () => {
+
+        /*
+        1. create two names with different subject values
+        2. do a search with one value
+        3. assert only one name is shown
+        */
+
+        const { renderResult, store } = renderWithProviders(
+            <NamesCreate project_name={projectName} />
+        );
+
+        await waitFor(() => {
+            expect(document.querySelector(
+                'button[aria-label="Add Names"]:not(.Mui-disabled)'
+            )).toBeTruthy();
+        });
+
+        const rule = 'subject';
+
+        // open menu; add a rule name
+        fireEvent.click(screen.getByLabelText('Add Names'));
+        fireEvent.click(screen.getByText(rule));
+
+        // wait for menu to close; wait for rule group
+        await waitForElementToBeRemoved(() => document.getElementById('add-names-rules-menu'));
+        await screen.findByText(rule);
+
+        fireEvent.click(screen.getByLabelText('Copy Name with Values'));
+
+        await waitFor(() => {
+            expect(document.querySelectorAll(
+                'div[class*="composerRowContainer"]'
+            ).length).toBe(2);
+        });
+
+        const selectButtons = screen.getAllByLabelText('Select Value for species');
+        const counterInputs = screen.getAllByPlaceholderText('n');
+
+        fireEvent.click(selectButtons[0]);
+        fireEvent.click(screen.getByText('HS - Homo sapiens'));
+        fireEvent.change(counterInputs[0], { target: { value: String(existingNameCounter + 1) } });
+
+        await waitFor(() => {
+            const composeErrors = Object.values(store.getState().names.createNameGroups.composeErrorsByLocalId);
+            expect(composeErrors.length).toBe(2);
+            expect(composeErrors.map(el => el.checkStatus)).toStrictEqual(['idle', 'idle']);
+        });
+
+        fireEvent.click(selectButtons[1]);
+        fireEvent.click(screen.getByText('MM - Mus musculus'));
+        fireEvent.change(counterInputs[1], { target: { value: String(existingNameCounter + 1) } });
+
+        await waitFor(() => {
+            const composeErrors = Object.values(store.getState().names.createNameGroups.composeErrorsByLocalId);
+            expect(composeErrors.length).toBe(2);
+            expect(composeErrors.map(el => el.checkStatus)).toStrictEqual(['idle', 'idle']);
+        });
+
+        // enter search criteria
+        fireEvent.click(screen.getByLabelText('Find and Filter'));
+        fireEvent.click(screen.getByLabelText('Select Value for Common Element'));
+        // @ts-ignore
+        fireEvent.click(document.querySelector(
+            'li[role="menuitem"][aria-disabled="false"]')
+        );
+
+        await waitFor(() => {
+            expect(document.querySelector(
+                '#find-and-filter-dialogue div[class*="elementsEditorContainer"]'
+            )).toBeTruthy();
+        });
+
+        // @ts-ignore
+        fireEvent.click(document.querySelector(
+            '#find-and-filter-dialogue [aria-label="Select Value for species"]'
+        ));
+        fireEvent.click(screen.getByText('HS - Homo sapiens'));
+
+        // do search
+        fireEvent.click(screen.getByText('Filter'));
+
+        // wait for only one name to be in the DOM
+        await waitFor(() => {
+            expect(document.querySelectorAll(
+                'div[class*="composerRowContainer"]'
+            ).length).toBe(1);
         });
     });
 });

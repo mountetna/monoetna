@@ -16,7 +16,7 @@ const useStyles = makeStyles((theme) => ({
     buttonsContainer: {
         display: 'inline-block',
         padding: '1.25em 0',
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             display: 'flex',
             flexWrap: 'wrap',
             justifyContent: 'center',
@@ -28,11 +28,15 @@ const useStyles = makeStyles((theme) => ({
         '&:last-child': {
             marginRight: '0',
         },
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             maxWidth: 'unset',
             margin: '0',
             width: 'calc(100% / 3)',
-            padding: '1em 0',
+        },
+        '&:nth-child(-n+3)': {
+            [theme.breakpoints.down('sm')]: {
+                paddingBottom: '1.25em',
+            },
         },
     },
     growShrinkButton: {
