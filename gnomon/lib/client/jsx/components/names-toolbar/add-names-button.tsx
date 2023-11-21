@@ -12,7 +12,7 @@ import ToolbarButtonWithPopper from './toolbar-button-with-popper';
 
 
 
-const AddNamesButton = ({ small }: { small: boolean }) => {
+const AddNamesButton = ({ small, className }: { small: boolean, className?: string }) => {
     const [open, setOpen] = useState<boolean>(false);
     const dispatch = useDispatch();
 
@@ -55,6 +55,7 @@ const AddNamesButton = ({ small }: { small: boolean }) => {
             onClickOrPopperChange={open => setOpen(open)}
             popperOpen={open}
             disabled={Object.keys(rules).length == 0}
+            className={className}
         />
     );
 };

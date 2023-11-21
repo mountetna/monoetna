@@ -56,17 +56,17 @@ afterAll(() => server.close());
 describe('NamesBrowse', () => {
     it('fetches and renders names for all rules', async () => {
 
-        const component = renderWithProviders(
+        const { renderResult } = renderWithProviders(
             <NamesBrowse project_name={projectName} />
         );
 
         await waitFor(() => screen.getByText(/name4/));
-        expect(component.asFragment()).toMatchSnapshot();
+        expect(renderResult.asFragment()).toMatchSnapshot();
     });
 
     it('exports all names to csv', async () => {
 
-        const component = renderWithProviders(
+        const { renderResult } = renderWithProviders(
             <NamesBrowse project_name={projectName} />
         );
 

@@ -123,7 +123,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const NamesCreateButton = ({ small }: { small: boolean }) => {
+const NamesCreateButton = ({ small, className }: { small: boolean, className?: string }) => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const theme = useTheme();
@@ -250,6 +250,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                 popperId="create-all-dialog"
                 disabled={completeCreateNameGroupsCount - composeErrorCount == 0}
                 onClickOrPopperChange={handleToggle}
+                className={className}
             />
             <Dialog
                 id="create-all-dialog"

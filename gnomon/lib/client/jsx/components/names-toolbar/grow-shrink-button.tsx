@@ -5,9 +5,10 @@ import ToolbarButtonWithPopper from './toolbar-button-with-popper';
 
 
 
-const GrowShrinkButton = ({ small, onClick }: {
+const GrowShrinkButton = ({ small, onClick, className }: {
     small: boolean,
     onClick: () => void,
+    className?: string
 }) => {
     return (
         <ToolbarButtonWithPopper
@@ -16,6 +17,7 @@ const GrowShrinkButton = ({ small, onClick }: {
             variant={small ? 'compact' : 'full'}
             color="secondary"
             onClickOrPopperChange={onClick}
+            className={className}
         />
     );
 };

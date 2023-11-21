@@ -9,7 +9,7 @@ import { Status } from '../../utils/models';
 
 
 
-const ExportButton = ({ small, data, buttonText }: { small: boolean, data: Array<any>, buttonText: string }) => {
+const ExportButton = ({ small, data, buttonText, className }: { small: boolean, data: Array<any>, buttonText: string, className?: string }) => {
     const [open, setOpen] = useState<boolean>(false);
     const [exportStatus, setExportStatus] = useState<Status>('idle');
 
@@ -65,6 +65,7 @@ const ExportButton = ({ small, data, buttonText }: { small: boolean, data: Array
             popperId="export-file-formats"
             onClickOrPopperChange={(open: boolean) => setOpen(open)}
             popperOpen={open}
+            className={className}
         />
     );
 };

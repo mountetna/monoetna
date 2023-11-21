@@ -48,7 +48,7 @@ interface RuleAndCreateNameGroupState {
 }
 
 
-const FindAndFilterButton = ({ small }: { small: boolean }) => {
+const FindAndFilterButton = ({ small, className }: { small: boolean, className?: string }) => {
     const classes = useStyles();
 
     const [open, setOpen] = useState<boolean>(false);
@@ -221,6 +221,7 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
             onClickOrPopperChange={(open: boolean) => setOpen(open)}
             popperOpen={open}
             disabled={Object.keys(createNameGroupIdsByPrimaryRule).length == 0 && !filterEnabled}
+            className={className}
         />
     );
 };

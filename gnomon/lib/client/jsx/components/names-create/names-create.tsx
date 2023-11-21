@@ -63,11 +63,17 @@ const useStyles = makeStyles((theme) => ({
     },
     composerList: {
         padding: '0 5em',
-        margin: '5.5em 0'
+        margin: '5.5em 0',
+        [theme.breakpoints.down('sm')]: {
+            padding: '0 2em',
+        },
     },
     composer: {
         textAlign: 'center',
         padding: '0 2em',
+        [theme.breakpoints.down('sm')]: {
+            padding: '0',
+        },
     },
 }));
 

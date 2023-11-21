@@ -220,7 +220,7 @@ const ReplaceValuesForRuleRadio = ({ radioValue, currentRadioValue, label, creat
 };
 
 
-const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
+const CopyAndReplaceButton = ({ small, className }: { small: boolean, className?: string }) => {
     const classes = useStyles();
 
     const [open, setOpen] = useState<boolean>(false);
@@ -390,6 +390,7 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
             onClickOrPopperChange={setOpen}
             popperOpen={open}
             disabled={selectedCreateNameGroupLocalIds.size == 0}
+            className={className}
         />
     );
 };

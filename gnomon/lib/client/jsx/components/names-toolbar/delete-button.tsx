@@ -11,7 +11,7 @@ import ConfirmationPopper from '../confirmation-popper';
 
 
 
-const DeleteButton = ({ small }: { small: boolean }) => {
+const DeleteButton = ({ small, className }: { small: boolean, className?: string }) => {
     const dispatch = useDispatch();
 
     const [confirmationOpen, setConfirmationOpen] = useState<boolean>(false);
@@ -43,6 +43,7 @@ const DeleteButton = ({ small }: { small: boolean }) => {
                 onClickOrPopperChange={() => setConfirmationOpen(open => !open)}
                 disabled={selecedCount == 0}
                 buttonRef={buttonRef}
+                className={className}
             />
             <ConfirmationPopper
                 open={confirmationOpen}

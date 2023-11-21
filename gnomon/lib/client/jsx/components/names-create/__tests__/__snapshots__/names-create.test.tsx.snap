@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NamesCreate fetches rules and let's you add names 1`] = `
+exports[`NamesCreate fetches rules and can add names 1`] = `
 <DocumentFragment>
   <div
     class="makeStyles-projectAndToolbarContainer-1"
@@ -214,7 +214,7 @@ exports[`NamesCreate fetches rules and let's you add names 1`] = `
 </DocumentFragment>
 `;
 
-exports[`NamesCreate fetches rules and let's you add names 2`] = `
+exports[`NamesCreate fetches rules and can add names 2`] = `
 <DocumentFragment>
   <div
     class="makeStyles-projectAndToolbarContainer-1"
@@ -910,6 +910,1108 @@ exports[`NamesCreate fetches rules and let's you add names 2`] = `
                               class="makeStyles-ruler-590"
                             >
                               n
+                            </div>
+                          </div>
+                        </span>
+                      </div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
+<DocumentFragment>
+  <div
+    class="makeStyles-projectAndToolbarContainer-1817"
+  >
+    <div
+      class="MuiGrid-root makeStyles-header-1823 undefined MuiGrid-container MuiGrid-item"
+    >
+      <a
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-1824 MuiTypography-colorPrimary"
+        href="/example"
+      >
+        <h5
+          class="MuiTypography-root MuiTypography-h5"
+        >
+          example
+        </h5>
+      </a>
+    </div>
+    <div
+      class="makeStyles-container-1825"
+    >
+      <div
+        class="makeStyles-buttonsOuterContainer-1826"
+      >
+        <div
+          class="makeStyles-buttonsContainer-1827"
+        >
+          <div
+            class="makeStyles-container-1829 "
+          >
+            <button
+              aria-haspopup="true"
+              aria-label="Add Names"
+              class="MuiButtonBase-root-1859 MuiButton-root-1832 MuiButton-contained-1840 makeStyles-button-1830 MuiButton-containedPrimary-1841 MuiButton-disableElevation-1843"
+              tabindex="0"
+              title="Add Names"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-1833"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-1860"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div
+            class="makeStyles-container-1829 "
+          >
+            <button
+              aria-haspopup="true"
+              aria-label="Find and Filter"
+              class="MuiButtonBase-root-2690 MuiButton-root-2663 MuiButton-contained-2671 makeStyles-button-1830 MuiButton-containedPrimary-2672 MuiButton-disableElevation-2674"
+              tabindex="0"
+              title="Find and Filter"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-2664"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-2691"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div
+            class="makeStyles-container-1829 "
+          >
+            <button
+              aria-haspopup="true"
+              aria-label="Copy and Replace"
+              class="MuiButtonBase-root-1942 MuiButton-root-1915 MuiButton-contained-1923 makeStyles-button-1830 MuiButton-containedPrimary-1924 MuiButton-disableElevation-1926 Mui-disabled Mui-disabled"
+              disabled=""
+              tabindex="-1"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-1916"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-1943"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zm-7-2h2v-3h3V9h-3V6h-2v3h-3v2h3z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div
+            class="makeStyles-container-1829 "
+          >
+            <button
+              aria-haspopup="false"
+              aria-label="Delete"
+              class="MuiButtonBase-root-2727 MuiButton-root-2700 MuiButton-contained-2708 makeStyles-button-1830 MuiButton-containedPrimary-2709 MuiButton-disableElevation-2711 Mui-disabled Mui-disabled"
+              disabled=""
+              tabindex="-1"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-2701"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-2728"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div
+            class="makeStyles-container-1829 "
+          >
+            <button
+              aria-haspopup="false"
+              aria-label="Create All"
+              class="MuiButtonBase-root-2775 MuiButton-root-2748 MuiButton-contained-2756 makeStyles-button-1830 MuiButton-containedPrimary-2757 MuiButton-disableElevation-2759"
+              tabindex="0"
+              title="Create All"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-2749"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-2776"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div
+            class="makeStyles-container-1829 "
+          >
+            <button
+              aria-haspopup="false"
+              aria-label="Grow"
+              class="MuiButtonBase-root-2078 MuiButton-root-2051 MuiButton-contained-2059 makeStyles-button-1830 MuiButton-containedSecondary-2061 MuiButton-disableElevation-2062"
+              tabindex="0"
+              title="Grow"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-2052"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-2079"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 5.83L15.17 9l1.41-1.41L12 3 7.41 7.59 8.83 9 12 5.83zm0 12.34L8.83 15l-1.41 1.41L12 21l4.59-4.59L15.17 15 12 18.17z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="MuiGrid-root makeStyles-header-1823 placeholder MuiGrid-container MuiGrid-item"
+    >
+      <a
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-1824 MuiTypography-colorPrimary"
+        href="/example"
+      >
+        <h5
+          class="MuiTypography-root MuiTypography-h5"
+        >
+          example
+        </h5>
+      </a>
+    </div>
+  </div>
+  <div
+    class="makeStyles-countsList-1818"
+  >
+    <div
+      class="makeStyles-container-2369 makeStyles-readyCounts-1819"
+    >
+      <div
+        class="makeStyles-count-2370 count count-total"
+      >
+        1 name
+      </div>
+    </div>
+  </div>
+  <div
+    class="MuiGrid-root makeStyles-composerList-1821 MuiGrid-container"
+  >
+    <div
+      class="MuiGrid-root makeStyles-composer-1822 MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-6 MuiGrid-grid-xl-4"
+    >
+      <div
+        class="makeStyles-gridContainer-2372"
+      >
+        <div
+          class="makeStyles-innerContainer-2373"
+        >
+          <div
+            class="MuiGrid-root makeStyles-headerContainer-2374 MuiGrid-container"
+          >
+            <div
+              class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
+            >
+              <div
+                class="makeStyles-tools-2375"
+              >
+                <span
+                  aria-disabled="false"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-2383 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-2376 MuiIconButton-colorSecondary"
+                >
+                  <span
+                    class="MuiIconButton-label"
+                  >
+                    <input
+                      aria-label="Select the Name Group"
+                      class="PrivateSwitchBase-input-2386"
+                      data-indeterminate="false"
+                      type="checkbox"
+                      value=""
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+                <button
+                  aria-label="Toggle Expand/Collapse"
+                  class="MuiButtonBase-root"
+                  tabindex="0"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M7.41 18.59L8.83 20 12 16.83 15.17 20l1.41-1.41L12 14l-4.59 4.59zm9.18-13.18L15.17 4 12 7.17 8.83 4 7.41 5.41 12 10l4.59-4.59z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  aria-label="Add Name"
+                  class="MuiButtonBase-root"
+                  tabindex="0"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  aria-label="Delete Names"
+                  class="MuiButtonBase-root"
+                  tabindex="0"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div
+              class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
+            >
+              <div
+                class="makeStyles-ruleNameTitle-2377"
+              >
+                subject
+              </div>
+            </div>
+            <div
+              class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
+            >
+              <div
+                class="makeStyles-container-2369 makeStyles-readyCounts-2378"
+              >
+                <div
+                  class="makeStyles-count-2370 count count-total"
+                >
+                  1 name
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="makeStyles-composersContainer-2379  "
+          >
+            <div
+              class="placeholder"
+            >
+              ...
+            </div>
+            <div
+              class="makeStyles-composerList-2380"
+            >
+              <div
+                class="makeStyles-composerRowContainer-2381"
+              >
+                <div
+                  class="makeStyles-composerContainer-2382"
+                >
+                  <div
+                    class="makeStyles-container-2387 makeStyles-container-2394  "
+                  >
+                    <span
+                      class="makeStyles-toolsContainer-2388"
+                    >
+                      <span
+                        aria-disabled="false"
+                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-2383 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-2389 MuiIconButton-colorSecondary"
+                      >
+                        <span
+                          class="MuiIconButton-label"
+                        >
+                          <input
+                            aria-label="Select Name"
+                            class="PrivateSwitchBase-input-2386"
+                            data-indeterminate="false"
+                            type="checkbox"
+                            value=""
+                          />
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root"
+                            focusable="false"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                            />
+                          </svg>
+                        </span>
+                      </span>
+                      <button
+                        aria-label="Copy Name with Values\\""
+                        class="MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm-1 4H8c-1.1 0-1.99.9-1.99 2L6 21c0 1.1.89 2 1.99 2H19c1.1 0 2-.9 2-2V11l-6-6zM8 21V7h6v5h5v9H8z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        aria-label="Delete Name\\""
+                        class="MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"
+                          />
+                        </svg>
+                      </button>
+                    </span>
+                    <span
+                      class="makeStyles-editorsContainer-2390"
+                    >
+                      <div
+                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-2395 MuiFormGroup-row"
+                      >
+                        <div
+                          class="makeStyles-selectValueContainer-2396 "
+                        >
+                          <button
+                            aria-haspopup="true"
+                            aria-label="Select Value for project"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2397  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            disabled=""
+                            tabindex="-1"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              EXAMPLE
+                            </span>
+                          </button>
+                        </div>
+                        <div
+                          class="makeStyles-selectValueContainer-2396 "
+                        >
+                          <button
+                            aria-haspopup="true"
+                            aria-label="Select Value for separator"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2397  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            disabled=""
+                            tabindex="-1"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              -
+                            </span>
+                          </button>
+                        </div>
+                        <div
+                          class="makeStyles-selectValueContainer-2396 "
+                        >
+                          <button
+                            aria-haspopup="true"
+                            aria-label="Select Value for species"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2397  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
+                            tabindex="0"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              <span
+                                class="MuiButton-startIcon MuiButton-iconSizeSmall"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="MuiSvgIcon-root"
+                                  focusable="false"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"
+                                  />
+                                </svg>
+                              </span>
+                              HS
+                            </span>
+                          </button>
+                        </div>
+                        <span
+                          class="makeStyles-ruleCounterField-2400 "
+                        >
+                          <div
+                            class="MuiFormControl-root makeStyles-form-2401"
+                          >
+                            <button
+                              aria-haspopup="false"
+                              aria-label="Set Counter Value for \\"subject\\""
+                              class="MuiButtonBase-root makeStyles-autoIncrementButton-2402"
+                              tabindex="0"
+                              type="button"
+                            >
+                              +1
+                            </button>
+                            <div
+                              class="MuiInputBase-root makeStyles-inputContainer-2405 makeStyles-inputContainer-2407 makeStyles-ruleCounterInput-2403 MuiInputBase-formControl"
+                              inputmode="numeric"
+                              style="width: 0px;"
+                            >
+                              <input
+                                aria-invalid="false"
+                                class="MuiInputBase-input"
+                                min="0"
+                                placeholder="n"
+                                type="number"
+                                value="2"
+                              />
+                            </div>
+                            <div
+                              class="makeStyles-ruler-2406"
+                            >
+                              2
+                            </div>
+                          </div>
+                        </span>
+                      </div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
+<DocumentFragment>
+  <div
+    class="makeStyles-projectAndToolbarContainer-716"
+  >
+    <div
+      class="MuiGrid-root makeStyles-header-722 undefined MuiGrid-container MuiGrid-item"
+    >
+      <a
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-723 MuiTypography-colorPrimary"
+        href="/example"
+      >
+        <h5
+          class="MuiTypography-root MuiTypography-h5"
+        >
+          example
+        </h5>
+      </a>
+    </div>
+    <div
+      class="makeStyles-container-724"
+    >
+      <div
+        class="makeStyles-buttonsOuterContainer-725"
+      >
+        <div
+          class="makeStyles-buttonsContainer-726"
+        >
+          <div
+            class="makeStyles-container-728 "
+          >
+            <button
+              aria-haspopup="true"
+              aria-label="Add Names"
+              class="MuiButtonBase-root-758 MuiButton-root-731 MuiButton-contained-739 makeStyles-button-729 MuiButton-containedPrimary-740 MuiButton-disableElevation-742"
+              tabindex="0"
+              title="Add Names"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-732"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-759"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div
+            class="makeStyles-container-728 "
+          >
+            <button
+              aria-haspopup="true"
+              aria-label="Find and Filter"
+              class="MuiButtonBase-root-1589 MuiButton-root-1562 MuiButton-contained-1570 makeStyles-button-729 MuiButton-containedPrimary-1571 MuiButton-disableElevation-1573"
+              tabindex="0"
+              title="Find and Filter"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-1563"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-1590"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div
+            class="makeStyles-container-728 "
+          >
+            <button
+              aria-haspopup="true"
+              aria-label="Copy and Replace"
+              class="MuiButtonBase-root-841 MuiButton-root-814 MuiButton-contained-822 makeStyles-button-729 MuiButton-containedPrimary-823 MuiButton-disableElevation-825 Mui-disabled Mui-disabled"
+              disabled=""
+              tabindex="-1"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-815"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-842"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zm-7-2h2v-3h3V9h-3V6h-2v3h-3v2h3z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div
+            class="makeStyles-container-728 "
+          >
+            <button
+              aria-haspopup="false"
+              aria-label="Delete"
+              class="MuiButtonBase-root-1626 MuiButton-root-1599 MuiButton-contained-1607 makeStyles-button-729 MuiButton-containedPrimary-1608 MuiButton-disableElevation-1610 Mui-disabled Mui-disabled"
+              disabled=""
+              tabindex="-1"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-1600"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-1627"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div
+            class="makeStyles-container-728 "
+          >
+            <button
+              aria-haspopup="false"
+              aria-label="Create All"
+              class="MuiButtonBase-root-1674 MuiButton-root-1647 MuiButton-contained-1655 makeStyles-button-729 MuiButton-containedPrimary-1656 MuiButton-disableElevation-1658"
+              tabindex="0"
+              title="Create All"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-1648"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-1675"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div
+            class="makeStyles-container-728 "
+          >
+            <button
+              aria-haspopup="false"
+              aria-label="Grow"
+              class="MuiButtonBase-root-977 MuiButton-root-950 MuiButton-contained-958 makeStyles-button-729 MuiButton-containedSecondary-960 MuiButton-disableElevation-961"
+              tabindex="0"
+              title="Grow"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-951"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-978"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 5.83L15.17 9l1.41-1.41L12 3 7.41 7.59 8.83 9 12 5.83zm0 12.34L8.83 15l-1.41 1.41L12 21l4.59-4.59L15.17 15 12 18.17z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="MuiGrid-root makeStyles-header-722 placeholder MuiGrid-container MuiGrid-item"
+    >
+      <a
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-723 MuiTypography-colorPrimary"
+        href="/example"
+      >
+        <h5
+          class="MuiTypography-root MuiTypography-h5"
+        >
+          example
+        </h5>
+      </a>
+    </div>
+  </div>
+  <div
+    class="makeStyles-countsList-717"
+  >
+    <div
+      class="makeStyles-container-1268 makeStyles-readyCounts-718"
+    >
+      <div
+        class="makeStyles-count-1269 count count-total"
+      >
+        1 name
+      </div>
+    </div>
+  </div>
+  <div
+    class="MuiGrid-root makeStyles-composerList-720 MuiGrid-container"
+  >
+    <div
+      class="MuiGrid-root makeStyles-composer-721 MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-6 MuiGrid-grid-xl-4"
+    >
+      <div
+        class="makeStyles-gridContainer-1271"
+      >
+        <div
+          class="makeStyles-innerContainer-1272"
+        >
+          <div
+            class="MuiGrid-root makeStyles-headerContainer-1273 MuiGrid-container"
+          >
+            <div
+              class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
+            >
+              <div
+                class="makeStyles-tools-1274"
+              >
+                <span
+                  aria-disabled="false"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-1282 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-1275 MuiIconButton-colorSecondary"
+                >
+                  <span
+                    class="MuiIconButton-label"
+                  >
+                    <input
+                      aria-label="Select the Name Group"
+                      class="PrivateSwitchBase-input-1285"
+                      data-indeterminate="false"
+                      type="checkbox"
+                      value=""
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+                <button
+                  aria-label="Toggle Expand/Collapse"
+                  class="MuiButtonBase-root"
+                  tabindex="0"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M7.41 18.59L8.83 20 12 16.83 15.17 20l1.41-1.41L12 14l-4.59 4.59zm9.18-13.18L15.17 4 12 7.17 8.83 4 7.41 5.41 12 10l4.59-4.59z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  aria-label="Add Name"
+                  class="MuiButtonBase-root"
+                  tabindex="0"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  aria-label="Delete Names"
+                  class="MuiButtonBase-root"
+                  tabindex="0"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div
+              class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
+            >
+              <div
+                class="makeStyles-ruleNameTitle-1276"
+              >
+                subject
+              </div>
+            </div>
+            <div
+              class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
+            >
+              <div
+                class="makeStyles-container-1268 makeStyles-readyCounts-1277"
+              >
+                <div
+                  class="makeStyles-count-1269 count count-total"
+                >
+                  1 name
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="makeStyles-composersContainer-1278  "
+          >
+            <div
+              class="placeholder"
+            >
+              ...
+            </div>
+            <div
+              class="makeStyles-composerList-1279"
+            >
+              <div
+                class="makeStyles-composerRowContainer-1280"
+              >
+                <div
+                  class="makeStyles-composerContainer-1281"
+                >
+                  <div
+                    class="makeStyles-container-1286 makeStyles-container-1293  "
+                  >
+                    <span
+                      class="makeStyles-toolsContainer-1287"
+                    >
+                      <span
+                        aria-disabled="false"
+                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-1282 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-1288 MuiIconButton-colorSecondary"
+                      >
+                        <span
+                          class="MuiIconButton-label"
+                        >
+                          <input
+                            aria-label="Select Name"
+                            class="PrivateSwitchBase-input-1285"
+                            data-indeterminate="false"
+                            type="checkbox"
+                            value=""
+                          />
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root"
+                            focusable="false"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                            />
+                          </svg>
+                        </span>
+                      </span>
+                      <button
+                        aria-label="Copy Name with Values\\""
+                        class="MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm-1 4H8c-1.1 0-1.99.9-1.99 2L6 21c0 1.1.89 2 1.99 2H19c1.1 0 2-.9 2-2V11l-6-6zM8 21V7h6v5h5v9H8z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        aria-label="Delete Name\\""
+                        class="MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"
+                          />
+                        </svg>
+                      </button>
+                    </span>
+                    <span
+                      class="makeStyles-editorsContainer-1289"
+                    >
+                      <div
+                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-1294 MuiFormGroup-row"
+                      >
+                        <div
+                          class="makeStyles-selectValueContainer-1295 "
+                        >
+                          <button
+                            aria-haspopup="true"
+                            aria-label="Select Value for project"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1296  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            disabled=""
+                            tabindex="-1"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              EXAMPLE
+                            </span>
+                          </button>
+                        </div>
+                        <div
+                          class="makeStyles-selectValueContainer-1295 "
+                        >
+                          <button
+                            aria-haspopup="true"
+                            aria-label="Select Value for separator"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1296  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            disabled=""
+                            tabindex="-1"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              -
+                            </span>
+                          </button>
+                        </div>
+                        <div
+                          class="makeStyles-selectValueContainer-1295 "
+                        >
+                          <button
+                            aria-haspopup="true"
+                            aria-label="Select Value for species"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1296  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
+                            tabindex="0"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              <span
+                                class="MuiButton-startIcon MuiButton-iconSizeSmall"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="MuiSvgIcon-root"
+                                  focusable="false"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"
+                                  />
+                                </svg>
+                              </span>
+                              HS
+                            </span>
+                          </button>
+                        </div>
+                        <span
+                          class="makeStyles-ruleCounterField-1299 "
+                        >
+                          <div
+                            class="MuiFormControl-root makeStyles-form-1300"
+                          >
+                            <button
+                              aria-haspopup="false"
+                              aria-label="Set Counter Value for \\"subject\\""
+                              class="MuiButtonBase-root makeStyles-autoIncrementButton-1301"
+                              tabindex="0"
+                              type="button"
+                            >
+                              +1
+                            </button>
+                            <div
+                              class="MuiInputBase-root makeStyles-inputContainer-1304 makeStyles-inputContainer-1306 makeStyles-ruleCounterInput-1302 MuiInputBase-formControl"
+                              inputmode="numeric"
+                              style="width: 0px;"
+                            >
+                              <input
+                                aria-invalid="false"
+                                class="MuiInputBase-input"
+                                min="0"
+                                placeholder="n"
+                                type="number"
+                                value="1"
+                              />
+                            </div>
+                            <div
+                              class="makeStyles-ruler-1305"
+                            >
+                              1
                             </div>
                           </div>
                         </span>

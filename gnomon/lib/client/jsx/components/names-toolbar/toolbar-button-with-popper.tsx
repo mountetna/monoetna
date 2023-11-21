@@ -13,11 +13,6 @@ import { createCustomColorButtonTheme } from '../../utils/theme';
 const useStyles = makeStyles((theme) => ({
     container: {
         display: 'inline-block',
-        maxWidth: '8em',
-        marginRight: '1.25em',
-        '&:last-child': {
-            marginRight: '0',
-        },
     },
     button: {
         height: '4em',
@@ -45,7 +40,7 @@ const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color = 'defaul
 
     const _anchorRef = useRef(null);
     const anchorRef = buttonRef || _anchorRef;
-    
+
     const classes = useStyles();
     const baseTheme = useTheme();
     const customColor = ['inherit', 'default', 'primary', 'secondary'].indexOf(color) == -1;
@@ -83,6 +78,8 @@ const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color = 'defaul
             {variant == 'full' ? text : iconComponent}
         </Button>;
     };
+
+    console.log(className);
 
     return (
         <div className={`${classes.container} ${className != undefined ? className : ''}`}>
