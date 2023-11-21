@@ -41,7 +41,9 @@ Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details 
 
 \item{pageSize}{Integer. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows.}
 
-\item{showDisconnected}{Boolean. Set to true to access "orphan" record, which are records that are missing an (upstream) parent linkage, and so do not connect up with the project's project record.}
+\item{showDisconnected}{Boolean. Set to true to access "disconnected" records, which are records that are missing an (upstream) parent linkage, and so do not connect up with the project's top-level project record.
+Generally, disconnected records are ones that were deemed low quality in some way, thus were purposefully disconnected from the rest of the dataset.
+But sometimes a record might just be disconnected because an upload went awry.}
 
 \item{hideTemplate}{Logical. Allows to leave out the project template from the return. Often this does not matter much, but the template can be bulky.}
 
