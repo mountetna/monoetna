@@ -35,7 +35,7 @@ export function ReorderOptionalPiece(
   key: string,
   changeFxn: Function,
   value: string[] = [] as string[],
-  label: string = "Reorder"
+  label: string = 'Reorder'
 ) {
   const [open, setOpen] = useState(false)
 
