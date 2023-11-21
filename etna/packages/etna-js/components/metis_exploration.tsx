@@ -55,7 +55,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
   project_name?: string;
   setBucket: any;
   bucket: string;
-  label?: string;
+  label?: string | null;
   className?: string;
   disablePortal?: boolean;
 }){
@@ -94,7 +94,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
           onInputChange={(event: any, newInputState: string) => {
             setInputState(newInputState);
           }}
-          style={{paddingTop: label!==undefined ? 8 : undefined}}
+          style={{paddingTop: label!=undefined ? 8 : undefined}}
           renderInput={(params) => (
             <TextField
               {...params}
