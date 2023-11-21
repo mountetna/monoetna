@@ -211,6 +211,7 @@ const ReplaceValuesForRuleRadio = ({ radioValue, currentRadioValue, label, creat
                     createNameGroup ?
                         <CreateNameGroupComposer
                             createNameGroup={createNameGroup}
+                            includeRuleCounterIncrementer={false}
                         /> : 'Select a Name first'
                 }
             </div>

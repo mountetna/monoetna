@@ -248,8 +248,8 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
         });
     };
 
-    const allSelected = _.every(createNameGroups, (cng) => selectedCreateNameGroupLocalIds.has(cng.localId))
-    const someSelected = _.some(createNameGroups, (cng) => selectedCreateNameGroupLocalIds.has(cng.localId))
+    const allSelected = _.every(createNameGroups, (cng) => selectedCreateNameGroupLocalIds.has(cng.localId));
+    const someSelected = _.some(createNameGroups, (cng) => selectedCreateNameGroupLocalIds.has(cng.localId));
 
     return (
         <div className={classes.gridContainer}>

@@ -369,6 +369,7 @@ function deleteGroupsWithNames(
             filterLocalIds: removeGroupsFromFilter(createNameGroupIds, newState).createNameGroups.filterLocalIds,
             replaceLocalIds: removeGroupsFromReplace(createNameGroupIds, newState).createNameGroups.replaceLocalIds,
             selectionLocalIds: removeGroupsFromSelection(createNameGroupIds, newState).createNameGroups.selectionLocalIds,
+            composeErrorsByLocalId: removeGroupsFromComposeErrors(createNameGroupIds, newState).createNameGroups.composeErrorsByLocalId,
         },
     };
 }
@@ -1201,6 +1202,22 @@ function setComposeErrorForCreateNameGroup(createNameGroupLocalId: string, hasEr
                 ...state.createNameGroups.composeErrorsByLocalId,
                 [createNameGroupLocalId]: hasError,
             },
+        },
+    };
+}
+
+function removeGroupsFromComposeErrors(createNameGroupLocalIds: string[], state: NamesState): NamesState {
+    const newComposeErrorsByLocalId = { ...state.createNameGroups.composeErrorsByLocalId };
+
+    for (const cngLocalId of createNameGroupLocalIds) {
+        delete newComposeErrorsByLocalId[cngLocalId];
+    }
+
+    return {
+        ...state,
+        createNameGroups: {
+            ...state.createNameGroups,
+            composeErrorsByLocalId: newComposeErrorsByLocalId,
         },
     };
 }

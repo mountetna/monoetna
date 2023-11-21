@@ -109,10 +109,10 @@ const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color = 'defaul
                         role={undefined}
                         transition
                     >
-                        {({ TransitionProps }) => (
+                        {({ TransitionProps, placement }) => (
                             <Grow
                                 {...TransitionProps}
-                                style={{ transformOrigin: 'center top' }}
+                                style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'center bottom' }}
                             >
                                 <Paper variant="outlined" className={classes.popperContainer}>
                                     <ClickAwayListener onClickAway={handleClose}>

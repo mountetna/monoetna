@@ -128,7 +128,7 @@ const parseMagmaRulesResponse = (res: MagmaRules): ParsedRules => {
 
 
 export async function fetchRulesFromMagma(projectName: string): Promise<ParsedRules> {
-    const res: MagmaRulesResponse = await json_get(magmaPath(`gnomon/${projectName}`))
+    const res: MagmaRulesResponse = await json_get(magmaPath(`gnomon/${projectName}`));
 
-    return parseMagmaRulesResponse(res.config)
+    return parseMagmaRulesResponse(res.config);
 }

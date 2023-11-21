@@ -82,12 +82,12 @@ const MultiOptionButton = <Option extends string>({ options, optionPrefix, onCli
                 disablePortal
                 placement='bottom'
             >
-                {({ TransitionProps }) => (
+                {({ TransitionProps, placement }) => (
                     <Grow
                         {...TransitionProps}
-                        style={{ transformOrigin: 'center top' }}
+                        style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'center bottom' }}
                     >
-                        <Paper>
+                        <Paper variant='outlined'>
                             <ClickAwayListener onClickAway={handleClose}>
                                 <MenuList>
                                     {options.map((option, index) => (

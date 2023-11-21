@@ -53,7 +53,7 @@ const useStyles = makeStyles((theme) => ({
         minHeight: '400px',
         height: '25vh',
         maxHeight: '100%',
-        minWidth: '300px',
+        minWidth: '400px',
         width: '25vw',
         maxWidth: '100%',
         [theme.breakpoints.down('sm')]: {

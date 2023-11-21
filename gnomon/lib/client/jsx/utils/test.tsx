@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import { Provider } from 'react-redux';
 import { render, RenderResult } from '@testing-library/react';
 import { ThemeProvider } from '@material-ui/core/styles';
@@ -19,5 +19,5 @@ export function renderWithProviders(
                 {component}
             </ThemeProvider>
         </Provider>
-    )
+    );
 }

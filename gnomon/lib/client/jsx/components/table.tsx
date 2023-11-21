@@ -104,7 +104,7 @@ const Table = <RowData extends Record<string, any>>({ rows, columns, selectable 
     }), []);
 
     const sizeColumnsToFit = useCallback(() => {
-        const grid = gridRef.current?.api
+        const grid = gridRef.current?.api;
         if (grid == undefined) { return; }
 
         grid.sizeColumnsToFit();
@@ -113,22 +113,22 @@ const Table = <RowData extends Record<string, any>>({ rows, columns, selectable 
     useEffect(sizeColumnsToFit, [windowDimensions]);
 
     const handleCellClicked = useCallback((event: CellClickedEvent | CellFocusedEvent) => {
-        const grid = gridRef.current?.api
+        const grid = gridRef.current?.api;
         if (grid == undefined) { return; }
 
         if (!showFocusedCell) {
-            grid.clearFocusedCell()
+            grid.clearFocusedCell();
         }
 
         const cell = grid.getFocusedCell();
         if (cell === null) {
-            return
+            return;
         }
         const row = grid.getDisplayedRowAtIndex(cell.rowIndex);
         if (row === undefined) {
-            return
+            return;
         }
-        const cellValue = grid.getValue(cell.column, row)
+        const cellValue = grid.getValue(cell.column, row);
 
         batch(() => {
             onCellFocused && onCellFocused(cellValue);
@@ -137,7 +137,7 @@ const Table = <RowData extends Record<string, any>>({ rows, columns, selectable 
     }, []);
 
     const handleSelectionChanged = useCallback(() => {
-        const grid = gridRef.current?.api
+        const grid = gridRef.current?.api;
         if (grid == undefined) { return; }
 
         onSelectionChanged && onSelectionChanged(
