@@ -181,27 +181,26 @@ const ManageModelActions = ({
           Model
         </Button>
       </Tooltip>
-      {canReparent && (
-        <Tooltip title='Reparent Model' aria-label='Reparent Model'>
-          <Button
-            className={classes.addBtn}
-            startIcon={<SwapHorizIcon />}
-            onClick={() => {
-              openModal(
-                <ReparentModelModal
-                  modelName={modelName}
-                  onSave={handleReparentModel}
-                />,
-                {
-                  closeOnClickBackdrop: false
-                }
-              );
-            }}
-          >
-            Reparent Model
-          </Button>
-        </Tooltip>
-      )}
+      <Tooltip title='Reparent Model' aria-label='Reparent Model'>
+        <Button
+          className={classes.addBtn}
+          startIcon={<SwapHorizIcon />}
+          disabled={!canReparent}
+          onClick={() => {
+            openModal(
+              <ReparentModelModal
+                modelName={modelName}
+                onSave={handleReparentModel}
+              />,
+              {
+                closeOnClickBackdrop: false
+              }
+            );
+          }}
+        >
+          Reparent Model
+        </Button>
+      </Tooltip>
       {isLeaf && (
         <Tooltip title='Remove Model' aria-label='Remove Model'>
           <Button
