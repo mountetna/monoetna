@@ -9,6 +9,7 @@ import _ from 'lodash';
 import UnfoldLessOutlinedIcon from '@material-ui/icons/UnfoldLessOutlined';
 import UnfoldMoreOutlinedIcon from '@material-ui/icons/UnfoldMoreOutlined';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
+import Tooltip from '@material-ui/core/Tooltip';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
 import { CreateNameGroup } from '../../models';
@@ -266,31 +267,37 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                                 inputProps={{ 'aria-label': 'Select the Name Group' }}
                                 className={classes.checkbox}
                             />
-                            <ButtonBase
-                                onClick={() => setCollapsed(prev => !prev)}
-                                aria-label={'Toggle Expand/Collapse'}
-                                disableRipple
-                                disableTouchRipple
-                            >
-                                {collapsed ? <UnfoldMoreOutlinedIcon /> : <UnfoldLessOutlinedIcon />}
-                            </ButtonBase>
-                            <ButtonBase
-                                onClick={handleClickAdd}
-                                aria-label="Add Name"
-                                disableRipple
-                                disableTouchRipple
-                            >
-                                <AddCircleOutlineIcon />
-                            </ButtonBase>
-                            <ButtonBase
-                                onClick={() => setDeleteConfirmationPopperOpen(open => !open)}
-                                aria-label="Delete Names"
-                                disableRipple
-                                disableTouchRipple
-                                ref={deleteButtonRef}
-                            >
-                                <DeleteOutlineOutlinedIcon />
-                            </ButtonBase>
+                            <Tooltip title={collapsed ? 'Expand' : 'Collapse'} placement='top'>
+                                <ButtonBase
+                                    onClick={() => setCollapsed(prev => !prev)}
+                                    aria-label={'Toggle Expand/Collapse'}
+                                    disableRipple
+                                    disableTouchRipple
+                                >
+                                    {collapsed ? <UnfoldMoreOutlinedIcon /> : <UnfoldLessOutlinedIcon />}
+                                </ButtonBase>
+                            </Tooltip>
+                            <Tooltip title='Add Name' placement='top'>
+                                <ButtonBase
+                                    onClick={handleClickAdd}
+                                    aria-label="Add Name"
+                                    disableRipple
+                                    disableTouchRipple
+                                >
+                                    <AddCircleOutlineIcon />
+                                </ButtonBase>
+                            </Tooltip>
+                            <Tooltip title='Delete Names' placement='top'>
+                                <ButtonBase
+                                    onClick={() => setDeleteConfirmationPopperOpen(open => !open)}
+                                    aria-label="Delete Names"
+                                    disableRipple
+                                    disableTouchRipple
+                                    ref={deleteButtonRef}
+                                >
+                                    <DeleteOutlineOutlinedIcon />
+                                </ButtonBase>
+                            </Tooltip>
                             <ConfirmationPopper
                                 open={deleteConfirmationPopperOpen}
                                 onConfirm={handleConfirmDelete}

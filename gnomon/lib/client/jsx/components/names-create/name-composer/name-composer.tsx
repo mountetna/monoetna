@@ -314,22 +314,26 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
                         inputProps={{ 'aria-label': 'Select Name' }}
                         className={classes.checkbox}
                     />
-                    <ButtonBase
-                        onClick={handleClickCopy}
-                        aria-label={'Copy Name with Values'}
-                        disableRipple
-                        disableTouchRipple
-                    >
-                        <FileCopyOutlinedIcon />
-                    </ButtonBase>
-                    <ButtonBase
-                        onClick={handleClickDelete}
-                        aria-label={'Delete Name'}
-                        disableRipple
-                        disableTouchRipple
-                    >
-                        <DeleteOutlineOutlinedIcon />
-                    </ButtonBase>
+                    <Tooltip title='Copy Name' placement='top'>
+                        <ButtonBase
+                            onClick={handleClickCopy}
+                            aria-label={'Copy Name with Values'}
+                            disableRipple
+                            disableTouchRipple
+                        >
+                            <FileCopyOutlinedIcon />
+                        </ButtonBase>
+                    </Tooltip>
+                    <Tooltip title='Delete Name' placement='top'>
+                        <ButtonBase
+                            onClick={handleClickDelete}
+                            aria-label={'Delete Name'}
+                            disableRipple
+                            disableTouchRipple
+                        >
+                            <DeleteOutlineOutlinedIcon />
+                        </ButtonBase>
+                    </Tooltip>
                 </span>
             }
             <span className={classes.editorsContainer}>
