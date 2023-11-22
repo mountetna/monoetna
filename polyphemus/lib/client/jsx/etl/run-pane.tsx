@@ -169,11 +169,13 @@ const RunPane = ({
   const [runState, setRunState] = useState(getRunState(run_interval));
   const [runIntervalTime, setRunIntervalTime] = useState(getRunIntervalTime(run_interval));
   const [newParams, setParams] = useState<any>({});
+  const [error, setError] = useState('');
 
   useEffect(() => setParams(params), [params]);
 
   const runValue = () => runState == RUN_INTERVAL ? runIntervalTime : runState;
   const reset = () => {
+    setError('')
     setRunState(getRunState(run_interval));
     setRunIntervalTime(getRunIntervalTime(run_interval));
     setParams(params);
@@ -212,11 +214,17 @@ const RunPane = ({
   return (
     <EtlPane mode='run' selected={selected}>
       <EtlPaneHeader title='Run'>
-        { formValid && formChanged && <Grid className={classes.runbar} spacing={1} container>
+        { formValid && formChanged && <Grid className={classes.runbar} spacing={1} container alignItems='center'>
           <Grid item>
             <Button
               onClick={() => {
-                update(savePayload());
+                setError('')
+                // Simple error checking, but could use a more robust system if more validations come up!
+                if (runState == RUN_INTERVAL && runIntervalTime < 300) {
+                  setError('Run interval cannot be less than 300 seconds.')
+                } else {
+                  update(savePayload());
+                }
               }}
             >
               Save
@@ -227,6 +235,11 @@ const RunPane = ({
               Reset
             </Button>
           </Grid>
+          {(error) && (
+            <Grid item >
+              <Typography style={{color: 'green', paddingLeft: '0.5rem'}}>{error}</Typography>
+            </Grid>
+          )}
         </Grid> }
       </EtlPaneHeader>
       <Grid spacing={1} container alignItems='center'>
@@ -256,9 +269,6 @@ const RunPane = ({
               value={runIntervalTime}
               onChange={(e) => {
                 setRunIntervalTime(parseInt(e.target.value as string));
-              }}
-              inputProps={{
-                min: 300,
               }}
             />
           </Grid>
