@@ -255,7 +255,10 @@ const RunPane = ({
               }}
               value={runIntervalTime}
               onChange={(e) => {
-                setRunIntervalTime(Math.max(300,parseInt(e.target.value as string)));
+                setRunIntervalTime(parseInt(e.target.value as string));
+              }}
+              inputProps={{
+                min: 300,
               }}
             />
           </Grid>
