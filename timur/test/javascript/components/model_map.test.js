@@ -69,7 +69,7 @@ describe('ModelMap', () => {
     expect(tree).toMatchSnapshot();
   });
 
-  it('renders with model action buttons for admin user (no reparent model btn with records)', async () => {
+  it('renders with model action buttons for admin user (disabled reparent model btn while awaiting record count)', async () => {
     stubUrl({
       verb: 'post',
       path: '/query',
@@ -105,7 +105,7 @@ describe('ModelMap', () => {
     expect(screen.getByTitle('Add Link')).toBeTruthy();
     expect(screen.getByTitle('Add Attribute')).toBeTruthy();
     expect(screen.getByTitle('Add Model')).toBeTruthy();
-    expect(screen.queryByTitle('Reparent Model')).toBeFalsy();
+    expect(screen.queryByTitle('Determining if reparenting is possible')).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
   });
 
@@ -145,7 +145,7 @@ describe('ModelMap', () => {
     const monsterModel = screen.getByText('monster');
     fireEvent.click(monsterModel);
 
-    await waitFor(() => screen.getByText('Reparent Model'));
+    await waitFor(() => screen.getByText('0 records'));
     expect(screen.getByTitle('Add Link')).toBeTruthy();
     expect(screen.getByTitle('Add Attribute')).toBeTruthy();
     expect(screen.getByTitle('Add Model')).toBeTruthy();

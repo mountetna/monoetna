@@ -978,7 +978,7 @@ exports[`ModelMap renders an incomplete graph 1`] = `
 </div>
 `;
 
-exports[`ModelMap renders with model action buttons for admin user (no reparent model btn with records) 1`] = `
+exports[`ModelMap renders with model action buttons for admin user (disabled reparent model btn while awaiting record count) 1`] = `
 <DocumentFragment>
   <div
     class="MuiGrid-root makeStyles-model_map-2 MuiGrid-container"
@@ -1434,6 +1434,38 @@ exports[`ModelMap renders with model action buttons for admin user (no reparent 
               class="MuiTouchRipple-root"
             />
           </button>
+          <span
+            aria-label="Determining if reparenting is possible"
+            class=""
+            title="Determining if reparenting is possible"
+          >
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27 Mui-disabled Mui-disabled"
+              disabled=""
+              tabindex="-1"
+              type="button"
+            >
+              <span
+                class="MuiButton-label"
+              >
+                <span
+                  class="MuiButton-startIcon MuiButton-iconSizeMedium"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"
+                    />
+                  </svg>
+                </span>
+                Reparent Model
+              </span>
+            </button>
+          </span>
         </div>
       </div>
     </div>
@@ -2024,36 +2056,40 @@ exports[`ModelMap renders with reparent model action buttons for admin user, no-
               class="MuiTouchRipple-root"
             />
           </button>
-          <button
+          <span
             aria-label="Reparent Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
-            tabindex="0"
+            class=""
             title="Reparent Model"
-            type="button"
           >
-            <span
-              class="MuiButton-label"
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
+              tabindex="0"
+              type="button"
             >
               <span
-                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+                class="MuiButton-label"
               >
-                <svg
-                  aria-hidden="true"
-                  class="MuiSvgIcon-root"
-                  focusable="false"
-                  viewBox="0 0 24 24"
+                <span
+                  class="MuiButton-startIcon MuiButton-iconSizeMedium"
                 >
-                  <path
-                    d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"
-                  />
-                </svg>
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"
+                    />
+                  </svg>
+                </span>
+                Reparent Model
               </span>
-              Reparent Model
-            </span>
-            <span
-              class="MuiTouchRipple-root"
-            />
-          </button>
+              <span
+                class="MuiTouchRipple-root"
+              />
+            </button>
+          </span>
         </div>
       </div>
     </div>
