@@ -47,10 +47,10 @@ const ConfirmationPopper = ({ text, open, onConfirm, onClose, className, anchorR
             role={undefined}
             transition
         >
-            {({ TransitionProps }) => (
+            {({ TransitionProps, placement }) => (
                 <Grow
                     {...TransitionProps}
-                    style={{ transformOrigin: 'center top' }}
+                    style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'center bottom' }}
                     exit={false}
                 >
                     <Paper variant="outlined" className={classes.paper}>
@@ -65,6 +65,7 @@ const ConfirmationPopper = ({ text, open, onConfirm, onClose, className, anchorR
                                         color="secondary"
                                         disableRipple
                                         disableElevation
+                                        aria-label='cancel-confirmation'
                                         onClick={() => onConfirm(false)}
                                     >
                                         Cancel
@@ -75,6 +76,7 @@ const ConfirmationPopper = ({ text, open, onConfirm, onClose, className, anchorR
                                         color="primary"
                                         disableRipple
                                         disableElevation
+                                        aria-label='confirm-confirmation'
                                         onClick={() => onConfirm(true)}
                                     >
                                         Confirm

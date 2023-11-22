@@ -36,6 +36,7 @@ function createReadyCounts(
         total += 1;
         if (
             !(cng.localId in renderedCompleteCreateNamesByCreateNameGroupLocalId)
+            || !(cng.localId in composeErrorsByCreateNameGroupLocalId)
             || composeErrorsByCreateNameGroupLocalId[cng.localId].error
         ) {
             notReady += 1;

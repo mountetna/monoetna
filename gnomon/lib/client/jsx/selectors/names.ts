@@ -238,7 +238,8 @@ export const selectCompleteCreateNamesCreationPayloads: (state: State) => Comple
                 // check if belongs to a completed (and error-less) CreateNameGroup
                 if (
                     completeCreateNameGroupLocalIds.has(_createName.createNameGroupLocalId)
-                    && !state.names.createNameGroups.composeErrorsByLocalId[_createName.createNameGroupLocalId]
+                    && _createName.createNameGroupLocalId in state.names.createNameGroups.composeErrorsByLocalId
+                    && !state.names.createNameGroups.composeErrorsByLocalId[_createName.createNameGroupLocalId].error
                 ) {
                     createName = _createName;
                     break;

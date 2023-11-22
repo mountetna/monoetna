@@ -212,6 +212,7 @@ const ReplaceValuesForRuleRadio = ({ radioValue, currentRadioValue, label, creat
                         <CreateNameGroupComposer
                             createNameGroup={createNameGroup}
                             includeRuleCounterIncrementer={false}
+                            checkForDuplicates={false}
                         /> : 'Select a Name first'
                 }
             </div>
@@ -337,7 +338,7 @@ const CopyAndReplaceButton = ({ small, className }: { small: boolean, className?
                 >
                     <RadioGroup
                         aria-label="Copy and Replace Options"
-                        name="addFromSelectionOptions"
+                        name="copy-and-replace-options"
                         value={radioValue}
                         onChange={handleChangeRadioValue}
                         className={classes.radioGroup}
@@ -372,6 +373,7 @@ const CopyAndReplaceButton = ({ small, className }: { small: boolean, className?
                             color="secondary"
                             disableRipple
                             disableElevation
+                            aria-label='cancel-copy-or-replace'
                         >
                             Cancel
                         </Button>
@@ -380,6 +382,7 @@ const CopyAndReplaceButton = ({ small, className }: { small: boolean, className?
                             color="primary"
                             disableRipple
                             disableElevation
+                            aria-label='perform-copy-or-replace'
                         >
                             {_.capitalize(radioValue)}
                         </Button>

@@ -136,10 +136,10 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
                 role={undefined}
                 transition
             >
-                {({ TransitionProps }) => (
+                {({ TransitionProps, placement }) => (
                     <Grow
                         {...TransitionProps}
-                        style={{ transformOrigin: 'center top' }}
+                        style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'center bottom' }}
                     >
                         <Paper variant="outlined">
                             <ClickAwayListener onClickAway={handleClose}>

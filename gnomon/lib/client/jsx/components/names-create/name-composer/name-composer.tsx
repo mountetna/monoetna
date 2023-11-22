@@ -196,12 +196,13 @@ const useComposerStyles = makeStyles<Theme, ComposerStylesProps>((theme) => ({
 }));
 
 
-const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = false, includeRuleCounterIncrementer = true, includeUnsetAsValue = false }: {
+const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = false, includeRuleCounterIncrementer = true, includeUnsetAsValue = false, checkForDuplicates = true }: {
     createNameGroup: CreateNameGroup,
     className?: string,
     includeTools?: boolean
     includeRuleCounterIncrementer?: boolean,
-    includeUnsetAsValue?: boolean
+    includeUnsetAsValue?: boolean,
+    checkForDuplicates?: boolean,
 }) => {
     const dispatch = useDispatch();
     const classes = useComposerStyles({ includeRuleCounterIncrementer });
@@ -227,8 +228,8 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
     ).length;
 
     useEffect(() => {
-        async function checkForDuplicates() {
-            dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'inProgress', false));
+        async function _checkForDuplicates() {
+            dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'inProgress'));
 
             if (!primaryCompleteCreateName) {
                 batch(() => {
@@ -262,7 +263,9 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
             }
         }
 
-        checkForDuplicates();
+        if (checkForDuplicates) {
+            _checkForDuplicates();
+        }
     }, [primaryCompleteCreateName?.localId, localInstanceCount]);
 
     const createErrorMessage = () => {

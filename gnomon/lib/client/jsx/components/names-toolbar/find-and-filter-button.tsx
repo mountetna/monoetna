@@ -132,6 +132,7 @@ const FindAndFilterButton = ({ small, className }: { small: boolean, className?:
             color="secondary"
             size="small"
             disabled={disabled}
+            aria-label='clear-selection'
         >
             <DeleteOutlineOutlinedIcon />
         </Button>;
@@ -150,6 +151,7 @@ const FindAndFilterButton = ({ small, className }: { small: boolean, className?:
             color="secondary"
             size="small"
             disabled={disabled}
+            aria-label='clear-filter'
         >
             <DeleteOutlineOutlinedIcon />
         </Button>;
@@ -183,6 +185,7 @@ const FindAndFilterButton = ({ small, className }: { small: boolean, className?:
                             createNameGroup={ruleAndCreateNameGroup.createNameGroup}
                             includeRuleCounterIncrementer={false}
                             className={classes.cngComposer}
+                            checkForDuplicates={false}
                         />
                     }
                     <div className={classes.buttonsContainer}>
@@ -195,6 +198,7 @@ const FindAndFilterButton = ({ small, className }: { small: boolean, className?:
                             <Button
                                 onClick={handleClickFindAndSelect}
                                 disabled={!ruleAndCreateNameGroup}
+                                aria-label='perform-find-and-select'
                             >
                                 Find + Select
                             </Button>
@@ -209,6 +213,7 @@ const FindAndFilterButton = ({ small, className }: { small: boolean, className?:
                             <Button
                                 onClick={handleClickFilter}
                                 disabled={!ruleAndCreateNameGroup}
+                                aria-label='perform-filter'
                             >
                                 Filter
                             </Button>

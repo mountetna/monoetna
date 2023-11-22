@@ -161,7 +161,7 @@ const RuleCounterField = ({
             <FormControl className={classes.form}>
                 {includeRuleCounterIncrementer && <ButtonBase
                     onClick={handleClickAutoIncrement}
-                    aria-label={`Set Counter Value for "${ruleName}"`}
+                    aria-label={`Set Counter Value for ${ruleName}`}
                     aria-haspopup="false"
                     disableRipple
                     disableTouchRipple
@@ -174,7 +174,7 @@ const RuleCounterField = ({
                     onChange={handleChangeInput}
                     type="number"
                     inputMode="numeric"
-                    inputProps={{ min: 0 }}
+                    inputProps={{ min: 0, 'aria-label': `${ruleName}-counter-value` }}
                     placeholder="n"
                     className={classes.ruleCounterInput}
                     minWidth="0.65em"

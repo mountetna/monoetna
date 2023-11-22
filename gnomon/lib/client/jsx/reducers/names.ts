@@ -102,7 +102,7 @@ interface CreateNameTokenValuesState {
 
 export interface ComposeErrorState {
     checkStatus: Status
-    error: boolean
+    error?: boolean
 }
 
 
@@ -1204,10 +1204,8 @@ function setComposeErrorForCreateNameGroup(createNameGroupLocalId: string, check
     const newComposeErrorState = {
         ...(state.createNameGroups.composeErrorsByLocalId[createNameGroupLocalId] || {}),
         checkStatus,
+        error: hasError,
     };
-    if (hasError != undefined) {
-        newComposeErrorState.error = hasError;
-    }
 
     return {
         ...state,

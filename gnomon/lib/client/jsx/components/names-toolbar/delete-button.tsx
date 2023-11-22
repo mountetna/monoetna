@@ -36,7 +36,7 @@ const DeleteButton = ({ small, className }: { small: boolean, className?: string
     return (
         <React.Fragment>
             <ToolbarButtonWithPopper
-                text="Delete"
+                text="Delete Selection"
                 iconComponent={<DeleteOutlineOutlinedIcon />}
                 variant={small ? 'compact' : 'full'}
                 color="#FF0000"

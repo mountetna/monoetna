@@ -29,22 +29,22 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
           class="makeStyles-buttonsContainer-10"
         >
           <div
-            class="makeStyles-container-12 "
+            class="makeStyles-container-13 makeStyles-buttonContainer-11"
           >
             <button
               aria-haspopup="true"
               aria-label="Export"
-              class="MuiButtonBase-root-53 MuiButton-root-26 MuiButton-contained-34 makeStyles-button-13 MuiButton-containedPrimary-35 MuiButton-disableElevation-37"
+              class="MuiButtonBase-root-54 MuiButton-root-27 MuiButton-contained-35 makeStyles-button-14 MuiButton-containedPrimary-36 MuiButton-disableElevation-38"
               tabindex="0"
               title="Export"
               type="button"
             >
               <span
-                class="MuiButton-label-27"
+                class="MuiButton-label-28"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-54"
+                  class="MuiSvgIcon-root-55"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -56,22 +56,22 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-12 "
+            class="makeStyles-container-13 makeStyles-buttonContainer-11"
           >
             <button
               aria-haspopup="false"
               aria-label="Grow"
-              class="MuiButtonBase-root-101 MuiButton-root-74 MuiButton-contained-82 makeStyles-button-13 MuiButton-containedSecondary-84 MuiButton-disableElevation-85"
+              class="MuiButtonBase-root-102 MuiButton-root-75 MuiButton-contained-83 makeStyles-button-14 MuiButton-containedSecondary-85 MuiButton-disableElevation-86"
               tabindex="0"
               title="Grow"
               type="button"
             >
               <span
-                class="MuiButton-label-75"
+                class="MuiButton-label-76"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-102"
+                  class="MuiSvgIcon-root-103"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -104,26 +104,26 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
     class="makeStyles-countsList-2"
   >
     <div
-      class="makeStyles-container-111 makeStyles-selectedCounts-3"
+      class="makeStyles-container-112 makeStyles-selectedCounts-3"
     />
   </div>
   <div
     class="makeStyles-tableContainer-4"
   >
     <div
-      class="makeStyles-container-114 makeStyles-table-5"
+      class="makeStyles-container-115 makeStyles-table-5"
     >
       <div
-        class="makeStyles-focusedValueContainer-115"
+        class="makeStyles-focusedValueContainer-116"
       >
         <span
-          class="makeStyles-focusedValue-116"
+          class="makeStyles-focusedValue-117"
         >
           ‎
         </span>
       </div>
       <div
-        class="ag-theme-material makeStyles-gridContainer-117"
+        class="ag-theme-material makeStyles-gridContainer-118"
       >
         <div
           style="height: 100%;"

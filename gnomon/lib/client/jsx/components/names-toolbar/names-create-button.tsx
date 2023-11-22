@@ -13,7 +13,7 @@ import AutorenewIcon from '@material-ui/icons/Autorenew';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { useTheme , Theme} from '@material-ui/core/styles';
+import { useTheme } from '@material-ui/core/styles';
 import _ from 'lodash';
 
 import { useDispatch } from '../../utils/redux';
@@ -31,7 +31,7 @@ import Table from '../table';
 
 const useStyles = makeStyles((theme) => ({
     dialogRoot: {
-        '& [aria-labelledby="create-all-dialog-title"]': {
+        '& [aria-labelledby="create-dialog-title"]': {
             padding: '0.5em',
         },
     },
@@ -243,28 +243,28 @@ const NamesCreateButton = ({ small, className }: { small: boolean, className?: s
     return (
         <React.Fragment>
             <ToolbarButtonWithPopper
-                text="Create All"
+                text="Create"
                 iconComponent={<SaveOutlinedIcon />}
                 variant={small ? 'compact' : 'full'}
                 color="#0057FF"
-                popperId="create-all-dialog"
+                popperId="create-dialog"
                 disabled={completeCreateNameGroupsCount - composeErrorCount == 0}
                 onClickOrPopperChange={handleToggle}
                 className={className}
             />
             <Dialog
-                id="create-all-dialog"
+                id="create-dialog"
                 className={classes.dialogRoot}
                 fullScreen={fullScreen}
                 open={open}
                 onClose={handleClose}
-                aria-labelledby="create-all-dialog-title"
+                aria-labelledby="create-dialog-title"
             >
                 <DialogTitle
-                    id="create-all-dialog-title"
+                    id="create-dialog-title"
                     className={classes.dialogTitle}
                 >
-                    {'Create All Names'}
+                    {'Create Names'}
                 </DialogTitle>
                 <DialogContent className={classes.dialogContent}>
                     <div className={classes.tableControls}>
@@ -303,6 +303,7 @@ const NamesCreateButton = ({ small, className }: { small: boolean, className?: s
                                         disableElevation
                                         disabled={creationRequestState.status != 'idle'}
                                         autoFocus
+                                        aria-label='cancel-creation'
                                     >
                                         Cancel
                                     </Button>
@@ -313,6 +314,7 @@ const NamesCreateButton = ({ small, className }: { small: boolean, className?: s
                                         disabled={creationRequestState.status != 'idle'}
                                         className={classes.createButton}
                                         autoFocus
+                                        aria-label='perform-creation'
                                     >
                                         Create
                                     </Button>
@@ -323,6 +325,7 @@ const NamesCreateButton = ({ small, className }: { small: boolean, className?: s
                                         color="secondary"
                                         disableElevation
                                         autoFocus
+                                        aria-label='back-to-project-landing-page'
                                     >
                                         Back
                                     </Button>
@@ -336,9 +339,8 @@ const NamesCreateButton = ({ small, className }: { small: boolean, className?: s
                                         disabled={exportStatus != 'idle'}
                                         className={classes.exportButton}
                                         autoFocus
-                                    >
-                                        Export
-                                    </MultiOptionButton>
+                                        aria-label='export'
+                                    />
                                 </React.Fragment>)
                         }
                     </div>
