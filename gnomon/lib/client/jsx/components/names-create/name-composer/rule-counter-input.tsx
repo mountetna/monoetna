@@ -182,7 +182,7 @@ const RuleCounterField = ({
                     inputMode="numeric"
                     inputProps={{ min: 0, 'aria-label': `${ruleName}-counter-value` }}
                     placeholder="n"
-                    className={classes.ruleCounterInput + ' ' + (highlight ? 'highlighted' : '')}
+                    className={classes.ruleCounterInput + (highlight ? ' highlighted' : '')}
                     minWidth="0.65em"
                 />
             </FormControl>

@@ -460,7 +460,7 @@ exports[`NamesCreate can copy names n times 1`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for project"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-9017  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-9017 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -478,7 +478,7 @@ exports[`NamesCreate can copy names n times 1`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for separator"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-9017  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-9017 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -496,7 +496,7 @@ exports[`NamesCreate can copy names n times 1`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for species"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-9017  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-9017 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -537,7 +537,7 @@ exports[`NamesCreate can copy names n times 1`] = `
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-9025 makeStyles-inputContainer-9027 makeStyles-ruleCounterInput-9023  MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-9025 makeStyles-inputContainer-9027 makeStyles-ruleCounterInput-9023 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -1017,7 +1017,7 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for project"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-10412  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-10412 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -1035,7 +1035,7 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for separator"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-10412  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-10412 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -1053,7 +1053,7 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for species"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-10412  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-10412 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -1094,7 +1094,7 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-10420 makeStyles-inputContainer-10422 makeStyles-ruleCounterInput-10418  MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-10420 makeStyles-inputContainer-10422 makeStyles-ruleCounterInput-10418 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -1803,7 +1803,7 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for project"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-582  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-582 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -1821,7 +1821,7 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for separator"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-582  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-582 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -1880,7 +1880,7 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-590 makeStyles-inputContainer-592 makeStyles-ruleCounterInput-588  MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-590 makeStyles-inputContainer-592 makeStyles-ruleCounterInput-588 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -1911,7 +1911,7 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for separator"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-582  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-582 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -1929,7 +1929,7 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for timepoint"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-582  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-582 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -1957,7 +1957,7 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-590 makeStyles-inputContainer-593 makeStyles-ruleCounterInput-588  MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-590 makeStyles-inputContainer-593 makeStyles-ruleCounterInput-588 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -2029,7 +2029,7 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-590 makeStyles-inputContainer-594 makeStyles-ruleCounterInput-588  MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-590 makeStyles-inputContainer-594 makeStyles-ruleCounterInput-588 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -2509,7 +2509,7 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for project"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2533  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2533 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -2527,7 +2527,7 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for separator"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2533  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2533 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -2545,7 +2545,7 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for species"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2533  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2533 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -2586,7 +2586,7 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-2541 makeStyles-inputContainer-2543 makeStyles-ruleCounterInput-2539  MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-2541 makeStyles-inputContainer-2543 makeStyles-ruleCounterInput-2539 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -3066,7 +3066,7 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for project"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1298  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1298 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -3084,7 +3084,7 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for separator"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1298  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1298 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -3102,7 +3102,7 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for species"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1298  MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1298 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -3143,7 +3143,7 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-1306 makeStyles-inputContainer-1308 makeStyles-ruleCounterInput-1304  MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-1306 makeStyles-inputContainer-1308 makeStyles-ruleCounterInput-1304 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >

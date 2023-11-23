@@ -128,7 +128,7 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
                 aria-label={`Select Value for ${label}`}
                 aria-haspopup="true"
                 className={
-                    classes.currentSelectValue + ' ' + (!value ? classes.unset : '') + (highlight ? 'highlighted' : '')
+                    classes.currentSelectValue + (!value ? ` ${classes.unset}` : '') + (highlight ? ' highlighted' : '')
                 }
                 disableRipple
                 disableTouchRipple

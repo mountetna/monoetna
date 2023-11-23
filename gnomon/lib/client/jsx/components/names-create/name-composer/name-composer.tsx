@@ -12,7 +12,7 @@ import _ from 'lodash';
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleToken, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from '../../../models';
 import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRuleNamesHierarchicalListByPrimaryRuleName } from '../../../selectors/rules';
-import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId, selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId, selectRenderedCompleteCreateNamesByLocalId, selectSearchVisible, selectSearchReplaceCriteriaFromSearchGroups, selectReplaceVisible, selectSearchReplaceCriteriaFromReplaceGroups } from '../../../selectors/names';
+import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId, selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId, selectRenderedCompleteCreateNamesByLocalId, selectSearchVisible, selectSearchReplaceCriteriaFromSearchGroups, selectReplaceVisible, selectSearchReplaceCriteriaFromReplaceGroups, selectReplaceCreateNameGroupIds } from '../../../selectors/names';
 import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, deleteCreateNameTokenValue, setCreateNameGroupComposeError } from '../../../actions/names';
 import { selectPathParts } from '../../../selectors/location';
 import { TokenSelect } from './select';
@@ -75,6 +75,8 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, inclu
     const searchCriteria = useSelector(selectSearchReplaceCriteriaFromSearchGroups);
     const replaceVisible = useSelector(selectReplaceVisible);
     const replaceCriteria = useSelector(selectSearchReplaceCriteriaFromReplaceGroups);
+    const selectedCreateNameGroupsIds = useSelector(selectSelectedCreateNameGroupIds);
+    const replaceCreateNameGroupIds = useSelector(selectReplaceCreateNameGroupIds);
 
     const renderedTokens: string | undefined = _.every(sortedTokenValues, tv => tv != undefined)
         // @ts-ignore
@@ -123,13 +125,46 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, inclu
         );
     };
 
-    const matchedTokenValueForSearchReplaceCriteria = (ruleToken: RuleToken, tokenValue: TokenValue, criteria: SearchReplaceCriteria[]): boolean => {
-        for (const criterium of criteria) {
-            for (const cntvLocalId of criterium.byRuleName[ruleToken.ruleName].createNameTokenValueLocalIds) {
-                const cntv = createNameTokenValuesByLocalId[cntvLocalId];
+    const shouldHighlightTokenValue = (ruleToken: RuleToken, tokenValue?: TokenValue): boolean => {
+        if (searchVisible) {
+            for (const criterium of searchCriteria) {
+                const ruleCriterium = criterium.byRuleName[ruleToken.ruleName];
 
-                if (cntv.tokenValueLocalId == tokenValue.localId) {
-                    return true;
+                if (ruleCriterium == undefined) {
+                    continue;
+                }
+
+                for (const cntvLocalId of ruleCriterium.createNameTokenValueLocalIds) {
+                    const cntv = createNameTokenValuesByLocalId[cntvLocalId];
+
+                    if (cntv.tokenValueLocalId == tokenValue?.localId) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+
+        if (
+            replaceVisible
+            && (
+                selectedCreateNameGroupsIds.has(createName.createNameGroupLocalId)
+                || replaceCreateNameGroupIds.has(createName.createNameGroupLocalId)
+            )
+        ) {
+            for (const criterium of replaceCriteria) {
+                const ruleCriterium = criterium.byRuleName[ruleToken.ruleName];
+
+                if (ruleCriterium == undefined) {
+                    continue;
+                }
+
+                for (const cntvLocalId of ruleCriterium.createNameTokenValueLocalIds) {
+                    const cntv = createNameTokenValuesByLocalId[cntvLocalId];
+
+                    if (cntv.ruleTokenLocalId == ruleToken.localId) {
+                        return true;
+                    }
                 }
             }
         }
@@ -137,32 +172,42 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, inclu
         return false;
     };
 
-    const shouldHighlightTokenValue = (ruleToken: RuleToken, tokenValue?: TokenValue): boolean => {
-        if (tokenValue == undefined) {
-            return false;
+    const shouldHighlightCounterValue = (ruleName: string, counterValue?: number): boolean => {
+        if (searchVisible) {
+            for (const criterium of searchCriteria) {
+                const ruleCriterium = criterium.byRuleName[ruleName];
+
+                if (
+                    ruleCriterium != undefined
+                    && ruleCriterium.ruleCounterValue != undefined
+                    && ruleCriterium.ruleCounterValue == counterValue
+                ) {
+                    return true;
+                }
+            }
         }
 
-        return (searchVisible && matchedTokenValueForSearchReplaceCriteria(ruleToken, tokenValue, searchCriteria))
-            || (replaceVisible && matchedTokenValueForSearchReplaceCriteria(ruleToken, tokenValue, replaceCriteria));
-    };
 
-    const matchedCounterValueForSearchReplaceCriteria = (ruleName: string, counterValue: number, criteria: SearchReplaceCriteria[]): boolean => {
-        for (const criterium of criteria) {
-            if (criterium.byRuleName[ruleName].ruleCounterValue == counterValue) {
-                return true;
+        if (
+            replaceVisible
+            && (
+                selectedCreateNameGroupsIds.has(createName.createNameGroupLocalId)
+                || replaceCreateNameGroupIds.has(createName.createNameGroupLocalId)
+            )
+        ) {
+            for (const criterium of replaceCriteria) {
+                const ruleCriterium = criterium.byRuleName[ruleName];
+
+                if (
+                    ruleCriterium != undefined
+                    && ruleCriterium.ruleCounterValue != undefined
+                ) {
+                    return true;
+                }
             }
         }
 
         return false;
-    };
-
-    const shouldHighlightCounterValue = (ruleName: string, counterValue?: number): boolean => {
-        if (counterValue == undefined) {
-            return false;
-        }
-
-        return (searchVisible && matchedCounterValueForSearchReplaceCriteria(ruleName, counterValue, searchCriteria))
-            || (replaceVisible && matchedCounterValueForSearchReplaceCriteria(ruleName, counterValue, replaceCriteria));
     };
 
     return (
@@ -411,7 +456,7 @@ const CreateNameGroupComposer = ({
                                     includeRuleCounterIncrementer={includeRuleCounterIncrementer}
                                     includeUnsetAsValue={includeUnsetAsValue}
                                     error={errorMessage != undefined}
-                                    hightlightMatches={highlightMatches}
+                                    highlightMatches={highlightMatches}
                                 />
                             </React.Fragment>
                         );

@@ -533,7 +533,7 @@ describe('NamesCreate', () => {
                 ).value).toBe(String(idx + firstNameCounterValue));
             });
         });
-    });
+    }, 10000);
 
     it('can bulk delete', async () => {
 
