@@ -13,7 +13,7 @@ import { selectCreateNameGroupIdsByPrimaryRule, selectFilterStatus, selectSelect
 import { CreateNameGroup, Rule } from '../../models';
 import { RuleSelect } from '../names-create/name-composer/select';
 import { selectGlobalState, selectVisibleRules } from '../../selectors/global';
-import { addCreateNameGroupsToSearchCriteria, clearCreateNameGroupsFilter, clearCreateNameGroupsSelection, createNamesWithGroupForRule, deleteGroupsWithNames, setCreateNameGroupsFilterFromSearchCriteria, setCreateNameGroupsSelectionFromSearchCriteria } from '../../actions/names';
+import { addCreateNameGroupsToSearchCriteria, clearCreateNameGroupsFilter, clearCreateNameGroupsSelection, createNamesWithGroupForRule, deleteGroupsWithNames, setCreateNameGroupsFilterFromSearchCriteria, setCreateNameGroupsSelectionFromSearchCriteria, setSearchVisibility } from '../../actions/names';
 import CreateNameGroupComposer from '../names-create/name-composer/name-composer';
 import { useDispatch } from '../../utils/redux';
 import ToolbarButtonWithPopper from './toolbar-button-with-popper';
@@ -163,6 +163,13 @@ const FindAndFilterButton = ({ small, className }: { small: boolean, className?:
         );
     };
 
+    const handleClick = (open: boolean) => {
+        batch(() => {
+            setOpen(open);
+            dispatch(setSearchVisibility(open));
+        });
+    };
+
     return (
         <ToolbarButtonWithPopper
             text="Find and Filter"
@@ -223,7 +230,7 @@ const FindAndFilterButton = ({ small, className }: { small: boolean, className?:
                 </FormControl >
             }
             popperId="find-and-filter-dialogue"
-            onClickOrPopperChange={(open: boolean) => setOpen(open)}
+            onClickOrPopperChange={handleClick}
             popperOpen={open}
             disabled={Object.keys(createNameGroupIdsByPrimaryRule).length == 0 && !filterEnabled}
             className={className}

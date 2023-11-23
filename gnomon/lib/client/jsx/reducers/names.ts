@@ -22,13 +22,14 @@ import {
     SET_MAGMA_NAMES_CREATION_REQUEST,
     SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP,
     SET_MAGMA_NAMES_LIST_REQUEST,
+    SET_SEARCH_VISIBILITY,
+    SET_REPLACE_VISIBILITY,
 } from '../actions/names';
 import { listToIdObject, listToIdGroupObject, defaultDict } from '../utils/object';
 import { difference, intersection } from '../utils/set';
-import { MagmaBulkGenerateResponse, MagmaListName, SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups, renderCounter, renderTokens } from '../utils/names';
+import { MagmaBulkGenerateResponse, MagmaListName, SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups, renderCounter, renderTokens, MagmaRequestState } from '../utils/names';
 import { RulesStateSliceForCompleteCreateNames } from '../selectors/global';
 import { Status, createLocalId } from '../utils/models';
-import { MagmaRequestState } from '../utils/names';
 
 
 
@@ -109,7 +110,9 @@ export interface ComposeErrorState {
 interface CreateNameGroupsState {
     byLocalId: Record<string, CreateNameGroup>
     searchLocalIds: Set<string>
+    searchVisible: boolean
     replaceLocalIds: Set<string>
+    replaceVisible: boolean
     selectionLocalIds: Set<string>
     filterLocalIds: Set<string>
     filterEnabled: boolean
@@ -163,7 +166,9 @@ const initialState: NamesState = {
     createNameGroups: {
         byLocalId: {},
         searchLocalIds: new Set(),
+        searchVisible: false,
         replaceLocalIds: new Set(),
+        replaceVisible: false,
         selectionLocalIds: new Set(),
         filterLocalIds: new Set(),
         filterEnabled: false,
@@ -269,6 +274,22 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                         ..._.omit(action, ['type', 'ruleName'])
                     },
                 }
+            };
+        case SET_SEARCH_VISIBILITY:
+            return {
+                ...state,
+                createNameGroups: {
+                    ...state.createNameGroups,
+                    searchVisible: action.visible,
+                },
+            };
+        case SET_REPLACE_VISIBILITY:
+            return {
+                ...state,
+                createNameGroups: {
+                    ...state.createNameGroups,
+                    replaceVisible: action.visible,
+                },
             };
         default: {
             return state;

@@ -6,6 +6,7 @@ import { CompleteCreateNameParentsByRenderedValues, ComposeErrorState, NamesCrea
 import { defaultDict } from '../utils/object';
 import { State } from '../store';
 import { selectRuleNamesHierarchicalListByPrimaryRuleName } from './rules';
+import { SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups } from '../utils/names';
 
 
 
@@ -298,3 +299,17 @@ export const selectComposeErrorCount = (state: State): number => {
 export const selectMagmaNamesListsByRuleName = (state: State): Record<string, NamesListRequestState> => {
     return state.names.magmaNamesListRequestsByRuleName;
 };
+
+export const selectSearchVisible = (state: State): boolean => state.names.createNameGroups.searchVisible;
+
+export const selectReplaceVisible = (state: State): boolean => state.names.createNameGroups.replaceVisible;
+
+export const selectSearchReplaceCriteriaFromSearchGroups: (state: State) => SearchReplaceCriteria[] = createSelector(
+    [(state: State) => state],
+    (state: State): SearchReplaceCriteria[] => createSearchReplaceCriteriaFromGroups(state.names, state.names.createNameGroups.searchLocalIds)
+);
+
+export const selectSearchReplaceCriteriaFromReplaceGroups: (state: State) => SearchReplaceCriteria[] = createSelector(
+    [(state: State) => state],
+    (state: State): SearchReplaceCriteria[] => createSearchReplaceCriteriaFromGroups(state.names, state.names.createNameGroups.replaceLocalIds)
+);

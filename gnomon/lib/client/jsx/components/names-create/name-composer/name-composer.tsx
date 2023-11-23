@@ -12,7 +12,7 @@ import _ from 'lodash';
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleToken, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from '../../../models';
 import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRuleNamesHierarchicalListByPrimaryRuleName } from '../../../selectors/rules';
-import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId, selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId, selectRenderedCompleteCreateNamesByLocalId } from '../../../selectors/names';
+import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId, selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId, selectRenderedCompleteCreateNamesByLocalId, selectSearchVisible, selectSearchReplaceCriteriaFromSearchGroups, selectReplaceVisible, selectSearchReplaceCriteriaFromReplaceGroups } from '../../../selectors/names';
 import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, deleteCreateNameTokenValue, setCreateNameGroupComposeError } from '../../../actions/names';
 import { selectPathParts } from '../../../selectors/location';
 import { TokenSelect } from './select';
@@ -20,7 +20,7 @@ import RuleCounterField from './rule-counter-input';
 import { createLocalId } from '../../../utils/models';
 import { useDispatch } from '../../../utils/redux';
 import { selectGlobalState } from '../../../selectors/global';
-import { fetchWhetherNameExistsInMagma } from '../../../utils/names';
+import { SearchReplaceCriteria, fetchWhetherNameExistsInMagma } from '../../../utils/names';
 
 
 const useEditorStyles = makeStyles((theme) => ({
@@ -34,13 +34,14 @@ const useEditorStyles = makeStyles((theme) => ({
 }));
 
 
-const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, includeRuleCounterIncrementer, parentCompleteCreateNameLocalId, error }: {
+const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, includeRuleCounterIncrementer, parentCompleteCreateNameLocalId, error, highlightMatches }: {
     createName: CreateName,
     rule: Rule,
     includeUnsetAsValue: boolean,
     includeRuleCounterIncrementer: boolean,
     parentCompleteCreateNameLocalId: string | undefined,
-    error?: boolean
+    error?: boolean,
+    highlightMatches: boolean,
 }) => {
     const classes = useEditorStyles();
     const dispatch = useDispatch();
@@ -69,6 +70,11 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, inclu
         return createNameTokenValue ?
             tokenValuesByLocalId[createNameTokenValue.tokenValueLocalId] : undefined;
     });
+
+    const searchVisible = useSelector(selectSearchVisible);
+    const searchCriteria = useSelector(selectSearchReplaceCriteriaFromSearchGroups);
+    const replaceVisible = useSelector(selectReplaceVisible);
+    const replaceCriteria = useSelector(selectSearchReplaceCriteriaFromReplaceGroups);
 
     const renderedTokens: string | undefined = _.every(sortedTokenValues, tv => tv != undefined)
         // @ts-ignore
@@ -117,17 +123,59 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, inclu
         );
     };
 
+    const matchedTokenValueForSearchReplaceCriteria = (ruleToken: RuleToken, tokenValue: TokenValue, criteria: SearchReplaceCriteria[]): boolean => {
+        for (const criterium of criteria) {
+            for (const cntvLocalId of criterium.byRuleName[ruleToken.ruleName].createNameTokenValueLocalIds) {
+                const cntv = createNameTokenValuesByLocalId[cntvLocalId];
+
+                if (cntv.tokenValueLocalId == tokenValue.localId) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    };
+
+    const shouldHighlightTokenValue = (ruleToken: RuleToken, tokenValue?: TokenValue): boolean => {
+        if (tokenValue == undefined) {
+            return false;
+        }
+
+        return (searchVisible && matchedTokenValueForSearchReplaceCriteria(ruleToken, tokenValue, searchCriteria))
+            || (replaceVisible && matchedTokenValueForSearchReplaceCriteria(ruleToken, tokenValue, replaceCriteria));
+    };
+
+    const matchedCounterValueForSearchReplaceCriteria = (ruleName: string, counterValue: number, criteria: SearchReplaceCriteria[]): boolean => {
+        for (const criterium of criteria) {
+            if (criterium.byRuleName[ruleName].ruleCounterValue == counterValue) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    const shouldHighlightCounterValue = (ruleName: string, counterValue?: number): boolean => {
+        if (counterValue == undefined) {
+            return false;
+        }
+
+        return (searchVisible && matchedCounterValueForSearchReplaceCriteria(ruleName, counterValue, searchCriteria))
+            || (replaceVisible && matchedCounterValueForSearchReplaceCriteria(ruleName, counterValue, replaceCriteria));
+    };
+
     return (
         <FormGroup row className={classes.elementsEditorContainer}>
             {
                 sortedRuleTokens.map((ruleToken, idx) =>
-
                     <React.Fragment key={ruleToken.localId}>
                         <TokenSelect
                             token={tokens[ruleToken.tokenName]}
                             value={sortedTokenValues[idx]}
                             onSetTokenValue={value => setTokenValue(ruleToken, value)}
                             includeUnsetAsValue={includeUnsetAsValue}
+                            highlight={shouldHighlightTokenValue(ruleToken, sortedTokenValues[idx])}
                         ></TokenSelect>
                     </React.Fragment>
                 )
@@ -142,6 +190,7 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, inclu
                     ruleName={rule.name}
                     includeRuleCounterIncrementer={includeRuleCounterIncrementer}
                     handleSetCounterValue={setRuleCounterValue}
+                    highlight={shouldHighlightCounterValue(rule.name, createName.ruleCounterValue)}
                 />
             }
         </FormGroup>
@@ -196,13 +245,17 @@ const useComposerStyles = makeStyles<Theme, ComposerStylesProps>((theme) => ({
 }));
 
 
-const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = false, includeRuleCounterIncrementer = true, includeUnsetAsValue = false, checkForDuplicates = true }: {
+const CreateNameGroupComposer = ({
+    createNameGroup, className, includeTools = false, includeRuleCounterIncrementer = true,
+    includeUnsetAsValue = false, checkForDuplicates = true, highlightMatches = true,
+}: {
     createNameGroup: CreateNameGroup,
     className?: string,
     includeTools?: boolean
     includeRuleCounterIncrementer?: boolean,
     includeUnsetAsValue?: boolean,
     checkForDuplicates?: boolean,
+    highlightMatches?: boolean,
 }) => {
     const dispatch = useDispatch();
     const classes = useComposerStyles({ includeRuleCounterIncrementer });
@@ -358,6 +411,7 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
                                     includeRuleCounterIncrementer={includeRuleCounterIncrementer}
                                     includeUnsetAsValue={includeUnsetAsValue}
                                     error={errorMessage != undefined}
+                                    hightlightMatches={highlightMatches}
                                 />
                             </React.Fragment>
                         );
@@ -366,11 +420,13 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
                 {errorMessage &&
                     <Tooltip
                         className={classes.infoTooltip}
-                        title={<span
-                            className={classes.infoTooltipContent}
-                        >
-                            {errorMessage}
-                        </span>}
+                        title={
+                            <span
+                                className={classes.infoTooltipContent}
+                            >
+                                {errorMessage}
+                            </span>
+                        }
                     >
                         <span className={classes.infoTooltipIconContainer}>
                             <ErrorOutlineIcon />

@@ -42,6 +42,10 @@ const useStyles = makeStyles((theme) => {
         ruleCounterInput: {
             fontWeight: 'bold',
             fontSize: fontSize,
+            background: 'none',
+            '&.highlighted': {
+                background: 'yellow',
+            },
             '& input': {
                 '-moz-appearance': 'textfield',
                 padding: '0',
@@ -74,6 +78,7 @@ const RuleCounterField = ({
     projectName,
     ruleName,
     includeRuleCounterIncrementer = true,
+    highlight,
     handleSetCounterValue
 }: {
     value: number | undefined,
@@ -83,10 +88,11 @@ const RuleCounterField = ({
     projectName: string,
     ruleName: string,
     includeRuleCounterIncrementer?: boolean,
+    highlight: boolean,
     handleSetCounterValue: (value?: number) => void,
 }) => {
 
-    const classes = useStyles();
+    const classes = useStyles({ highlight });
 
     const completeCreateNameParentLocalIdsByRenderedValues = useSelector(selectCompleteCreateNameParentLocalIdsByRenderedValues);
     const needsParentCompleteCreateName = useSelector(selectRuleParentLocalIdsByRuleName)[ruleName] != undefined;
@@ -176,7 +182,7 @@ const RuleCounterField = ({
                     inputMode="numeric"
                     inputProps={{ min: 0, 'aria-label': `${ruleName}-counter-value` }}
                     placeholder="n"
-                    className={classes.ruleCounterInput}
+                    className={classes.ruleCounterInput + ' ' + (highlight ? 'highlighted' : '')}
                     minWidth="0.65em"
                 />
             </FormControl>

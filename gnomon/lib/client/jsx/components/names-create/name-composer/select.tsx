@@ -27,9 +27,13 @@ const useStyles = makeStyles((theme) => ({
         background: 'none',
         padding: '0',
         minWidth: 'unset',
+        transition: 'background 0s',
         '&:disabled, &:hover, &:active': {
             background: 'none',
             color: 'unset',
+        },
+        '&.highlighted': {
+            background: 'yellow',
         },
         '&:not(:disabled)': {
             // account for dropdown svg icon
@@ -67,17 +71,18 @@ interface SelectValue {
 
 
 // TODO: change to actual select
-const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, className, includeNullValue = false, onSetValue }: {
+const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, className, includeNullValue = false, highlight, onSetValue }: {
     values: T[],
     value?: T,
     label: string,
     placeholder: string,
     className?: string,
     includeNullValue?: boolean,
+    highlight: boolean,
     onSetValue: (value?: T) => void,
 }) => {
 
-    const classes = useStyles();
+    const classes = useStyles({ highlight });
 
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null);
@@ -122,7 +127,9 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
                 color="primary"
                 aria-label={`Select Value for ${label}`}
                 aria-haspopup="true"
-                className={classes.currentSelectValue + ' ' + (!value ? `${classes.unset}` : '')}
+                className={
+                    classes.currentSelectValue + ' ' + (!value ? classes.unset : '') + (highlight ? 'highlighted' : '')
+                }
                 disableRipple
                 disableTouchRipple
                 disabled={!canChooseValue()}
@@ -196,17 +203,19 @@ export const RuleSelect = ({ values, value, label, placeholder, className, onSet
             placeholder={placeholder}
             className={className}
             onSetValue={onSetRule}
+            highlight={false}
         />
     );
 };
 
 
-export const TokenSelect = ({ token, value, className, onSetTokenValue, includeUnsetAsValue = false }: {
+export const TokenSelect = ({ token, value, className, onSetTokenValue, includeUnsetAsValue = false, highlight }: {
     token: Token,
     value?: TokenValue,
     className?: string,
     onSetTokenValue: (value?: TokenValue) => void,
     includeUnsetAsValue?: boolean
+    highlight: boolean
 }) => {
 
     const tokenValuesByLocalId = useSelector(selectTokenValuesByLocalId);
@@ -225,6 +234,7 @@ export const TokenSelect = ({ token, value, className, onSetTokenValue, includeU
             placeholder={token.name}
             className={className}
             onSetValue={onSetTokenValue}
+            highlight={highlight}
         />
     );
 };

@@ -32,6 +32,8 @@ export const REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA = 'REMOVE_CREATE_NA
 export const SET_MAGMA_NAMES_CREATION_REQUEST = 'SET_MAGMA_NAMES_CREATION_REQUEST';
 export const SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP = 'SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP';
 export const SET_MAGMA_NAMES_LIST_REQUEST = 'SET_MAGMA_NAMES_LIST_REQUEST';
+export const SET_SEARCH_VISIBILITY = 'SET_SEARCH_VISIBILITY';
+export const SET_REPLACE_VISIBILITY = 'SET_REPLACE_VISIBILITY';
 
 
 export function addNamesWithGroupsWithTokenValues(
@@ -486,6 +488,16 @@ export function setMagmaNamesListRequest(requestState: NamesListRequestState, ru
 }
 
 
+export function setSearchVisibility(visible: boolean) {
+    return makeActionObject(SET_SEARCH_VISIBILITY, { visible });
+}
+
+
+export function setReplaceVisibility(visible: boolean) {
+    return makeActionObject(SET_REPLACE_VISIBILITY, { visible });
+}
+
+
 export type ACTION_TYPE =
     | ReturnType<typeof addNamesWithGroupsWithTokenValues>
     | ReturnType<typeof duplicateCreateNameGroups>
@@ -507,3 +519,5 @@ export type ACTION_TYPE =
     | ReturnType<typeof setMagmaNamesCreationRequest>
     | ReturnType<typeof setCreateNameGroupComposeError>
     | ReturnType<typeof setMagmaNamesListRequest>
+    | ReturnType<typeof setSearchVisibility>
+    | ReturnType<typeof setReplaceVisibility>

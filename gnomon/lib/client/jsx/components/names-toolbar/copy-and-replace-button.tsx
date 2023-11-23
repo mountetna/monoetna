@@ -16,7 +16,7 @@ import CreateNameGroupComposer from '../names-create/name-composer/name-composer
 import { inputEventValueToNumber } from '../../utils/input';
 import { selectCreateNameGroupsByLocalId, selectSelectedCreateNameGroupIds } from '../../selectors/names';
 import { selectCommonRulesFromSelection, selectGlobalState, selectReplaceRuleFromSelection } from '../../selectors/global';
-import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria } from '../../actions/names';
+import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria, setReplaceVisibility } from '../../actions/names';
 import { useDispatch } from '../../utils/redux';
 import ToolbarButtonWithPopper from './toolbar-button-with-popper';
 import AutosizeInput from '../autosize-text-input';
@@ -123,9 +123,6 @@ const IterateRuleRadio = ({ radioValue, currentRadioValue, label, rules, ruleVal
     onChangeBoundaries: (boundaries: IterationBoundaries) => void,
 }) => {
     const classes = useStyles();
-
-    const minInputRef = useRef();
-    const maxInputRef = useRef();
 
     const handleChangeBoundaries = (start: number | undefined, end: number | undefined) => {
         onChangeBoundaries({ start, end });
@@ -280,8 +277,23 @@ const CopyAndReplaceButton = ({ small, className }: { small: boolean, className?
         setOpen(false);
     };
 
+    const handlePopperChange = (open: boolean) => {
+        batch(() => {
+            setOpen(open);
+
+            if (radioValue == 'replace') {
+                dispatch(setReplaceVisibility(open));
+            }
+        });
+    };
+
     const handleChangeRadioValue = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setRadioValue(event.target.value);
+        const value = event.target.value;
+
+        batch(() => {
+            setRadioValue(value);
+            dispatch(setReplaceVisibility(value == 'replace'));
+        });
     };
 
     const handleClickAdd = () => {
@@ -390,7 +402,7 @@ const CopyAndReplaceButton = ({ small, className }: { small: boolean, className?
                 </FormControl>
             }
             popperId="copy-and-replace-dialogue"
-            onClickOrPopperChange={setOpen}
+            onClickOrPopperChange={handlePopperChange}
             popperOpen={open}
             disabled={selectedCreateNameGroupLocalIds.size == 0}
             className={className}
