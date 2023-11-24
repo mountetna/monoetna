@@ -325,6 +325,22 @@ const CreateNameGroupComposer = ({
         createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId[primaryCompleteCreateName.localId] : []
     ).length;
 
+    // check for local duplicates
+    useEffect(() => {
+        if (checkForDuplicates) {
+            batch(() => {
+                setDuplicateTracker(tracker => ({ local: localInstanceCount, remote: tracker.remote }));
+
+                if (localInstanceCount > 1 || duplicateTracker.remote) {
+                    dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', true));
+                } else {
+                    dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', false));
+                }
+            });
+        }
+    }, [localInstanceCount]);
+
+    // check for remote duplicates when completeness changes
     useEffect(() => {
         async function _checkForDuplicates() {
             dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'inProgress'));
@@ -364,7 +380,7 @@ const CreateNameGroupComposer = ({
         if (checkForDuplicates) {
             _checkForDuplicates();
         }
-    }, [primaryCompleteCreateName?.localId, localInstanceCount]);
+    }, [primaryCompleteCreateName?.localId]);
 
     const createErrorMessage = () => {
         const errorMsgs: string[] = [];

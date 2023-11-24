@@ -36,6 +36,7 @@ import { Status, createLocalId } from '../utils/models';
 interface CreateNamesState {
     byLocalId: Record<string, CreateName>
     byCreateNameGroupLocalId: Record<string, string[]>
+    byRuleName: Record<string, string[]>
 }
 
 
@@ -141,6 +142,7 @@ const initialState: NamesState = {
     createNames: {
         byLocalId: {},
         byCreateNameGroupLocalId: {},
+        byRuleName: {},
     },
     completeCreateNames: {
         byLocalId: {},
@@ -307,6 +309,15 @@ function addNamesWithGroupsAndTokensValues(
     state: NamesState,
 ): NamesState {
 
+    const newByRuleName = {...state.createNames.byRuleName};
+    createNames.forEach(cn => {
+        if (!(cn.ruleName in newByRuleName)) {
+            newByRuleName[cn.ruleName] = [];
+        }
+
+        newByRuleName[cn.ruleName].push(cn.localId);
+    });
+
     let newState = {
         ...state,
         createNames: {
@@ -318,6 +329,7 @@ function addNamesWithGroupsAndTokensValues(
                 ...state.createNames.byCreateNameGroupLocalId,
                 ...listToIdGroupObject(createNames, 'createNameGroupLocalId', 'localId'),
             },
+            byRuleName: newByRuleName,
         },
         createNameGroups: {
             ...state.createNameGroups,
@@ -357,6 +369,7 @@ function deleteGroupsWithNames(
     const newGroupsById = { ...state.createNameGroups.byLocalId };
     const newNamesById = { ...state.createNames.byLocalId };
     const newNamesByGroupId = { ...state.createNames.byCreateNameGroupLocalId };
+    const newNamesByRuleName = {...state.createNames.byRuleName};
 
     const cntvLocalIdsToDelete: string[] = [];
 
@@ -364,10 +377,14 @@ function deleteGroupsWithNames(
         delete newGroupsById[cngId];
 
         state.createNames.byCreateNameGroupLocalId[cngId].forEach((cnId) => {
+            const cn = state.createNames.byLocalId[cnId];
+            
             delete newNamesById[cnId];
 
             // keep track of CreateNameTokenValue.localIds to cleanup
             cntvLocalIdsToDelete.push(...(state.createNameTokenValues.byCreateNameLocalId[cnId] || []));
+
+            newNamesByRuleName[cn.ruleName] = newNamesByRuleName[cn.ruleName].filter(cnLocalId => cnLocalId != cnId);
         });
         delete newNamesByGroupId[cngId];
     });
@@ -383,6 +400,7 @@ function deleteGroupsWithNames(
         createNames: {
             byLocalId: newNamesById,
             byCreateNameGroupLocalId: newNamesByGroupId,
+            byRuleName: newNamesByRuleName,
         },
         createNameTokenValues: deleteCreateNameTokenValues(
             cntvLocalIdsToDelete,
@@ -489,21 +507,23 @@ function getMatchedGroupIdsFromSearchCriteria(
                 ++groupIdsToMatchingValuesCount[createName.createNameGroupLocalId];
             }
 
-            createNamesToCheckRuleCounter.add(createName);
+            // createNamesToCheckRuleCounter.add(createName);
         });
     });
 
     // match if same ruleCounterValue
     // (relies on the fact that a Rule will show up only once per CreateNameGroup)
-    createNamesToCheckRuleCounter.forEach(cn => {
-        const ruleSearchCriteria = searchCriteria.byRuleName[cn.ruleName];
+    Object.entries(searchCriteria.byRuleName).forEach(([ruleName, ruleSearchCriteria]) => {
+        state.createNames.byRuleName[ruleName].forEach(cnLocalId => {
+            const cn = state.createNames.byLocalId[cnLocalId];
 
-        if (
-            ruleSearchCriteria.ruleCounterValue != undefined
-            && cn.ruleCounterValue == ruleSearchCriteria.ruleCounterValue
-        ) {
-            ++groupIdsToMatchingValuesCount[cn.createNameGroupLocalId];
-        }
+            if (
+                ruleSearchCriteria.ruleCounterValue != undefined
+                && cn.ruleCounterValue == ruleSearchCriteria.ruleCounterValue
+            ) {
+                ++groupIdsToMatchingValuesCount[cn.createNameGroupLocalId];
+            }
+        });
     });
 
     const targetMatchCount = Object.values(searchCriteria.byRuleName)
@@ -1071,7 +1091,7 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
                     rulesStateSlice.ruleTokensByLocalId,
                     rulesStateSlice.tokenValuesByLocalId,
                 );
-                const hierarchyRenderedCounterValue = Number.parseInt(createName.ruleCounterValue != undefined ? renderCounter(createName) : UNSET_VALUE);
+                const hierarchyRenderedCounterValue = createName.ruleCounterValue != undefined ? Number.parseInt(renderCounter(createName)) : UNSET_VALUE;
 
                 // find completeCreateNameParentLocalId
                 if (parentCompleteCreateName != undefined || idx == 0) {
