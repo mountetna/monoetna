@@ -5,6 +5,7 @@ import { AgGridReact } from 'ag-grid-react';
 import { makeStyles } from '@material-ui/core/styles';
 // @ts-ignore
 import Color from 'color';
+import _ from 'lodash';
 
 import { useWindowDimensions } from '../utils/responsive';
 
@@ -64,7 +65,12 @@ const useStyles = makeStyles((theme) => {
 });
 
 
-const Table = <RowData extends Record<string, any>>({ rows, columns, selectable = false, showFocusedCell = false, onCellFocused, onSelectionChanged, className, getRowClass }: {
+const NoRowsOverlayComponent = ({ dataTypeLabel }: { dataTypeLabel: string }) => {
+    return <span className="ag-overlay-no-rows-center">No {_.capitalize(dataTypeLabel)}s To Show</span>;
+};
+
+
+const Table = <RowData extends Record<string, any>>({ rows, columns, selectable = false, showFocusedCell = false, onCellFocused, onSelectionChanged, className, getRowClass, dataTypeLabel = 'row' }: {
     rows: RowData[],
     columns: (keyof RowData)[],
     selectable?: boolean,
@@ -73,6 +79,7 @@ const Table = <RowData extends Record<string, any>>({ rows, columns, selectable 
     onSelectionChanged?: (selection: RowData[]) => void,
     className?: string
     getRowClass?: (data: RowData) => string,
+    dataTypeLabel?: string,
 }) => {
     const [focusedCell, setFocusedCell] = useState<string>();
 
@@ -161,11 +168,14 @@ const Table = <RowData extends Record<string, any>>({ rows, columns, selectable 
                     rowSelection={selectable ? 'multiple' : undefined}
                     suppressRowClickSelection={true}
                     onFirstDataRendered={sizeColumnsToFit}
-                    
+
                     onCellClicked={handleCellClicked}
                     onCellFocused={handleCellClicked}
                     onSelectionChanged={handleSelectionChanged}
                     getRowClass={getRowClass ? params => getRowClass(params.node.data) : undefined}
+
+                    noRowsOverlayComponent={NoRowsOverlayComponent}
+                    noRowsOverlayComponentParams={{ dataTypeLabel }}
                 />
             </div >
         </div>

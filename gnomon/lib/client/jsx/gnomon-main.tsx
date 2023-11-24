@@ -134,6 +134,7 @@ const GnomonMain = ({ project_name }: { project_name: string }) => {
               color="secondary"
               size="large"
               onClick={onClickBulkCreate}
+              disabled={!(rules && rules.length)}
             >
               Create many identifiers
             </Button>

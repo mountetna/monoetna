@@ -215,7 +215,7 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                               <input
                                 aria-label="Press Space to toggle all rows selection (unchecked)"
                                 class="ag-input-field-input ag-checkbox-input"
-                                id="ag-5-input"
+                                id="ag-3-input"
                                 ref="eInput"
                                 tabindex="-1"
                                 type="checkbox"
@@ -391,7 +391,7 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                               <input
                                 aria-label="Press Space to toggle all rows selection (unchecked)"
                                 class="ag-input-field-input ag-checkbox-input"
-                                id="ag-6-input"
+                                id="ag-4-input"
                                 ref="eInput"
                                 tabindex="-1"
                                 type="checkbox"
@@ -567,7 +567,7 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                               <input
                                 aria-label="Press Space to toggle all rows selection (unchecked)"
                                 class="ag-input-field-input ag-checkbox-input"
-                                id="ag-7-input"
+                                id="ag-5-input"
                                 ref="eInput"
                                 tabindex="-1"
                                 type="checkbox"
@@ -743,7 +743,7 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                               <input
                                 aria-label="Press Space to toggle all rows selection (unchecked)"
                                 class="ag-input-field-input ag-checkbox-input"
-                                id="ag-8-input"
+                                id="ag-6-input"
                                 ref="eInput"
                                 tabindex="-1"
                                 type="checkbox"
@@ -1009,7 +1009,7 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                                       aria-label="Press Space to toggle row selection (unchecked)"
                                       aria-live="polite"
                                       class="ag-input-field-input ag-checkbox-input"
-                                      id="ag-19-input"
+                                      id="ag-17-input"
                                       ref="eInput"
                                       tabindex="-1"
                                       type="checkbox"
@@ -1117,7 +1117,7 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                                       aria-label="Press Space to toggle row selection (unchecked)"
                                       aria-live="polite"
                                       class="ag-input-field-input ag-checkbox-input"
-                                      id="ag-21-input"
+                                      id="ag-19-input"
                                       ref="eInput"
                                       tabindex="-1"
                                       type="checkbox"
@@ -1225,7 +1225,7 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                                       aria-label="Press Space to toggle row selection (unchecked)"
                                       aria-live="polite"
                                       class="ag-input-field-input ag-checkbox-input"
-                                      id="ag-23-input"
+                                      id="ag-21-input"
                                       ref="eInput"
                                       tabindex="-1"
                                       type="checkbox"
@@ -1333,7 +1333,7 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                                       aria-label="Press Space to toggle row selection (unchecked)"
                                       aria-live="polite"
                                       class="ag-input-field-input ag-checkbox-input"
-                                      id="ag-25-input"
+                                      id="ag-23-input"
                                       ref="eInput"
                                       tabindex="-1"
                                       type="checkbox"
@@ -1576,7 +1576,7 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
             <div
               aria-hidden="true"
               class="ag-paging-panel ag-unselectable ag-hidden"
-              id="ag-9"
+              id="ag-7"
             >
               
                 
@@ -1588,13 +1588,13 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                     
                 <span
                   class="ag-paging-row-summary-panel-number"
-                  id="ag-9-first-row"
+                  id="ag-7-first-row"
                   ref="lbFirstRowOnPage"
                 />
                 
                     
                 <span
-                  id="ag-9-to"
+                  id="ag-7-to"
                 >
                   to
                 </span>
@@ -1602,13 +1602,13 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                     
                 <span
                   class="ag-paging-row-summary-panel-number"
-                  id="ag-9-last-row"
+                  id="ag-7-last-row"
                   ref="lbLastRowOnPage"
                 />
                 
                     
                 <span
-                  id="ag-9-of"
+                  id="ag-7-of"
                 >
                   of
                 </span>
@@ -1616,7 +1616,7 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                     
                 <span
                   class="ag-paging-row-summary-panel-number"
-                  id="ag-9-row-count"
+                  id="ag-7-row-count"
                   ref="lbRecordCount"
                 />
                 
@@ -1667,7 +1667,7 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                   
                         
                   <span
-                    id="ag-9-start-page"
+                    id="ag-7-start-page"
                   >
                     Page
                   </span>
@@ -1675,13 +1675,13 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                         
                   <span
                     class="ag-paging-number"
-                    id="ag-9-start-page-number"
+                    id="ag-7-start-page-number"
                     ref="lbCurrent"
                   />
                   
                         
                   <span
-                    id="ag-9-of-page"
+                    id="ag-7-of-page"
                   >
                     of
                   </span>
@@ -1689,7 +1689,7 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
                         
                   <span
                     class="ag-paging-number"
-                    id="ag-9-of-page-number"
+                    id="ag-7-of-page-number"
                     ref="lbTotal"
                   />
                   

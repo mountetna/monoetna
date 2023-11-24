@@ -171,6 +171,7 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
                     showFocusedCell={true}
                     onSelectionChanged={setSelection}
                     className={classes.table}
+                    dataTypeLabel='name'
                 />
             </div>
         </React.Fragment>
