@@ -243,7 +243,12 @@ export const selectCompleteCreateNamesCreationPayloads: (state: State) => Comple
                     && !state.names.createNameGroups.composeErrorsByLocalId[_createName.createNameGroupLocalId].error
                 ) {
                     createName = _createName;
-                    break;
+                    
+                    // break if it's a primary CreateName,
+                    // else keep the implicit CreateName association while we keep looking for a primary
+                    if (primaryCreateNameLocalIds.has(createName.localId)) {
+                        break;
+                    }
                 }
             }
 
