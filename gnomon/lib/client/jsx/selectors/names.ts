@@ -284,6 +284,23 @@ export const selectCompleteCreateNameParentsByLocalId = (state: State): Record<s
     return state.names.completeCreateNameParents.byLocalId;
 };
 
+export const selectPrimaryCreateNameCountWithCompleteCreateNameLocalId = (state: State, completeCreateNameLocalId: string): number => {
+    let count = 0;
+    const cnccnLocalIds = (state.names.createNameCompleteCreateNames.byCompleteCreateNameLocalId[completeCreateNameLocalId] || []);
+
+    for (const cnccnLocalId of cnccnLocalIds) {
+        const createName = state.names.createNames.byLocalId[
+            state.names.createNameCompleteCreateNames.byLocalId[cnccnLocalId].createNameLocalId
+        ];
+
+        if (state.names.createNameGroups.byLocalId[createName.createNameGroupLocalId].primaryCreateNameLocalId == createName.localId) {
+            count += 1;
+        }
+    }
+
+    return count;
+};
+
 export const selectNamesCreationRequestState = (state: State): NamesCreationRequestState => {
     return state.names.creationRequest;
 };

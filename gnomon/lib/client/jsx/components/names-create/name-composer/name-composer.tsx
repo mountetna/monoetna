@@ -12,7 +12,7 @@ import _ from 'lodash';
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleToken, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from '../../../models';
 import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRuleNamesHierarchicalListByPrimaryRuleName } from '../../../selectors/rules';
-import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId, selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId, selectRenderedCompleteCreateNamesByLocalId, selectSearchVisible, selectSearchReplaceCriteriaFromSearchGroups, selectReplaceVisible, selectSearchReplaceCriteriaFromReplaceGroups, selectReplaceCreateNameGroupIds } from '../../../selectors/names';
+import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId, selectRenderedCompleteCreateNamesByLocalId, selectSearchVisible, selectSearchReplaceCriteriaFromSearchGroups, selectReplaceVisible, selectSearchReplaceCriteriaFromReplaceGroups, selectReplaceCreateNameGroupIds, selectPrimaryCreateNameCountWithCompleteCreateNameLocalId } from '../../../selectors/names';
 import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, deleteCreateNameTokenValue, setCreateNameGroupComposeError } from '../../../actions/names';
 import { selectPathParts } from '../../../selectors/location';
 import { TokenSelect } from './select';
@@ -20,7 +20,7 @@ import RuleCounterField from './rule-counter-input';
 import { createLocalId } from '../../../utils/models';
 import { useDispatch } from '../../../utils/redux';
 import { selectGlobalState } from '../../../selectors/global';
-import { SearchReplaceCriteria, fetchWhetherNameExistsInMagma } from '../../../utils/names';
+import { fetchWhetherNameExistsInMagma } from '../../../utils/names';
 
 
 const useEditorStyles = makeStyles((theme) => ({
@@ -319,11 +319,9 @@ const CreateNameGroupComposer = ({
         selectSortedCompleteCreateNamesWithCreateNameGroupLocalId(createNameGroup.localId)
     );
     const primaryCompleteCreateName = sortedCompleteCreateNamesWithCreateNameGroupLocalId[sortedCompleteCreateNamesWithCreateNameGroupLocalId.length - 1];
-    const createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId = useSelector(selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId);
+    // @ts-ignore
+    const localInstanceCount = useSelector(state => selectPrimaryCreateNameCountWithCompleteCreateNameLocalId(state, primaryCompleteCreateName?.localId));
     const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId);
-    const localInstanceCount = (primaryCompleteCreateName != undefined ?
-        createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId[primaryCompleteCreateName.localId] : []
-    ).length;
 
     // check for local duplicates
     useEffect(() => {
