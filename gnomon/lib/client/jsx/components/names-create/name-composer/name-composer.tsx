@@ -327,7 +327,7 @@ const CreateNameGroupComposer = ({
     useEffect(() => {
         if (checkForDuplicates) {
             batch(() => {
-                setDuplicateTracker(tracker => ({ local: localInstanceCount, remote: tracker.remote }));
+                setDuplicateTracker(tracker => ({ ...tracker, local: localInstanceCount }));
 
                 if (localInstanceCount > 1 || duplicateTracker.remote) {
                     dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', true));
