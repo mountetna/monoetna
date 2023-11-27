@@ -4,7 +4,7 @@ import user from 'etna-js/reducers/user-reducer';
 import janus from 'etna-js/reducers/janus-reducer';
 import location from 'etna-js/reducers/location_reducer';
 import { RulesState, rulesReducer } from './reducers/rules';
-import { NamesState, namesReducer } from './reducers/names';
+import { NamesState, namesReducer } from './reducers/names/reducer';
 
 
 

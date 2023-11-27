@@ -282,7 +282,7 @@ const CopyAndReplaceButton = ({ small, className }: { small: boolean, className?
             setOpen(open);
 
             if (radioValue == 'replace') {
-                dispatch(setReplaceVisibility(open));
+                // dispatch(setReplaceVisibility(open));
             }
         });
     };
@@ -292,7 +292,7 @@ const CopyAndReplaceButton = ({ small, className }: { small: boolean, className?
 
         batch(() => {
             setRadioValue(value);
-            dispatch(setReplaceVisibility(value == 'replace'));
+            // dispatch(setReplaceVisibility(value == 'replace'));
         });
     };
 

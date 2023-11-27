@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { json_post, json_get } from 'etna-js/utils/fetch';
 import { magmaPath } from 'etna-js/api/magma_api';
 
-import { NamesState } from '../reducers/names';
+import { NamesState } from '../reducers/names/reducer';
 import { CreateName, CreateNameTokenValue, RuleToken, TokenValue } from '../models';
 import { createFnConcurrencyWrapper } from './async';
 import { Status} from '../utils/models';

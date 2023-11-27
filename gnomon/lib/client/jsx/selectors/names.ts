@@ -2,7 +2,7 @@ import { createSelector } from 'reselect';
 import _ from 'lodash';
 
 import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue, UNSET_VALUE } from '../models';
-import { CompleteCreateNameParentsByRenderedValues, ComposeErrorState, NamesCreationRequestState, NamesListRequestState, NamesState } from '../reducers/names';
+import { CompleteCreateNameParentsByRenderedValues, ComposeErrorState, NamesCreationRequestState, NamesListRequestState, NamesState } from '../reducers/names/reducer';
 import { defaultDict } from '../utils/object';
 import { State } from '../store';
 import { selectRuleNamesHierarchicalListByPrimaryRuleName } from './rules';

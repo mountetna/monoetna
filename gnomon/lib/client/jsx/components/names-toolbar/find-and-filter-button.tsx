@@ -166,7 +166,7 @@ const FindAndFilterButton = ({ small, className }: { small: boolean, className?:
     const handleClick = (open: boolean) => {
         batch(() => {
             setOpen(open);
-            dispatch(setSearchVisibility(open));
+            // dispatch(setSearchVisibility(open));
         });
     };
 

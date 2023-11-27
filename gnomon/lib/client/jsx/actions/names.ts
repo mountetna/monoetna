@@ -4,7 +4,7 @@ import { CreateName, CreateNameGroup, CreateNameTokenValue } from '../models';
 import { makeActionObject } from './utils';
 import { Status, createLocalId } from '../utils/models';
 import { defaultDict } from '../utils/object';
-import { NamesCreationRequestState, NamesListRequestState, NamesState } from '../reducers/names';
+import { NamesCreationRequestState, NamesListRequestState, NamesState } from '../reducers/names/reducer';
 import { createSearchReplaceCriteriaFromGroups, postNameBatchToMagma } from '../utils/names';
 import { State } from '../store';
 import { RulesStateSliceForCompleteCreateNames, selectRulesStateSliceForCompleteCreateNames } from '../selectors/global';
