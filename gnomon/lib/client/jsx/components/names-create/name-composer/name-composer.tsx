@@ -384,7 +384,7 @@ const CreateNameGroupComposer = ({
             errorMsgs.push('locally');
         }
         if (duplicateTracker.remote) {
-            errorMsgs.push('in Magma');
+            errorMsgs.push('in the database');
         }
 
         return errorMsgs.length
