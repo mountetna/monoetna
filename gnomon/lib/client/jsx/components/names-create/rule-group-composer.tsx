@@ -20,7 +20,7 @@ import { useDispatch } from '../../utils/redux';
 import { selectGlobalState } from '../../selectors/global';
 import Counts, { Count } from './counts';
 import ConfirmationPopper from '../confirmation-popper';
-import { ComposeErrorState } from '../../reducers/names';
+import { ComposeErrorState } from '../../reducers/names/reducer';
 
 
 

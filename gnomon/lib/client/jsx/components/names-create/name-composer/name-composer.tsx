@@ -83,7 +83,6 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, inclu
         ? sortedTokenValues.map(tv => tv.name).reduce((prev, curr) => prev + curr, '')
         : undefined;
 
-
     const setTokenValue = (ruleToken: RuleToken, value?: TokenValue) => {
         const oldCreateNameTokenValue = createNameTokenValues.find(
             cntv => cntv.ruleTokenLocalId == ruleToken.localId
@@ -144,7 +143,6 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, inclu
             }
         }
 
-
         if (
             replaceVisible
             && (
@@ -186,7 +184,6 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, inclu
                 }
             }
         }
-
 
         if (
             replaceVisible
