@@ -145,7 +145,6 @@ const initialState: NamesState = {
     },
     completeCreateNames: {
         byLocalId: {},
-        // byRenderedTokensByChildCounterValue: {},
     },
     createNameCompleteCreateNames: {
         byLocalId: {},

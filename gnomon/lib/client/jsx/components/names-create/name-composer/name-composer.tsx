@@ -51,11 +51,9 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, inclu
     const tokens = useSelector(selectTokens);
 
     const ruleTokensByLocalId = useSelector(selectRuleTokensByLocalId);
-    let sortedRuleTokens = useSelector(selectRuleTokenLocalIdsWithRuleName(rule.name))
-        .map(rtLocalId => ruleTokensByLocalId[rtLocalId]);
-
-    // copying array bc sort modifies in place
-    sortedRuleTokens = [...sortedRuleTokens].sort(rt => rt.ord);
+    const sortedRuleTokens = useSelector(selectRuleTokenLocalIdsWithRuleName(rule.name))
+        .map(rtLocalId => ruleTokensByLocalId[rtLocalId])
+        .sort((a, b) => a.ord - b.ord);
 
     const createNameTokenValuesByLocalId = useSelector(selectCreateNameTokenValuesByLocalId);
     const createNameTokenValues = (useSelector(selectCreateNameTokenValueLocalIdsWithCreateNameLocalId(createName.localId)) || [])
