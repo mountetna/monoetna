@@ -47,14 +47,9 @@ const useStyles = makeStyles((theme) => {
                 background: 'yellow',
             },
             '& input': {
-                '-moz-appearance': 'textfield',
                 padding: '0',
                 height: 'unset',
                 lineHeight: lineHeight,
-            },
-            '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
-                display: 'none',
-                margin: '0',
             },
         },
         unset: {

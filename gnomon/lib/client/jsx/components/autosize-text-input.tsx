@@ -19,6 +19,9 @@ const useStyles = makeStyles<Theme, StyleProps>((theme) => ({
             display: 'none',
             margin: '0',
         },
+        '& input': {
+            '-moz-appearance': 'textfield',
+        },
     }),
     ruler: {
         position: 'absolute',
