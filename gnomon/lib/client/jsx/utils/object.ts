@@ -25,5 +25,5 @@ export function listToIdGroupObject<T extends Record<any, any>>(list: T[], group
 
     list.forEach(item => idObject[item[groupPropName]].push(item[idPropName]));
 
-    return { ...idObject }; // remove default value getter
+    return { ...idObject }; // removes default value getter
 }

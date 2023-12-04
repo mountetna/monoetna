@@ -74,6 +74,9 @@ const NamesToolbar = ({ buttons, canBeSmall = true }: {
                         small={small}
                         onClick={() => canBeSmall && setSmall(prev => !prev)}
                         className={classes.buttonContainer}
+                        growText='Show Labels'
+                        shrinkText='Hide Labels'
+                        iconDirection='horizontal'
                     />
                 </div>
             </div>

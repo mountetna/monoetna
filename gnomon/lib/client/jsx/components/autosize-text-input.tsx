@@ -12,7 +12,6 @@ interface StyleProps {
 
 const useStyles = makeStyles<Theme, StyleProps>((theme) => ({
     inputContainer: props => ({
-        // width: "0",
         minWidth: props.minWidth,
         maxWidth: props.maxWidth,
         '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {

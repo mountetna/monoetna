@@ -56,22 +56,22 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-13 makeStyles-buttonContainer-11"
+            class="makeStyles-container-13 makeStyles-container-64 makeStyles-buttonContainer-11 iconHorizontal"
           >
             <button
               aria-haspopup="false"
-              aria-label="Grow"
-              class="MuiButtonBase-root-102 MuiButton-root-75 MuiButton-contained-83 makeStyles-button-14 MuiButton-containedSecondary-85 MuiButton-disableElevation-86"
+              aria-label="Show Labels"
+              class="MuiButtonBase-root-103 MuiButton-root-76 MuiButton-contained-84 makeStyles-button-14 MuiButton-containedSecondary-86 MuiButton-disableElevation-87"
               tabindex="0"
-              title="Grow"
+              title="Show Labels"
               type="button"
             >
               <span
-                class="MuiButton-label-76"
+                class="MuiButton-label-77"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-103"
+                  class="MuiSvgIcon-root-104"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -104,26 +104,26 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
     class="makeStyles-countsList-2"
   >
     <div
-      class="makeStyles-container-112 makeStyles-selectedCounts-3"
+      class="makeStyles-container-113 makeStyles-selectedCounts-3"
     />
   </div>
   <div
     class="makeStyles-tableContainer-4"
   >
     <div
-      class="makeStyles-container-115 makeStyles-table-5"
+      class="makeStyles-container-116 makeStyles-table-5"
     >
       <div
-        class="makeStyles-focusedValueContainer-116"
+        class="makeStyles-focusedValueContainer-117"
       >
         <span
-          class="makeStyles-focusedValue-117"
+          class="makeStyles-focusedValue-118"
         >
           ‎
         </span>
       </div>
       <div
-        class="ag-theme-material makeStyles-gridContainer-118"
+        class="ag-theme-material makeStyles-gridContainer-119"
       >
         <div
           style="height: 100%;"

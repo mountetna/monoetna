@@ -50,7 +50,7 @@ const Counts = ({ counts, className, separator, onClick }: {
                     {separator != undefined
                         && idx < counts.length - 1
                         && counts.length > 1
-                        && <div className="separator">{separator}</div>}
+                        && <div className={`${classes.separator} separator`}>{separator}</div>}
                 </React.Fragment>
             )}
         </div>
