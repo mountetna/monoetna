@@ -3,16 +3,18 @@ import { ThemeProvider } from '@material-ui/core/styles';
 
 import GnomonNav from './gnomon-nav';
 import GnomonMain from './gnomon-main';
-import DecomposeIdentifier from './decompose-identifier';
-import ComposeIdentifier from './compose-identifier';
-import RuleEditor from './rule-editor';
+import NamesCreate from './components/names-create/names-create';
+import DecomposeIdentifier from './components/decompose-identifier';
+import ComposeIdentifier from './components/compose-identifier';
+import NamesBrowse from './components/names-browse/names-browse';
+import RuleEditor from './components/rule-editor';
 import RootView from 'etna-js/components/RootView';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 
 import { createEtnaTheme } from 'etna-js/style/theme';
 
-const theme = createEtnaTheme('#333','#999');
+export const theme = createEtnaTheme('#333', '#999');
 
 const ROUTES = [
   {
@@ -28,8 +30,16 @@ const ROUTES = [
     component: DecomposeIdentifier
   },
   {
+    template: ':project_name/create',
+    component: NamesCreate
+  },
+  {
     template: ':project_name/create/:rule_name',
     component: ComposeIdentifier
+  },
+  {
+    template: ':project_name/browse',
+    component: NamesBrowse
   },
   {
     template: ':project_name/rules',
@@ -42,17 +52,17 @@ setRoutes(ROUTES);
 const Invalid = () => <div>Path invalid</div>;
 
 const GnomonUI = () => {
-  let { route, params }  = findRoute({ path: window.location.pathname }, ROUTES);
+  let { route, params } = findRoute({ path: window.location.pathname }, ROUTES);
   let Component = route ? route.component : Invalid;
 
   return (
     <ThemeProvider theme={theme}>
       <div id='gnomon-group'>
-        <GnomonNav/>
-        <Component {...params}/>
+        <GnomonNav />
+        <Component {...params} />
       </div>
     </ThemeProvider>
   );
-}
+};
 
 export default GnomonUI;
