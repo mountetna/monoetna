@@ -95,7 +95,7 @@ const useStyles = makeStyles((theme) => ({
     },
     composersContainer: {
         maxHeight: '50vh',
-        overflow: 'scroll',
+        overflow: 'auto',
         border: '2px solid black',
         borderRadius: '6px',
         '&.some-not-ready': {
