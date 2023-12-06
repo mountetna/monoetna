@@ -72,7 +72,8 @@ module.exports = (env) => ({
           path.resolve('/etna', 'node_modules/etna-js/'),
           path.resolve('/etna', 'node_modules/animate.css/'),
           path.resolve('/etna', 'node_modules/react-notifications-component'),
-          '/etna/packages/etna-js'
+          '/etna/packages/etna-js',
+          path.resolve('/etna', 'node_modules/ag-grid-community/styles'),
         ],
         test: /\.css$/
       },

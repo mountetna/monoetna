@@ -24,7 +24,7 @@ const Line = ({bottom, left, top, right, className}) => {
         width: r,
         transform: `rotate(${a}rad)`,
     }}
-  />
-}
+  />;
+};
 
 export default Line;
