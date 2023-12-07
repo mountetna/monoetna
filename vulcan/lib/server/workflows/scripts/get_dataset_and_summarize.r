@@ -128,9 +128,12 @@ toNestedOptionsSet <- function(named_list) {
 
 magma_opts <- list(
     followlocation = FALSE)
+crul_opts <- list()
 if (grepl("development", magma_host())) {
     magma_opts$ssl_verifyhost <- FALSE
     magma_opts$ssl_verifypeer <- FALSE
+    crul_opts$ssl_verifyhost <- FALSE
+    crul_opts$ssl_verifypeer <- FALSE
 }
 magma = magmaRset(
     token = token(),
@@ -152,7 +155,7 @@ names(dataset_record) <- colnames(dataset_record_raw)
 dataset_url <- dataset_record[["object"]]
 dataset_path <- output_path("scdata")
 # Download directly to output location!
-x <- crul::HttpClient$new(url = dataset_url)$get(disk = dataset_path) # Outputs status
+x <- crul::HttpClient$new(url = dataset_url, opts = crul_opts)$get(disk = dataset_path) # Outputs status
 scdata <- readRDS(dataset_path)
 
 plotting_options <- summarize_plotting_options(scdata, dataset_record)
