@@ -35,12 +35,14 @@ import LinkIcon from '@material-ui/icons/Link';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
 import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 
 import AddAttributeModal from './add_attribute_modal';
 import AddLinkModal from './add_link_modal';
 import ReparentModelModal from './reparent_model_modal';
 import AddModelModal from './add_model_modal';
+import CopyModelModal from './copy_model_modal';
 import RemoveModelModal from './remove_model_modal';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectModels} from 'etna-js/selectors/magma';
@@ -128,6 +130,7 @@ const ManageModelActions = ({
   handleAddAttribute,
   handleAddLink,
   handleAddModel,
+  handleCopyModel,
   handleRemoveModel,
   handleReparentModel,
   isLeaf,
@@ -183,6 +186,22 @@ const ManageModelActions = ({
           }}
         >
           Model
+        </Button>
+      </Tooltip>
+      <Tooltip title='Copy Model Attributes' aria-label='Copy Model Attributes'>
+        <Button
+          className={classes.addBtn}
+          startIcon={<FileCopyIcon />}
+          onClick={() => {
+            openModal(
+              <CopyModelModal modelName={modelName} onSave={handleCopyModel} />,
+              {
+                closeOnClickBackdrop: false
+              }
+            );
+          }}
+        >
+          Copy
         </Button>
       </Tooltip>
       <Tooltip title={reparentTooltip} aria-label={reparentTooltip}>
@@ -494,6 +513,18 @@ const ModelReport = ({
   const handleReparentModel = useCallback(
     (parent_model_name) => {
       executeAction(reparentModel({model_name, parent_model_name}));
+    },
+    [model_name]
+  );
+
+  const handleCopyModel = useCallback(
+    (params) => {
+      executeAction(
+        addModel({
+          ...params,
+          parent_model_name: model_name
+        })
+      );
     },
     [model_name]
   );

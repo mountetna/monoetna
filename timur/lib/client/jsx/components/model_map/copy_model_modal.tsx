@@ -12,6 +12,7 @@ import {SNAKE_CASE, SNAKE_CASE_STRICT} from '../../utils/edit_map';
 import DisabledButton from '../search/disabled_button';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 import AntSwitch from '../query/ant_switch';
+import {SelectProjectModel} from '../select_project_model';
 
 const useStyles = makeStyles((theme) => ({
   switch: {
@@ -22,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function AddModelModal({
+export default function CopyModelModal({
   modelName,
   onSave
 }: {
@@ -34,6 +35,9 @@ export default function AddModelModal({
   const [childModelName, setChildModelName] = useState('');
   const [isTable, setIsTable] = useState(false);
   const [childModelNameExists, setChildModelNameExists] = useState(false);
+  const [templateProjectName, setTemplateProjectName] = useState(null);
+  const [templateModelName, setTemplateModelName] = useState('');
+  const [error, setError] = useState(null);
   const classes = useStyles();
 
   const models = useReduxState((state: any) => selectModels(state));
@@ -83,18 +87,15 @@ export default function AddModelModal({
 
   return (
     <div className='add-model-modal model-actions-modal'>
-      <div className='header'>Add Model</div>
+      <div className='header'>Copy Model</div>
       <div className='options-tray tray'>
-        <Typography color='gray'>Add a child model below parent model <Typography component='span' color='secondary'>{modelName}</Typography>.</Typography>
-        <ShrinkingLabelTextField
-          id='child-model-name'
-          label='New Model Name (snake_case no numbers)'
-          value={childModelName}
-          additionalError={childModelNameExists}
-          onChange={(e: React.ChangeEvent<any>) =>
-            validateChildModelName(e.target.value)
-          }
-          pattern={SNAKE_CASE_STRICT}
+        <SelectProjectModel
+          project_name={templateProjectName}
+          setProjectName={setTemplateProjectName}
+          model_name={templateModelName}
+          setModelName={setTemplateModelName}
+          error={error}
+          setError={setError}
         />
         <div className={classes.switch}>
           <AntSwitch

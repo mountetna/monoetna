@@ -32,25 +32,17 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const SelectProjectModelDialog = ({
-  open,
-  onClose,
-  update,
-  title,
-  buttonLabel,
-  description
-}) => {
+export const SelectProjectModel = ({project_name, setProjectName, model_name, setModelName, error, setError}) => {
+  const classes = useStyles();
+
+  const [models, setModels] = useState(null);
+
   const projects = useReduxState((state) => {
     let permissions = selectUserPermissions(state);
     return Object.values(permissions).map(({project_name}) => project_name);
   });
 
   const dispatch = useDispatch();
-
-  const [project_name, setProjectName] = useState(null);
-  const [models, setModels] = useState(null);
-  const [model_name, setModelName] = useState('');
-  const [error, setError] = useState(null);
 
   const loadProject = useCallback(() => {
     requestAnswer({
@@ -64,6 +56,80 @@ const SelectProjectModelDialog = ({
       .catch((e) => e.then(({error}) => setError(error)));
   }, [project_name]);
 
+  const projectInput = useCallback((params) => (
+    <TextField
+      {...params}
+      label='Select project'
+      margin='normal'
+      variant='outlined'
+      InputProps={{
+        ...params.InputProps,
+        className: classes.select_input,
+        endAdornment: project_name && (
+          <InputAdornment>
+            <IconButton size='small' onClick={() => loadProject()}>
+              <CheckIcon />
+            </IconButton>
+          </InputAdornment>
+        ),
+        type: 'search'
+      }}
+    />), [project_name]);
+
+  console.log({project_name});
+
+  return <>
+    <Grid container>
+      <Autocomplete
+        freeSolo
+        className={classes.select}
+        value={project_name}
+        onChange={(e, value) => {
+          console.log({value});
+          setProjectName(value);
+          setModels(null);
+          setModelName('');
+        }}
+        options={projects}
+        renderInput={projectInput}
+      />
+    </Grid>
+    {models && (
+      <Grid container>
+        <FormControl
+          variant='outlined'
+          size='small'
+          className={classes.select}
+        >
+          <InputLabel>Select model</InputLabel>
+          <Select
+            label='Select model'
+            value={model_name}
+            onChange={(e) => setModelName(e.target.value)}
+          >
+            {models.map((m) => (
+              <MenuItem key={m} value={m}>
+                {m}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Grid>
+    )}
+  </>;
+}
+const SelectProjectModelDialog = ({
+  open,
+  onClose,
+  update,
+  title,
+  buttonLabel,
+  description
+}) => {
+  const [project_name, setProjectName] = useState(null);
+  const [model_name, setModelName] = useState('');
+  const [error, setError] = useState(null);
+
   const classes = useStyles();
 
   return (
@@ -71,61 +137,14 @@ const SelectProjectModelDialog = ({
       <DialogTitle id='form-dialog-title'>{title}</DialogTitle>
       <DialogContent>
         <DialogContentText>{description}</DialogContentText>
-        <Grid container>
-          <Autocomplete
-            freeSolo
-            className={classes.select}
-            value={project_name}
-            onChange={(e, value) => {
-              setProjectName(value);
-              setModels(null);
-              setModelName('');
-            }}
-            options={projects}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label='Select project'
-                margin='normal'
-                variant='outlined'
-                InputProps={{
-                  ...params.InputProps,
-                  className: classes.select_input,
-                  endAdornment: project_name && (
-                    <InputAdornment>
-                      <IconButton size='small' onClick={() => loadProject()}>
-                        <CheckIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                  type: 'search'
-                }}
-              />
-            )}
-          />
-        </Grid>
-        {models && (
-          <Grid container>
-            <FormControl
-              variant='outlined'
-              size='small'
-              className={classes.select}
-            >
-              <InputLabel>Select model</InputLabel>
-              <Select
-                label='Select model'
-                value={model_name}
-                onChange={(e) => setModelName(e.target.value)}
-              >
-                {models.map((m) => (
-                  <MenuItem key={m} value={m}>
-                    {m}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-        )}
+        <SelectProjectModel
+          project_name={project_name}
+          setProjectName={setProjectName}
+          model_name={model_name}
+          setModelName={setModelName}
+          error={error}
+          setError={setError}
+        />
         {error && (
           <DialogContentText>
             <Typography color='error'>{error}</Typography>
