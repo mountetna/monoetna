@@ -12,7 +12,7 @@ const models = {
   project: {template: require('../fixtures/template_project.json')}
 };
 
-describe('ModelMap', () => {
+describe('ModelMap for model with no records', () => {
   let store;
 
   beforeEach(() => {
@@ -70,17 +70,6 @@ describe('ModelMap', () => {
   });
 
   it('renders with model action buttons for admin user (disabled reparent model btn while awaiting record count)', async () => {
-    stubUrl({
-      verb: 'post',
-      path: '/query',
-      host: 'https://magma.test',
-      status: 200,
-      response: {
-        answer: 1
-      },
-      request: () => true,
-      times: 20
-    });
 
     store = mockStore({
       magma: {models},
@@ -105,23 +94,11 @@ describe('ModelMap', () => {
     expect(screen.getByTitle('Add Link')).toBeTruthy();
     expect(screen.getByTitle('Add Attribute')).toBeTruthy();
     expect(screen.getByTitle('Add Model')).toBeTruthy();
-    expect(screen.queryByTitle('Determining if reparenting is possible')).toBeTruthy();
+    expect(screen.getByTitle('Determining if reparenting is possible')).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
   });
 
-  it('renders with reparent model action buttons for admin user, no-record model', async () => {
-    stubUrl({
-      verb: 'post',
-      path: '/query',
-      host: 'https://magma.test',
-      status: 200,
-      response: {
-        answer: 0
-      },
-      request: () => true,
-      times: 20
-    });
-
+  it('renders with action buttons and reparent model enabled for admin user', async () => {  
     store = mockStore({
       magma: {models},
       janus: {projects: require('../fixtures/project_names.json')},
@@ -177,7 +154,7 @@ describe('ModelMap', () => {
     expect(screen.queryByTitle('Add Link')).toBeFalsy();
     expect(screen.queryByTitle('Add Attribute')).toBeFalsy();
     expect(screen.queryByTitle('Add Model')).toBeFalsy();
-    expect(screen.queryByTitle('Reparent Model')).toBeFalsy();
+    expect(screen.queryByText('Reparent Model')).toBeFalsy();
     expect(asFragment()).toMatchSnapshot();
   });
 
