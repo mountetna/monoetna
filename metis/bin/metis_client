@@ -185,6 +185,7 @@ class Client
     @https ||= begin
       https = Net::HTTP.new(@host,443)
       https.use_ssl = true
+      https.verify_mode = OpenSSL::SSL::VERIFY_NONE
       https
     end
   end
