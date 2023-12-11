@@ -94,7 +94,8 @@ export function checkboxPiece(
 
 export function dropdownPiece(
   key: string, changeFxn: Function, value: string | null = null,
-  label: string | undefined, options: string[] | DataEnvelope<string>, sorted: boolean = true, minWidth: number = 200, disabled: boolean = false) {
+  label: string | undefined, options: string[] | DataEnvelope<string> | null, sorted: boolean = true, minWidth: number = 200, disabled: boolean = false) {
+    if (options==null) return null
     // options = string[] where options values are both the intended values and user-facing labels
     if (Array.isArray(options)) return(
       <SelectAutocompleteInput
@@ -320,14 +321,11 @@ export function rangePiece(
     );
   }
 
-export function reductionSetupPiece(
+export function ReductionSetupPiece(
   key: string, changeFxn: Function, value: (string|null)[] = [null, '1', '2'],
   label: string[] = ['Dimensionality Reduction (DR)', 'x-axis DR Compenent', 'y-axis DR Component'],
   reduction_opts: DataEnvelope<string[]>) {
   
-  if (reduction_opts == null) return null
-
-  const disable_dims = value[0]==null
   function changeReduction(newElement: string|null) {
     return [newElement, '1', '2']
   }
@@ -336,6 +334,16 @@ export function reductionSetupPiece(
     newValue[dim] = newElement
     return newValue
   }
+
+  useEffect(()=>{
+    // Default to _Recommended_ (which comes from 'umap_name' attribute of the dataset record)
+    if (value[0]==null && reduction_opts != null && Object.keys(reduction_opts).includes('_Recommended_')) {
+      changeReduction('_Recommended_')
+    }
+  }, [value, reduction_opts])
+
+  if (reduction_opts == null) return null
+  const disable_dims = value[0]==null
   // console.log({reduction_opts})
   return(
     <Grid 

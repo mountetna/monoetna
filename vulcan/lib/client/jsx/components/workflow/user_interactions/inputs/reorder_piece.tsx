@@ -34,10 +34,11 @@ const LevelComponent = (props: any) => {
 export function ReorderOptionalPiece(
   key: string,
   changeFxn: Function,
-  value: string[] = [] as string[],
+  value: string[] | null = [] as string[],
   label: string = 'Reorder'
 ) {
   const [open, setOpen] = useState(false)
+  const value_use = value==null ? [] : value
 
   const handleOnDragEnd = (result: any) => {
     if (!result.destination) {
@@ -48,14 +49,14 @@ export function ReorderOptionalPiece(
       return;
     }
 
-    const newValues = Array.from(value);
+    const newValues = Array.from(value_use);
     const [removed] = newValues.splice(result.source.index, 1);
     newValues.splice(result.destination.index, 0, removed);
     changeFxn(newValues);
   };
 
   const openToggle = <Grid item xs={1}>
-    <IconButton aria-label="open-close" size='small' disabled={value.length<2} onClick={()=>setOpen(!open)}>
+    <IconButton aria-label="open-close" size='small' disabled={value_use.length<2} onClick={()=>setOpen(!open)}>
       {open ?
         <ArrowDropUpIcon fontSize='small' color="secondary"/> :
         <ArrowDropDownIcon fontSize='small' color="secondary"/>
@@ -63,12 +64,12 @@ export function ReorderOptionalPiece(
     </IconButton>
   </Grid>
 
-  const reorder = open && value.length>=2 ? <DragDropContext onDragEnd={handleOnDragEnd}>
+  const reorder = open && value_use.length>=2 ? <DragDropContext onDragEnd={handleOnDragEnd}>
     <Droppable droppableId='columns'>
       {(provided: any) => (
         <Paper ref={provided.innerRef} {...provided.droppableProps}
           style={{paddingTop: 15}}>
-          {(value as string[]).map((level: string, index: number) => {
+          {(value_use).map((level: string, index: number) => {
             return (
               <LevelComponent key={index} level={level} levelIndex={index} />
             );
@@ -84,7 +85,7 @@ export function ReorderOptionalPiece(
       {openToggle}
       <Grid item xs={11} style={{paddingTop: '8px'}}>
         <FormControl>
-          <InputLabel shrink disabled={value.length<2} style={{width: 'max-content'}}>{label}</InputLabel>
+          <InputLabel shrink disabled={value_use.length<2} style={{width: 'max-content'}}>{label}</InputLabel>
           {reorder}
         </FormControl>
       </Grid>
