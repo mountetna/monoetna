@@ -45,7 +45,7 @@ const useStyles = makeStyles(theme => ({
     padding: '0px 15px',
     background: '#eee'
   }
-}))
+}));
 
 export const MatchTable = ({headCells, tsvName, tableClassName, boxClassName, title, items, itemClassName, emptyText }) => {
   const [ orderBy, setOrderBy ] = useState(headCells[0].key);
@@ -59,11 +59,11 @@ export const MatchTable = ({headCells, tsvName, tableClassName, boxClassName, ti
       item => headCells.map( head => item[ head.key ] ).join('\t')
     ).join('\n');
     const blob = new Blob([data], { type: 'text/tsv' });
-    const a = document.createElement('a')
-    a.setAttribute('href', window.URL.createObjectURL(blob) )
+    const a = document.createElement('a');
+    a.setAttribute('href', window.URL.createObjectURL(blob) );
     a.setAttribute('download', tsvName);
-    a.click()
-  }
+    a.click();
+  };
 
   return <Grid className={boxClassName} item>
     <Toolbar disableGutters={true} className={classes.table_header}>
@@ -120,8 +120,8 @@ export const MatchTable = ({headCells, tsvName, tableClassName, boxClassName, ti
         }
       </Table>
     </TableContainer>
-  </Grid>
-}
+  </Grid>;
+};
 const getIdentifier = decomposition => decomposition ? decomposition.tokens.map(t => t[1]).join('') : null;
 
 export const IdTreeTable = ({decomposition, project_name, markNotCreated = false, highlight=false, ...props}) => {
@@ -163,20 +163,20 @@ export const IdTreeTable = ({decomposition, project_name, markNotCreated = false
     emptyText='Identifier is incomplete'
     tsvName={ `${primary_rule}-matching-rules-${(new Date()).toISOString().slice(0,10)}.tsv` }
     {...props}
-  />
+  />;
   //decomposition != null ? Object.keys(decomposition.rules).sort( (a,b) => b==primary_rule ? 1 : a==primary_rule ? -1 : 0 ).map(
-}
+};
 
 const Author = ({author}) => {
   const { name, email } = authorFormat(author);
   return <Tooltip title={email}>
     <>{name || email}</>
-  </Tooltip>
-}
+  </Tooltip>;
+};
 
 export const MatchingNamesTable = ({names, rule_name, decomposition, ...props}) => {
   const classes = useStyles();
-  if (names == null) return null
+  if (names == null) return null;
   const identifier = getIdentifier(decomposition);
 
   return <MatchTable
@@ -210,5 +210,5 @@ export const MatchingNamesTable = ({names, rule_name, decomposition, ...props}) 
     emptyText='None'
     tsvName={ `${rule_name}-matching-names-${(new Date()).toISOString().slice(0,10)}.tsv` }
     {...props}
-  />
-}
+  />;
+};

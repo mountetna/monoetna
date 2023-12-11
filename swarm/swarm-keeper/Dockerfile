@@ -4,7 +4,7 @@ FROM etna-base-dev
 FROM alpine
 RUN mkdir /app
 RUN apk add --no-cache bash curl jq httpie py-setuptools py-pip git openssh-client vim
-RUN pip install -U requests[socks] yq rich
+RUN pip install -U --break-system-packages requests[socks] yq rich
 COPY lib/* /usr/lib/
 COPY --from=0 /mocker /usr/lib/mocker
 COPY --from=1 /bin/post-to-slack.sh /usr/local/bin/post-to-slack

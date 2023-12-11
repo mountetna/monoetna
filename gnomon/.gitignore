@@ -9,6 +9,7 @@ trash.rb
 /tmp
 /log
 /source
+public/
 
 *.swp
 *.eot

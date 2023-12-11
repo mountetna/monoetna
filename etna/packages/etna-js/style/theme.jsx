@@ -85,7 +85,6 @@ export const createEtnaTheme = (p,s) => {
         size: "small"
       },
       MuiTableContainer: {
-        disableElevation: true,
         variant: "outlined"
       },
       MuiPaper: {
