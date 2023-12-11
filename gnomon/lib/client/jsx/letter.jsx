@@ -19,7 +19,7 @@ const Letter = ({letter, className}) => {
   return <Grid className={`${classes.box} ${className}`}
     container alignItems='center' justify='center'>
     <span className={classes.letter}>{letter}</span>
-  </Grid>;
-};
+  </Grid>
+}
 
 export default Letter;

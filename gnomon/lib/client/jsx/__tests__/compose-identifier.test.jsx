@@ -1,4 +1,4 @@
-import { reducer }  from '../components/compose-identifier';
+import { reducer }  from '../compose-identifier';
 
 describe('reducer', () => {
   it('sets some tokens', () => {
@@ -61,6 +61,6 @@ describe('reducer', () => {
     expect( newState.tokens.map(({filled:_})=>_) ).toEqual([ true, true, true, false, false, false ]);
     newState.tokens.forEach(
       token => expect( Object.keys(token) ).toEqual( expect.arrayContaining(['assigned', 'filled', 'from', 'height', 'label', 'name', 'seq', 'to', 'type', 'value' ]) )
-    );
+    )
   });
 });

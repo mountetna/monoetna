@@ -13,7 +13,6 @@ module.exports = {
   plugins: [
     '@babel/plugin-proposal-class-properties',
     '@emotion',
-    '@babel/transform-runtime',
     ['@babel/plugin-proposal-private-methods', {loose: false}],
     ['@babel/plugin-proposal-private-property-in-object', {loose: false}]
   ]

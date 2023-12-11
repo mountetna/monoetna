@@ -132,14 +132,10 @@ const ManageModelActions = ({
   handleReparentModel,
   isLeaf,
   canReparent,
-  determiningCanReparent,
   modelName
 }) => {
   const classes = attributeStyles();
   const {openModal} = useModal();
-
-  const reparentTooltip = determiningCanReparent ? 'Determining if reparenting is possible' :
-    canReparent ? 'Reparent Model' : 'Cannot reparent a model containing records'
 
   return (
     <>
@@ -185,12 +181,11 @@ const ManageModelActions = ({
           Model
         </Button>
       </Tooltip>
-      <Tooltip title={reparentTooltip} aria-label={reparentTooltip}>
-        <span>
+      {canReparent && (
+        <Tooltip title='Reparent Model' aria-label='Reparent Model'>
           <Button
             className={classes.addBtn}
             startIcon={<SwapHorizIcon />}
-            disabled={!canReparent}
             onClick={() => {
               openModal(
                 <ReparentModelModal
@@ -205,8 +200,8 @@ const ManageModelActions = ({
           >
             Reparent Model
           </Button>
-        </span>
-      </Tooltip>
+        </Tooltip>
+      )}
       {isLeaf && (
         <Tooltip title='Remove Model' aria-label='Remove Model'>
           <Button
@@ -364,7 +359,6 @@ const ModelReport = ({
 }) => {
   const [showHiddenAttributes, setShowHiddenAttributes] = useState(false);
   const [canReparent, setCanReparent] = useState(false);
-  const [determiningCanReparent, setDeterminingCanReparent] = useState(true);
   const dispatch = useDispatch();
   const invoke = useActionInvoker();
   const {executeAction} = useMagmaActions();
@@ -518,12 +512,10 @@ const ModelReport = ({
 
   useEffect(() => {
     if (counts[model_name]?.count >= 0) {
-      setDeterminingCanReparent(false)
       setCanReparent(counts[model_name].count <= 0);
     } else {
       getAnswer([model_name, '::count'], (count) => {
         updateCounts({type: 'MODEL_COUNT', model_name, count});
-        setDeterminingCanReparent(false)
         setCanReparent(0 == count);
       });
     }
@@ -677,7 +669,6 @@ const ModelReport = ({
             handleAddModel={handleAddModel}
             isLeaf={isLeaf}
             canReparent={canReparent}
-            determiningCanReparent={determiningCanReparent}
             modelName={model_name}
           />
         )}

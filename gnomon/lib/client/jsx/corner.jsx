@@ -21,7 +21,7 @@ const Corner = ({top, bottom, left, right, className}) => {
       height: top - bottom,
       width: right - left
     }}
-  />;
-};
+  />
+}
 
 export default Corner;

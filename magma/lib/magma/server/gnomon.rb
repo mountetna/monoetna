@@ -62,20 +62,16 @@ class GnomonController < Magma::Controller
       rule: rule_name
     ).where { identifier =~ search_term }.all
 
-    if Magma.instance.get_project(project_name).models.has_key?(rule_name.to_sym)
-      question = Magma::Question.new(
-        project_name,
-        [ rule_name, ["::identifier", "::in", identifiers.map(&:identifier)], "::all", "created_at" ],
-        show_disconnected: false,
-        restrict: !@user.can_see_restricted?(project_name),
-        user: @user,
-        timeout: Magma.instance.config(:query_timeout)
-      )
+    question = Magma::Question.new(
+      project_name,
+      [ rule_name, ["::identifier", "::in", identifiers.map(&:identifier)], "::all", "created_at" ],
+      show_disconnected: false,
+      restrict: !@user.can_see_restricted?(project_name),
+      user: @user,
+      timeout: Magma.instance.config(:query_timeout)
+    )
 
-      records_created_at = question.answer.to_h
-    else
-      records_created_at = {}
-    end
+    records_created_at = question.answer.to_h
 
     success_json(
       identifiers.map do |id|

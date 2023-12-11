@@ -30,6 +30,9 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flex: '0 0 200px'
   },
+  values: {
+    flex: '1 1 auto'
+  },
   params: {
     flex: '1 1 auto'
   },
@@ -169,13 +172,11 @@ const RunPane = ({
   const [runState, setRunState] = useState(getRunState(run_interval));
   const [runIntervalTime, setRunIntervalTime] = useState(getRunIntervalTime(run_interval));
   const [newParams, setParams] = useState<any>({});
-  const [error, setError] = useState('');
 
   useEffect(() => setParams(params), [params]);
 
   const runValue = () => runState == RUN_INTERVAL ? runIntervalTime : runState;
   const reset = () => {
-    setError('')
     setRunState(getRunState(run_interval));
     setRunIntervalTime(getRunIntervalTime(run_interval));
     setParams(params);
@@ -214,17 +215,11 @@ const RunPane = ({
   return (
     <EtlPane mode='run' selected={selected}>
       <EtlPaneHeader title='Run'>
-        { formValid && formChanged && <Grid className={classes.runbar} spacing={1} container alignItems='center'>
+        { formValid && formChanged && <Grid className={classes.runbar} spacing={1} container>
           <Grid item>
             <Button
               onClick={() => {
-                setError('')
-                // Simple error checking, but could use a more robust system if more validations come up!
-                if (runState == RUN_INTERVAL && runIntervalTime < 300) {
-                  setError('Run interval cannot be less than 300 seconds.')
-                } else {
-                  update(savePayload());
-                }
+                update(savePayload());
               }}
             >
               Save
@@ -235,18 +230,13 @@ const RunPane = ({
               Reset
             </Button>
           </Grid>
-          {(error) && (
-            <Grid item >
-              <Typography style={{color: 'green', paddingLeft: '0.5rem'}}>{error}</Typography>
-            </Grid>
-          )}
         </Grid> }
       </EtlPaneHeader>
       <Grid spacing={1} container alignItems='center'>
         <Grid className={classes.title} item>
           <Typography>Interval</Typography>
         </Grid>
-        <Grid item xs={3}>
+        <Grid className={classes.values} item>
           <Select
             value={runState}
             onChange={(e) => setRunState(parseInt(e.target.value as string))}
@@ -257,13 +247,13 @@ const RunPane = ({
           </Select>
         </Grid>
         {runState == RUN_INTERVAL && (
-          <Grid item xs={4}>
+          <Grid item>
             {' '}
             <TextField
               size='small'
               InputProps={{
                 endAdornment: (
-                  <InputAdornment position='end'>{'seconds (300 minimum)'}</InputAdornment>
+                  <InputAdornment position='end'>seconds</InputAdornment>
                 )
               }}
               value={runIntervalTime}

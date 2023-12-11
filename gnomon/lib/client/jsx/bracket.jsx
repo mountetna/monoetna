@@ -12,6 +12,6 @@ const Bracket = ({top, bottom, left, width, className}) => (
       [ top == undefined ? 'borderBottom' : 'borderTop' ]: 'none'
     }}
   />
-);
+)
 
 export default Bracket;

@@ -36,19 +36,11 @@ module.exports = {
   plugins: ['@typescript-eslint', 'react', 'react-hooks'],
   rules: {
     'no-undef': 'error',
-    quotes: ['error', 'single', { avoidEscape: true }],
+    quotes: ['error', 'single', {avoidEscape: true}],
     semi: 'warn',
     'no-var': 'warn',
     curly: ['warn', 'multi-line'],
     'no-use-before-define': 'off',
-    '@typescript-eslint/no-use-before-define': ["error", { "functions": false, "classes": false }],
-  },
-  overrides: [
-    {
-      files: ['*.ts', '*.tsx'],
-      rules: {
-        'no-undef': 'off',
-      },
-    },
-  ],
+    '@typescript-eslint/no-use-before-define': ['error']
+  }
 };

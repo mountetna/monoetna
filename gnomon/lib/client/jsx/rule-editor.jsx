@@ -191,8 +191,8 @@ const Synonym = ({set, pos, dispatch}) => {
           placeholders={ [ 'TOKEN_NAME' ] }
         />
       </Grid>
-  </Grid>;
-};
+  </Grid>
+}
 
 const TokenValue = ({name,value,dispatch, token}) => {
   const classes = useStyles();
@@ -212,8 +212,8 @@ const TokenValue = ({name,value,dispatch, token}) => {
     className={`${classes.value} ${classes.strikeout}`} container>
     <Grid item xs={2}>{name}</Grid>
     <Grid item xs={10}>{value}</Grid>
-  </Grid>;
-};
+  </Grid>
+}
 
 const Token = ({token, dispatch}) => {
   const classes = useStyles();
@@ -299,17 +299,17 @@ const RuleEditor = ({project_name}) => {
   const setEditedState = state => dispatch({ type: 'SET', state });
 
   const unifyState = config => {
-    const script = jsonFormat(config);
+    const script = jsonFormat(config)
     setEditedState(config);
     setEditedScript(script);
     setSavedState(config);
-    setSavedScript(script);
+    setSavedScript(script)
   };
 
   useEffect( () => {
     json_get(magmaPath(`gnomon/${project_name}/`)).then(
       ({config}) => unifyState(config)
-    );
+    )
   }, [] );
 
   const saveRules = useCallback(
