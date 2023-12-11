@@ -168,7 +168,7 @@ const DecomposeIdentifier = ({project_name, identifier}) => {
 
       return {
         from, to, height, name: token, seq, type: 'resolved', label: tokenLabel(token, grammar)
-      }
+      };
     }
   );
 
@@ -197,7 +197,7 @@ const DecomposeIdentifier = ({project_name, identifier}) => {
                     seq={identifier}
                     height={total}
                     pos={i}
-                    voff={40}/>
+                    voff={40}/>;
                 }
               )
             }
@@ -230,7 +230,7 @@ const DecomposeIdentifier = ({project_name, identifier}) => {
       </Grid>
       }
     </Grid>
-  </Grid>
-}
+  </Grid>;
+};
 
 export default DecomposeIdentifier;
