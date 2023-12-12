@@ -1,0 +1,9 @@
+{
+  "authors": ["Dan Bunis"],
+  "lastModified": "Dec 12, 2023",
+  "vignette": "# Workflow for: Single-cell Dataset Annotation\n\nThis workflow ... IS UNDER CONSTRUCTION",
+  "tags": ["single-cell", "annotation"],
+  "image": "umap.png",
+  "displayName": "Establish scDataset Annotations",
+  "description": "Record annotations for a particular clustering of an sc_seq_dataset object"
+}
