@@ -37,6 +37,8 @@ import DiffExpSC from './scDGE';
 import DataTransformation from './data_transformation';
 import AllInnerKeysNotNullValidator from './validators/all_inner_keys_not_null_validator';
 import PlusSubsetValidator from './validators/PlusSubsetValidator';
+import SelectAutocompleteMultiPickInput from './select_autocomplete_multi_choice';
+import NestedSelectAutocompleteMultiPickInput from './nested_select_autocomplete_multi_choice';
 import { MetisFileInput, MetisFolderInput } from './metis_items';
 import { MetisFileValidator, MetisFolderValidator, MetisPathValidator } from './validators/metis_path_validators';
 
@@ -59,8 +61,10 @@ configureComponent(TYPE.METIS_CSV_OR_TSV, MetisFileInput, MetisFileValidator('\\
 configureComponent(TYPE.METIS_FOLDER, MetisFolderInput, MetisFolderValidator());
 configureComponent(TYPE.METIS_FILE_OR_FOLDER, MetisFileInput, MetisPathValidator());
 configureComponent(TYPE.SELECT_AUTOCOMPLETE, SelectAutocompleteInput, StronglyNotEmptyValidator);
+configureComponent(TYPE.SELECT_AUTOCOMPLETE_MULTI_PICK, SelectAutocompleteMultiPickInput, StronglyNotEmptyValidator);
 configureComponent(TYPE.CHECKBOXES, CheckboxesInput, NotEmptyValidator);
 configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, StronglyNotEmptyValidator);
+configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE_MULTI_PICK, NestedSelectAutocompleteMultiPickInput, StronglyNotEmptyValidator);
 configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
 configureComponent(TYPE.DATA_TRANSFORMATION, DataTransformation, AllInnerKeysNotNullValidator);

@@ -6,80 +6,57 @@ import {useMemoized} from '../../../../selectors/workflow_selectors';
 import {useSetsDefault} from './useSetsDefault';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
-import {debounce} from 'lodash';
 import {useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
+import { pullRecommendation } from './select_autocomplete'
 
-export function pullRecommendation<T extends DataEnvelope<any>>(
-  data: T | null | undefined
-): [T | null | undefined, string | undefined] {
-  // Make the recommendation part of the autocomplete into the 'label' of renderInput
-  if (data != null) {
-    let data_use = {...data};
-    let suggestion = undefined;
-    if (Object.keys(data).includes('recommendation')) {
-      // Allow multi-recommendation?
-      const rec = Array.isArray(data['recommendation'])
-        ? data['recommendation'].join(', ')
-        : data['recommendation'];
-      suggestion = 'Recommendation: ' + rec;
-      delete data_use['recommendation'];
-    }
-    return [data_use, suggestion];
-  }
-  return [data, undefined];
-}
-
-function dispValue(value: string | null) {
-  return value == null ? '' : value;
-}
-
-export function filterOptions(query: string, opts: string[]) {
+// Compared to select_autocomplete, also filter selected options
+function filterOptions(query: string, opts: string[], value: string[]) {
   return opts.filter((o) => {
-    return query == null ? true : o.toLowerCase().indexOf(query.toLowerCase()) > -1;
+    return query == null ? true : !value.includes(o) && o.toLowerCase().indexOf(query.toLowerCase()) > -1;
   });
 }
-
-export const getOptionsAsync = (query: string, opts: string[]) => {
+const getOptionsAsync = (query: string, opts: string[], value: string[]) => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(filterOptions(query, opts));
+      resolve(filterOptions(query, opts, value));
     }, 3000);
   });
 };
 
-function determineHelperText(
-  setHelperText: React.Dispatch<React.SetStateAction<string | undefined>>,
-  filteredOptions: string[],
-  allOptions: string[],
-  loadingOptions: boolean,
-  maxOptions: number,
-  typed: string,
-  saved: string | null
-) {
-  if (loadingOptions) {
-    return;
-  } else if (saved == null || typed != saved) {
-    if (filteredOptions.length > maxOptions) {
-      setHelperText(
-        allOptions.length + ' options, only ' + maxOptions + ' shown'
-      );
-    } else if (filteredOptions.length == 0) {
-      setHelperText('no matching options');
+export function determineHelperText(
+    setHelperText: React.Dispatch<React.SetStateAction<string | undefined>>,
+    filteredOptions: string[],
+    allOptions: string[],
+    loadingOptions: boolean,
+    maxOptions: number,
+    typed: string,
+    saved: string[] | null
+  ) {
+    if (loadingOptions) {
+      return;
+    } else if (saved == null || saved.includes(typed)) {
+      if (filteredOptions.length > maxOptions) {
+        setHelperText(
+          allOptions.length + ' options, only ' + maxOptions + ' shown'
+        );
+      } else if (filteredOptions.length == 0) {
+        setHelperText('no matching options');
+      } else {
+        setHelperText(undefined);
+      }
     } else {
       setHelperText(undefined);
     }
-  } else {
-    setHelperText(undefined);
   }
-}
 
-export default function SelectAutocompleteInput({
+export default function SelectAutocompleteMultiPickInput({
   data,
   label,
   minWidth,
   maxOptions = 100,
   disableClearable = true,
   disabled = false,
+  placeholder,
   onChangeOverride,
   onChange,
   ...props
@@ -89,10 +66,11 @@ export default function SelectAutocompleteInput({
     minWidth?: number;
     disableClearable?: boolean;
     disabled?: boolean;
+    placeholder?: string;
     maxOptions?: number;
-    onChangeOverride?: (event: any, e: string | null) => void;
+    onChangeOverride?: (event: any, e: string[]) => void;
   },
-  string | null,
+  string[],
   StringOptions
 >) {
   /*
@@ -102,13 +80,13 @@ export default function SelectAutocompleteInput({
   const [data_use, suggestion] = useMemoized(pullRecommendation, data);
 
   const options_in = useMemoized(flattenStringOptions, data_use);
-  const value = useSetsDefault(null, props.value, onChange);
+  const value = useSetsDefault([], props.value, onChange) as string[];
   const disp_label = useMemo(() => {
     return suggestion ? suggestion : label;
   }, [suggestion, label]);
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [helperText, setHelperText] = useState(undefined as string | undefined);
-  const [inputState, setInputState] = React.useState(dispValue(value));
+  const [inputState, setInputState] = useState('');
   const [options, setOptionsFull] = useState({
     filtered: options_in,
     display: [...options_in].splice(0, maxOptions)
@@ -122,27 +100,28 @@ export default function SelectAutocompleteInput({
   const [getOptionsDelayed] = useAsyncCallback(function* (
     text: string,
     options_in: string[],
+    value: string[],
     callback: Function
   ) {
-    const options = yield getOptionsAsync(text, [...options_in]);
+    const options = yield getOptionsAsync(text, [...options_in], value);
     callback(options);
   },
   []);
 
   useEffect(() => {
     // Shown from all options when user has made their selection (current text = current value)
-    const query = inputState != value ? inputState : '';
+    const query = value==null || value.includes(inputState) ? '' : inputState;
 
     if (options_in.length > 1000) {
       setLoadingOptions(true);
       // console.log('calculating options - slow')
-      getOptionsDelayed(query, options_in, (filteredOptions: string[]) => {
+      getOptionsDelayed(query, options_in, value, (filteredOptions: string[]) => {
         setLoadingOptions(false);
         setOptions(filteredOptions);
       });
     } else {
       // console.log('calculating options - fast')
-      setOptions(filterOptions(query, options_in));
+      setOptions(filterOptions(query, options_in, value));
     }
   }, [inputState, getOptionsDelayed, options_in, value]);
 
@@ -167,7 +146,7 @@ export default function SelectAutocompleteInput({
   ]);
 
   const onChangeAction = useCallback(
-    (event: any, e: string | null) => {
+    (event: any, e: string[]) => {
       onChangeOverride
         ? onChangeOverride(event, e)
         : onChange(maybeOfNullable(e));
@@ -180,13 +159,15 @@ export default function SelectAutocompleteInput({
 
   return (
     <Autocomplete
+      key={label}
       disableClearable={disableClearable}
       disabled={disabled}
+      multiple
       clearOnBlur={true}
       options={options_in}
       filterOptions={(x: string[]) => options.display}
       loading={loadingOptions}
-      value={value}
+      value={value==null ? [] : value}
       onChange={onChangeAction}
       inputValue={inputState}
       onInputChange={(event: any, newInputState: string) => {
@@ -197,8 +178,10 @@ export default function SelectAutocompleteInput({
         <TextField
           {...params}
           helperText={helperText}
-          error={inputState != dispValue(value)}
+          error={value==null ? true : value.includes(inputState)}
           label={disp_label}
+          placeholder={placeholder}
+          fullWidth
           size='small'
           InputLabelProps={{shrink: true}}
         />

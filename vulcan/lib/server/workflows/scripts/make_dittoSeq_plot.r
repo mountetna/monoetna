@@ -89,7 +89,7 @@ plot_setup <- rename_if_there("plot.title", "main")
 plot_setup <- rename_if_there("plot.subtitle", "sub")
 # BarPlot scaling (development choice diffs...)
 plot_setup <- rename_if_there("scale.by", "scale")
-if (!is.null(plot_setup$scale)) {
+if (!is.null(plot_setup$scale) && !is.logical(plot_setup$scale)) {
     plot_setup$scale <- switch(
         plot_setup$scale,
         NULL,
@@ -113,19 +113,24 @@ if (viz_fxn=="dittoBarPlot") {
 
 ### Add assay inputs for gene data
 getAssay <- function(targ, object) {
+    if (length(targ) > 1) {
+        return(unique(
+            sapply(targ, function(this_targ) {getAssay(this_targ, object)})
+        ))
+    }
     # Return: String, the assay name containing this gene
     for (assay_check in Seurat::Assays(object)) {
         if (isGene(targ, object, assay = assay_check)) {
             return(assay_check)
         }
     }
-    stop(paste0("No assay found for ", targ))
+    NULL
 }
 addAssayInputIfGene <- function(gene_input_name, assay_input_name, setup = plot_setup, object = scdata) {
     # Return plot_setup with needed assay added to plot_setup[[assay_input_name]], when required
     if (gene_input_name %in% names(setup)) {
         gene_targ <- setup[[gene_input_name]]
-        if (is(object, "Seurat") && !isMeta(gene_targ, object)) {
+        if (is(object, "Seurat") && any(!isMeta(gene_targ, object))) {
             setup[[assay_input_name]] <- getAssay(gene_targ, object)
         }
     }
@@ -136,6 +141,7 @@ plot_setup <- addAssayInputIfGene("y.var", "assay.y")
 plot_setup <- addAssayInputIfGene("color.var", "assay.color")
 plot_setup <- addAssayInputIfGene("color.var", "assay.hover")
 plot_setup <- addAssayInputIfGene("var", "assay")
+plot_setup <- addAssayInputIfGene("vars", "assay")
 if (viz_fxn=="dittoDimPlot") plot_setup <- addAssayInputIfGene("var", "hover.assay")
 
 ### Parse reduction_setup

@@ -2,14 +2,18 @@ import React, {useEffect, useMemo} from 'react';
 import {DataEnvelope} from './input_types';
 import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
 import MultiselectStringInput from './multiselect_string';
-import { InputLabel, Slider } from '@material-ui/core';
+import InputLabel from '@material-ui/core/InputLabel';
+import Slider from '@material-ui/core/Slider';
 import StringInput from './string';
 import BooleanInput from './boolean';
 import SelectAutocompleteInput from './select_autocomplete';
 import FloatInput from './float';
-import { Grid, TextField } from '@material-ui/core';
+import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 import { nestedOptionSet } from './visualizations'
+import NestedSelectAutocompleteMultiPickInput from './nested_select_autocomplete_multi_choice';
+import { ReorderCollapsiblePiece } from './reorder_piece';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v};
@@ -90,7 +94,8 @@ export function checkboxPiece(
 
 export function dropdownPiece(
   key: string, changeFxn: Function, value: string | null = null,
-  label: string | undefined, options: string[] | DataEnvelope<string>, sorted: boolean = true, minWidth: number = 200, disabled: boolean = false) {
+  label: string | undefined, options: string[] | DataEnvelope<string> | null, sorted: boolean = true, minWidth: number = 200, disabled: boolean = false) {
+    if (options==null) return null
     // options = string[] where options values are both the intended values and user-facing labels
     if (Array.isArray(options)) return(
       <SelectAutocompleteInput
@@ -136,6 +141,36 @@ export function nestedDropdownPiece(
       data={val_wrap(options)}
       onChange={ (value) => changeFxn(withDefault(value,null), key) }
     />
+  }
+
+export function nestedDropdownMultiPickPiece(
+  key: string, changeFxn: Function, value: string[] = [] as string[],
+  label: string|undefined, options: nestedOptionSet | string[], sorted: boolean = false) {
+    // sorted not implemented, but kept for compatibility with inputs that might be designed for either this or dropdownPiece and given a boolean for the sorted input there.
+    if (Array.isArray(options)) {
+      options = key_wrap([...options])
+    }
+    return <NestedSelectAutocompleteMultiPickInput
+      key={key}
+      label={label}
+      value={some(value)}
+      data={val_wrap(options)}
+      onChange={ (value) => changeFxn(withDefault(value,null), key) }
+    />
+  }
+
+export function nestedDropdownMultiPickAndReorderPiece(
+  key: string, changeFxn: Function, value: string[] = [] as string[],
+  label: string|undefined, options: nestedOptionSet | string[], sorted: boolean = false) {
+    // sorted not implemented, but kept for compatibility with inputs that might be designed for either this or dropdownPiece and given a boolean for the sorted input there.
+    return <Grid container direction='column'>
+      <Grid item>
+        {nestedDropdownMultiPickPiece(`${key}-selection`, (value: string[]) => changeFxn(value, key), value, `${label} - selection`, options)}
+      </Grid>
+      <Grid item style={{paddingLeft: '12px'}}>
+        {ReorderCollapsiblePiece(`${key}-reorder`, (value: string[]) => changeFxn(value, key), value, 'Reorder selections?')}
+      </Grid>
+    </Grid>
   }
 
 export function nestedDropdownFullPathPiece(
@@ -286,14 +321,11 @@ export function rangePiece(
     );
   }
 
-export function reductionSetupPiece(
+export function ReductionSetupPiece(
   key: string, changeFxn: Function, value: (string|null)[] = [null, '1', '2'],
   label: string[] = ['Dimensionality Reduction (DR)', 'x-axis DR Compenent', 'y-axis DR Component'],
   reduction_opts: DataEnvelope<string[]>) {
   
-  if (reduction_opts == null) return null
-
-  const disable_dims = value[0]==null
   function changeReduction(newElement: string|null) {
     return [newElement, '1', '2']
   }
@@ -302,6 +334,16 @@ export function reductionSetupPiece(
     newValue[dim] = newElement
     return newValue
   }
+
+  useEffect(()=>{
+    // Default to _Recommended_ (which comes from 'umap_name' attribute of the dataset record)
+    if (value[0]==null && reduction_opts != null && Object.keys(reduction_opts).includes('_Recommended_')) {
+      changeReduction('_Recommended_')
+    }
+  }, [value, reduction_opts])
+
+  if (reduction_opts == null) return null
+  const disable_dims = value[0]==null
   // console.log({reduction_opts})
   return(
     <Grid 
