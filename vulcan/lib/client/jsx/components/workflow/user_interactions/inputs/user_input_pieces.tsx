@@ -168,7 +168,7 @@ export function nestedDropdownMultiPickAndReorderPiece(
         {nestedDropdownMultiPickPiece(`${key}-selection`, (value: string[]) => changeFxn(value, key), value, `${label} - selection`, options)}
       </Grid>
       <Grid item style={{paddingLeft: '12px'}}>
-        {ReorderCollapsiblePiece(`${key}-reorder`, (value: string[]) => changeFxn(value, key), value, `Reorder selections?`)}
+        {ReorderCollapsiblePiece(`${key}-reorder`, (value: string[]) => changeFxn(value, key), value, 'Reorder selections?')}
       </Grid>
     </Grid>
   }

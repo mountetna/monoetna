@@ -28,10 +28,10 @@ const LevelComponent = (props: any) => {
           {...provided.dragHandleProps}
         >
           <Grid item>
-            <DragHandleIcon fontSize="small" color='secondary'/>
+            <DragHandleIcon fontSize='small' color='secondary'/>
           </Grid>
           <Grid item>
-            <Typography fontSize='8'>{props.level}</Typography>
+            <Typography component='text' fontSize='8'>{props.level}</Typography>
           </Grid>
         </Grid>
       )}
@@ -86,7 +86,7 @@ export function ReorderCollapsiblePiece(
   const disabled=value_use.length<2;
 
   const openToggle = <Grid item>
-    <IconButton aria-label="open-close" size='small' color="secondary" disabled={disabled} onClick={()=>setOpen(!open)}>
+    <IconButton aria-label='open-close' size='small' color='secondary' disabled={disabled} onClick={()=>setOpen(!open)}>
       <Grid item container>
         <Grid item>
           <LowPriorityIcon fontSize='small'/>
