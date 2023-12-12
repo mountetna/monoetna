@@ -13,7 +13,7 @@ import TextField from '@material-ui/core/TextField';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 import { nestedOptionSet } from './visualizations'
 import NestedSelectAutocompleteMultiPickInput from './nested_select_autocomplete_multi_choice';
-import { ReorderOptionalPiece } from './reorder_piece';
+import { ReorderCollapsiblePiece } from './reorder_piece';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v};
@@ -168,7 +168,7 @@ export function nestedDropdownMultiPickAndReorderPiece(
         {nestedDropdownMultiPickPiece(`${key}-selection`, (value: string[]) => changeFxn(value, key), value, `${label} - selection`, options)}
       </Grid>
       <Grid item style={{paddingLeft: '12px'}}>
-        {ReorderOptionalPiece(`${key}-reorder`, (value: string[]) => changeFxn(value, key), value, `Reorder selections?`)}
+        {ReorderCollapsiblePiece(`${key}-reorder`, (value: string[]) => changeFxn(value, key), value, `Reorder selections?`)}
       </Grid>
     </Grid>
   }

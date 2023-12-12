@@ -75,7 +75,7 @@ return <DragDropContext onDragEnd={HandleOnDragEnd}>
 </DragDropContext>
 };
 
-export function ReorderOptionalPiece(
+export function ReorderCollapsiblePiece(
   key: string,
   changeFxn: Function,
   value: string[] | null = [] as string[],
@@ -83,9 +83,10 @@ export function ReorderOptionalPiece(
 ) {
   const [open, setOpen] = useState(false);
   const value_use = value==null ? [] : value;
+  const disabled=value_use.length<2;
 
   const openToggle = <Grid item>
-    <IconButton aria-label="open-close" size='small' color="secondary" disabled={value_use.length<2} onClick={()=>setOpen(!open)}>
+    <IconButton aria-label="open-close" size='small' color="secondary" disabled={disabled} onClick={()=>setOpen(!open)}>
       <Grid item container>
         <Grid item>
           <LowPriorityIcon fontSize='small'/>
@@ -105,7 +106,12 @@ export function ReorderOptionalPiece(
       {openToggle}
       <Grid item style={{paddingTop: '8px'}}>
         <FormControl>
-          <InputLabel shrink disabled={value_use.length<2} style={{width: 'max-content'}} onClick={()=>setOpen(!open)}>{label}</InputLabel>
+          <InputLabel shrink disabled={disabled}
+            style={{width: 'max-content', userSelect: 'none'}}
+            onClick={()=>{if(!disabled)setOpen(!open)}}
+          >
+            {label}
+          </InputLabel>
           {open && value_use.length>=2 ? DragDrop(value_use, onDragEnd(value_use, changeFxn), {paddingTop: '15px'}) : null}
         </FormControl>
       </Grid>
