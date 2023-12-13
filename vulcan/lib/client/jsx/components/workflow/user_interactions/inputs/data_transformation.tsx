@@ -60,12 +60,16 @@ function DataTransformationModal({
   userData,
   originalData,
   onChange,
-  onClose
+  onClose,
+  dialogTitle,
+  dialogTexts
 }: {
   userData: NestedArrayDataFrame;
   originalData: NestedArrayDataFrame;
   onChange: (data: Maybe<JsonDataFrame>) => void;
   onClose: () => void;
+  dialogTitle: string;
+  dialogTexts: string[];
 }) {
   const classes = useStyles();
 
@@ -121,7 +125,7 @@ function DataTransformationModal({
   return (
     <>
       <DialogTitle>
-        Transform your data (
+        {dialogTitle} (
         <Typography className={classes.subtitle}>
           <Link
             target='_blank'
@@ -134,17 +138,11 @@ function DataTransformationModal({
         )
       </DialogTitle>
       <DialogContent className={classes.dialog}>
-        <Typography className={classes.helpdoc}>
-          This is a preview of your data frame. You can edit the column headings
-          or append additional columns on the right, by right-clicking and
-          selecting "Insert column to right" in the context menu.
-        </Typography>
-        <Typography className={classes.helpdoc}>
-          To apply a formula in a new column, just add a couple of cells with
-          the formula to establish the pattern. Click the "Propagate Formulas"
-          button to propagate the formulas to the entire table. Save, Commit,
-          and Run!
-        </Typography>
+        {
+          dialogTexts==null ? null : dialogTexts.map(
+            (val) => <Typography className={classes.helpdoc}>{val}</Typography>
+          )
+        }
         <Button
           className={classes.propagateButton}
           onClick={handleExtendFormulas}
@@ -261,7 +259,7 @@ function DataTransformationModal({
   );
 }
 
-export default function DataTransformationInput({
+export default function HandsOnTableInput({
   onChange,
   data,
   numOutputs,
@@ -270,7 +268,15 @@ export default function DataTransformationInput({
   {label?: string},
   {[key: string]: any},
   {[key: string]: any}
->) {
+>,
+  dataName: string,
+  afterSummaryText: string,
+  openButtonText: string,
+  ifChangedText: string,
+  resetButtonText: string,
+  dialogTitle: string,
+  dialogTexts: string[],
+) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isTransformed, setIsTransformed] = useState(false);
@@ -347,9 +353,8 @@ export default function DataTransformationInput({
   return (
     <>
       <div>
-        Your data frame has {originalAsNestedArray.length - 1} rows and{' '}
-        {value[0].length} columns. You can preview or edit the data frame now,
-        or just click "Commit" to accept the raw data.
+        Your {dataName} has {originalAsNestedArray.length - 1} rows and{' '}
+        {value[0].length} columns. {afterSummaryText}
       </div>
       <Dialog
         open={open}
@@ -368,6 +373,8 @@ export default function DataTransformationInput({
           originalData={originalAsNestedArray}
           onChange={destructureOnChange}
           onClose={handleOnClose}
+          dialogTitle={dialogTitle}
+          dialogTexts={dialogTexts}
         />
       </Dialog>
       <Button
@@ -381,11 +388,11 @@ export default function DataTransformationInput({
         startIcon={loading ? <CircularProgress size={24} /> : <EditIcon />}
         variant='contained'
       >
-        Review or edit data frame
+        {openButtonText}
       </Button>
       {isTransformed ? (
         <>
-          <div>** You have modified the data frame. **</div>
+          <div>{ifChangedText}</div>
           <Button
             className={classes.button}
             onClick={handleOnRevert}
@@ -393,10 +400,69 @@ export default function DataTransformationInput({
             startIcon={<RestoreIcon />}
             variant='contained'
           >
-            Revert to raw data
+            {resetButtonText}
           </Button>
         </>
       ) : null}
     </>
   );
+}
+
+export function AnnotationEditorInput({
+  onChange,
+  data,
+  numOutputs,
+  ...props
+}: WithInputParams<
+  {label?: string},
+  {[key: string]: any},
+  {[key: string]: any}
+>) {
+  return HandsOnTableInput({
+    onChange,
+    data,
+    numOutputs,
+    ...props
+  },
+  'Annotation data frame',
+  'Click the button below to add annotations.',
+  'Edit Annotations',
+  'Data frame changed from blank original. Click below to reset',
+  'Revert to original',
+  'Add/Edit Annotations',
+  [
+    'This is your annotations data frame. Add columns to the right to record annotations or notes and use column names (top-row) to establish what columns represent.',
+    '- Annotations: column(s) with names starting with \'annot\', e.g, \'annots_fine\' or \'annotations_broad\', will be treated as cluster calls that should be pulled into the dataset.',
+    '- Notes: Any columns whose names do not start with \'annot\' are "free" columns that will appear in your csv and xlsx downloads, but will be otherwise ignored by this workflow.',
+    'To apply a formula in a column, establich the formula in the first cell (2nd row), starting with an \'=\'. As an example, \'=IF(ISNUMBER(OR(FIND("CD4",A2),FIND(\"CD4\",A2))), \"T\", \"non-T\")\', might be useful for initiating an \'annots_broad\' column. Then click the "Propagate Formulas" button to propagate the formulas to rest of the columns.',
+    'Save and Commit often to not lose work!'
+  ])
+}
+
+export function DataTransformationInput({
+  onChange,
+  data,
+  numOutputs,
+  ...props
+}: WithInputParams<
+  {label?: string},
+  {[key: string]: any},
+  {[key: string]: any}
+>) {
+  return HandsOnTableInput({
+    onChange,
+    data,
+    numOutputs,
+    ...props
+  },
+  'data frame',
+  'You can preview or edit the data frame now, or just click "Commit" to accept the raw data.',
+  'Review or edit data frame',
+  '** You have modified the data frame. **',
+  'Revert to raw data',
+  'Transform your data',
+  [
+    'This is a preview of your data frame. You can edit the column headings or append additional columns on the right, by right-clicking and selecting "Insert column to right" in the context menu.',
+    'To apply a formula in a new column, just add a couple of cells with the formula to establish the pattern. Click the "Propagate Formulas" button to propagate the formulas to the entire table. Save, Commit, and Run!'
+  ])
 }

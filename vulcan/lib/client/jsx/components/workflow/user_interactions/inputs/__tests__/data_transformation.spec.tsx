@@ -5,7 +5,7 @@ import {
 } from '../../../../../test_utils/integration';
 
 import {Maybe, some} from '../../../../../selectors/maybe';
-import DataTransformationInput from '../data_transformation';
+import { DataTransformationInput } from '../data_transformation';
 import {DataEnvelope} from '../input_types';
 import {
   clickNode,

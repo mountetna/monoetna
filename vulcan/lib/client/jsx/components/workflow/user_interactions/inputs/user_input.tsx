@@ -34,7 +34,7 @@ import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox';
 import {stepOfSource} from '../../../../selectors/workflow_selectors';
 import AllOutputValuesNotEmptyValidator, { AllOutputValuesNotEmptyAllowingEmptyArrayValidator } from './validators/all_output_values_not_empty_validator';
 import DiffExpSC from './scDGE';
-import DataTransformation from './data_transformation';
+import { DataTransformationInput, AnnotationEditorInput } from './data_transformation';
 import AllInnerKeysNotNullValidator from './validators/all_inner_keys_not_null_validator';
 import PlusSubsetValidator from './validators/PlusSubsetValidator';
 import SelectAutocompleteMultiPickInput from './select_autocomplete_multi_choice';
@@ -67,7 +67,8 @@ configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInpu
 configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE_MULTI_PICK, NestedSelectAutocompleteMultiPickInput, StronglyNotEmptyValidator);
 configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
-configureComponent(TYPE.DATA_TRANSFORMATION, DataTransformation, AllInnerKeysNotNullValidator);
+configureComponent(TYPE.DATA_TRANSFORMATION, DataTransformationInput, AllInnerKeysNotNullValidator);
+configureComponent(TYPE.ANNOTATION_EDITOR, AnnotationEditorInput, AllInnerKeysNotNullValidator);
 configureComponent(TYPE.SCATTER_PLOTLY, ScatterPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
 configureComponent(TYPE.BAR_PLOTLY, BarPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
 configureComponent(TYPE.Y_PLOTLY, YPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));

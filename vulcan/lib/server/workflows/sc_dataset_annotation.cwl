@@ -49,16 +49,17 @@ steps:
       discrete_metadata_summary: get_dataset_and_summarize/discrete_metadata_summary
     out: [blank_annots.json]
   cluster_annotation:
-    run: ui-queries/multiple-string.cwl
-    label: 'Manually Annotate Clusters'
+    run: ui-queries/annotation-editor.cwl
+    label: 'Annotate Clusters'
+    doc: "Set annotations by adding columns in the Excel-like interface. Right click for an interactions menu where you can add/remove columns. Start columns names with 'annot' to mark them as such. All other columns will be treated as for human use only, and ignored by our system."
     in:
       a: prep_annotation_input/blank_annots.json
-    out: [annots.json]
+    out: [formulaic_data, calculated_data]
   convert_map_to_file_outputs:
     run: scripts/convert_annots_json_to_files.cwl
     label: 'Generate Output Files'
     in:
-      annots.json: cluster_annotation/annots.json
+      annots.json: cluster_annotation/calculated_data
     out: [annots.csv, annots.xlsx]
   download_annots_csv:
     run: ui-outputs/link.cwl
