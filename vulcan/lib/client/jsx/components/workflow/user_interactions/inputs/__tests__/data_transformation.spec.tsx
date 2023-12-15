@@ -5,7 +5,7 @@ import {
 } from '../../../../../test_utils/integration';
 
 import {Maybe, some} from '../../../../../selectors/maybe';
-import { DataTransformationInput } from '../data_transformation';
+import { DataTransformationInput, AnnotationEditorInput } from '../data_transformation';
 import {DataEnvelope} from '../input_types';
 import {
   clickNode,
@@ -37,6 +37,27 @@ describe('DataTransformationInput', () => {
       }
     } as DataEnvelope<DataEnvelope<{[key: string]: any}>>;
   });
+
+  describe('when parameterized with different text via AnnotationEditorInput', () => {
+    const integrated = setupBefore(() =>
+      integrateElement(
+        <AnnotationEditorInput
+          onChange={onChange.value}
+          value={value.value}
+          data={data.value}
+          numOutputs={2}
+        />
+      )
+    );
+    it('shows the different text', async () => {
+      const {node} = integrated.value;
+      expect(
+        matchesTextPredicate(
+          'Your Annotation data frame has 3 rows and 2 columns. Click the button below to add annotations.Edit Annotations',
+        )(node.root)
+      ).toEqual(true);
+    });
+  })
 
   const integrated = setupBefore(() =>
     integrateElement(
