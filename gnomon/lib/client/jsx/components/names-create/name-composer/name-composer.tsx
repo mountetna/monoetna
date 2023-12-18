@@ -299,7 +299,7 @@ const CreateNameGroupComposer = ({
 }) => {
     const dispatch = useDispatch();
     const classes = useComposerStyles({ includeRuleCounterIncrementer });
-    const [duplicateTracker, setDuplicateTracker] = useState({ local: 0, remote: 0 });
+    const [hasRemoteDuplicate, setHasRemoteDuplicate] = useState<boolean>(false);
 
     const globalState = useSelector(selectGlobalState);
     const projectName = useSelector(selectPathParts)[0];
@@ -318,29 +318,14 @@ const CreateNameGroupComposer = ({
     const localInstanceCount = useSelector(state => selectPrimaryCreateNameCountWithCompleteCreateNameLocalId(state, primaryCompleteCreateName?.localId));
     const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId);
 
-    // check for local duplicates
-    useEffect(() => {
-        if (checkForDuplicates) {
-            batch(() => {
-                setDuplicateTracker(tracker => ({ ...tracker, local: localInstanceCount }));
-
-                if (localInstanceCount > 1 || duplicateTracker.remote) {
-                    dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', true));
-                } else {
-                    dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', false));
-                }
-            });
-        }
-    }, [localInstanceCount]);
-
-    // check for remote duplicates when completeness changes
+    // check for duplicates
     useEffect(() => {
         async function _checkForDuplicates() {
             dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'inProgress'));
 
             if (!primaryCompleteCreateName) {
                 batch(() => {
-                    setDuplicateTracker({ local: 0, remote: 0 });
+                    setHasRemoteDuplicate(false);
                     dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', false));
                 });
                 return;
@@ -356,7 +341,7 @@ const CreateNameGroupComposer = ({
                 );
 
                 batch(() => {
-                    setDuplicateTracker({ local: localInstanceCount, remote: remoteDuplicate ? 1 : 0 });
+                    setHasRemoteDuplicate(remoteDuplicate);
 
                     if (localInstanceCount > 1 || remoteDuplicate) {
                         dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', true));
@@ -373,15 +358,15 @@ const CreateNameGroupComposer = ({
         if (checkForDuplicates) {
             _checkForDuplicates();
         }
-    }, [primaryCompleteCreateName?.localId]);
+    }, [primaryCompleteCreateName?.localId, localInstanceCount]);
 
     const createErrorMessage = () => {
         const errorMsgs: string[] = [];
 
-        if (duplicateTracker.local > 1) {
+        if (localInstanceCount > 1) {
             errorMsgs.push('locally');
         }
-        if (duplicateTracker.remote) {
+        if (hasRemoteDuplicate) {
             errorMsgs.push('in the database');
         }
 
