@@ -431,10 +431,10 @@ export function AnnotationEditorInput({
   'Revert to original',
   'Add/Edit Annotations',
   [
-    'This is your annotations data frame. Add columns to the right to record annotations or notes and use column names (top-row) to establish what columns represent.',
-    '- Annotations: column(s) with names starting with \'annot\', e.g, \'annots_fine\' or \'annotations_broad\', will be treated as cluster calls that should be pulled into the dataset.',
-    '- Notes: Any columns whose names do not start with \'annot\' are "free" columns that will appear in your csv and xlsx downloads, but will be otherwise ignored by this workflow.',
-    'To apply a formula in a column, establich the formula in the first cell (2nd row), starting with an \'=\'. As an example, \'=IF(ISNUMBER(OR(FIND("CD4",A2),FIND(\"CD4\",A2))), \"T\", \"non-T\")\', might be useful for initiating an \'annots_broad\' column. Then click the "Propagate Formulas" button to propagate the formulas to rest of the columns.',
+    'This is your annotations data frame. Add columns to the right to record annotations or notes and use column names (top row) to establish what columns represent.',
+    '- Annotations: columns with names starting with \'annot\', e.g, \'annots_fine\' or \'annotations_broad\', will be treated as cluster calls that should be pulled into the dataset.',
+    '- Notes: columns whose names do not start with \'annot\' are "free" columns that will appear in your csv and xlsx downloads, but will be otherwise ignored by this workflow.',
+    'To apply a formula in a column, establish the formula in the first cell (2nd row) by starting with an \'=\'. As an example, \'=IF(ISNUMBER(OR(FIND("CD4",B2),FIND(\"CD8\",B2))), \"T\", \"non-T\")\', might be useful for initiating an \'annots_broad\' column from an \'annots_fine\' column-B. Then click the "Propagate Formulas" button to propagate the formula down the rest of the column.',
     'Save and Commit often to not lose work!'
   ])
 }
