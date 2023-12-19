@@ -136,7 +136,6 @@ const NamesCreateButton = ({ small, className }: { small: boolean, className?: s
     const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length;
     const creationRequestPayloads = useSelector(selectCompleteCreateNamesCreationPayloads);
     const creationRequestState = useSelector(selectNamesCreationRequestState);
-    const composeErrorCount = useSelector(selectComposeErrorCount);
 
     let foundImplicit = false;
     const rows = creationRequestPayloads
@@ -248,7 +247,7 @@ const NamesCreateButton = ({ small, className }: { small: boolean, className?: s
                 variant={small ? 'compact' : 'full'}
                 color="#0057FF"
                 popperId="create-dialog"
-                disabled={completeCreateNameGroupsCount - composeErrorCount == 0}
+                disabled={completeCreateNameGroupsCount == 0}
                 onClickOrPopperChange={handleToggle}
                 className={className}
             />

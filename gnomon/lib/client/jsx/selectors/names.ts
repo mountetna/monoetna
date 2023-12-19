@@ -2,11 +2,12 @@ import { createSelector } from 'reselect';
 import _ from 'lodash';
 
 import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue, UNSET_VALUE } from '../models';
-import { CompleteCreateNameParentsByRenderedValues, ComposeErrorState, NamesCreationRequestState, NamesListRequestState, NamesState } from '../reducers/names/reducer';
+import { CompleteCreateNameParentsByRenderedValues, NamesCreationRequestState, NamesListRequestState, NamesState, namesReducer } from '../reducers/names/reducer';
 import { defaultDict } from '../utils/object';
 import { State } from '../store';
 import { selectRuleNamesHierarchicalListByPrimaryRuleName } from './rules';
 import { SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups } from '../utils/names';
+import { union } from '../utils/set';
 
 
 
@@ -213,6 +214,115 @@ export interface CompleteCreateNameRequestPayload {
     implicit: boolean
 }
 
+export const selectCreateNameCompleteCreateNameLocalIdsByCreateNameLocalId = (state: State): Record<string, string> => {
+    return state.names.createNameCompleteCreateNames.byCreateNameLocalId;
+};
+
+export const selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId = (state: State): Record<string, string[]> => {
+    return state.names.createNameCompleteCreateNames.byCompleteCreateNameLocalId;
+};
+
+export const selectCreateNameCompleteCreateNamesByLocalId = (state: State): Record<string, CreateNameCompleteCreateName> => {
+    return state.names.createNameCompleteCreateNames.byLocalId;
+};
+
+export const selectCompleteCreateNameParentLocalIdsByChildLocalId = (state: State): Record<string, string[]> => {
+    return state.names.completeCreateNameParents.byChildLocalId;
+};
+
+export const selectCompleteCreateNameParentsByLocalId = (state: State): Record<string, CompleteCreateNameParent> => {
+    return state.names.completeCreateNameParents.byLocalId;
+};
+
+export const selectPrimaryCreateNameCountByCompleteCreateNameLocalId: (state: State) => Record<string, number> = createSelector(
+    [(state: State) => state],
+    (state: State): Record<string, number> => {
+
+        const primaryCnCountByCcnLocalId: Record<string, number> = {};
+
+        for (const ccnLocalId of Object.keys(state.names.completeCreateNames.byLocalId)) {
+
+            let count = 0;
+            const cnccnLocalIds = (state.names.createNameCompleteCreateNames.byCompleteCreateNameLocalId[ccnLocalId] || []);
+
+            for (const cnccnLocalId of cnccnLocalIds) {
+                const createName = state.names.createNames.byLocalId[
+                    state.names.createNameCompleteCreateNames.byLocalId[cnccnLocalId].createNameLocalId
+                ];
+
+                if (state.names.createNameGroups.byLocalId[createName.createNameGroupLocalId].primaryCreateNameLocalId == createName.localId) {
+                    count += 1;
+                }
+            }
+
+            primaryCnCountByCcnLocalId[ccnLocalId] = count;
+        }
+
+        return primaryCnCountByCcnLocalId;
+    }
+);
+
+export const selectPrimaryCreateNameCountWithCompleteCreateNameLocalId = (state: State, completeCreateNameLocalId: string): number => {
+    return selectPrimaryCreateNameCountByCompleteCreateNameLocalId(state)[completeCreateNameLocalId];
+};
+
+export const selectNamesCreationRequestState = (state: State): NamesCreationRequestState => {
+    return state.names.creationRequest;
+};
+
+export const selectHasMagmaDuplicateWithCreateNameGroupLocalId = (state: State, createNameGroupLocalId: string): boolean => {
+    const magmaDuplicateRequestState = state.names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId[createNameGroupLocalId];
+    return magmaDuplicateRequestState && magmaDuplicateRequestState.hasDuplicate || false;
+};
+
+export const selectComposeErrorsByCreateNameGroupLocalId: (state: State) => Record<string, boolean> = createSelector(
+    [(state: State) => state],
+    (state: State): Record<string, boolean> => {
+        const composeErrorsByCngLocalId: Record<string, boolean> = {};
+
+        for (const cngLocalId of Object.keys(state.names.createNameGroups.byLocalId)) {
+
+            const primaryCnLocalId = state.names.createNameGroups.byLocalId[cngLocalId].primaryCreateNameLocalId;
+            const cnccnLocalId = state.names.createNameCompleteCreateNames.byCreateNameLocalId[primaryCnLocalId];
+
+            let hasLocalDuplicate = false;
+            if (cnccnLocalId) {
+                const primaryCnCount = selectPrimaryCreateNameCountWithCompleteCreateNameLocalId(
+                    state,
+                    state.names.createNameCompleteCreateNames.byLocalId[cnccnLocalId].completeCreateNameLocalId,
+                );
+
+                hasLocalDuplicate = primaryCnCount > 1;
+            }
+
+            composeErrorsByCngLocalId[cngLocalId] = hasLocalDuplicate || selectHasMagmaDuplicateWithCreateNameGroupLocalId(state, cnccnLocalId);
+        }
+
+        return composeErrorsByCngLocalId;
+    }
+);
+
+export const selectComposeErrorCount = (state: State): number => {
+    return Object.values(selectComposeErrorsByCreateNameGroupLocalId(state)).filter(val => val).length;
+};
+
+export const selectMagmaNamesListsByRuleName = (state: State): Record<string, NamesListRequestState> => {
+    return state.names.magmaNamesListRequestsByRuleName;
+};
+
+export const selectSearchVisible = (state: State): boolean => state.names.createNameGroups.searchVisible;
+
+export const selectReplaceVisible = (state: State): boolean => state.names.createNameGroups.replaceVisible;
+
+export const selectSearchReplaceCriteriaFromSearchGroups: (state: State) => SearchReplaceCriteria[] = createSelector(
+    [(state: State) => state],
+    (state: State): SearchReplaceCriteria[] => createSearchReplaceCriteriaFromGroups(state.names, state.names.createNameGroups.searchLocalIds)
+);
+
+export const selectSearchReplaceCriteriaFromReplaceGroups: (state: State) => SearchReplaceCriteria[] = createSelector(
+    [(state: State) => state],
+    (state: State): SearchReplaceCriteria[] => createSearchReplaceCriteriaFromGroups(state.names, state.names.createNameGroups.replaceLocalIds)
+);
 
 export const selectCompleteCreateNamesCreationPayloads: (state: State) => CompleteCreateNameRequestPayload[] = createSelector(
     [
@@ -239,11 +349,10 @@ export const selectCompleteCreateNamesCreationPayloads: (state: State) => Comple
                 // check if belongs to a completed (and error-less) CreateNameGroup
                 if (
                     completeCreateNameGroupLocalIds.has(_createName.createNameGroupLocalId)
-                    && _createName.createNameGroupLocalId in state.names.createNameGroups.composeErrorsByLocalId
-                    && !state.names.createNameGroups.composeErrorsByLocalId[_createName.createNameGroupLocalId].error
+                    && !selectComposeErrorsByCreateNameGroupLocalId(state)[_createName.createNameGroupLocalId]
                 ) {
                     createName = _createName;
-                    
+
                     // break if it's a primary CreateName,
                     // else keep the implicit CreateName association while we keep looking for a primary
                     if (primaryCreateNameLocalIds.has(createName.localId)) {
@@ -267,71 +376,4 @@ export const selectCompleteCreateNamesCreationPayloads: (state: State) => Comple
 
         return completeCreateNamesCreationPayloads;
     }
-);
-
-export const selectCreateNameCompleteCreateNameLocalIdsByCreateNameLocalId = (state: State): Record<string, string> => {
-    return state.names.createNameCompleteCreateNames.byCreateNameLocalId;
-};
-
-export const selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId = (state: State): Record<string, string[]> => {
-    return state.names.createNameCompleteCreateNames.byCompleteCreateNameLocalId;
-};
-
-export const selectCreateNameCompleteCreateNamesByLocalId = (state: State): Record<string, CreateNameCompleteCreateName> => {
-    return state.names.createNameCompleteCreateNames.byLocalId;
-};
-
-export const selectCompleteCreateNameParentLocalIdsByChildLocalId = (state: State): Record<string, string[]> => {
-    return state.names.completeCreateNameParents.byChildLocalId;
-};
-
-export const selectCompleteCreateNameParentsByLocalId = (state: State): Record<string, CompleteCreateNameParent> => {
-    return state.names.completeCreateNameParents.byLocalId;
-};
-
-export const selectPrimaryCreateNameCountWithCompleteCreateNameLocalId = (state: State, completeCreateNameLocalId: string): number => {
-    let count = 0;
-    const cnccnLocalIds = (state.names.createNameCompleteCreateNames.byCompleteCreateNameLocalId[completeCreateNameLocalId] || []);
-
-    for (const cnccnLocalId of cnccnLocalIds) {
-        const createName = state.names.createNames.byLocalId[
-            state.names.createNameCompleteCreateNames.byLocalId[cnccnLocalId].createNameLocalId
-        ];
-
-        if (state.names.createNameGroups.byLocalId[createName.createNameGroupLocalId].primaryCreateNameLocalId == createName.localId) {
-            count += 1;
-        }
-    }
-
-    return count;
-};
-
-export const selectNamesCreationRequestState = (state: State): NamesCreationRequestState => {
-    return state.names.creationRequest;
-};
-
-export const selectComposeErrorsByCreateNameGroupLocalId = (state: State): Record<string, ComposeErrorState> => {
-    return state.names.createNameGroups.composeErrorsByLocalId;
-};
-
-export const selectComposeErrorCount = (state: State): number => {
-    return Object.values(state.names.createNameGroups.composeErrorsByLocalId).filter(state => state.error).length;
-};
-
-export const selectMagmaNamesListsByRuleName = (state: State): Record<string, NamesListRequestState> => {
-    return state.names.magmaNamesListRequestsByRuleName;
-};
-
-export const selectSearchVisible = (state: State): boolean => state.names.createNameGroups.searchVisible;
-
-export const selectReplaceVisible = (state: State): boolean => state.names.createNameGroups.replaceVisible;
-
-export const selectSearchReplaceCriteriaFromSearchGroups: (state: State) => SearchReplaceCriteria[] = createSelector(
-    [(state: State) => state],
-    (state: State): SearchReplaceCriteria[] => createSearchReplaceCriteriaFromGroups(state.names, state.names.createNameGroups.searchLocalIds)
-);
-
-export const selectSearchReplaceCriteriaFromReplaceGroups: (state: State) => SearchReplaceCriteria[] = createSelector(
-    [(state: State) => state],
-    (state: State): SearchReplaceCriteria[] => createSearchReplaceCriteriaFromGroups(state.names, state.names.createNameGroups.replaceLocalIds)
 );

@@ -30,10 +30,10 @@ export const SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA = 'SET_CREATE_NA
 export const ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA = 'ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA';
 export const REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA = 'REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA';
 export const SET_MAGMA_NAMES_CREATION_REQUEST = 'SET_MAGMA_NAMES_CREATION_REQUEST';
-export const SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP = 'SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP';
 export const SET_MAGMA_NAMES_LIST_REQUEST = 'SET_MAGMA_NAMES_LIST_REQUEST';
 export const SET_SEARCH_VISIBILITY = 'SET_SEARCH_VISIBILITY';
 export const SET_REPLACE_VISIBILITY = 'SET_REPLACE_VISIBILITY';
+export const SET_MAGMA_CHECK_DUPLICATE_NAME_REQUEST = 'SET_MAGMA_CHECK_DUPLICATE_NAME_REQUEST';
 
 
 export function addNamesWithGroupsWithTokenValues(
@@ -473,11 +473,6 @@ export function makeCreateNamesCreationRequest(projectName: string, payloads: Co
 }
 
 
-export function setCreateNameGroupComposeError(createNameGroupLocalId: string, checkStatus: Status, hasError?: boolean) {
-    return makeActionObject(SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP, { createNameGroupLocalId, checkStatus, hasError });
-}
-
-
 export function setMagmaNamesListRequest(requestState: NamesListRequestState, ruleName: string) {
     return makeActionObject(SET_MAGMA_NAMES_LIST_REQUEST, {
         status: requestState.status,
@@ -495,6 +490,11 @@ export function setSearchVisibility(visible: boolean) {
 
 export function setReplaceVisibility(visible: boolean) {
     return makeActionObject(SET_REPLACE_VISIBILITY, { visible });
+}
+
+
+export function setMagmaCheckDuplicateNameRequest(createNameGroupLocalId: string, status: Status, hasDuplicate?: boolean) {
+    return makeActionObject(SET_MAGMA_CHECK_DUPLICATE_NAME_REQUEST, { createNameGroupLocalId, status, hasDuplicate });
 }
 
 
@@ -517,7 +517,7 @@ export type ACTION_TYPE =
     | ReturnType<typeof addCreateNameGroupsToReplaceCriteria>
     | ReturnType<typeof removeCreateNameGroupsFromReplaceCriteria>
     | ReturnType<typeof setMagmaNamesCreationRequest>
-    | ReturnType<typeof setCreateNameGroupComposeError>
     | ReturnType<typeof setMagmaNamesListRequest>
     | ReturnType<typeof setSearchVisibility>
     | ReturnType<typeof setReplaceVisibility>
+    | ReturnType<typeof setMagmaCheckDuplicateNameRequest>

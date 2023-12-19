@@ -12,8 +12,8 @@ import _ from 'lodash';
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleToken, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from '../../../models';
 import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRuleNamesHierarchicalListByPrimaryRuleName } from '../../../selectors/rules';
-import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId, selectRenderedCompleteCreateNamesByLocalId, selectSearchVisible, selectSearchReplaceCriteriaFromSearchGroups, selectReplaceVisible, selectSearchReplaceCriteriaFromReplaceGroups, selectReplaceCreateNameGroupIds, selectPrimaryCreateNameCountWithCompleteCreateNameLocalId } from '../../../selectors/names';
-import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, deleteCreateNameTokenValue, setCreateNameGroupComposeError } from '../../../actions/names';
+import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId, selectRenderedCompleteCreateNamesByLocalId, selectSearchVisible, selectSearchReplaceCriteriaFromSearchGroups, selectReplaceVisible, selectSearchReplaceCriteriaFromReplaceGroups, selectReplaceCreateNameGroupIds, selectPrimaryCreateNameCountWithCompleteCreateNameLocalId, selectHasMagmaDuplicateWithCreateNameGroupLocalId } from '../../../selectors/names';
+import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, deleteCreateNameTokenValue, setMagmaCheckDuplicateNameRequest } from '../../../actions/names';
 import { selectPathParts } from '../../../selectors/location';
 import { TokenSelect } from './select';
 import RuleCounterField from './rule-counter-input';
@@ -299,7 +299,6 @@ const CreateNameGroupComposer = ({
 }) => {
     const dispatch = useDispatch();
     const classes = useComposerStyles({ includeRuleCounterIncrementer });
-    const [hasRemoteDuplicate, setHasRemoteDuplicate] = useState<boolean>(false);
 
     const globalState = useSelector(selectGlobalState);
     const projectName = useSelector(selectPathParts)[0];
@@ -316,18 +315,18 @@ const CreateNameGroupComposer = ({
     const primaryCompleteCreateName = sortedCompleteCreateNamesWithCreateNameGroupLocalId[sortedCompleteCreateNamesWithCreateNameGroupLocalId.length - 1];
     // @ts-ignore
     const localInstanceCount = useSelector(state => selectPrimaryCreateNameCountWithCompleteCreateNameLocalId(state, primaryCompleteCreateName?.localId));
+    const hasLocalDuplicate = localInstanceCount > 1;
     const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId);
+    // @ts-ignore
+    const hasRemoteDuplicate = useSelector(state => selectHasMagmaDuplicateWithCreateNameGroupLocalId(state, createNameGroup.localId));
 
-    // check for duplicates
+    // check for remote duplicate
     useEffect(() => {
-        async function _checkForDuplicates() {
-            dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'inProgress'));
+        async function _checkForRemoteDuplicate() {
+            dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'inProgress'));
 
             if (!primaryCompleteCreateName) {
-                batch(() => {
-                    setHasRemoteDuplicate(false);
-                    dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', false));
-                });
+                dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'idle', false));
                 return;
             }
 
@@ -340,30 +339,26 @@ const CreateNameGroupComposer = ({
                     renderedName
                 );
 
-                batch(() => {
-                    setHasRemoteDuplicate(remoteDuplicate);
-
-                    if (localInstanceCount > 1 || remoteDuplicate) {
-                        dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', true));
-                    } else {
-                        dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'idle', false));
-                    }
-                });
+                if (remoteDuplicate) {
+                    dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'idle', true));
+                } else {
+                    dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'idle', false));
+                }
             } catch (err) {
                 console.error(`Error determining whether name "${renderedName}" has remote duplicate: ${err}"`);
-                dispatch(setCreateNameGroupComposeError(createNameGroup.localId, 'error'));
+                dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'error'));
             }
         }
 
         if (checkForDuplicates) {
-            _checkForDuplicates();
+            _checkForRemoteDuplicate();
         }
-    }, [primaryCompleteCreateName?.localId, localInstanceCount]);
+    }, [primaryCompleteCreateName?.localId]);
 
     const createErrorMessage = () => {
         const errorMsgs: string[] = [];
 
-        if (localInstanceCount > 1) {
+        if (hasLocalDuplicate) {
             errorMsgs.push('locally');
         }
         if (hasRemoteDuplicate) {

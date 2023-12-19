@@ -125,7 +125,7 @@ export function deleteGroupsWithNames(
             filterLocalIds: removeGroupsFromFilter(createNameGroupIds, newState).createNameGroups.filterLocalIds,
             replaceLocalIds: removeGroupsFromReplace(createNameGroupIds, newState).createNameGroups.replaceLocalIds,
             selectionLocalIds: removeGroupsFromSelection(createNameGroupIds, newState).createNameGroups.selectionLocalIds,
-            composeErrorsByLocalId: removeGroupsFromComposeErrors(createNameGroupIds, newState).createNameGroups.composeErrorsByLocalId,
+            magmaCheckDuplicateNameRequestsByLocalId: removeGroupsFromMagmaCheckDuplicateNameRequest(createNameGroupIds, newState).createNameGroups.magmaCheckDuplicateNameRequestsByLocalId,
         },
     };
 }
@@ -400,37 +400,37 @@ export function disableGroupFilter(state: NamesState): NamesState {
     };
 }
 
-export function setComposeErrorForCreateNameGroup(createNameGroupLocalId: string, checkStatus: Status, state: NamesState, hasError?: boolean): NamesState {
+export function setMagmaCheckDuplicateNameRequestForCreateNameGroup(createNameGroupLocalId: string, status: Status, state: NamesState, hasDuplicate?: boolean): NamesState {
     const newComposeErrorState = {
-        ...(state.createNameGroups.composeErrorsByLocalId[createNameGroupLocalId] || {}),
-        checkStatus,
-        error: hasError,
+        ...(state.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId[createNameGroupLocalId] || {}),
+        status,
+        hasDuplicate,
     };
 
     return {
         ...state,
         createNameGroups: {
             ...state.createNameGroups,
-            composeErrorsByLocalId: {
-                ...state.createNameGroups.composeErrorsByLocalId,
+            magmaCheckDuplicateNameRequestsByLocalId: {
+                ...state.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId,
                 [createNameGroupLocalId]: newComposeErrorState,
             },
         },
     };
 }
 
-export function removeGroupsFromComposeErrors(createNameGroupLocalIds: string[], state: NamesState): NamesState {
-    const newComposeErrorsByLocalId = { ...state.createNameGroups.composeErrorsByLocalId };
+export function removeGroupsFromMagmaCheckDuplicateNameRequest(createNameGroupLocalIds: string[], state: NamesState): NamesState {
+    const newmagmaCheckDuplicateNameRequestsByLocalId = { ...state.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId };
 
     for (const cngLocalId of createNameGroupLocalIds) {
-        delete newComposeErrorsByLocalId[cngLocalId];
+        delete newmagmaCheckDuplicateNameRequestsByLocalId[cngLocalId];
     }
 
     return {
         ...state,
         createNameGroups: {
             ...state.createNameGroups,
-            composeErrorsByLocalId: newComposeErrorsByLocalId,
+            magmaCheckDuplicateNameRequestsByLocalId: newmagmaCheckDuplicateNameRequestsByLocalId,
         },
     };
 }
