@@ -43,7 +43,7 @@ module Etna
 
     def with_yabeda_tags(tags, &block)
       if has_yabeda?
-        Yabeda.with_tags(tags, &block)
+        Yabeda.with_tags(**tags, &block)
       else
         yield
       end
