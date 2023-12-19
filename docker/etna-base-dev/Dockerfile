@@ -1,14 +1,14 @@
 FROM development-certs
 
-FROM ruby:2.7.6-bullseye
+FROM ruby:3.0.6-bullseye
 WORKDIR /app
 
 ENV DOCKER_VERSION 20.10.6
-ENV RUBY_VERSION 2.7.6
-ENV RUBY_MAJOR_VERSION 2.7.0
+ENV RUBY_VERSION 3.0.6
+ENV RUBY_MAJOR_VERSION 3.0.0
 # This is so dumb -- but if BUNDLER_VERSION is set as an environment variable,
 # it causes issues with bundler... bleck.  So, so add an underscore at the end.
-ENV BUNDLER_VERSION_ 2.3.15
+ENV BUNDLER_VERSION_ 2.4.21
 ENV DOCKERIZE_VERSION 0.5.0
 ENV NODE_VERSION 12.18.1
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
@@ -55,7 +55,7 @@ RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x6
 
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
 
-RUN rm /usr/local/lib/ruby/gems/2.7.0/specifications/default/bundler-*.gemspec
+RUN rm /usr/local/lib/ruby/gems/${RUBY_MAJOR_VERSION}/specifications/default/bundler-*.gemspec
 RUN gem install bundler --default -v "=$BUNDLER_VERSION_"
 RUN gem update --system
 
