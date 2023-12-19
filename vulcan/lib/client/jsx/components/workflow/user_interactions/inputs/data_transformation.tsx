@@ -61,6 +61,7 @@ function DataTransformationModal({
   originalData,
   onChange,
   onClose,
+  origColNamesEditable,
   dialogTitle,
   dialogTexts
 }: {
@@ -68,6 +69,7 @@ function DataTransformationModal({
   originalData: NestedArrayDataFrame;
   onChange: (data: Maybe<JsonDataFrame>) => void;
   onClose: () => void;
+  origColNamesEditable: boolean;
   dialogTitle: string;
   dialogTexts: string[];
 }) {
@@ -169,7 +171,7 @@ function DataTransformationModal({
               engine: hyperformulaInstance
             },
             cells: (row: number, col: number, props: any) => {
-              if (row > 0 && col < numOriginalCols) {
+              if ( (row > 0 || !origColNamesEditable) && col < numOriginalCols) {
                 return {
                   readOnly: true
                 };
@@ -269,6 +271,7 @@ export default function HandsOnTableInput({
   {[key: string]: any},
   {[key: string]: any}
 >,
+  origColNamesEditable: boolean,
   dataName: string,
   afterSummaryText: string,
   openButtonText: string,
@@ -373,6 +376,7 @@ export default function HandsOnTableInput({
           originalData={originalAsNestedArray}
           onChange={destructureOnChange}
           onClose={handleOnClose}
+          origColNamesEditable={origColNamesEditable}
           dialogTitle={dialogTitle}
           dialogTexts={dialogTexts}
         />
@@ -424,6 +428,7 @@ export function AnnotationEditorInput({
     numOutputs,
     ...props
   },
+  false,
   'Annotation data frame',
   'Click the button below to add annotations.',
   'Edit Annotations',
@@ -455,6 +460,7 @@ export function DataTransformationInput({
     numOutputs,
     ...props
   },
+  true,
   'data frame',
   'You can preview or edit the data frame now, or just click "Commit" to accept the raw data.',
   'Review or edit data frame',

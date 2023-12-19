@@ -24,10 +24,9 @@ export const extendDFFormulas = ({
     licenseKey: 'gpl-v3'
   };
 
-  // Start with the userDF, which is a subset of the original plus
-  //   any added columns. Assume added columns are on the right (will have
-  //   to enforce in the UI).
-  // Add in missing data from the original rows.
+  // Start with the userDF, which is the original plus
+  //   any added columns.
+  // We assume original data should not be edited.
   // And then apply equations in extra user-defined columns to
   //   ranges with hyperformula.getFillRangeData().
   const mergedDF: NestedArrayDataFrame = merge({original, user});
