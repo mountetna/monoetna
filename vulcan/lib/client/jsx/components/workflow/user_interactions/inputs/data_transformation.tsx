@@ -25,7 +25,7 @@ import {useMemoized} from '../../../../selectors/workflow_selectors';
 import useHandsonTable from './useHandsonTable';
 
 import {
-  zipDF,
+  extendDFFormulas,
   dimensions,
   merge,
   dataFrameJsonToNestedArray,
@@ -110,7 +110,7 @@ function DataTransformationModal({
   const handleExtendFormulas = useCallback(() => {
     if (!hotTableComponent.current) return;
 
-    const zippedData = zipDF({
+    const zippedData = extendDFFormulas({
       original: originalData,
       user: hotTableComponent.current.hotInstance.getSourceData()
     });
@@ -140,7 +140,7 @@ function DataTransformationModal({
       <DialogContent className={classes.dialog}>
         {
           dialogTexts==null ? null : dialogTexts.map(
-            (val) => <Typography className={classes.helpdoc}>{val}</Typography>
+            (val, ind) => <Typography key={ind} className={classes.helpdoc}>{val}</Typography>
           )
         }
         <Button
