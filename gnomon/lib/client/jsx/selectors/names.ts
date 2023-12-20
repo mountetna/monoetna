@@ -2,12 +2,13 @@ import { createSelector } from 'reselect';
 import _ from 'lodash';
 
 import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue, UNSET_VALUE } from '../models';
-import { CompleteCreateNameParentsByRenderedValues, NamesCreationRequestState, NamesListRequestState, NamesState, namesReducer } from '../reducers/names/reducer';
+import { CompleteCreateNameParentsByRenderedValues, MagmaCheckDuplicateNameRequestState, NamesCreationRequestState, NamesListRequestState, NamesState, namesReducer } from '../reducers/names/reducer';
 import { defaultDict } from '../utils/object';
 import { State } from '../store';
 import { selectRuleNamesHierarchicalListByPrimaryRuleName } from './rules';
 import { SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups } from '../utils/names';
 import { union } from '../utils/set';
+import { Status } from '../utils/models';
 
 
 
@@ -270,6 +271,10 @@ export const selectNamesCreationRequestState = (state: State): NamesCreationRequ
     return state.names.creationRequest;
 };
 
+export const selectCheckDuplicateNameRequestWithCreateNameGroupLocalId = (state: State, createNameGroupLocalId: string): MagmaCheckDuplicateNameRequestState | undefined => {
+    return state.names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId[createNameGroupLocalId];
+};
+
 export const selectHasMagmaDuplicateWithCreateNameGroupLocalId = (state: State, createNameGroupLocalId: string): boolean => {
     const magmaDuplicateRequestState = state.names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId[createNameGroupLocalId];
     return magmaDuplicateRequestState && magmaDuplicateRequestState.hasDuplicate || false;
@@ -295,7 +300,7 @@ export const selectComposeErrorsByCreateNameGroupLocalId: (state: State) => Reco
                 hasLocalDuplicate = primaryCnCount > 1;
             }
 
-            composeErrorsByCngLocalId[cngLocalId] = hasLocalDuplicate || selectHasMagmaDuplicateWithCreateNameGroupLocalId(state, cnccnLocalId);
+            composeErrorsByCngLocalId[cngLocalId] = hasLocalDuplicate || selectHasMagmaDuplicateWithCreateNameGroupLocalId(state, cngLocalId);
         }
 
         return composeErrorsByCngLocalId;
@@ -377,3 +382,11 @@ export const selectCompleteCreateNamesCreationPayloads: (state: State) => Comple
         return completeCreateNamesCreationPayloads;
     }
 );
+
+export const selectMagmaIncrementRequestStatusWithCreateNameGroupLocalId = (state: State, createNameGroupLocalId: string): Status | undefined => {
+    const requestState = state.names.createNameGroups.magmaIncrementCounterRequestsByLocalId[createNameGroupLocalId];
+    if (!requestState) {
+        return;
+    }
+    return requestState.status;
+};

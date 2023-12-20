@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Grid from '@material-ui/core/Grid';
-import { useSelector, batch } from 'react-redux';
+import { batch } from 'react-redux';
+import { useAppSelector as useSelector } from '../../hooks';
 import ButtonBase from '@material-ui/core/ButtonBase';
 import DeleteOutlineOutlinedIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import Checkbox from '@material-ui/core/Checkbox';

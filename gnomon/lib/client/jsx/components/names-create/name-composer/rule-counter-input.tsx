@@ -1,15 +1,18 @@
 import React from 'react';
+import { batch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
-import { useSelector } from 'react-redux';
 import ButtonBase from '@material-ui/core/ButtonBase';
 import FormControl from '@material-ui/core/FormControl';
 import _ from 'lodash';
 
-import { selectCompleteCreateNameParentLocalIdsByRenderedValues, selectRenderedCompleteCreateNamesByLocalId } from '../../../selectors/names';
+import { selectCompleteCreateNameParentLocalIdsByRenderedValues, selectMagmaIncrementRequestStatusWithCreateNameGroupLocalId, selectRenderedCompleteCreateNamesByLocalId } from '../../../selectors/names';
 import { fetchNextCounterValueFromMagma } from '../../../utils/names';
 import { selectRuleParentLocalIdsByRuleName } from '../../../selectors/rules';
 import { UNSET_VALUE } from '../../../models';
 import AutosizeTextInput from '../../autosize-text-input';
+import { useAppSelector as useSelector } from '../../../hooks';
+import { useDispatch } from '../../../utils/redux';
+import { setMagmaCheckDuplicateNameRequest, setMagmaIncrementCounterRequest } from '../../../actions/names';
 
 
 
@@ -70,6 +73,7 @@ const RuleCounterField = ({
     value,
     renderedTokensPrefix,
     parentCompleteCreateNameLocalId,
+    createNameGroupLocalId,
     projectName,
     ruleName,
     includeRuleCounterIncrementer = true,
@@ -80,6 +84,7 @@ const RuleCounterField = ({
     renderedTokensPrefix: string | undefined,
     // TODO: handle multiple parents
     parentCompleteCreateNameLocalId: string | undefined,
+    createNameGroupLocalId: string,
     projectName: string,
     ruleName: string,
     includeRuleCounterIncrementer?: boolean,
@@ -88,10 +93,13 @@ const RuleCounterField = ({
 }) => {
 
     const classes = useStyles({ highlight });
+    const dispatch = useDispatch();
 
     const completeCreateNameParentLocalIdsByRenderedValues = useSelector(selectCompleteCreateNameParentLocalIdsByRenderedValues);
     const needsParentCompleteCreateName = useSelector(selectRuleParentLocalIdsByRuleName)[ruleName] != undefined;
     const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId);
+
+    const incrementRequestStatus = useSelector(state => selectMagmaIncrementRequestStatusWithCreateNameGroupLocalId(state, createNameGroupLocalId));
 
     let fullRenderedTokensPrefix: string | undefined;
 
@@ -139,15 +147,22 @@ const RuleCounterField = ({
 
         const localMaxValue = hierarchyValues.length ? Math.max(...hierarchyValues) : -1;
 
+        dispatch(setMagmaIncrementCounterRequest(createNameGroupLocalId, 'inProgress'));
+
         try {
             const remoteNextValue = await fetchNextCounterValueFromMagma(
                 projectName,
                 ruleName,
                 fullRenderedTokensPrefix,
             );
-            handleSetCounterValue(Math.max(localMaxValue + 1, remoteNextValue));
+
+            batch(() => {
+                handleSetCounterValue(Math.max(localMaxValue + 1, remoteNextValue));
+                dispatch(setMagmaIncrementCounterRequest(createNameGroupLocalId, 'idle'));
+            });
         } catch (err) {
             console.error(`Error auto-incrementing counterValue: ${err}`);
+            dispatch(setMagmaIncrementCounterRequest(createNameGroupLocalId, 'error'));
         }
     };
 
@@ -167,6 +182,7 @@ const RuleCounterField = ({
                     disableRipple
                     disableTouchRipple
                     className={classes.autoIncrementButton}
+                    disabled={incrementRequestStatus && incrementRequestStatus == 'inProgress'}
                 >
                     +1
                 </ButtonBase>}

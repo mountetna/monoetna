@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { useSelector, batch } from 'react-redux';
+import { batch } from 'react-redux';
+import { useAppSelector as useSelector } from '../../hooks';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';

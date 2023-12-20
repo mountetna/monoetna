@@ -34,6 +34,7 @@ export const SET_MAGMA_NAMES_LIST_REQUEST = 'SET_MAGMA_NAMES_LIST_REQUEST';
 export const SET_SEARCH_VISIBILITY = 'SET_SEARCH_VISIBILITY';
 export const SET_REPLACE_VISIBILITY = 'SET_REPLACE_VISIBILITY';
 export const SET_MAGMA_CHECK_DUPLICATE_NAME_REQUEST = 'SET_MAGMA_CHECK_DUPLICATE_NAME_REQUEST';
+export const SET_MAGMA_INCREMENT_COUNTER_REQUEST = 'SET_MAGMA_INCREMENT_COUNTER_REQUEST';
 
 
 export function addNamesWithGroupsWithTokenValues(
@@ -498,6 +499,11 @@ export function setMagmaCheckDuplicateNameRequest(createNameGroupLocalId: string
 }
 
 
+export function setMagmaIncrementCounterRequest(createNameGroupLocalId: string, status: Status) {
+    return makeActionObject(SET_MAGMA_INCREMENT_COUNTER_REQUEST, { createNameGroupLocalId, status });
+}
+
+
 export type ACTION_TYPE =
     | ReturnType<typeof addNamesWithGroupsWithTokenValues>
     | ReturnType<typeof duplicateCreateNameGroups>
@@ -521,3 +527,4 @@ export type ACTION_TYPE =
     | ReturnType<typeof setSearchVisibility>
     | ReturnType<typeof setReplaceVisibility>
     | ReturnType<typeof setMagmaCheckDuplicateNameRequest>
+    | ReturnType<typeof setMagmaIncrementCounterRequest>

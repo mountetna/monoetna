@@ -125,7 +125,8 @@ export function deleteGroupsWithNames(
             filterLocalIds: removeGroupsFromFilter(createNameGroupIds, newState).createNameGroups.filterLocalIds,
             replaceLocalIds: removeGroupsFromReplace(createNameGroupIds, newState).createNameGroups.replaceLocalIds,
             selectionLocalIds: removeGroupsFromSelection(createNameGroupIds, newState).createNameGroups.selectionLocalIds,
-            magmaCheckDuplicateNameRequestsByLocalId: removeGroupsFromMagmaCheckDuplicateNameRequest(createNameGroupIds, newState).createNameGroups.magmaCheckDuplicateNameRequestsByLocalId,
+            magmaCheckDuplicateNameRequestsByLocalId: removeGroupsFromMagmaCheckDuplicateNameRequests(createNameGroupIds, newState).createNameGroups.magmaCheckDuplicateNameRequestsByLocalId,
+            magmaIncrementCounterRequestsByLocalId: removeGroupsFromMagmaIncrementCounterRequests(createNameGroupIds, state).createNameGroups.magmaIncrementCounterRequestsByLocalId,
         },
     };
 }
@@ -419,7 +420,7 @@ export function setMagmaCheckDuplicateNameRequestForCreateNameGroup(createNameGr
     };
 }
 
-export function removeGroupsFromMagmaCheckDuplicateNameRequest(createNameGroupLocalIds: string[], state: NamesState): NamesState {
+export function removeGroupsFromMagmaCheckDuplicateNameRequests(createNameGroupLocalIds: string[], state: NamesState): NamesState {
     const newmagmaCheckDuplicateNameRequestsByLocalId = { ...state.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId };
 
     for (const cngLocalId of createNameGroupLocalIds) {
@@ -431,6 +432,40 @@ export function removeGroupsFromMagmaCheckDuplicateNameRequest(createNameGroupLo
         createNameGroups: {
             ...state.createNameGroups,
             magmaCheckDuplicateNameRequestsByLocalId: newmagmaCheckDuplicateNameRequestsByLocalId,
+        },
+    };
+}
+
+export function setMagmaIncrementCounterRequestForCreateNameGroup(createNameGroupLocalId: string, status: Status, state: NamesState): NamesState {
+    const newRequestState = {
+        ...(state.createNameGroups.magmaIncrementCounterRequestsByLocalId[createNameGroupLocalId] || {}),
+        status,
+    };
+
+    return {
+        ...state,
+        createNameGroups: {
+            ...state.createNameGroups,
+            magmaIncrementCounterRequestsByLocalId: {
+                ...state.createNameGroups.magmaIncrementCounterRequestsByLocalId,
+                [createNameGroupLocalId]: newRequestState,
+            },
+        },
+    };
+}
+
+export function removeGroupsFromMagmaIncrementCounterRequests(createNameGroupLocalIds: string[], state: NamesState): NamesState {
+    const newmagmaIncrementCounterRequestsByLocalId = { ...state.createNameGroups.magmaIncrementCounterRequestsByLocalId };
+
+    for (const cngLocalId of createNameGroupLocalIds) {
+        delete newmagmaIncrementCounterRequestsByLocalId[cngLocalId];
+    }
+
+    return {
+        ...state,
+        createNameGroups: {
+            ...state.createNameGroups,
+            magmaIncrementCounterRequestsByLocalId: newmagmaIncrementCounterRequestsByLocalId,
         },
     };
 }

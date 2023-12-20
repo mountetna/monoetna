@@ -24,10 +24,11 @@ import {
     SET_SEARCH_VISIBILITY,
     SET_REPLACE_VISIBILITY,
     SET_MAGMA_CHECK_DUPLICATE_NAME_REQUEST,
+    SET_MAGMA_INCREMENT_COUNTER_REQUEST,
 } from '../../actions/names';
 import { MagmaBulkGenerateResponse, MagmaListName, MagmaRequestState } from '../../utils/names';
 import { Status } from '../../utils/models';
-import { addGroupsToReplace, addGroupsToSearch, addGroupsToSelection, addNamesWithGroupsAndTokensValues, deleteGroupsWithNames, deleteSelectedGroupsWithNames, deselectAllGroups, disableGroupFilter, removeGroupsFromReplace, removeGroupsFromSearch, removeGroupsFromSelection, setGroupsFilterFromSearchCriteria, setGroupsSelectionFromSearchCriteria, setMagmaCheckDuplicateNameRequestForCreateNameGroup, setRuleCounterValueForCreateNames } from './create-names-and-groups';
+import { addGroupsToReplace, addGroupsToSearch, addGroupsToSelection, addNamesWithGroupsAndTokensValues, deleteGroupsWithNames, deleteSelectedGroupsWithNames, deselectAllGroups, disableGroupFilter, removeGroupsFromReplace, removeGroupsFromSearch, removeGroupsFromSelection, setGroupsFilterFromSearchCriteria, setGroupsSelectionFromSearchCriteria, setMagmaCheckDuplicateNameRequestForCreateNameGroup, setMagmaIncrementCounterRequestForCreateNameGroup, setRuleCounterValueForCreateNames } from './create-names-and-groups';
 import { addCreateNameTokenValues, deleteCreateNameTokenValues } from './create-name-token-values';
 
 
@@ -107,6 +108,11 @@ export interface MagmaCheckDuplicateNameRequestState {
 }
 
 
+export interface MagmaIncrementCounterRequestState {
+    status: Status
+}
+
+
 interface CreateNameGroupsState {
     byLocalId: Record<string, CreateNameGroup>
     searchLocalIds: Set<string>
@@ -117,6 +123,7 @@ interface CreateNameGroupsState {
     filterLocalIds: Set<string>
     filterEnabled: boolean
     magmaCheckDuplicateNameRequestsByLocalId: Record<string, MagmaCheckDuplicateNameRequestState>
+    magmaIncrementCounterRequestsByLocalId: Record<string, MagmaIncrementCounterRequestState>
 }
 
 
@@ -173,6 +180,7 @@ const initialState: NamesState = {
         filterLocalIds: new Set(),
         filterEnabled: false,
         magmaCheckDuplicateNameRequestsByLocalId: {},
+        magmaIncrementCounterRequestsByLocalId: {},
     },
     creationRequest: { status: 'idle' },
     magmaNamesListRequestsByRuleName: {},
@@ -275,6 +283,12 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                     },
                 }
             };
+        case SET_MAGMA_INCREMENT_COUNTER_REQUEST:
+            return setMagmaIncrementCounterRequestForCreateNameGroup(
+                action.createNameGroupLocalId,
+                action.status,
+                state,
+            );
         case SET_SEARCH_VISIBILITY:
             return {
                 ...state,

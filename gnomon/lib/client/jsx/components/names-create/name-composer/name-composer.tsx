@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector, batch } from 'react-redux';
+import React, { useEffect } from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import FormGroup from '@material-ui/core/FormGroup';
 import ButtonBase from '@material-ui/core/ButtonBase';
@@ -8,19 +7,21 @@ import Tooltip from '@material-ui/core/Tooltip';
 import FileCopyOutlinedIcon from '@material-ui/icons/FileCopyOutlined';
 import DeleteOutlineOutlinedIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
+import AutorenewIcon from '@material-ui/icons/Autorenew';
 import _ from 'lodash';
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleToken, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from '../../../models';
 import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRuleNamesHierarchicalListByPrimaryRuleName } from '../../../selectors/rules';
-import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId, selectRenderedCompleteCreateNamesByLocalId, selectSearchVisible, selectSearchReplaceCriteriaFromSearchGroups, selectReplaceVisible, selectSearchReplaceCriteriaFromReplaceGroups, selectReplaceCreateNameGroupIds, selectPrimaryCreateNameCountWithCompleteCreateNameLocalId, selectHasMagmaDuplicateWithCreateNameGroupLocalId } from '../../../selectors/names';
+import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId, selectRenderedCompleteCreateNamesByLocalId, selectSearchVisible, selectSearchReplaceCriteriaFromSearchGroups, selectReplaceVisible, selectSearchReplaceCriteriaFromReplaceGroups, selectReplaceCreateNameGroupIds, selectPrimaryCreateNameCountWithCompleteCreateNameLocalId, selectHasMagmaDuplicateWithCreateNameGroupLocalId, selectMagmaIncrementRequestStatusWithCreateNameGroupLocalId, selectCheckDuplicateNameRequestWithCreateNameGroupLocalId } from '../../../selectors/names';
 import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, deleteCreateNameTokenValue, setMagmaCheckDuplicateNameRequest } from '../../../actions/names';
 import { selectPathParts } from '../../../selectors/location';
 import { TokenSelect } from './select';
 import RuleCounterField from './rule-counter-input';
-import { createLocalId } from '../../../utils/models';
+import { createLocalId, Status } from '../../../utils/models';
 import { useDispatch } from '../../../utils/redux';
 import { selectGlobalState } from '../../../selectors/global';
 import { fetchWhetherNameExistsInMagma } from '../../../utils/names';
+import { useAppSelector as useSelector } from '../../../hooks';
 
 
 const useEditorStyles = makeStyles((theme) => ({
@@ -34,7 +35,15 @@ const useEditorStyles = makeStyles((theme) => ({
 }));
 
 
-const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, includeRuleCounterIncrementer, parentCompleteCreateNameLocalId, error, highlightMatches }: {
+const CreateNameElementsEditor = ({
+    createName,
+    rule,
+    includeUnsetAsValue,
+    includeRuleCounterIncrementer,
+    parentCompleteCreateNameLocalId,
+    error,
+    highlightMatches,
+}: {
     createName: CreateName,
     rule: Rule,
     includeUnsetAsValue: boolean,
@@ -226,6 +235,7 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, inclu
                     value={createName.ruleCounterValue}
                     renderedTokensPrefix={renderedTokens}
                     parentCompleteCreateNameLocalId={parentCompleteCreateNameLocalId}
+                    createNameGroupLocalId={createName.createNameGroupLocalId}
                     projectName={projectName}
                     ruleName={rule.name}
                     includeRuleCounterIncrementer={includeRuleCounterIncrementer}
@@ -244,6 +254,11 @@ interface ComposerStylesProps {
 }
 
 
+enum StatusClass {
+    Error = 'hasError',
+    InProgress = 'hasInProgress',
+}
+
 
 const useComposerStyles = makeStyles<Theme, ComposerStylesProps>((theme) => ({
     container: {
@@ -253,6 +268,19 @@ const useComposerStyles = makeStyles<Theme, ComposerStylesProps>((theme) => ({
             // account for absolute positioning of RuleCounter Incrementer
             paddingTop: props => props.includeRuleCounterIncrementer ? '1.5em' : 'none',
         },
+        [`&.${StatusClass.InProgress} .name-info-tooltip`]: {
+            color: 'orange',
+            'animation': 'spin 4s linear infinite',
+        },
+        [`&.${StatusClass.Error} .name-info-tooltip`]: {
+            color: 'red',
+        },
+    },
+    '@keyframes spin': {
+        '100%': {
+            '-webkit-transform': 'rotate(360deg)',
+            'transform': 'rotate(360deg)',
+        }
     },
     toolsContainer: {
         display: 'inline-flex',
@@ -317,13 +345,22 @@ const CreateNameGroupComposer = ({
     const localInstanceCount = useSelector(state => selectPrimaryCreateNameCountWithCompleteCreateNameLocalId(state, primaryCompleteCreateName?.localId));
     const hasLocalDuplicate = localInstanceCount > 1;
     const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId);
-    // @ts-ignore
-    const hasRemoteDuplicate = useSelector(state => selectHasMagmaDuplicateWithCreateNameGroupLocalId(state, createNameGroup.localId));
+
+    const remoteDuplicateRequest = useSelector(state => selectCheckDuplicateNameRequestWithCreateNameGroupLocalId(state, createNameGroup.localId));
+    let hasRemoteDuplicate: boolean | undefined;
+    let remoteDuplicateRequestStatus: Status | undefined;
+    if (remoteDuplicateRequest) {
+        hasRemoteDuplicate = remoteDuplicateRequest && remoteDuplicateRequest.hasDuplicate || undefined;
+        remoteDuplicateRequestStatus = remoteDuplicateRequest.status;
+    }
+
+    const incrementRequestStatus = useSelector(state => selectMagmaIncrementRequestStatusWithCreateNameGroupLocalId(state, createNameGroup.localId));
 
     // check for remote duplicate
     useEffect(() => {
         async function _checkForRemoteDuplicate() {
-            dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'inProgress'));
+            // setting `hasDuplicate` to `true` temporarily to guard against creation
+            dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'inProgress', true));
 
             if (!primaryCompleteCreateName) {
                 dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'idle', false));
@@ -355,22 +392,66 @@ const CreateNameGroupComposer = ({
         }
     }, [primaryCompleteCreateName?.localId]);
 
-    const createErrorMessage = () => {
-        const errorMsgs: string[] = [];
+    const getStatusClass = () => {
+        let statusClass = '';
+
+        for (const status of [remoteDuplicateRequestStatus, incrementRequestStatus]) {
+            switch (status) {
+                case 'idle':
+                case 'success':
+                case undefined:
+                    break;
+                case 'error':
+                    statusClass = StatusClass.Error;
+                    break;
+                case 'inProgress':
+                    return StatusClass.InProgress;
+            }
+        }
+
+        if (hasLocalDuplicate || hasRemoteDuplicate) {
+            statusClass = StatusClass.Error;
+        }
+
+        return statusClass;
+    };
+
+    const statusClass = getStatusClass();
+
+    const createStatusMessage = () => {
+        if (remoteDuplicateRequestStatus == 'inProgress') {
+            return 'Checking for duplicates';
+        }
+        if (incrementRequestStatus == 'inProgress') {
+            return 'Getting next counter value';
+        }
+
+        const statusMsgs: string[] = [];
 
         if (hasLocalDuplicate) {
-            errorMsgs.push('locally');
+            statusMsgs.push('locally');
         }
         if (hasRemoteDuplicate) {
-            errorMsgs.push('in the database');
+            statusMsgs.push('in the database');
         }
 
-        return errorMsgs.length
-            ? `Name already exists ${errorMsgs.join(' and ')}`
+        return statusMsgs.length
+            ? `Name already exists ${statusMsgs.join(' and ')}`
             : undefined;
     };
 
-    const errorMessage = createErrorMessage();
+    const statusMessage = createStatusMessage();
+
+    const getStatusIcon = () => {
+        switch (statusClass) {
+            case StatusClass.InProgress:
+                return <AutorenewIcon />;
+            case StatusClass.Error:
+                return <ErrorOutlineIcon />;
+            default:
+                return <React.Fragment />;
+        }
+    };
 
     const handleClickSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
@@ -390,7 +471,7 @@ const CreateNameGroupComposer = ({
 
     return (
         <div
-            className={`${classes.container} ${errorMessage ? 'hasError' : ''} ${className != undefined ? className : ''}`}
+            className={`${classes.container} ${statusClass} ${className != undefined ? className : ''}`}
         >
             {
                 includeTools &&
@@ -444,26 +525,26 @@ const CreateNameGroupComposer = ({
                                     parentCompleteCreateNameLocalId={parentCompleteCreateName?.localId}
                                     includeRuleCounterIncrementer={includeRuleCounterIncrementer}
                                     includeUnsetAsValue={includeUnsetAsValue}
-                                    error={errorMessage != undefined}
+                                    error={statusMessage != undefined}
                                     highlightMatches={highlightMatches}
                                 />
                             </React.Fragment>
                         );
                     })
                 }
-                {errorMessage &&
+                {statusClass != '' && statusMessage &&
                     <Tooltip
-                        className={classes.infoTooltip}
+                        className={`${classes.infoTooltip} name-info-tooltip`}
                         title={
                             <span
                                 className={classes.infoTooltipContent}
                             >
-                                {errorMessage}
+                                {statusMessage}
                             </span>
                         }
                     >
                         <span className={classes.infoTooltipIconContainer}>
-                            <ErrorOutlineIcon />
+                            {getStatusIcon()}
                         </span>
                     </Tooltip>}
             </span>

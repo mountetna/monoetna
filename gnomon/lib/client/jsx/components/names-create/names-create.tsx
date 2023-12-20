@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import Grid from '@material-ui/core/Grid';
 import { makeStyles } from '@material-ui/core/styles';
-import { useSelector } from 'react-redux';
+import { useAppSelector as useSelector } from '../../hooks';
 import _ from 'lodash';
 
 import ProjectHeader from 'etna-js/components/project-header';
@@ -149,8 +149,7 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
     const dispatch = useDispatch();
     const classes = useStyles();
 
-    // @ts-ignore
-    const createNameGroupsIdsByPrimaryRule = useSelector((state: State) => selectCreateNameGroupIdsByPrimaryRule(state, true, true));
+    const createNameGroupsIdsByPrimaryRule = useSelector(state => selectCreateNameGroupIdsByPrimaryRule(state, true, true));
     const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length;
     let totalCreateNameGroupsCount = Object.keys(useSelector(selectCreateNameGroupsByLocalId)).length;
     const searchCreateNameGroupIds = useSelector(selectSearchCreateNameGroupIds).size;
