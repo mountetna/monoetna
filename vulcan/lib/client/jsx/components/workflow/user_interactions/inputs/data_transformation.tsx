@@ -61,17 +61,20 @@ function DataTransformationModal({
   originalData,
   onChange,
   onClose,
-  origColNamesEditable,
-  dialogTitle,
-  dialogTexts
+  modalOptions,
+  editorOptions
 }: {
   userData: NestedArrayDataFrame;
   originalData: NestedArrayDataFrame;
   onChange: (data: Maybe<JsonDataFrame>) => void;
   onClose: () => void;
-  origColNamesEditable: boolean;
-  dialogTitle: string;
-  dialogTexts: string[];
+  modalOptions: {
+    title: string,
+    texts?: string[] // wrap in * to bold, e.g. ['regular text', '*emphasized text*']
+  };
+  editorOptions: {
+    origColNamesEditable: boolean
+  };
 }) {
   const classes = useStyles();
 
@@ -127,7 +130,7 @@ function DataTransformationModal({
   return (
     <>
       <DialogTitle>
-        {dialogTitle} (
+        {modalOptions.title} (
         <Typography className={classes.subtitle}>
           <Link
             target='_blank'
@@ -141,8 +144,13 @@ function DataTransformationModal({
       </DialogTitle>
       <DialogContent className={classes.dialog}>
         {
-          dialogTexts==null ? null : dialogTexts.map(
-            (val, ind) => <Typography key={ind} className={classes.helpdoc}>{val}</Typography>
+          modalOptions.texts==null ? null : modalOptions.texts.map(
+            (val, ind) => {
+              if (val.startsWith('*') && val.endsWith('*')) {
+                val = <strong>{val.slice(1, val.length-2)}</strong>
+              }
+              return <Typography key={ind} className={classes.helpdoc}>{val}</Typography>
+            }
           )
         }
         <Button
@@ -171,7 +179,7 @@ function DataTransformationModal({
               engine: hyperformulaInstance
             },
             cells: (row: number, col: number, props: any) => {
-              if ( (row > 0 || !origColNamesEditable) && col < numOriginalCols) {
+              if ( (row > 0 || !editorOptions.origColNamesEditable) && col < numOriginalCols) {
                 return {
                   readOnly: true
                 };
@@ -271,14 +279,22 @@ export default function HandsOnTableInput({
   {[key: string]: any},
   {[key: string]: any}
 >,
-  origColNamesEditable: boolean,
   dataName: string,
   afterSummaryText: string,
   openButtonText: string,
-  ifChangedText: string,
-  resetButtonText: string,
-  dialogTitle: string,
-  dialogTexts: string[],
+  whenChangedOptions: {
+    doText: boolean
+    changedText?: string,
+    doResetButton: boolean,
+    resetButtonText?: string,
+  },
+  modalOptions: {
+    title: string,
+    texts?: string[]
+  },
+  editorOptions: {
+    origColNamesEditable: boolean
+  },
 ) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -376,9 +392,8 @@ export default function HandsOnTableInput({
           originalData={originalAsNestedArray}
           onChange={destructureOnChange}
           onClose={handleOnClose}
-          origColNamesEditable={origColNamesEditable}
-          dialogTitle={dialogTitle}
-          dialogTexts={dialogTexts}
+          modalOptions={modalOptions}
+          editorOptions={editorOptions}
         />
       </Dialog>
       <Button
@@ -394,18 +409,18 @@ export default function HandsOnTableInput({
       >
         {openButtonText}
       </Button>
-      {isTransformed ? (
+      {isTransformed && (whenChangedOptions.doText || whenChangedOptions.doResetButton) ? (
         <>
-          <div>{ifChangedText}</div>
-          <Button
+          {whenChangedOptions.doText ? <div>{whenChangedOptions.changedText || '** You have modified the data frame. **'}</div> : null}
+          {whenChangedOptions.doResetButton ? <Button
             className={classes.button}
             onClick={handleOnRevert}
             color='secondary'
             startIcon={<RestoreIcon />}
             variant='contained'
           >
-            {resetButtonText}
-          </Button>
+            {whenChangedOptions.resetButtonText || 'Revert to raw data'}
+          </Button> : null}
         </>
       ) : null}
     </>
@@ -428,20 +443,26 @@ export function AnnotationEditorInput({
     numOutputs,
     ...props
   },
-  false,
   'Annotation data frame',
   'Click the button below to add annotations.',
-  'Edit Annotations',
-  'Data frame changed from blank original. Click below to reset',
-  'Revert to original',
   'Add/Edit Annotations',
-  [
-    'This is your annotations data frame. Add columns to the right to record annotations or notes and use column names (top row) to establish what columns represent.',
-    '- Annotations: columns with names starting with \'annot\', e.g, \'annots_fine\' or \'annotations_broad\', will be treated as cluster calls that should be pulled into the dataset.',
-    '- Notes: columns whose names do not start with \'annot\' are "free" columns that will appear in your csv and xlsx downloads, but will be otherwise ignored by this workflow.',
-    'To apply a formula in a column, establish the formula in the first cell (2nd row) by starting with an \'=\'. As an example, \'=IF(ISNUMBER(OR(FIND("CD4",B2),FIND(\"CD8\",B2))), \"T\", \"non-T\")\', might be useful for initiating an \'annots_broad\' column from an \'annots_fine\' column-B. Then click the "Propagate Formulas" button to propagate the formula down the rest of the column.',
-    'Save and Commit often to not lose work!'
-  ])
+  {
+    doText: false,
+    doResetButton: false,
+  },
+  {
+    title: 'Add/Edit Annotations',
+    texts: [
+      'This is your annotations data frame. Add columns to the right, by right-clicking and selecting "Insert column to right" in the context menu, to record annotations or notes. Use column names (top row) to establish what columns represent.',
+      '- Annotations: columns with names starting with \'annot\', e.g, \'annots_fine\' or \'annotations_broad\', will be treated as cluster calls that should be pulled into the dataset.',
+      '- Notes: columns whose names do not start with \'annot\' are "free" columns that will appear in your csv and xlsx downloads, but will be otherwise ignored by this workflow.',
+      'To apply a formula in a column, establish the formula in the first data cell by starting with an \'=\'. As an example, \'=IF(ISNUMBER(OR(FIND("CD4",B2),FIND(\"CD8\",B2))), \"T\", \"non-T\")\', might be useful for initiating an \'annots_broad\' column from an \'annots_fine\' column-B. Then click the "Propagate Formulas" button to propagate the formula down the rest of the column.',
+      '*Save and Commit often to not lose work!*'
+    ]
+  },
+  {
+    origColNamesEditable: false
+  })
 }
 
 export function DataTransformationInput({
@@ -460,15 +481,23 @@ export function DataTransformationInput({
     numOutputs,
     ...props
   },
-  true,
   'data frame',
   'You can preview or edit the data frame now, or just click "Commit" to accept the raw data.',
   'Review or edit data frame',
-  '** You have modified the data frame. **',
-  'Revert to raw data',
-  'Transform your data',
-  [
-    'This is a preview of your data frame. You can edit the column headings or append additional columns on the right, by right-clicking and selecting "Insert column to right" in the context menu.',
-    'To apply a formula in a new column, just add a couple of cells with the formula to establish the pattern. Click the "Propagate Formulas" button to propagate the formulas to the entire table. Save, Commit, and Run!'
-  ])
+  {
+    doText: true,
+    changedText: '** You have modified the data frame. **', // Default value, not actually needed!
+    doResetButton: true,
+    resetButtonText: 'Revert to raw data', // Default value, not actually needed!
+  },
+  {
+    title: 'Transform your data',
+    texts: [
+      'This is a preview of your data frame. You can edit the column headings or append additional columns on the right, by right-clicking and selecting "Insert column to right" in the context menu.',
+      'To apply a formula in a new column, establish the formula in the first data cell by starting with an \'=\' then click the "Propagate Formulas" button to propagate the formula down the entire table. Save, Commit, and Run!'
+    ]
+  },
+  {
+    origColNamesEditable: true
+  })
 }
