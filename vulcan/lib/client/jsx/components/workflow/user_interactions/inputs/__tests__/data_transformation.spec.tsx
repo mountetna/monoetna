@@ -53,7 +53,7 @@ describe('DataTransformationInput', () => {
       const {node} = integrated.value;
       expect(
         matchesTextPredicate(
-          'Your Annotation data frame has 3 rows and 2 columns. Click the button below to add annotations.Edit Annotations',
+          'Your Annotation data frame has 3 rows and 2 columns. Click the button below to add annotations.Add/Edit Annotations',
         )(node.root)
       ).toEqual(true);
     });

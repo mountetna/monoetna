@@ -146,10 +146,10 @@ function DataTransformationModal({
         {
           modalOptions.texts==null ? null : modalOptions.texts.map(
             (val, ind) => {
-              if (val.startsWith('*') && val.endsWith('*')) {
-                val = <strong>{val.slice(1, val.length-2)}</strong>
-              }
-              return <Typography key={ind} className={classes.helpdoc}>{val}</Typography>
+              const show: any = (val.startsWith('*') && val.endsWith('*')) ? 
+                <strong>{val.slice(1, val.length-2)}</strong>:
+                val;
+              return <Typography key={ind} className={classes.helpdoc}>{show}</Typography>
             }
           )
         }
