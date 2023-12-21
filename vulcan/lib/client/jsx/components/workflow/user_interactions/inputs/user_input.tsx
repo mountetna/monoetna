@@ -41,6 +41,7 @@ import SelectAutocompleteMultiPickInput from './select_autocomplete_multi_choice
 import NestedSelectAutocompleteMultiPickInput from './nested_select_autocomplete_multi_choice';
 import { MetisFileInput, MetisFolderInput } from './metis_items';
 import { MetisFileValidator, MetisFolderValidator, MetisPathValidator } from './validators/metis_path_validators';
+import AnnotationEditorValidator from './validators/annotation_editor_validator';
 
 const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
 function configureComponent<Value, DataElement>(
@@ -68,7 +69,7 @@ configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE_MULTI_PICK, NestedSelectAutoc
 configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
 configureComponent(TYPE.DATA_TRANSFORMATION, DataTransformationInput, AllInnerKeysNotNullValidator);
-configureComponent(TYPE.ANNOTATION_EDITOR, AnnotationEditorInput, AllInnerKeysNotNullValidator);
+configureComponent(TYPE.ANNOTATION_EDITOR, AnnotationEditorInput, AnnotationEditorValidator);
 configureComponent(TYPE.SCATTER_PLOTLY, ScatterPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
 configureComponent(TYPE.BAR_PLOTLY, BarPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
 configureComponent(TYPE.Y_PLOTLY, YPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
