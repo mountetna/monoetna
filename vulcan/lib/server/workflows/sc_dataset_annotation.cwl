@@ -18,6 +18,10 @@ outputs:
     type: File
     format: xlsx
     outputSource: convert_map_to_file_outputs/annots.xlsx
+  scdata.rds:
+    type: File
+    format: rds
+    outputSource: output_scdata_with_annots/scdata.Rds
 
 steps:
   get_dataset_and_summarize:
@@ -26,6 +30,37 @@ steps:
     in:
       dataset_name: 1_Object_Selection__dataset_name
     out: [plotting_options, scdata, discrete_metadata_summary, all_opts, continuous_opts, discrete_opts, reduction_opts]
+  plot_setup_before:
+    run: ui-queries/any-dittoseq.cwl
+    label: 'Explore the data before annotating - Set plot options'
+    doc: "Options here determine both what type of plot to make, and how to set that plot up. For addtional details on individual inputs, see the 'Inputs of the Plot Configuration Interface' section of Vulcan's 'Help'-page documentation OR dittoSeq's own documentation. Any inputs without an exact label match within that Vulcan 'Help'-page table will map directly to some dittoSeq input for the function with the same name as your chosen plot type. You can find dittoSeq's documentation from either within R itself, run `?dittoSeq::<visualization-name>`, or from the RDRR.io page that pops up when you google the package."
+    in:
+      data_frame: get_dataset_and_summarize/discrete_metadata_summary
+      continuous_cols: get_dataset_and_summarize/continuous_opts
+      discrete_cols: get_dataset_and_summarize/discrete_opts
+      all_cols: get_dataset_and_summarize/all_opts
+      reduction_opts: get_dataset_and_summarize/reduction_opts
+    out: [plot_setup]
+  make_plot_before:
+    run: scripts/make_dittoSeq_plot.cwl
+    label: 'Create pre-annotation plot'
+    in:
+      plot_setup: plot_setup_before/plot_setup
+      scdata: get_dataset_and_summarize/scdata
+      plotting_options: get_dataset_and_summarize/plotting_options
+    out: [plot.out, legend.png, plot.png, plot.Rds]
+  download_plot_before:
+    run: ui-outputs/link.cwl
+    in:
+      a: make_plot_before/plot.Rds
+    out: []
+    label: 'Download pre-annotation plot object'
+  show_plot_before:
+    run: ui-outputs/plot.cwl
+    label: 'Display pre-annotation plot'
+    in:
+      a: make_plot_before/plot.out
+    out: []
   prep_clustering_selection_options:
     run: scripts/further_summarize_metadata.cwl
     label: 'Further metadata summary'
@@ -83,9 +118,22 @@ steps:
       discrete_opts: get_dataset_and_summarize/discrete_opts
       all_opts: get_dataset_and_summarize/all_opts
     out: [discrete_metadata_summary, discrete_opts, all_opts, plotting_options]
-  plot_setup:
+  output_scdata_with_annots:
+    run: scripts/add_annots_to_scdata.cwl
+    label: 'Re-output scdata object with annots built in'
+    in:
+      annots.csv: convert_map_to_file_outputs/annots.csv
+      scdata: get_dataset_and_summarize/scdata
+    out: [scdata.Rds]
+  download_scdata:
+    run: ui-outputs/link.cwl
+    in:
+      a: output_scdata_with_annots/scdata.Rds
+    out: []
+    label: 'Download updated scdata object'
+  plot_setup_after:
     run: ui-queries/any-dittoseq.cwl
-    label: 'Set plot options'
+    label: 'Explore with annotations - Set plot options'
     doc: "You will find your annotation columns among dropdowns that accept discrete data columns, either visible directly or visible within the 'Cell_Metadata' options set.\n\nOptions here determine both what type of plot to make, and how to set that plot up. For addtional details on individual inputs, see the 'Inputs of the Plot Configuration Interface' section of Vulcan's 'Help'-page documentation OR dittoSeq's own documentation. Any inputs without an exact label match within that Vulcan 'Help'-page table will map directly to some dittoSeq input for the function with the same name as your chosen plot type. You can find dittoSeq's documentation from either within R itself, run `?dittoSeq::<visualization-name>`, or from the RDRR.io page that pops up when you google the package."
     in:
       data_frame: determine_new_plotting_options/discrete_metadata_summary
@@ -94,24 +142,24 @@ steps:
       all_cols: determine_new_plotting_options/all_opts
       reduction_opts: get_dataset_and_summarize/reduction_opts
     out: [plot_setup]
-  make_plot:
+  make_plot_after:
     run: scripts/make_dittoSeq_plot_after_pulling_annots.cwl
-    label: 'Create Plot'
+    label: 'Create post-annotation plot'
     in:
       annots.csv: convert_map_to_file_outputs/annots.csv
-      plot_setup: plot_setup/plot_setup
+      plot_setup: plot_setup_after/plot_setup
       scdata: get_dataset_and_summarize/scdata
       plotting_options: determine_new_plotting_options/plotting_options
     out: [plot.out, legend.png, plot.png, plot.Rds]
-  download_plot:
+  download_plot_after:
     run: ui-outputs/link.cwl
     in:
-      a: make_plot/plot.Rds
+      a: make_plot_after/plot.Rds
     out: []
-    label: 'Download plot object'
-  show_plot:
+    label: 'Download post-annotation plot object'
+  show_plot_after:
     run: ui-outputs/plot.cwl
-    label: 'Display Plot'
+    label: 'Display post-annotation plot'
     in:
-      a: make_plot/plot.out
+      a: make_plot_after/plot.out
     out: []
