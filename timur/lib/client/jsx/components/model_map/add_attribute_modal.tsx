@@ -1,21 +1,16 @@
 import React, {useState, useCallback, useEffect} from 'react';
 
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {useModal} from 'etna-js/components/ModalDialogContainer';
-
-import DisabledButton from '../search/disabled_button';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 import {COMMA_SEP, SNAKE_CASE} from '../../utils/edit_map';
 import ModalSelect from './modal_select';
+import ModelActionsModal from './model_actions_modal';
 
-export default function AddAttributeModal({onSave}: {onSave: any}) {
+export default function AddAttributeModal({onClose,open,onSave}: {onSave: any}) {
   const [disabled, setDisabled] = useState(true);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState('');
   const [group, setGroup] = useState('');
-  const {dismissModal} = useModal();
-  const invoke = useActionInvoker();
 
   const handleOnSave = useCallback(() => {
     onSave({
@@ -35,8 +30,13 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
   }, [name, description, type]);
 
   const handleOnCancel = useCallback(() => {
-    invoke(dismissModal());
-  }, [invoke, dismissModal]);
+    onClose()
+    setDisabled(true);
+    setName('');
+    setDescription('');
+    setType('');
+    setGroup('');
+  }, []);
 
   const attributeTypes = [
     'string',
@@ -51,9 +51,7 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
   ];
 
   return (
-    <div className='add-attribute-modal model-actions-modal'>
-      <div className='header'>Add Attribute</div>
-      <div className='options-tray tray'>
+    <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Add Attribute' saveDisabled={disabled}>
         <ShrinkingLabelTextField
           id='attribute-name'
           label='Name (snake_case)'
@@ -83,23 +81,6 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
           onChange={setType}
           options={attributeTypes}
         />
-      </div>
-      <div className='options-action-wrapper'>
-        <DisabledButton
-          id='cancel-add-attribute-btn'
-          className='cancel'
-          label='Cancel'
-          disabled={false}
-          onClick={handleOnCancel}
-        />
-        <DisabledButton
-          id='add-attribute-btn'
-          className='save'
-          label='Save'
-          disabled={disabled}
-          onClick={handleOnSave}
-        />
-      </div>
-    </div>
+    </ModelActionsModal>
   );
 }

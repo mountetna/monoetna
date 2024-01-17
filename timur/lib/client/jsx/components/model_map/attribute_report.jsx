@@ -10,7 +10,6 @@ import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import {requestAnswer} from 'etna-js/actions/magma_actions';
-import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectModels} from 'etna-js/selectors/magma';
 
@@ -85,9 +84,10 @@ const ManageAttributeActions = ({
   handleRemoveLink
 }) => {
   const classes = useStyles();
-  const {openModal} = useModal();
 
   const models = useReduxState((state) => selectModels(state));
+
+  const [ showEditAttributeModal, setShowEditAttributeModal ] = useState(false);
 
   const reciprocalAttribute = useMemo(() => {
     if (!attribute.link_model_name || !attribute.link_attribute_name)
@@ -167,30 +167,22 @@ const ManageAttributeActions = ({
             onClick={handleConfirmRemove}
             size='small'
             color='primary'
-            className={classes.button}
-          >
-            Remove
-          </Button>
+            className={classes.button}>Remove</Button>
         </Tooltip>
       )}
       <Tooltip title='Edit Attribute'>
         <Button
           startIcon={<EditIcon />}
-          onClick={() => {
-            openModal(
-              <EditAttributeModal
-                attribute={attribute}
-                onSave={handleEditAttribute}
-              />
-            );
-          }}
+          onClick={() => setShowEditAttributeModal(true)}
           size='small'
           color='secondary'
-          className={classes.button}
-        >
-          Edit
-        </Button>
+          className={classes.button}>Edit</Button>
       </Tooltip>
+      <EditAttributeModal
+        open={showEditAttributeModal}
+        onClose={ () => setShowEditAttributeModal(false)}
+        attribute={attribute}
+        onSave={handleEditAttribute}/>
     </>
   );
 };

@@ -33,6 +33,7 @@ export function ShrinkingLabelTextField({additionalError, ...props}: any) {
       inputProps={{
         pattern: props.pattern
       }}
+      fullWidth
       onChange={handleValidation}
     />
   );

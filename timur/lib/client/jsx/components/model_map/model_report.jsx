@@ -139,7 +139,12 @@ const ManageModelActions = ({
   modelName
 }) => {
   const classes = attributeStyles();
-  const {openModal} = useModal();
+  const [ showCopyModelModal, setShowCopyModelModal ] = useState(false);
+  const [ showAddModelModal, setShowAddModelModal ] = useState(false);
+  const [ showAddAttributeModal, setShowAddAttributeModal ] = useState(false);
+  const [ showAddLinkModal, setShowAddLinkModal ] = useState(false);
+  const [ showReparentModelModal, setShowReparentModelModal ] = useState(false);
+  const [ showRemoveModelModal, setShowRemoveModelModal ] = useState(false);
 
   const reparentTooltip = determiningCanReparent ? 'Determining if reparenting is possible' :
     canReparent ? 'Reparent Model' : 'Cannot reparent a model containing records'
@@ -150,61 +155,52 @@ const ManageModelActions = ({
         <Button
           className={classes.addBtn}
           startIcon={<AddIcon />}
-          onClick={() => {
-            openModal(<AddAttributeModal onSave={handleAddAttribute} />, {
-              closeOnClickBackdrop: false
-            });
-          }}
+          onClick={() => setShowAddAttributeModal(true) }
         >
           Attribute
         </Button>
       </Tooltip>
+      <AddAttributeModal
+        onClose={ () => setShowAddAttributeModal(false) }
+        open={showAddAttributeModal}
+        onSave={handleAddAttribute} />
       <Tooltip title='Add Link' aria-label='Add Link'>
         <Button
           className={classes.addBtn}
           startIcon={<LinkIcon />}
-          onClick={() => {
-            openModal(<AddLinkModal onSave={handleAddLink} />, {
-              closeOnClickBackdrop: false
-            });
-          }}
+          onClick={() => setShowAddLinkModal(true)}
         >
           Link
         </Button>
       </Tooltip>
+      <AddLinkModal
+        onClose={ () => setShowAddLinkModal(false) }
+        open={showAddLinkModal}
+        onSave={handleAddLink} />
       <Tooltip title='Add Model' aria-label='Add Model'>
         <Button
           className={classes.addBtn}
           startIcon={<LibraryAddIcon />}
-          onClick={() => {
-            openModal(
-              <AddModelModal modelName={modelName} onSave={handleAddModel} />,
-              {
-                closeOnClickBackdrop: false
-              }
-            );
-          }}
+          onClick={() => setShowAddModelModal(true)}
         >
           Model
         </Button>
       </Tooltip>
+      <AddModelModal
+        modelName={modelName}
+        onClose={ () => setShowAddModelModal(false) }
+        open={showAddModelModal}
+        onSave={handleAddModel} />
       <Tooltip title='Copy Model Attributes' aria-label='Copy Model Attributes'>
         <Button
           className={classes.addBtn}
           startIcon={<FileCopyIcon />}
-          onClick={() => {
-            openModal(
-              <CopyModelModal modelName={modelName} onSave={handleCopyModel} />,
-              {
-                closeOnClickBackdrop: false
-              }
-            );
-          }}
+          onClick={() => setShowCopyModelModal(true)}
         >
           Copy
         </Button>
       </Tooltip>
-      <Tooltip title={reparentTooltip} aria-label={reparentTooltip}>
+<<<<<<< HEAD
         <span>
           <Button
             className={classes.addBtn}
@@ -226,27 +222,43 @@ const ManageModelActions = ({
           </Button>
         </span>
       </Tooltip>
-      {isLeaf && (
+      <CopyModelModal
+        modelName={modelName}
+        onClose={ () => setShowCopyModelModal(false) }
+        open={showCopyModelModal}
+        onSave={handleCopyModel} />
+      <Tooltip title={reparentTooltip} aria-label={reparentTooltip}>
+        <Button
+          className={classes.addBtn}
+          startIcon={<SwapHorizIcon />}
+          onClick={() => setShowReparentModelModal(true)}
+        >
+          Reparent Model
+        </Button>
+      </Tooltip>
+      <ReparentModelModal
+        modelName={modelName}
+        onClose={ () => setShowReparentModelModal(false) }
+        open={showReparentModelModal}
+        onSave={handleReparentModel}
+      />
+      {isLeaf && <>
         <Tooltip title='Remove Model' aria-label='Remove Model'>
           <Button
             className={classes.addBtn}
             startIcon={<DeleteIcon />}
-            onClick={() => {
-              openModal(
-                <RemoveModelModal
-                  modelName={modelName}
-                  onSave={handleRemoveModel}
-                />,
-                {
-                  closeOnClickBackdrop: false
-                }
-              );
-            }}
+            onClick={() => setShowRemoveModelModal(true)}
           >
             Remove Model
           </Button>
         </Tooltip>
-      )}
+        <RemoveModelModal
+          modelName={modelName}
+          onClose={ () => setShowRemoveModelModal(false) }
+          open={showRemoveModelModal}
+          onSave={handleRemoveModel}
+        />
+      </>}
     </>
   );
 };

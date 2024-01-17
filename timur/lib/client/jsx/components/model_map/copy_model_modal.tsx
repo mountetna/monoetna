@@ -1,18 +1,20 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 
 import {makeStyles} from '@material-ui/core/styles';
+import DialogContentText from '@material-ui/core/DialogContentText';
 import Typography from '@material-ui/core/Typography';
 
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 import {SNAKE_CASE, SNAKE_CASE_STRICT} from '../../utils/edit_map';
-import DisabledButton from '../search/disabled_button';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 import AntSwitch from '../query/ant_switch';
 import {SelectProjectModel} from '../select_project_model';
+import ModelActionsModal from './model_actions_modal';
+
+import {useDispatch} from 'react-redux';
+import {requestAnswer} from 'etna-js/actions/magma_actions';
 
 const useStyles = makeStyles((theme) => ({
   switch: {
@@ -25,16 +27,14 @@ const useStyles = makeStyles((theme) => ({
 
 export default function CopyModelModal({
   modelName,
-  onSave
+  open,
+  onSave,
+  onClose
 }: {
   onSave: any;
   modelName: string;
 }) {
   const [disabled, setDisabled] = useState(true);
-  const [identifier, setIdentifier] = useState('');
-  const [childModelName, setChildModelName] = useState('');
-  const [isTable, setIsTable] = useState(false);
-  const [childModelNameExists, setChildModelNameExists] = useState(false);
   const [templateProjectName, setTemplateProjectName] = useState(null);
   const [templateModelName, setTemplateModelName] = useState('');
   const [error, setError] = useState(null);
@@ -42,110 +42,53 @@ export default function CopyModelModal({
 
   const models = useReduxState((state: any) => selectModels(state));
 
-  const {dismissModal} = useModal();
-  const invoke = useActionInvoker();
+  const model = models[templateModelName];
+
+  useEffect( () => {
+    if (templateModelName && templateProjectName) {
+    }
+    requestDocuments({
+      project_name: templateProjectName
+    })(dispatch)
+      .then(({answer}) => {
+        setModels(answer.sort());
+        setError(null);
+      })
+      .catch((e) => e.then(({error}) => setError(error)));
+  }, [project_name]);
+
+  }, [ templateModelName ]);
 
   const handleOnSave = useCallback(() => {
-    onSave({
-      identifier: isTable ? 'id' : identifier,
-      model_name: childModelName,
-      parent_link_type: isTable ? 'table' : 'collection'
-    });
-  }, [identifier, childModelName, isTable]);
-
-  const existingModelNames = useMemo(() => {
-    return Object.keys(models);
-  }, [models]);
-
-  useEffect(() => {
-    if (
-      (isTable ? true : identifier) &&
-      childModelName &&
-      !childModelNameExists
-    ) {
-      setDisabled(false);
-    } else {
-      setDisabled(true);
-    }
-  }, [childModelNameExists, identifier, childModelName, isTable]);
+    onSave({ });
+  }, []);
 
   const handleOnCancel = useCallback(() => {
-    invoke(dismissModal());
-  }, [invoke, dismissModal]);
+    onClose()
+    setDisabled(true);
+    setTemplateProjectName(null);
+    setTemplateModelName('');
+    setError(null);
+  }, []);
 
-  const validateChildModelName = useCallback(
-    (input: string) => {
-      if (existingModelNames.includes(input)) {
-        setChildModelNameExists(true);
-      } else {
-        setChildModelNameExists(false);
-      }
-      setChildModelName(input);
-    },
-    [existingModelNames]
-  );
+  const dispatch = useDispatch();
 
   return (
-    <div className='add-model-modal model-actions-modal'>
-      <div className='header'>Copy Model</div>
-      <div className='options-tray tray'>
-        <SelectProjectModel
-          project_name={templateProjectName}
-          setProjectName={setTemplateProjectName}
-          model_name={templateModelName}
-          setModelName={setTemplateModelName}
-          error={error}
-          setError={setError}
-        />
-        <div className={classes.switch}>
-          <AntSwitch
-            leftOption='Collection'
-            rightOption='Table'
-            name='Model Type'
-            checked={isTable}
-            onChange={() => setIsTable(!isTable)}
-          />
-          {isTable ? (
-            <Typography>
-              The model will contain tabular data associated with the parent
-              record.
-            </Typography>
-          ) : (
-            <Typography>
-              The model will be a collection of named records.
-            </Typography>
-          )}
-        </div>
-        {!isTable ? (
-          <ShrinkingLabelTextField
-            id='model-identifier'
-            label='Identifier attribute name (snake_case)'
-            value={identifier}
-            onChange={(e: React.ChangeEvent<any>) =>
-              setIdentifier(e.target.value)
-            }
-            pattern={SNAKE_CASE}
-          />
-        ) : (
-          <div className={classes.filler}></div>
-        )}
-      </div>
-      <div className='options-action-wrapper'>
-        <DisabledButton
-          id='cancel-add-link-btn'
-          className='cancel'
-          label='Cancel'
-          disabled={false}
-          onClick={handleOnCancel}
-        />
-        <DisabledButton
-          id='add-link-btn'
-          className='save'
-          label='Save'
-          disabled={disabled}
-          onClick={handleOnSave}
-        />
-      </div>
-    </div>
+    <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Copy Model' saveDisabled={disabled}>
+      <SelectProjectModel
+        project_name={templateProjectName}
+        setProjectName={setTemplateProjectName}
+        model_name={templateModelName}
+        setModelName={setTemplateModelName}
+        error={error}
+        setError={setError}
+      />
+      { model && <>
+        <DialogContentText>
+          <Typography>Select attributes to copy</Typography>
+        </DialogContentText>
+      </>}
+      
+    </ModelActionsModal>
   );
 }

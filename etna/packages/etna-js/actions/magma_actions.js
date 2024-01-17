@@ -94,7 +94,8 @@ export const requestDocuments = ({
   page_size,
   collapse_tables,
   exchange_name,
-  output_predicate
+  output_predicate,
+  ...params
 }) => dispatch => {
   const exchange = new Exchange(dispatch, exchange_name);
   return getDocuments(
@@ -107,7 +108,8 @@ export const requestDocuments = ({
       page,
       page_size,
       collapse_tables,
-      output_predicate
+      output_predicate,
+      ...params
     },
     exchange.fetch.bind(exchange)
   ).then( response => {

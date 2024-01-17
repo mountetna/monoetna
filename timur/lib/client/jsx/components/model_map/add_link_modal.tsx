@@ -7,11 +7,11 @@ import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 import {SNAKE_CASE} from '../../utils/edit_map';
-import DisabledButton from '../search/disabled_button';
 import ModalSelect from './modal_select';
+import ModelActionsModal from './model_actions_modal';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 
-export default function AddLinkModal({onSave}: {onSave: any}) {
+export default function AddLinkModal({onSave,open,onClose}: {onSave: any}) {
   const [disabled, setDisabled] = useState(true);
   const [linkAttributeName, setLinkAttributeName] = useState('');
   const [reciprocalModelName, setReciprocalModelName] = useState('');
@@ -19,9 +19,6 @@ export default function AddLinkModal({onSave}: {onSave: any}) {
   const [reciprocalLinkType, setReciprocalLinkType] = useState('');
 
   const models = useReduxState((state: any) => selectModels(state));
-
-  const {dismissModal} = useModal();
-  const invoke = useActionInvoker();
 
   const handleOnSave = useCallback(() => {
     onSave({
@@ -56,8 +53,13 @@ export default function AddLinkModal({onSave}: {onSave: any}) {
   ]);
 
   const handleOnCancel = useCallback(() => {
-    invoke(dismissModal());
-  }, [invoke, dismissModal]);
+    onClose()
+    setDisabled(true);
+    setLinkAttributeName('');
+    setReciprocalModelName('');
+    setReciprocalAttributeName('');
+    setReciprocalLinkType('');
+  }, []);
 
   const reciprocalModelNameOptions = useMemo(() => {
     return Object.keys(models);
@@ -66,9 +68,7 @@ export default function AddLinkModal({onSave}: {onSave: any}) {
   const reciprocalLinkTypeOptions = ['child', 'collection'];
 
   return (
-    <div className='add-link-modal model-actions-modal'>
-      <div className='header'>Add Link</div>
-      <div className='options-tray tray'>
+    <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Add Link' saveDisabled={disabled}>
         <ShrinkingLabelTextField
           id='link-attribute-name'
           label='Link Attribute Name (snake_case)'
@@ -103,23 +103,6 @@ export default function AddLinkModal({onSave}: {onSave: any}) {
           onChange={setReciprocalLinkType}
           options={reciprocalLinkTypeOptions}
         />
-      </div>
-      <div className='options-action-wrapper'>
-        <DisabledButton
-          id='cancel-add-link-btn'
-          className='cancel'
-          label='Cancel'
-          disabled={false}
-          onClick={handleOnCancel}
-        />
-        <DisabledButton
-          id='add-link-btn'
-          className='save'
-          label='Save'
-          disabled={disabled}
-          onClick={handleOnSave}
-        />
-      </div>
-    </div>
+    </ModelActionsModal>
   );
 }

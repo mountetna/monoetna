@@ -17,6 +17,8 @@ const useStyles = makeStyles((theme) => ({
 
 export default function RemoveModelModal({
   onSave,
+  onClose,
+  open,
   modelName
 }: {
   onSave: any;
@@ -26,8 +28,6 @@ export default function RemoveModelModal({
   const [deleteModelName, setDeleteModelName] = useState('');
 
   const classes = useStyles();
-  const {dismissModal} = useModal();
-  const invoke = useActionInvoker();
 
   const handleOnSave = useCallback(() => {
     onSave();
@@ -46,13 +46,13 @@ export default function RemoveModelModal({
   }, [deleteModelNameMatches]);
 
   const handleOnCancel = useCallback(() => {
-    invoke(dismissModal());
-  }, [invoke, dismissModal]);
+    onClose();
+    setDeleteModelName('');
+    setDisabled(true);
+  }, []);
 
   return (
-    <div className='remove-model-modal model-actions-modal'>
-      <div className='header'>Remove Model</div>
-      <div className='options-tray tray'>
+    <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Remove Model' saveDisabled={disabled} saveLabel='Remove'>
         <Typography className={classes.instructions}>
           Removing the model may result in loss of data -- please type in the
           name of the model to confirm this action. Note that you cannot undo
@@ -72,23 +72,6 @@ export default function RemoveModelModal({
             setDeleteModelName(e.target.value)
           }
         />
-      </div>
-      <div className='options-action-wrapper'>
-        <DisabledButton
-          id='cancel-add-link-btn'
-          className='cancel'
-          label='Cancel'
-          disabled={false}
-          onClick={handleOnCancel}
-        />
-        <DisabledButton
-          id='add-link-btn'
-          className='save'
-          label='Remove'
-          disabled={disabled}
-          onClick={handleOnSave}
-        />
-      </div>
-    </div>
+    </ModelActionsModal>
   );
 }

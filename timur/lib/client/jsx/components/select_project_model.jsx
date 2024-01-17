@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export const SelectProjectModel = ({project_name, setProjectName, model_name, setModelName, error, setError}) => {
+export const SelectProjectModel = ({project_name, setProjectName, model_name, setModelName, error, setError, disablePortal=false}) => {
   const classes = useStyles();
 
   const [models, setModels] = useState(null);
@@ -41,6 +41,8 @@ export const SelectProjectModel = ({project_name, setProjectName, model_name, se
     let permissions = selectUserPermissions(state);
     return Object.values(permissions).map(({project_name}) => project_name);
   });
+
+  console.log({projects});
 
   const dispatch = useDispatch();
 
@@ -76,16 +78,14 @@ export const SelectProjectModel = ({project_name, setProjectName, model_name, se
       }}
     />), [project_name]);
 
-  console.log({project_name});
-
   return <>
     <Grid container>
       <Autocomplete
         freeSolo
+        disablePortal={disablePortal}
         className={classes.select}
         value={project_name}
         onChange={(e, value) => {
-          console.log({value});
           setProjectName(value);
           setModels(null);
           setModelName('');
@@ -105,7 +105,8 @@ export const SelectProjectModel = ({project_name, setProjectName, model_name, se
           <Select
             label='Select model'
             value={model_name}
-            onChange={(e) => setModelName(e.target.value)}
+            onChange={(e) =>
+              setModelName(e.target.value)}
           >
             {models.map((m) => (
               <MenuItem key={m} value={m}>
