@@ -356,12 +356,12 @@ export function ReductionSetupPiece(
           key+'-reduction', (newElement: string | null) => changeFxn(changeReduction(newElement), key), value[0],
           label[0], Object.keys(reduction_opts), false, 200, false)}
       </Grid>
-      <Grid item>
+      <Grid item style={{paddingLeft: 10}}>
         {dropdownPiece(
           key+'-dimx', (newElement: string | null) => changeFxn(changeDim(newElement, 1), key), value[1],
           label[1], value[0]==null ? ['1', '2'] : reduction_opts[value[0]], false, 200, disable_dims)}
       </Grid>
-      <Grid item>
+      <Grid item style={{paddingLeft: 10}}>
         {dropdownPiece(
           key+'-dimy', (newElement: string | null) => changeFxn(changeDim(newElement, 2), key), value[2],
           label[2], value[0]==null ? ['1', '2'] : reduction_opts[value[0]], false, 200, disable_dims)}
