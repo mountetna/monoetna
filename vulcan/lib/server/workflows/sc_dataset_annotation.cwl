@@ -22,6 +22,10 @@ outputs:
     type: File
     format: rds
     outputSource: output_scdata_with_annots/scdata.Rds
+  thumbnail:
+    type: File
+    format: image/png
+    outputSource: make_plot_after/plot.png
 
 steps:
   get_dataset_and_summarize:
