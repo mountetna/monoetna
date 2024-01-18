@@ -142,7 +142,7 @@ function DataTransformationModal({
         <Typography className={classes.helpdoc}>
           To apply a formula in a new column, just add a couple of cells with
           the formula to establish the pattern. Click the "Propagate Formulas"
-          button to propagate the formulas to the entire table. Save, Commit,
+          button to propagate the formulas to the entire table. Save, Confirm,
           and Run!
         </Typography>
         <Button
@@ -349,7 +349,7 @@ export default function DataTransformationInput({
       <div>
         Your data frame has {originalAsNestedArray.length - 1} rows and{' '}
         {value[0].length} columns. You can preview or edit the data frame now,
-        or just click "Commit" to accept the raw data.
+        or just click "Confirm" to accept the raw data.
       </div>
       <Dialog
         open={open}
