@@ -37,6 +37,7 @@ export const TYPE = {
   ANY_DITTOSEQ: 'any-dittoseq',
   DIFF_EXP_SC: 'diff-exp-sc',
   DATA_TRANSFORMATION: 'data-transformation',
+  ANNOTATION_EDITOR: 'annotation-editor',
   ANY_VIZ: 'any-viz'
 };
 
