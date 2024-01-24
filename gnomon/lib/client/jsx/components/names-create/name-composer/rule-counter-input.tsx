@@ -12,7 +12,7 @@ import { UNSET_VALUE } from '../../../models';
 import AutosizeTextInput from '../../autosize-text-input';
 import { useAppSelector as useSelector } from '../../../hooks';
 import { useDispatch } from '../../../utils/redux';
-import { setMagmaCheckDuplicateNameRequest, setMagmaIncrementCounterRequest } from '../../../actions/names';
+import { setMagmaIncrementCounterRequest } from '../../../actions/names';
 
 
 

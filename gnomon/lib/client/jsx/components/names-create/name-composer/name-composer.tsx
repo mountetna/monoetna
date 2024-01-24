@@ -359,13 +359,13 @@ const CreateNameGroupComposer = ({
     // check for remote duplicate
     useEffect(() => {
         async function _checkForRemoteDuplicate() {
-            // setting `hasDuplicate` to `true` temporarily to guard against creation
-            dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'inProgress', true));
-
             if (!primaryCompleteCreateName) {
                 dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'idle', false));
                 return;
             }
+
+            // setting `hasDuplicate` to `true` temporarily to guard against creation
+            dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'inProgress', true));
 
             const renderedName = renderedCompleteCreateNamesByLocalId[primaryCompleteCreateName.localId];
 
@@ -376,11 +376,7 @@ const CreateNameGroupComposer = ({
                     renderedName
                 );
 
-                if (remoteDuplicate) {
-                    dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'idle', true));
-                } else {
-                    dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'idle', false));
-                }
+                dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'idle', remoteDuplicate));
             } catch (err) {
                 console.error(`Error determining whether name "${renderedName}" has remote duplicate: ${err}"`);
                 dispatch(setMagmaCheckDuplicateNameRequest(createNameGroup.localId, 'error'));
