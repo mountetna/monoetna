@@ -13,6 +13,66 @@ export const dimensions = (nestedArray: NestedArrayDataFrame) => {
   };
 };
 
+export const extendDFFormulas = ({
+  original,
+  user
+}: {
+  original: NestedArrayDataFrame;
+  user: NestedArrayDataFrame;
+}) => {
+  const hfOptions = {
+    licenseKey: 'gpl-v3'
+  };
+
+  // Start with the userDF, which is the original plus
+  //   any added columns.
+  // We assume original data should not be edited.
+  // And then apply equations in extra user-defined columns to
+  //   ranges with hyperformula.getFillRangeData().
+  const mergedDF: NestedArrayDataFrame = merge({original, user});
+  const dataFrame = HyperFormula.buildFromArray(mergedDF, hfOptions);
+
+  const mergedDimensions = dimensions(mergedDF);
+  const originalDimensions = dimensions(original);
+
+  // Determine columns with formula in row2
+  const hasFormula = mergedDF[1].map((val) => typeof val == "string" && val.startsWith('='));
+  console.log({hasFormula});
+  // Extend equations and grab new cell values
+  //   We just grab one row to get the pattern
+  //   We do not expect the user to populate more than this cell.
+  for (let ind = 0; ind < mergedDimensions.numCols; ind++) {
+    if (!hasFormula[ind]) continue;
+    const thisFormulaCell = {
+      sheet: 0,
+      row: 1,
+      col: ind
+    };
+    const thisColBottom = {
+      sheet: 0,
+      row: mergedDimensions.numRows - 1,
+      col: ind
+    }
+    const newCellValues = dataFrame.getFillRangeData(
+      {
+        start: thisFormulaCell,
+        end: thisFormulaCell
+      },
+      {
+        start: thisFormulaCell,
+        end: thisColBottom
+      }
+    );
+    dataFrame.setCellContents(thisFormulaCell, newCellValues);
+  };
+
+  return {
+    formulas: dataFrame.getSheetSerialized(0),
+    values: dataFrame.getSheetValues(0)
+  };
+};
+
+// This is an older version of the extendDFFormulas function that assumed all user-added columns contained formulas.
 export const zipDF = ({
   original,
   user
@@ -87,7 +147,7 @@ export const zipJsonDF = ({
   const originalData = dataFrameJsonToNestedArray(some(original));
   const userData = dataFrameJsonToNestedArray(some(user));
 
-  const {values} = zipDF({original: originalData, user: userData});
+  const {values} = extendDFFormulas({original: originalData, user: userData});
 
   return nestedArrayToDataFrameJson(values);
 };

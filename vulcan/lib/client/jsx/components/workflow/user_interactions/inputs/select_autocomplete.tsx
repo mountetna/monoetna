@@ -15,13 +15,13 @@ export function pullRecommendation<T extends DataEnvelope<any>>(
   // Make the recommendation part of the autocomplete into the 'label' of renderInput
   if (data != null) {
     let data_use = {...data};
-    let suggestion = undefined;
+    let suggestion: string | undefined = undefined;
     if (Object.keys(data).includes('recommendation')) {
       // Allow multi-recommendation?
       const rec = Array.isArray(data['recommendation'])
         ? data['recommendation'].join(', ')
         : data['recommendation'];
-      suggestion = 'Recommendation: ' + rec;
+      suggestion = rec == null || rec == 'null' ? undefined : 'Recommendation: ' + rec;
       delete data_use['recommendation'];
     }
     return [data_use, suggestion];
