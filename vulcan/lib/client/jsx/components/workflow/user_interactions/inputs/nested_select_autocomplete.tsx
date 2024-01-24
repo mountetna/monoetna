@@ -3,13 +3,11 @@
 // Returns the last "Leaf" that the user selects.
 import React, {useState, useEffect, useCallback} from 'react';
 import * as _ from 'lodash';
-
 import {WithInputParams} from './input_types';
 import {some} from '../../../../selectors/maybe';
 import {useMemoized} from '../../../../selectors/workflow_selectors';
 import {joinNesting} from './monoids';
 import {useSetsDefault} from './useSetsDefault';
-import { InputLabel, TextField } from '@material-ui/core';
 import SelectAutocompleteInput from './select_autocomplete';
 
 function getPath(options: OptionSet, leaf: string): string[] {

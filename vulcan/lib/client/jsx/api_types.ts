@@ -20,8 +20,10 @@ export const TYPE = {
   METIS_FILE_OR_FOLDER: 'MetisPath',
   MULTISELECT_STRING: 'multiselect-string',
   SELECT_AUTOCOMPLETE: 'select-autocomplete',
+  SELECT_AUTOCOMPLETE_MULTI_PICK: 'select-autocomplete-multi-pick',
   CHECKBOXES: 'checkboxes',
   NESTED_SELECT_AUTOCOMPLETE: 'nested-select-autocomplete',
+  NESTED_SELECT_AUTOCOMPLETE_MULTI_PICK: 'nested-select-autocomplete-multi-pick',
   MULTIPLE_MULTISELECT_STRING_ALL: 'multiple-multiselect-string-all',
   MULTIPLE_STRING: 'multiple-string',
   SINGLE_DROPDOWN_MULTICHECKBOX: 'single-dropdown-multicheckbox',
@@ -35,6 +37,7 @@ export const TYPE = {
   ANY_DITTOSEQ: 'any-dittoseq',
   DIFF_EXP_SC: 'diff-exp-sc',
   DATA_TRANSFORMATION: 'data-transformation',
+  ANNOTATION_EDITOR: 'annotation-editor',
   ANY_VIZ: 'any-viz'
 };
 

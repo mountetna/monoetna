@@ -1,0 +1,1740 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NamesBrowse fetches and renders names for all rules 1`] = `
+<DocumentFragment>
+  <div
+    class="makeStyles-projectAndToolbarContainer-1"
+  >
+    <div
+      class="MuiGrid-root makeStyles-header-6 undefined MuiGrid-container MuiGrid-item"
+    >
+      <a
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-7 MuiTypography-colorPrimary"
+        href="/test_project"
+      >
+        <h5
+          class="MuiTypography-root MuiTypography-h5"
+        >
+          test_project
+        </h5>
+      </a>
+    </div>
+    <div
+      class="makeStyles-container-8"
+    >
+      <div
+        class="makeStyles-buttonsOuterContainer-9"
+      >
+        <div
+          class="makeStyles-buttonsContainer-10"
+        >
+          <div
+            class="makeStyles-container-13 makeStyles-buttonContainer-11"
+          >
+            <button
+              aria-haspopup="true"
+              aria-label="Export"
+              class="MuiButtonBase-root-54 MuiButton-root-27 MuiButton-contained-35 makeStyles-button-14 MuiButton-containedPrimary-36 MuiButton-disableElevation-38"
+              tabindex="0"
+              title="Export"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-28"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-55"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div
+            class="makeStyles-container-13 makeStyles-container-64 makeStyles-buttonContainer-11 iconHorizontal"
+          >
+            <button
+              aria-haspopup="false"
+              aria-label="Show Labels"
+              class="MuiButtonBase-root-103 MuiButton-root-76 MuiButton-contained-84 makeStyles-button-14 MuiButton-containedSecondary-86 MuiButton-disableElevation-87"
+              tabindex="0"
+              title="Show Labels"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-77"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-104"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 5.83L15.17 9l1.41-1.41L12 3 7.41 7.59 8.83 9 12 5.83zm0 12.34L8.83 15l-1.41 1.41L12 21l4.59-4.59L15.17 15 12 18.17z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="MuiGrid-root makeStyles-header-6 placeholder MuiGrid-container MuiGrid-item"
+    >
+      <a
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-7 MuiTypography-colorPrimary"
+        href="/test_project"
+      >
+        <h5
+          class="MuiTypography-root MuiTypography-h5"
+        >
+          test_project
+        </h5>
+      </a>
+    </div>
+  </div>
+  <div
+    class="makeStyles-countsList-2"
+  >
+    <div
+      class="makeStyles-container-113 makeStyles-selectedCounts-3"
+    />
+  </div>
+  <div
+    class="makeStyles-tableContainer-4"
+  >
+    <div
+      class="makeStyles-container-116 makeStyles-table-5"
+    >
+      <div
+        class="makeStyles-focusedValueContainer-117"
+      >
+        <span
+          class="makeStyles-focusedValue-118"
+        >
+          ‎
+        </span>
+      </div>
+      <div
+        class="ag-theme-material makeStyles-gridContainer-119"
+      >
+        <div
+          style="height: 100%;"
+        >
+          <!-- AG Grid -->
+          <div
+            class="ag-root-wrapper ag-ltr ag-layout-normal"
+            grid-id="1"
+            role="presentation"
+          >
+            <div
+              class="ag-root-wrapper-body ag-focus-managed ag-layout-normal"
+              role="presentation"
+            >
+              <div
+                class="ag-tab-guard ag-tab-guard-top"
+                role="presentation"
+                tabindex="0"
+              />
+              <!-- AG Grid Body -->
+              <div
+                aria-colcount="4"
+                aria-rowcount="5"
+                class="ag-root ag-unselectable ag-layout-normal"
+                role="treegrid"
+              >
+                <div
+                  class="ag-header ag-pivot-off ag-header-allow-overflow"
+                  role="presentation"
+                  style="height: 57px; min-height: 57px;"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="ag-pinned-left-header ag-hidden"
+                    role="presentation"
+                    style="width: 0px; min-width: 0px; max-width: 0px;"
+                  />
+                  <div
+                    class="ag-header-viewport "
+                    role="presentation"
+                  >
+                    <div
+                      class="ag-header-container"
+                      role="rowgroup"
+                      style="width: 800px;"
+                    >
+                      <div
+                        aria-rowindex="1"
+                        class="ag-header-row ag-header-row-column"
+                        role="row"
+                        style="height: 56px; top: 0px; width: 800px;"
+                      >
+                        <div
+                          aria-colindex="1"
+                          aria-description="Press Space to toggle all rows selection (unchecked) Press ENTER to sort. Press CTRL ENTER to open column menu."
+                          aria-sort="none"
+                          class="ag-header-cell ag-header-cell-sortable ag-focus-managed"
+                          col-id="name"
+                          role="columnheader"
+                          style="width: 200px; top: 0px; height: 56px; left: 0px;"
+                          tabindex="-1"
+                        >
+                          <div
+                            class="ag-header-cell-resize"
+                            role="presentation"
+                          />
+                          <div
+                            aria-hidden="true"
+                            class="ag-labeled ag-label-align-right ag-checkbox ag-input-field ag-header-select-all"
+                            role="presentation"
+                          >
+                            
+                
+                            <div
+                              aria-hidden="true"
+                              class="ag-input-field-label ag-label ag-hidden ag-checkbox-label"
+                              ref="eLabel"
+                              role="presentation"
+                            />
+                            
+                
+                            <div
+                              class="ag-wrapper ag-input-wrapper ag-checkbox-input-wrapper"
+                              ref="eWrapper"
+                              role="presentation"
+                            >
+                              
+                    
+                              <input
+                                aria-label="Press Space to toggle all rows selection (unchecked)"
+                                class="ag-input-field-input ag-checkbox-input"
+                                id="ag-3-input"
+                                ref="eInput"
+                                tabindex="-1"
+                                type="checkbox"
+                              />
+                              
+                
+                            </div>
+                            
+            
+                          </div>
+                          <div
+                            class="ag-header-cell-comp-wrapper"
+                            role="presentation"
+                          >
+                            <div
+                              class="ag-cell-label-container"
+                              role="presentation"
+                            >
+                              
+            
+                              <span
+                                aria-hidden="true"
+                                class="ag-header-icon ag-header-cell-menu-button"
+                                ref="eMenu"
+                              >
+                                <span
+                                  class="ag-icon ag-icon-menu"
+                                  role="presentation"
+                                  unselectable="on"
+                                />
+                              </span>
+                              
+            
+                              <div
+                                class="ag-header-cell-label"
+                                ref="eLabel"
+                                role="presentation"
+                              >
+                                
+                
+                                <span
+                                  class="ag-header-cell-text"
+                                  ref="eText"
+                                >
+                                  Name
+                                </span>
+                                
+                
+                                <span
+                                  aria-hidden="true"
+                                  class="ag-header-icon ag-header-label-icon ag-filter-icon ag-hidden"
+                                  ref="eFilter"
+                                >
+                                  <span
+                                    class="ag-icon ag-icon-filter"
+                                    role="presentation"
+                                    unselectable="on"
+                                  />
+                                </span>
+                                
+                
+                                <!--AG-SORT-INDICATOR-->
+                                <span
+                                  class="ag-sort-indicator-container"
+                                  ref="eSortIndicator"
+                                >
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-order ag-hidden"
+                                    ref="eSortOrder"
+                                  />
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-ascending-icon ag-hidden"
+                                    ref="eSortAsc"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-asc"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-descending-icon ag-hidden"
+                                    ref="eSortDesc"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-desc"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-mixed-icon ag-hidden"
+                                    ref="eSortMixed"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-none"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-none-icon ag-hidden"
+                                    ref="eSortNone"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-none"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+        
+                                </span>
+                                
+            
+                              </div>
+                              
+        
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          aria-colindex="2"
+                          aria-description="Press ENTER to sort. Press CTRL ENTER to open column menu."
+                          aria-sort="none"
+                          class="ag-header-cell ag-header-cell-sortable ag-focus-managed"
+                          col-id="ruleName"
+                          role="columnheader"
+                          style="width: 200px; top: 0px; height: 56px; left: 200px;"
+                          tabindex="-1"
+                        >
+                          <div
+                            class="ag-header-cell-resize"
+                            role="presentation"
+                          />
+                          <div
+                            aria-hidden="true"
+                            class="ag-labeled ag-label-align-right ag-checkbox ag-input-field ag-header-select-all ag-hidden"
+                            role="presentation"
+                          >
+                            
+                
+                            <div
+                              aria-hidden="true"
+                              class="ag-input-field-label ag-label ag-hidden ag-checkbox-label"
+                              ref="eLabel"
+                              role="presentation"
+                            />
+                            
+                
+                            <div
+                              class="ag-wrapper ag-input-wrapper ag-checkbox-input-wrapper"
+                              ref="eWrapper"
+                              role="presentation"
+                            >
+                              
+                    
+                              <input
+                                aria-label="Press Space to toggle all rows selection (unchecked)"
+                                class="ag-input-field-input ag-checkbox-input"
+                                id="ag-4-input"
+                                ref="eInput"
+                                tabindex="-1"
+                                type="checkbox"
+                              />
+                              
+                
+                            </div>
+                            
+            
+                          </div>
+                          <div
+                            class="ag-header-cell-comp-wrapper"
+                            role="presentation"
+                          >
+                            <div
+                              class="ag-cell-label-container"
+                              role="presentation"
+                            >
+                              
+            
+                              <span
+                                aria-hidden="true"
+                                class="ag-header-icon ag-header-cell-menu-button"
+                                ref="eMenu"
+                              >
+                                <span
+                                  class="ag-icon ag-icon-menu"
+                                  role="presentation"
+                                  unselectable="on"
+                                />
+                              </span>
+                              
+            
+                              <div
+                                class="ag-header-cell-label"
+                                ref="eLabel"
+                                role="presentation"
+                              >
+                                
+                
+                                <span
+                                  class="ag-header-cell-text"
+                                  ref="eText"
+                                >
+                                  Rule Name
+                                </span>
+                                
+                
+                                <span
+                                  aria-hidden="true"
+                                  class="ag-header-icon ag-header-label-icon ag-filter-icon ag-hidden"
+                                  ref="eFilter"
+                                >
+                                  <span
+                                    class="ag-icon ag-icon-filter"
+                                    role="presentation"
+                                    unselectable="on"
+                                  />
+                                </span>
+                                
+                
+                                <!--AG-SORT-INDICATOR-->
+                                <span
+                                  class="ag-sort-indicator-container"
+                                  ref="eSortIndicator"
+                                >
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-order ag-hidden"
+                                    ref="eSortOrder"
+                                  />
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-ascending-icon ag-hidden"
+                                    ref="eSortAsc"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-asc"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-descending-icon ag-hidden"
+                                    ref="eSortDesc"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-desc"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-mixed-icon ag-hidden"
+                                    ref="eSortMixed"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-none"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-none-icon ag-hidden"
+                                    ref="eSortNone"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-none"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+        
+                                </span>
+                                
+            
+                              </div>
+                              
+        
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          aria-colindex="3"
+                          aria-description="Press ENTER to sort. Press CTRL ENTER to open column menu."
+                          aria-sort="none"
+                          class="ag-header-cell ag-header-cell-sortable ag-focus-managed"
+                          col-id="author"
+                          role="columnheader"
+                          style="width: 200px; top: 0px; height: 56px; left: 400px;"
+                          tabindex="-1"
+                        >
+                          <div
+                            class="ag-header-cell-resize"
+                            role="presentation"
+                          />
+                          <div
+                            aria-hidden="true"
+                            class="ag-labeled ag-label-align-right ag-checkbox ag-input-field ag-header-select-all ag-hidden"
+                            role="presentation"
+                          >
+                            
+                
+                            <div
+                              aria-hidden="true"
+                              class="ag-input-field-label ag-label ag-hidden ag-checkbox-label"
+                              ref="eLabel"
+                              role="presentation"
+                            />
+                            
+                
+                            <div
+                              class="ag-wrapper ag-input-wrapper ag-checkbox-input-wrapper"
+                              ref="eWrapper"
+                              role="presentation"
+                            >
+                              
+                    
+                              <input
+                                aria-label="Press Space to toggle all rows selection (unchecked)"
+                                class="ag-input-field-input ag-checkbox-input"
+                                id="ag-5-input"
+                                ref="eInput"
+                                tabindex="-1"
+                                type="checkbox"
+                              />
+                              
+                
+                            </div>
+                            
+            
+                          </div>
+                          <div
+                            class="ag-header-cell-comp-wrapper"
+                            role="presentation"
+                          >
+                            <div
+                              class="ag-cell-label-container"
+                              role="presentation"
+                            >
+                              
+            
+                              <span
+                                aria-hidden="true"
+                                class="ag-header-icon ag-header-cell-menu-button"
+                                ref="eMenu"
+                              >
+                                <span
+                                  class="ag-icon ag-icon-menu"
+                                  role="presentation"
+                                  unselectable="on"
+                                />
+                              </span>
+                              
+            
+                              <div
+                                class="ag-header-cell-label"
+                                ref="eLabel"
+                                role="presentation"
+                              >
+                                
+                
+                                <span
+                                  class="ag-header-cell-text"
+                                  ref="eText"
+                                >
+                                  Author
+                                </span>
+                                
+                
+                                <span
+                                  aria-hidden="true"
+                                  class="ag-header-icon ag-header-label-icon ag-filter-icon ag-hidden"
+                                  ref="eFilter"
+                                >
+                                  <span
+                                    class="ag-icon ag-icon-filter"
+                                    role="presentation"
+                                    unselectable="on"
+                                  />
+                                </span>
+                                
+                
+                                <!--AG-SORT-INDICATOR-->
+                                <span
+                                  class="ag-sort-indicator-container"
+                                  ref="eSortIndicator"
+                                >
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-order ag-hidden"
+                                    ref="eSortOrder"
+                                  />
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-ascending-icon ag-hidden"
+                                    ref="eSortAsc"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-asc"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-descending-icon ag-hidden"
+                                    ref="eSortDesc"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-desc"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-mixed-icon ag-hidden"
+                                    ref="eSortMixed"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-none"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-none-icon ag-hidden"
+                                    ref="eSortNone"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-none"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+        
+                                </span>
+                                
+            
+                              </div>
+                              
+        
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          aria-colindex="4"
+                          aria-description="Press ENTER to sort. Press CTRL ENTER to open column menu."
+                          aria-sort="none"
+                          class="ag-header-cell ag-header-cell-sortable ag-focus-managed"
+                          col-id="createdAt"
+                          role="columnheader"
+                          style="width: 200px; top: 0px; height: 56px; left: 600px;"
+                          tabindex="-1"
+                        >
+                          <div
+                            class="ag-header-cell-resize"
+                            role="presentation"
+                          />
+                          <div
+                            aria-hidden="true"
+                            class="ag-labeled ag-label-align-right ag-checkbox ag-input-field ag-header-select-all ag-hidden"
+                            role="presentation"
+                          >
+                            
+                
+                            <div
+                              aria-hidden="true"
+                              class="ag-input-field-label ag-label ag-hidden ag-checkbox-label"
+                              ref="eLabel"
+                              role="presentation"
+                            />
+                            
+                
+                            <div
+                              class="ag-wrapper ag-input-wrapper ag-checkbox-input-wrapper"
+                              ref="eWrapper"
+                              role="presentation"
+                            >
+                              
+                    
+                              <input
+                                aria-label="Press Space to toggle all rows selection (unchecked)"
+                                class="ag-input-field-input ag-checkbox-input"
+                                id="ag-6-input"
+                                ref="eInput"
+                                tabindex="-1"
+                                type="checkbox"
+                              />
+                              
+                
+                            </div>
+                            
+            
+                          </div>
+                          <div
+                            class="ag-header-cell-comp-wrapper"
+                            role="presentation"
+                          >
+                            <div
+                              class="ag-cell-label-container"
+                              role="presentation"
+                            >
+                              
+            
+                              <span
+                                aria-hidden="true"
+                                class="ag-header-icon ag-header-cell-menu-button"
+                                ref="eMenu"
+                              >
+                                <span
+                                  class="ag-icon ag-icon-menu"
+                                  role="presentation"
+                                  unselectable="on"
+                                />
+                              </span>
+                              
+            
+                              <div
+                                class="ag-header-cell-label"
+                                ref="eLabel"
+                                role="presentation"
+                              >
+                                
+                
+                                <span
+                                  class="ag-header-cell-text"
+                                  ref="eText"
+                                >
+                                  Created At
+                                </span>
+                                
+                
+                                <span
+                                  aria-hidden="true"
+                                  class="ag-header-icon ag-header-label-icon ag-filter-icon ag-hidden"
+                                  ref="eFilter"
+                                >
+                                  <span
+                                    class="ag-icon ag-icon-filter"
+                                    role="presentation"
+                                    unselectable="on"
+                                  />
+                                </span>
+                                
+                
+                                <!--AG-SORT-INDICATOR-->
+                                <span
+                                  class="ag-sort-indicator-container"
+                                  ref="eSortIndicator"
+                                >
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-order ag-hidden"
+                                    ref="eSortOrder"
+                                  />
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-ascending-icon ag-hidden"
+                                    ref="eSortAsc"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-asc"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-descending-icon ag-hidden"
+                                    ref="eSortDesc"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-desc"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-mixed-icon ag-hidden"
+                                    ref="eSortMixed"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-none"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+            
+                                  <span
+                                    aria-hidden="true"
+                                    class="ag-sort-indicator-icon ag-sort-none-icon ag-hidden"
+                                    ref="eSortNone"
+                                  >
+                                    <span
+                                      class="ag-icon ag-icon-none"
+                                      role="presentation"
+                                      unselectable="on"
+                                    />
+                                  </span>
+                                  
+        
+                                </span>
+                                
+            
+                              </div>
+                              
+        
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    aria-hidden="true"
+                    class="ag-pinned-right-header ag-hidden"
+                    role="presentation"
+                    style="width: 0px; min-width: 0px; max-width: 0px;"
+                  />
+                </div>
+                <!-- AG Pinned Top -->
+                <div
+                  class="ag-floating-top"
+                  role="presentation"
+                  style="height: 0px; min-height: 0; display: none; overflow-y: hidden;"
+                >
+                  <!-- AG Row Container topLeft -->
+                  <div
+                    aria-hidden="true"
+                    class="ag-pinned-left-floating-top ag-hidden"
+                    role="presentation"
+                    style="width: 0px; max-width: 0px; min-width: 0px;"
+                  />
+                  <!-- AG Row Container topCenter -->
+                  <div
+                    class="ag-floating-top-viewport"
+                    role="presentation"
+                  >
+                    <div
+                      class="ag-floating-top-container"
+                      role="presentation"
+                      style="width: 800px;"
+                    />
+                  </div>
+                  <!-- AG Row Container topRight -->
+                  <div
+                    aria-hidden="true"
+                    class="ag-pinned-right-floating-top ag-hidden"
+                    role="presentation"
+                    style="width: 0px; max-width: 0px; min-width: 0px;"
+                  />
+                  <!-- AG Row Container topFullWidth -->
+                  <div
+                    class="ag-floating-top-full-width-container"
+                    role="presentation"
+                  />
+                </div>
+                <div
+                  class="ag-body ag-layout-normal"
+                  role="presentation"
+                >
+                  <!-- AG Middle -->
+                  <div
+                    class="ag-body-viewport ag-row-no-animation ag-layout-normal"
+                    role="presentation"
+                    style="width: calc(100% + 0px);"
+                  >
+                    <!-- AG Row Container left -->
+                    <div
+                      aria-hidden="true"
+                      class="ag-pinned-left-cols-container ag-hidden"
+                      role="presentation"
+                      style="height: 192px; width: 0px; max-width: 0px; min-width: 0px;"
+                    />
+                    <!-- AG Row Container center -->
+                    <div
+                      class="ag-center-cols-viewport"
+                      role="presentation"
+                      style="height: 192px;"
+                    >
+                      <div
+                        class="ag-center-cols-container"
+                        role="rowgroup"
+                        style="width: 800px; height: 192px;"
+                      >
+                        <div
+                          aria-label="Press SPACE to select this row."
+                          aria-rowindex="2"
+                          class="ag-row-even ag-row-no-focus ag-row ag-row-level-0 ag-row-position-absolute ag-row-first ag-row-not-inline-editing"
+                          role="row"
+                          row-id="0"
+                          row-index="0"
+                          style="transform: translateY(0px); height: 48px;"
+                        >
+                          <div
+                            aria-colindex="1"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height"
+                            col-id="name"
+                            role="gridcell"
+                            style="left: 0px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            <div
+                              class="ag-cell-wrapper"
+                              role="presentation"
+                            >
+                              <div
+                                class="ag-selection-checkbox"
+                                role="presentation"
+                              >
+                                
+                
+                                <!--AG-CHECKBOX-->
+                                <div
+                                  class="ag-labeled ag-label-align-right ag-checkbox ag-input-field"
+                                  ref="eCheckbox"
+                                  role="presentation"
+                                >
+                                  
+                
+                                  <div
+                                    aria-hidden="true"
+                                    class="ag-input-field-label ag-label ag-hidden ag-checkbox-label"
+                                    ref="eLabel"
+                                    role="presentation"
+                                  />
+                                  
+                
+                                  <div
+                                    class="ag-wrapper ag-input-wrapper ag-checkbox-input-wrapper"
+                                    ref="eWrapper"
+                                    role="presentation"
+                                  >
+                                    
+                    
+                                    <input
+                                      aria-label="Press Space to toggle row selection (unchecked)"
+                                      aria-live="polite"
+                                      class="ag-input-field-input ag-checkbox-input"
+                                      id="ag-17-input"
+                                      ref="eInput"
+                                      tabindex="-1"
+                                      type="checkbox"
+                                    />
+                                    
+                
+                                  </div>
+                                  
+            
+                                </div>
+                                
+            
+                              </div>
+                              <span
+                                class="ag-cell-value"
+                                id="cell-name-8"
+                                role="presentation"
+                              >
+                                name1
+                              </span>
+                            </div>
+                          </div>
+                          <div
+                            aria-colindex="2"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height ag-cell-value"
+                            col-id="ruleName"
+                            role="gridcell"
+                            style="left: 200px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            rule1
+                          </div>
+                          <div
+                            aria-colindex="3"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height ag-cell-value"
+                            col-id="author"
+                            role="gridcell"
+                            style="left: 400px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            test_author
+                          </div>
+                          <div
+                            aria-colindex="4"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height ag-cell-value"
+                            col-id="createdAt"
+                            role="gridcell"
+                            style="left: 600px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            2023-11-20T16:51:26.877Z
+                          </div>
+                        </div>
+                        <div
+                          aria-label="Press SPACE to select this row."
+                          aria-rowindex="3"
+                          class="ag-row-odd ag-row-no-focus ag-row ag-row-level-0 ag-row-position-absolute ag-row-not-inline-editing"
+                          role="row"
+                          row-id="1"
+                          row-index="1"
+                          style="transform: translateY(48px); height: 48px;"
+                        >
+                          <div
+                            aria-colindex="1"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height"
+                            col-id="name"
+                            role="gridcell"
+                            style="left: 0px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            <div
+                              class="ag-cell-wrapper"
+                              role="presentation"
+                            >
+                              <div
+                                class="ag-selection-checkbox"
+                                role="presentation"
+                              >
+                                
+                
+                                <!--AG-CHECKBOX-->
+                                <div
+                                  class="ag-labeled ag-label-align-right ag-checkbox ag-input-field"
+                                  ref="eCheckbox"
+                                  role="presentation"
+                                >
+                                  
+                
+                                  <div
+                                    aria-hidden="true"
+                                    class="ag-input-field-label ag-label ag-hidden ag-checkbox-label"
+                                    ref="eLabel"
+                                    role="presentation"
+                                  />
+                                  
+                
+                                  <div
+                                    class="ag-wrapper ag-input-wrapper ag-checkbox-input-wrapper"
+                                    ref="eWrapper"
+                                    role="presentation"
+                                  >
+                                    
+                    
+                                    <input
+                                      aria-label="Press Space to toggle row selection (unchecked)"
+                                      aria-live="polite"
+                                      class="ag-input-field-input ag-checkbox-input"
+                                      id="ag-19-input"
+                                      ref="eInput"
+                                      tabindex="-1"
+                                      type="checkbox"
+                                    />
+                                    
+                
+                                  </div>
+                                  
+            
+                                </div>
+                                
+            
+                              </div>
+                              <span
+                                class="ag-cell-value"
+                                id="cell-name-12"
+                                role="presentation"
+                              >
+                                name2
+                              </span>
+                            </div>
+                          </div>
+                          <div
+                            aria-colindex="2"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height ag-cell-value"
+                            col-id="ruleName"
+                            role="gridcell"
+                            style="left: 200px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            rule1
+                          </div>
+                          <div
+                            aria-colindex="3"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height ag-cell-value"
+                            col-id="author"
+                            role="gridcell"
+                            style="left: 400px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            test_author
+                          </div>
+                          <div
+                            aria-colindex="4"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height ag-cell-value"
+                            col-id="createdAt"
+                            role="gridcell"
+                            style="left: 600px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            2023-11-20T16:51:26.877Z
+                          </div>
+                        </div>
+                        <div
+                          aria-label="Press SPACE to select this row."
+                          aria-rowindex="4"
+                          class="ag-row-even ag-row-no-focus ag-row ag-row-level-0 ag-row-position-absolute ag-row-not-inline-editing"
+                          role="row"
+                          row-id="2"
+                          row-index="2"
+                          style="transform: translateY(96px); height: 48px;"
+                        >
+                          <div
+                            aria-colindex="1"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height"
+                            col-id="name"
+                            role="gridcell"
+                            style="left: 0px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            <div
+                              class="ag-cell-wrapper"
+                              role="presentation"
+                            >
+                              <div
+                                class="ag-selection-checkbox"
+                                role="presentation"
+                              >
+                                
+                
+                                <!--AG-CHECKBOX-->
+                                <div
+                                  class="ag-labeled ag-label-align-right ag-checkbox ag-input-field"
+                                  ref="eCheckbox"
+                                  role="presentation"
+                                >
+                                  
+                
+                                  <div
+                                    aria-hidden="true"
+                                    class="ag-input-field-label ag-label ag-hidden ag-checkbox-label"
+                                    ref="eLabel"
+                                    role="presentation"
+                                  />
+                                  
+                
+                                  <div
+                                    class="ag-wrapper ag-input-wrapper ag-checkbox-input-wrapper"
+                                    ref="eWrapper"
+                                    role="presentation"
+                                  >
+                                    
+                    
+                                    <input
+                                      aria-label="Press Space to toggle row selection (unchecked)"
+                                      aria-live="polite"
+                                      class="ag-input-field-input ag-checkbox-input"
+                                      id="ag-21-input"
+                                      ref="eInput"
+                                      tabindex="-1"
+                                      type="checkbox"
+                                    />
+                                    
+                
+                                  </div>
+                                  
+            
+                                </div>
+                                
+            
+                              </div>
+                              <span
+                                class="ag-cell-value"
+                                id="cell-name-16"
+                                role="presentation"
+                              >
+                                name3
+                              </span>
+                            </div>
+                          </div>
+                          <div
+                            aria-colindex="2"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height ag-cell-value"
+                            col-id="ruleName"
+                            role="gridcell"
+                            style="left: 200px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            rule2
+                          </div>
+                          <div
+                            aria-colindex="3"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height ag-cell-value"
+                            col-id="author"
+                            role="gridcell"
+                            style="left: 400px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            test_author
+                          </div>
+                          <div
+                            aria-colindex="4"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height ag-cell-value"
+                            col-id="createdAt"
+                            role="gridcell"
+                            style="left: 600px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            2023-11-20T16:51:26.877Z
+                          </div>
+                        </div>
+                        <div
+                          aria-label="Press SPACE to select this row."
+                          aria-rowindex="5"
+                          class="ag-row-odd ag-row-no-focus ag-row ag-row-level-0 ag-row-position-absolute ag-row-last ag-row-not-inline-editing"
+                          role="row"
+                          row-id="3"
+                          row-index="3"
+                          style="transform: translateY(144px); height: 48px;"
+                        >
+                          <div
+                            aria-colindex="1"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height"
+                            col-id="name"
+                            role="gridcell"
+                            style="left: 0px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            <div
+                              class="ag-cell-wrapper"
+                              role="presentation"
+                            >
+                              <div
+                                class="ag-selection-checkbox"
+                                role="presentation"
+                              >
+                                
+                
+                                <!--AG-CHECKBOX-->
+                                <div
+                                  class="ag-labeled ag-label-align-right ag-checkbox ag-input-field"
+                                  ref="eCheckbox"
+                                  role="presentation"
+                                >
+                                  
+                
+                                  <div
+                                    aria-hidden="true"
+                                    class="ag-input-field-label ag-label ag-hidden ag-checkbox-label"
+                                    ref="eLabel"
+                                    role="presentation"
+                                  />
+                                  
+                
+                                  <div
+                                    class="ag-wrapper ag-input-wrapper ag-checkbox-input-wrapper"
+                                    ref="eWrapper"
+                                    role="presentation"
+                                  >
+                                    
+                    
+                                    <input
+                                      aria-label="Press Space to toggle row selection (unchecked)"
+                                      aria-live="polite"
+                                      class="ag-input-field-input ag-checkbox-input"
+                                      id="ag-23-input"
+                                      ref="eInput"
+                                      tabindex="-1"
+                                      type="checkbox"
+                                    />
+                                    
+                
+                                  </div>
+                                  
+            
+                                </div>
+                                
+            
+                              </div>
+                              <span
+                                class="ag-cell-value"
+                                id="cell-name-20"
+                                role="presentation"
+                              >
+                                name4
+                              </span>
+                            </div>
+                          </div>
+                          <div
+                            aria-colindex="2"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height ag-cell-value"
+                            col-id="ruleName"
+                            role="gridcell"
+                            style="left: 200px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            rule2
+                          </div>
+                          <div
+                            aria-colindex="3"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height ag-cell-value"
+                            col-id="author"
+                            role="gridcell"
+                            style="left: 400px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            test_author
+                          </div>
+                          <div
+                            aria-colindex="4"
+                            class="ag-cell ag-cell-not-inline-editing ag-cell-normal-height ag-cell-value"
+                            col-id="createdAt"
+                            role="gridcell"
+                            style="left: 600px; width: 200px;"
+                            tabindex="-1"
+                          >
+                            2023-11-20T16:51:26.877Z
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- AG Row Container right -->
+                    <div
+                      aria-hidden="true"
+                      class="ag-pinned-right-cols-container ag-hidden"
+                      role="presentation"
+                      style="height: 192px; width: 0px; max-width: 0px; min-width: 0px;"
+                    />
+                    <!-- AG Row Container fullWidth -->
+                    <div
+                      class="ag-full-width-container"
+                      role="presentation"
+                      style="height: 192px;"
+                    />
+                  </div>
+                  <!-- AG Fake Vertical Scroll -->
+                  <div
+                    aria-hidden="true"
+                    class="ag-body-vertical-scroll ag-hidden"
+                    style="width: 0px; max-width: 0px; min-width: 0px;"
+                  >
+                    
+            
+                    <div
+                      class="ag-body-vertical-scroll-viewport"
+                      ref="eViewport"
+                      style="width: 0px; max-width: 0px; min-width: 0px;"
+                    >
+                      
+                
+                      <div
+                        class="ag-body-vertical-scroll-container"
+                        ref="eContainer"
+                        style="height: 192px; width: 0px; max-width: 0px; min-width: 0px;"
+                      />
+                      
+            
+                    </div>
+                    
+        
+                  </div>
+                </div>
+                <!-- AG Sticky Top -->
+                <div
+                  class="ag-sticky-top"
+                  role="presentation"
+                  style="height: 0px; top: 57px; width: 100%;"
+                >
+                  <!-- AG Row Container stickyTopLeft -->
+                  <div
+                    aria-hidden="true"
+                    class="ag-pinned-left-sticky-top ag-hidden"
+                    role="presentation"
+                    style="width: 0px; max-width: 0px; min-width: 0px;"
+                  />
+                  <!-- AG Row Container stickyTopCenter -->
+                  <div
+                    class="ag-sticky-top-viewport"
+                    role="presentation"
+                  >
+                    <div
+                      class="ag-sticky-top-container"
+                      role="presentation"
+                      style="width: 800px;"
+                    />
+                  </div>
+                  <!-- AG Row Container stickyTopRight -->
+                  <div
+                    aria-hidden="true"
+                    class="ag-pinned-right-sticky-top ag-hidden"
+                    role="presentation"
+                    style="width: 0px; max-width: 0px; min-width: 0px;"
+                  />
+                  <!-- AG Row Container stickyTopFullWidth -->
+                  <div
+                    class="ag-sticky-top-full-width-container"
+                    role="presentation"
+                  />
+                </div>
+                <!-- AG Pinned Bottom -->
+                <div
+                  class="ag-floating-bottom"
+                  role="presentation"
+                  style="height: 0px; min-height: 0; display: none; overflow-y: hidden;"
+                >
+                  <!-- AG Row Container bottomLeft -->
+                  <div
+                    aria-hidden="true"
+                    class="ag-pinned-left-floating-bottom ag-hidden"
+                    role="presentation"
+                    style="width: 0px; max-width: 0px; min-width: 0px;"
+                  />
+                  <!-- AG Row Container bottomCenter -->
+                  <div
+                    class="ag-floating-bottom-viewport"
+                    role="presentation"
+                  >
+                    <div
+                      class="ag-floating-bottom-container"
+                      role="presentation"
+                      style="width: 800px;"
+                    />
+                  </div>
+                  <!-- AG Row Container bottomRight -->
+                  <div
+                    aria-hidden="true"
+                    class="ag-pinned-right-floating-bottom ag-hidden"
+                    role="presentation"
+                    style="width: 0px; max-width: 0px; min-width: 0px;"
+                  />
+                  <!-- AG Row Container bottomFullWidth -->
+                  <div
+                    class="ag-floating-bottom-full-width-container"
+                    role="presentation"
+                  />
+                </div>
+                <!-- AG Fake Horizontal Scroll -->
+                <div
+                  aria-hidden="true"
+                  class="ag-body-horizontal-scroll ag-hidden"
+                  style="height: 0px; max-height: 0px; min-height: 0px;"
+                >
+                  
+            
+                  <div
+                    class="ag-horizontal-left-spacer"
+                    ref="eLeftSpacer"
+                    style="width: 0px; max-width: 0px; min-width: 0px;"
+                  />
+                  
+            
+                  <div
+                    class="ag-body-horizontal-scroll-viewport"
+                    ref="eViewport"
+                    style="height: 0px; max-height: 0px; min-height: 0px;"
+                  >
+                    
+                
+                    <div
+                      class="ag-body-horizontal-scroll-container"
+                      ref="eContainer"
+                      style="width: 800px; height: 0px; max-height: 0px; min-height: 0px;"
+                    />
+                    
+            
+                  </div>
+                  
+            
+                  <div
+                    class="ag-horizontal-right-spacer"
+                    ref="eRightSpacer"
+                    style="width: 0px; max-width: 0px; min-width: 0px;"
+                  />
+                  
+        
+                </div>
+                <!-- AG Overlay Wrapper -->
+                <div
+                  aria-hidden="true"
+                  class="ag-overlay ag-hidden"
+                >
+                  
+            
+                  <div
+                    class="ag-overlay-panel"
+                  >
+                    
+                
+                    <div
+                      class="ag-overlay-wrapper ag-layout-normal ag-overlay-no-rows-wrapper"
+                      ref="eOverlayWrapper"
+                    />
+                    
+            
+                  </div>
+                  
+        
+                </div>
+              </div>
+              <div
+                class="ag-tab-guard ag-tab-guard-bottom"
+                role="presentation"
+                tabindex="0"
+              />
+            </div>
+            <div
+              aria-hidden="true"
+              class="ag-paging-panel ag-unselectable ag-hidden"
+              id="ag-7"
+            >
+              
+                
+              <span
+                class="ag-paging-row-summary-panel"
+                role="status"
+              >
+                
+                    
+                <span
+                  class="ag-paging-row-summary-panel-number"
+                  id="ag-7-first-row"
+                  ref="lbFirstRowOnPage"
+                />
+                
+                    
+                <span
+                  id="ag-7-to"
+                >
+                  to
+                </span>
+                
+                    
+                <span
+                  class="ag-paging-row-summary-panel-number"
+                  id="ag-7-last-row"
+                  ref="lbLastRowOnPage"
+                />
+                
+                    
+                <span
+                  id="ag-7-of"
+                >
+                  of
+                </span>
+                
+                    
+                <span
+                  class="ag-paging-row-summary-panel-number"
+                  id="ag-7-row-count"
+                  ref="lbRecordCount"
+                />
+                
+                
+              </span>
+              
+                
+              <span
+                class="ag-paging-page-summary-panel"
+                role="presentation"
+              >
+                
+                    
+                <div
+                  aria-label="First Page"
+                  class="ag-button ag-paging-button"
+                  ref="btFirst"
+                  role="button"
+                  tabindex="0"
+                >
+                  <span
+                    class="ag-icon ag-icon-first"
+                    role="presentation"
+                    unselectable="on"
+                  />
+                </div>
+                
+                    
+                <div
+                  aria-label="Previous Page"
+                  class="ag-button ag-paging-button"
+                  ref="btPrevious"
+                  role="button"
+                  tabindex="0"
+                >
+                  <span
+                    class="ag-icon ag-icon-previous"
+                    role="presentation"
+                    unselectable="on"
+                  />
+                </div>
+                
+                    
+                <span
+                  class="ag-paging-description"
+                  role="status"
+                >
+                  
+                        
+                  <span
+                    id="ag-7-start-page"
+                  >
+                    Page
+                  </span>
+                  
+                        
+                  <span
+                    class="ag-paging-number"
+                    id="ag-7-start-page-number"
+                    ref="lbCurrent"
+                  />
+                  
+                        
+                  <span
+                    id="ag-7-of-page"
+                  >
+                    of
+                  </span>
+                  
+                        
+                  <span
+                    class="ag-paging-number"
+                    id="ag-7-of-page-number"
+                    ref="lbTotal"
+                  />
+                  
+                    
+                </span>
+                
+                    
+                <div
+                  aria-label="Next Page"
+                  class="ag-button ag-paging-button"
+                  ref="btNext"
+                  role="button"
+                  tabindex="0"
+                >
+                  <span
+                    class="ag-icon ag-icon-next"
+                    role="presentation"
+                    unselectable="on"
+                  />
+                </div>
+                
+                    
+                <div
+                  aria-label="Last Page"
+                  class="ag-button ag-paging-button"
+                  ref="btLast"
+                  role="button"
+                  tabindex="0"
+                >
+                  <span
+                    class="ag-icon ag-icon-last"
+                    role="presentation"
+                    unselectable="on"
+                  />
+                </div>
+                
+                
+              </span>
+              
+            
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

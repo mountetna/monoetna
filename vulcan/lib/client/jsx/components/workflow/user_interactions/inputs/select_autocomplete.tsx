@@ -9,19 +9,19 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import {debounce} from 'lodash';
 import {useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
 
-function pullRecommendation<T extends DataEnvelope<any>>(
+export function pullRecommendation<T extends DataEnvelope<any>>(
   data: T | null | undefined
 ): [T | null | undefined, string | undefined] {
   // Make the recommendation part of the autocomplete into the 'label' of renderInput
   if (data != null) {
     let data_use = {...data};
-    let suggestion = undefined;
+    let suggestion: string | undefined = undefined;
     if (Object.keys(data).includes('recommendation')) {
       // Allow multi-recommendation?
       const rec = Array.isArray(data['recommendation'])
         ? data['recommendation'].join(', ')
         : data['recommendation'];
-      suggestion = 'Recommendation: ' + rec;
+      suggestion = rec == null || rec == 'null' ? undefined : 'Recommendation: ' + rec;
       delete data_use['recommendation'];
     }
     return [data_use, suggestion];
@@ -33,13 +33,13 @@ function dispValue(value: string | null) {
   return value == null ? '' : value;
 }
 
-function filterOptions(query: string, opts: string[]) {
+export function filterOptions(query: string, opts: string[]) {
   return opts.filter((o) => {
-    return query == null ? true : o.indexOf(query) > -1;
+    return query == null ? true : o.toLowerCase().indexOf(query.toLowerCase()) > -1;
   });
 }
 
-const getOptionsAsync = (query: string, opts: string[]) => {
+export const getOptionsAsync = (query: string, opts: string[]) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(filterOptions(query, opts));
@@ -175,6 +175,7 @@ export default function SelectAutocompleteInput({
     [onChangeOverride, onChange]
   );
 
+  // ToDo: Replace with stubbing options_in + disabled + placeholder text to explain
   if (0 === Object.keys(data_use || {}).length) return null;
 
   return (
