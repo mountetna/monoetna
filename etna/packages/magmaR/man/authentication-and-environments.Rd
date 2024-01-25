@@ -16,14 +16,14 @@ See the function's own documentation and other functions' examples for further d
 
 \section{Non-production Environments}{
 
-The Mount Etna code base relies on 3 different ecosystems of all of its components for purposes of
-"development" of new tools and features,
-"staging" of updates and data prior to release, and 
+The code base relies on 2 different ecosystems of all of its components for purposes of
+"development" of new tools and features, and
 "production", the release version which most users see.
-We won't get into the details too much more here, but users with access to the non-production environments can access these environments with magmaR.
+We won't get into the details too much more here, but users with access to the development environment can access it magmaR.
 
-To target non-production environments, users should provide the \code{url} of their alternative version of magma to magmaR functions using the \code{\link{magmaRset}} function.
+To do so, users should provide the \code{url} of their alternative version of magma to magmaR functions using the \code{\link{magmaRset}} function.
 If proxy or other curl-request settings need to be adjusted, users can provide these via the \code{opts} input of this same \code{\link{magmaRset}} function.
+At a minimum, you will likely want to use \code{opts = list(ssl_verifyhost = FALSE, ssl_verifypeer = FALSE)}.
 }
 
 \seealso{

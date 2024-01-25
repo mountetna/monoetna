@@ -1,3 +1,8 @@
+# magmaR 1.0.3
+
+* Added 'showDisconnected' input to retrieve functions.
+* Added 'dryRun' and 'autolink' inputs to update functions.
+
 # magmaR 1.0.2
 
 * Added new data upload function 'updateFromDF()'

@@ -175,7 +175,7 @@ const redefaults_plotly: DataEnvelope<DataEnvelope<any>> = {
 
 const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
   dittoDimPlot: {
-    'primary features': ['color_by', 'size', 'opacity', 'reduction_setup'],
+    'primary features': ['reduction_setup', 'color_by', 'size', 'opacity'],
     titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
     'data focus': ['color_order', 'cells_use'],
     'addition: labels': ['do_label', 'labels_highlight', 'labels_repel'],
@@ -271,7 +271,7 @@ const defaults_dittoseq: DataEnvelope<any> = {
   jitter_width: 0.2,
   jitter_color: 'black',
   ridgeplot_lineweight: 1,
-  do_label: false,
+  do_label: true,
   labels_highlight: true,
   labels_repel: true,
   do_contour: false,
@@ -431,7 +431,8 @@ function useExtraInputs(
       vars: ['Primary Data', get_options('vars')],
       group_by: ['Groupings Data (often the x-axis)', get_options('group_by'), false],
       color_by: [
-        is_ditto() ? 'Color Data (\'make\' = same as Groupings Data)' : 'Color Data',
+        plot_type!=null && ['dittoPlot', 'dittoFreqPlot'].includes(plot_type) ?
+          'Color Data (\'make\' = same as Groupings Data)' : 'Color Data',
         add_make(get_options('color_by'), ['scatter_plot', 'y_plot', 'dittoPlot', 'dittoFreqPlot', 'dittoScatterPlot']),
         false],
       sample_by: ['Sample Data (try \'_sc_seq_ids_\' if there; \'make\' = ignore)', add_make(get_options('sample_by'), ['dittoFreqPlot']), false],
