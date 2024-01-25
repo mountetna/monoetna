@@ -290,3 +290,69 @@ For model \"rna_seq\", this update() will update 0 records.", fixed = TRUE
     })
 })
 
+vcr::use_cassette("update_6", {
+    mat <- retrieveMatrix(targ, "example", "rna_seq", "all", "gene_counts")
+    df <- retrieve(targ, "example", "rna_seq", "all",
+                   c("tube_name", "cell_number", "fraction"))
+
+    test_that("update functions pass through autolink and dryRun params", {
+
+        expect_equal(
+            updateMatrix(
+                targ, projectName = "example",
+                modelName = "rna_seq", attributeName = "gene_counts",
+                matrix = mat, auto.proceed = TRUE,
+                json.params.only = TRUE,
+                autolink=FALSE)$autolink,
+            !updateMatrix(
+                targ, projectName = "example",
+                modelName = "rna_seq", attributeName = "gene_counts",
+                matrix = mat, auto.proceed = TRUE,
+                json.params.only = TRUE,
+                autolink=TRUE)$autolink
+        )
+        expect_equal(
+            updateMatrix(
+                targ, projectName = "example",
+                modelName = "rna_seq", attributeName = "gene_counts",
+                matrix = mat, auto.proceed = TRUE,
+                json.params.only = TRUE,
+                dryRun=FALSE)$dry_run,
+            !updateMatrix(
+                targ, projectName = "example",
+                modelName = "rna_seq", attributeName = "gene_counts",
+                matrix = mat, auto.proceed = TRUE,
+                json.params.only = TRUE,
+                dryRun=TRUE)$dry_run
+        )
+
+        expect_equal(
+            updateFromDF(
+                targ, projectName = "example",
+                modelName = "rna_seq",
+                df = df, auto.proceed = TRUE,
+                json.params.only = TRUE,
+                autolink=FALSE)$autolink,
+            !updateFromDF(
+                targ, projectName = "example",
+                modelName = "rna_seq",
+                df = df, auto.proceed = TRUE,
+                json.params.only = TRUE,
+                autolink=TRUE)$autolink
+        )
+        expect_equal(
+            updateFromDF(
+                targ, projectName = "example",
+                modelName = "rna_seq",
+                df = df, auto.proceed = TRUE,
+                json.params.only = TRUE,
+                dryRun=FALSE)$dry_run,
+            !updateFromDF(
+                targ, projectName = "example",
+                modelName = "rna_seq",
+                df = df, auto.proceed = TRUE,
+                json.params.only = TRUE,
+                dryRun=TRUE)$dry_run
+        )
+    })
+})

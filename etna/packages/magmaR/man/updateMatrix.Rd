@@ -10,6 +10,8 @@ updateMatrix(
   modelName,
   attributeName,
   matrix,
+  autolink = FALSE,
+  dryRun = FALSE,
   separator = ",",
   auto.proceed = FALSE,
   revisions.only = FALSE,
@@ -32,6 +34,15 @@ Alternatively, a String specifying the file path of a file containing such data.
 
 No matter the provision method, colnames must be record identifiers, and rownames should match the values of 'options' associated with the target 'attribute'.
 Check the 'See Also' section below for how to determine the needed 'options'.}
+
+\item{autolink}{Logical. FALSE by default for safety, but often you will want to set it to TRUE. Passed through to magma, this parameter controls whether the system will attempt to connect all targeted records up with the project's root.
+Specifically, this means the system will 
+1) determine parent records of all targeted records if it can, based on the project's gnomon grammar, 
+2) continue parent determination for those parent records, repeating this process until reaching the project's root (the project record),
+then 3) creates any of these records that don't currently exist,
+and finally 4) creates all the assumed parent-child linkages}
+
+\item{dryRun}{Logical. FALSE by default. Passed through to magma, this parameter controls whether the system will only test whether the update is valid without making changes to the database.}
 
 \item{separator}{String indicating the field separator to use if providing \code{matrix} as a file path.
 Default = \code{","}.}
