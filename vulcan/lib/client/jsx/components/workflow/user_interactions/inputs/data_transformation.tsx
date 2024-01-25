@@ -143,19 +143,6 @@ function DataTransformationModal({
         )
       </DialogTitle>
       <DialogContent className={classes.dialog}>
-<<<<<<< HEAD
-        <Typography className={classes.helpdoc}>
-          This is a preview of your data frame. You can edit the column headings
-          or append additional columns on the right, by right-clicking and
-          selecting "Insert column to right" in the context menu.
-        </Typography>
-        <Typography className={classes.helpdoc}>
-          To apply a formula in a new column, just add a couple of cells with
-          the formula to establish the pattern. Click the "Propagate Formulas"
-          button to propagate the formulas to the entire table. Save, Confirm,
-          and Run!
-        </Typography>
-=======
         {
           modalOptions.texts==null ? null : modalOptions.texts.map(
             (val, ind) => {
@@ -166,7 +153,6 @@ function DataTransformationModal({
             }
           )
         }
->>>>>>> master
         <Button
           className={classes.propagateButton}
           onClick={handleExtendFormulas}
