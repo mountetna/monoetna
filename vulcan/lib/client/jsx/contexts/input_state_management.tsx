@@ -182,7 +182,7 @@ export function WithBufferedInputs({
         }}
         disabled={!!state.pollingState}
       >
-        Commit
+        Confirm
       </Button>
     </div>
   ) : null;
@@ -200,7 +200,7 @@ export function WithBufferedInputs({
           disabled={!!state.pollingState}
         />
       }
-      label='Auto-Commit in future'
+      label='Auto-Confirm in future'
       labelPlacement='start'
     />
   ) : null;
