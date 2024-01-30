@@ -57,7 +57,8 @@ RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tm
 
 RUN rm /usr/local/lib/ruby/gems/2.7.0/specifications/default/bundler-*.gemspec
 RUN gem install bundler --default -v "=$BUNDLER_VERSION_"
-RUN gem update --system
+## !! Note the rubygems version locked down here is meant to just be a temporary fix and should be removed when we do update Ruby !!
+RUN gem update --system 3.4.22
 
 # We also the GEM_PATH to be this BUNDLE_PATH so that ides (Rubymine) will find gems easier.
 ENV GEM_HOME="$BUNDLE_PATH"

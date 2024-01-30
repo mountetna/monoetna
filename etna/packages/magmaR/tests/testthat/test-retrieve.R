@@ -72,3 +72,30 @@ test_that("retrieveJSON can hide templates", {
     expect_type(ret, "list")
     expect_false("template" %in% names(ret[[1]][[1]]))
 })
+
+test_that("retrieve can pass show_disconnected", {
+    default <- retrieveJSON(
+        targ, "example", "subject",
+        recordNames = c("EXAMPLE-HS1"),
+        attributeNames = c("biospecimen"),
+        json.params.only = TRUE)
+    json <- retrieveJSON(
+        targ, "example", "subject",
+        recordNames = c("EXAMPLE-HS1"),
+        attributeNames = c("biospecimen"),
+        showDisconnected = TRUE,
+        json.params.only = TRUE)
+    df <- retrieve(
+        targ, "example", "subject",
+        recordNames = c("EXAMPLE-HS1"),
+        attributeNames = c("biospecimen"),
+        showDisconnected = TRUE,
+        json.params.only = TRUE)
+
+    expect_equal(
+        !default$show_disconnected,
+        json$show_disconnected)
+    expect_equal(
+        json$show_disconnected,
+        df$show_disconnected)
+})

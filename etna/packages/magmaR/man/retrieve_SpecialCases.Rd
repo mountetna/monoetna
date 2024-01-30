@@ -52,15 +52,15 @@ or by returning a targeted portion of a subsequent single-record call to \code{\
 }
 \section{Functions}{
 \itemize{
-\item \code{retrieveTemplate}: Retrieve the template for a given project
+\item \code{retrieveTemplate()}: Retrieve the template for a given project
 
-\item \code{retrieveModels}: Retrieve the modelNames for a given project
+\item \code{retrieveModels()}: Retrieve the modelNames for a given project
 
-\item \code{retrieveIds}: Retrieve all the identifiers/recordNames for a given project-model pair.
+\item \code{retrieveIds()}: Retrieve all the identifiers/recordNames for a given project-model pair.
 
-\item \code{retrieveAttributes}: Retrieve all the attribute options for a given project-model pair.
+\item \code{retrieveAttributes()}: Retrieve all the attribute options for a given project-model pair.
+
 }}
-
 \examples{
 
 if (interactive()) {

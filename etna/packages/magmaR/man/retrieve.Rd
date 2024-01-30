@@ -13,6 +13,7 @@ retrieve(
   filter = "",
   page = NULL,
   pageSize = 10,
+  showDisconnected = FALSE,
   ...
 )
 }
@@ -38,6 +39,10 @@ Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details 
 \item{page}{Integer. For retrieving just a portion of the data, sets which slice to get.}
 
 \item{pageSize}{Integer. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows.}
+
+\item{showDisconnected}{Boolean. Set to true to access "disconnected" records, which are records that are missing an (upstream) parent linkage, and so do not connect up with the project's top-level project record.
+Generally, disconnected records are ones that were deemed low quality in some way, thus were purposefully disconnected from the rest of the dataset.
+But sometimes a record might just be disconnected because an upload went awry.}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{

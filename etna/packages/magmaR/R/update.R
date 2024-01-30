@@ -13,6 +13,13 @@
 #' 
 #' See \url{https://mountetna.github.io/magma.html#update} for additional formatting details.
 #' 
+#' @param autolink Logical. FALSE by default for safety, but often you will want to set it to TRUE. Passed through to magma, this parameter controls whether the system will attempt to connect all targeted records up with the project's root.
+#' Specifically, this means the system will 
+#' 1) determine parent records of all targeted records if it can, based on the project's gnomon grammar, 
+#' 2) continue parent determination for those parent records, repeating this process until reaching the project's root (the project record),
+#' then 3) creates any of these records that don't currently exist,
+#' and finally 4) creates all the assumed parent-child linkages
+#' @param dryRun Logical. FALSE by default. Passed through to magma, this parameter controls whether the system will only test whether the update is valid without making changes to the database.
 #' @param auto.proceed Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.
 #' @return None directly.
 #' 
@@ -47,6 +54,8 @@
 #'     updateValues(
 #'         target = magma,
 #'         projectName = "example",
+#'         autolink = TRUE,
+#'         dryRun = FALSE,
 #'         revisions = list(
 #'             # model
 #'             'rna_seq' = list(
@@ -68,6 +77,8 @@ updateValues <- function(
     projectName,
     revisions = list(),
     auto.proceed = FALSE,
+    autolink = FALSE,
+    dryRun = FALSE,
     ...
 ) {
     
@@ -90,6 +101,8 @@ updateValues <- function(
         target = target,
         projectName = projectName,
         revisions = revisions,
+        autolink = autolink,
+        dryRun = dryRun,
         ...)
 }
 
@@ -147,6 +160,8 @@ updateValues <- function(
     target,
     projectName,
     revisions,
+    autolink,
+    dryRun,
     request.only = FALSE,
     json.params.only = FALSE,
     verbose = TRUE
@@ -155,7 +170,9 @@ updateValues <- function(
     ### Put together the request 
     jsonParams <- list(
         project_name = projectName,
-        revisions = revisions)
+        revisions = revisions,
+        autolink = autolink,
+        dry_run = dryRun)
     
     requestBody <- jsonlite::toJSON(jsonParams, auto_unbox = TRUE)
     

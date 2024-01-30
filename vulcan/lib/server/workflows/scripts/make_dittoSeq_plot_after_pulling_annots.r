@@ -1,6 +1,7 @@
 dataflow::load_packages("dataflow", "dataSupport", "Seurat", "dittoSeq")
 
-### This script...
+### This script slightly modifies the original make_dittoSeq_plot.r script.  All deviations will be marked between '###*###'.
+# Eventually, a better system for keeping the scripts aligned would be desired, perhaps via git.
 
 scdata <- readRDS(input_path("scdata"))
 plotting_options <- input_json("plotting_options")
@@ -8,6 +9,16 @@ plot_setup <- input_json("plot_setup")
 
 viz_fxn <- plot_setup$plot_type
 plot_setup$plot_type <- NULL
+
+###*###
+### Pull in annotations by mapping to cells of their target clusters
+annots <- read.csv(input_path("annots.csv"), header = TRUE)
+clust_meta <- names(annots)[1]
+inds_map <- match(scdata[[clust_meta, drop = TRUE]], annots[,1])
+for (col in grep("^annot", names(annots)[-1], value = TRUE)) {
+    scdata[[col]] <- annots[inds_map, col]
+}
+###*###
 
 ### Remove anything left as 'make' (so get filled with dittoSeq defaults!)
 for (var in names(plot_setup)) {

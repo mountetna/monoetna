@@ -12,6 +12,9 @@
 #' Example: "<targetAttributeName>~GYN" to filter to records where <targetAttributeName> contains "GYN".
 #' 
 #' Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details about options and format.
+#' @param showDisconnected Boolean. Set to true to access "disconnected" records, which are records that are missing an (upstream) parent linkage, and so do not connect up with the project's top-level project record.
+#' Generally, disconnected records are ones that were deemed low quality in some way, thus were purposefully disconnected from the rest of the dataset.
+#' But sometimes a record might just be disconnected because an upload went awry.
 #' @param pageSize Integer. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows.
 #' @param page Integer. For retrieving just a portion of the data, sets which slice to get.
 #' @param ... Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
@@ -62,6 +65,7 @@ retrieve <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
+    showDisconnected = FALSE,
     ...
 ) {
     .retrieve(
@@ -74,6 +78,7 @@ retrieve <- function(
         format = "tsv",
         page = page,
         pageSize = pageSize,
+        showDisconnected = showDisconnected,
         ...)
 }
 
@@ -134,6 +139,7 @@ retrieveJSON <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
+    showDisconnected = FALSE,
     hideTemplate = FALSE,
     ...
 ) {
@@ -148,6 +154,7 @@ retrieveJSON <- function(
         format = "json",
         page = page,
         pageSize = pageSize,
+        showDisconnected = showDisconnected,
         hideTemplate = hideTemplate,
         ...)
 }
@@ -162,6 +169,7 @@ retrieveJSON <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
+    showDisconnected = FALSE,
     hideTemplate = FALSE,
     names.only = FALSE,
     request.only = FALSE,
@@ -179,6 +187,7 @@ retrieveJSON <- function(
         record_names = .match_expected_recName_structure(recordNames),
         attribute_names = .match_expected_attName_structure(attributeNames),
         filter = filter,
+        show_disconnected = showDisconnected,
         hide_templates = hideTemplate,
         format = format)
 

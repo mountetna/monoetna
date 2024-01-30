@@ -1,1 +1,1 @@
-export {zipJsonDF, zipDF} from 'etna-js/utils/dataframe.js';
+export {zipJsonDF, extendDFFormulas} from 'etna-js/utils/dataframe.js';

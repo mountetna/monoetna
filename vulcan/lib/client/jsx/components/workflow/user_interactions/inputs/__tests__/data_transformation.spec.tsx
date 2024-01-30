@@ -5,7 +5,7 @@ import {
 } from '../../../../../test_utils/integration';
 
 import {Maybe, some} from '../../../../../selectors/maybe';
-import DataTransformationInput from '../data_transformation';
+import { DataTransformationInput, AnnotationEditorInput } from '../data_transformation';
 import {DataEnvelope} from '../input_types';
 import {
   clickNode,
@@ -38,6 +38,27 @@ describe('DataTransformationInput', () => {
     } as DataEnvelope<DataEnvelope<{[key: string]: any}>>;
   });
 
+  describe('when parameterized with different text via AnnotationEditorInput', () => {
+    const integrated = setupBefore(() =>
+      integrateElement(
+        <AnnotationEditorInput
+          onChange={onChange.value}
+          value={value.value}
+          data={data.value}
+          numOutputs={2}
+        />
+      )
+    );
+    it('shows the different text', async () => {
+      const {node} = integrated.value;
+      expect(
+        matchesTextPredicate(
+          'Your Annotation data frame has 3 rows and 2 columns. Click the button below to add annotations.Add/Edit Annotations',
+        )(node.root)
+      ).toEqual(true);
+    });
+  })
+
   const integrated = setupBefore(() =>
     integrateElement(
       <DataTransformationInput
@@ -57,7 +78,7 @@ describe('DataTransformationInput', () => {
     const {node} = integrated.value;
     expect(
       matchesTextPredicate(
-        'Your data frame has 3 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame'
+        'Your data frame has 3 rows and 2 columns. You can preview or edit the data frame now, or just click "Confirm" to accept the raw data.Review or edit data frame'
       )(node.root)
     ).toEqual(true);
   });
@@ -140,7 +161,7 @@ describe('DataTransformationInput', () => {
 
       expect(
         matchesTextPredicate(
-          'Your data frame has 3 rows and 3 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
+          'Your data frame has 3 rows and 3 columns. You can preview or edit the data frame now, or just click "Confirm" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
         )(node.root)
       ).toEqual(true);
     });
@@ -200,7 +221,7 @@ describe('DataTransformationInput', () => {
 
         expect(
           matchesTextPredicate(
-            'Your data frame has 3 rows and 4 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
+            'Your data frame has 3 rows and 4 columns. You can preview or edit the data frame now, or just click "Confirm" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
           )(node.root)
         ).toEqual(true);
       });
@@ -255,7 +276,7 @@ describe('DataTransformationInput', () => {
 
       expect(
         matchesTextPredicate(
-          'Your data frame has 3 rows and 3 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
+          'Your data frame has 3 rows and 3 columns. You can preview or edit the data frame now, or just click "Confirm" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
         )(node.root)
       ).toEqual(true);
     });
@@ -315,7 +336,7 @@ describe('DataTransformationInput', () => {
 
         expect(
           matchesTextPredicate(
-            'Your data frame has 3 rows and 4 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
+            'Your data frame has 3 rows and 4 columns. You can preview or edit the data frame now, or just click "Confirm" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
           )(node.root)
         ).toEqual(true);
       });

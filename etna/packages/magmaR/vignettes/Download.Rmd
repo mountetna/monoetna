@@ -59,17 +59,17 @@ retrieve(
 
 # Introduction
 
-## magmaR, magma, and the Mount Etna data library system
+## magmaR, magma, and the UCSF Data Library
 
 This vignette focuses on how to explore, query, and retrieve data from **magma** via its R-client, **magmaR**.
 
-Magma is the *data warehouse* of the **Mount Etna data library system**.
+Magma is the *data warehouse* of the **UCSF Data Library**.
 
-The Mount Etna data library system holds various research data sets, broadly broken up into **“projects”**, and provides tools for adding to, organizing, viewing and analyzing these data sets.
+The Data Library holds various research data sets, broadly broken up into **“projects”**, and provides tools for adding to, organizing, viewing and analyzing these data sets.
 
-Mount Etna, internally, is a set of applications that each provides a different piece of the Mount Etna pie. Through the Magma application, one can query and retrieve data from "projects" that exist within Mount Etna.
+Internally, the system is composed of a set of applications that each provides a different piece of the Data Library pie. Through the Magma application, one can query and retrieve data from, or update data within, "projects" that exist in the library.
 
-We provide some more detail below, but for an even deeper overview of the structure of magma and the Mount Etna data library system than is provided here, you can refer to Mount Etna's main source of documentation, https://mountetna.github.io/magma.html.
+We provide some more detail below, but for an even deeper overview of the structure of magma and the Data Library system than is provided here, you can refer to the main source of documentation, https://mountetna.github.io/magma.html.
 
 ## Organization of data within magma
 

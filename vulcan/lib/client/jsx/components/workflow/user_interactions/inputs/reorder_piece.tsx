@@ -1,6 +1,15 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {DataEnvelope} from './input_types';
-import {Paper} from '@material-ui/core';
+import Paper from '@material-ui/core/Paper';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp';
+import LowPriorityIcon from '@material-ui/icons/LowPriority';
+import DragHandleIcon from '@material-ui/icons/DragHandle';
+import Typography from '@material-ui/core/Typography';
 import {some} from '../../../../selectors/maybe';
 import SelectAutocompleteInput from './select_autocomplete';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
@@ -13,23 +22,104 @@ const LevelComponent = (props: any) => {
       index={props.levelIndex}
     >
       {(provided: any) => (
-        <div
+        <Grid container
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
         >
-          {props.level}
-        </div>
+          <Grid item>
+            <DragHandleIcon fontSize='small' color='secondary'/>
+          </Grid>
+          <Grid item>
+            <Typography component='text' fontSize='8'>{props.level}</Typography>
+          </Grid>
+        </Grid>
       )}
     </Draggable>
   );
 };
 
-/*
-reorderPiece is configured around the VizualizationUI.
-It could be generalized fairly easily, if needed.
-*/
-export function ReorderPiece(
+const onDragEnd = (fullValue: string | string[], changeFxn: Function) => {
+  return (result: any)  => {
+    if (!result.destination) {
+      return;
+    }
+
+    if (result.destination.index === result.source.index) {
+      return;
+    }
+
+    const newValues = Array.from(fullValue);
+    const [removed] = newValues.splice(result.source.index, 1);
+    newValues.splice(result.destination.index, 0, removed);
+
+    changeFxn(newValues);
+  };
+};
+
+const DragDrop = (values: string[], HandleOnDragEnd: ReturnType<typeof onDragEnd>, styling: Object = {}) => {
+return <DragDropContext onDragEnd={HandleOnDragEnd}>
+  <Droppable droppableId='columns'>
+    {(provided: any) => (
+      <Paper ref={provided.innerRef} {...provided.droppableProps}
+        style={styling}>
+        {(values).map((level: string, index: number) => {
+          return (
+            <LevelComponent key={index} level={level} levelIndex={index} />
+          );
+        })}
+        {provided.placeholder}
+      </Paper>
+    )}
+  </Droppable>
+</DragDropContext>
+};
+
+export function ReorderCollapsiblePiece(
+  key: string,
+  changeFxn: Function,
+  value: string[] | null = [] as string[],
+  label: string = 'Reorder'
+) {
+  const [open, setOpen] = useState(false);
+  const value_use = value==null ? [] : value;
+  const disabled=value_use.length<2;
+
+  const openToggle = <Grid item>
+    <IconButton aria-label='open-close' size='small' color='secondary' disabled={disabled} onClick={()=>setOpen(!open)}>
+      <Grid item container>
+        <Grid item>
+          <LowPriorityIcon fontSize='small'/>
+        </Grid>
+        <Grid item>
+          {open ?
+            <ArrowDropUpIcon fontSize='small'/> :
+            <ArrowDropDownIcon fontSize='small'/>
+          }
+        </Grid>
+      </Grid>
+    </IconButton>
+  </Grid>;
+
+  return (
+    <Grid key={key} item container direction='row'>
+      {openToggle}
+      <Grid item style={{paddingTop: '8px'}}>
+        <FormControl>
+          <InputLabel shrink disabled={disabled}
+            style={{width: 'max-content', userSelect: 'none'}}
+            onClick={()=>{if(!disabled)setOpen(!open)}}
+          >
+            {label}
+          </InputLabel>
+          {open && value_use.length>=2 ? DragDrop(value_use, onDragEnd(value_use, changeFxn), {paddingTop: '15px'}) : null}
+        </FormControl>
+      </Grid>
+    </Grid>
+  );
+};
+
+export function ReorderVizPiece(
   key: string,
   changeFxn: Function,
   value: string | string[] = 'unordered',
@@ -40,21 +130,6 @@ export function ReorderPiece(
   can_randomize: boolean = false
 ) {
   const data_targ = Array.isArray(data_target) ? data_target[data_target.length - 1] : data_target
-  const handleOnDragEnd = (result: any) => {
-    if (!result.destination) {
-      return;
-    }
-
-    if (result.destination.index === result.source.index) {
-      return;
-    }
-
-    const newValues = Array.from(value);
-    const [removed] = newValues.splice(result.source.index, 1);
-    newValues.splice(result.destination.index, 0, removed);
-
-    changeFxn(newValues, key);
-  };
   const onMethodSelect = (e: any, picked: string | null) => {
     const newValue =
       picked == 'custom'
@@ -101,27 +176,10 @@ export function ReorderPiece(
     />
   );
 
-  const reorder_custom = !Array.isArray(value) ? null : (
-    <DragDropContext onDragEnd={handleOnDragEnd}>
-      <Droppable droppableId='columns'>
-        {(provided: any) => (
-          <Paper ref={provided.innerRef} {...provided.droppableProps}>
-            {(value as string[]).map((level: string, index: number) => {
-              return (
-                <LevelComponent key={index} level={level} levelIndex={index} />
-              );
-            })}
-            {provided.placeholder}
-          </Paper>
-        )}
-      </Droppable>
-    </DragDropContext>
-  );
-
   return (
     <div key={key} style={{paddingTop: 8}}>
       {case_dropdown}
-      {reorder_custom}
+      {!Array.isArray(value) ? null : DragDrop(value, onDragEnd(value, (r:any) => changeFxn(r, key)))}
     </div>
   );
 }
@@ -168,39 +226,6 @@ export function ReorderCustomOnlyPiece(
     }
   }, [full_data, data_target, discrete_data]);
 
-  const handleOnDragEnd = (result: any) => {
-    if (!result.destination) {
-      return;
-    }
-
-    if (result.destination.index === result.source.index) {
-      return;
-    }
-
-    const newValues = Array.from(value);
-    const [removed] = newValues.splice(result.source.index, 1);
-    newValues.splice(result.destination.index, 0, removed);
-
-    changeFxn(newValues, key);
-  };
-  
-  const reorder_custom = !Array.isArray(value) ? null : (
-    <DragDropContext onDragEnd={handleOnDragEnd}>
-      <Droppable droppableId='columns'>
-        {(provided: any) => (
-          <Paper ref={provided.innerRef} {...provided.droppableProps}>
-            {(value as string[]).map((level: string, index: number) => {
-              return (
-                <LevelComponent key={index} level={level} levelIndex={index} />
-              );
-            })}
-            {provided.placeholder}
-          </Paper>
-        )}
-      </Droppable>
-    </DragDropContext>
-  );
-
   return (
     <div key={key} style={{paddingTop: 8}}>
       {checkboxPiece(
@@ -210,7 +235,7 @@ export function ReorderCustomOnlyPiece(
         label,
         !canReorder
       )}
-      {reorder_custom}
+      {!Array.isArray(value) ? null : DragDrop(value, onDragEnd(value, (r:any) => changeFxn(r, key)))}
     </div>
   );
 }

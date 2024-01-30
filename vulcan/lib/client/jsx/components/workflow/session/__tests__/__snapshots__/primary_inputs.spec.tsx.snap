@@ -632,7 +632,7 @@ Array [
         <span
           className="MuiButton-label"
         >
-          Commit
+          Confirm
         </span>
         <span
           className="MuiTouchRipple-root"
