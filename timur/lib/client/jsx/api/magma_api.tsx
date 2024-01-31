@@ -194,14 +194,16 @@ const updateModel = (
     .catch(handleFetchError);
 };
 
-export const addAttribute = (params: AddAttributeParams) => {
-  return updateModel([
+export const addAttributes = (attributes: AddAttributeParams[]) => {
+  return updateModel(attributes.map(params => (
     {
       action_name: 'add_attribute',
       ...params
     }
-  ]);
+  )));
 };
+
+export const addAttribute = (params: AddAttributeParams) => addAttributes([params]);
 
 export const updateAttribute = (params: UpdateAttributeParams) => {
   let updateAction: UpdateAttributeAction = {

@@ -20,7 +20,6 @@ export default function EditAttributeModal({
   onSave: any;
   attribute: Attribute;
 }) {
-  const [disabled, setDisabled] = useState(true);
   const [updatedAttribute, setUpdatedAttribute] = useState({...attribute});
   const [validationType, setValidationType] = useState(
     attribute.validation ? attribute.validation.type : ''
@@ -58,20 +57,17 @@ export default function EditAttributeModal({
     isArrayValidation
   ]);
 
-  useEffect(() => {
-    if (updatedAttribute.attribute_name) {
-      setDisabled(false);
-    } else {
-      setDisabled(true);
-    }
-  }, [updatedAttribute]);
-
-  const handleOnCancel = useCallback(() => {
-    onClose();
-    setDisabled(true);
+  const reset = useCallback(() => {
     setUpdatedAttribute({...attribute});
     setValidationType( attribute.validation ? attribute.validation.type : '');
     setValidationValue( attribute.validation ? attribute.validation.value : '');
+  }, []);
+
+  const disabled = !updatedAttribute.attribute_name
+
+  const handleOnCancel = useCallback(() => {
+    onClose();
+    reset();
   }, []);
 
   const updateAttribute = useCallback(

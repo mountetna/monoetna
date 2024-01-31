@@ -15,7 +15,6 @@ export default function ReparentModelModal({
   onSave: any;
   modelName: string;
 }) {
-  const [disabled, setDisabled] = useState(true);
   const [parentModelName, setParentModelName] = useState('');
 
   const models = useReduxState((state: any) => selectModels(state));
@@ -25,27 +24,22 @@ export default function ReparentModelModal({
   }, [parentModelName]);
 
   const currentParentModelName = useMemo(() => {
-    return models[modelName].template.parent;
+    return models[modelName]?.template?.parent;
   }, [modelName, models]);
 
   const existingModelNames = useMemo(() => {
     return Object.keys(models);
   }, [models]);
 
-  const parentModelNameExists = useMemo(() => {
-    return existingModelNames.includes(parentModelName);
-  }, [existingModelNames, parentModelName]);
-
-  useEffect(() => {
-    if (parentModelName && parentModelNameExists) {
-      setDisabled(false);
-    } else {
-      setDisabled(true);
-    }
-  }, [parentModelName, parentModelNameExists]);
+  const disabled = !(parentModelName
+    && existingModelNames.includes(parentModelName));
 
   const handleOnCancel = useCallback(() => {
     onClose();
+    reset();
+  }, []);
+
+  const reset = useCallback(() => {
     setParentModelName('');
   }, []);
 

@@ -29,13 +29,13 @@ import useMagmaActions from './model_map/use_magma_actions';
 const mapStyle = makeStyles((theme) => ({
   report: {
     borderLeft: '1px solid #bbb',
-    height: 'calc(100vh - 61.5px)',
-    flex: '1',
-    width: 'auto',
+    height: 'calc(100vh - 61px)',
+    width: 'calc(100vw - 600px)',
     flexWrap: 'nowrap'
   },
   model_map: {
-    position: 'relative'
+    position: 'relative',
+    height: 'calc(100vh - 61px)'
   },
   map: {
     flexBasis: '600px'
@@ -43,7 +43,8 @@ const mapStyle = makeStyles((theme) => ({
   heading: {
     position: 'absolute',
     left: '15px',
-    top: '15px',
+    top: '0px',
+    height: '48px',
     width: '560px'
   }
 }));
@@ -142,12 +143,14 @@ const ModelMap = ({}) => {
           setAttribute={setAttribute}
           isAdminUser={isAdminUser}
         />
-        <AttributeReport
-          counts={counts[model]}
-          attribute={attribute}
-          model_name={model}
-          isAdminUser={isAdminUser}
-        />
+        { attribute && <AttributeReport
+            counts={counts[model]}
+            attribute={attribute}
+            model_name={model}
+            isAdminUser={isAdminUser}
+            dismiss={() => setAttribute(null)}
+          />
+        }
       </Grid>
     </Grid>
   );

@@ -12,7 +12,6 @@ import ModelActionsModal from './model_actions_modal';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 
 export default function AddLinkModal({onSave,open,onClose}: {onSave: any}) {
-  const [disabled, setDisabled] = useState(true);
   const [linkAttributeName, setLinkAttributeName] = useState('');
   const [reciprocalModelName, setReciprocalModelName] = useState('');
   const [reciprocalAttributeName, setReciprocalAttributeName] = useState('');
@@ -34,27 +33,17 @@ export default function AddLinkModal({onSave,open,onClose}: {onSave: any}) {
     reciprocalLinkType
   ]);
 
-  useEffect(() => {
-    if (
-      linkAttributeName &&
+  const disabled = !(linkAttributeName &&
       reciprocalModelName &&
       reciprocalAttributeName &&
-      reciprocalLinkType
-    ) {
-      setDisabled(false);
-    } else {
-      setDisabled(true);
-    }
-  }, [
-    linkAttributeName,
-    reciprocalModelName,
-    reciprocalAttributeName,
-    reciprocalLinkType
-  ]);
+      reciprocalLinkType);
 
   const handleOnCancel = useCallback(() => {
-    onClose()
-    setDisabled(true);
+    onClose();
+    reset();
+  }, []);
+
+  const reset = useCallback(() => {
     setLinkAttributeName('');
     setReciprocalModelName('');
     setReciprocalAttributeName('');

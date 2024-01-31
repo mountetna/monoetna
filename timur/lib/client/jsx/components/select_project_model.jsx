@@ -37,12 +37,11 @@ export const SelectProjectModel = ({project_name, setProjectName, model_name, se
 
   const [models, setModels] = useState(null);
 
-  const projects = useReduxState((state) => {
-    let permissions = selectUserPermissions(state);
-    return Object.values(permissions).map(({project_name}) => project_name);
-  });
-
-  console.log({projects});
+  const projects = useReduxState(
+    state => Object.values(selectUserPermissions(state)).map(
+      ({project_name}) => project_name
+    )
+  );
 
   const dispatch = useDispatch();
 
@@ -68,7 +67,7 @@ export const SelectProjectModel = ({project_name, setProjectName, model_name, se
         ...params.InputProps,
         className: classes.select_input,
         endAdornment: project_name && (
-          <InputAdornment>
+          <InputAdornment position='end'>
             <IconButton size='small' onClick={() => loadProject()}>
               <CheckIcon />
             </IconButton>

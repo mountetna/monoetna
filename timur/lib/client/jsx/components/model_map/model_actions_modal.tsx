@@ -42,15 +42,20 @@ export default function ModelActionsModal ({
 }) {
   const classes = useStyles();
 
+  const handleSave = () => {
+    onSave();
+    onClose();
+  }
+
   return (
-    <Dialog fullWidth open={open}>
+    <Dialog maxWidth='md' fullWidth open={open}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         {children}
       </DialogContent>
       <DialogActions>
         <Button color='secondary' onClick={onClose}>Cancel</Button>
-        <Button color='primary' disabled={saveDisabled} onClick={onSave}>{saveLabel}</Button>
+        <Button color='primary' disabled={saveDisabled} onClick={handleSave}>{saveLabel}</Button>
       </DialogActions>
     </Dialog>
   );

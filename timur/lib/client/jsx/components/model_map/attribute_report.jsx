@@ -5,7 +5,9 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import {makeStyles} from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
+import CloseIcon from '@material-ui/icons/Close';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 
@@ -49,7 +51,7 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '1.2rem'
   },
   attribute_report: {
-    height: '50%',
+    flex: '1 1 auto',
     borderTop: '1px solid #bbb'
   },
   attribute_card: {
@@ -187,7 +189,7 @@ const ManageAttributeActions = ({
   );
 };
 
-const AttributeReport = ({attribute, model_name, isAdminUser}) => {
+const AttributeReport = ({attribute, model_name, isAdminUser, dismiss}) => {
   const dispatch = useDispatch();
   const [sample, setSample] = useState(null);
 
@@ -242,8 +244,6 @@ const AttributeReport = ({attribute, model_name, isAdminUser}) => {
     return allowedTypes.includes(attribute.attribute_type);
   }, [attribute]);
 
-  if (!attribute) return null;
-
   return (
     <Grid className={classes.attribute_report}>
       <Card className={classes.attribute_card}>
@@ -268,6 +268,7 @@ const AttributeReport = ({attribute, model_name, isAdminUser}) => {
               </Button>
             </Tooltip>
           )}
+          <IconButton size='small' onClick={dismiss}><CloseIcon/></IconButton>
         </MapHeading>
         <CardContent className={classes.content}>
           {ATT_ATTS.map((att) => {

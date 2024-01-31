@@ -30,7 +30,6 @@ export default function AddModelModal({
   onSave: any;
   modelName: string;
 }) {
-  const [disabled, setDisabled] = useState(true);
   const [identifier, setIdentifier] = useState('');
   const [childModelName, setChildModelName] = useState('');
   const [isTable, setIsTable] = useState(false);
@@ -48,7 +47,11 @@ export default function AddModelModal({
   }, [identifier, childModelName, isTable]);
 
   const handleOnCancel = useCallback(() => {
-    onClose()
+    onClose();
+    reset();
+  }, []);
+
+  const reset = useCallback(() => {
     setDisabled(true);
     setIdentifier('');
     setChildModelName('');
@@ -60,17 +63,9 @@ export default function AddModelModal({
     return Object.keys(models);
   }, [models]);
 
-  useEffect(() => {
-    if (
-      (isTable ? true : identifier) &&
-      childModelName &&
-      !childModelNameExists
-    ) {
-      setDisabled(false);
-    } else {
-      setDisabled(true);
-    }
-  }, [childModelNameExists, identifier, childModelName, isTable]);
+  const disabled = !((isTable ? true : identifier)
+    && childModelName
+    && !childModelNameExists);
 
   const validateChildModelName = useCallback(
     (input: string) => {

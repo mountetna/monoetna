@@ -8,6 +8,7 @@ import Typography from '@material-ui/core/Typography';
 
 import DisabledButton from '../search/disabled_button';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
+import ModelActionsModal from './model_actions_modal';
 
 const useStyles = makeStyles((theme) => ({
   instructions: {
@@ -24,7 +25,6 @@ export default function RemoveModelModal({
   onSave: any;
   modelName: string;
 }) {
-  const [disabled, setDisabled] = useState(true);
   const [deleteModelName, setDeleteModelName] = useState('');
 
   const classes = useStyles();
@@ -33,23 +33,16 @@ export default function RemoveModelModal({
     onSave();
   }, []);
 
-  const deleteModelNameMatches = useMemo(() => {
-    return modelName === deleteModelName;
-  }, [modelName, deleteModelName]);
-
-  useEffect(() => {
-    if (!deleteModelNameMatches) {
-      setDisabled(true);
-    } else {
-      setDisabled(false);
-    }
-  }, [deleteModelNameMatches]);
-
   const handleOnCancel = useCallback(() => {
     onClose();
-    setDeleteModelName('');
-    setDisabled(true);
+    reset();
   }, []);
+
+  const reset = useCallback(() => {
+    setDeleteModelName('');
+  }, []);
+
+  const disabled = modelName != deleteModelName;
 
   return (
     <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Remove Model' saveDisabled={disabled} saveLabel='Remove'>

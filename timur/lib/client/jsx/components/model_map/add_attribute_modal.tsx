@@ -6,7 +6,6 @@ import ModalSelect from './modal_select';
 import ModelActionsModal from './model_actions_modal';
 
 export default function AddAttributeModal({onClose,open,onSave}: {onSave: any}) {
-  const [disabled, setDisabled] = useState(true);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState('');
@@ -21,16 +20,14 @@ export default function AddAttributeModal({onClose,open,onSave}: {onSave: any}) 
     });
   }, [name, description, type, group]);
 
-  useEffect(() => {
-    if (name && type) {
-      setDisabled(false);
-    } else {
-      setDisabled(true);
-    }
-  }, [name, description, type]);
+  const disabled = !(name && type);
 
   const handleOnCancel = useCallback(() => {
-    onClose()
+    onClose();
+    reset();
+  }, []);
+
+  const reset = useCallback(() => {
     setDisabled(true);
     setName('');
     setDescription('');
