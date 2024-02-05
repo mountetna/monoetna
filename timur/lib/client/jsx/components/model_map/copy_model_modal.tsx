@@ -158,7 +158,7 @@ export default function CopyModelModal({
       { template && <>
         { numSelected > 0
             ? <Typography className={classes.selected_attribute_text}>{numSelected} selected</Typography>
-            : <Typography className={classes.attribute_text}>{numAttributes > 0 ? 'Select' : 'No'} attributes to copy</Typography>
+            : <Typography className={classes.attribute_text}>{numAttributes > 0 ? 'Select' : 'No'} attributes to copy (links, identifiers and overlapping names are filtered automatically)</Typography>
         }
         { numAttributes > 0 && <ModelAttributesTable
             template={template}

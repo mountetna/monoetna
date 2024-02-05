@@ -4,7 +4,6 @@ import SelectProjectModelDialog from '../select_project_model';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
 import {getDocuments} from 'etna-js/api/magma_api';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {isEqual} from 'lodash';
 
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
@@ -126,7 +125,7 @@ const ManageModelActions = ({
           startIcon={<FileCopyIcon />}
           onClick={() => setShowCopyModelModal(true)}
         >
-          Copy
+          Copy Attributes
         </Button>
       </Tooltip>
       <CopyModelModal

@@ -45,7 +45,7 @@ export const SelectProjectModel = ({project_name, setProjectName, model_name, se
 
   const dispatch = useDispatch();
 
-  const loadProject = useCallback(() => {
+  const loadProject = project_name => {
     requestAnswer({
       project_name,
       query: '::model_names'
@@ -55,7 +55,7 @@ export const SelectProjectModel = ({project_name, setProjectName, model_name, se
         setError(null);
       })
       .catch((e) => e.then(({error}) => setError(error)));
-  }, [project_name]);
+  };
 
   const projectInput = useCallback((params) => (
     <TextField
@@ -66,13 +66,7 @@ export const SelectProjectModel = ({project_name, setProjectName, model_name, se
       InputProps={{
         ...params.InputProps,
         className: classes.select_input,
-        endAdornment: project_name && (
-          <InputAdornment position='end'>
-            <IconButton size='small' onClick={() => loadProject()}>
-              <CheckIcon />
-            </IconButton>
-          </InputAdornment>
-        ),
+        endAdornment: null,
         type: 'search'
       }}
     />), [project_name]);
@@ -86,6 +80,7 @@ export const SelectProjectModel = ({project_name, setProjectName, model_name, se
         value={project_name}
         onChange={(e, value) => {
           setProjectName(value);
+          loadProject(value);
           setModels(null);
           setModelName('');
         }}
