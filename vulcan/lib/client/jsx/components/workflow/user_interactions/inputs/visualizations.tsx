@@ -26,6 +26,7 @@ import {
 } from './user_input_pieces';
 import {subsetDataFramePiece} from './subsetDataFrame_piece';
 import {ReorderCustomOnlyPiece, ReorderVizPiece} from './reorder_piece';
+import NestedDropdownMultiPickAdvanced from './pieces/nested_dropdown_multi_pick_advanced';
 
 /*
 Docmentation last updated: Apr 15, 2022
@@ -589,7 +590,7 @@ const components_dittoseq: DataEnvelope<Function> = {
   x_by: nestedDropdownPiece,
   y_by: nestedDropdownPiece,
   var: nestedDropdownPiece,
-  vars: nestedDropdownMultiPickAndReorderPiece,
+  vars: NestedDropdownMultiPickAdvanced,
   group_by: nestedDropdownPiece,
   color_by: nestedDropdownPiece,
   sample_by: nestedDropdownPiece,

@@ -14,9 +14,9 @@ import SelectAutocompleteMultiPickInput from './select_autocomplete_multi_choice
 
 type OptionSet = {[k: string]: null | OptionSet};
 
-const sep = '---'
+export const sep = '---'
 
-function flattenOptionPaths(options: OptionSet, pre = [] as string[]): {[key:string]: string[]} {
+export function flattenOptionPaths(options: OptionSet, pre = [] as string[]): {[key:string]: string[]} {
   // Output: keys = 'value' options, values = array holding path of keys upstream in OptionSet leading to said 'value' 
   let paths = {} as {[key:string]: string[]}
   for (let [key, value] of Object.entries(options)) {
@@ -29,7 +29,7 @@ function flattenOptionPaths(options: OptionSet, pre = [] as string[]): {[key:str
   return paths
 }
 
-function leafParentPaths(pathMap: ReturnType<typeof flattenOptionPaths>, _sep: string = sep): string[] {
+export function leafParentPaths(pathMap: ReturnType<typeof flattenOptionPaths>, _sep: string = sep): string[] {
   // Output: All "Option Paths", unique paths (now combined from [level1, level2].join(sep) which hold leaf options
   return arrayLevels(Object.values(pathMap).map(val => val.join(_sep)))
 }
@@ -49,7 +49,7 @@ function targettedPathValues(values: string[] | null, pathMap: ReturnType<typeof
   return pathVals
 }
 
-function pathValues(pathString: string, allOptions: OptionSet, _sep: string = sep): string[] {
+export function pathValues(pathString: string, allOptions: OptionSet, _sep: string = sep): string[] {
   // Output: All 'value' options which come from this path
   const pathLevels = pathString.split(_sep)
   let values = {...allOptions}
