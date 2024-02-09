@@ -21,7 +21,7 @@ import Paper from '@material-ui/core/Paper';
 import Chip from '@material-ui/core/Chip';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
-import Fuse from 'fuse.js'
+import Fuse from 'fuse.js';
 
 const attributeStyles = makeStyles((theme) => ({
   interactionFields: {
@@ -50,24 +50,17 @@ const fuseOptions = {
 	isCaseSensitive: false,
 	includeScore: true,
 	shouldSort: true,
-	includeMatches: false,
+	includeMatches: false, // means char locations of match
 	findAllMatches: true,
-	minMatchCharLength: 3,
-	// location: 0,
-	// threshold: 0.6,
-	// distance: 100,
-	// useExtendedSearch: false,
-	// ignoreLocation: false,
-	// ignoreFieldNorm: false,
-	// fieldNormWeight: 1,
+	minMatchCharLength: 2,
 	keys: [
 		'val'
 	]
 };
 
-export type fuseSearchSets = {[OptionSet:string]: {val: string}[]}
+export type fuseSearchSets = {[OptionSet:string]: {val: string}[]};
 
-type valueMatches = {[value: string]: {[OptionSet: string]: string[]}}
+type valueMatches = {[value: string]: {[OptionSet: string]: string[]}};
 
 function SelectionTable({
   valueMatches,
@@ -134,24 +127,24 @@ function SelectionTable({
                   />)}
                 </TableCell>
               )}
-            </TableRow>
+            </TableRow>;
           })
         )}
       </TableBody>
     </Table>
-  </TableContainer>
-}
+  </TableContainer>;
+};
 
 export default function SelectionsFromPasteModal({
   options,
   onSave,
   onClose,
-  genomicData
+  genomicData = true
 }: {
   options: fuseSearchSets;
   onSave: (matches: string[]) => void;
   onClose: () => void;
-  genomicData: boolean;
+  genomicData?: boolean;
 }) {
 
   const classes = attributeStyles();
@@ -164,62 +157,75 @@ export default function SelectionsFromPasteModal({
   const [busy, setBusy] = useState(false);
 
   const valuesNotMatched = useMemo(()=>{
-    if (userValues.length==0) return []
+    if (userValues.length==0) return [];
     return userValues.filter((val) => {
-      const nearests = ([] as string[]).concat(...Object.values((valueMatches as valueMatches)[val]))
-      return !nearests.some(nearest => selectedMatches.includes(nearest))
-    })
-  }, [valueMatches, selectedMatches])
+      const nearests = ([] as string[]).concat(...Object.values((valueMatches as valueMatches)[val]));
+      return !nearests.some(nearest => selectedMatches.includes(nearest));
+    });
+  }, [userValues, valueMatches, selectedMatches]);
 
   // onClick for matches
   function addOrRemove(match: string) {
     if (selectedMatches.includes(match)) {
-      setSelectedMatches(selectedMatches.filter(v => v!=match))
+      setSelectedMatches(selectedMatches.filter(v => v!=match));
     } else {
-      setSelectedMatches(selectedMatches.concat([match]))
-    }
-  }
+      setSelectedMatches(selectedMatches.concat([match]));
+    };
+  };
 
   // onClick for Search button
   function parseAndMatchText() {
-    setBusy(true)
+    setBusy(true);
 
     // Parse Input Text to discrete search elements
     const parsedValues = userText.split(/[\s\n,;]+/).filter((val) => !['',' '].includes(val));
     if (parsedValues.length<1) {
-      setBusy(false)
-      return
+      setBusy(false);
+      return;
     };
     setUserValues(parsedValues);
 
-    const setMatches: {[OptionSet: string]: {userValue: string, useMatch: boolean, bestMatch: string, topMatches: string[]}[]} = {};
     // Perform fuzzy search per each options set
+    const setMatches: {[OptionSet: string]: ({
+      userValue: string,
+      useMatch: boolean,
+      bestMatch: string,
+      topMatches: string[]
+    } | {
+      userValue: string,
+      useMatch: false,
+      bestMatch: null,
+      topMatches: string[]
+    })[]} = {};
     for (const set of Object.keys(options)) {
       const fuse = new Fuse(options[set], fuseOptions);
-      setMatches[set] = parsedValues.map((val: string)=>{
-        let topMatches = fuse.search(val).slice(0,20)
+
+      setMatches[set] = parsedValues.map((val: string) => {
+        let topMatches = fuse.search(val).slice(0,20);
         // Case: No matches picked at all
-        if (topMatches.length<1) return {
-          userValue: val,
-          useMatch: false,
-          bestMatch: null,
-          topMatches: [] as string[]
+        if (topMatches.length<1) {
+          return {
+            userValue: val,
+            useMatch: false,
+            bestMatch: null,
+            topMatches: [] as string[]
+          };
         };
         // Case: No near-exact match.
         // For genomics data, pull thought-to-be desired top hits forward
         // Targets:
         //   - because of CD#s: letters, not numbers, following the query
         //   - because of how scData tools make markers unique: '.#' following the query.
-        if (genomicData && topMatches[0].score >= 0.001) {
+        if (genomicData && topMatches[0].score as number >= 0.001) {
           const likely: number[] = [];
           const lesslikely: number[] = [];
-          const valNoSymbol: string = val.replaceAll(/\W/g,'.'); // to protect against symbols in the user input
+          const valNoSymbol: string = val.replace(/\W/g,'.'); // to protect against symbols in the user input
           for (let ind = 0; ind < topMatches.length; ind++) {
             if (topMatches[ind].item.val.search(RegExp(valNoSymbol+'[a-z]|'+valNoSymbol+'\\.\\d', 'i')) > -1) {
               likely.push(ind);
             } else {
               lesslikely.push(ind);
-            }
+            };
           };
           topMatches = likely.concat(lesslikely).map(i => topMatches[i]);
         };
@@ -227,10 +233,10 @@ export default function SelectionsFromPasteModal({
         // Return (up to) top 5 matches
         return {
           userValue: val,
-          useMatch: topMatches[0].score < 0.001,
-          bestMatch: topMatches[0].item.val,
-          topMatches: topMatches.map((v: any) => v.item.val).slice(0,5)
-        }
+          useMatch: topMatches[0].score as number < 0.001,
+          bestMatch: topMatches[0].item.val as string,
+          topMatches: topMatches.map((v: any) => v.item.val as string).slice(0,5) as string[]
+        };
       });
     };
 
@@ -241,26 +247,26 @@ export default function SelectionsFromPasteModal({
       const parsedValue = parsedValues[ind];
       const newMatches: {[OptionSet: string]: string[]} = {};
       for (const set of Object.keys(options)) {
-        newMatches[set] = setMatches[set][ind].topMatches
+        newMatches[set] = setMatches[set][ind].topMatches;
         if (setMatches[set][ind].useMatch) {
-          if (!matches.includes(setMatches[set][ind].bestMatch)) {
-            matches.push(setMatches[set][ind].bestMatch)
-          }
-        }
-      }
-      valMatches[parsedValue] = newMatches
-    }
+          if (!matches.includes(setMatches[set][ind].bestMatch as string)) {
+            matches.push(setMatches[set][ind].bestMatch as string);
+          };
+        };
+      };
+      valMatches[parsedValue] = newMatches;
+    };
 
-    setValueMatches(valMatches)
-    setSelectedMatches(matches)
-    setBusy(false)
+    setValueMatches(valMatches);
+    setSelectedMatches(matches);
+    setBusy(false);
   }
 
-  let howItWorksText: string= 'Input text is parsed into query values by splitting at spaces, newlines, commas, and semi-colons. Then each query value is compared to options of each Option Set of the data.'
+  let howItWorksText: string= 'Input text is parsed into query values by splitting at spaces, newlines, commas, and semi-colons. Then each query value is compared to options of each Option Set of the data.';
   if (genomicData) {
-    howItWorksText+=' Matches followed by a letter or ".#" are then prioritized over other near-matches to optimize the system for CD#s and how common genomic data tools deal with marker name overlaps.'
-  }
-  howItWorksText+=' Up to 5 top-ranked matches are then shown, per query, per Option Set.'
+    howItWorksText+=' Matches followed by a letter or ".#" are then prioritized over other near-matches to optimize the system for CD#s and how common genomic data tools deal with marker name overlaps.';
+  };
+  howItWorksText+=' Up to 5 top-ranked matches are then shown, per query, per Option Set.';
 
   return (
     <>
@@ -280,10 +286,10 @@ export default function SelectionsFromPasteModal({
           <Grid item xs={3}>
             <TextField
               key={'TextField-input'}
-              label={"Input"}
+              label={'Input'}
               InputLabelProps={{ shrink: true }}
               value={userText}
-              onChange={(event: any) => {setUserText(event.target.value)}}
+              onChange={(event: any) => {setUserText(event.target.value);}}
               autoFocus
               multiline
               size="small"
@@ -294,7 +300,7 @@ export default function SelectionsFromPasteModal({
           </Grid>
           <Grid item>
             <Button
-              onClick={() => {parseAndMatchText()}}
+              onClick={() => {parseAndMatchText();}}
               startIcon={busy ? <CircularProgress/> : <SearchIcon/>}
               disabled={busy}
               color='secondary'
@@ -306,7 +312,7 @@ export default function SelectionsFromPasteModal({
           {Object.keys(valueMatches).length < 1 ? 
             <Grid item xs={7} container direction='column'>
               <TextField
-                label={"Output Area"}
+                label={'Output Area'}
                 InputLabelProps={{ shrink: true }}
                 multiline
                 value={''}
@@ -321,7 +327,7 @@ export default function SelectionsFromPasteModal({
               <Grid item>
                 <TextField
                   key={'TextField-output'}
-                  label={"Values not Matched"}
+                  label={'Values not Matched'}
                   InputLabelProps={{ shrink: true }}
                   multiline
                   value={valuesNotMatched.join(', ')}
@@ -344,7 +350,7 @@ export default function SelectionsFromPasteModal({
                     valueMatches={valueMatches}
                     optionSetNames={Object.keys(options)}
                     selectedMatches={selectedMatches}
-                    onSelect={(match: string)=>{addOrRemove(match)}}
+                    onSelect={(match: string)=>{addOrRemove(match);}}
                   />
                 </FormControl>
               </Grid>
@@ -363,7 +369,7 @@ export default function SelectionsFromPasteModal({
           Add Selected Matches
         </Button>
         <Button
-          onClick={() => {onClose()}}
+          onClick={() => {onClose();}}
           startIcon={<CancelIcon />}
           color='secondary'
           variant='contained'
@@ -373,4 +379,4 @@ export default function SelectionsFromPasteModal({
       </DialogActions>
     </>
   );
-}
+};

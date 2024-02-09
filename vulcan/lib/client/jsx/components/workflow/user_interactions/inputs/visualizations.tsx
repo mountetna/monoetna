@@ -20,9 +20,7 @@ import {
   sliderPiece,
   ReductionSetupPiece,
   nestedDropdownPiece,
-  MultiselectAfterDataChoicePiece,
-  nestedDropdownMultiPickPiece,
-  nestedDropdownMultiPickAndReorderPiece
+  MultiselectAfterDataChoicePiece
 } from './user_input_pieces';
 import {subsetDataFramePiece} from './subsetDataFrame_piece';
 import {ReorderCustomOnlyPiece, ReorderVizPiece} from './reorder_piece';
