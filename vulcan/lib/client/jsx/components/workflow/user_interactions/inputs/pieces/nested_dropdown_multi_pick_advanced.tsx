@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useState, useCallback} from 'react';
+import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -16,10 +17,23 @@ function val_wrap_in_val_key(v: string[]): {val: string}[] {
   });
 }
 
+const buttonStyles = makeStyles((theme) => ({
+  gridFullHieght: {
+    display: 'flex',
+    height: '100%',
+  },
+  centerHeightChildren: {
+    display: 'flex',
+    alignItems: 'center'
+  }
+}));
+
 export default function NestedDropdownMultiPickAdvanced(
   key: string, changeFxn: Function, value: string[] = [] as string[],
   label: string|undefined, options: nestedOptionSet | string[],
   letReorder: boolean = true, letBulkAdd: boolean = true) {
+
+  const classes = buttonStyles();
 
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,8 +61,8 @@ export default function NestedDropdownMultiPickAdvanced(
   let bulkAdd: any = null;
   if (letBulkAdd) {
 
-    bulkAdd = <Grid item>
-      <Tooltip title="Bulk Add">
+    bulkAdd = <Grid item className={classes.gridFullHieght}>
+      <Tooltip title="Bulk Add" placement='right'>
         <IconButton
           aria-label="Bulk Add"
           onClick={() => {
@@ -57,7 +71,8 @@ export default function NestedDropdownMultiPickAdvanced(
           }}
           color='secondary'
           disabled={loading}
-          variant='text'
+          variant='outlined'
+          className={classes.centerHeightChildren}
         >
           <LibraryAddRoundedIcon style={{transform: 'rotate(90deg)'}}/>
         </IconButton>
