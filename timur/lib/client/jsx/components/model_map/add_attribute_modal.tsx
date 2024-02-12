@@ -3,9 +3,9 @@ import React, {useState, useCallback, useEffect} from 'react';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 import {COMMA_SEP, SNAKE_CASE} from '../../utils/edit_map';
 import ModalSelect from './modal_select';
-import ModelActionsModal from './model_actions_modal';
+import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 
-export default function AddAttributeModal({onClose,open,onSave}: {onSave: any}) {
+export default function AddAttributeModal({onClose,open,onSave}: ModelModalParams) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState('');
@@ -28,7 +28,6 @@ export default function AddAttributeModal({onClose,open,onSave}: {onSave: any}) 
   }, []);
 
   const reset = useCallback(() => {
-    setDisabled(true);
     setName('');
     setDescription('');
     setType('');

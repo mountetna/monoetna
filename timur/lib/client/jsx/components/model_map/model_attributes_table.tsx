@@ -1,4 +1,6 @@
 import React, {useState, useCallback, useMemo, useEffect} from 'react';
+import Typography from '@material-ui/core/Typography';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import TextField from '@material-ui/core/TextField';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -17,6 +19,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import SearchIcon from '@material-ui/icons/Search';
 import Paper from '@material-ui/core/Paper';
+import {Template,Attribute} from '../../api/magma_api';
 
 const attributeStyles = makeStyles((theme) => ({
   attribute_row: {
@@ -99,7 +102,7 @@ const diffTypes = {
   changed: {ind: 'c', title: 'Changed in this model'}
 };
 
-const ATT_KEYS = {
+const ATT_KEYS:{ [key: string]: keyof Attribute } = {
   attribute: 'attribute_name',
   type: 'attribute_type',
   group: 'attribute_group',
@@ -116,6 +119,16 @@ const ModelAttribute = ({
   selectAttribute,
   selected,
   isHidden
+}:{
+  attribute_name: string;
+  template: Template|null;
+  diffTemplate?: Template;
+  setAttribute?: Function;
+  count?: number;
+  modelCount?: number;
+  selectAttribute?: Function;
+  selected: boolean;
+  isHidden: boolean;
 }) => {
   if (!template) return null;
 
@@ -126,6 +139,8 @@ const ModelAttribute = ({
   const diffAttribute = diffTemplate?.attributes[attribute_name];
 
   const displayAttribute = diffTemplate && !attribute ? diffAttribute : attribute;
+
+  if (!displayAttribute) return null;
 
   const diffType = !diffTemplate
     ? 'ident'
@@ -197,21 +212,33 @@ const ModelAttribute = ({
     </TableRow>
   );
 };
+
 const ModelAttributesTable = ({
   template, diffTemplate, attributeCounts, showHiddenAttributes,
   setAttribute, modelCount, selected={}, setSelected, className
+}:{
+  template: Template|null;
+  diffTemplate?: Template;
+  attributeCounts?: { [key: string]: number };
+  showHiddenAttributes?: boolean;
+  setAttribute?: Function;
+  count?: number;
+  modelCount?: number;
+  selected: { [key: string]: boolean };
+  setSelected?: Function;
+  className?: string;
 }) => {
   const classes = attributeStyles();
-  const [order, setOrder] = React.useState('asc');
-  const [orderBy, setOrderBy] = React.useState('type');
+  const [order, setOrder] = useState<'asc'|'desc'>('asc');
+  const [orderBy, setOrderBy] = useState('type');
   const [filterString, setFilterString] = useState('');
 
-  const sortByOrder = (attributes) => {
+  const sortByOrder = (attributes:Attribute[]) => {
     let srt;
     if (orderBy === 'type') srt = sortAttributeList(attributes);
     else {
       srt = attributes.sort((a, b) =>
-        (a[ATT_KEYS[orderBy]] || '').localeCompare(b[ATT_KEYS[orderBy]] || '')
+        ((a[ATT_KEYS[orderBy]] || '') as string).localeCompare((b[ATT_KEYS[orderBy]] || '') as string)
       );
     }
     return order === 'desc' ? srt.reverse() : srt;
@@ -234,8 +261,8 @@ const ModelAttributesTable = ({
 
       let tokens = filterString
         .split(/\s/)
-        .filter((_) => _)
-        .map((token) => token.match(filterMatch).slice(1));
+        .filter(_ => _)
+        .map((token) => token.match(filterMatch)?.slice(1) as string[]);
 
       return tokens.every(([column, token]) => {
         const tokenMatch = new RegExp(token, 'i');
@@ -249,12 +276,12 @@ const ModelAttributesTable = ({
     [filterString]
   );
 
-  const selectAttribute = attribute_name => {
+  const selectAttribute = (attribute_name:string) => {
     if (selected[attribute_name]) {
       const { [attribute_name]: _, ...newSelected } = selected;
-      setSelected(newSelected);
+      (setSelected as Function)(newSelected);
     } else
-      setSelected({ [attribute_name]: true, ...selected } );
+      (setSelected as Function)({ [attribute_name]: true, ...selected } );
   }
 
   const numSelected = Object.keys(selected).length;
@@ -276,7 +303,7 @@ const ModelAttributesTable = ({
         a => newSelected[a.attribute_name] = true
       );
     }
-    setSelected(newSelected);
+    (setSelected as Function)(newSelected);
   }
 
   return <Grid className={className}>
@@ -312,24 +339,24 @@ const ModelAttributesTable = ({
             }
             {diffTemplate && <TableCell className={classes.indicator} />}
             {['type', 'attribute', 'group', 'description', 'counts'].map(
-              (key) =>
-                (key !== 'counts' || attributeCounts) && (
+              (column_name) =>
+                (column_name !== 'counts' || attributeCounts) && (
                   <TableCell
-                    key={key}
-                    className={key in classes ? classes[key] : null}
-                    align={key == 'type' ? 'right' : 'left'}
+                    key={column_name}
+                    className={column_name in classes ? classes[column_name as keyof typeof classes] : undefined}
+                    align={column_name == 'type' ? 'right' : 'left'}
                   >
                     <TableSortLabel
-                      active={orderBy === key}
-                      direction={orderBy === key ? order : 'asc'}
-                      onClick={((key) => (e) => {
+                      active={orderBy === column_name}
+                      direction={orderBy === column_name ? order : 'asc'}
+                      onClick={() => {
                         setOrder(
-                          orderBy === key && order === 'asc' ? 'desc' : 'asc'
+                          orderBy === column_name && order === 'asc' ? 'desc' : 'asc'
                         );
-                        setOrderBy(key);
-                      })(key)}
+                        setOrderBy(column_name);
+                      }}
                     >
-                      {key}
+                      {column_name}
                     </TableSortLabel>
                   </TableCell>
                 )
@@ -339,7 +366,7 @@ const ModelAttributesTable = ({
 
         <TableBody>
           {sortByOrder(attributes).filter(matchesFilter)
-            .map(attribute => 
+            .map((attribute:Attribute) => 
               <ModelAttribute
                 key={attribute.attribute_name}
                 attribute_name={attribute.attribute_name}
@@ -350,7 +377,7 @@ const ModelAttributesTable = ({
                 modelCount={modelCount}
                 template={template}
                 diffTemplate={diffTemplate}
-                isHidden={attribute.hidden}
+                isHidden={!!attribute.hidden}
                 selected={selected[attribute.attribute_name] || false}
                 selectAttribute={setSelected ? selectAttribute : undefined}
               />

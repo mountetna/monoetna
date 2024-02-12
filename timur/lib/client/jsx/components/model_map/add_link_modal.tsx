@@ -8,10 +8,10 @@ import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 import {SNAKE_CASE} from '../../utils/edit_map';
 import ModalSelect from './modal_select';
-import ModelActionsModal from './model_actions_modal';
+import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 
-export default function AddLinkModal({onSave,open,onClose}: {onSave: any}) {
+export default function AddLinkModal({onSave,open,onClose}: ModelModalParams) {
   const [linkAttributeName, setLinkAttributeName] = useState('');
   const [reciprocalModelName, setReciprocalModelName] = useState('');
   const [reciprocalAttributeName, setReciprocalAttributeName] = useState('');

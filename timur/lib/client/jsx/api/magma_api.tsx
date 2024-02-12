@@ -20,10 +20,14 @@ export type Attribute = {
 };
 
 export type Model = {
-  template: {
-    attributes: Attribute[];
-  };
+  template: Template;
 };
+
+export type Template = {
+  attributes: {
+    [key: string]: Attribute
+  };
+}
 
 export type LinkAttribute = Attribute & {
   link_model_name: string;

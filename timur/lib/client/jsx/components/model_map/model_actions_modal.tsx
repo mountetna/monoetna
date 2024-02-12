@@ -26,8 +26,16 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+export type ModelModalParams = {
+  title: string,
+  saveDisabled: boolean;
+  saveLabel?: string;
+  open: boolean,
+  onSave: any,
+  onClose: any,
+};
+
 export default function ModelActionsModal ({
-  modelName,
   onSave,
   title,
   saveDisabled,
@@ -35,11 +43,7 @@ export default function ModelActionsModal ({
   open,
   onClose,
   children
-}: {
-  onSave: any;
-  modelName: string;
-  children: any;
-}) {
+}:ModelModalParams & {children: any}) {
   const classes = useStyles();
 
   const handleSave = () => {

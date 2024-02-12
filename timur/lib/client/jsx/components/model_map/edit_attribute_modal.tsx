@@ -5,7 +5,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 
-import ModelActionsModal from './model_actions_modal';
+import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 import {Attribute} from '../../api/magma_api';
 import {SNAKE_CASE, COMMA_SEP, VALIDATION_TYPES} from '../../utils/edit_map';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
@@ -16,10 +16,7 @@ export default function EditAttributeModal({
   open,
   onClose,
   attribute
-}: {
-  onSave: any;
-  attribute: Attribute;
-}) {
+}: ModelModalParams & { attribute: Attribute }) {
   const [updatedAttribute, setUpdatedAttribute] = useState({...attribute});
   const [validationType, setValidationType] = useState(
     attribute.validation ? attribute.validation.type : ''

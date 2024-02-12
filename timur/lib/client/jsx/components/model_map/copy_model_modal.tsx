@@ -8,9 +8,10 @@ import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 import {EDITABLE_OPTIONS} from '../../utils/edit_map';
 import {SelectProjectModel} from '../select_project_model';
-import ModelActionsModal from './model_actions_modal';
+import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 
 import {getDocuments} from 'etna-js/api/magma_api';
+import {Template} from '../../api/magma_api';
 import ModelAttributesTable from './model_attributes_table';
 import {isLink} from '../../utils/attributes';
 
@@ -45,13 +46,10 @@ export default function CopyModelModal({
   open,
   onSave,
   onClose
-}: {
-  onSave: any;
-  modelName: string;
-}) {
+}: ModelModalParams & { modelName: string }) {
   const [templateProjectName, setTemplateProjectName] = useState(null);
   const [templateModelName, setTemplateModelName] = useState('');
-  const [template, setTemplate] = useState(null);
+  const [template, setTemplate] = useState<Template|null>(null);
   const [error, setError] = useState(null);
   const [selected, setSelected] = useState({});
 
@@ -141,7 +139,7 @@ export default function CopyModelModal({
 
   const numSelected = Object.keys(selected).length;
 
-  const numAttributes = template ? Object.keys(template.attributes).length : 0;
+  const numAttributes = template?.attributes ? Object.keys(template.attributes).length : 0;
 
   const disabled = numSelected == 0;
 

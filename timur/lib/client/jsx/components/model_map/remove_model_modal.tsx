@@ -8,7 +8,7 @@ import Typography from '@material-ui/core/Typography';
 
 import DisabledButton from '../search/disabled_button';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
-import ModelActionsModal from './model_actions_modal';
+import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 
 const useStyles = makeStyles((theme) => ({
   instructions: {
@@ -21,10 +21,7 @@ export default function RemoveModelModal({
   onClose,
   open,
   modelName
-}: {
-  onSave: any;
-  modelName: string;
-}) {
+}: ModelModalParams & { modelName: string }) {
   const [deleteModelName, setDeleteModelName] = useState('');
 
   const classes = useStyles();

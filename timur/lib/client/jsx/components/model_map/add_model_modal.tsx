@@ -10,7 +10,7 @@ import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {SNAKE_CASE, SNAKE_CASE_STRICT} from '../../utils/edit_map';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 import AntSwitch from '../query/ant_switch';
-import ModelActionsModal from './model_actions_modal';
+import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 
 const useStyles = makeStyles((theme) => ({
   switch: {
@@ -26,10 +26,7 @@ export default function AddModelModal({
   onSave,
   onClose,
   open
-}: {
-  onSave: any;
-  modelName: string;
-}) {
+}: ModelModalParams & { modelName: string }) {
   const [identifier, setIdentifier] = useState('');
   const [childModelName, setChildModelName] = useState('');
   const [isTable, setIsTable] = useState(false);
@@ -52,7 +49,6 @@ export default function AddModelModal({
   }, []);
 
   const reset = useCallback(() => {
-    setDisabled(true);
     setIdentifier('');
     setChildModelName('');
     setIsTable(false);
@@ -82,7 +78,7 @@ export default function AddModelModal({
   return (
     <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Add Model' saveDisabled={disabled}>
         <DialogContentText>
-          <Typography color='gray'>Add a child model below parent model <Typography component='span' color='secondary'>{modelName}</Typography>.</Typography>
+          <Typography color='primary'>Add a child model below parent model <Typography component='span' color='secondary'>{modelName}</Typography>.</Typography>
         </DialogContentText>
         <ShrinkingLabelTextField
           id='child-model-name'

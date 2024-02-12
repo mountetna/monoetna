@@ -4,17 +4,14 @@ import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 import ModalSelect from './modal_select';
-import ModelActionsModal from './model_actions_modal';
+import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 
 export default function ReparentModelModal({
   onSave,
   onClose,
   open,
   modelName
-}: {
-  onSave: any;
-  modelName: string;
-}) {
+}: ModelModalParams & { modelName: string }) {
   const [parentModelName, setParentModelName] = useState('');
 
   const models = useReduxState((state: any) => selectModels(state));
