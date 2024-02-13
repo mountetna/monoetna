@@ -1,4 +1,5 @@
-describe Vulcan::AsynchronousScheduler do
+describe Vulcan::AsynchronousScheduler, e2e: true do
+  context "when true", if: condition RUN_E2E
   let(:storage) { Vulcan::Storage.new }
   let(:inputs) { {} }
   let(:session) { Session.new_session_for('project', 'test_concurrent_workflow.cwl', 'async-scheduler-test', inputs) }
