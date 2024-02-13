@@ -43,16 +43,16 @@ export default function AddModelModal({
     });
   }, [identifier, childModelName, isTable]);
 
-  const handleOnCancel = useCallback(() => {
-    onClose();
-    reset();
-  }, []);
-
   const reset = useCallback(() => {
     setIdentifier('');
     setChildModelName('');
     setIsTable(false);
     setChildModelNameExists(false);
+  }, []);
+
+  const handleOnCancel = useCallback(() => {
+    onClose();
+    reset();
   }, []);
 
   const existingModelNames = useMemo(() => {

@@ -31,13 +31,13 @@ export default function ReparentModelModal({
   const disabled = !(parentModelName
     && existingModelNames.includes(parentModelName));
 
+  const reset = useCallback(() => {
+    setParentModelName('');
+  }, []);
+
   const handleOnCancel = useCallback(() => {
     onClose();
     reset();
-  }, []);
-
-  const reset = useCallback(() => {
-    setParentModelName('');
   }, []);
 
   const parentModelNameOptions = useMemo(() => {

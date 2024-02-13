@@ -30,13 +30,13 @@ export default function RemoveModelModal({
     onSave();
   }, []);
 
+  const reset = useCallback(() => {
+    setDeleteModelName('');
+  }, []);
+
   const handleOnCancel = useCallback(() => {
     onClose();
     reset();
-  }, []);
-
-  const reset = useCallback(() => {
-    setDeleteModelName('');
   }, []);
 
   const disabled = modelName != deleteModelName;

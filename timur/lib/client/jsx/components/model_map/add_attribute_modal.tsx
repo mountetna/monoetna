@@ -22,16 +22,16 @@ export default function AddAttributeModal({onClose,open,onSave}: ModelModalParam
 
   const disabled = !(name && type);
 
-  const handleOnCancel = useCallback(() => {
-    onClose();
-    reset();
-  }, []);
-
   const reset = useCallback(() => {
     setName('');
     setDescription('');
     setType('');
     setGroup('');
+  }, []);
+
+  const handleOnCancel = useCallback(() => {
+    onClose();
+    reset();
   }, []);
 
   const attributeTypes = [

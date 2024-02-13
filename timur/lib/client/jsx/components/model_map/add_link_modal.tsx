@@ -38,16 +38,16 @@ export default function AddLinkModal({onSave,open,onClose}: ModelModalParams) {
       reciprocalAttributeName &&
       reciprocalLinkType);
 
-  const handleOnCancel = useCallback(() => {
-    onClose();
-    reset();
-  }, []);
-
   const reset = useCallback(() => {
     setLinkAttributeName('');
     setReciprocalModelName('');
     setReciprocalAttributeName('');
     setReciprocalLinkType('');
+  }, []);
+
+  const handleOnCancel = useCallback(() => {
+    onClose();
+    reset();
   }, []);
 
   const reciprocalModelNameOptions = useMemo(() => {
