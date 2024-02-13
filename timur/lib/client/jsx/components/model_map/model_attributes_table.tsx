@@ -85,8 +85,7 @@ const attributeStyles = makeStyles((theme) => ({
   },
   table: {
     boxSizing: 'border-box',
-    height: 'auto',
-    overflowY: 'scroll'
+    height: 'auto'
   },
   hiddenTypeWrapper: {
     display: 'flex',

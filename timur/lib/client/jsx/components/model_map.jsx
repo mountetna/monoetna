@@ -30,12 +30,14 @@ const mapStyle = makeStyles((theme) => ({
   report: {
     borderLeft: '1px solid #bbb',
     height: 'calc(100vh - 61px)',
-    width: 'calc(100vw - 600px)',
+    width: 'auto',
+    flex: '1 1 auto',
     flexWrap: 'nowrap'
   },
   model_map: {
     position: 'relative',
-    height: 'calc(100vh - 61px)'
+    height: 'calc(100vh - 61px)',
+    overflowY: 'auto'
   },
   map: {
     flexBasis: '600px'

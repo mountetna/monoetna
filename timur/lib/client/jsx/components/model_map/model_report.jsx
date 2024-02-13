@@ -178,7 +178,7 @@ const reportStyles = makeStyles((theme) => ({
     display: 'flex',
     flexDirection: 'column',
     padding: '0px 10px',
-    overflow: 'scroll'
+    overflowY: 'auto'
   },
   attributes: {
     flex: '1 1 auto'
