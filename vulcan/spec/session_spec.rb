@@ -35,7 +35,7 @@ describe Session do
   end
 end
 
-describe SessionsController do
+describe SessionsController, e2e: true do
   include Rack::Test::Methods
 
   def app
@@ -231,7 +231,7 @@ describe SessionsController do
     end
   end
 
-  describe "with a saved workflow snapshot", e2e: true do
+  describe "with a saved workflow snapshot" do
     describe "adding inputs from previous workflow version", use_transactional_fixtures: false do
       let(:figure) { create_figure_with_snapshot }
 
