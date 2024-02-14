@@ -35,7 +35,7 @@ describe Session do
   end
 end
 
-describe SessionsController do
+describe SessionsController, e2e: true do
   include Rack::Test::Methods
 
   def app
