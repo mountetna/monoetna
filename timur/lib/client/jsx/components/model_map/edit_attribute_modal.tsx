@@ -4,9 +4,8 @@ import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {useModal} from 'etna-js/components/ModalDialogContainer';
 
-import DisabledButton from '../search/disabled_button';
+import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 import {Attribute} from '../../api/magma_api';
 import {SNAKE_CASE, COMMA_SEP, VALIDATION_TYPES} from '../../utils/edit_map';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
@@ -14,12 +13,10 @@ import ModalSelect from './modal_select';
 
 export default function EditAttributeModal({
   onSave,
+  open,
+  onClose,
   attribute
-}: {
-  onSave: any;
-  attribute: Attribute;
-}) {
-  const [disabled, setDisabled] = useState(true);
+}: ModelModalParams & { attribute: Attribute }) {
   const [updatedAttribute, setUpdatedAttribute] = useState({...attribute});
   const [validationType, setValidationType] = useState(
     attribute.validation ? attribute.validation.type : ''
@@ -27,8 +24,6 @@ export default function EditAttributeModal({
   const [validationValue, setValidationValue] = useState(
     attribute.validation ? attribute.validation.value : ''
   );
-  const {dismissModal} = useModal();
-  const invoke = useActionInvoker();
   const isArrayValidation = 'Array' === validationType;
 
   const handleOnSave = useCallback(() => {
@@ -59,17 +54,18 @@ export default function EditAttributeModal({
     isArrayValidation
   ]);
 
-  useEffect(() => {
-    if (updatedAttribute.attribute_name) {
-      setDisabled(false);
-    } else {
-      setDisabled(true);
-    }
-  }, [updatedAttribute]);
+  const reset = useCallback(() => {
+    setUpdatedAttribute({...attribute});
+    setValidationType( attribute.validation ? attribute.validation.type : '');
+    setValidationValue( attribute.validation ? attribute.validation.value : '');
+  }, []);
+
+  const disabled = !updatedAttribute.attribute_name
 
   const handleOnCancel = useCallback(() => {
-    invoke(dismissModal());
-  }, [invoke, dismissModal]);
+    onClose();
+    reset();
+  }, []);
 
   const updateAttribute = useCallback(
     (updatePairs: [string, string | boolean][]) => {
@@ -89,9 +85,7 @@ export default function EditAttributeModal({
   );
 
   return (
-    <div className='edit-attribute-modal model-actions-modal'>
-      <div className='header'>Edit Attribute</div>
-      <div className='options-tray tray'>
+    <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Edit Attribute' saveDisabled={disabled}>
         <ShrinkingLabelTextField
           id='edit-attribute-name'
           label='Name (snake_case)'
@@ -196,23 +190,6 @@ export default function EditAttributeModal({
           }
           label='Restricted'
         />
-      </div>
-      <div className='options-action-wrapper'>
-        <DisabledButton
-          id='cancel-edit-attribute-btn'
-          className='cancel'
-          label='Cancel'
-          disabled={false}
-          onClick={handleOnCancel}
-        />
-        <DisabledButton
-          id='edit-attribute-btn'
-          className='save'
-          label='Save'
-          disabled={disabled}
-          onClick={handleOnSave}
-        />
-      </div>
-    </div>
+    </ModelActionsModal>
   );
 }

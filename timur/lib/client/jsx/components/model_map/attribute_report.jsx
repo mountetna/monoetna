@@ -5,12 +5,13 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import {makeStyles} from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
+import CloseIcon from '@material-ui/icons/Close';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import {requestAnswer} from 'etna-js/actions/magma_actions';
-import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectModels} from 'etna-js/selectors/magma';
 
@@ -50,7 +51,7 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '1.2rem'
   },
   attribute_report: {
-    height: '50%',
+    flex: '1 1 auto',
     borderTop: '1px solid #bbb'
   },
   attribute_card: {
@@ -85,9 +86,10 @@ const ManageAttributeActions = ({
   handleRemoveLink
 }) => {
   const classes = useStyles();
-  const {openModal} = useModal();
 
   const models = useReduxState((state) => selectModels(state));
+
+  const [ showEditAttributeModal, setShowEditAttributeModal ] = useState(false);
 
   const reciprocalAttribute = useMemo(() => {
     if (!attribute.link_model_name || !attribute.link_attribute_name)
@@ -167,35 +169,27 @@ const ManageAttributeActions = ({
             onClick={handleConfirmRemove}
             size='small'
             color='primary'
-            className={classes.button}
-          >
-            Remove
-          </Button>
+            className={classes.button}>Remove</Button>
         </Tooltip>
       )}
       <Tooltip title='Edit Attribute'>
         <Button
           startIcon={<EditIcon />}
-          onClick={() => {
-            openModal(
-              <EditAttributeModal
-                attribute={attribute}
-                onSave={handleEditAttribute}
-              />
-            );
-          }}
+          onClick={() => setShowEditAttributeModal(true)}
           size='small'
           color='secondary'
-          className={classes.button}
-        >
-          Edit
-        </Button>
+          className={classes.button}>Edit</Button>
       </Tooltip>
+      <EditAttributeModal
+        open={showEditAttributeModal}
+        onClose={ () => setShowEditAttributeModal(false)}
+        attribute={attribute}
+        onSave={handleEditAttribute}/>
     </>
   );
 };
 
-const AttributeReport = ({attribute, model_name, isAdminUser}) => {
+const AttributeReport = ({attribute, model_name, isAdminUser, dismiss}) => {
   const dispatch = useDispatch();
   const [sample, setSample] = useState(null);
 
@@ -250,8 +244,6 @@ const AttributeReport = ({attribute, model_name, isAdminUser}) => {
     return allowedTypes.includes(attribute.attribute_type);
   }, [attribute]);
 
-  if (!attribute) return null;
-
   return (
     <Grid className={classes.attribute_report}>
       <Card className={classes.attribute_card}>
@@ -276,6 +268,7 @@ const AttributeReport = ({attribute, model_name, isAdminUser}) => {
               </Button>
             </Tooltip>
           )}
+          <IconButton size='small' onClick={dismiss}><CloseIcon/></IconButton>
         </MapHeading>
         <CardContent className={classes.content}>
           {ATT_ATTS.map((att) => {
