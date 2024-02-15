@@ -4,6 +4,7 @@ require_relative './server/controllers/workflows_controller'
 require_relative './server/controllers/figure_controller'
 require_relative './server/controllers/data_controller'
 require_relative './server/controllers/sessions_controller'
+require_relative './server/controllers/vulcan_v2_controller'
 
 class Vulcan
   class Server < Etna::Server
@@ -29,8 +30,12 @@ class Vulcan
 
       # remaining view routes are parsed by the client and must be set there
       get '/:project_name', as: :project_root do erb_view(:client) end
-
       get '/:project_name/*client_path', as: :client_view do erb_view(:client) end
+
+      # vulcan v2
+      post 'api/:project_name/workflow/list', action: 'vulcan_v2#list'
+      post 'api/:project_name/workflow/init', action: 'vulcan_v2#init'
+
     end
 
     # root path
