@@ -30,6 +30,9 @@ build-dev-etna-images:
 	cd etna && docker build . -t etna
 	cd docker/etna-base && docker build . -t etna-base
 
+	# Build snakemake image for Vulcan
+	cd docker/vulcan_snakemake && docker build . -t vulcan_snakemake
+
 build-dev-airflow-images:
 	# Airflow
 	 echo "Building airflow images..."

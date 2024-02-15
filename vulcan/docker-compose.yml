@@ -74,6 +74,18 @@ x-base-etna-services:
     environment:
       APP_NAME: 'vulcan_app_fe'
 
+  'vulcan_snakemake':
+    image: vulcan_snakemake
+    ports:
+      - "2222:22"  # for ssh
+    networks:
+      - default
+      - edge_net
+    depends_on:
+      - 'vulcan_app'
+    volumes:
+      - ../docker/vulcan_snakemake/test-repo/:/repos/
+
 volumes:
   vulcan-db-data:
     driver: local
