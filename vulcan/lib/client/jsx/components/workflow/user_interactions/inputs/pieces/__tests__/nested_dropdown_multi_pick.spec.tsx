@@ -4,7 +4,7 @@ import NestedDropdownMultiPickAdvanced from '../nested_dropdown_multi_pick_advan
 import { renderWithProviders } from './utils';
 import { ComponentUse } from '../../visualizations';
 
-const initialValues = {
+const initialValues: {[k: string]: any} = {
     marks_use: ['cd3'],
     some_other: 3
 };
@@ -58,23 +58,23 @@ describe('NestedDropdownMultiPickAdvanced', () => {
             await waitFor(() => {
                 expect(document.querySelector(
                     'input[id="MultiMultiPick-optionPaths-marks_use-selection"]:not(.Mui-disabled)'
-                )).toBeTruthy()
+                )).toBeTruthy();
             });
-        })
+        });
 
         it('shows chosen values', async () => {
-            expect(values.marks_use).toEqual(initialValues.marks_use)
+            expect(values.marks_use).toEqual(initialValues.marks_use);
             // Dropdown for matching optionSet exists
-            expect(document.querySelector('input[id="MultiMultiPick-Row_Features---set2-leaves-marks_use-selection"]:not(.Mui-disabled)')).toBeTruthy()
+            expect(document.querySelector('input[id="MultiMultiPick-Row_Features---set2-leaves-marks_use-selection"]:not(.Mui-disabled)')).toBeTruthy();
             // values' chips exist
-            expect(screen.getByText('cd3')).toBeTruthy()
+            expect(screen.getByText('cd3')).toBeTruthy();
         });
 
         it('does not give bulk add or reorder', () => {
-            expect(screen.queryByTitle('Bulk Add')).toBeFalsy()
-            expect(screen.queryByText('Reorder selections?')).toBeFalsy()
-        })
-    })
+            expect(screen.queryByTitle('Bulk Add')).toBeFalsy();
+            expect(screen.queryByText('Reorder selections?')).toBeFalsy();
+        });
+    });
 
     describe('with Bulk Add', () => {
         beforeEach(async () => {
@@ -96,12 +96,12 @@ describe('NestedDropdownMultiPickAdvanced', () => {
             await waitFor(() => {
                 expect(document.querySelector(
                     'input[id="MultiMultiPick-optionPaths-marks_use-selection"]:not(.Mui-disabled)'
-                )).toBeTruthy()
+                )).toBeTruthy();
             });
-        })
+        });
 
         it('shows chosen values', async () => {
-            expect(values.marks_use).toEqual(initialValues.marks_use)
+            expect(values.marks_use).toEqual(initialValues.marks_use);
             // Dropdown for matching optionSet exists
             expect(document.querySelector('input[id="MultiMultiPick-Row_Features---set2-leaves-marks_use-selection"]:not(.Mui-disabled)')).toBeTruthy();
             // values' chips exist
@@ -111,7 +111,7 @@ describe('NestedDropdownMultiPickAdvanced', () => {
         it('shows bulk add', () => {
             expect(screen.queryByTitle('Bulk Add')).toBeTruthy();
             expect(screen.queryByText('Reorder selections?')).toBeFalsy();
-        })
+        });
 
         it('merges matches from Bulk Add', async () => {
             // Open Bulk Add Modal, searches on given text input, accept default match selections
@@ -150,7 +150,7 @@ describe('NestedDropdownMultiPickAdvanced', () => {
             // merges values
             expect(values.marks_use).toEqual(['cd3', 'cd4', 'cd4.1']);
         });
-    })
+    });
 
     describe('with Reorder', () => {
         beforeEach(async () => {
@@ -177,7 +177,7 @@ describe('NestedDropdownMultiPickAdvanced', () => {
         });
 
         it('shows chosen values', async () => {
-            expect(values.marks_use).toEqual(initialValues.marks_use)
+            expect(values.marks_use).toEqual(initialValues.marks_use);
             // Dropdown for matching optionSet exists
             expect(document.querySelector('input[id="MultiMultiPick-Row_Features---set2-leaves-marks_use-selection"]:not(.Mui-disabled)')).toBeTruthy();
             // values' chips exist
