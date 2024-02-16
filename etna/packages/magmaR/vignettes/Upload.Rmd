@@ -32,13 +32,13 @@ insert_cassette(name = "Upload-vignette")
 
 # Introduction
 
-## Mini overview of magmaR, magma, and the Mount Etna data library system
+## Mini overview of magmaR, magma, and the UCSF Data Library system
 
 This vignette focuses on how to upload data to **magma** via its R-client, **magmaR**.
 
-Magma is the *data warehouse* of the **Mount Etna data library system**.
+Magma is the *data warehouse* of the **UCSF Data Library**.
 
-For a deeper overview of the structure of magma and the Mount Etna data library system, please see the download-focused vignette, `vignette("Download", package = "magmaR")`, or Mount Etna's own documentation, here https://mountetna.github.io/magma.html.
+For a deeper overview of the structure of magma and the UCSF Data Library system, please see the download-focused vignette, `vignette("Download", package = "magmaR")`, or the Data Library's own documentation, here https://mountetna.github.io/magma.html.
 
 ## Scope of this vignette
 
@@ -46,7 +46,7 @@ This vignette assumes that you have already gone through the download-focused vi
 
 This vignette focuses on use-cases where a user wishes to push data, from their own system, to magma.
 
-Not all Mount Etna users have write privileges, so not all magmaR users will have need for this vignette.
+**Not all Data Library users have write privileges, so not all magmaR users will have need for this vignette.**
 
 For those that do, please note: ***Sending data to magma is an advanced use-case which needs to be treated with due care.*** The functions involved have the ability to overwrite data, so it is imperative, for data integrity purposes, that inputs to these functions are double-checked in order to make sure that they target only the intended records & attributes.
 

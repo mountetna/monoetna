@@ -78,7 +78,7 @@ describe('DataTransformationInput', () => {
     const {node} = integrated.value;
     expect(
       matchesTextPredicate(
-        'Your data frame has 3 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame'
+        'Your data frame has 3 rows and 2 columns. You can preview or edit the data frame now, or just click "Confirm" to accept the raw data.Review or edit data frame'
       )(node.root)
     ).toEqual(true);
   });
@@ -161,7 +161,7 @@ describe('DataTransformationInput', () => {
 
       expect(
         matchesTextPredicate(
-          'Your data frame has 3 rows and 3 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
+          'Your data frame has 3 rows and 3 columns. You can preview or edit the data frame now, or just click "Confirm" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
         )(node.root)
       ).toEqual(true);
     });
@@ -221,7 +221,7 @@ describe('DataTransformationInput', () => {
 
         expect(
           matchesTextPredicate(
-            'Your data frame has 3 rows and 4 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
+            'Your data frame has 3 rows and 4 columns. You can preview or edit the data frame now, or just click "Confirm" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
           )(node.root)
         ).toEqual(true);
       });
@@ -276,7 +276,7 @@ describe('DataTransformationInput', () => {
 
       expect(
         matchesTextPredicate(
-          'Your data frame has 3 rows and 3 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
+          'Your data frame has 3 rows and 3 columns. You can preview or edit the data frame now, or just click "Confirm" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
         )(node.root)
       ).toEqual(true);
     });
@@ -336,7 +336,7 @@ describe('DataTransformationInput', () => {
 
         expect(
           matchesTextPredicate(
-            'Your data frame has 3 rows and 4 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
+            'Your data frame has 3 rows and 4 columns. You can preview or edit the data frame now, or just click "Confirm" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
           )(node.root)
         ).toEqual(true);
       });

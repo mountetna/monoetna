@@ -457,7 +457,7 @@ export function AnnotationEditorInput({
       '- Annotations: columns with names starting with \'annot\', e.g, \'annots_fine\' or \'annotations_broad\', will be treated as cluster calls that should be pulled into the dataset.',
       '- Notes: columns whose names do not start with \'annot\' are "free" columns that will appear in your csv and xlsx downloads, but will be otherwise ignored by this workflow.',
       'To apply a formula in a column, establish the formula in the first data cell by starting with an \'=\'. As an example, \'=IF(ISNUMBER(OR(FIND("CD4",B2),FIND(\"CD8\",B2))), \"T\", \"non-T\")\', might be useful for initiating an \'annots_broad\' column from an \'annots_fine\' column-B. Then click the "Propagate Formulas" button to propagate the formula down the rest of the column.',
-      '*Save and Commit often to not lose work!*'
+      '*Save and Confirm often to not lose work!*'
     ]
   },
   {
@@ -482,7 +482,7 @@ export function DataTransformationInput({
     ...props
   },
   'data frame',
-  'You can preview or edit the data frame now, or just click "Commit" to accept the raw data.',
+  'You can preview or edit the data frame now, or just click "Confirm" to accept the raw data.',
   'Review or edit data frame',
   {
     doText: true,
@@ -494,7 +494,7 @@ export function DataTransformationInput({
     title: 'Transform your data',
     texts: [
       'This is a preview of your data frame. You can edit the column headings or append additional columns on the right, by right-clicking and selecting "Insert column to right" in the context menu.',
-      'To apply a formula in a new column, establish the formula in the first data cell by starting with an \'=\' then click the "Propagate Formulas" button to propagate the formula down the entire table. Save, Commit, and Run!'
+      'To apply a formula in a new column, establish the formula in the first data cell by starting with an \'=\' then click the "Propagate Formulas" button to propagate the formula down the entire table. Save, Confirm, and Run!'
     ]
   },
   {
