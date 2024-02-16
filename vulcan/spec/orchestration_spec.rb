@@ -1,4 +1,4 @@
-describe Vulcan::Orchestration do
+describe Vulcan::Orchestration, e2e: true do
   let(:storage) { Vulcan::Storage.new }
   let(:inputs) { {} }
   let(:session) { Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', inputs) }
@@ -148,7 +148,7 @@ describe Vulcan::Orchestration do
     end
   end
 
-  describe 'e2e', e2e: true do
+  describe 'e2e' do
     it 'works' do
       expect(orchestration.run_until_done!(storage).length).to eql(0)
       expect(primary_outputs.is_built?(storage)).to eql(false)

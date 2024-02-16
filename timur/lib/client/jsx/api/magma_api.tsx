@@ -20,10 +20,14 @@ export type Attribute = {
 };
 
 export type Model = {
-  template: {
-    attributes: Attribute[];
-  };
+  template: Template;
 };
+
+export type Template = {
+  attributes: {
+    [key: string]: Attribute
+  };
+}
 
 export type LinkAttribute = Attribute & {
   link_model_name: string;
@@ -194,14 +198,16 @@ const updateModel = (
     .catch(handleFetchError);
 };
 
-export const addAttribute = (params: AddAttributeParams) => {
-  return updateModel([
+export const addAttributes = (attributes: AddAttributeParams[]) => {
+  return updateModel(attributes.map(params => (
     {
       action_name: 'add_attribute',
       ...params
     }
-  ]);
+  )));
 };
+
+export const addAttribute = (params: AddAttributeParams) => addAttributes([params]);
 
 export const updateAttribute = (params: UpdateAttributeParams) => {
   let updateAction: UpdateAttributeAction = {
