@@ -152,6 +152,7 @@ export function nestedDropdownMultiPickPiece(
     return <NestedSelectAutocompleteMultiPickInput
       key={key}
       label={label}
+      testIdAppend={key}
       value={some(value)}
       data={val_wrap(options)}
       onChange={ (value) => changeFxn(withDefault(value,null), key) }

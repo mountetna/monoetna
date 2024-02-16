@@ -626,7 +626,7 @@ const components_dittoseq: DataEnvelope<Function> = {
   split_adjust_free_y: checkboxPiece
 };
 
-const ComponentUse = ({
+export const ComponentUse = ({
   k,
   value,
   extra_inputs,

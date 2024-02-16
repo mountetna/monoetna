@@ -288,6 +288,7 @@ export default function SelectionsFromPasteModal({
               key={'TextField-input'}
               label={'Input'}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ 'data-testid': 'bulk-add-user-text-input' }}
               value={userText}
               onChange={(event: any) => {setUserText(event.target.value);}}
               autoFocus
@@ -365,6 +366,7 @@ export default function SelectionsFromPasteModal({
           disabled={selectedMatches==null}
           color='primary'
           variant='contained'
+          aria-label='Add Selected Matches'
         >
           Add Selected Matches
         </Button>
@@ -373,6 +375,7 @@ export default function SelectionsFromPasteModal({
           startIcon={<CancelIcon />}
           color='secondary'
           variant='contained'
+          aria-label='Cancel'
         >
           Cancel
         </Button>

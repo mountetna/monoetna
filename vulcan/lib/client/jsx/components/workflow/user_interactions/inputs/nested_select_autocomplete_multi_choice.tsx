@@ -76,8 +76,9 @@ function valuesFromValuesPerPath(valuesPerPath: {[key:string]: string[]}) {
   return arrayLevels(([] as string[]).concat.apply([] as string[], Object.values(valuesPerPath))) as string[]
 }
 
-export default function NestedSelectAutocompleteMultiPickInput({ label, data, onChange, ...props }: WithInputParams<{
+export default function NestedSelectAutocompleteMultiPickInput({ label, testIdAppend='', data, onChange, ...props }: WithInputParams<{
   label?: string
+  testIdAppend?: string
 }, string[], OptionSet>) {
   const value: string[] = useSetsDefault([] as string[], props.value, onChange);
   const allOptions = useMemoized(joinNesting, data);
@@ -120,13 +121,14 @@ export default function NestedSelectAutocompleteMultiPickInput({ label, data, on
   }, [valuesPerPath])
   const optionPathPicker = <Grid item>
       <SelectAutocompleteMultiPickInput
-        key={'MultiMultiPick-optionPsths'}
+        key='MultiMultiPick-optionPaths'
         onChange={(v) => {}}
         onChangeOverride={handlePickedOptionPaths}
         value={some(paths)}
         data={{a: pathOptions}}
         placeholder={paths.length<1 ? 'Option Sets' : undefined}
         label={label}
+        testId={testIdAppend ? `MultiMultiPick-optionPaths-${testIdAppend}`: 'MultiMultiPick-optionPaths'}
       />
     </Grid>
 
@@ -154,6 +156,7 @@ export default function NestedSelectAutocompleteMultiPickInput({ label, data, on
             value={some(values)}
             onChangeOverride={ (event: any, e: string[]) => handlePickedValues(event, e, pathString) }
             onChange={(v) => {}}
+            testId={testIdAppend ? `MultiMultiPick-${pathString}-leaves-${testIdAppend}`: `MultiMultiPick-${pathString}-leaves`}
           />
         </Grid>
       </Grid>
