@@ -131,6 +131,36 @@ describe('NestedDropdownMultiPickAdvanced', () => {
             expect(values.marks_use).toEqual(['cd3', 'a']);
         });
 
+        it('allows user adjust number of matches given', async () => {
+            // Open Bulk Add Modal, searches on given text input
+            fireEvent.click(screen.getByTitle('Bulk Add'));
+            await waitFor(() => document.getElementById('TextField-input'));
+            fireEvent.change(screen.getByTestId('bulk-add-user-text-input'), {target: {value: 'cd4,'}});
+            fireEvent.click(screen.getByText('Search'));
+            await waitFor(() => {
+                expect(document.querySelector(
+                    'button[aria-label="Add Selected Matches"]:not(.Mui-disabled)'
+                )).toBeTruthy();
+            });
+            expect(screen.getByText('cd4.1', {selector: 'span'})).toBeTruthy();
+            expect(screen.getByText('cd400', {selector: 'span'})).toBeTruthy();
+
+            // Decrease num matches to 1, check that 2nd match goes away
+            fireEvent.click(screen.getByRole('slider', {name: 'Matches to Show'}));
+            fireEvent.keyDown(screen.getByRole('slider', {name: 'Matches to Show'}), {key: 'ArrowLeft'});
+            fireEvent.keyDown(screen.getByRole('slider', {name: 'Matches to Show'}), {key: 'ArrowLeft'});
+            fireEvent.keyDown(screen.getByRole('slider', {name: 'Matches to Show'}), {key: 'ArrowLeft'});
+            fireEvent.keyDown(screen.getByRole('slider', {name: 'Matches to Show'}), {key: 'ArrowLeft'});
+            fireEvent.click(screen.getByText('Search'));
+            await waitFor(() => {
+                expect(document.querySelector(
+                    'button[aria-label="Add Selected Matches"]:not(.Mui-disabled)'
+                )).toBeTruthy();
+            });
+            expect(screen.getByText('cd4.1', {selector: 'span'})).toBeTruthy();
+            expect(screen.queryByText('cd400', {selector: 'span'})).toBeFalsy();
+        });
+
         it('allows user to select additional matches', async () => {
             // Open Bulk Add Modal, searches on given text input, accept default match selections
             fireEvent.click(screen.getByTitle('Bulk Add'));

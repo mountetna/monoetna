@@ -22,6 +22,7 @@ import Chip from '@material-ui/core/Chip';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Fuse from 'fuse.js';
+import Slider from '@material-ui/core/Slider';
 
 const attributeStyles = makeStyles((theme) => ({
   interactionFields: {
@@ -43,6 +44,9 @@ const attributeStyles = makeStyles((theme) => ({
   },
   grayCell: {
     color: 'gray'
+  },
+  slider: {
+    maxWidth: '100%'
   }
 }));
 
@@ -155,6 +159,7 @@ export default function SelectionsFromPasteModal({
   const [valueMatches, setValueMatches] = useState({} as valueMatches);
   const [selectedMatches, setSelectedMatches] = useState([] as string[]);
   const [busy, setBusy] = useState(false);
+  const [numMatchesShow, setNumMatchesShow] = useState(5);
 
   const valuesNotMatched = useMemo(()=>{
     if (userValues.length==0) return [];
@@ -197,11 +202,12 @@ export default function SelectionsFromPasteModal({
       bestMatch: null,
       topMatches: string[]
     })[]} = {};
+    const init_trim = Math.max(numMatchesShow, 20);
     for (const set of Object.keys(options)) {
       const fuse = new Fuse(options[set], fuseOptions);
 
       setMatches[set] = parsedValues.map((val: string) => {
-        let topMatches = fuse.search(val).slice(0,20);
+        let topMatches = fuse.search(val).slice(0,init_trim);
         // Case: No matches picked at all
         if (topMatches.length<1) {
           return {
@@ -235,7 +241,7 @@ export default function SelectionsFromPasteModal({
           userValue: val,
           useMatch: topMatches[0].score as number < 0.001,
           bestMatch: topMatches[0].item.val as string,
-          topMatches: topMatches.map((v: any) => v.item.val as string).slice(0,5) as string[]
+          topMatches: topMatches.map((v: any) => v.item.val as string).slice(0,numMatchesShow) as string[]
         };
       });
     };
@@ -282,8 +288,8 @@ export default function SelectionsFromPasteModal({
           <strong>{'How it works: '}</strong>
           {howItWorksText}
         </Typography>
-        <Grid container spacing={1} className={classes.interactionFields}>
-          <Grid item xs={3}>
+        <Grid container spacing={1} justifyContent='space-between' className={classes.interactionFields}>
+          <Grid item xs={8} md={3}>
             <TextField
               key={'TextField-input'}
               label={'Input'}
@@ -299,19 +305,38 @@ export default function SelectionsFromPasteModal({
               placeholder={'Paste or type here'}
             />
           </Grid>
-          <Grid item>
-            <Button
-              onClick={() => {parseAndMatchText();}}
-              startIcon={busy ? <CircularProgress/> : <SearchIcon/>}
-              disabled={busy}
-              color='secondary'
-              variant='contained'
-            >
-              Search
-            </Button>
+          <Grid item xs={4} md={2}>
+            <Grid container direction='column'>
+              <Grid item>
+                <Button
+                  onClick={() => {parseAndMatchText();}}
+                  startIcon={busy ? <CircularProgress/> : <SearchIcon/>}
+                  disabled={busy}
+                  color='secondary'
+                  variant='contained'
+                >
+                  Search
+                </Button>
+              </Grid>
+              <Grid item>
+                <Typography>Settings:</Typography>
+                <InputLabel htmlFor='numMatchesShow-slider' shrink>{'Matches to Show'}</InputLabel>
+                <Slider
+                  aria-label='Matches to Show'
+                  className={classes.slider}
+                  key='numMatchesShow-slider'
+                  value={numMatchesShow}
+                  onChange={(event, newValue) => setNumMatchesShow(newValue as number)}
+                  min={1}
+                  max={50}
+                  step={1}
+                  valueLabelDisplay="auto"
+                />
+              </Grid>
+            </Grid>
           </Grid>
           {Object.keys(valueMatches).length < 1 ? 
-            <Grid item xs={7} container direction='column'>
+            <Grid item xs={12} md={7} container direction='column'>
               <TextField
                 label={'Output Area'}
                 InputLabelProps={{ shrink: true }}
@@ -324,7 +349,7 @@ export default function SelectionsFromPasteModal({
                 placeholder={'Awaiting Search...'}
               />
             </Grid> :
-            <Grid item xs={7} container direction='column'>
+            <Grid item xs={12} md={7} container direction='column'>
               <Grid item>
                 <TextField
                   key={'TextField-output'}
