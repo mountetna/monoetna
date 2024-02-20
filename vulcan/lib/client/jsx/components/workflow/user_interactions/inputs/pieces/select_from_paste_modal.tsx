@@ -272,7 +272,7 @@ export default function SelectionsFromPasteModal({
   if (genomicData) {
     howItWorksText+=' Matches followed by a letter or ".#" are then prioritized over other near-matches to optimize the system for CD#s and how common genomic data tools deal with marker name overlaps.';
   };
-  howItWorksText+=' Up to 5 top-ranked matches are then shown, per query, per Option Set.';
+  howItWorksText+=' Up to the selected number of top-ranked matches are then shown, per query, per Option Set.';
 
   return (
     <>
