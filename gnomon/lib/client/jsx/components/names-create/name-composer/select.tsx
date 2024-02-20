@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import MenuList from '@material-ui/core/MenuList';
@@ -12,6 +11,7 @@ import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 
 import { Rule, Token, TokenValue, UNSET_TOKEN_VALUE } from '../../../models';
 import { selectTokenValueLocalIdsWithTokenName, selectTokenValuesByLocalId } from '../../../selectors/rules';
+import { useAppSelector as useSelector } from '../../../hooks';
 
 
 

@@ -10,7 +10,7 @@ import * as exampleRulesResponse from './static/example-rules-response.json';
 import { MagmaRulesResponse } from '../../../utils/rules';
 import { MagmaBulkGenerateName, MagmaListName } from '../../../utils/names';
 import * as exportModule from '../../../utils/export';
-import { selectCompleteCreateNamesCreationPayloads } from '../../../selectors/names';
+import { selectCompleteCreateNamesCreationPayloads, selectComposeErrorsByCreateNameGroupLocalId } from '../../../selectors/names';
 
 
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
@@ -127,9 +127,9 @@ describe('NamesCreate', () => {
                 'div.hasError span[class*="infoTooltipIconContainer"]'
             )).toBeFalsy();
 
-            const composeErrors = Object.entries(store.getState().names.createNameGroups.composeErrorsByLocalId);
-            expect(composeErrors.length).toBe(1);
-            expect(composeErrors[0][1].error).toBe(false);
+            const remoteDuplicateReqs = Object.values(store.getState().names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId);
+            expect(remoteDuplicateReqs.length).toBe(1);
+            expect(remoteDuplicateReqs[0].hasDuplicate).toBe(false);
         });
     });
 
@@ -169,9 +169,9 @@ describe('NamesCreate', () => {
                 'div.hasError span[class*="infoTooltipIconContainer"]'
             )).toBeTruthy();
 
-            const composeErrors = Object.entries(store.getState().names.createNameGroups.composeErrorsByLocalId);
-            expect(composeErrors.length).toBe(1);
-            expect(composeErrors[0][1].error).toBe(true);
+            const remoteDuplicateReqs = Object.values(store.getState().names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId);
+            expect(remoteDuplicateReqs.length).toBe(1);
+            expect(remoteDuplicateReqs[0].hasDuplicate).toBe(true);
         });
     });
 
@@ -219,9 +219,9 @@ describe('NamesCreate', () => {
         fireEvent.change(counterInputs[0], { target: { value: String(existingNameCounter + 1) } });
 
         await waitFor(() => {
-            const composeErrors = Object.values(store.getState().names.createNameGroups.composeErrorsByLocalId);
-            expect(composeErrors.length).toBe(2);
-            expect(composeErrors.map(el => el.checkStatus)).toStrictEqual(['idle', 'idle']);
+            const remoteDuplicateReqs = Object.values(store.getState().names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId);
+            expect(remoteDuplicateReqs.length).toBe(2);
+            expect(remoteDuplicateReqs.map(el => el.status)).toStrictEqual(['idle', 'idle']);
         });
 
         fireEvent.click(selectButtons[1]);
@@ -229,9 +229,9 @@ describe('NamesCreate', () => {
         fireEvent.change(counterInputs[1], { target: { value: String(existingNameCounter + 1) } });
 
         await waitFor(() => {
-            const composeErrors = Object.values(store.getState().names.createNameGroups.composeErrorsByLocalId);
-            expect(composeErrors.length).toBe(2);
-            expect(composeErrors.map(el => el.checkStatus)).toStrictEqual(['idle', 'idle']);
+            const remoteDuplicateReqs = Object.values(store.getState().names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId);
+            expect(remoteDuplicateReqs.length).toBe(2);
+            expect(remoteDuplicateReqs.map(el => el.status)).toStrictEqual(['idle', 'idle']);
         });
 
         // enter search criteria
@@ -311,9 +311,9 @@ describe('NamesCreate', () => {
         fireEvent.change(counterInputs[0], { target: { value: String(existingNameCounter + 1) } });
 
         await waitFor(() => {
-            const composeErrors = Object.values(store.getState().names.createNameGroups.composeErrorsByLocalId);
-            expect(composeErrors.length).toBe(2);
-            expect(composeErrors.map(el => el.checkStatus)).toStrictEqual(['idle', 'idle']);
+            const remoteDuplicateReqs = Object.values(store.getState().names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId);
+            expect(remoteDuplicateReqs.length).toBe(2);
+            expect(remoteDuplicateReqs.map(el => el.status)).toStrictEqual(['idle', 'idle']);
         });
 
         fireEvent.click(selectButtons[1]);
@@ -321,9 +321,9 @@ describe('NamesCreate', () => {
         fireEvent.change(counterInputs[1], { target: { value: String(existingNameCounter + 1) } });
 
         await waitFor(() => {
-            const composeErrors = Object.values(store.getState().names.createNameGroups.composeErrorsByLocalId);
-            expect(composeErrors.length).toBe(2);
-            expect(composeErrors.map(el => el.checkStatus)).toStrictEqual(['idle', 'idle']);
+            const remoteDuplicateReqs = Object.values(store.getState().names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId);
+            expect(remoteDuplicateReqs.length).toBe(2);
+            expect(remoteDuplicateReqs.map(el => el.status)).toStrictEqual(['idle', 'idle']);
         });
 
         // enter search criteria
@@ -473,9 +473,9 @@ describe('NamesCreate', () => {
         await waitFor(() => {
             const expectedNamesCount = iterateDelta + 2;
 
-            const composeErrors = Object.values(store.getState().names.createNameGroups.composeErrorsByLocalId);
-            expect(composeErrors.length).toBe(expectedNamesCount);
-            expect(_.every(composeErrors.map(el => el.error))).toBe(false);
+            const remoteDuplicateReqs = Object.values(store.getState().names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId);
+            expect(remoteDuplicateReqs.length).toBe(expectedNamesCount);
+            expect(_.every(remoteDuplicateReqs.map(el => el.hasDuplicate))).toBe(false);
 
             const nameComposers = document.querySelectorAll(
                 'div[class*="composerRowContainer"]'
@@ -511,9 +511,9 @@ describe('NamesCreate', () => {
         await waitFor(() => {
             const expectedNamesCount = iterateDelta + 2;
 
-            const composeErrors = Object.values(store.getState().names.createNameGroups.composeErrorsByLocalId);
-            expect(composeErrors.length).toBe(expectedNamesCount);
-            expect(_.every(composeErrors.map(el => el.error))).toBe(false);
+            const remoteDuplicateReqs = Object.values(store.getState().names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId);
+            expect(remoteDuplicateReqs.length).toBe(expectedNamesCount);
+            expect(_.every(remoteDuplicateReqs.map(el => el.hasDuplicate))).toBe(false);
 
             const nameComposers = document.querySelectorAll(
                 'div[class*="composerRowContainer"]'
@@ -626,9 +626,9 @@ describe('NamesCreate', () => {
         fireEvent.change(counterInputs[0], { target: { value: String(existingNameCounter + 1) } });
 
         await waitFor(() => {
-            const composeErrors = Object.values(store.getState().names.createNameGroups.composeErrorsByLocalId);
-            expect(composeErrors.length).toBe(2);
-            expect(_.every(composeErrors.map(el => el.error))).toBe(false);
+            const remoteDuplicateReqs = Object.values(store.getState().names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId);
+            expect(remoteDuplicateReqs.length).toBe(2);
+            expect(_.every(remoteDuplicateReqs.map(el => el.hasDuplicate))).toBe(false);
         });
 
         fireEvent.click(selectButtons[1]);
@@ -636,9 +636,9 @@ describe('NamesCreate', () => {
         fireEvent.change(counterInputs[1], { target: { value: String(existingNameCounter + 1) } });
 
         await waitFor(() => {
-            const composeErrors = Object.values(store.getState().names.createNameGroups.composeErrorsByLocalId);
-            expect(composeErrors.length).toBe(2);
-            expect(_.every(composeErrors.map(el => el.error))).toBe(false);
+            const remoteDuplicateReqs = Object.values(store.getState().names.createNameGroups.magmaCheckDuplicateNameRequestsByLocalId);
+            expect(remoteDuplicateReqs.length).toBe(2);
+            expect(_.every(remoteDuplicateReqs.map(el => el.hasDuplicate))).toBe(false);
         });
 
 

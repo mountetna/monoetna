@@ -3,13 +3,13 @@
 exports[`NamesCreate can copy names n times 1`] = `
 <DocumentFragment>
   <div
-    class="makeStyles-projectAndToolbarContainer-8271"
+    class="makeStyles-projectAndToolbarContainer-8292"
   >
     <div
-      class="MuiGrid-root makeStyles-header-8277 undefined MuiGrid-container MuiGrid-item"
+      class="MuiGrid-root makeStyles-header-8298 undefined MuiGrid-container MuiGrid-item"
     >
       <a
-        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-8278 MuiTypography-colorPrimary"
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-8299 MuiTypography-colorPrimary"
         href="/example"
       >
         <h5
@@ -20,31 +20,31 @@ exports[`NamesCreate can copy names n times 1`] = `
       </a>
     </div>
     <div
-      class="makeStyles-container-8279"
+      class="makeStyles-container-8300"
     >
       <div
-        class="makeStyles-buttonsOuterContainer-8280"
+        class="makeStyles-buttonsOuterContainer-8301"
       >
         <div
-          class="makeStyles-buttonsContainer-8281"
+          class="makeStyles-buttonsContainer-8302"
         >
           <div
-            class="makeStyles-container-8284 makeStyles-buttonContainer-8282"
+            class="makeStyles-container-8305 makeStyles-buttonContainer-8303"
           >
             <button
               aria-haspopup="true"
               aria-label="Add Names"
-              class="MuiButtonBase-root-8314 MuiButton-root-8287 MuiButton-contained-8295 makeStyles-button-8285 MuiButton-containedPrimary-8296 MuiButton-disableElevation-8298"
+              class="MuiButtonBase-root-8335 MuiButton-root-8308 MuiButton-contained-8316 makeStyles-button-8306 MuiButton-containedPrimary-8317 MuiButton-disableElevation-8319"
               tabindex="0"
               title="Add Names"
               type="button"
             >
               <span
-                class="MuiButton-label-8288"
+                class="MuiButton-label-8309"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-8315"
+                  class="MuiSvgIcon-root-8336"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -56,22 +56,22 @@ exports[`NamesCreate can copy names n times 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-8284 makeStyles-buttonContainer-8282"
+            class="makeStyles-container-8305 makeStyles-buttonContainer-8303"
           >
             <button
               aria-haspopup="true"
               aria-label="Find and Filter"
-              class="MuiButtonBase-root-9024 MuiButton-root-8997 MuiButton-contained-9005 makeStyles-button-8285 MuiButton-containedPrimary-9006 MuiButton-disableElevation-9008"
+              class="MuiButtonBase-root-9047 MuiButton-root-9020 MuiButton-contained-9028 makeStyles-button-8306 MuiButton-containedPrimary-9029 MuiButton-disableElevation-9031"
               tabindex="0"
               title="Find and Filter"
               type="button"
             >
               <span
-                class="MuiButton-label-8998"
+                class="MuiButton-label-9021"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-9025"
+                  class="MuiSvgIcon-root-9048"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -83,22 +83,22 @@ exports[`NamesCreate can copy names n times 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-8284 makeStyles-buttonContainer-8282"
+            class="makeStyles-container-8305 makeStyles-buttonContainer-8303"
           >
             <button
               aria-haspopup="true"
               aria-label="Copy and Replace"
-              class="MuiButtonBase-root-8397 MuiButton-root-8370 MuiButton-contained-8378 makeStyles-button-8285 MuiButton-containedPrimary-8379 MuiButton-disableElevation-8381 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-8418 MuiButton-root-8391 MuiButton-contained-8399 makeStyles-button-8306 MuiButton-containedPrimary-8400 MuiButton-disableElevation-8402 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-8371"
+                class="MuiButton-label-8392"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-8398"
+                  class="MuiSvgIcon-root-8419"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -110,22 +110,22 @@ exports[`NamesCreate can copy names n times 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-8284 makeStyles-buttonContainer-8282"
+            class="makeStyles-container-8305 makeStyles-buttonContainer-8303"
           >
             <button
               aria-haspopup="false"
               aria-label="Delete Selection"
-              class="MuiButtonBase-root-9061 MuiButton-root-9034 MuiButton-contained-9042 makeStyles-button-8285 MuiButton-containedPrimary-9043 MuiButton-disableElevation-9045 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-9084 MuiButton-root-9057 MuiButton-contained-9065 makeStyles-button-8306 MuiButton-containedPrimary-9066 MuiButton-disableElevation-9068 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-9035"
+                class="MuiButton-label-9058"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-9062"
+                  class="MuiSvgIcon-root-9085"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -137,22 +137,22 @@ exports[`NamesCreate can copy names n times 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-8284 makeStyles-buttonContainer-8282"
+            class="makeStyles-container-8305 makeStyles-buttonContainer-8303"
           >
             <button
               aria-haspopup="false"
               aria-label="Create"
-              class="MuiButtonBase-root-9098 MuiButton-root-9071 MuiButton-contained-9079 makeStyles-button-8285 MuiButton-containedPrimary-9080 MuiButton-disableElevation-9082 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-9121 MuiButton-root-9094 MuiButton-contained-9102 makeStyles-button-8306 MuiButton-containedPrimary-9103 MuiButton-disableElevation-9105 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-9072"
+                class="MuiButton-label-9095"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-9099"
+                  class="MuiSvgIcon-root-9122"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -164,22 +164,22 @@ exports[`NamesCreate can copy names n times 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-8284 makeStyles-container-8495 makeStyles-buttonContainer-8282 iconHorizontal"
+            class="makeStyles-container-8305 makeStyles-container-8517 makeStyles-buttonContainer-8303 iconHorizontal"
           >
             <button
               aria-haspopup="false"
               aria-label="Show Labels"
-              class="MuiButtonBase-root-8534 MuiButton-root-8507 MuiButton-contained-8515 makeStyles-button-8285 MuiButton-containedSecondary-8517 MuiButton-disableElevation-8518"
+              class="MuiButtonBase-root-8556 MuiButton-root-8529 MuiButton-contained-8537 makeStyles-button-8306 MuiButton-containedSecondary-8539 MuiButton-disableElevation-8540"
               tabindex="0"
               title="Show Labels"
               type="button"
             >
               <span
-                class="MuiButton-label-8508"
+                class="MuiButton-label-8530"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-8535"
+                  class="MuiSvgIcon-root-8557"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -194,10 +194,10 @@ exports[`NamesCreate can copy names n times 1`] = `
       </div>
     </div>
     <div
-      class="MuiGrid-root makeStyles-header-8277 placeholder MuiGrid-container MuiGrid-item"
+      class="MuiGrid-root makeStyles-header-8298 placeholder MuiGrid-container MuiGrid-item"
     >
       <a
-        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-8278 MuiTypography-colorPrimary"
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-8299 MuiTypography-colorPrimary"
         href="/example"
       >
         <h5
@@ -209,59 +209,59 @@ exports[`NamesCreate can copy names n times 1`] = `
     </div>
   </div>
   <div
-    class="makeStyles-countsList-8272"
+    class="makeStyles-countsList-8293"
   >
     <div
-      class="makeStyles-container-8825 makeStyles-readyCounts-8273"
+      class="makeStyles-container-8847 makeStyles-readyCounts-8294"
     >
       <div
-        class="makeStyles-count-8826 count count-total"
+        class="makeStyles-count-8848 count count-total"
       >
         1 name
       </div>
       <div
-        class="makeStyles-separator-8827 separator"
+        class="makeStyles-separator-8849 separator"
       >
         •
       </div>
       <div
-        class="makeStyles-count-8826 count count-not-ready"
+        class="makeStyles-count-8848 count count-not-ready"
       >
         1 not ready
       </div>
     </div>
   </div>
   <div
-    class="MuiGrid-root makeStyles-composerList-8275 MuiGrid-container"
+    class="MuiGrid-root makeStyles-composerList-8296 MuiGrid-container"
   >
     <div
-      class="MuiGrid-root makeStyles-composer-8276 MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-6 MuiGrid-grid-xl-4"
+      class="MuiGrid-root makeStyles-composer-8297 MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-6 MuiGrid-grid-xl-4"
     >
       <div
-        class="makeStyles-gridContainer-8828"
+        class="makeStyles-gridContainer-8850"
       >
         <div
-          class="makeStyles-innerContainer-8829"
+          class="makeStyles-innerContainer-8851"
         >
           <div
-            class="MuiGrid-root makeStyles-headerContainer-8830 MuiGrid-container"
+            class="MuiGrid-root makeStyles-headerContainer-8852 MuiGrid-container"
           >
             <div
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-tools-8831"
+                class="makeStyles-tools-8853"
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-8839 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-8832 MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-8861 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-8854 MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-label="Select the Name Group"
-                      class="PrivateSwitchBase-input-8842"
+                      class="PrivateSwitchBase-input-8864"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -338,7 +338,7 @@ exports[`NamesCreate can copy names n times 1`] = `
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-ruleNameTitle-8833"
+                class="makeStyles-ruleNameTitle-8855"
               >
                 subject
               </div>
@@ -347,15 +347,15 @@ exports[`NamesCreate can copy names n times 1`] = `
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-container-8825 makeStyles-readyCounts-8834"
+                class="makeStyles-container-8847 makeStyles-readyCounts-8856"
               >
                 <div
-                  class="makeStyles-count-8826 count count-total"
+                  class="makeStyles-count-8848 count count-total"
                 >
                   1 name
                 </div>
                 <div
-                  class="makeStyles-count-8826 count count-not-ready"
+                  class="makeStyles-count-8848 count count-not-ready"
                 >
                   1 not ready
                 </div>
@@ -363,7 +363,7 @@ exports[`NamesCreate can copy names n times 1`] = `
             </div>
           </div>
           <div
-            class="makeStyles-composersContainer-8835 some-not-ready "
+            class="makeStyles-composersContainer-8857 some-not-ready "
           >
             <div
               class="placeholder"
@@ -371,30 +371,30 @@ exports[`NamesCreate can copy names n times 1`] = `
               ...
             </div>
             <div
-              class="makeStyles-composerList-8836"
+              class="makeStyles-composerList-8858"
             >
               <div
-                class="makeStyles-composerRowContainer-8837"
+                class="makeStyles-composerRowContainer-8859"
               >
                 <div
-                  class="makeStyles-composerContainer-8838"
+                  class="makeStyles-composerContainer-8860"
                 >
                   <div
-                    class="makeStyles-container-8843 makeStyles-container-8850  "
+                    class="makeStyles-container-8865 makeStyles-container-8873  "
                   >
                     <span
-                      class="makeStyles-toolsContainer-8844"
+                      class="makeStyles-toolsContainer-8867"
                     >
                       <span
                         aria-disabled="false"
-                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-8839 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-8845 MuiIconButton-colorSecondary"
+                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-8861 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-8868 MuiIconButton-colorSecondary"
                       >
                         <span
                           class="MuiIconButton-label"
                         >
                           <input
                             aria-label="Select Name"
-                            class="PrivateSwitchBase-input-8842"
+                            class="PrivateSwitchBase-input-8864"
                             data-indeterminate="false"
                             type="checkbox"
                             value=""
@@ -449,18 +449,18 @@ exports[`NamesCreate can copy names n times 1`] = `
                       </button>
                     </span>
                     <span
-                      class="makeStyles-editorsContainer-8846"
+                      class="makeStyles-editorsContainer-8869"
                     >
                       <div
-                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-8851 MuiFormGroup-row"
+                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-8874 MuiFormGroup-row"
                       >
                         <div
-                          class="makeStyles-selectValueContainer-8852 "
+                          class="makeStyles-selectValueContainer-8875 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for project"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-8853 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-8876 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -473,12 +473,12 @@ exports[`NamesCreate can copy names n times 1`] = `
                           </button>
                         </div>
                         <div
-                          class="makeStyles-selectValueContainer-8852 "
+                          class="makeStyles-selectValueContainer-8875 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for separator"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-8853 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-8876 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -491,12 +491,12 @@ exports[`NamesCreate can copy names n times 1`] = `
                           </button>
                         </div>
                         <div
-                          class="makeStyles-selectValueContainer-8852 "
+                          class="makeStyles-selectValueContainer-8875 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for species"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-8853 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-8876 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -522,22 +522,22 @@ exports[`NamesCreate can copy names n times 1`] = `
                           </button>
                         </div>
                         <span
-                          class="makeStyles-ruleCounterField-8856 makeStyles-unset-8860"
+                          class="makeStyles-ruleCounterField-8879 makeStyles-unset-8883"
                         >
                           <div
-                            class="MuiFormControl-root makeStyles-form-8857"
+                            class="MuiFormControl-root makeStyles-form-8880"
                           >
                             <button
                               aria-haspopup="false"
                               aria-label="Set Counter Value for subject"
-                              class="MuiButtonBase-root makeStyles-autoIncrementButton-8858"
+                              class="MuiButtonBase-root makeStyles-autoIncrementButton-8881"
                               tabindex="0"
                               type="button"
                             >
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-8861 makeStyles-inputContainer-8863 makeStyles-ruleCounterInput-8859 MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-8884 makeStyles-inputContainer-8886 makeStyles-ruleCounterInput-8882 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -552,7 +552,7 @@ exports[`NamesCreate can copy names n times 1`] = `
                               />
                             </div>
                             <div
-                              class="makeStyles-ruler-8862"
+                              class="makeStyles-ruler-8885"
                             >
                               n
                             </div>
@@ -575,13 +575,13 @@ exports[`NamesCreate can copy names n times 1`] = `
 exports[`NamesCreate can iterate on a rule and replace values 1`] = `
 <DocumentFragment>
   <div
-    class="makeStyles-projectAndToolbarContainer-9667"
+    class="makeStyles-projectAndToolbarContainer-9690"
   >
     <div
-      class="MuiGrid-root makeStyles-header-9673 undefined MuiGrid-container MuiGrid-item"
+      class="MuiGrid-root makeStyles-header-9696 undefined MuiGrid-container MuiGrid-item"
     >
       <a
-        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-9674 MuiTypography-colorPrimary"
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-9697 MuiTypography-colorPrimary"
         href="/example"
       >
         <h5
@@ -592,31 +592,31 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
       </a>
     </div>
     <div
-      class="makeStyles-container-9675"
+      class="makeStyles-container-9698"
     >
       <div
-        class="makeStyles-buttonsOuterContainer-9676"
+        class="makeStyles-buttonsOuterContainer-9699"
       >
         <div
-          class="makeStyles-buttonsContainer-9677"
+          class="makeStyles-buttonsContainer-9700"
         >
           <div
-            class="makeStyles-container-9680 makeStyles-buttonContainer-9678"
+            class="makeStyles-container-9703 makeStyles-buttonContainer-9701"
           >
             <button
               aria-haspopup="true"
               aria-label="Add Names"
-              class="MuiButtonBase-root-9710 MuiButton-root-9683 MuiButton-contained-9691 makeStyles-button-9681 MuiButton-containedPrimary-9692 MuiButton-disableElevation-9694"
+              class="MuiButtonBase-root-9733 MuiButton-root-9706 MuiButton-contained-9714 makeStyles-button-9704 MuiButton-containedPrimary-9715 MuiButton-disableElevation-9717"
               tabindex="0"
               title="Add Names"
               type="button"
             >
               <span
-                class="MuiButton-label-9684"
+                class="MuiButton-label-9707"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-9711"
+                  class="MuiSvgIcon-root-9734"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -628,22 +628,22 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-9680 makeStyles-buttonContainer-9678"
+            class="makeStyles-container-9703 makeStyles-buttonContainer-9701"
           >
             <button
               aria-haspopup="true"
               aria-label="Find and Filter"
-              class="MuiButtonBase-root-10675 MuiButton-root-10648 MuiButton-contained-10656 makeStyles-button-9681 MuiButton-containedPrimary-10657 MuiButton-disableElevation-10659"
+              class="MuiButtonBase-root-10700 MuiButton-root-10673 MuiButton-contained-10681 makeStyles-button-9704 MuiButton-containedPrimary-10682 MuiButton-disableElevation-10684"
               tabindex="0"
               title="Find and Filter"
               type="button"
             >
               <span
-                class="MuiButton-label-10649"
+                class="MuiButton-label-10674"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-10676"
+                  class="MuiSvgIcon-root-10701"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -655,22 +655,22 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-9680 makeStyles-buttonContainer-9678"
+            class="makeStyles-container-9703 makeStyles-buttonContainer-9701"
           >
             <button
               aria-haspopup="true"
               aria-label="Copy and Replace"
-              class="MuiButtonBase-root-9793 MuiButton-root-9766 MuiButton-contained-9774 makeStyles-button-9681 MuiButton-containedPrimary-9775 MuiButton-disableElevation-9777 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-9816 MuiButton-root-9789 MuiButton-contained-9797 makeStyles-button-9704 MuiButton-containedPrimary-9798 MuiButton-disableElevation-9800 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-9767"
+                class="MuiButton-label-9790"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-9794"
+                  class="MuiSvgIcon-root-9817"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -682,22 +682,22 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-9680 makeStyles-buttonContainer-9678"
+            class="makeStyles-container-9703 makeStyles-buttonContainer-9701"
           >
             <button
               aria-haspopup="false"
               aria-label="Delete Selection"
-              class="MuiButtonBase-root-10712 MuiButton-root-10685 MuiButton-contained-10693 makeStyles-button-9681 MuiButton-containedPrimary-10694 MuiButton-disableElevation-10696 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-10737 MuiButton-root-10710 MuiButton-contained-10718 makeStyles-button-9704 MuiButton-containedPrimary-10719 MuiButton-disableElevation-10721 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-10686"
+                class="MuiButton-label-10711"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-10713"
+                  class="MuiSvgIcon-root-10738"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -709,22 +709,22 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-9680 makeStyles-buttonContainer-9678"
+            class="makeStyles-container-9703 makeStyles-buttonContainer-9701"
           >
             <button
               aria-haspopup="false"
               aria-label="Create"
-              class="MuiButtonBase-root-10760 MuiButton-root-10733 MuiButton-contained-10741 makeStyles-button-9681 MuiButton-containedPrimary-10742 MuiButton-disableElevation-10744"
+              class="MuiButtonBase-root-10785 MuiButton-root-10758 MuiButton-contained-10766 makeStyles-button-9704 MuiButton-containedPrimary-10767 MuiButton-disableElevation-10769"
               tabindex="0"
               title="Create"
               type="button"
             >
               <span
-                class="MuiButton-label-10734"
+                class="MuiButton-label-10759"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-10761"
+                  class="MuiSvgIcon-root-10786"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -736,22 +736,22 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-9680 makeStyles-container-9891 makeStyles-buttonContainer-9678 iconHorizontal"
+            class="makeStyles-container-9703 makeStyles-container-9915 makeStyles-buttonContainer-9701 iconHorizontal"
           >
             <button
               aria-haspopup="false"
               aria-label="Show Labels"
-              class="MuiButtonBase-root-9930 MuiButton-root-9903 MuiButton-contained-9911 makeStyles-button-9681 MuiButton-containedSecondary-9913 MuiButton-disableElevation-9914"
+              class="MuiButtonBase-root-9954 MuiButton-root-9927 MuiButton-contained-9935 makeStyles-button-9704 MuiButton-containedSecondary-9937 MuiButton-disableElevation-9938"
               tabindex="0"
               title="Show Labels"
               type="button"
             >
               <span
-                class="MuiButton-label-9904"
+                class="MuiButton-label-9928"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-9931"
+                  class="MuiSvgIcon-root-9955"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -766,10 +766,10 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
       </div>
     </div>
     <div
-      class="MuiGrid-root makeStyles-header-9673 placeholder MuiGrid-container MuiGrid-item"
+      class="MuiGrid-root makeStyles-header-9696 placeholder MuiGrid-container MuiGrid-item"
     >
       <a
-        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-9674 MuiTypography-colorPrimary"
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-9697 MuiTypography-colorPrimary"
         href="/example"
       >
         <h5
@@ -781,49 +781,59 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
     </div>
   </div>
   <div
-    class="makeStyles-countsList-9668"
+    class="makeStyles-countsList-9691"
   >
     <div
-      class="makeStyles-container-10221 makeStyles-readyCounts-9669"
+      class="makeStyles-container-10245 makeStyles-readyCounts-9692"
     >
       <div
-        class="makeStyles-count-10222 count count-total"
+        class="makeStyles-count-10246 count count-total"
       >
         1 name
+      </div>
+      <div
+        class="makeStyles-separator-10247 separator"
+      >
+        •
+      </div>
+      <div
+        class="makeStyles-count-10246 count count-not-ready"
+      >
+        1 not ready
       </div>
     </div>
   </div>
   <div
-    class="MuiGrid-root makeStyles-composerList-9671 MuiGrid-container"
+    class="MuiGrid-root makeStyles-composerList-9694 MuiGrid-container"
   >
     <div
-      class="MuiGrid-root makeStyles-composer-9672 MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-6 MuiGrid-grid-xl-4"
+      class="MuiGrid-root makeStyles-composer-9695 MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-6 MuiGrid-grid-xl-4"
     >
       <div
-        class="makeStyles-gridContainer-10224"
+        class="makeStyles-gridContainer-10248"
       >
         <div
-          class="makeStyles-innerContainer-10225"
+          class="makeStyles-innerContainer-10249"
         >
           <div
-            class="MuiGrid-root makeStyles-headerContainer-10226 MuiGrid-container"
+            class="MuiGrid-root makeStyles-headerContainer-10250 MuiGrid-container"
           >
             <div
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-tools-10227"
+                class="makeStyles-tools-10251"
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-10235 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-10228 MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-10259 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-10252 MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-label="Select the Name Group"
-                      class="PrivateSwitchBase-input-10238"
+                      class="PrivateSwitchBase-input-10262"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -900,7 +910,7 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-ruleNameTitle-10229"
+                class="makeStyles-ruleNameTitle-10253"
               >
                 subject
               </div>
@@ -909,18 +919,23 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-container-10221 makeStyles-readyCounts-10230"
+                class="makeStyles-container-10245 makeStyles-readyCounts-10254"
               >
                 <div
-                  class="makeStyles-count-10222 count count-total"
+                  class="makeStyles-count-10246 count count-total"
                 >
                   1 name
+                </div>
+                <div
+                  class="makeStyles-count-10246 count count-not-ready"
+                >
+                  1 not ready
                 </div>
               </div>
             </div>
           </div>
           <div
-            class="makeStyles-composersContainer-10231  "
+            class="makeStyles-composersContainer-10255 some-not-ready "
           >
             <div
               class="placeholder"
@@ -928,30 +943,30 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
               ...
             </div>
             <div
-              class="makeStyles-composerList-10232"
+              class="makeStyles-composerList-10256"
             >
               <div
-                class="makeStyles-composerRowContainer-10233"
+                class="makeStyles-composerRowContainer-10257"
               >
                 <div
-                  class="makeStyles-composerContainer-10234"
+                  class="makeStyles-composerContainer-10258"
                 >
                   <div
-                    class="makeStyles-container-10239 makeStyles-container-10246  "
+                    class="makeStyles-container-10263 makeStyles-container-10271 hasInProgress "
                   >
                     <span
-                      class="makeStyles-toolsContainer-10240"
+                      class="makeStyles-toolsContainer-10265"
                     >
                       <span
                         aria-disabled="false"
-                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-10235 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-10241 MuiIconButton-colorSecondary"
+                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-10259 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-10266 MuiIconButton-colorSecondary"
                       >
                         <span
                           class="MuiIconButton-label"
                         >
                           <input
                             aria-label="Select Name"
-                            class="PrivateSwitchBase-input-10238"
+                            class="PrivateSwitchBase-input-10262"
                             data-indeterminate="false"
                             type="checkbox"
                             value=""
@@ -1006,18 +1021,18 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
                       </button>
                     </span>
                     <span
-                      class="makeStyles-editorsContainer-10242"
+                      class="makeStyles-editorsContainer-10267"
                     >
                       <div
-                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-10247 MuiFormGroup-row"
+                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-10272 MuiFormGroup-row"
                       >
                         <div
-                          class="makeStyles-selectValueContainer-10248 "
+                          class="makeStyles-selectValueContainer-10273 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for project"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-10249 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-10274 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -1030,12 +1045,12 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
                           </button>
                         </div>
                         <div
-                          class="makeStyles-selectValueContainer-10248 "
+                          class="makeStyles-selectValueContainer-10273 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for separator"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-10249 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-10274 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -1048,12 +1063,12 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
                           </button>
                         </div>
                         <div
-                          class="makeStyles-selectValueContainer-10248 "
+                          class="makeStyles-selectValueContainer-10273 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for species"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-10249 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-10274 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -1079,22 +1094,22 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
                           </button>
                         </div>
                         <span
-                          class="makeStyles-ruleCounterField-10252 "
+                          class="makeStyles-ruleCounterField-10277 "
                         >
                           <div
-                            class="MuiFormControl-root makeStyles-form-10253"
+                            class="MuiFormControl-root makeStyles-form-10278"
                           >
                             <button
                               aria-haspopup="false"
                               aria-label="Set Counter Value for subject"
-                              class="MuiButtonBase-root makeStyles-autoIncrementButton-10254"
+                              class="MuiButtonBase-root makeStyles-autoIncrementButton-10279"
                               tabindex="0"
                               type="button"
                             >
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-10257 makeStyles-inputContainer-10259 makeStyles-ruleCounterInput-10255 MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-10282 makeStyles-inputContainer-10284 makeStyles-ruleCounterInput-10280 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -1109,13 +1124,27 @@ exports[`NamesCreate can iterate on a rule and replace values 1`] = `
                               />
                             </div>
                             <div
-                              class="makeStyles-ruler-10258"
+                              class="makeStyles-ruler-10283"
                             >
                               3
                             </div>
                           </div>
                         </span>
                       </div>
+                      <span
+                        class="makeStyles-infoTooltip-10268 name-info-tooltip makeStyles-infoTooltipIconContainer-10270"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8c-.45-.83-.7-1.79-.7-2.8 0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z"
+                          />
+                        </svg>
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -1190,17 +1219,17 @@ exports[`NamesCreate fetches rules and can add names 1`] = `
             <button
               aria-haspopup="true"
               aria-label="Find and Filter"
-              class="MuiButtonBase-root-349 MuiButton-root-322 MuiButton-contained-330 makeStyles-button-15 MuiButton-containedPrimary-331 MuiButton-disableElevation-333 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-350 MuiButton-root-323 MuiButton-contained-331 makeStyles-button-15 MuiButton-containedPrimary-332 MuiButton-disableElevation-334 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-323"
+                class="MuiButton-label-324"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-350"
+                  class="MuiSvgIcon-root-351"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -1244,17 +1273,17 @@ exports[`NamesCreate fetches rules and can add names 1`] = `
             <button
               aria-haspopup="false"
               aria-label="Delete Selection"
-              class="MuiButtonBase-root-386 MuiButton-root-359 MuiButton-contained-367 makeStyles-button-15 MuiButton-containedPrimary-368 MuiButton-disableElevation-370 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-387 MuiButton-root-360 MuiButton-contained-368 makeStyles-button-15 MuiButton-containedPrimary-369 MuiButton-disableElevation-371 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-360"
+                class="MuiButton-label-361"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-387"
+                  class="MuiSvgIcon-root-388"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -1271,17 +1300,17 @@ exports[`NamesCreate fetches rules and can add names 1`] = `
             <button
               aria-haspopup="false"
               aria-label="Create"
-              class="MuiButtonBase-root-423 MuiButton-root-396 MuiButton-contained-404 makeStyles-button-15 MuiButton-containedPrimary-405 MuiButton-disableElevation-407 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-424 MuiButton-root-397 MuiButton-contained-405 makeStyles-button-15 MuiButton-containedPrimary-406 MuiButton-disableElevation-408 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-397"
+                class="MuiButton-label-398"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-424"
+                  class="MuiSvgIcon-root-425"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -1293,22 +1322,22 @@ exports[`NamesCreate fetches rules and can add names 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-14 makeStyles-container-225 makeStyles-buttonContainer-12 iconHorizontal"
+            class="makeStyles-container-14 makeStyles-container-226 makeStyles-buttonContainer-12 iconHorizontal"
           >
             <button
               aria-haspopup="false"
               aria-label="Show Labels"
-              class="MuiButtonBase-root-264 MuiButton-root-237 MuiButton-contained-245 makeStyles-button-15 MuiButton-containedSecondary-247 MuiButton-disableElevation-248"
+              class="MuiButtonBase-root-265 MuiButton-root-238 MuiButton-contained-246 makeStyles-button-15 MuiButton-containedSecondary-248 MuiButton-disableElevation-249"
               tabindex="0"
               title="Show Labels"
               type="button"
             >
               <span
-                class="MuiButton-label-238"
+                class="MuiButton-label-239"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-265"
+                  class="MuiSvgIcon-root-266"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -1404,17 +1433,17 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
             <button
               aria-haspopup="true"
               aria-label="Find and Filter"
-              class="MuiButtonBase-root-634 MuiButton-root-607 MuiButton-contained-615 makeStyles-button-15 MuiButton-containedPrimary-616 MuiButton-disableElevation-618"
+              class="MuiButtonBase-root-636 MuiButton-root-609 MuiButton-contained-617 makeStyles-button-15 MuiButton-containedPrimary-618 MuiButton-disableElevation-620"
               tabindex="0"
               title="Find and Filter"
               type="button"
             >
               <span
-                class="MuiButton-label-608"
+                class="MuiButton-label-610"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-635"
+                  class="MuiSvgIcon-root-637"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -1458,17 +1487,17 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
             <button
               aria-haspopup="false"
               aria-label="Delete Selection"
-              class="MuiButtonBase-root-671 MuiButton-root-644 MuiButton-contained-652 makeStyles-button-15 MuiButton-containedPrimary-653 MuiButton-disableElevation-655 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-673 MuiButton-root-646 MuiButton-contained-654 makeStyles-button-15 MuiButton-containedPrimary-655 MuiButton-disableElevation-657 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-645"
+                class="MuiButton-label-647"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-672"
+                  class="MuiSvgIcon-root-674"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -1485,17 +1514,17 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
             <button
               aria-haspopup="false"
               aria-label="Create"
-              class="MuiButtonBase-root-708 MuiButton-root-681 MuiButton-contained-689 makeStyles-button-15 MuiButton-containedPrimary-690 MuiButton-disableElevation-692 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-710 MuiButton-root-683 MuiButton-contained-691 makeStyles-button-15 MuiButton-containedPrimary-692 MuiButton-disableElevation-694 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-682"
+                class="MuiButton-label-684"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-709"
+                  class="MuiSvgIcon-root-711"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -1507,22 +1536,22 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-14 makeStyles-container-225 makeStyles-buttonContainer-12 iconHorizontal"
+            class="makeStyles-container-14 makeStyles-container-226 makeStyles-buttonContainer-12 iconHorizontal"
           >
             <button
               aria-haspopup="false"
               aria-label="Show Labels"
-              class="MuiButtonBase-root-264 MuiButton-root-237 MuiButton-contained-245 makeStyles-button-15 MuiButton-containedSecondary-247 MuiButton-disableElevation-248"
+              class="MuiButtonBase-root-265 MuiButton-root-238 MuiButton-contained-246 makeStyles-button-15 MuiButton-containedSecondary-248 MuiButton-disableElevation-249"
               tabindex="0"
               title="Show Labels"
               type="button"
             >
               <span
-                class="MuiButton-label-238"
+                class="MuiButton-label-239"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-265"
+                  class="MuiSvgIcon-root-266"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -1555,20 +1584,20 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
     class="makeStyles-countsList-2"
   >
     <div
-      class="makeStyles-container-555 makeStyles-readyCounts-3"
+      class="makeStyles-container-556 makeStyles-readyCounts-3"
     >
       <div
-        class="makeStyles-count-556 count count-total"
+        class="makeStyles-count-557 count count-total"
       >
         1 name
       </div>
       <div
-        class="makeStyles-separator-557 separator"
+        class="makeStyles-separator-558 separator"
       >
         •
       </div>
       <div
-        class="makeStyles-count-556 count count-not-ready"
+        class="makeStyles-count-557 count count-not-ready"
       >
         1 not ready
       </div>
@@ -1581,30 +1610,30 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
       class="MuiGrid-root makeStyles-composer-6 MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-6 MuiGrid-grid-xl-4"
     >
       <div
-        class="makeStyles-gridContainer-558"
+        class="makeStyles-gridContainer-559"
       >
         <div
-          class="makeStyles-innerContainer-559"
+          class="makeStyles-innerContainer-560"
         >
           <div
-            class="MuiGrid-root makeStyles-headerContainer-560 MuiGrid-container"
+            class="MuiGrid-root makeStyles-headerContainer-561 MuiGrid-container"
           >
             <div
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-tools-561"
+                class="makeStyles-tools-562"
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-569 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-562 MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-570 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-563 MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-label="Select the Name Group"
-                      class="PrivateSwitchBase-input-572"
+                      class="PrivateSwitchBase-input-573"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -1681,7 +1710,7 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-ruleNameTitle-563"
+                class="makeStyles-ruleNameTitle-564"
               >
                 biospecimen
               </div>
@@ -1690,15 +1719,15 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-container-555 makeStyles-readyCounts-564"
+                class="makeStyles-container-556 makeStyles-readyCounts-565"
               >
                 <div
-                  class="makeStyles-count-556 count count-total"
+                  class="makeStyles-count-557 count count-total"
                 >
                   1 name
                 </div>
                 <div
-                  class="makeStyles-count-556 count count-not-ready"
+                  class="makeStyles-count-557 count count-not-ready"
                 >
                   1 not ready
                 </div>
@@ -1706,7 +1735,7 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
             </div>
           </div>
           <div
-            class="makeStyles-composersContainer-565 some-not-ready "
+            class="makeStyles-composersContainer-566 some-not-ready "
           >
             <div
               class="placeholder"
@@ -1714,30 +1743,30 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
               ...
             </div>
             <div
-              class="makeStyles-composerList-566"
+              class="makeStyles-composerList-567"
             >
               <div
-                class="makeStyles-composerRowContainer-567"
+                class="makeStyles-composerRowContainer-568"
               >
                 <div
-                  class="makeStyles-composerContainer-568"
+                  class="makeStyles-composerContainer-569"
                 >
                   <div
-                    class="makeStyles-container-573 makeStyles-container-580  "
+                    class="makeStyles-container-574 makeStyles-container-582  "
                   >
                     <span
-                      class="makeStyles-toolsContainer-574"
+                      class="makeStyles-toolsContainer-576"
                     >
                       <span
                         aria-disabled="false"
-                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-569 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-575 MuiIconButton-colorSecondary"
+                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-570 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-577 MuiIconButton-colorSecondary"
                       >
                         <span
                           class="MuiIconButton-label"
                         >
                           <input
                             aria-label="Select Name"
-                            class="PrivateSwitchBase-input-572"
+                            class="PrivateSwitchBase-input-573"
                             data-indeterminate="false"
                             type="checkbox"
                             value=""
@@ -1792,18 +1821,18 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                       </button>
                     </span>
                     <span
-                      class="makeStyles-editorsContainer-576"
+                      class="makeStyles-editorsContainer-578"
                     >
                       <div
-                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-581 MuiFormGroup-row"
+                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-583 MuiFormGroup-row"
                       >
                         <div
-                          class="makeStyles-selectValueContainer-582 "
+                          class="makeStyles-selectValueContainer-584 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for project"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-583 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-585 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -1816,12 +1845,12 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                           </button>
                         </div>
                         <div
-                          class="makeStyles-selectValueContainer-582 "
+                          class="makeStyles-selectValueContainer-584 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for separator"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-583 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-585 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -1834,12 +1863,12 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                           </button>
                         </div>
                         <div
-                          class="makeStyles-selectValueContainer-582 "
+                          class="makeStyles-selectValueContainer-584 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for species"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-583 makeStyles-unset-584 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-585 makeStyles-unset-586 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -1865,22 +1894,22 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                           </button>
                         </div>
                         <span
-                          class="makeStyles-ruleCounterField-586 makeStyles-unset-590"
+                          class="makeStyles-ruleCounterField-588 makeStyles-unset-592"
                         >
                           <div
-                            class="MuiFormControl-root makeStyles-form-587"
+                            class="MuiFormControl-root makeStyles-form-589"
                           >
                             <button
                               aria-haspopup="false"
                               aria-label="Set Counter Value for subject"
-                              class="MuiButtonBase-root makeStyles-autoIncrementButton-588"
+                              class="MuiButtonBase-root makeStyles-autoIncrementButton-590"
                               tabindex="0"
                               type="button"
                             >
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-591 makeStyles-inputContainer-593 makeStyles-ruleCounterInput-589 MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-593 makeStyles-inputContainer-595 makeStyles-ruleCounterInput-591 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -1895,7 +1924,7 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                               />
                             </div>
                             <div
-                              class="makeStyles-ruler-592"
+                              class="makeStyles-ruler-594"
                             >
                               n
                             </div>
@@ -1903,15 +1932,15 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                         </span>
                       </div>
                       <div
-                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-581 MuiFormGroup-row"
+                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-583 MuiFormGroup-row"
                       >
                         <div
-                          class="makeStyles-selectValueContainer-582 "
+                          class="makeStyles-selectValueContainer-584 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for separator"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-583 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-585 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -1924,12 +1953,12 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                           </button>
                         </div>
                         <div
-                          class="makeStyles-selectValueContainer-582 "
+                          class="makeStyles-selectValueContainer-584 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for timepoint"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-583 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-585 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -1942,22 +1971,22 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                           </button>
                         </div>
                         <span
-                          class="makeStyles-ruleCounterField-586 makeStyles-unset-590"
+                          class="makeStyles-ruleCounterField-588 makeStyles-unset-592"
                         >
                           <div
-                            class="MuiFormControl-root makeStyles-form-587"
+                            class="MuiFormControl-root makeStyles-form-589"
                           >
                             <button
                               aria-haspopup="false"
                               aria-label="Set Counter Value for timepoint"
-                              class="MuiButtonBase-root makeStyles-autoIncrementButton-588"
+                              class="MuiButtonBase-root makeStyles-autoIncrementButton-590"
                               tabindex="0"
                               type="button"
                             >
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-591 makeStyles-inputContainer-594 makeStyles-ruleCounterInput-589 MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-593 makeStyles-inputContainer-596 makeStyles-ruleCounterInput-591 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -1972,7 +2001,7 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                               />
                             </div>
                             <div
-                              class="makeStyles-ruler-592"
+                              class="makeStyles-ruler-594"
                             >
                               n
                             </div>
@@ -1980,15 +2009,15 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                         </span>
                       </div>
                       <div
-                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-581 MuiFormGroup-row"
+                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-583 MuiFormGroup-row"
                       >
                         <div
-                          class="makeStyles-selectValueContainer-582 "
+                          class="makeStyles-selectValueContainer-584 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for biospecimen"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-583 makeStyles-unset-584 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-585 makeStyles-unset-586 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -2014,22 +2043,22 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                           </button>
                         </div>
                         <span
-                          class="makeStyles-ruleCounterField-586 makeStyles-unset-590"
+                          class="makeStyles-ruleCounterField-588 makeStyles-unset-592"
                         >
                           <div
-                            class="MuiFormControl-root makeStyles-form-587"
+                            class="MuiFormControl-root makeStyles-form-589"
                           >
                             <button
                               aria-haspopup="false"
                               aria-label="Set Counter Value for biospecimen"
-                              class="MuiButtonBase-root makeStyles-autoIncrementButton-588"
+                              class="MuiButtonBase-root makeStyles-autoIncrementButton-590"
                               tabindex="0"
                               type="button"
                             >
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-591 makeStyles-inputContainer-595 makeStyles-ruleCounterInput-589 MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-593 makeStyles-inputContainer-597 makeStyles-ruleCounterInput-591 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -2044,7 +2073,7 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
                               />
                             </div>
                             <div
-                              class="makeStyles-ruler-592"
+                              class="makeStyles-ruler-594"
                             >
                               n
                             </div>
@@ -2067,13 +2096,13 @@ exports[`NamesCreate fetches rules and can add names 2`] = `
 exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
 <DocumentFragment>
   <div
-    class="makeStyles-projectAndToolbarContainer-1954"
+    class="makeStyles-projectAndToolbarContainer-1958"
   >
     <div
-      class="MuiGrid-root makeStyles-header-1960 undefined MuiGrid-container MuiGrid-item"
+      class="MuiGrid-root makeStyles-header-1964 undefined MuiGrid-container MuiGrid-item"
     >
       <a
-        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-1961 MuiTypography-colorPrimary"
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-1965 MuiTypography-colorPrimary"
         href="/example"
       >
         <h5
@@ -2084,31 +2113,31 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
       </a>
     </div>
     <div
-      class="makeStyles-container-1962"
+      class="makeStyles-container-1966"
     >
       <div
-        class="makeStyles-buttonsOuterContainer-1963"
+        class="makeStyles-buttonsOuterContainer-1967"
       >
         <div
-          class="makeStyles-buttonsContainer-1964"
+          class="makeStyles-buttonsContainer-1968"
         >
           <div
-            class="makeStyles-container-1967 makeStyles-buttonContainer-1965"
+            class="makeStyles-container-1971 makeStyles-buttonContainer-1969"
           >
             <button
               aria-haspopup="true"
               aria-label="Add Names"
-              class="MuiButtonBase-root-1997 MuiButton-root-1970 MuiButton-contained-1978 makeStyles-button-1968 MuiButton-containedPrimary-1979 MuiButton-disableElevation-1981"
+              class="MuiButtonBase-root-2001 MuiButton-root-1974 MuiButton-contained-1982 makeStyles-button-1972 MuiButton-containedPrimary-1983 MuiButton-disableElevation-1985"
               tabindex="0"
               title="Add Names"
               type="button"
             >
               <span
-                class="MuiButton-label-1971"
+                class="MuiButton-label-1975"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-1998"
+                  class="MuiSvgIcon-root-2002"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -2120,22 +2149,22 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-1967 makeStyles-buttonContainer-1965"
+            class="makeStyles-container-1971 makeStyles-buttonContainer-1969"
           >
             <button
               aria-haspopup="true"
               aria-label="Find and Filter"
-              class="MuiButtonBase-root-2962 MuiButton-root-2935 MuiButton-contained-2943 makeStyles-button-1968 MuiButton-containedPrimary-2944 MuiButton-disableElevation-2946"
+              class="MuiButtonBase-root-2968 MuiButton-root-2941 MuiButton-contained-2949 makeStyles-button-1972 MuiButton-containedPrimary-2950 MuiButton-disableElevation-2952"
               tabindex="0"
               title="Find and Filter"
               type="button"
             >
               <span
-                class="MuiButton-label-2936"
+                class="MuiButton-label-2942"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-2963"
+                  class="MuiSvgIcon-root-2969"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -2147,22 +2176,22 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-1967 makeStyles-buttonContainer-1965"
+            class="makeStyles-container-1971 makeStyles-buttonContainer-1969"
           >
             <button
               aria-haspopup="true"
               aria-label="Copy and Replace"
-              class="MuiButtonBase-root-2080 MuiButton-root-2053 MuiButton-contained-2061 makeStyles-button-1968 MuiButton-containedPrimary-2062 MuiButton-disableElevation-2064 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-2084 MuiButton-root-2057 MuiButton-contained-2065 makeStyles-button-1972 MuiButton-containedPrimary-2066 MuiButton-disableElevation-2068 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-2054"
+                class="MuiButton-label-2058"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-2081"
+                  class="MuiSvgIcon-root-2085"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -2174,22 +2203,22 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-1967 makeStyles-buttonContainer-1965"
+            class="makeStyles-container-1971 makeStyles-buttonContainer-1969"
           >
             <button
               aria-haspopup="false"
               aria-label="Delete Selection"
-              class="MuiButtonBase-root-2999 MuiButton-root-2972 MuiButton-contained-2980 makeStyles-button-1968 MuiButton-containedPrimary-2981 MuiButton-disableElevation-2983 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-3005 MuiButton-root-2978 MuiButton-contained-2986 makeStyles-button-1972 MuiButton-containedPrimary-2987 MuiButton-disableElevation-2989 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-2973"
+                class="MuiButton-label-2979"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-3000"
+                  class="MuiSvgIcon-root-3006"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -2201,22 +2230,22 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-1967 makeStyles-buttonContainer-1965"
+            class="makeStyles-container-1971 makeStyles-buttonContainer-1969"
           >
             <button
               aria-haspopup="false"
               aria-label="Create"
-              class="MuiButtonBase-root-3047 MuiButton-root-3020 MuiButton-contained-3028 makeStyles-button-1968 MuiButton-containedPrimary-3029 MuiButton-disableElevation-3031"
+              class="MuiButtonBase-root-3053 MuiButton-root-3026 MuiButton-contained-3034 makeStyles-button-1972 MuiButton-containedPrimary-3035 MuiButton-disableElevation-3037"
               tabindex="0"
               title="Create"
               type="button"
             >
               <span
-                class="MuiButton-label-3021"
+                class="MuiButton-label-3027"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-3048"
+                  class="MuiSvgIcon-root-3054"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -2228,22 +2257,22 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-1967 makeStyles-container-2178 makeStyles-buttonContainer-1965 iconHorizontal"
+            class="makeStyles-container-1971 makeStyles-container-2183 makeStyles-buttonContainer-1969 iconHorizontal"
           >
             <button
               aria-haspopup="false"
               aria-label="Show Labels"
-              class="MuiButtonBase-root-2217 MuiButton-root-2190 MuiButton-contained-2198 makeStyles-button-1968 MuiButton-containedSecondary-2200 MuiButton-disableElevation-2201"
+              class="MuiButtonBase-root-2222 MuiButton-root-2195 MuiButton-contained-2203 makeStyles-button-1972 MuiButton-containedSecondary-2205 MuiButton-disableElevation-2206"
               tabindex="0"
               title="Show Labels"
               type="button"
             >
               <span
-                class="MuiButton-label-2191"
+                class="MuiButton-label-2196"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-2218"
+                  class="MuiSvgIcon-root-2223"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -2258,10 +2287,10 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
       </div>
     </div>
     <div
-      class="MuiGrid-root makeStyles-header-1960 placeholder MuiGrid-container MuiGrid-item"
+      class="MuiGrid-root makeStyles-header-1964 placeholder MuiGrid-container MuiGrid-item"
     >
       <a
-        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-1961 MuiTypography-colorPrimary"
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-1965 MuiTypography-colorPrimary"
         href="/example"
       >
         <h5
@@ -2273,49 +2302,59 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
     </div>
   </div>
   <div
-    class="makeStyles-countsList-1955"
+    class="makeStyles-countsList-1959"
   >
     <div
-      class="makeStyles-container-2508 makeStyles-readyCounts-1956"
+      class="makeStyles-container-2513 makeStyles-readyCounts-1960"
     >
       <div
-        class="makeStyles-count-2509 count count-total"
+        class="makeStyles-count-2514 count count-total"
       >
         1 name
+      </div>
+      <div
+        class="makeStyles-separator-2515 separator"
+      >
+        •
+      </div>
+      <div
+        class="makeStyles-count-2514 count count-not-ready"
+      >
+        1 not ready
       </div>
     </div>
   </div>
   <div
-    class="MuiGrid-root makeStyles-composerList-1958 MuiGrid-container"
+    class="MuiGrid-root makeStyles-composerList-1962 MuiGrid-container"
   >
     <div
-      class="MuiGrid-root makeStyles-composer-1959 MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-6 MuiGrid-grid-xl-4"
+      class="MuiGrid-root makeStyles-composer-1963 MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-6 MuiGrid-grid-xl-4"
     >
       <div
-        class="makeStyles-gridContainer-2511"
+        class="makeStyles-gridContainer-2516"
       >
         <div
-          class="makeStyles-innerContainer-2512"
+          class="makeStyles-innerContainer-2517"
         >
           <div
-            class="MuiGrid-root makeStyles-headerContainer-2513 MuiGrid-container"
+            class="MuiGrid-root makeStyles-headerContainer-2518 MuiGrid-container"
           >
             <div
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-tools-2514"
+                class="makeStyles-tools-2519"
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-2522 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-2515 MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-2527 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-2520 MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-label="Select the Name Group"
-                      class="PrivateSwitchBase-input-2525"
+                      class="PrivateSwitchBase-input-2530"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -2392,7 +2431,7 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-ruleNameTitle-2516"
+                class="makeStyles-ruleNameTitle-2521"
               >
                 subject
               </div>
@@ -2401,18 +2440,23 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-container-2508 makeStyles-readyCounts-2517"
+                class="makeStyles-container-2513 makeStyles-readyCounts-2522"
               >
                 <div
-                  class="makeStyles-count-2509 count count-total"
+                  class="makeStyles-count-2514 count count-total"
                 >
                   1 name
+                </div>
+                <div
+                  class="makeStyles-count-2514 count count-not-ready"
+                >
+                  1 not ready
                 </div>
               </div>
             </div>
           </div>
           <div
-            class="makeStyles-composersContainer-2518  "
+            class="makeStyles-composersContainer-2523 some-not-ready "
           >
             <div
               class="placeholder"
@@ -2420,30 +2464,30 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
               ...
             </div>
             <div
-              class="makeStyles-composerList-2519"
+              class="makeStyles-composerList-2524"
             >
               <div
-                class="makeStyles-composerRowContainer-2520"
+                class="makeStyles-composerRowContainer-2525"
               >
                 <div
-                  class="makeStyles-composerContainer-2521"
+                  class="makeStyles-composerContainer-2526"
                 >
                   <div
-                    class="makeStyles-container-2526 makeStyles-container-2533  "
+                    class="makeStyles-container-2531 makeStyles-container-2539 hasInProgress "
                   >
                     <span
-                      class="makeStyles-toolsContainer-2527"
+                      class="makeStyles-toolsContainer-2533"
                     >
                       <span
                         aria-disabled="false"
-                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-2522 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-2528 MuiIconButton-colorSecondary"
+                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-2527 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-2534 MuiIconButton-colorSecondary"
                       >
                         <span
                           class="MuiIconButton-label"
                         >
                           <input
                             aria-label="Select Name"
-                            class="PrivateSwitchBase-input-2525"
+                            class="PrivateSwitchBase-input-2530"
                             data-indeterminate="false"
                             type="checkbox"
                             value=""
@@ -2498,18 +2542,18 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
                       </button>
                     </span>
                     <span
-                      class="makeStyles-editorsContainer-2529"
+                      class="makeStyles-editorsContainer-2535"
                     >
                       <div
-                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-2534 MuiFormGroup-row"
+                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-2540 MuiFormGroup-row"
                       >
                         <div
-                          class="makeStyles-selectValueContainer-2535 "
+                          class="makeStyles-selectValueContainer-2541 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for project"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2536 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2542 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -2522,12 +2566,12 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
                           </button>
                         </div>
                         <div
-                          class="makeStyles-selectValueContainer-2535 "
+                          class="makeStyles-selectValueContainer-2541 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for separator"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2536 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2542 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -2540,12 +2584,12 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
                           </button>
                         </div>
                         <div
-                          class="makeStyles-selectValueContainer-2535 "
+                          class="makeStyles-selectValueContainer-2541 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for species"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2536 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-2542 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -2571,22 +2615,22 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
                           </button>
                         </div>
                         <span
-                          class="makeStyles-ruleCounterField-2539 "
+                          class="makeStyles-ruleCounterField-2545 "
                         >
                           <div
-                            class="MuiFormControl-root makeStyles-form-2540"
+                            class="MuiFormControl-root makeStyles-form-2546"
                           >
                             <button
                               aria-haspopup="false"
                               aria-label="Set Counter Value for subject"
-                              class="MuiButtonBase-root makeStyles-autoIncrementButton-2541"
+                              class="MuiButtonBase-root makeStyles-autoIncrementButton-2547"
                               tabindex="0"
                               type="button"
                             >
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-2544 makeStyles-inputContainer-2546 makeStyles-ruleCounterInput-2542 MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-2550 makeStyles-inputContainer-2552 makeStyles-ruleCounterInput-2548 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -2601,13 +2645,27 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
                               />
                             </div>
                             <div
-                              class="makeStyles-ruler-2545"
+                              class="makeStyles-ruler-2551"
                             >
                               2
                             </div>
                           </div>
                         </span>
                       </div>
+                      <span
+                        class="makeStyles-infoTooltip-2536 name-info-tooltip makeStyles-infoTooltipIconContainer-2538"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8c-.45-.83-.7-1.79-.7-2.8 0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z"
+                          />
+                        </svg>
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -2624,13 +2682,13 @@ exports[`NamesCreate shows an error when the name is a duplicate 1`] = `
 exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
 <DocumentFragment>
   <div
-    class="makeStyles-projectAndToolbarContainer-718"
+    class="makeStyles-projectAndToolbarContainer-720"
   >
     <div
-      class="MuiGrid-root makeStyles-header-724 undefined MuiGrid-container MuiGrid-item"
+      class="MuiGrid-root makeStyles-header-726 undefined MuiGrid-container MuiGrid-item"
     >
       <a
-        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-725 MuiTypography-colorPrimary"
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-727 MuiTypography-colorPrimary"
         href="/example"
       >
         <h5
@@ -2641,31 +2699,31 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
       </a>
     </div>
     <div
-      class="makeStyles-container-726"
+      class="makeStyles-container-728"
     >
       <div
-        class="makeStyles-buttonsOuterContainer-727"
+        class="makeStyles-buttonsOuterContainer-729"
       >
         <div
-          class="makeStyles-buttonsContainer-728"
+          class="makeStyles-buttonsContainer-730"
         >
           <div
-            class="makeStyles-container-731 makeStyles-buttonContainer-729"
+            class="makeStyles-container-733 makeStyles-buttonContainer-731"
           >
             <button
               aria-haspopup="true"
               aria-label="Add Names"
-              class="MuiButtonBase-root-761 MuiButton-root-734 MuiButton-contained-742 makeStyles-button-732 MuiButton-containedPrimary-743 MuiButton-disableElevation-745"
+              class="MuiButtonBase-root-763 MuiButton-root-736 MuiButton-contained-744 makeStyles-button-734 MuiButton-containedPrimary-745 MuiButton-disableElevation-747"
               tabindex="0"
               title="Add Names"
               type="button"
             >
               <span
-                class="MuiButton-label-735"
+                class="MuiButton-label-737"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-762"
+                  class="MuiSvgIcon-root-764"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -2677,22 +2735,22 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-731 makeStyles-buttonContainer-729"
+            class="makeStyles-container-733 makeStyles-buttonContainer-731"
           >
             <button
               aria-haspopup="true"
               aria-label="Find and Filter"
-              class="MuiButtonBase-root-1726 MuiButton-root-1699 MuiButton-contained-1707 makeStyles-button-732 MuiButton-containedPrimary-1708 MuiButton-disableElevation-1710"
+              class="MuiButtonBase-root-1730 MuiButton-root-1703 MuiButton-contained-1711 makeStyles-button-734 MuiButton-containedPrimary-1712 MuiButton-disableElevation-1714"
               tabindex="0"
               title="Find and Filter"
               type="button"
             >
               <span
-                class="MuiButton-label-1700"
+                class="MuiButton-label-1704"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-1727"
+                  class="MuiSvgIcon-root-1731"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -2704,22 +2762,22 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-731 makeStyles-buttonContainer-729"
+            class="makeStyles-container-733 makeStyles-buttonContainer-731"
           >
             <button
               aria-haspopup="true"
               aria-label="Copy and Replace"
-              class="MuiButtonBase-root-844 MuiButton-root-817 MuiButton-contained-825 makeStyles-button-732 MuiButton-containedPrimary-826 MuiButton-disableElevation-828 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-846 MuiButton-root-819 MuiButton-contained-827 makeStyles-button-734 MuiButton-containedPrimary-828 MuiButton-disableElevation-830 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-818"
+                class="MuiButton-label-820"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-845"
+                  class="MuiSvgIcon-root-847"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -2731,22 +2789,22 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-731 makeStyles-buttonContainer-729"
+            class="makeStyles-container-733 makeStyles-buttonContainer-731"
           >
             <button
               aria-haspopup="false"
               aria-label="Delete Selection"
-              class="MuiButtonBase-root-1763 MuiButton-root-1736 MuiButton-contained-1744 makeStyles-button-732 MuiButton-containedPrimary-1745 MuiButton-disableElevation-1747 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root-1767 MuiButton-root-1740 MuiButton-contained-1748 makeStyles-button-734 MuiButton-containedPrimary-1749 MuiButton-disableElevation-1751 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="MuiButton-label-1737"
+                class="MuiButton-label-1741"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-1764"
+                  class="MuiSvgIcon-root-1768"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -2758,22 +2816,22 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-731 makeStyles-buttonContainer-729"
+            class="makeStyles-container-733 makeStyles-buttonContainer-731"
           >
             <button
               aria-haspopup="false"
               aria-label="Create"
-              class="MuiButtonBase-root-1811 MuiButton-root-1784 MuiButton-contained-1792 makeStyles-button-732 MuiButton-containedPrimary-1793 MuiButton-disableElevation-1795"
+              class="MuiButtonBase-root-1815 MuiButton-root-1788 MuiButton-contained-1796 makeStyles-button-734 MuiButton-containedPrimary-1797 MuiButton-disableElevation-1799"
               tabindex="0"
               title="Create"
               type="button"
             >
               <span
-                class="MuiButton-label-1785"
+                class="MuiButton-label-1789"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-1812"
+                  class="MuiSvgIcon-root-1816"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -2785,22 +2843,22 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-731 makeStyles-container-942 makeStyles-buttonContainer-729 iconHorizontal"
+            class="makeStyles-container-733 makeStyles-container-945 makeStyles-buttonContainer-731 iconHorizontal"
           >
             <button
               aria-haspopup="false"
               aria-label="Show Labels"
-              class="MuiButtonBase-root-981 MuiButton-root-954 MuiButton-contained-962 makeStyles-button-732 MuiButton-containedSecondary-964 MuiButton-disableElevation-965"
+              class="MuiButtonBase-root-984 MuiButton-root-957 MuiButton-contained-965 makeStyles-button-734 MuiButton-containedSecondary-967 MuiButton-disableElevation-968"
               tabindex="0"
               title="Show Labels"
               type="button"
             >
               <span
-                class="MuiButton-label-955"
+                class="MuiButton-label-958"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-982"
+                  class="MuiSvgIcon-root-985"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -2815,10 +2873,10 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
       </div>
     </div>
     <div
-      class="MuiGrid-root makeStyles-header-724 placeholder MuiGrid-container MuiGrid-item"
+      class="MuiGrid-root makeStyles-header-726 placeholder MuiGrid-container MuiGrid-item"
     >
       <a
-        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-725 MuiTypography-colorPrimary"
+        class="MuiTypography-root MuiLink-root MuiLink-underlineNone makeStyles-link-727 MuiTypography-colorPrimary"
         href="/example"
       >
         <h5
@@ -2830,49 +2888,59 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
     </div>
   </div>
   <div
-    class="makeStyles-countsList-719"
+    class="makeStyles-countsList-721"
   >
     <div
-      class="makeStyles-container-1272 makeStyles-readyCounts-720"
+      class="makeStyles-container-1275 makeStyles-readyCounts-722"
     >
       <div
-        class="makeStyles-count-1273 count count-total"
+        class="makeStyles-count-1276 count count-total"
       >
         1 name
+      </div>
+      <div
+        class="makeStyles-separator-1277 separator"
+      >
+        •
+      </div>
+      <div
+        class="makeStyles-count-1276 count count-not-ready"
+      >
+        1 not ready
       </div>
     </div>
   </div>
   <div
-    class="MuiGrid-root makeStyles-composerList-722 MuiGrid-container"
+    class="MuiGrid-root makeStyles-composerList-724 MuiGrid-container"
   >
     <div
-      class="MuiGrid-root makeStyles-composer-723 MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-6 MuiGrid-grid-xl-4"
+      class="MuiGrid-root makeStyles-composer-725 MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-6 MuiGrid-grid-xl-4"
     >
       <div
-        class="makeStyles-gridContainer-1275"
+        class="makeStyles-gridContainer-1278"
       >
         <div
-          class="makeStyles-innerContainer-1276"
+          class="makeStyles-innerContainer-1279"
         >
           <div
-            class="MuiGrid-root makeStyles-headerContainer-1277 MuiGrid-container"
+            class="MuiGrid-root makeStyles-headerContainer-1280 MuiGrid-container"
           >
             <div
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-tools-1278"
+                class="makeStyles-tools-1281"
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-1286 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-1279 MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-1289 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-1282 MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-label="Select the Name Group"
-                      class="PrivateSwitchBase-input-1289"
+                      class="PrivateSwitchBase-input-1292"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -2949,7 +3017,7 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-ruleNameTitle-1280"
+                class="makeStyles-ruleNameTitle-1283"
               >
                 subject
               </div>
@@ -2958,18 +3026,23 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
             >
               <div
-                class="makeStyles-container-1272 makeStyles-readyCounts-1281"
+                class="makeStyles-container-1275 makeStyles-readyCounts-1284"
               >
                 <div
-                  class="makeStyles-count-1273 count count-total"
+                  class="makeStyles-count-1276 count count-total"
                 >
                   1 name
+                </div>
+                <div
+                  class="makeStyles-count-1276 count count-not-ready"
+                >
+                  1 not ready
                 </div>
               </div>
             </div>
           </div>
           <div
-            class="makeStyles-composersContainer-1282  "
+            class="makeStyles-composersContainer-1285 some-not-ready "
           >
             <div
               class="placeholder"
@@ -2977,30 +3050,30 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
               ...
             </div>
             <div
-              class="makeStyles-composerList-1283"
+              class="makeStyles-composerList-1286"
             >
               <div
-                class="makeStyles-composerRowContainer-1284"
+                class="makeStyles-composerRowContainer-1287"
               >
                 <div
-                  class="makeStyles-composerContainer-1285"
+                  class="makeStyles-composerContainer-1288"
                 >
                   <div
-                    class="makeStyles-container-1290 makeStyles-container-1297  "
+                    class="makeStyles-container-1293 makeStyles-container-1301 hasInProgress "
                   >
                     <span
-                      class="makeStyles-toolsContainer-1291"
+                      class="makeStyles-toolsContainer-1295"
                     >
                       <span
                         aria-disabled="false"
-                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-1286 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-1292 MuiIconButton-colorSecondary"
+                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-1289 MuiCheckbox-root MuiCheckbox-colorSecondary makeStyles-checkbox-1296 MuiIconButton-colorSecondary"
                       >
                         <span
                           class="MuiIconButton-label"
                         >
                           <input
                             aria-label="Select Name"
-                            class="PrivateSwitchBase-input-1289"
+                            class="PrivateSwitchBase-input-1292"
                             data-indeterminate="false"
                             type="checkbox"
                             value=""
@@ -3055,18 +3128,18 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
                       </button>
                     </span>
                     <span
-                      class="makeStyles-editorsContainer-1293"
+                      class="makeStyles-editorsContainer-1297"
                     >
                       <div
-                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-1298 MuiFormGroup-row"
+                        class="MuiFormGroup-root makeStyles-elementsEditorContainer-1302 MuiFormGroup-row"
                       >
                         <div
-                          class="makeStyles-selectValueContainer-1299 "
+                          class="makeStyles-selectValueContainer-1303 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for project"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1300 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1304 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -3079,12 +3152,12 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
                           </button>
                         </div>
                         <div
-                          class="makeStyles-selectValueContainer-1299 "
+                          class="makeStyles-selectValueContainer-1303 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for separator"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1300 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1304 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation Mui-disabled Mui-disabled"
                             disabled=""
                             tabindex="-1"
                             type="button"
@@ -3097,12 +3170,12 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
                           </button>
                         </div>
                         <div
-                          class="makeStyles-selectValueContainer-1299 "
+                          class="makeStyles-selectValueContainer-1303 "
                         >
                           <button
                             aria-haspopup="true"
                             aria-label="Select Value for species"
-                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1300 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-currentSelectValue-1304 MuiButton-containedPrimary MuiButton-containedSizeSmall MuiButton-sizeSmall MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -3128,22 +3201,22 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
                           </button>
                         </div>
                         <span
-                          class="makeStyles-ruleCounterField-1303 "
+                          class="makeStyles-ruleCounterField-1307 "
                         >
                           <div
-                            class="MuiFormControl-root makeStyles-form-1304"
+                            class="MuiFormControl-root makeStyles-form-1308"
                           >
                             <button
                               aria-haspopup="false"
                               aria-label="Set Counter Value for subject"
-                              class="MuiButtonBase-root makeStyles-autoIncrementButton-1305"
+                              class="MuiButtonBase-root makeStyles-autoIncrementButton-1309"
                               tabindex="0"
                               type="button"
                             >
                               +1
                             </button>
                             <div
-                              class="MuiInputBase-root makeStyles-inputContainer-1308 makeStyles-inputContainer-1310 makeStyles-ruleCounterInput-1306 MuiInputBase-formControl"
+                              class="MuiInputBase-root makeStyles-inputContainer-1312 makeStyles-inputContainer-1314 makeStyles-ruleCounterInput-1310 MuiInputBase-formControl"
                               inputmode="numeric"
                               style="width: 0px;"
                             >
@@ -3158,13 +3231,27 @@ exports[`NamesCreate tracks name completion as elements are filled in 1`] = `
                               />
                             </div>
                             <div
-                              class="makeStyles-ruler-1309"
+                              class="makeStyles-ruler-1313"
                             >
                               1
                             </div>
                           </div>
                         </span>
                       </div>
+                      <span
+                        class="makeStyles-infoTooltip-1298 name-info-tooltip makeStyles-infoTooltipIconContainer-1300"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8c-.45-.83-.7-1.79-.7-2.8 0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z"
+                          />
+                        </svg>
+                      </span>
                     </span>
                   </div>
                 </div>
