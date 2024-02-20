@@ -5,7 +5,7 @@ import IconButton from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import LibraryAddRoundedIcon from '@material-ui/icons/LibraryAddRounded';
 import Tooltip from '@material-ui/core/Tooltip';
-import { nestedOptionSet } from '../visualizations';
+import { nestedOptionSet } from './utils';
 import { ReorderCollapsiblePiece } from '../reorder_piece';
 import { nestedDropdownMultiPickPiece } from '../user_input_pieces';
 import SelectionsFromPasteModal, { fuseSearchSets } from './select_from_paste_modal';

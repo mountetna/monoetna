@@ -25,6 +25,7 @@ import {
 import {subsetDataFramePiece} from './subsetDataFrame_piece';
 import {ReorderCustomOnlyPiece, ReorderVizPiece} from './reorder_piece';
 import NestedDropdownMultiPickAdvanced from './pieces/nested_dropdown_multi_pick_advanced';
+import { nestedOptionSet } from './pieces/utils';
 
 /*
 Docmentation last updated: Apr 15, 2022
@@ -95,9 +96,6 @@ JSX:
     - (key,val) pairs of the optional 'presets' input will cause any inputs' component-setup to be removed from the displayed set, while also providing the value to give to 'value[key]'.
 
 */
-
-type optionSet = string[]
-export type nestedOptionSet = DataEnvelope<DataEnvelope<DataEnvelope<null>|null>|null>
 
 const remove_hidden = (
   vals: DataEnvelope<any>,

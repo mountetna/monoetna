@@ -11,7 +11,7 @@ import FloatInput from './float';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
-import { nestedOptionSet } from './visualizations'
+import { nestedOptionSet } from './pieces/utils'
 import NestedSelectAutocompleteMultiPickInput from './nested_select_autocomplete_multi_choice';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {

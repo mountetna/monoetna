@@ -11,12 +11,11 @@ import { Grid } from '@material-ui/core'
 import SubdirectoryArrowRightOutlinedIcon from '@material-ui/icons/SubdirectoryArrowRight';
 import { arrayLevels } from './user_input_pieces';
 import SelectAutocompleteMultiPickInput from './select_autocomplete_multi_choice';
-
-type OptionSet = {[k: string]: null | OptionSet};
+import { nestedOptionSet } from './pieces/utils';
 
 export const sep = '---'
 
-export function flattenOptionPaths(options: OptionSet, pre = [] as string[]): {[key:string]: string[]} {
+export function flattenOptionPaths(options: nestedOptionSet, pre = [] as string[]): {[key:string]: string[]} {
   // Output: keys = 'value' options, values = array holding path of keys upstream in OptionSet leading to said 'value' 
   let paths = {} as {[key:string]: string[]}
   for (let [key, value] of Object.entries(options)) {
@@ -49,12 +48,12 @@ function targettedPathValues(values: string[] | null, pathMap: ReturnType<typeof
   return pathVals
 }
 
-export function pathValues(pathString: string, allOptions: OptionSet, _sep: string = sep): string[] {
+export function pathValues(pathString: string, allOptions: nestedOptionSet, _sep: string = sep): string[] {
   // Output: All 'value' options which come from this path
   const pathLevels = pathString.split(_sep)
   let values = {...allOptions}
   pathLevels.forEach( (this_level) => {
-    values = values[this_level] as OptionSet
+    values = values[this_level] as nestedOptionSet
   })
   return Object.keys(values)
 }
@@ -79,7 +78,7 @@ function valuesFromValuesPerPath(valuesPerPath: {[key:string]: string[]}) {
 export default function NestedSelectAutocompleteMultiPickInput({ label, testIdAppend='', data, onChange, ...props }: WithInputParams<{
   label?: string
   testIdAppend?: string
-}, string[], OptionSet>) {
+}, string[], nestedOptionSet>) {
   const value: string[] = useSetsDefault([] as string[], props.value, onChange);
   const allOptions = useMemoized(joinNesting, data);
   const [valuesPerPath, setValuesPerPath] = useState({} as {[key:string]: string[]});

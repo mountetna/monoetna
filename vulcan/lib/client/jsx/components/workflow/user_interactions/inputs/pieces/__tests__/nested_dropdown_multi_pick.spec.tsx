@@ -3,14 +3,15 @@ import { fireEvent, waitFor, screen } from '@testing-library/react';
 import NestedDropdownMultiPickAdvanced from '../nested_dropdown_multi_pick_advanced';
 import { renderWithProviders } from './utils';
 import { ComponentUse } from '../../visualizations';
+import { nestedOptionSet, keyedValues } from '../utils';
 
-const initialValues: {[k: string]: any} = {
+const initialValues: keyedValues = {
     marks_use: ['cd3'],
     some_other: 3
 };
 let values = initialValues;
 
-const optionSets = {
+const optionSets: nestedOptionSet = {
     Row_Features: {
         set1: {
             a: null,
