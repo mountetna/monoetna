@@ -33,8 +33,11 @@ class Vulcan
       get '/:project_name/*client_path', as: :client_view do erb_view(:client) end
 
       # vulcan v2
-      post 'api/:project_name/workflow/list', action: 'vulcan_v2#list'
-      post 'api/:project_name/workflow/init', action: 'vulcan_v2#init'
+      get 'api/:project_name/pipelines/', action: 'vulcan_v2#list_pipelines'
+      get 'api/:project_name/:pipeline_name/', action: 'vulcan_v2#list_workspaces'
+      post 'api/:project_name/workspace/create', action: 'vulcan_v2#create_workspace'
+      get 'api/:project_name/:pipeline_name/:workspace_id/params', action: 'vulcan_v2#params'
+      post 'api/:project_name/:pipeline_name/:workspace_id/run', action: 'vulcan_v2#run_pipeline'
 
     end
 
