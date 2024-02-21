@@ -20,20 +20,41 @@ class RemoteHelpersBase:
         # A regex to match against any file name, resulting files will be linked.
         file_name_regex: re.Pattern = re.compile(r".*"),
         # This regex is matched against the folder subpath of the file
-        folder_path_regex: re.Pattern = re.compile(r".*"),):
+        folder_path_regex: re.Pattern = re.compile(r".*"),
+        link_after: bool = False,
+        link_file_name_regex: re.Pattern = re.compile(r".*"),
+        link_to_upstream: int = 0,):
         """
         Creates a task that filters the given file names by regexp, and can also apply a regexp against the
-        folder path for each file for further filtering.
+        folder path for each file for further filtering.  Then, can filter additional files whose paths
+        contain (sub)paths of previously picked files.
 
         args:
             files: List of files from tail_files or previous filter_files call
             file_name_regex: re.Pattern, i.e. re.compile(r".*\.fcs")
             folder_path_regex: re.Pattern, i.e. re.compile(r".*ipi.*")
+            link_after: bool, whether to filter additional files based on shared folder path with initially
+                filtered files
+            link_file_name_regex: re.Pattern, pattern that additional files' names must match,
+                i.e. re.compile(".*/all/all/all/laneBarcode\.html")
+            link_to_upstream: integer giving a number of folders upstream of the original files' folder path
+                to match to. i.e. 0 means additional files must be downstream of folders containing originally
+                filtered files, or 1 means additional files can be downstream of the directory one level up
+                from the ones containing originally filtered files.
         """
 
         @task
         def filter_files(files):
-            result: List[RemoteFileBase] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
+            if link_after:
+                first: List[RemoteFileBase] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
+                folders: List[str] = list(set([f.folder_path for f in first]))
+                if link_to_upstream > 0:
+                    path_mod_re: str = "/.*" * link_to_upstream + "$"
+                    folders = [re.sub(path_mod_re, '', folder) for folder in folders]
+                addtnl: List[RemoteFileBase] = [f for f in files if any([folder in f.folder_path for folder in folders]) and link_file_name_regex.match(f.name)]
+                result: List[RemoteFileBase] = first + addtnl
+            else:
+                result: List[RemoteFileBase] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
 
             return result
 

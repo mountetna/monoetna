@@ -198,19 +198,22 @@ class CatEtlHelpers(RemoteHelpersBase):
 def load_cat_files_batch(
     cat: Cat,
     magic_string: str,
-    ignore_directories: List[str]
+    ignore_directories: List[str],
+    add_laneBarcode: bool
 ) -> List[SftpEntry]:
     return _load_cat_files_batch(
         cat,
         re.compile(f".*{magic_string}.*"),
-        ignore_directories
+        ignore_directories,
+        add_laneBarcode
     )
 
 
 def _load_cat_files_batch(
     cat: Cat,
     magic_string: re.Pattern,
-    ignore_directories: List[str]
+    ignore_directories: List[str],
+    add_laneBarcode: bool
 ) -> List[SftpEntry]:
     context: Context = get_current_context()
     _, end = get_batch_range(context)
@@ -222,7 +225,8 @@ def _load_cat_files_batch(
 
     files = cat.tail(
         magic_string=magic_string,
-        ignore_directories=ignore_directories
+        ignore_directories=ignore_directories,
+        add_laneBarcode=add_laneBarcode
     )
 
     return files

@@ -166,20 +166,25 @@ class Cat(SSHBase):
             self,
             ignore_directories: List[str],
             magic_string: re.Pattern = re.compile(r".*DSCOLAB.*"),
+            add_laneBarcode: bool = False
      ) -> List[SftpEntry]:
         """
         Tails all files that have not been ingested previously.
         If a `magic_string` regex is provided, will only return files that match the provided
             regex.
+        If add_laneBarcode is True, also grabs any 
+            '<file_path>/../Reports/html/*/all/all/all/laneBarcode.html'
+            files matching already tailed files
 
         params:
           magic_string: regex, the "oligo" we use to identify our projects' files. Default of ".*DSCOLAB.*
           ignore_directories: List[str], list of directories to not scan
+          add_laneBarcode: bool, whether also grab all laneBarcode.html files
         """
         all_files = []
 
         with self.sftp() as sftp:
-            all_files = self._ls_r(sftp, magic_string, ignore_directories)
+            all_files = self._ls_r(sftp, magic_string, ignore_directories, None, add_laneBarcode)
 
         return all_files
 
@@ -188,8 +193,9 @@ class Cat(SSHBase):
         sftp: SFTPClient,
         magic_string: re.Pattern,
         ignore_directories: List[str],
-        path: str = None) -> List[SftpEntry]:
-        files = []
+        path: str = None,
+        add_laneBarcode: bool = False) -> List[SftpEntry]:
+        files: List[SftpEntry] = []
 
         if path is None:
             path = self._root_path()
@@ -211,6 +217,14 @@ class Cat(SSHBase):
                 # Re-upload file if the hash has changed (size-modified time-created time).
                 print(f"appending {sftp_entry.name} to list of files!")
                 files.append(sftp_entry)
+
+        if add_laneBarcode:
+            # Collect folder paths directly upstream of the fastqs
+            folders: List[str] = list(set([re.sub(r"/.*$", '', f.folder_path) for f in files]))
+            # Get 'Reports/html/*/all/all/all/laneBarcode.html'
+            for folder in folders:
+                files += self._ls_r(sftp, re.compile(r".*/all/all/all/laneBarcode\.html"),
+                                    ignore_directories, os.path.join(folder, 'Reports', 'html'))
 
         return files
 

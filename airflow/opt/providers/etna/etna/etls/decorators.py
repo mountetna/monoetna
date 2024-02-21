@@ -189,6 +189,7 @@ def cat_etl(
     inject_params: Mapping[str, str] = {},
     magic_string: str = "DSCOLAB_",
     ignore_directories: List[str] = ['Stats', 'test', 'Reports', 'test_DM', 'ec-test'],
+    add_laneBarcode: bool = True,
     retries: Optional[int] = 10,
 ):
     """
@@ -212,7 +213,7 @@ def cat_etl(
             @task(retries=retries)
             def tail_files() -> List[File]:
                 with hook.cat() as cat:
-                    return pickled(load_cat_files_batch(cat, magic_string, ignore_directories))
+                    return pickled(load_cat_files_batch(cat, magic_string, ignore_directories, add_laneBarcode))
 
             files = tail_files()
 
