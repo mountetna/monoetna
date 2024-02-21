@@ -20,14 +20,15 @@ import {
     ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA,
     REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA,
     SET_MAGMA_NAMES_CREATION_REQUEST,
-    SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP,
     SET_MAGMA_NAMES_LIST_REQUEST,
     SET_SEARCH_VISIBILITY,
     SET_REPLACE_VISIBILITY,
+    SET_MAGMA_CHECK_DUPLICATE_NAME_REQUEST,
+    SET_MAGMA_INCREMENT_COUNTER_REQUEST,
 } from '../../actions/names';
 import { MagmaBulkGenerateResponse, MagmaListName, MagmaRequestState } from '../../utils/names';
 import { Status } from '../../utils/models';
-import { addGroupsToReplace, addGroupsToSearch, addGroupsToSelection, addNamesWithGroupsAndTokensValues, deleteGroupsWithNames, deleteSelectedGroupsWithNames, deselectAllGroups, disableGroupFilter, removeGroupsFromReplace, removeGroupsFromSearch, removeGroupsFromSelection, setComposeErrorForCreateNameGroup, setGroupsFilterFromSearchCriteria, setGroupsSelectionFromSearchCriteria, setRuleCounterValueForCreateNames } from './create-names-and-groups';
+import { addGroupsToReplace, addGroupsToSearch, addGroupsToSelection, addNamesWithGroupsAndTokensValues, deleteGroupsWithNames, deleteSelectedGroupsWithNames, deselectAllGroups, disableGroupFilter, removeGroupsFromReplace, removeGroupsFromSearch, removeGroupsFromSelection, setGroupsFilterFromSearchCriteria, setGroupsSelectionFromSearchCriteria, setMagmaCheckDuplicateNameRequestForCreateNameGroup, setMagmaIncrementCounterRequestForCreateNameGroup, setRuleCounterValueForCreateNames } from './create-names-and-groups';
 import { addCreateNameTokenValues, deleteCreateNameTokenValues } from './create-name-token-values';
 
 
@@ -101,9 +102,14 @@ interface CreateNameTokenValuesState {
 }
 
 
-export interface ComposeErrorState {
-    checkStatus: Status
-    error?: boolean
+export interface MagmaCheckDuplicateNameRequestState {
+    status: Status
+    hasDuplicate?: boolean
+}
+
+
+export interface MagmaIncrementCounterRequestState {
+    status: Status
 }
 
 
@@ -116,7 +122,8 @@ interface CreateNameGroupsState {
     selectionLocalIds: Set<string>
     filterLocalIds: Set<string>
     filterEnabled: boolean
-    composeErrorsByLocalId: Record<string, ComposeErrorState>
+    magmaCheckDuplicateNameRequestsByLocalId: Record<string, MagmaCheckDuplicateNameRequestState>
+    magmaIncrementCounterRequestsByLocalId: Record<string, MagmaIncrementCounterRequestState>
 }
 
 
@@ -172,7 +179,8 @@ const initialState: NamesState = {
         selectionLocalIds: new Set(),
         filterLocalIds: new Set(),
         filterEnabled: false,
-        composeErrorsByLocalId: {},
+        magmaCheckDuplicateNameRequestsByLocalId: {},
+        magmaIncrementCounterRequestsByLocalId: {},
     },
     creationRequest: { status: 'idle' },
     magmaNamesListRequestsByRuleName: {},
@@ -257,12 +265,12 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                     ..._.omit(action, ['type'])
                 }
             };
-        case SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP:
-            return setComposeErrorForCreateNameGroup(
+        case SET_MAGMA_CHECK_DUPLICATE_NAME_REQUEST:
+            return setMagmaCheckDuplicateNameRequestForCreateNameGroup(
                 action.createNameGroupLocalId,
-                action.checkStatus,
+                action.status,
                 state,
-                action.hasError,
+                action.hasDuplicate,
             );
         case SET_MAGMA_NAMES_LIST_REQUEST:
             return {
@@ -275,6 +283,12 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                     },
                 }
             };
+        case SET_MAGMA_INCREMENT_COUNTER_REQUEST:
+            return setMagmaIncrementCounterRequestForCreateNameGroup(
+                action.createNameGroupLocalId,
+                action.status,
+                state,
+            );
         case SET_SEARCH_VISIBILITY:
             return {
                 ...state,

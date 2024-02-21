@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useSelector, batch } from 'react-redux';
+import { batch } from 'react-redux';
+import { useAppSelector as useSelector } from '../../hooks';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';

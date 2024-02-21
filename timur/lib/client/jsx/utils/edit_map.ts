@@ -8,6 +8,21 @@ export const COMMA_SEP = '^[a-zA-Z0-9]*(,[a-zA-Z0-9]*)*$';
 
 export const VALIDATION_TYPES = ['Array', 'Regexp'];
 
+export const EDITABLE_OPTIONS = [
+    'description',
+    'display_name',
+    'format_hint',
+    'hidden',
+    'attribute_group',
+    'index',
+    'link_model_name',
+    'read_only',
+    'restricted',
+    'unique',
+    'validation',
+    'link_attribute_name'
+]
+
 export const REMOVABLE_ATTRIBUTE_TYPES = [
   'string',
   'date_time',

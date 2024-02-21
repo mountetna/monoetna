@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { useSelector, batch } from 'react-redux';
+import { batch } from 'react-redux';
+import { useAppSelector as useSelector } from '../../hooks';
 import DeleteOutlineOutlinedIcon from '@material-ui/icons/DeleteOutlineOutlined';
 
 import { useDispatch } from '../../utils/redux';
