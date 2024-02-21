@@ -23,6 +23,7 @@ class RemoteHelpersBase:
         folder_path_regex: re.Pattern = re.compile(r".*"),
         link_after: bool = False,
         link_file_name_regex: re.Pattern = re.compile(r".*"),
+        link_folder_path_regex: re.Pattern = re.compile(r".*"),
         link_to_upstream: int = 0,):
         """
         Creates a task that filters the given file names by regexp, and can also apply a regexp against the
@@ -36,7 +37,9 @@ class RemoteHelpersBase:
             link_after: bool, whether to filter additional files based on shared folder path with initially
                 filtered files
             link_file_name_regex: re.Pattern, pattern that additional files' names must match,
-                i.e. re.compile(".*/all/all/all/laneBarcode\.html")
+                i.e. re.compile(r"laneBarcode\.html")
+            link_folder_path_regex: re.Pattern, pattern that additional files' folder_path must match,
+                i.e. re.compile(r".*/all/all/all$")
             link_to_upstream: integer giving a number of folders upstream of the original files' folder path
                 to match to. i.e. 0 means additional files must be downstream of folders containing originally
                 filtered files, or 1 means additional files can be downstream of the directory one level up
@@ -51,7 +54,11 @@ class RemoteHelpersBase:
                 if link_to_upstream > 0:
                     path_mod_re: str = "/.*" * link_to_upstream + "$"
                     folders = [re.sub(path_mod_re, '', folder) for folder in folders]
-                addtnl: List[RemoteFileBase] = [f for f in files if any([folder in f.folder_path for folder in folders]) and link_file_name_regex.match(f.name)]
+                addtnl: List[RemoteFileBase] = [
+                    f for f in files if any([folder in f.folder_path for folder in folders]) and
+                    link_folder_path_regex.match(f.folder_path) and
+                    link_file_name_regex.match(f.name)
+                ]
                 result: List[RemoteFileBase] = first + addtnl
             else:
                 result: List[RemoteFileBase] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
