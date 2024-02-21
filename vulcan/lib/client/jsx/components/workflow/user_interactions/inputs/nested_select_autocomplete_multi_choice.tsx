@@ -11,12 +11,11 @@ import { Grid } from '@material-ui/core'
 import SubdirectoryArrowRightOutlinedIcon from '@material-ui/icons/SubdirectoryArrowRight';
 import { arrayLevels } from './user_input_pieces';
 import SelectAutocompleteMultiPickInput from './select_autocomplete_multi_choice';
+import { nestedOptionSet } from './pieces/utils';
 
-type OptionSet = {[k: string]: null | OptionSet};
+export const sep = '---'
 
-const sep = '---'
-
-function flattenOptionPaths(options: OptionSet, pre = [] as string[]): {[key:string]: string[]} {
+export function flattenOptionPaths(options: nestedOptionSet, pre = [] as string[]): {[key:string]: string[]} {
   // Output: keys = 'value' options, values = array holding path of keys upstream in OptionSet leading to said 'value' 
   let paths = {} as {[key:string]: string[]}
   for (let [key, value] of Object.entries(options)) {
@@ -29,7 +28,7 @@ function flattenOptionPaths(options: OptionSet, pre = [] as string[]): {[key:str
   return paths
 }
 
-function leafParentPaths(pathMap: ReturnType<typeof flattenOptionPaths>, _sep: string = sep): string[] {
+export function leafParentPaths(pathMap: ReturnType<typeof flattenOptionPaths>, _sep: string = sep): string[] {
   // Output: All "Option Paths", unique paths (now combined from [level1, level2].join(sep) which hold leaf options
   return arrayLevels(Object.values(pathMap).map(val => val.join(_sep)))
 }
@@ -49,12 +48,12 @@ function targettedPathValues(values: string[] | null, pathMap: ReturnType<typeof
   return pathVals
 }
 
-function pathValues(pathString: string, allOptions: OptionSet, _sep: string = sep): string[] {
+export function pathValues(pathString: string, allOptions: nestedOptionSet, _sep: string = sep): string[] {
   // Output: All 'value' options which come from this path
   const pathLevels = pathString.split(_sep)
   let values = {...allOptions}
   pathLevels.forEach( (this_level) => {
-    values = values[this_level] as OptionSet
+    values = values[this_level] as nestedOptionSet
   })
   return Object.keys(values)
 }
@@ -76,9 +75,10 @@ function valuesFromValuesPerPath(valuesPerPath: {[key:string]: string[]}) {
   return arrayLevels(([] as string[]).concat.apply([] as string[], Object.values(valuesPerPath))) as string[]
 }
 
-export default function NestedSelectAutocompleteMultiPickInput({ label, data, onChange, ...props }: WithInputParams<{
+export default function NestedSelectAutocompleteMultiPickInput({ label, testIdAppend='', data, onChange, ...props }: WithInputParams<{
   label?: string
-}, string[], OptionSet>) {
+  testIdAppend?: string
+}, string[], nestedOptionSet>) {
   const value: string[] = useSetsDefault([] as string[], props.value, onChange);
   const allOptions = useMemoized(joinNesting, data);
   const [valuesPerPath, setValuesPerPath] = useState({} as {[key:string]: string[]});
@@ -120,13 +120,14 @@ export default function NestedSelectAutocompleteMultiPickInput({ label, data, on
   }, [valuesPerPath])
   const optionPathPicker = <Grid item>
       <SelectAutocompleteMultiPickInput
-        key={'MultiMultiPick-optionPsths'}
+        key='MultiMultiPick-optionPaths'
         onChange={(v) => {}}
         onChangeOverride={handlePickedOptionPaths}
         value={some(paths)}
         data={{a: pathOptions}}
         placeholder={paths.length<1 ? 'Option Sets' : undefined}
         label={label}
+        testId={testIdAppend ? `MultiMultiPick-optionPaths-${testIdAppend}`: 'MultiMultiPick-optionPaths'}
       />
     </Grid>
 
@@ -154,6 +155,7 @@ export default function NestedSelectAutocompleteMultiPickInput({ label, data, on
             value={some(values)}
             onChangeOverride={ (event: any, e: string[]) => handlePickedValues(event, e, pathString) }
             onChange={(v) => {}}
+            testId={testIdAppend ? `MultiMultiPick-${pathString}-leaves-${testIdAppend}`: `MultiMultiPick-${pathString}-leaves`}
           />
         </Grid>
       </Grid>
