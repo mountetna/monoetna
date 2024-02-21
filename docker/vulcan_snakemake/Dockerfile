@@ -8,7 +8,8 @@ RUN apt-get update && \
         build-essential \
         libffi-dev \
         libssl-dev \
-        coreutils && \
+        coreutils \
+        git && \
     echo 'root:root' | chpasswd
 
 # Setup SSH server

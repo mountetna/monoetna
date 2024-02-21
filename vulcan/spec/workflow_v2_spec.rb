@@ -1,13 +1,25 @@
 require_relative '../lib/server/controllers/vulcan_v2_controller'
+require 'net/ssh'
 
 describe VulcanV2Controller do
   include Rack::Test::Methods
+
+  let(:ssh_host) { 'vulcan_snakemake_test' }
+  let(:ssh_user) { 'root' }
+  let(:ssh_password) { 'root' }
+  let(:ssh_port) { 22 }
 
   def app
     OUTER_APP
   end
 
   context 'list pipelines' do
+
+    before do
+      Net::SSH.start(ssh_host, ssh_user, password: ssh_password, port: ssh_port) do |ssh|
+        ssh.exec!("mkdir -p /data2/vulcan/pipelines/#{PROJECT}")
+      end
+    end
 
     # For v1 we can:
     # 1. manually create a directory on c4 with git repos ready to be instantiated
@@ -97,6 +109,7 @@ describe VulcanV2Controller do
       # - Create a workspace : /data2/vulcan/pipelines/labors/test_pipeline/hash
       # - Cloned repo inside the workspace: /data2/vulcan/pipelines/labors/test_pipeline/hash/test_repo
       # - Record is created in the db
+      # - Parses and saves the pipeline params in memory
       expect(last_response.status).to eq(200)
     end
 
@@ -104,12 +117,13 @@ describe VulcanV2Controller do
   end
 
   context 'pipeline params' do
+    # Needed for the front-end
 
-    it 'parses the config for pipeline params' do
+    it 'returns a list of pipeline params' do
       # Retrieves all the pipeline params for pipeline
     end
 
-    it 'parses the config for snakemake params' do
+    it 'return a list of config for snakemake params' do
       # Retrieves all the snakemake params for the pipeline
     end
 

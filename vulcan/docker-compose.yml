@@ -74,7 +74,7 @@ x-base-etna-services:
     environment:
       APP_NAME: 'vulcan_app_fe'
 
-  'vulcan_snakemake':
+  'vulcan_snakemake_app':
     image: vulcan_snakemake
     ports:
       - "2222:22"  # for ssh
@@ -84,7 +84,20 @@ x-base-etna-services:
     depends_on:
       - 'vulcan_app'
     volumes:
-      - ../docker/vulcan_snakemake/test-repo/:/repos/
+      # TODO: add volumes here
+      - ./spec/fixtures/v2/:/repos/
+
+  'vulcan_snakemake_test':
+    image: vulcan_snakemake
+    ports:
+      - "2223:22"  # for ssh
+    networks:
+      - default
+      - edge_net
+    depends_on:
+      - 'vulcan_app'
+    volumes:
+      - ./spec/fixtures/v2/:/repos/
 
 volumes:
   vulcan-db-data:
