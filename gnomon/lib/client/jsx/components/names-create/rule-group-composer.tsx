@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Grid from '@material-ui/core/Grid';
-import { useSelector, batch } from 'react-redux';
+import { batch } from 'react-redux';
+import { useAppSelector as useSelector } from '../../hooks';
 import ButtonBase from '@material-ui/core/ButtonBase';
 import DeleteOutlineOutlinedIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -20,14 +21,13 @@ import { useDispatch } from '../../utils/redux';
 import { selectGlobalState } from '../../selectors/global';
 import Counts, { Count } from './counts';
 import ConfirmationPopper from '../confirmation-popper';
-import { ComposeErrorState } from '../../reducers/names/reducer';
 
 
 
 function createReadyCounts(
     createNameGroups: CreateNameGroup[],
     renderedCompleteCreateNamesByCreateNameGroupLocalId: Record<string, string>,
-    composeErrorsByCreateNameGroupLocalId: Record<string, ComposeErrorState>,
+    composeErrorsByCreateNameGroupLocalId: Record<string, boolean>,
 ): Count[] {
 
     let total = 0;
@@ -38,7 +38,7 @@ function createReadyCounts(
         if (
             !(cng.localId in renderedCompleteCreateNamesByCreateNameGroupLocalId)
             || !(cng.localId in composeErrorsByCreateNameGroupLocalId)
-            || composeErrorsByCreateNameGroupLocalId[cng.localId].error
+            || composeErrorsByCreateNameGroupLocalId[cng.localId]
         ) {
             notReady += 1;
         }
