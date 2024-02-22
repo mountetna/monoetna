@@ -52,7 +52,7 @@ class RemoteHelpersBase:
                 first: List[RemoteFileBase] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
                 folders: List[str] = list(set([f.folder_path for f in first]))
                 if link_to_upstream > 0:
-                    path_mod_re: str = "/.*" * link_to_upstream + "$"
+                    path_mod_re: str = "/[^/]*" * link_to_upstream + "$"
                     folders = [re.sub(path_mod_re, '', folder) for folder in folders]
                 addtnl: List[RemoteFileBase] = [
                     f for f in files if any([folder in f.folder_path for folder in folders]) and
