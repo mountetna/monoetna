@@ -1,4 +1,4 @@
-import React, {useEffect, useCallback, useRef} from 'react';
+import React, {useEffect, useCallback, useRef, useState} from 'react';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 
@@ -8,6 +8,7 @@ import FolderBreadcrumb from './folder-breadcrumb';
 import ControlBar from './control-bar';
 
 import {selectCurrentFolder} from '../selectors/directory-selector';
+import AutorenewIcon from '@material-ui/icons/Autorenew';
 
 const COLUMNS = [
   {name: 'type', width: '60px'},
@@ -35,8 +36,12 @@ const FolderView = ({bucket_name, folder_name}) => {
   const uploadFileInput = useRef(null);
   const uploadDirInput = useRef(null);
 
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
+    setLoading(true)
     invoke({type: 'RETRIEVE_FILES', bucket_name, folder_name});
+    setLoading(false)
   }, []);
 
   const selectUpload = useCallback(() => {
@@ -189,6 +194,10 @@ const FolderView = ({bucket_name, folder_name}) => {
           folder_name={folder_name}
           bucket_name={bucket_name}
         />
+        {loading ? <>
+          <AutorenewIcon/>
+          Loading
+        </> : null}
       </div>
     </div>
   );
