@@ -1,0 +1,99 @@
+volumes:
+  vesta-app-gems:
+    driver: local
+  vesta-log-dir:
+    driver: local
+  vesta-tmp-dir:
+    driver: local
+  vesta-public-dir:
+    driver: local
+  vesta-data-dir:
+    driver: local
+  vesta-db-data:
+    driver: local
+  vesta-opt-dir:
+    driver: local
+  vesta-ssh-dir:
+    driver: local
+
+x-base-etna-service:
+  &base-etna-service # Base configuration used by most etna services.
+  image: etna-base
+  volumes: &base-etna-service-volumes
+    - .:/app:delegated
+    - vesta-log-dir:/app/log:rw
+    - vesta-tmp-dir:/app/tmp:rw
+    - vesta-public-dir:/app/public:rw
+    - vesta-data-dir:/app/data:rw
+    - vesta-opt-dir:/usr/opt:rw
+    - ../etna:/etna:delegated
+    - /tmp/metrics.prom:/tmp/metrics.prom
+    - vesta-ssh-dir:/root/.ssh:rw
+  environment: &base-etna-env
+    'VESTA_ENV': 'development'
+    APP_NAME: 'vesta'
+  entrypoint: /entrypoints/development.sh
+
+  networks:
+    default:
+    edge_net:
+  extra_hosts:
+    - 'metis.development.local:172.16.238.10'
+    - 'magma.development.local:172.16.238.10'
+    - 'janus.development.local:172.16.238.10'
+    - 'timur.development.local:172.16.238.10'
+    - 'rtemis.development.local:172.16.238.10'
+    - 'archimedes.development.local:172.16.238.10'
+    - 'polyphemus.development.local:172.16.238.10'
+    - 'gnomon.development.local:172.16.238.10'
+    - 'vesta.development.local:172.16.238.10'
+
+x-base-etna-services:
+  &base-etna-services # Default list of services an etna app may have.
+  'vesta_app': &base-etna-app # The ruby webserver
+    <<: *base-etna-service
+    command: ./bin/puma.sh
+    depends_on:
+      - 'vesta_db'
+
+  'vesta_webpack':
+    &base-etna-webpack # The ruby webpack server watching for changes
+    <<: *base-etna-service
+    command: npm run webpack-dev
+
+  'vesta_db':
+    &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
+    image: development-psql
+    volumes:
+      - vesta-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: 'vesta_development'
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+      APP_NAME: 'vesta'
+    container_name: 'vesta_db_1'
+
+  'vesta_app_fe':
+    &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the main app.
+    image: etna-apache
+    volumes:
+      - vesta-public-dir:/app/public:ro
+    depends_on:
+      - 'vesta_app'
+    entrypoint: /entrypoints/development_app_fe.sh
+    command: ['httpd', '-DFOREGROUND']
+    environment:
+      APP_NAME: 'vesta_app_fe'
+
+version: '3.4'
+
+networks:
+  edge_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: '172.16.238.0/24'
+        - subnet: '2001:3984:3989::/64'
+
+services:
+  <<: *base-etna-services
