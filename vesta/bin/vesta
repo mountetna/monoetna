@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require 'bundler'
+Bundler.require :default, (ENV['VESTA_ENV'] || :development).to_sym
+
+require_relative '../lib/vesta'
+require 'yaml'
+
+config = YAML.load(File.read(File.expand_path("../../config.yml",__FILE__)))
+
+require 'yabeda'
+Vesta.instance.setup_yabeda
+Vesta.instance.run_command(config, *ARGV)
