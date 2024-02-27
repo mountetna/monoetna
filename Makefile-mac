@@ -64,6 +64,7 @@ web-up:
 	cd polyphemus && docker-compose up -d
 	cd metis && docker-compose up -d
 	cd vulcan && docker-compose up -d
+	cd vesta && docker-compose up -d
 
 web-restart: stop-all web-up
 
@@ -247,6 +248,21 @@ vulcan-remove:
 
 vulcan-migrate:
 	cd vulcan && docker-compose run --rm -e UPDATE_STATE=1 vulcan_app
+
+## Vesta ##
+
+vesta-up:
+	cd edge-apache &&  docker-compose up -d
+	cd vesta && docker-compose up -d
+
+vesta-stop:
+	cd vesta && docker-compose stop
+
+vesta-remove:
+	cd vesta && docker-compose down
+
+vesta-migrate:
+	cd vesta && docker-compose run --rm -e UPDATE_STATE=1 vesta_app
 
 ### Clean targets ###
 

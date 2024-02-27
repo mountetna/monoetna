@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<meta charset='utf-8'/>
+<html>
+  <head>
+    <title><%= Vesta.instance.environment == :development ? 'Dev ' : '' %>Vesta</title>
+    <%# <link rel="shortcut icon" href="/images/vesta.svg" type="image/x-icon" /> %>
+    <link rel='stylesheet' media='screen' href='/css/vesta.bundle.css'/>
+  </head>
+  <body>
+    <div id='root'></div>
+    <script type='text/javascript'>
+      var CONFIG = <%= config_json %>;
+    </script>
+    <script type='text/javascript' src='/js/vesta.bundle.js'></script>
+  </body>
+</html>
