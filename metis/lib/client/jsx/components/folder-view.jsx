@@ -1,6 +1,7 @@
 import React, {useEffect, useCallback, useRef, useState} from 'react';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
+import {useAsync} from 'etna-js/utils/cancellable_helpers'
 
 import ListBody from './list/list-body';
 import ListHead from './list/list-head';
@@ -37,12 +38,26 @@ const FolderView = ({bucket_name, folder_name}) => {
   const uploadDirInput = useRef(null);
 
   const [loading, setLoading] = useState(true)
+  const [showLoading, setShowLoading] = useState(false)
 
   useEffect(() => {
-    setLoading(true)
+    setLoading(true);
     invoke({type: 'RETRIEVE_FILES', bucket_name, folder_name});
-    setLoading(false)
+    setLoading(false);
   }, []);
+
+  useAsync( async () => {
+    if (loading && !showLoading) {
+      const delay = (delayInms) => {
+        return new Promise(resolve => setTimeout(resolve, delayInms));
+      };
+      let delayres = await delay(100);
+      setShowLoading(true);
+    }
+    if (!loading) {
+      setShowLoading(false);
+    }
+  }, [loading, showLoading]);
 
   const selectUpload = useCallback(() => {
     invoke({
@@ -194,7 +209,7 @@ const FolderView = ({bucket_name, folder_name}) => {
           folder_name={folder_name}
           bucket_name={bucket_name}
         />
-        {loading ? <>
+        {showLoading ? <>
           <AutorenewIcon/>
           Loading
         </> : null}
