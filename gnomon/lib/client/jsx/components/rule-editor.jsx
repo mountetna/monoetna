@@ -18,6 +18,7 @@ import IconButton from '@material-ui/core/IconButton';
 import HistoryIcon from '@material-ui/icons/HistoryRounded';
 import AddIcon from '@material-ui/icons/Add';
 import CodeIcon from '@material-ui/icons/Code';
+import AutorenewIcon from '@material-ui/icons/Autorenew';
 
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
@@ -166,7 +167,16 @@ const useStyles = makeStyles((theme) => ({
       cursor: 'pointer',
       background: '#eee'
     }
-  }
+  },
+  loadingIcon: {
+    'animation': '$spin 4s linear infinite'
+  },
+  '@keyframes spin': {
+      '100%': {
+          '-webkit-transform': 'rotate(360deg)',
+          'transform': 'rotate(360deg)',
+      }
+  },
 }));
 
 const Synonym = ({set, pos, dispatch}) => {
@@ -294,6 +304,8 @@ const RuleEditor = ({project_name}) => {
   const [ error, setError ] = useState('');
   const [ showJson, setShowJson ] = useState(false);
 
+  const [loading, setLoading] = useState(true)
+
   const changed = showJson ? editedScript != savedScript : editedState != savedState;
 
   const setEditedState = state => dispatch({ type: 'SET', state });
@@ -307,9 +319,11 @@ const RuleEditor = ({project_name}) => {
   };
 
   useEffect( () => {
+    setLoading(true);
     json_get(magmaPath(`gnomon/${project_name}/`)).then(
       ({config}) => unifyState(config)
     );
+    setLoading(false);
   }, [] );
 
   const saveRules = useCallback(
@@ -408,6 +422,10 @@ const RuleEditor = ({project_name}) => {
     </ProjectHeader>
 
     {
+      loading ? <>
+        <AutorenewIcon className={classes.loadingIcon}/>
+        Loading
+      </> : 
       showJson ? (<RuleScript script={editedScript} update={setEditedScript}/>) :
       <>
         <RuleEditorPane type='token'
