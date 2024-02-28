@@ -320,7 +320,6 @@ const RuleEditor = ({project_name}) => {
   };
 
   useEffect( () => {
-    setLoading(true);
     json_get(magmaPath(`gnomon/${project_name}/`)).then(
       ({config}) => unifyState(config)
     ).catch(

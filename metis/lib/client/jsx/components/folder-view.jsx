@@ -56,7 +56,6 @@ const FolderView = ({bucket_name, folder_name}) => {
   const classes = useStyles();
 
   useEffect(() => {
-    setLoading(true);
     invoke({type: 'RETRIEVE_FILES', bucket_name, folder_name});
     setLoading(false);
   }, []);
@@ -72,7 +71,7 @@ const FolderView = ({bucket_name, folder_name}) => {
     if (!loading) {
       setShowLoading(false);
     }
-  }, [loading, showLoading]);
+  }, [loading]);
 
   const selectUpload = useCallback(() => {
     invoke({
