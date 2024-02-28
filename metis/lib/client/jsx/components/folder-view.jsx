@@ -10,6 +10,19 @@ import ControlBar from './control-bar';
 
 import {selectCurrentFolder} from '../selectors/directory-selector';
 import AutorenewIcon from '@material-ui/icons/Autorenew';
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme) => ({
+  loadingIcon: {
+    'animation': '$spin 4s linear infinite'
+  },
+  '@keyframes spin': {
+      '100%': {
+          '-webkit-transform': 'rotate(360deg)',
+          'transform': 'rotate(360deg)',
+      }
+  },
+}))
 
 const COLUMNS = [
   {name: 'type', width: '60px'},
@@ -39,6 +52,8 @@ const FolderView = ({bucket_name, folder_name}) => {
 
   const [loading, setLoading] = useState(true)
   const [showLoading, setShowLoading] = useState(false)
+
+  const classes = useStyles();
 
   useEffect(() => {
     setLoading(true);
@@ -209,8 +224,8 @@ const FolderView = ({bucket_name, folder_name}) => {
           folder_name={folder_name}
           bucket_name={bucket_name}
         />
-        {showLoading ? <>
-          <AutorenewIcon/>
+        {loading ? <>
+          <AutorenewIcon className={classes.loadingIcon}/>
           Loading
         </> : null}
       </div>
