@@ -224,7 +224,7 @@ const FolderView = ({bucket_name, folder_name}) => {
           folder_name={folder_name}
           bucket_name={bucket_name}
         />
-        {loading ? <>
+        {showLoading ? <>
           <AutorenewIcon className={classes.loadingIcon}/>
           Loading
         </> : null}
