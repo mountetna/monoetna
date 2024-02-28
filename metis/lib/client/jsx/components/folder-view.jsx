@@ -55,8 +55,8 @@ const FolderView = ({bucket_name, folder_name}) => {
 
   const classes = useStyles();
 
-  useEffect(() => {
-    invoke({type: 'RETRIEVE_FILES', bucket_name, folder_name});
+  useAsync( async () => {
+    await invoke({type: 'RETRIEVE_FILES', bucket_name, folder_name});
     setLoading(false);
   }, []);
 
