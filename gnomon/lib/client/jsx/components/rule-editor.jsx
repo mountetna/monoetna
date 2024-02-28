@@ -316,14 +316,16 @@ const RuleEditor = ({project_name}) => {
     setEditedScript(script);
     setSavedState(config);
     setSavedScript(script);
+    setLoading(false);
   };
 
   useEffect( () => {
     setLoading(true);
     json_get(magmaPath(`gnomon/${project_name}/`)).then(
       ({config}) => unifyState(config)
+    ).catch(
+      () => setLoading(false)
     );
-    setLoading(false);
   }, [] );
 
   const saveRules = useCallback(
