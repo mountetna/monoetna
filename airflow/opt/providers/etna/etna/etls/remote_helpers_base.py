@@ -4,7 +4,7 @@ import io
 import os
 import re
 import time
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from airflow.decorators import task
 from airflow.models.xcom_arg import XComArg
@@ -21,11 +21,7 @@ class RemoteHelpersBase:
         file_name_regex: re.Pattern = re.compile(r".*"),
         # This regex is matched against the folder subpath of the file
         folder_path_regex: re.Pattern = re.compile(r".*"),
-        add_laneBarcodes: bool = False,
-        link_after: bool = False,
-        link_to_upstream: int = 0,
-        link_file_name_regex: re.Pattern = re.compile(r".*"),
-        link_folder_path_regex: re.Pattern = re.compile(r".*"),):
+        additional_files: List[Tuple[str]] = [],):
         """
         Creates a task that filters the given file names by regexp, and can also apply a regexp against the
         folder path for each file for further filtering.  Then, can filter additional files whose paths
@@ -35,41 +31,28 @@ class RemoteHelpersBase:
             files: List of files from tail_files or previous filter_files call
             file_name_regex: re.Pattern, i.e. re.compile(r".*\.fcs")
             folder_path_regex: re.Pattern, i.e. re.compile(r".*ipi.*")
-            add_laneBarcodes: bool which when True additionally filters CAT core laneBarcode.html files which share base
-                folder pathing with files that have matched the file_name_regex & folder_path_regex.
-            link_after: bool, whether to filter additional files based on shared folder path with initially
-                filtered files & the additional 'link_*'-named args below.
-            link_to_upstream: integer giving a number of folders upstream of the original files' folder path
-                to match to. i.e. 0 means additional files must be downstream of folders containing originally
-                filtered files, or 1 means additional files can be downstream of the directory one level up
-                from the ones containing originally filtered files.
-            link_file_name_regex: re.Pattern, pattern that additional files' names must match,
-                i.e. re.compile(r"laneBarcode\.html")
-            link_folder_path_regex: re.Pattern, pattern that additional files' folder_path must match,
-                i.e. re.compile(r".*/all/all/all$")
+            additional_files: List[Tuple[str]], where each tuple contains 3 strings:
+                1 & 2 work together to transform originally picked files' full_path into a new directory regex
+                    that additional files' folder_path should match to ('re.sub(<1>, <2>, <file.full_path>)' + '.*')
+                3 forms a regex that additional files' full_path (folder_path + file_name) must match.
         """
 
         @task
         def filter_files(files):
-            def _link_after(link_to, _upstream, _file_name_regex, _folder_path_regex):
-                folders: List[str] = list(set([f.folder_path for f in link_to]))
-                if _upstream > 0:
-                    path_mod_re: str = "/[^/]*" * _upstream + "$"
-                    folders = [re.sub(path_mod_re, '', folder) for folder in folders]
-                addtnl: List[RemoteFileBase] = [
-                    f for f in files if any([folder in f.folder_path for folder in folders]) and
-                    _folder_path_regex.match(f.folder_path) and
-                    _file_name_regex.match(f.name)
-                ]
-                return addtnl
-
-            first: List[RemoteFileBase] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
-            addtnl: List[RemoteFileBase] = []
-            if add_laneBarcodes:
-                addtnl = addtnl + _link_after(first, 1, re.compile(r"laneBarcode\.html"), re.compile(r".*/all/all/all$"))
-            if link_after:
-                addtnl = addtnl + _link_after(first, link_to_upstream, link_file_name_regex, link_folder_path_regex)
-            return list(set(first + addtnl))
+            filtered: List[RemoteFileBase] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
+            if additional_files:
+                new_files: XComArg = []
+                for start_regex, replacement_regex, new_magic_string in additional_files:
+                    folders: List[str] = list(set(
+                        [re.sub(start_regex, replacement_regex, f.full_path)
+                            for f in filtered]
+                    ))
+                    for folder in folders:
+                        new_files += [f for f in files if
+                                      re.compile(folder + '.*').match(f.folder_path) and
+                                      re.compile(new_magic_string).match(os.path.join(f.folder_path, f.name))]
+                filtered += new_files
+            return list(set(filtered))
 
         return filter_files(files)
 

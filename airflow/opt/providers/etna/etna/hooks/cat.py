@@ -11,7 +11,7 @@ import stat
 import subprocess
 from paramiko.sftp_client import SFTPClient
 from paramiko.sftp_attr import SFTPAttributes
-from typing import List, Dict, Optional, ContextManager
+from typing import List, Dict, Optional, ContextManager, Tuple
 from queue import Queue, Empty
 from threading  import Thread
 
@@ -166,27 +166,40 @@ class Cat(SSHBase):
             self,
             ignore_directories: List[str],
             magic_string: re.Pattern = re.compile(r".*DSCOLAB.*"),
-            add_laneBarcodes: bool = False
+            additional_files: List[Tuple[str]] = []
      ) -> List[SftpEntry]:
         """
         Tails all files that have not been ingested previously.
         If a `magic_string` regex is provided, will only return files that match the provided
             regex.
-        If add_laneBarcodes is True, also grabs any 
-            '<file_path>/../Reports/html/*/all/all/all/laneBarcode.html'
-            files matching already tailed files
+        If tuples decribing additional_files are provided, also grabs files described by each 
+            those tuples.
 
         params:
-          magic_string: regex, the "oligo" we use to identify our projects' files. Default of ".*DSCOLAB.*
-          ignore_directories: List[str], list of directories to not scan
-          add_laneBarcodes: bool, whether also grab all laneBarcode.html files
+            magic_string: regex, the "oligo" we use to identify our projects' files. Default of ".*DSCOLAB.*
+            ignore_directories: List[str], list of directories to not scan
+            additional_files: List[Tuple[str]], where each tuple contains 3 strings:
+                1 & 2 work together to transform originally picked files' full_path into a directory to search
+                    within for these additional files via 're.sub(<1>, <2>, <file.full_path>)'
+                3 forms a regex that additional files' full_path must match.
         """
         all_files = []
 
         with self.sftp() as sftp:
-            all_files = self._ls_r(sftp, magic_string, ignore_directories, None, add_laneBarcodes)
+            all_files = self._ls_r(sftp, magic_string, ignore_directories)
 
-        return all_files
+            if additional_files:
+                new_files: List[SftpEntry] = []
+                for start_regex, replacement_regex, new_magic_string in additional_files:
+                    folders: List[str] = list(set(
+                        [re.sub(start_regex, replacement_regex, f.full_path)
+                            for f in all_files]
+                    ))
+                    for folder in folders:
+                        new_files += self._ls_r(sftp, re.compile(new_magic_string), ignore_directories, path=folder)
+                all_files += new_files
+
+        return list(set(all_files))
 
     def _ls_r(
         self,
@@ -194,8 +207,7 @@ class Cat(SSHBase):
         magic_string: re.Pattern,
         ignore_directories: List[str],
         path: str = None,
-        add_laneBarcodes: bool = False,
-        dir_match: re.Pattern = re.compile(r".*"),) -> List[SftpEntry]:
+        ) -> List[SftpEntry]:
         files: List[SftpEntry] = []
 
         if path is None:
@@ -211,28 +223,13 @@ class Cat(SSHBase):
                 continue
             elif sftp_entry.is_dir():
                 print(f"{sftp_entry.name} is a directory, going into it")
-                files += self._ls_r(sftp, magic_string, ignore_directories, os.path.join(path, sftp_entry.name), False, dir_match)
-            elif (magic_string.match(sftp_entry.name) and dir_match.match(sftp_entry.folder_path) and
+                files += self._ls_r(sftp, magic_string, ignore_directories, os.path.join(path, sftp_entry.name))
+            elif (magic_string.match(sftp_entry.full_path) and
                  (not self.file_ingested_to_system("c4", sftp_entry) or
                   not self.file_ingested_to_system("metis", sftp_entry))):
                 # Re-upload file if the hash has changed (size-modified time-created time).
                 print(f"appending {sftp_entry.name} to list of files!")
                 files.append(sftp_entry)
-
-        if add_laneBarcodes:
-            print(f"Now going after 'laneBarcode.html' files...")
-            # Collect folder paths directly upstream of the fastqs
-            folders = list(set([f.folder_path for f in files]))
-            print("folders before trim:")
-            print(folders)
-            folders = [re.sub("/[^/]*$", '', f) for f in folders]
-            print("folders after trim:")
-            print(folders)
-            # Get 'Reports/html/*/all/all/all/laneBarcode.html'
-            for folder in folders:
-                files += self._ls_r(sftp, re.compile(r"laneBarcode\.html"),
-                                    ignore_directories, os.path.join(folder, 'Reports', 'html'),
-                                    dir_match=re.compile(r".*all/all/all.*"))
 
         return files
 

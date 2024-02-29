@@ -1,7 +1,7 @@
 import functools
 import re
 from datetime import timedelta
-from typing import Union, Optional, Mapping, List
+from typing import Tuple, Union, Optional, Mapping, List
 
 from airflow import DAG
 from airflow.decorators import task
@@ -187,9 +187,9 @@ def cat_etl(
     hook: Optional[CatHook] = None,
     project_name: str = "administration",
     inject_params: Mapping[str, str] = {},
-    magic_string: str = "DSCOLAB_",
+    magic_string: str = "DSCOLAB(-|_)",
     ignore_directories: List[str] = ['Stats', 'test', 'Reports', 'test_DM', 'ec-test'],
-    add_laneBarcodes: bool = True,
+    additional_files: List[Tuple[str]] = [],
     retries: Optional[int] = 10,
 ):
     """
@@ -213,7 +213,7 @@ def cat_etl(
             @task(retries=retries)
             def tail_files() -> List[File]:
                 with hook.cat() as cat:
-                    return pickled(load_cat_files_batch(cat, magic_string, ignore_directories, add_laneBarcodes))
+                    return pickled(load_cat_files_batch(cat, magic_string, ignore_directories, additional_files))
 
             files = tail_files()
 
