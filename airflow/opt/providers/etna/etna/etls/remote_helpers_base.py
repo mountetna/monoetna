@@ -21,10 +21,11 @@ class RemoteHelpersBase:
         file_name_regex: re.Pattern = re.compile(r".*"),
         # This regex is matched against the folder subpath of the file
         folder_path_regex: re.Pattern = re.compile(r".*"),
+        add_laneBarcodes: bool = False,
         link_after: bool = False,
+        link_to_upstream: int = 0,
         link_file_name_regex: re.Pattern = re.compile(r".*"),
-        link_folder_path_regex: re.Pattern = re.compile(r".*"),
-        link_to_upstream: int = 0,):
+        link_folder_path_regex: re.Pattern = re.compile(r".*"),):
         """
         Creates a task that filters the given file names by regexp, and can also apply a regexp against the
         folder path for each file for further filtering.  Then, can filter additional files whose paths
@@ -34,36 +35,41 @@ class RemoteHelpersBase:
             files: List of files from tail_files or previous filter_files call
             file_name_regex: re.Pattern, i.e. re.compile(r".*\.fcs")
             folder_path_regex: re.Pattern, i.e. re.compile(r".*ipi.*")
+            add_laneBarcodes: bool which when True additionally filters CAT core laneBarcode.html files which share base
+                folder pathing with files that have matched the file_name_regex & folder_path_regex.
             link_after: bool, whether to filter additional files based on shared folder path with initially
-                filtered files
-            link_file_name_regex: re.Pattern, pattern that additional files' names must match,
-                i.e. re.compile(r"laneBarcode\.html")
-            link_folder_path_regex: re.Pattern, pattern that additional files' folder_path must match,
-                i.e. re.compile(r".*/all/all/all$")
+                filtered files & the additional 'link_*'-named args below.
             link_to_upstream: integer giving a number of folders upstream of the original files' folder path
                 to match to. i.e. 0 means additional files must be downstream of folders containing originally
                 filtered files, or 1 means additional files can be downstream of the directory one level up
                 from the ones containing originally filtered files.
+            link_file_name_regex: re.Pattern, pattern that additional files' names must match,
+                i.e. re.compile(r"laneBarcode\.html")
+            link_folder_path_regex: re.Pattern, pattern that additional files' folder_path must match,
+                i.e. re.compile(r".*/all/all/all$")
         """
 
         @task
         def filter_files(files):
-            if link_after:
-                first: List[RemoteFileBase] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
-                folders: List[str] = list(set([f.folder_path for f in first]))
-                if link_to_upstream > 0:
-                    path_mod_re: str = "/[^/]*" * link_to_upstream + "$"
+            def _link_after(link_to, _upstream, _file_name_regex, _folder_path_regex):
+                folders: List[str] = list(set([f.folder_path for f in link_to]))
+                if _upstream > 0:
+                    path_mod_re: str = "/[^/]*" * _upstream + "$"
                     folders = [re.sub(path_mod_re, '', folder) for folder in folders]
                 addtnl: List[RemoteFileBase] = [
                     f for f in files if any([folder in f.folder_path for folder in folders]) and
-                    link_folder_path_regex.match(f.folder_path) and
-                    link_file_name_regex.match(f.name)
+                    _folder_path_regex.match(f.folder_path) and
+                    _file_name_regex.match(f.name)
                 ]
-                result: List[RemoteFileBase] = first + addtnl
-            else:
-                result: List[RemoteFileBase] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
+                return addtnl
 
-            return result
+            first: List[RemoteFileBase] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
+            addtnl: List[RemoteFileBase] = []
+            if add_laneBarcodes:
+                addtnl = addtnl + _link_after(first, 1, re.compile(r"laneBarcode\.html"), re.compile(r".*/all/all/all$"))
+            if link_after:
+                addtnl = addtnl + _link_after(first, link_to_upstream, link_file_name_regex, link_folder_path_regex)
+            return list(set(first + addtnl))
 
         return filter_files(files)
 

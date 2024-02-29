@@ -166,25 +166,25 @@ class Cat(SSHBase):
             self,
             ignore_directories: List[str],
             magic_string: re.Pattern = re.compile(r".*DSCOLAB.*"),
-            add_laneBarcode: bool = False
+            add_laneBarcodes: bool = False
      ) -> List[SftpEntry]:
         """
         Tails all files that have not been ingested previously.
         If a `magic_string` regex is provided, will only return files that match the provided
             regex.
-        If add_laneBarcode is True, also grabs any 
+        If add_laneBarcodes is True, also grabs any 
             '<file_path>/../Reports/html/*/all/all/all/laneBarcode.html'
             files matching already tailed files
 
         params:
           magic_string: regex, the "oligo" we use to identify our projects' files. Default of ".*DSCOLAB.*
           ignore_directories: List[str], list of directories to not scan
-          add_laneBarcode: bool, whether also grab all laneBarcode.html files
+          add_laneBarcodes: bool, whether also grab all laneBarcode.html files
         """
         all_files = []
 
         with self.sftp() as sftp:
-            all_files = self._ls_r(sftp, magic_string, ignore_directories, None, add_laneBarcode)
+            all_files = self._ls_r(sftp, magic_string, ignore_directories, None, add_laneBarcodes)
 
         return all_files
 
@@ -194,7 +194,7 @@ class Cat(SSHBase):
         magic_string: re.Pattern,
         ignore_directories: List[str],
         path: str = None,
-        add_laneBarcode: bool = False,
+        add_laneBarcodes: bool = False,
         dir_match: re.Pattern = re.compile(r".*"),) -> List[SftpEntry]:
         files: List[SftpEntry] = []
 
@@ -219,7 +219,7 @@ class Cat(SSHBase):
                 print(f"appending {sftp_entry.name} to list of files!")
                 files.append(sftp_entry)
 
-        if add_laneBarcode:
+        if add_laneBarcodes:
             print(f"Now going after 'laneBarcode.html' files...")
             # Collect folder paths directly upstream of the fastqs
             folders = list(set([f.folder_path for f in files]))
