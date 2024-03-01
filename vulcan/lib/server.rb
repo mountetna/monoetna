@@ -15,6 +15,16 @@ class Vulcan
 
     get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
 
+    # vulcan v2
+    # TODO add auth
+    post 'api/v2/clone_workflow/', action: 'vulcan_v2#clone_workflow'
+    post 'api/v2/update_workflow/', action: 'vulcan_v2#update_workflow'
+    get 'api/v2/:project_name/workflows/', action: 'vulcan_v2#list_workflows'
+    get 'api/v2/:project_name/:workflow_name/', action: 'vulcan_v2#list_workspaces'
+    post 'api/v2/:project_name/workspace/create', action: 'vulcan_v2#create_workspace'
+    get 'api/v2/:project_name/:workflow_name/:workspace_id/params', action: 'vulcan_v2#params'
+    post 'api/v2/:project_name/:workflow_name/:workspace_id/run', action: 'vulcan_v2#run_workflow'
+
     with auth: { user: { can_view?: :project_name } } do
       get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true
       post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true
@@ -32,12 +42,7 @@ class Vulcan
       get '/:project_name', as: :project_root do erb_view(:client) end
       get '/:project_name/*client_path', as: :client_view do erb_view(:client) end
 
-      # vulcan v2
-      get 'api/:project_name/pipelines/', action: 'vulcan_v2#list_pipelines'
-      get 'api/:project_name/:pipeline_name/', action: 'vulcan_v2#list_workspaces'
-      post 'api/:project_name/workspace/create', action: 'vulcan_v2#create_workspace'
-      get 'api/:project_name/:pipeline_name/:workspace_id/params', action: 'vulcan_v2#params'
-      post 'api/:project_name/:pipeline_name/:workspace_id/run', action: 'vulcan_v2#run_pipeline'
+
 
     end
 
@@ -47,6 +52,7 @@ class Vulcan
     def initialize
       super
       application.setup_db
+      application.setup_ssh
     end
   end
 end

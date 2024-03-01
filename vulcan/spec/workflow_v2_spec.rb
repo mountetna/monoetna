@@ -4,158 +4,183 @@ require 'net/ssh'
 describe VulcanV2Controller do
   include Rack::Test::Methods
 
-  let(:ssh_host) { 'vulcan_snakemake_test' }
-  let(:ssh_user) { 'root' }
-  let(:ssh_password) { 'root' }
-  let(:ssh_port) { 22 }
-
   def app
     OUTER_APP
   end
 
-  context 'list pipelines' do
+  context 'ssh' do
 
-    before do
-      Net::SSH.start(ssh_host, ssh_user, password: ssh_password, port: ssh_port) do |ssh|
-        ssh.exec!("mkdir -p /data2/vulcan/pipelines/#{PROJECT}")
-      end
-    end
-
-    # For v1 we can:
-    # 1. manually create a directory on c4 with git repos ready to be instantiated
-    #    - This should return a bunch of git repos that live on c4 and can be initialized
-    #    - Dir structure could be /data2/vulcan/pipelines/{project}/
-    #    - We can also expose pipelines to all projects via: /data2/vulcan/pipelines/all/
-
-    it 'available for a project' do
-      auth_header(:guest)
-      get("/api/#{PROJECT}/pipelines/")
-      # This should return a list of: :
-      # - repo_name
-      # - pipeline version
-    end
-
-    it 'available for all projects' do
-      auth_header(:guest)
-      get("/api/all/pipelines/")
+    it 'should warn the user and start the API if we cannot establish a ssh connection' do
     end
 
   end
 
-  context 'list workspaces' do
+  # Test that clone repos and make them available to our usersd
+  context 'workflow management' do
 
-    it 'for a pipeline if it exists' do
-      pipeline_name = "test_pipeline"
-      get("/api/#{PROJECT}/pipeline/#{pipeline_name}")
-      # This should return a list of:
-      # - workspace hashes
-      # - workspace last_updated_at
-      # - pipeline version
+    it 'should clone a repo to a directory where they can be instantiated' do
+      auth_header(:guest)
+      request = {
+        repo: "/app/available-workflows/test_repo",
+        branch: "master",
+        project_name: PROJECT
+      }
+      post("api/v2/clone_workflow", request)
+
     end
 
-    it 'should return an empty list if no workspaces exist' do
-      pipeline_name = "test_pipeline"
-      get("/api/#{PROJECT}/pipeline/#{pipeline_name}")
-      # This should return:
-      # - workspace hash
-      # - workspace last_updated_at
-      # - pipeline version
+    # This should return a bunch of git repos that have been cloned and can be instantiated
+    # Q? reusing metis widgets / metis_path
+    # We can also expose workflows to all projects via: /data2/vulcan/workflows/all/
+
+    it 'list workflows available for a project' do
+      auth_header(:viewer)
+      get("api/v2/#{PROJECT}/workflows/")
+      puts last_response
+      expect(last_response.status).to eq(200)
+      # TODO: Vulcan.instance
+      # This should return a list of: :
+      # - repository
+      # - workflow_name
+      # - branch
+      # - author
     end
 
-    it 'should warn the user if a new version of a pipeline exists' do
-      pipeline_name = "test_pipeline"
-      get("/api/#{PROJECT}/pipeline/#{pipeline_name}")
-      # This should return:
-      # - workspace hash
-      # - workspace last_updated_at
-      # - pipeline version
-      # - A warning that a newer version of a pipeline exists
+    it 'should be able to update a repository' do
+      auth_header(:guest)
+      request = {
+        repo: "/app/available-workflows/test_repo",
+        target_dir: "/app/workflows/#{PROJECT}",
+        branch: "master",
+      }
+      post("api/v2/update_workflow", request)
+    end
 
-      # The control flow for this is:
-      # - A user has created a workspace and the repo within has a specific version
-      # - The repo has been updated on c4
-      # - The next time a user does a get request for all pipelines:
-      # - There is some logic that determines if their pipeline version is out of date.
-      # - The user gets a notification that there is a newer version of the pipeline
-      # - They have the option to create a new workspace with that newer version of the pipeline
-      # - Note:
-      # - When a user first selects a pipeline, it will always be the latest version.
-      # - For V1 we should probably not allow them to select versions.
+    it 'list workflows available for all projects' do
+      auth_header(:guest)
+      get("/api/all/workflows/")
+    end
+
+    # TODO: tied to a user and specific to a project
+    it 'specific permissions' do
     end
 
   end
 
   context 'create workspaces' do
 
-    it 'when the pipeline exists' do
+    it 'when the workflow exists' do
       auth_header(:guest)
 
       request = {
-        repo: "/data2/vulcan/pipelines/#{PROJECT}/test_repo",
+        repo: "/data2/vulcan/workflows/#{PROJECT}/test_repo",
         target_dir: "/data2/vulcan/#{PROJECT}",
-        pipeline_name: "test_pipeline"
+        workflow_name: "test_workflow"
       }
 
       post("/api/#{PROJECT}/workspace/create", request)
 
       expected = {
-        workspace: "#{request['target_dir']}/#{request[pipeline_name]}/",
+        workspace: "#{request['target_dir']}/#{request[workflow_name]}/",
         repo: "test-repo/",
       }
 
       # This should return:
       # - A hash of the workspace that is created
       # This should:
-      # - Create a workspace : /data2/vulcan/pipelines/labors/test_pipeline/hash
-      # - Cloned repo inside the workspace: /data2/vulcan/pipelines/labors/test_pipeline/hash/test_repo
+      # - Create a workspace : /data2/vulcan/workflows/labors/workflow_name/hash
+      # - Cloned repo inside the workspace: /data2/vulcan/workflows/labors/workflow_name/hash/test_repo
       # - Record is created in the db
-      # - Parses and saves the pipeline params in memory
+      # - Parses and saves the workflow params in memory
       expect(last_response.status).to eq(200)
     end
 
+  end
+
+  context 'list workspaces' do
+
+    it 'for a workflow if it exists' do
+      workflow_name = "test_workflow"
+      get("/api/#{PROJECT}/workflow/#{workflow_name}")
+      # This should return a list of:
+      # - workspace hashes
+      # - workspace last_updated_at
+      # - workflow version
+    end
+
+    it 'should return an empty list if no workspaces exist' do
+      workflow_name = "test_workflow"
+      get("/api/#{PROJECT}/workflow/#{workflow_name}")
+      # This should return:
+      # - workspace hash
+      # - workspace last_updated_at
+      # - workflow version
+    end
+
+    it 'should warn the user if a new version of a workflow exists' do
+      workflow_name = "test_workflow"
+      get("/api/#{PROJECT}/workflow/#{workflow_name}")
+      # This should return:
+      # - workspace hash
+      # - workspace last_updated_at
+      # - workflow version
+      # - A warning that a newer version of a workflow exists
+
+      # The control flow for this is:
+      # - A user has created a workspace and the repo within has a specific version
+      # - The repo has been updated on c4
+      # - The next time a user does a get request for all workflows:
+      # - There is some logic that determines if their workflow version is out of date.
+      # - The user gets a notification that there is a newer version of the workflow
+      # - They have the option to create a new workspace with that newer version of the workflow
+      # - Note:
+      # - When a user first selects a workflow, it will always be the latest version.
+      # - For V1 we should probably not allow them to select versions.
+    end
 
   end
 
-  context 'pipeline params' do
+
+  context 'workflow params' do
     # Needed for the front-end
 
-    it 'returns a list of pipeline params' do
-      # Retrieves all the pipeline params for pipeline
+    it 'returns a list of workflow params' do
+      # Retrieves all the workflow params for workflow
     end
 
     it 'return a list of config for snakemake params' do
-      # Retrieves all the snakemake params for the pipeline
+      # Retrieves all the snakemake params for the workflow
     end
 
   end
 
-  context 'running pipelines' do
+  context 'running workflows' do
 
-    it 'invokes up to n steps of the pipeline' do
+    it 'invokes up to n steps of the workflow' do
       auth_header(:guest)
 
       request = {
         run_until_step: "3",
-        pipeline_params: {
+        workflow_params: {
 
         }
       }
-      pipeline_name = "test_pipeline"
+      workflow_name = "test_workflow"
 
-      post("/api/#{PROJECT}/#{pipeline_name}/#{workspace_id}/run", request)
+      post("/api/#{PROJECT}/#{workflow_name}/#{workspace_id}/run", request)
 
       # This should return:
       # - A list of output for each job that has run
       # - Whether the job was successful
     end
 
-    it 'runs an entire pipeline' do
+    it 'runs an entire workflow' do
       # This should return:
       # - A list of output for each job that has run
       # - Whether the job was successful
     end
 
-    it 'reruns a successful job with different pipeline parameters' do
+    it 'reruns a successful job with different workflow parameters' do
       # This should:
       # - Make sure we mirror the new intermediaries created by snakemake to metis or the Vulcan cache
     end
@@ -165,7 +190,7 @@ describe VulcanV2Controller do
       # - make sure we mirror the new intermediaries created by snakemake to metis or the vulcan cache
     end
 
-    it 'reruns a failed job with different pipeline parameters' do
+    it 'reruns a failed job with different workflow parameters' do
       # This should:
       # - Make sure we mirror the new intermediaries created by snakemake to metis or the Vulcan cache
     end
