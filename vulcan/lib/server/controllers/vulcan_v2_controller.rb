@@ -1,68 +1,44 @@
 require 'etna'
+require 'shellwords'
 require_relative "./vulcan_controller"
 
 
-# TODO: make this dynamic
+# TODO: sort out disk location
 WORKFLOW_DIR = "/app/workflows"
+WORKSPACE_DIR = "/app/workspace"
+METIS_DIR_MIRROR = "/app/workspace/{HASH}/metis/"
 
 class VulcanV2Controller < Vulcan::Controller
 
-  def invoke_ssh_command(command)
-    stdout_data = ""
-    stderr_data = ""
-    exit_status = nil
+  def create_workflow
+    workflow = Vulcan::Workflow[:project => @params[:project_name], :workflow_name => @params[:workflow_name] ]
+    if workflow
+      puts workflow
+    else
+      begin
+        # Make project directory if it doesnt exist
+        command = "mkdir -p #{WORKFLOW_DIR}/#{@escaped_params[:project_name]}"
+        mkdir_output = invoke_ssh_command(command)
 
-    Vulcan.instance.ssh.open_channel do |channel|
-      channel.exec(command) do |ch, success|
-        unless success
-          raise "Command execution failed: #{command}"
-        end
+        # Clone workflow
+        target_dir = "#{WORKFLOW_DIR}/#{@escaped_params[:project_name]}"
+        command = "git clone -b #{@escaped_params[:branch]} #{@escaped_params[:repo]} #{target_dir}"
+        clone_output = invoke_ssh_command(command)
 
-        channel.on_data do |ch, data|
-          stdout_data += data
-        end
-
-        channel.on_extended_data do |ch, type, data|
-          stderr_data += data
-        end
-
-        channel.on_request("exit-status") do |ch, data|
-          exit_status = data.read_long
-        end
+        # Create obj
+        Vulcan::Workflow.create(
+          project_name: @escaped_params[:project_name],
+          workflow_name: @escaped_params[:workflow_name],
+          author: @escaped_params[:author],
+          repository_url: @escaped_params[:repository_url],
+          created_at: Time.now,
+          updated_at: Time.now
+        )
+      rescue => e
+        Vulcan.instance.logger.log_error(e.to_s)
+        raise Etna::BadRequest.new(e.to_s)
       end
     end
-
-    Vulcan.instance.ssh.loop
-
-    if exit_status != 0
-      raise "Command exited with status #{exit_status}: #{command}"
-    end
-
-    { stdout: stdout_data, stderr: stderr_data, exit_status: exit_status }
-  end
-
-  def clone(repo_url, branch, target_directory)
-    # This will be used to clone a repo that will be
-    # instantiated as a workflow and then also to clone a repo
-    # into a workspace
-    #
-    # For some control over what can be cloned we can just have a hardcoded list with
-    # available repos to be cloned
-    command = "git clone -b #{branch} #{repo_url} #{target_directory} "
-    invoke_ssh_command(command)
-  end
-
-  def clone_workflow
-    # This should really only be invoked once
-    # Make project directory if it doesnt exist
-    require 'pry'; binding.pry
-    command = "mkdir -p #{WORKFLOW_DIR}/#{@params[:project_name]}"
-    output = invoke_ssh_command(command)
-    puts output
-
-    # Clone workflow
-    target_dir = "#{WORKFLOW_DIR}/#{@params[:project_name]}"
-    out = clone(@params[:repo], @params[:branch], target_dir )
     success_json({'it works!': true})
   end
 
@@ -85,11 +61,6 @@ class VulcanV2Controller < Vulcan::Controller
   def workflow_run
     success_json({'it works!': true})
   end
-
-  def params
-    success_json({'it works!': true})
-  end
-
 
   def list_workspaces
     success_json({'it works!': true})

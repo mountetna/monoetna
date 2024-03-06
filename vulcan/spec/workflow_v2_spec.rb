@@ -15,26 +15,39 @@ describe VulcanV2Controller do
 
   end
 
-  # Test that clone repos and make them available to our usersd
-  context 'workflow management' do
+  # Test that clone repos and make them available to our users
+  context 'create workflows' do
 
-    it 'should clone a repo to a directory where they can be instantiated' do
+    # TODO: this should just be for administrators
+    it 'should clone a repo to a directory if it does not exist' do
       auth_header(:guest)
       request = {
-        repo: "/app/available-workflows/test_repo",
-        branch: "master",
-        project_name: PROJECT
+        repo: "/test-utils/available-workflows/test-repo",
+        workflow_name: "test-workflow",
+        branch: "main",
+        project_name: PROJECT,
+        author: "Jane Doe"
       }
-      post("api/v2/clone_workflow", request)
-
+      post("api/v2/workflow/create", request)
+      puts last_response
     end
 
-    # This should return a bunch of git repos that have been cloned and can be instantiated
-    # Q? reusing metis widgets / metis_path
-    # We can also expose workflows to all projects via: /data2/vulcan/workflows/all/
+    it 'should not clone a repo to a directory if it exists' do
+      auth_header(:guest)
+      request = {
+        repo: "/test-utils/available-workflows/test-repo",
+        branch: "main",
+        project_name: PROJECT
+      }
+      post("api/v2/workflow/create", request)
+    end
 
+
+  end
+
+  context 'list workflows' do
     it 'list workflows available for a project' do
-      auth_header(:viewer)
+      auth_header(:guest)
       get("api/v2/#{PROJECT}/workflows/")
       puts last_response
       expect(last_response.status).to eq(200)
@@ -46,6 +59,13 @@ describe VulcanV2Controller do
       # - author
     end
 
+    it 'list workflows available for all projects' do
+      auth_header(:guest)
+      get("/api/all/workflows/")
+    end
+  end
+
+  context 'update workflows' do
     it 'should be able to update a repository' do
       auth_header(:guest)
       request = {
@@ -55,13 +75,9 @@ describe VulcanV2Controller do
       }
       post("api/v2/update_workflow", request)
     end
+  end
 
-    it 'list workflows available for all projects' do
-      auth_header(:guest)
-      get("/api/all/workflows/")
-    end
-
-    # TODO: tied to a user and specific to a project
+  context 'delete workflows' do
     it 'specific permissions' do
     end
 
@@ -73,7 +89,7 @@ describe VulcanV2Controller do
       auth_header(:guest)
 
       request = {
-        repo: "/data2/vulcan/workflows/#{PROJECT}/test_repo",
+        repo: "/data2/vulcan/workflows/#{PROJECT}/test-repo",
         target_dir: "/data2/vulcan/#{PROJECT}",
         workflow_name: "test_workflow"
       }

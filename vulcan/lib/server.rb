@@ -17,13 +17,22 @@ class Vulcan
 
     # vulcan v2
     # TODO add auth
-    post 'api/v2/clone_workflow/', action: 'vulcan_v2#clone_workflow'
-    post 'api/v2/update_workflow/', action: 'vulcan_v2#update_workflow'
+
+    # CRUD Workflow
+    post 'api/v2/workflow/create', action: 'vulcan_v2#create_workflow'
     get 'api/v2/:project_name/workflows/', action: 'vulcan_v2#list_workflows'
-    get 'api/v2/:project_name/:workflow_name/', action: 'vulcan_v2#list_workspaces'
+    post 'api/v2/:project_name/:workflow_name/update/', action: 'vulcan_v2#update_workflow'
+    delete 'api/v2/:project_name/:workflow_name/', action: 'vulcan_v2#delete_workflow'
+
+    # CRUD Workspace
     post 'api/v2/:project_name/workspace/create', action: 'vulcan_v2#create_workspace'
-    get 'api/v2/:project_name/:workflow_name/:workspace_id/params', action: 'vulcan_v2#params'
+    get 'api/v2/:project_name/:workflow_name/', action: 'vulcan_v2#list_workspaces'
+    delete'api/v2/:project_name/:workflow_name/:workspace_id', action: 'vulcan_v2#delete_workspace'
+    get 'api/v2/:project_name/:workflow_name/:workspace_id/params', action: 'vulcan_v2#workspace_params'
+
+    # Run API
     post 'api/v2/:project_name/:workflow_name/:workspace_id/run', action: 'vulcan_v2#run_workflow'
+
 
     with auth: { user: { can_view?: :project_name } } do
       get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true
