@@ -1,6 +1,7 @@
 require 'etna'
 require 'shellwords'
 require_relative "./vulcan_controller"
+require_relative './../../ssh'
 
 
 # TODO: sort out disk location
@@ -10,36 +11,43 @@ METIS_DIR_MIRROR = "/app/workspace/{HASH}/metis/"
 
 class VulcanV2Controller < Vulcan::Controller
 
+  def initialize(request, action = nil)
+    super
+    @ssh = Vulcan::SSH.new(Vulcan.instance.ssh)
+  end
+
   def create_workflow
-    workflow = Vulcan::Workflow[:project => @params[:project_name], :workflow_name => @params[:workflow_name] ]
+    workflow = Vulcan::WorkflowV2.first(project: @params[:project_name], workflow_name: @params[:workflow_name])
+    msg = ''
     if workflow
-      puts workflow
+      msg = "Workflow: #{@params[:workflow_name]} for project: #{@params[:project_name]} already exists."
     else
       begin
         # Make project directory if it doesnt exist
-        command = "mkdir -p #{WORKFLOW_DIR}/#{@escaped_params[:project_name]}"
-        mkdir_output = invoke_ssh_command(command)
+        mkdir_output = @ssh.mkdir("#{WORKFLOW_DIR}/#{@escaped_params[:project_name]}")
 
-        # Clone workflow
-        target_dir = "#{WORKFLOW_DIR}/#{@escaped_params[:project_name]}"
-        command = "git clone -b #{@escaped_params[:branch]} #{@escaped_params[:repo]} #{target_dir}"
-        clone_output = invoke_ssh_command(command)
+        # Check if there is a repo in that directory
+        target_dir = "#{WORKFLOW_DIR}/#{@escaped_params[:project_name]}/#{File.basename(@escaped_params[:repo])}"
+        unless @ssh.dir_exists?("#{target_dir}")
+          @ssh.clone(@escaped_params[:branch], @escaped_params[:repo], target_dir)
+        end
 
         # Create obj
-        Vulcan::Workflow.create(
-          project_name: @escaped_params[:project_name],
+        Vulcan::WorkflowV2.create(
+          project: @escaped_params[:project_name],
           workflow_name: @escaped_params[:workflow_name],
           author: @escaped_params[:author],
-          repository_url: @escaped_params[:repository_url],
+          repository_url: @escaped_params[:repo],
           created_at: Time.now,
           updated_at: Time.now
         )
+        msg = "Workflow: #{@params[:workflow_name]} successfully cloned and created."
       rescue => e
-        Vulcan.instance.logger.log_error(e.to_s)
-        raise Etna::BadRequest.new(e.to_s)
+        Vulcan.instance.logger.log_error(e)
+        raise Etna::BadRequest.new(e.message)
       end
     end
-    success_json({'it works!': true})
+    success_json({'info': msg})
   end
 
   def update_workflow
@@ -47,11 +55,13 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   def list_workflows
-    # require 'pry'; binding.pry
-    command = "ls #{WORKFLOW_DIR}/#{config_json[:project_name]}/"
-    out = invoke_ssh_command(command)
-    puts out
-    success_json({'it works!': true})
+    success_json(
+      figures: Vulcan::WorkflowV2.where(
+        project: @params[:project_name]
+      ).all.map do |f|
+        f.to_hash
+      end
+    )
   end
 
   def workspace_create

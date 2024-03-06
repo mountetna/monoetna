@@ -8,11 +8,10 @@ describe VulcanV2Controller do
     OUTER_APP
   end
 
-  context 'ssh' do
 
+  context 'ssh' do
     it 'should warn the user and start the API if we cannot establish a ssh connection' do
     end
-
   end
 
   # Test that clone repos and make them available to our users
@@ -29,18 +28,16 @@ describe VulcanV2Controller do
         author: "Jane Doe"
       }
       post("api/v2/workflow/create", request)
-      puts last_response
+      expect(last_response.status).to eq(200)
+      msg = "Workflow: #{request[:workflow_name]} successfully cloned and created."
+      expect(json_body[:info]).to eql(msg)
+      #TODO: assert the directory exists
+      expect(Vulcan::WorkflowV2.first(project: request[:project_name], workflow_name: request[:workflow_name])).to be_truthy
     end
 
     it 'should not clone a repo to a directory if it exists' do
-      auth_header(:guest)
-      request = {
-        repo: "/test-utils/available-workflows/test-repo",
-        branch: "main",
-        project_name: PROJECT
-      }
-      post("api/v2/workflow/create", request)
     end
+
 
 
   end
@@ -48,15 +45,18 @@ describe VulcanV2Controller do
   context 'list workflows' do
     it 'list workflows available for a project' do
       auth_header(:guest)
+      request = {
+        repo: "/test-utils/available-workflows/test-repo",
+        workflow_name: "test-workflow",
+        branch: "main",
+        project_name: PROJECT,
+        author: "Jane Doe"
+      }
+      post("api/v2/workflow/create", request)
       get("api/v2/#{PROJECT}/workflows/")
       puts last_response
       expect(last_response.status).to eq(200)
-      # TODO: Vulcan.instance
-      # This should return a list of: :
-      # - repository
-      # - workflow_name
-      # - branch
-      # - author
+      puts json_body
     end
 
     it 'list workflows available for all projects' do
@@ -67,13 +67,6 @@ describe VulcanV2Controller do
 
   context 'update workflows' do
     it 'should be able to update a repository' do
-      auth_header(:guest)
-      request = {
-        repo: "/app/available-workflows/test_repo",
-        target_dir: "/app/workflows/#{PROJECT}",
-        branch: "master",
-      }
-      post("api/v2/update_workflow", request)
     end
   end
 
