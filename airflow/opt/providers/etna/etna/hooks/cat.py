@@ -191,7 +191,7 @@ class Cat(SSHBase):
             if additional_files:
                 new_files: List[SftpEntry] = []
                 for start_regex, replacement_regex, new_magic_string in additional_files:
-                    folders: List[str] = list(set(
+                    folders: List[str] = list(dict.fromkeys(
                         [re.sub(start_regex, replacement_regex, f.full_path)
                             for f in all_files]
                     ))
@@ -199,7 +199,7 @@ class Cat(SSHBase):
                         new_files += self._ls_r(sftp, re.compile(new_magic_string), ignore_directories, path=folder)
                 all_files += new_files
 
-        return list(set(all_files))
+        return list(dict.fromkeys(all_files))
 
     def _ls_r(
         self,

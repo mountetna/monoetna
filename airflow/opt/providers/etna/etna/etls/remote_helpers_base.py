@@ -43,7 +43,7 @@ class RemoteHelpersBase:
             if additional_files:
                 new_files: XComArg = []
                 for start_regex, replacement_regex, new_magic_string in additional_files:
-                    folders: List[str] = list(set(
+                    folders: List[str] = list(dict.fromkeys(
                         [re.sub(start_regex, replacement_regex, f.full_path)
                             for f in filtered]
                     ))
@@ -52,7 +52,7 @@ class RemoteHelpersBase:
                                       re.compile(folder + '.*').match(f.folder_path) and
                                       re.compile(new_magic_string).match(os.path.join(f.folder_path, f.name))]
                 filtered += new_files
-            return list(set(filtered))
+            return list(dict.fromkeys(filtered))
 
         return filter_files(files)
 
