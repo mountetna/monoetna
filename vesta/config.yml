@@ -1,0 +1,112 @@
+:development:
+  :docker:
+    :default_tag: latest
+  :janus:
+    :host: https://janus.development.local
+  :timur:
+    :host: https://timur.development.local
+  :magma:
+    :host: https://magma.development.local
+  :vulcan:
+    :host: https://vulcan.development.local
+  :metis:
+    :host: https://metis.development.local
+    :release_bucket: this_is_releasable
+    :restrict_bucket: dont_show_anyone
+  :polyphemus:
+    :host: https://polyphemus.development.local
+    :token: my-token # create a long lived token with janus
+  :gnomon:
+    :host: https://gnomon.development.local
+  :vesta:
+    :host: https://vesta.development.local
+  :log_file: /dev/stdout
+  :db:
+    :adapter: postgres
+    :host: vesta_db
+    :database: vesta_development
+    :user: developer
+    :password: password
+    :search_path: [ public ]
+  :auth_redirect: https://janus.development.local
+  :token_name: JANUS_DEV_TOKEN
+  :token_algo: RS256
+  :token_domain: development.local
+  :token_life: 31536000
+  :rsa_public: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6pLkfi2RXd3jHWKh9W37
+    k7Nw5aZxIQRCf9b5b0uUIqyk4ODH1Pd4s/hhYq/9c+HT2304NkiqRw4cVOHMgk8N
+    O+a+7F+HgspJZopyEBCJvBloBoPKrpkZv0FeVHYwiDM2kf3GFDzTPBdUSpYJimtn
+    HF29DdEoj6O5xL9uGW97QZ34JYacIeG7GmVGjYnCvA87S0miDUxvGlu40g+VJhND
+    mLXMzWa5vTxyGb4cEQSL6rryVxmBlonG4J41K7A04/7tftKvWrqsCWAfSCusNs8w
+    CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
+    NQIDAQAB
+    -----END PUBLIC KEY-----
+  :dateshift_salt: 123456
+  :redcap:
+    :host: https://redcap.development.local
+  :etl_secrets_key: A2345678901234567890123456789012
+  :ingest:
+    :filename_regex: ^some-string-that-uniquely-identifies-our-files
+    :sftp:
+      - :host: sftp.example.com
+        :username: user
+        :password: pass
+        :alias: cat
+        :root: /root/directory/to/scan
+        :ssh-key: public-key-of-server
+    :ssh:
+      - :host: ssh.example.com
+        :username: user
+        :password: pass
+        :alias: c4
+        :root: /root/directory/to/save/files/in
+        :ssh-key: public-key-of-server
+
+:test:
+  :magma:
+    :host: https://magma.test
+  :metis:
+    :host: https://metis.test
+    :release_bucket: release
+    :restrict_bucket: restrict
+  :vesta:
+    :host: https://vesta.test
+    :token: something.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJmaXJzdCI6ImZpcnN0IiwibGFzdCI6Imxhc3QiLCJleHAiOjg2NDAxNjA4MTM2NjM1fQ==
+    # This is a development token and is safe to make public, does not leak anything about production or staging values
+    # and cannot be used in a sensitive way.
+    # This must be used for any test that stands up a service client (i.e. Etna::Clients::Magma).
+    # It is a Base64 version of {:email=>"user@example.com", :first=>"first", :last=>"last", :exp=>86401608136635}
+  :janus:
+    :host: https://janus.test
+  :timur:
+    :host: https://timur.test
+  :db:
+    :adapter: postgres
+    :host: vesta_db
+    :database: vesta_test
+    :user: developer
+    :password: password
+    :search_path: [ public ]
+  :log_file: /dev/stdout
+  :dateshift_salt: 123456
+  :redcap:
+    :host: https://redcap.test
+  :etl_secrets_key: A2345678901234567890123456789012
+  :ingest:
+    :filename_regex: oligo
+    :sftp:
+      - :host: sftp.example.com
+        :username: user
+        :password: pass
+        :alias: cat
+        :root: /
+        :ssh-key: public-key-of-server
+    :ssh:
+      - :host: ssh.example.com
+        :username: user
+        :password: pass
+        :alias: c4
+        :root: /
+        :ssh-key: public-key-of-server

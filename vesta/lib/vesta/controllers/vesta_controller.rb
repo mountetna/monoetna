@@ -1,6 +1,6 @@
 class Vesta
   class Controller < Etna::Controller
-    VIEW_PATH = File.expand_path('../views', __dir__)
+    # VIEW_PATH = File.expand_path('../views', __dir__)
 
     def config_json
       {
