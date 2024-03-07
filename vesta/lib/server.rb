@@ -11,11 +11,10 @@ class Vesta
       # application.load_models
       application.setup_db
       application.setup_sequel
-      application.setup_ssh
     end
 
-    get '/' do erb_view(:client) end
+    # get '/' do erb_view(:client) end
 
-    get '/:project_name' do erb_view(:client) end
+    # get '/:project_name' do erb_view(:client) end
   end
 end

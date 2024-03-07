@@ -22,6 +22,7 @@ build-dev-etna-images:
 	# Apache
 	echo "Building apache images..."
 	cd docker/etna-apache && docker build . -t etna-apache
+	cd docker/etna-apache-v2 && docker build . -t etna-apache-v2
 	cd edge-apache && docker build . -t edge-apache
 
 	# Etna base images

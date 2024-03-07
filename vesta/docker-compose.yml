@@ -13,8 +13,6 @@ volumes:
     driver: local
   vesta-opt-dir:
     driver: local
-  vesta-ssh-dir:
-    driver: local
 
 x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
@@ -28,7 +26,6 @@ x-base-etna-service:
     - vesta-opt-dir:/usr/opt:rw
     - ../etna:/etna:delegated
     - /tmp/metrics.prom:/tmp/metrics.prom
-    - vesta-ssh-dir:/root/.ssh:rw
   environment: &base-etna-env
     'VESTA_ENV': 'development'
     APP_NAME: 'vesta'
@@ -56,11 +53,6 @@ x-base-etna-services:
     depends_on:
       - 'vesta_db'
 
-  'vesta_webpack':
-    &base-etna-webpack # The ruby webpack server watching for changes
-    <<: *base-etna-service
-    command: npm run webpack-dev
-
   'vesta_db':
     &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
     image: development-psql
@@ -73,17 +65,34 @@ x-base-etna-services:
       APP_NAME: 'vesta'
     container_name: 'vesta_db_1'
 
+  'vesta_webapp':
+    &base-etna-webapp # The 
+    build: ./webapp
+    image: vesta-webapp-dev
+    volumes:
+      - ./webapp/src:/app/src:delegated
+      - ./webapp/public:/app/public:delegated
+      # - vesta-public-dir:/app/public:ro
+    depends_on:
+      - 'vesta_app'
+    command: ["npm", "run", "dev"]
+    environment:
+      APP_NAME: 'vesta_webapp'
+
   'vesta_app_fe':
-    &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the main app.
-    image: etna-apache
+    &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the JS webapp and Ruby API
+    image: etna-apache-v2
     volumes:
       - vesta-public-dir:/app/public:ro
     depends_on:
       - 'vesta_app'
+      - 'vesta_webapp'
     entrypoint: /entrypoints/development_app_fe.sh
     command: ['httpd', '-DFOREGROUND']
+    # command: ["sleep", "infinity"]
     environment:
       APP_NAME: 'vesta_app_fe'
+      NODE_ENV: 'development'
 
 version: '3.4'
 

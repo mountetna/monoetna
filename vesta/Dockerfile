@@ -4,4 +4,3 @@ COPY . /app/
 ARG APP_NAME
 ARG FULL_BUILD=1
 RUN /entrypoints/build.sh
-RUN npm run build
