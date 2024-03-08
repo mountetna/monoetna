@@ -1,8 +1,39 @@
+require 'shellwords'
+
 class Vulcan
   class SSH
     def initialize(net_ssh_instance)
       @ssh = net_ssh_instance
     end
+
+    def mkdir(dir)
+      # Make project directory if it doesnt exist
+      command = Shellwords.join(["mkdir", "-p", dir])
+      invoke_ssh_command(command)
+    end
+
+    def rmdir(dir, allowed_directories)
+      # Check if the dir is in the allowed_directories
+      if allowed_directories.any? { |allowed_dir| dir.start_with?(allowed_dir) }
+        command = Shellwords.join(["rm", "-r", "-f", dir])
+        invoke_ssh_command(command)
+      else
+        raise ArgumentError, "Directory #{dir} is not in the list of allowed directories."
+      end
+    end
+
+    def dir_exists?(dir)
+      command = "[ -d #{dir} ] && echo 'Directory exists.' || echo 'Directory does not exist.'"
+      out = invoke_ssh_command(command)
+      out[:stdout].chomp == 'Directory exists.'
+    end
+
+    def clone(repo, branch, target_dir)
+      command = Shellwords.join(['git', 'clone', '-b', branch, repo, target_dir])
+      invoke_ssh_command(command)
+    end
+
+    private
     def invoke_ssh_command(command)
       stdout_data = ""
       stderr_data = ""
@@ -37,24 +68,6 @@ class Vulcan
 
       {command: command, stdout: stdout_data, stderr_or_info: stderr_data, exit_status: exit_status }
     end
-
-    def mkdir(dir)
-      # Make project directory if it doesnt exist
-      command = "mkdir -p #{dir}"
-      invoke_ssh_command(command)
-    end
-
-    def dir_exists?(dir)
-      command = "[ -d #{dir} ] && echo 'Directory exists.' || echo 'Directory does not exist.'"
-      out = invoke_ssh_command(command)
-      out[:stdout].chomp == 'Directory exists.'
-    end
-
-    def clone(branch, repo, target_dir)
-      command = "git clone -b #{branch} #{repo} #{target_dir}"
-      invoke_ssh_command(command)
-    end
-
 
   end
 end
