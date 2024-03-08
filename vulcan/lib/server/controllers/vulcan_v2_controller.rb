@@ -1,5 +1,5 @@
 require 'etna'
-require 'shellwords'
+require 'digest'
 require_relative "./vulcan_controller"
 require_relative './../../ssh'
 
@@ -8,12 +8,29 @@ require_relative './../../ssh'
 WORKFLOW_DIR = "/app/workflows"
 WORKSPACE_DIR = "/app/workspace"
 METIS_DIR_MIRROR = "/app/workspace/{HASH}/metis/"
+ALLOWED_DIRECTORIES = ["/app/workspace/"]
 
 class VulcanV2Controller < Vulcan::Controller
 
   def initialize(request, action = nil)
     super
     @ssh = Vulcan::SSH.new(Vulcan.instance.ssh)
+  end
+
+  def project_dir(project_name)
+    "#{WORKFLOW_DIR}/project_name"
+  end
+
+  def repo_local_path(project_name, repository_name)
+    "#{WORKFLOW_DIR}/#{project_name}/#{repository_name}"
+  end
+
+  def workspace_dir(project_name, hash)
+    "#{WORKSPACE_DIR}/#{project_name}/#{hash}"
+  end
+
+  def workspace_hash(workflow_id, user_email)
+    Digest::MD5.hexdigest(workflow_id + Time.now.to_s + user_email)
   end
 
   def create_workflow
@@ -24,12 +41,14 @@ class VulcanV2Controller < Vulcan::Controller
     else
       begin
         # Make project directory if it doesnt exist
-        mkdir_output = @ssh.mkdir("#{WORKFLOW_DIR}/#{@escaped_params[:project_name]}")
+        mkdir_output = @ssh.mkdir(project_dir(@escaped_params[:project_name]))
 
         # Check if there is a repo in that directory
-        target_dir = "#{WORKFLOW_DIR}/#{@escaped_params[:project_name]}/#{File.basename(@escaped_params[:repo])}"
-        unless @ssh.dir_exists?("#{target_dir}")
-          @ssh.clone(@escaped_params[:branch], @escaped_params[:repo], target_dir)
+        repo_local_path = repo_local_path(@escaped_params[:project_name], File.basename(@escaped_params[:repo]))
+        if @ssh.dir_exists?("#{repo_local_path}")
+          Vulcan.instance.logger.info("Repository already exists at: #{repo_local_path} , skipping clone...")
+        else
+          @ssh.clone(@escaped_params[:repo], @escaped_params[:branch], repo_local_path)
         end
 
         # Create obj
@@ -37,11 +56,12 @@ class VulcanV2Controller < Vulcan::Controller
           project: @escaped_params[:project_name],
           workflow_name: @escaped_params[:workflow_name],
           author: @escaped_params[:author],
-          repository_url: @escaped_params[:repo],
+          repo_remote_url: @escaped_params[:repo],
+          repo_local_path: repo_local_path,
           created_at: Time.now,
           updated_at: Time.now
         )
-        msg = "Workflow: #{@params[:workflow_name]} successfully cloned and created."
+        msg = "Workflow: #{@escaped_params[:workflow_name]} successfully cloned and created."
       rescue => e
         Vulcan.instance.logger.log_error(e)
         raise Etna::BadRequest.new(e.message)
@@ -56,25 +76,54 @@ class VulcanV2Controller < Vulcan::Controller
 
   def list_workflows
     success_json(
-      figures: Vulcan::WorkflowV2.where(
+      workflows: Vulcan::WorkflowV2.where(
         project: @params[:project_name]
-      ).all.map do |f|
-        f.to_hash
+      ).all.map do |w|
+        w.to_hash
       end
     )
   end
 
-  def workspace_create
+  def create_workspace
+    workflow = Vulcan::WorkflowV2.first(project: @params[:project_name], workflow_name: @params[:workflow_name])
+    if workflow
+      workspace_hash = workspace_hash(workflow.id.to_s, @user.email)
+      workspace_dir = workspace_dir(@escaped_params[:project_name], workspace_hash)
+      begin
+        @ssh.mkdir(workspace_dir)
+        @ssh.clone(workflow.repo_local_path, @escaped_params[:branch], workspace_dir)
+        new_workspace = Vulcan::Workspace.create(
+          workflow_id: workflow.id,
+          workspace_dir: workspace_dir,
+          repo_branch: @escaped_params[:branch],
+          user_email: @user.email,
+          hash: workspace_hash,
+          created_at: Time.now,
+          updated_at: Time.now
+        )
+      rescue => e
+        @ssh.rmdir(workspace_dir, ALLOWED_DIRECTORIES)
+        Vulcan.instance.logger.log_error(e)
+        raise Etna::BadRequest.new(e.message)
+      end
+    else
+    end
     success_json({'it works!': true})
+  end
+
+  def list_workspaces
+    success_json(
+      workflows: Vulcan::Workspace.where(
+        project: @params[:project_name]
+      ).all.map do |w|
+        w.to_hash
+      end
   end
 
   def workflow_run
     success_json({'it works!': true})
   end
 
-  def list_workspaces
-    success_json({'it works!': true})
-  end
 
 
 end

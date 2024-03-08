@@ -18,7 +18,9 @@ describe VulcanV2Controller do
   context 'create workflows' do
 
     # TODO: this should just be for administrators
+    # TODO: should we keep track of all the branches here?
     it 'should clone a repo to a directory if it does not exist' do
+
       auth_header(:guest)
       request = {
         repo: "/test-utils/available-workflows/test-repo",
@@ -28,6 +30,7 @@ describe VulcanV2Controller do
         author: "Jane Doe"
       }
       post("api/v2/workflow/create", request)
+
       expect(last_response.status).to eq(200)
       msg = "Workflow: #{request[:workflow_name]} successfully cloned and created."
       expect(json_body[:info]).to eql(msg)
@@ -37,7 +40,6 @@ describe VulcanV2Controller do
 
     it 'should not clone a repo to a directory if it exists' do
     end
-
 
 
   end
@@ -76,31 +78,24 @@ describe VulcanV2Controller do
 
   end
 
-  context 'create workspaces' do
+  context 'creates workspaces' do
 
     it 'when the workflow exists' do
       auth_header(:guest)
+      request = {
+        repo: "/test-utils/available-workflows/test-repo",
+        workflow_name: "test-workflow",
+        branch: "main",
+        project_name: PROJECT,
+        author: "Jane Doe"
+      }
+      post("api/v2/workflow/create", request)
 
       request = {
-        repo: "/data2/vulcan/workflows/#{PROJECT}/test-repo",
-        target_dir: "/data2/vulcan/#{PROJECT}",
-        workflow_name: "test_workflow"
+        workflow_name: "test-workflow",
+        branch: "main"
       }
-
-      post("/api/#{PROJECT}/workspace/create", request)
-
-      expected = {
-        workspace: "#{request['target_dir']}/#{request[workflow_name]}/",
-        repo: "test-repo/",
-      }
-
-      # This should return:
-      # - A hash of the workspace that is created
-      # This should:
-      # - Create a workspace : /data2/vulcan/workflows/labors/workflow_name/hash
-      # - Cloned repo inside the workspace: /data2/vulcan/workflows/labors/workflow_name/hash/test_repo
-      # - Record is created in the db
-      # - Parses and saves the workflow params in memory
+      post("/api/v2/#{PROJECT}/workspace/create", request)
       expect(last_response.status).to eq(200)
     end
 
@@ -109,12 +104,23 @@ describe VulcanV2Controller do
   context 'list workspaces' do
 
     it 'for a workflow if it exists' do
-      workflow_name = "test_workflow"
-      get("/api/#{PROJECT}/workflow/#{workflow_name}")
-      # This should return a list of:
-      # - workspace hashes
-      # - workspace last_updated_at
-      # - workflow version
+      auth_header(:guest)
+      request = {
+        repo: "/test-utils/available-workflows/test-repo",
+        workflow_name: "test-workflow",
+        branch: "main",
+        project_name: PROJECT,
+        author: "Jane Doe"
+      }
+      post("api/v2/workflow/create", request)
+
+      request = {
+        workflow_name: "test-workflow",
+        branch: "main"
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+      #TODO
+
     end
 
     it 'should return an empty list if no workspaces exist' do

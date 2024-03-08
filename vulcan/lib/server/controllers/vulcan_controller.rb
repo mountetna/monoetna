@@ -1,4 +1,5 @@
 require 'etna'
+require 'shellwords'
 
 class Vulcan
   class Controller < Etna::Controller
