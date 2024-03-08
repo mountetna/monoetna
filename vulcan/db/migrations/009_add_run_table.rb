@@ -6,6 +6,9 @@ Sequel.migration do
       foreign_key [:workspace_id], :workspaces
       column :outputs_generated, 'text[]', null: false
       column :jobs_invoked, 'text[]', null: false
+
+      DateTime :created_at, null: false
+      DateTime :updated_at, null: false
     end
 
     run('CREATE SEQUENCE runs_ids START 1;')

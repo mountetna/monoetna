@@ -13,5 +13,10 @@ class Vulcan
           updated_at: updated_at
         }
     end
+
+    def repo_name
+      File.basename(repository_url.to_s)
+    end
+
   end
 end

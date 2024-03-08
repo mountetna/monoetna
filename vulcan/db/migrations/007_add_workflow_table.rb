@@ -6,7 +6,8 @@ Sequel.migration do
       String :project, null: false
       String :workflow_name, null: false
       String :author, null: false
-      String :repository_url, null: false
+      String :repo_remote_url, null: false
+      String :repo_local_path, null: false
 
       DateTime :created_at, null: false
       DateTime :updated_at, null: false

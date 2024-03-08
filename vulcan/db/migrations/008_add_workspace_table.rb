@@ -8,6 +8,11 @@ Sequel.migration do
 
       String :repo_branch, null: false
       String :user_email, null: false
+      String :workspace_dir, null: false
+      String :hash, null: false
+
+      DateTime :created_at, null: false
+      DateTime :updated_at, null: false
     end
 
     run('CREATE SEQUENCE workspaces_ids START 1;')
