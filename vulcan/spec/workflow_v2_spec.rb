@@ -8,6 +8,26 @@ describe VulcanV2Controller do
     OUTER_APP
   end
 
+  let(:ssh) {Vulcan::SSH.new(Vulcan.instance.ssh)}
+  let(:workflow_base_dir) {"/app/workflows"}
+  let(:workspace_base_dir) {"/app/workspace"}
+  let(:create_request) {{
+    repo: "/test-utils/available-workflows/test-repo",
+    workflow_name: "test-workflow",
+    branch: "main",
+    project_name: PROJECT,
+    author: "Jane Doe"
+    }
+  }
+
+  before do
+    remove_all_dirs
+  end
+
+  def remove_all_dirs
+    ssh.rmdir(workflow_base_dir, ["/app/"])
+    ssh.rmdir(workspace_base_dir, ["/app/"])
+  end
 
   context 'ssh' do
     it 'should warn the user and start the API if we cannot establish a ssh connection' do
@@ -20,22 +40,21 @@ describe VulcanV2Controller do
     # TODO: this should just be for administrators
     # TODO: should we keep track of all the branches here?
     it 'should clone a repo to a directory if it does not exist' do
-
       auth_header(:guest)
-      request = {
-        repo: "/test-utils/available-workflows/test-repo",
-        workflow_name: "test-workflow",
-        branch: "main",
-        project_name: PROJECT,
-        author: "Jane Doe"
-      }
-      post("api/v2/workflow/create", request)
-
+      post("api/v2/workflow/create", create_request)
       expect(last_response.status).to eq(200)
-      msg = "Workflow: #{request[:workflow_name]} successfully cloned and created."
-      expect(json_body[:info]).to eql(msg)
-      #TODO: assert the directory exists
-      expect(Vulcan::WorkflowV2.first(project: request[:project_name], workflow_name: request[:workflow_name])).to be_truthy
+
+      # DB object exists
+      obj = Vulcan::WorkflowV2.first(project: create_request[:project_name], workflow_name: create_request[:workflow_name])
+      expect(obj).to_not be_nil
+      expect(obj.id).to eq(json_body[:workflow_id])
+      expect(obj.workflow_name).to eq(json_body[:workflow_name])
+
+      # Proper dirs are created
+      project_dir = "#{workflow_base_dir}/#{PROJECT}"
+      expect(ssh.dir_exists?(project_dir)).to be_truthy
+      expect(ssh.dir_exists?(obj.repo_local_path)).to be_truthy
+
     end
 
     it 'should not clone a repo to a directory if it exists' do
@@ -45,25 +64,18 @@ describe VulcanV2Controller do
   end
 
   context 'list workflows' do
-    it 'list workflows available for a project' do
+
+    before do
       auth_header(:guest)
-      request = {
-        repo: "/test-utils/available-workflows/test-repo",
-        workflow_name: "test-workflow",
-        branch: "main",
-        project_name: PROJECT,
-        author: "Jane Doe"
-      }
-      post("api/v2/workflow/create", request)
+      post("api/v2/workflow/create", create_request)
+    end
+
+    it 'list workflows available for a project' do
       get("api/v2/#{PROJECT}/workflows/")
-      puts last_response
       expect(last_response.status).to eq(200)
-      puts json_body
     end
 
     it 'list workflows available for all projects' do
-      auth_header(:guest)
-      get("/api/all/workflows/")
     end
   end
 
@@ -80,56 +92,51 @@ describe VulcanV2Controller do
 
   context 'creates workspaces' do
 
-    it 'when the workflow exists' do
+    before do
       auth_header(:guest)
-      request = {
-        repo: "/test-utils/available-workflows/test-repo",
-        workflow_name: "test-workflow",
-        branch: "main",
-        project_name: PROJECT,
-        author: "Jane Doe"
-      }
-      post("api/v2/workflow/create", request)
+      post("api/v2/workflow/create", create_request)
+    end
 
+    it 'when the workflow exists' do
+      # TODO: should we create the workflow by name or id?
+      # TODO: should we add a version column or is branch sufficient?
+      # How do we want to "version" workflows
       request = {
         workflow_name: "test-workflow",
         branch: "main"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       expect(last_response.status).to eq(200)
+
+      # DB object exists
+      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
+      expect(obj).to_not be_nil
+
+      # Proper dirs are created
+      workspace_project_dir = "#{workspace_base_dir}/#{PROJECT}"
+      expect(ssh.dir_exists?(workspace_project_dir)).to be_truthy
+      expect(ssh.dir_exists?(obj.workspace_dir)).to be_truthy
+
     end
 
   end
 
   context 'list workspaces' do
 
-    it 'for a workflow if it exists' do
+    it 'for a user if it exists' do
       auth_header(:guest)
+      post("api/v2/workflow/create", create_request)
       request = {
-        repo: "/test-utils/available-workflows/test-repo",
-        workflow_name: "test-workflow",
-        branch: "main",
-        project_name: PROJECT,
-        author: "Jane Doe"
+        workflow_id: json_body[:workflow_id],
       }
-      post("api/v2/workflow/create", request)
-
-      request = {
-        workflow_name: "test-workflow",
-        branch: "main"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      #TODO
-
+      #TODO: fix empty response?
+      get("/api/v2/#{PROJECT}/workspace/", request)
+      expect(last_response.status).to eq(200)
     end
 
     it 'should return an empty list if no workspaces exist' do
       workflow_name = "test_workflow"
       get("/api/#{PROJECT}/workflow/#{workflow_name}")
-      # This should return:
-      # - workspace hash
-      # - workspace last_updated_at
-      # - workflow version
     end
 
     it 'should warn the user if a new version of a workflow exists' do

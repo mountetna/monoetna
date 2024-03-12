@@ -6,9 +6,11 @@ class Vulcan
         {
           id: id,
           project: project,
+          # TODO: change to name
           workflow_name: workflow_name,
           author: author,
-          repository_url: repository_url,
+          repo_remote_url: repo_remote_url,
+          repo_local_path: repo_local_path,
           created_at: created_at,
           updated_at: updated_at
         }
