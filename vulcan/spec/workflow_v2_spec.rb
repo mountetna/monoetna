@@ -11,7 +11,7 @@ describe VulcanV2Controller do
   let(:ssh) {Vulcan::SSH.new(Vulcan.instance.ssh)}
   let(:workflow_base_dir) {"/app/workflows"}
   let(:workspace_base_dir) {"/app/workspace"}
-  let(:create_request) {{
+  let(:create_workflow_request) {{
     repo: "/test-utils/available-workflows/test-repo",
     workflow_name: "test-workflow",
     branch: "main",
@@ -19,6 +19,10 @@ describe VulcanV2Controller do
     author: "Jane Doe"
     }
   }
+  let(:create_workspace_request) {{
+      workflow_name: "test-workflow",
+      branch: "main"
+  }}
 
   before do
     remove_all_dirs
@@ -41,11 +45,11 @@ describe VulcanV2Controller do
     # TODO: should we keep track of all the branches here?
     it 'should clone a repo to a directory if it does not exist' do
       auth_header(:guest)
-      post("api/v2/workflow/create", create_request)
+      post("/api/v2/workflow/create", create_workflow_request)
       expect(last_response.status).to eq(200)
 
       # DB object exists
-      obj = Vulcan::WorkflowV2.first(project: create_request[:project_name], workflow_name: create_request[:workflow_name])
+      obj = Vulcan::WorkflowV2.first(project: create_workflow_request[:project_name], workflow_name: create_workflow_request[:workflow_name])
       expect(obj).to_not be_nil
       expect(obj.id).to eq(json_body[:workflow_id])
       expect(obj.workflow_name).to eq(json_body[:workflow_name])
@@ -67,11 +71,11 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("api/v2/workflow/create", create_request)
+      post("/api/v2/workflow/create", create_workflow_request)
     end
 
     it 'list workflows available for a project' do
-      get("api/v2/#{PROJECT}/workflows/")
+      get("/api/v2/#{PROJECT}/workflows/")
       expect(last_response.status).to eq(200)
     end
 
@@ -94,18 +98,14 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("api/v2/workflow/create", create_request)
+      post("api/v2/workflow/create", create_workflow_request)
     end
 
     it 'when the workflow exists' do
       # TODO: should we create the workflow by name or id?
       # TODO: should we add a version column or is branch sufficient?
       # How do we want to "version" workflows
-      request = {
-        workflow_name: "test-workflow",
-        branch: "main"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
+      post("/api/v2/#{PROJECT}/workspace/create", create_workspace_request)
       expect(last_response.status).to eq(200)
 
       # DB object exists
@@ -125,11 +125,11 @@ describe VulcanV2Controller do
 
     it 'for a user if it exists' do
       auth_header(:guest)
-      post("api/v2/workflow/create", create_request)
+      post("/api/v2/workflow/create", create_workflow_request)
       request = {
         workflow_id: json_body[:workflow_id],
       }
-      #TODO: fix empty response?
+      post("/api/v2/#{PROJECT}/workspace/create", create_workspace_request)
       get("/api/v2/#{PROJECT}/workspace/", request)
       expect(last_response.status).to eq(200)
     end
@@ -165,6 +165,11 @@ describe VulcanV2Controller do
 
   context 'workflow params' do
     # Needed for the front-end
+    before do
+      auth_header(:guest)
+      post("/api/v2/workflow/create", create_workflow_request)
+      post("/api/v2/#{PROJECT}/workspace/create", create_workspace_request)
+    end
 
     it 'returns a list of workflow params' do
       # Retrieves all the workflow params for workflow
