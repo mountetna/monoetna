@@ -44,7 +44,7 @@ export const UNREMOVABLE_ATTRIBUTE_NAMES = ['created_at', 'updated_at'];
 
 export const UNEDITABLE_ATTRIBUTE_NAMES = ['created_at', 'updated_at'];
 
-const CHILD_ATTRIBUTE_TYPES = ['table', 'child', 'collection'];
+export const CHILD_ATTRIBUTE_TYPES = ['table', 'child', 'collection'];
 
 export const isLeafModel = (model: Model) => {
   return (

@@ -6,6 +6,10 @@ class Magma
       foreign_id
     end
 
+    def revision_to_loader(record_name, new_value)
+      [ name, new_value&.to_s ]
+    end
+
     def entry(value, loader)
       # This allows you to disconnect records.
       return [ foreign_id, nil ] if value.nil?

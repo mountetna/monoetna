@@ -267,7 +267,7 @@ use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 name = "responses"
 version = "0.21.0"
 description = "A utility library for mocking out the `requests` Python library."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -322,7 +322,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"  # Compatible python versions must be declared here
-content-hash = "a2dd696c349232e9d8ba5bde2b29b09f873a1f8e78b61f7de9a368ba03067d86"
+content-hash = "bfe2cae5c81054f47812a91f3b82fa1c7dec920bf1c6c4e2c7d131a1df9e6961"
 
 [metadata.files]
 atomicwrites = [

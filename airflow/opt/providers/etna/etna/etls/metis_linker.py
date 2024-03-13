@@ -16,6 +16,9 @@ import pandas
 import numpy
 import secrets
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class MetisLoaderError(Exception):
     pass
@@ -129,12 +132,16 @@ class MetisLoaderConfig(EtlConfigResponse):
             else:
                 data = data.set_index(id, drop=True)
                 for name, attributes in data.T.to_dict().items():
-                    if not self.get_identifier(model_name, name):
+                    if model_name in self.rules and not self.get_identifier(model_name, str(name)):
                         continue
                     update.update_record(model_name, name, {k: v for k,v in attributes.items() if v is not None})
 
     def file_collection_update(self, model_name, script, tail, update):
+        if model_name not in self.rules:
+            raise f"Cannot filter by file without a rule for {model_name}"
+
         files = self.script_files(script, tail)
+
         named_files = itertools.groupby(
             files,
             lambda f : self.get_identifier(model_name, f.file_path)
@@ -155,7 +162,7 @@ class MetisLoaderConfig(EtlConfigResponse):
 
 
     def get_identifier(self, model_name, file_name):
-        match = re.search( self.rules[model_name][1:-1], file_name)
+        match = re.search(self.rules[model_name][1:-1], file_name)
 
         if not match: 
             return None
@@ -163,6 +170,9 @@ class MetisLoaderConfig(EtlConfigResponse):
         return match.group(0)
 
     def file_update(self, model_name, script, tail, update):
+        if model_name not in self.rules:
+            raise f"Cannot filter by file without a rule for {model_name}"
+
         files = self.script_files(script, tail)
         for file in files:
             name = self.get_identifier( model_name, file.file_path )
@@ -282,6 +292,7 @@ def MetisLinker(interval_minutes=5):
                         )
                         tails[ (project_name, bucket_name) ] = { 'files': files }
                     except Exception as error:
+                        logging.error(error, exc_info=True)
                         tails[ (project_name, bucket_name) ] = { 'error': repr(error) }
                 return tails
 
@@ -304,6 +315,7 @@ def MetisLinker(interval_minutes=5):
                     with hook.metis() as metis:
                         updates[ config.config_id ] = config.update_for(tail['files'], metis, models[config.project_name])
                 except Exception as error:
+                    logging.error(error, exc_info=True)
                     updates[ config.config_id ] = { 'error': repr(error) }
 
             return updates
@@ -370,6 +382,7 @@ Autolinked Parent Identifiers: {i['autolink']}
                             )
                         )
                 except Exception as error:
+                    logging.error(error, exc_info=True)
                     with hook.polyphemus() as polyphemus:
                         polyphemus.etl_update(
                             project_name=config.project_name,

@@ -58,6 +58,7 @@ export default function SelectAutocompleteMultiPickInput({
   disabled = false,
   placeholder,
   onChangeOverride,
+  testId,
   onChange,
   ...props
 }: WithInputParams<
@@ -69,6 +70,7 @@ export default function SelectAutocompleteMultiPickInput({
     placeholder?: string;
     maxOptions?: number;
     onChangeOverride?: (event: any, e: string[]) => void;
+    testId?: string
   },
   string[],
   StringOptions
@@ -173,6 +175,7 @@ export default function SelectAutocompleteMultiPickInput({
       onInputChange={(event: any, newInputState: string) => {
         setInputState(newInputState);
       }}
+      id={testId ? `${testId}-full` : 'multi-pick-input-full'}
       style={{minWidth: minWidth, paddingTop: disp_label ? 8 : 0}}
       renderInput={(params: any) => (
         <TextField
@@ -184,6 +187,10 @@ export default function SelectAutocompleteMultiPickInput({
           fullWidth
           size='small'
           InputLabelProps={{shrink: true}}
+          inputProps={{
+            'data-testid': testId ? testId : 'multi-pick-input',
+            'id': testId ? testId : 'multi-pick-input',
+          }}
         />
       )}
     />

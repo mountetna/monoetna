@@ -1,6 +1,7 @@
-import React, {useEffect, useCallback, useRef} from 'react';
+import React, {useEffect, useCallback, useRef, useState} from 'react';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
+import {useAsync} from 'etna-js/utils/cancellable_helpers'
 
 import ListBody from './list/list-body';
 import ListHead from './list/list-head';
@@ -8,6 +9,20 @@ import FolderBreadcrumb from './folder-breadcrumb';
 import ControlBar from './control-bar';
 
 import {selectCurrentFolder} from '../selectors/directory-selector';
+import AutorenewIcon from '@material-ui/icons/Autorenew';
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme) => ({
+  loadingIcon: {
+    'animation': '$spin 4s linear infinite'
+  },
+  '@keyframes spin': {
+      '100%': {
+          '-webkit-transform': 'rotate(360deg)',
+          'transform': 'rotate(360deg)',
+      }
+  },
+}))
 
 const COLUMNS = [
   {name: 'type', width: '60px'},
@@ -35,9 +50,28 @@ const FolderView = ({bucket_name, folder_name}) => {
   const uploadFileInput = useRef(null);
   const uploadDirInput = useRef(null);
 
-  useEffect(() => {
-    invoke({type: 'RETRIEVE_FILES', bucket_name, folder_name});
+  const [loading, setLoading] = useState(true)
+  const [showLoading, setShowLoading] = useState(false)
+
+  const classes = useStyles();
+
+  useAsync( async () => {
+    await invoke({type: 'RETRIEVE_FILES', bucket_name, folder_name});
+    setLoading(false);
   }, []);
+
+  useAsync( async () => {
+    if (loading && !showLoading) {
+      const delay = (delayInms) => {
+        return new Promise(resolve => setTimeout(resolve, delayInms));
+      };
+      let delayres = await delay(100);
+      setShowLoading(true);
+    }
+    if (!loading) {
+      setShowLoading(false);
+    }
+  }, [loading]);
 
   const selectUpload = useCallback(() => {
     invoke({
@@ -189,6 +223,10 @@ const FolderView = ({bucket_name, folder_name}) => {
           folder_name={folder_name}
           bucket_name={bucket_name}
         />
+        {showLoading ? <>
+          <AutorenewIcon className={classes.loadingIcon}/>
+          Loading
+        </> : null}
       </div>
     </div>
   );

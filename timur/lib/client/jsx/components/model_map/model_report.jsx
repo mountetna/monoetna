@@ -43,7 +43,7 @@ import {
   addTemplatesAndDocuments,
   removeModelAction
 } from 'etna-js/actions/magma_actions';
-import {isLeafModel} from '../../utils/edit_map';
+import {isLeafModel, CHILD_ATTRIBUTE_TYPES} from '../../utils/edit_map';
 import useMagmaActions from './use_magma_actions';
 import ModelAttributesTable from './model_attributes_table';
 
@@ -74,7 +74,9 @@ const ManageModelActions = ({
   const [ showRemoveModelModal, setShowRemoveModelModal ] = useState(false);
 
   const reparentTooltip = determiningCanReparent ? 'Determining if reparenting is possible' :
-    canReparent ? 'Reparent Model' : 'Cannot reparent a model containing records'
+    canReparent ? 'Reparent Model' : 'Cannot reparent a model containing records';
+  const removeTooltip = isLeaf ? 'Remove Model' :
+    'Cannot remove a model with any attribute of the types: ' + CHILD_ATTRIBUTE_TYPES.join(', ');
 
   return (
     <Grid>
@@ -150,15 +152,18 @@ const ManageModelActions = ({
         open={showReparentModelModal}
         onSave={handleReparentModel}
       />
-      {isLeaf && <>
-        <Tooltip title='Remove Model' aria-label='Remove Model'>
-          <Button
-            className={classes.addBtn}
-            startIcon={<DeleteIcon />}
-            onClick={() => setShowRemoveModelModal(true)}
-          >
-            Remove Model
-          </Button>
+      <>
+        <Tooltip title={removeTooltip} aria-label= {removeTooltip}>
+          <span>
+            <Button
+              className={classes.addBtn}
+              startIcon={<DeleteIcon />}
+              onClick={() => setShowRemoveModelModal(true)}
+              disabled={!isLeaf}
+            >
+              Remove Model
+            </Button>
+          </span>
         </Tooltip>
         <RemoveModelModal
           modelName={modelName}
@@ -166,7 +171,7 @@ const ManageModelActions = ({
           open={showRemoveModelModal}
           onSave={handleRemoveModel}
         />
-      </>}
+      </>
     </Grid>
   );
 };
