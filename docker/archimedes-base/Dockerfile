@@ -52,6 +52,10 @@ RUN curl https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_V
 RUN tar -xf /tmp/docker.tgz -C /tmp/
 RUN mv /tmp/docker/* /usr/local/bin/
 
+# Add kubectl
+RUN curl -LO https://dl.k8s.io/release/v1.32.0/bin/linux/amd64/kubectl
+RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
 # Copy entrypoint scripts
 COPY entrypoints /entrypoints
 COPY --from=etna-py /etna-py /etna-py
