@@ -74,8 +74,8 @@ x-base-etna-services:
     environment:
       APP_NAME: 'vulcan_app_fe'
 
-  'vulcan_snakemake':
-    image: vulcan_snakemake
+  'vulcan_c4_env':
+    image: vulcan_c4_env
     ports:
       - "2223:22"  # for ssh
     networks:

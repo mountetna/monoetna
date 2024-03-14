@@ -30,8 +30,8 @@ build-dev-etna-images:
 	cd etna && docker build . -t etna
 	cd docker/etna-base && docker build . -t etna-base
 
-	# Build snakemake image for Vulcan
-	cd docker/vulcan_snakemake && docker build . -t vulcan_snakemake
+	# Build c4-env image for Vulcan
+	cd docker/vulcan_c4_env && docker build . -t vulcan_c4_env
 
 build-dev-airflow-images:
 	# Airflow
