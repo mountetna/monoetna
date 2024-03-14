@@ -24,9 +24,13 @@ from docker import DockerClient
 from docker.errors import NotFound
 from docker.types import Mount
 from docker.models.containers import Container
+from kubernetes import client, config, watch
+from kubernetes.client.api import core_v1_api
+from kubernetes.client.rest import ApiException
 from archimedes.checker import run as run_checker
 import tempfile
 import sys
+import secrets
 
 
 @dataclass_json
@@ -207,6 +211,196 @@ class DockerIsolator(Isolator[Container]):
         else:
             return f"poetry run python {exec_script_path}"
 
+class KubernetesIsolator(Isolator[str]):
+    # This needs to be a unique, top level directory to enable sane
+    # volume directory sharing.
+    exec_dir = '/archimedes-exec'
+    target_inputs_dir = "/inputs"
+    target_outputs_dir = "/outputs"
+    result = 1
+
+    def get_container_state(pod):
+        container = pod.status.container_statuses[-1]
+        return [k for k in container.state.to_dict().items() if k[1] is not None][0]
+
+    def pod_container_status(self, t: str, namespace='default'):
+        try:
+            pod = self.kub_cli.read_namespaced_pod(t, namespace=namespace)
+            return self.get_container_state(pod)
+        except:
+            return ("Unknown", None)
+    
+    def delete_pod(self, t: str, namespace='default', timeout=60, maybe_repeat=False):
+        try:
+            return self.kub_cli.delete_namespaced_pod(t, namespace=namespace, grace_period_seconds=timeout)
+        except:
+            if maybe_repeat:
+                print("Error deleting pod {t}, but might have been deleted already.", file=sys.stderr)
+            raise Exception(f"Error deleting pod {t}.")
+
+    def pod_and_log(self, t: str, namespace='default'):
+        try:
+            log = self.kub_cli.read_namespaced_pod_log(t, namespace=namespace)
+            pod = self.kub_cli.read_namespaced_pod(t, namespace=namespace)
+            return (pod, log)
+        except:
+            raise Exception(f"Error reading pod {t}.")
+
+    def __init__(self, kub_cli: Optional[DockerClient] = None ):
+        config.load_kube_config()
+        self.kub_cli = kub_cli or core_v1_api.CoreV1Api()
+
+    def is_running(self, t: str, namespace='default') -> bool:
+        container_state = self.pod_container_status(t)[0]
+        return container_state in ["waiting", "running"]
+
+    ## Because there is no analagous concept for the wait() goal of 'container is wrapping up, await that and report outcome'...
+    # And because the usage is 'stop() on timeout, but always call wait() at end and use that to get final status code'...
+    # stop(): will instead do nothing
+    # wait(): will record the current / last container status, then perform the stop() equivalent
+    def wait(self, t: str, timeout=60) -> Tuple:
+        if self.pod_container_status(t)[0] == "terminated":
+            pod,log=self.pod_and_log(t)
+            return (self.get_container_state(pod).exit_code, log)
+    
+        log = self.pod_and_log(t)[1]
+        pod = self.delete_pod(t, grace_period_seconds=timeout)
+        # await grace_period, hoping for completion
+        done = time.time() + timeout
+        while self.is_running(t) and time.time() < done:
+            pod,log = self.pod_and_log(t)
+            time.sleep(1)
+        
+        if self.get_container_state(pod)[0] == "terminated":
+            return (self.get_container_state(pod)[1].exit_code, log)
+        
+        return ("Pod killed", log)
+
+    # Handled within wait()
+    def stop(self, t: str, timeout=60):
+        return
+
+    # Handled within wait(), should never be called
+    def get_stderr(self, t: str) -> str:
+        raise NotImplemented("Not implemented")
+
+    # def _is_self_container(self):
+    #     proc_file = '/proc/self/cgroup'
+
+    #     if os.path.exists('/.dockerenv'):
+    #         return True
+
+    #     if not os.path.exists(proc_file):
+    #         return False
+
+    #     return b"/docker" in open(proc_file, 'rb').read()
+
+    def kubernetes_run(self, image, _cmd, container_params, pod_params):
+
+        pod_name = 'archimedes-job-' + secrets.token_hex(10)
+
+        print(f"Creating pod ...")
+
+        pod_manifest = {
+            'apiVersion': 'v1',
+            'kind': 'Pod',
+            'metadata': {
+                'name': pod_name
+            },
+            'spec': {
+                'containers': [{
+                    'image': image,
+                    'name': 'archimedes-job',
+                    "args": _cmd,
+                    **container_params
+                }],
+                **pod_params
+            }
+        }
+        # Returns V1Pod
+        resp =  self.kub_cli.create_namespaced_pod(body=pod_manifest,
+                                                  namespace='default')
+        return pod_name
+
+    def start(self, request: RunRequest, exec_script_path: str):
+        mounts = [
+                    {
+                        "name": f"input-{input_file.logical_name}",
+                        "mount_path": os.path.join(self.target_inputs_dir, input_file.logical_name),
+                        "host_path": input_file.host_path,
+                        "read_only": True,
+                    }
+                    for input_file in request.input_files
+                 ] + [
+                        {
+                            "name": f"output-{output_file.logical_name}",
+                            "mount_path": os.path.join(self.target_outputs_dir, output_file.logical_name),
+                            "host_path": output_file.host_path,
+                            "read_only": False,
+                        }
+                     for output_file in request.output_files
+                 ] + [
+                        {
+                            "name": "exec-script",
+                            "mount_path": request.target_path,
+                            "host_path": exec_script_path,
+                            "read_only": True,
+                        }
+                 ]
+        volumeMounts = [{"name": i.name, "mount_path": i.mount_path, "read_only": i.read_only} for i in mounts]
+        volumes = [{"name": i.name, "host_path": {"path": i.host_path}} for i in mounts]
+
+        environment = request.environment + [
+            f"INPUTS_DIR={self.target_inputs_dir}",
+            f"OUTPUTS_DIR={self.target_outputs_dir}",
+            f"ENFORCE_OUTPUTS_EXIST=1",
+        ]
+
+        script_path = request.target_path
+        # volumes_from = []
+        # if self._is_self_container():
+        #     volumes_from += [ os.environ['HOSTNAME'] ]
+        #     script_path = exec_script_path
+
+        # Could set options like cpu_quote, mem_limit, restrict network access,
+        # etc, to further lockdown the task.
+        params = {
+            "volumes": volumes,
+            "hostNetwork": True,
+            "extra_hosts": {
+                "metis.development.local": "172.16.238.10",
+                "magma.development.local": "172.16.238.10",
+            },
+        }
+
+        container_params = {
+            'env': [
+                dict(zip( ("name","value"), i.split("=") ))
+                for i in environment
+            ],
+            "volumneMounts": volumeMounts
+        }
+
+        return self.kubernetes_run(
+            request.image, self._cmd(request, script_path),
+            container_params,
+            params
+        )
+
+    def reserve_exec_dir(self) -> ContextManager[str]:
+        if not os.path.exists(self.exec_dir):
+            os.mkdir(self.exec_dir)
+
+        return tempfile.TemporaryDirectory(dir=self.exec_dir)
+
+    def _cmd(self, request: RunRequest, exec_script_path: str):
+        if request.run_with("node"):
+            exec_dir = exec_script_path.replace(request.target_file, "")
+            return ["/bin/bash", "-c", f"cd {exec_dir}; cp /app/package.json package.json; npm install; node {exec_script_path}"]
+        elif request.run_with("r"):
+            return f"Rscript {exec_script_path}"
+        else:
+            return f"poetry run python {exec_script_path}"
 
 LocalProcess = Tuple[subprocess.Popen, IO[bin], str]
 
@@ -307,7 +501,7 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 60, remove = 
         print("Starting script...", file=sys.stderr)
         process: T = isolator.start(request, script_path)
         try:
-            # Give cells up to 5 minutes.  In the future, with a proper async executor we would want to allow up to
+            # Give cells up to 60 minutes.  In the future, with a proper async executor we would want to allow up to
             # a much larger amount of time.
             done = time.time() + timeout
 
@@ -323,6 +517,18 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 60, remove = 
 
             code = isolator.wait(process)
 
+            if isinstance(code, tuple):
+                code, log = code
+                res.status = 'failed'
+                if code == 137:
+                # KubernetesIsolator
+                    if timeout_reached:
+                        res.error = "Timeout reached, script stopped."
+                    else:
+                        res.error = "Out of memory."
+                else:
+                    # KubernetesIsolator outputs stdout and stderr directly
+                    res.error = log
             if code != 0:
                 res.status = 'failed'
                 if code == 137:
@@ -341,6 +547,9 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 60, remove = 
             if remove and isinstance(process, Container):
                 print("Cleaning up docker container", file=sys.stderr)
                 process.remove()
+            if remove and isinstance(process, str):
+                print("Cleaning up kubernetes pod", file=sys.stderr)
+                process.delete_pod(process, maybe_repeat=True)
 
     return res
 
@@ -384,6 +593,9 @@ def main():
     result = RunResult(status='done', error=f"Did not run, isolator {request.isolator} unrecognized")
     if request.isolator == 'docker':
         result = run(request, DockerIsolator())
+    
+    if request.isolator == 'kubernetes':
+        result = run(request, KubernetesIsolator())
 
     if request.isolator == 'local':
         result = run(request, LocalIsolator())

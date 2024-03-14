@@ -95,11 +95,6 @@ class Vulcan
         "docker",
         "run",
         "--rm",
-      ] + docker_run_args(storage: storage, input_files: input_files, output_files: output_files, token: token, ch: ch, interpreter: interpreter)
-    end
-
-    def docker_run_args(storage:, input_files:, output_files:, token:, ch:, interpreter:)
-      [
         "-i",
         "-v",
         "/var/run/docker.sock:/var/run/docker.sock:ro",
