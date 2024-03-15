@@ -1,2 +1,12 @@
-filename: "your_input_file.txt"
-num_words: 10
+extract_words:
+  input:
+    file: "some_path_metis/file.txt"
+    c4_file: "some_reference_transcriptome/"
+  params:
+    num_words: 10
+
+count_words:
+  input:
+    directory:
+  params:
+# Add any specific parameters for the count_words rule here, if needed.

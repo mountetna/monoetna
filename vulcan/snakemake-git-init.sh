@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Initialize the Git repository if it doesn't exist
-if [ ! -d "/app/available-workflows/test-repo/.git" ]; then
+if [ ! -d "/test-utils/available-workflows/test-repo/.git" ]; then
     git config --global user.email "you@example.com"
     git config --global user.name "Your Name"
     git config --global init.defaultBranch main

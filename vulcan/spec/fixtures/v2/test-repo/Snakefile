@@ -6,11 +6,11 @@ rule all:
 
 rule extract_words:
     input:
-        "input/{filename}"
+        config=["extract_words"]["input"]["file"]
     output:
         "intermediate/first_{n}_words_{filename}"
     params:
-        n=config["num_words"]
+        n=config["extract_words"]["num_words"]
     run:
         with open(input[0], 'r') as infile, open(output[0], 'w') as outfile:
             words = infile.read().split()[:params.n]

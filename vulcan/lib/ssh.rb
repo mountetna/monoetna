@@ -6,6 +6,15 @@ class Vulcan
       @ssh = net_ssh_instance
     end
 
+    def parse_config(dir)
+      command = "cd #{Shellwords.escape(dir)} && python ./snakemake_utils/snake_runner.py --parse-config"
+      invoke_ssh_command(command)
+    end
+
+    def upload_dir(local_dir, remote_dir, recurse)
+      @ssh.scp.upload!(local_dir, remote_dir, recursive: recurse)
+    end
+
     def mkdir(dir)
       # Make project directory if it doesnt exist
       command = Shellwords.join(["mkdir", "-p", dir])

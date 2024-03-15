@@ -7,7 +7,7 @@ require_relative './../../ssh'
 # TODO: sort out disk location
 WORKFLOW_BASE_DIR = "/app/workflows"
 WORKSPACE_BASE_DIR = "/app/workspace"
-METIS_DIR_MIRROR = "/app/workspace/{HASH}/metis/"
+SNAKEMAKE_UTILS_DIR = "/app/snakemake_utils"
 ALLOWED_DIRECTORIES = ["/app/workspace/"]
 
 class VulcanV2Controller < Vulcan::Controller
@@ -94,6 +94,11 @@ class VulcanV2Controller < Vulcan::Controller
       begin
         @ssh.mkdir(workspace_dir)
         @ssh.clone(workflow.repo_local_path, @escaped_params[:branch], workspace_dir)
+        @ssh.mkdir("#{workspace_dir}/input/") # location where input files from metis get downloaded
+        @ssh.mkdir("#{workspace_dir}/output/") # location of output files that will get mirrored back to metis
+        @ssh.upload_dir(SNAKEMAKE_UTILS_DIR, workspace_dir, true)
+        out = @ssh.parse_config(workspace_dir)
+        #TODO: fix this
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
           workspace_dir: workspace_dir,
@@ -127,8 +132,12 @@ class VulcanV2Controller < Vulcan::Controller
     )
   end
 
+  def retrieve_file_params
+    # Use metis client to download files into /hash/inputs/
+    # For extremely large
+  end
+
   def workflow_run
-    success_json({'it works!': true})
   end
 
 
