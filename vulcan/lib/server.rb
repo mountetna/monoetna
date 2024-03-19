@@ -18,8 +18,15 @@ class Vulcan
     # vulcan v2
     # TODO add auth
 
+    # CRUD Repo
+    post 'api/v2/repo/create', action: 'vulcan_v2#create_repo'
+    get 'api/v2/:project_name/repo/', action: 'vulcan_v2#list_workflows'
+    post 'api/v2/:project_name/:repo_name/update/', action: 'vulcan_v2#update_workflow'
+    delete 'api/v2/:project_name/:workflow_name/', action: 'vulcan_v2#delete_workflow'
+
+
     # CRUD Workflow
-    post 'api/v2/workflow/create', action: 'vulcan_v2#create_workflow'
+    post 'api/v2/workflow/publish', action: 'vulcan_v2#publish_workflow'
     get 'api/v2/:project_name/workflows/', action: 'vulcan_v2#list_workflows'
     post 'api/v2/:project_name/:workflow_name/update/', action: 'vulcan_v2#update_workflow'
     delete 'api/v2/:project_name/:workflow_name/', action: 'vulcan_v2#delete_workflow'

@@ -9,19 +9,22 @@ describe VulcanV2Controller do
   end
 
   let(:ssh) {Vulcan::SSH.new(Vulcan.instance.ssh)}
-  let(:workflow_base_dir) {"/app/workflows"}
-  let(:workspace_base_dir) {"/app/workspace"}
-  let(:create_workflow_request) {{
+  let(:create_repo_request) {{
+    project_name: PROJECT,
     repo: "/test-utils/available-workflows/test-repo",
+    branch: "main",
+  }}
+  let(:publish_workflow_request) {{
+    project_name: PROJECT,
+    repo_local_path: "#{WORKFLOW_BASE_DIR}/#{PROJECT}/test-repo",
     workflow_name: "test-workflow",
     branch: "main",
-    project_name: PROJECT,
+    tag: "v1",
     author: "Jane Doe"
     }
   }
   let(:create_workspace_request) {{
       workflow_name: "test-workflow",
-      branch: "main"
   }}
 
   before do
@@ -29,8 +32,9 @@ describe VulcanV2Controller do
   end
 
   def remove_all_dirs
-    ssh.rmdir(workflow_base_dir, ["/app/"])
-    ssh.rmdir(workspace_base_dir, ["/app/"])
+    ssh.rmdir(WORKFLOW_BASE_DIR, ALLOWED_DIRECTORIES)
+    ssh.rmdir(WORKSPACE_BASE_DIR, ALLOWED_DIRECTORIES)
+    ssh.rmdir(TMPDIR, ALLOWED_DIRECTORIES)
   end
 
   context 'ssh' do
@@ -38,15 +42,47 @@ describe VulcanV2Controller do
     end
   end
 
+  context 'create repo' do
+    it 'should clone a repo to the project directory' do
+      auth_header(:guest)
+      post("/api/v2/repo/create", create_repo_request)
+      expect(last_response.status).to eq(200)
+      require 'pry'; binding.pry
+
+      # Proper dirs are created
+      project_dir = "#{WORKFLOW_BASE_DIR}/#{PROJECT}"
+      expect(ssh.dir_exists?(project_dir)).to be_truthy
+      expect(ssh.dir_exists?("#{project_dir}/test-repo")).to be_truthy
+    end
+  end
+
+  context 'list repos' do
+
+    before do
+      auth_header(:guest)
+      post("/api/v2/repo/create", create_repo_request)
+    end
+
+    it 'should list repos in a project directory' do
+      get("/api/v2/#{PROJECT}/repo")
+    end
+  end
+
   # Test that clone repos and make them available to our users
-  context 'create workflows' do
+  context 'publish workflows' do
+
+    before do
+      auth_header(:guest)
+      post("/api/v2/repo/create", create_repo_request)
+    end
 
     # TODO: this should just be for administrators
     # TODO: should we keep track of all the branches here?
     it 'should clone a repo to a directory if it does not exist' do
       auth_header(:guest)
-      post("/api/v2/workflow/create", create_workflow_request)
+      post("/api/v2/workflow/publish", publish_workflow_request)
       expect(last_response.status).to eq(200)
+      require 'pry'; binding.pry
 
       # DB object exists
       obj = Vulcan::WorkflowV2.first(project: create_workflow_request[:project_name], workflow_name: create_workflow_request[:workflow_name])
@@ -55,7 +91,7 @@ describe VulcanV2Controller do
       expect(obj.workflow_name).to eq(json_body[:workflow_name])
 
       # Proper dirs are created
-      project_dir = "#{workflow_base_dir}/#{PROJECT}"
+      project_dir = "#{WORKFLOW_BASE_DIR}/#{PROJECT}"
       expect(ssh.dir_exists?(project_dir)).to be_truthy
       expect(ssh.dir_exists?(obj.repo_local_path)).to be_truthy
 
@@ -105,7 +141,10 @@ describe VulcanV2Controller do
       # TODO: should we create the workflow by name or id?
       # TODO: should we add a version column or is branch sufficient?
       # How do we want to "version" workflows
+      auth_header(:guest)
+      require 'pry'; binding.pry
       post("/api/v2/#{PROJECT}/workspace/create", create_workspace_request)
+      require 'pry'; binding.pry
       expect(last_response.status).to eq(200)
 
       # DB object exists
@@ -113,9 +152,11 @@ describe VulcanV2Controller do
       expect(obj).to_not be_nil
 
       # Proper dirs are created
-      workspace_project_dir = "#{workspace_base_dir}/#{PROJECT}"
+      workspace_project_dir = "#{WORKSPACE_BASE_DIR}/#{PROJECT}"
       expect(ssh.dir_exists?(workspace_project_dir)).to be_truthy
       expect(ssh.dir_exists?(obj.workspace_dir)).to be_truthy
+
+      # Params are saved to to DB
 
     end
 

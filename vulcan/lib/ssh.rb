@@ -11,6 +11,12 @@ class Vulcan
       invoke_ssh_command(command)
     end
 
+    def read_yaml_file(remote_file_path)
+      command = Shellwords.join(['cat', remote_file_path])
+      result = invoke_ssh_command(command)
+      YAML.safe_load(result[:stdout])
+    end
+
     def upload_dir(local_dir, remote_dir, recurse)
       @ssh.scp.upload!(local_dir, remote_dir, recursive: recurse)
     end
@@ -39,6 +45,11 @@ class Vulcan
 
     def clone(repo, branch, target_dir)
       command = Shellwords.join(['git', 'clone', '-b', branch, repo, target_dir])
+      invoke_ssh_command(command)
+    end
+
+    def checkout_tag(dir, tag)
+      command = "cd #{Shellwords.escape(dir)} && git checkout tags/#{Shellwords.escape(tag)}"
       invoke_ssh_command(command)
     end
 
