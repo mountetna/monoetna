@@ -7,8 +7,7 @@ Sequel.migration do
       foreign_key [:workflow_id], :workflows
 
       String :user_email, null: false
-      String :workspace_dir, null: false
-      String :hash, null: false
+      String :path, null: false
 
       DateTime :created_at, null: false
       DateTime :updated_at, null: false

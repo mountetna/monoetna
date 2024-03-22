@@ -1,4 +1,5 @@
 count:
+  description: "Counts things in files"
   files:
     poem: "some-file.txt"
     poem_2: "another_file.txt"
@@ -7,6 +8,7 @@ count:
     count_chars: True
 
 arithmetic:
-    params:
-      add: True
-      multiply_by: 10
+  description: "Does arithmetic"
+  params:
+    add: True
+    multiply_by: 10

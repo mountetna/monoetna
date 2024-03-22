@@ -18,18 +18,8 @@ class Vulcan
         }
     end
 
-    def repo_name
-      File.basename(repository_url.to_s)
-    end
-
     def jobs
       config.keys
-    end
-
-    def file_inputs
-    end
-
-    def params
     end
 
   end

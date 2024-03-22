@@ -151,13 +151,16 @@ class VulcanV2Controller < Vulcan::Controller
         @ssh.upload_dir(SNAKEMAKE_UTILS_DIR, workspace_dir, true)
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
-          workspace_dir: workspace_dir,
+          path: workspace_dir,
           user_email: @user.email,
-          hash: workspace_hash,
           created_at: Time.now,
           updated_at: Time.now
         )
-        response = {'workspace_id': obj.id, 'workflow_hash': obj.hash_value, workflow_id: obj.workflow_id}
+        response = {
+          workspace_id: obj.id,
+          workflow_id: obj.workflow_id,
+          workflow_config: workflow.config
+        }
       rescue => e
         @ssh.rmdir(workspace_dir, ALLOWED_DIRECTORIES)
         Vulcan.instance.logger.log_error(e)
@@ -180,14 +183,19 @@ class VulcanV2Controller < Vulcan::Controller
     )
   end
 
-  def retrieve_file_params
-    # Use metis client to download files into /hash/inputs/
-    # For extremely large
+  def get_workspace
+    # Include last run
+    success_json(
+      workspace: Vulcan::Workspace.first(
+        id: @params[:workspace_id],
+        user_email: @user.email
+      ).to_hash)
   end
 
-  def workflow_run
+  def run_workflow
+    # Submit the config
+    # Save the config
+    # Pass the config to snakemake
   end
-
-
 
 end

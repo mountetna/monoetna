@@ -44,8 +44,6 @@ describe VulcanV2Controller do
       auth_header(:guest)
       post("/api/v2/repo/create", create_repo_request)
       expect(last_response.status).to eq(200)
-      require 'pry'; binding.pry
-
       # Proper dirs are created
       project_dir = "#{WORKFLOW_BASE_DIR}/#{PROJECT}"
       expect(ssh.dir_exists?(project_dir)).to be_truthy
@@ -132,7 +130,7 @@ describe VulcanV2Controller do
       # Proper dirs are created
       workspace_project_dir = "#{WORKSPACE_BASE_DIR}/#{PROJECT}"
       expect(ssh.dir_exists?(workspace_project_dir)).to be_truthy
-      expect(ssh.dir_exists?(obj.workspace_dir)).to be_truthy
+      expect(ssh.dir_exists?(obj.path)).to be_truthy
 
     end
 
@@ -144,9 +142,8 @@ describe VulcanV2Controller do
       auth_header(:guest)
       post("/api/v2/repo/create", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
-      get("/api/v2/#{PROJECT}/workflows/")
       request = {
-        workflow_id: json_body[:workflows][0][:id]
+        workflow_id: json_body[:workflow_id]
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
     end
@@ -159,50 +156,58 @@ describe VulcanV2Controller do
     end
 
     it 'should return an empty list if no workspaces exist' do
-      workflow_name = "test_workflow"
-      get("/api/#{PROJECT}/workflow/#{workflow_name}")
     end
 
     it 'should warn the user if a new version of a workflow exists' do
-      workflow_name = "test_workflow"
-      get("/api/#{PROJECT}/workflow/#{workflow_name}")
     end
 
   end
 
 
-  context 'workflow params' do
-    # Needed for the front-end
+  context 'get workspace' do
     before do
       auth_header(:guest)
-      post("/api/v2/workflow/create", create_workflow_request)
-      post("/api/v2/#{PROJECT}/workspace/create", create_workspace_request)
+      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/workflow/publish", publish_workflow_request)
+      request = {
+        workflow_id: json_body[:workflow_id]
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
     end
 
-    it 'returns a list of workflow params' do
-      # Retrieves all the workflow params for workflow
-    end
-
-    it 'return a list of config for snakemake params' do
-      # Retrieves all the snakemake params for the workflow
+    it 'for a user if it exists' do
+      auth_header(:guest)
+      workspace_id = json_body[:workspace_id]
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(200)
     end
 
   end
 
   context 'running workflows' do
 
-    it 'invokes up to n steps of the workflow' do
+    before do
       auth_header(:guest)
-
+      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
-        run_until_step: "3",
-        workflow_params: {
-
-        }
+        workflow_id: json_body[:workflow_id]
       }
-      workflow_name = "test_workflow"
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+    end
 
-      post("/api/#{PROJECT}/#{workflow_name}/#{workspace_id}/run", request)
+
+    it 'invokes up to n steps of the workflow' do
+      # auth_header(:guest)
+      # request = {
+      #   run_until_step: "3",
+      #   config: {
+      #
+      #   }
+      # }
+      # workflow_name = "test_workflow"
+      #
+      # post("/api/#{PROJECT}/#{workflow_name}/#{workspace_id}/run", request)
 
       # This should return:
       # - A list of output for each job that has run

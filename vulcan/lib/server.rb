@@ -21,23 +21,18 @@ class Vulcan
     # CRUD Repo
     post 'api/v2/repo/create', action: 'vulcan_v2#create_repo'
     get 'api/v2/:project_name/repo/', action: 'vulcan_v2#list_repos'
-    post 'api/v2/:project_name/:repo_name/update/', action: 'vulcan_v2#update_workflow'
-    delete 'api/v2/:project_name/:workflow_name/', action: 'vulcan_v2#delete_workflow'
 
     # CRUD Workflow
     post 'api/v2/workflow/publish', action: 'vulcan_v2#publish_workflow'
     get 'api/v2/:project_name/workflows/', action: 'vulcan_v2#list_workflows'
-    post 'api/v2/:project_name/:workflow_name/update/', action: 'vulcan_v2#update_workflow'
-    delete 'api/v2/:project_name/:workflow_name/', action: 'vulcan_v2#delete_workflow'
 
     # CRUD Workspace
     post 'api/v2/:project_name/workspace/create', action: 'vulcan_v2#create_workspace'
     get 'api/v2/:project_name/workspace', action: 'vulcan_v2#list_workspaces'
-    delete'api/v2/:project_name/:workflow_name/:workspace_id', action: 'vulcan_v2#delete_workspace'
-    get 'api/v2/:project_name/:workflow_name/:workspace_id/params', action: 'vulcan_v2#workspace_params'
+    get 'api/v2/:project_name/workspace/:workspace_id', action: 'vulcan_v2#get_workspace'
 
     # Run API
-    post 'api/v2/:project_name/:workflow_name/:workspace_id/run', action: 'vulcan_v2#run_workflow'
+    post 'api/v2/:project_name/:workspace_id/run', action: 'vulcan_v2#run_workflow'
 
 
     with auth: { user: { can_view?: :project_name } } do
