@@ -7,7 +7,7 @@ require_relative './../../ssh'
 # TODO: sort out disk location
 WORKFLOW_BASE_DIR = "/app/vulcan/workflows"
 WORKSPACE_BASE_DIR = "/app/vulcan/workspace"
-SNAKEMAKE_UTILS_DIR = "/app/vulcan/snakemake_utils"
+SNAKEMAKE_UTILS_DIR = "/app/snakemake_utils" # This is local
 TMPDIR = "/tmp/vulcan"
 ALLOWED_DIRECTORIES = [WORKSPACE_BASE_DIR, WORKFLOW_BASE_DIR, TMPDIR]
 
@@ -48,7 +48,7 @@ class VulcanV2Controller < Vulcan::Controller
 
   # Admin command complete prior
   def create_repo
-    repo_name = File.basename(@escaped_params[:repo])
+    repo_name = File.basename(@escaped_params[:repo_url])
     repo_local_path = repo_local_path(@escaped_params[:project_name], repo_name)
     if @ssh.dir_exists?("#{repo_local_path}")
       msg = "Repo: #{repo_local_path} for project: #{@params[:project_name]} already exists."
@@ -59,7 +59,7 @@ class VulcanV2Controller < Vulcan::Controller
         # Make project directory if it doesnt exist
         mkdir_output = @ssh.mkdir(project_dir(@escaped_params[:project_name]))
         # Create repo directory
-        @ssh.clone(@escaped_params[:repo], @escaped_params[:branch], repo_local_path)
+        @ssh.clone(@escaped_params[:repo_url], @escaped_params[:branch], repo_local_path)
         response = {repo_local_path: repo_local_path, repo_name: repo_name}
       rescue => e
         Vulcan.instance.logger.log_error(e)
@@ -71,6 +71,13 @@ class VulcanV2Controller < Vulcan::Controller
 
   # Admin command
   def list_repos
+    begin
+      project_dir = project_dir(@escaped_params[:project_name])
+      success_json({dirs: @ssh.list_dirs(project_dir)})
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
   end
 
   # User
@@ -78,7 +85,7 @@ class VulcanV2Controller < Vulcan::Controller
     workflow = Vulcan::WorkflowV2.first(
       project: @params[:project_name],
       workflow_name: @params[:workflow_name],
-      tag: @params[:tag]
+      repo_tag: @params[:tag]
     )
     if workflow
       msg = "Workflow: #{@params[:workflow_name]} for project: #{@params[:project_name]} already exists."
@@ -91,18 +98,16 @@ class VulcanV2Controller < Vulcan::Controller
         @ssh.mkdir(tmp_dir)
         @ssh.clone(@escaped_params[:repo_local_path], @escaped_params[:branch], tmp_dir)
         @ssh.checkout_tag(tmp_dir, @escaped_params[:tag])
-        # Make sure config is valid
         config = @ssh.read_yaml_file("#{tmp_dir}/config.yaml")
-        # TODO: parse config
+        # TODO: run a validation on the config
         obj = Vulcan::WorkflowV2.create(
           project: @escaped_params[:project_name],
           workflow_name: @escaped_params[:workflow_name],
           author: @escaped_params[:author],
-          repo_remote_url: "some/remote/path", # TODO
+          repo_remote_url: @ssh.get_repo_remote_url(@escaped_params[:repo_local_path]),
           repo_local_path: @escaped_params[:repo_local_path],
-          tag: @escaped_params[:tag],
-          params: [],
-          jobs: [],
+          repo_tag: @escaped_params[:tag],
+          config: config.to_json,
           created_at: Time.now,
           updated_at: Time.now
         )
@@ -132,23 +137,21 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   def create_workspace
-    workflow = Vulcan::WorkflowV2.first(project: @params[:project_name], workflow_name: @params[:workflow_name])
+    workflow = Vulcan::WorkflowV2.first(id: @params[:workflow_id])
     response = {}
     if workflow
       workspace_hash = workspace_hash(workflow.id.to_s, @user.email)
       workspace_dir = workspace_dir(@escaped_params[:project_name], workspace_hash)
       begin
-        # TODO: finish this up
         @ssh.mkdir(workspace_dir)
-        @ssh.clone(workflow.repo_local_path, @escaped_params[:branch], workspace_dir)
-        @ssh.mkdir(metis_mirror_path(workspace_dir)) # location of output files that will get mirrored back to metis
+        # TODO: we probably want to store the name of the "master" branch
+        @ssh.clone(workflow.repo_local_path, "main", workspace_dir)
+        @ssh.checkout_tag(workspace_dir, workflow.repo_tag)
+        #@ssh.mkdir(metis_mirror_path(workspace_dir)) # location of output files that will get mirrored back to metis
         @ssh.upload_dir(SNAKEMAKE_UTILS_DIR, workspace_dir, true)
-        require 'pry'; binding.pry
-        #TODO: fix this
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
           workspace_dir: workspace_dir,
-          repo_branch: @escaped_params[:branch],
           user_email: @user.email,
           hash: workspace_hash,
           created_at: Time.now,
@@ -169,9 +172,8 @@ class VulcanV2Controller < Vulcan::Controller
 
   def list_workspaces
     success_json(
-      workflows: Vulcan::Workspace.where(
-        user_email: @params[:user_email],
-        workflow_id: @params[:workflow_id]
+      workspaces: Vulcan::Workspace.where(
+        user_email: @user.email,
       ).all.map do |w|
         w.to_hash
       end

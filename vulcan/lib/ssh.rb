@@ -27,6 +27,13 @@ class Vulcan
       invoke_ssh_command(command)
     end
 
+    def list_dirs(dir)
+      command = "ls -d #{Shellwords.escape(dir)}/*/"
+      result = invoke_ssh_command(command)
+      result[:stdout].split("\n").map { |path| File.basename(path) }
+    end
+
+
     def rmdir(dir, allowed_directories)
       # Check if the dir is in the allowed_directories
       if allowed_directories.any? { |allowed_dir| dir.start_with?(allowed_dir) }
@@ -51,6 +58,12 @@ class Vulcan
     def checkout_tag(dir, tag)
       command = "cd #{Shellwords.escape(dir)} && git checkout tags/#{Shellwords.escape(tag)}"
       invoke_ssh_command(command)
+    end
+
+    def get_repo_remote_url(repo_dir)
+      command = "cd #{Shellwords.escape(repo_dir)} && git config --get remote.origin.url"
+      result = invoke_ssh_command(command)
+      result[:stdout].chomp
     end
 
     private

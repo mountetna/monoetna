@@ -1,12 +1,12 @@
-extract_words:
-  input:
-    file: "some_path_metis/file.txt"
-    c4_file: "some_reference_transcriptome/"
+count:
+  files:
+    poem: "some-file.txt"
+    poem_2: "another_file.txt"
   params:
-    num_words: 10
+    count_bytes: True
+    count_chars: True
 
-count_words:
-  input:
-    directory:
-  params:
-# Add any specific parameters for the count_words rule here, if needed.
+arithmetic:
+    params:
+      add: True
+      multiply_by: 10

@@ -25,7 +25,7 @@ def run_snakemake(local, profile, workflow_profile, singularity_args):
     subprocess.run(snakemake_cmd, shell=True)
 
 def parse_config():
-    config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
+    config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.yaml')
     with open(config_path, 'r') as file:
         config_data = yaml.safe_load(file)
     print(json.dumps(config_data, indent=2))

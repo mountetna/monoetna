@@ -9,10 +9,7 @@ Sequel.migration do
       String :repo_remote_url, null: false
       String :repo_local_path, null: false
       String :repo_tag, null: false
-      String :tag, null: false
-
-      Json :params, null: false
-      column :jobs, 'text[]'
+      Json :config, null: false
 
       DateTime :created_at, null: false
       DateTime :updated_at, null: false

@@ -11,6 +11,8 @@ class Vulcan
           author: author,
           repo_remote_url: repo_remote_url,
           repo_local_path: repo_local_path,
+          repo_tag: repo_tag,
+          config: config,
           created_at: created_at,
           updated_at: updated_at
         }
@@ -18,6 +20,16 @@ class Vulcan
 
     def repo_name
       File.basename(repository_url.to_s)
+    end
+
+    def jobs
+      config.keys
+    end
+
+    def file_inputs
+    end
+
+    def params
     end
 
   end

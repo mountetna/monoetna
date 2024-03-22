@@ -1,25 +1,42 @@
-configfile: "config.yaml"
-
 rule all:
     input:
-        "output/word_count.txt"
+        "output/final_count.txt"
 
-rule extract_words:
+rule count:
     input:
-        config=["extract_words"]["input"]["file"]
+        poem=config["count"]["files"]["poem"],
+        poem_2=config["count"]["files"]["poem_2"]
     output:
-        "intermediate/first_{n}_words_{filename}"
+        poem_count="output/count_poem.txt",
+        poem_2_count="output/count_poem_2.txt"
     params:
-        n=config["extract_words"]["num_words"]
-    run:
-        with open(input[0], 'r') as infile, open(output[0], 'w') as outfile:
-            words = infile.read().split()[:params.n]
-            outfile.write(' '.join(words) + '\n')
-
-rule count_words:
-    input:
-        "intermediate/first_{n}_words_{filename}"
-    output:
-        "output/word_count.txt"
+        count_bytes=config["count"]["params"]["count_bytes"],
+        count_chars=config["count"]["params"]["count_chars"]
     shell:
-        "wc -w {input} > {output}"
+        """
+        wc {'-c' if params.count_bytes else '-m' if params.count_chars else '-w'} {input.poem} | awk '{{print $1}}' > {output.poem_count}
+        wc {'-c' if params.count_bytes else '-m' if params.count_chars else '-w'} {input.poem_2} | awk '{{print $1}}' > {output.poem_2_count}
+        """
+
+rule arithmetic:
+    input:
+        poem_count="output/count_poem.txt",
+        poem_2_count="output/count_poem_2.txt"
+    output:
+        "output/final_count.txt"
+    params:
+        add=config["arithmetic"]["params"]["add"],
+        multiply_by=config["arithmetic"]["params"]["multiply_by"]
+    run:
+        with open(input.poem_count, "r") as f:
+            count1 = int(f.read().strip())
+        with open(input.poem_2_count, "r") as f:
+            count2 = int(f.read().strip())
+
+        if params.add:
+            result = count1 + count2
+        else:
+            result = count1 * count2 * params.multiply_by
+
+        with open(output[0], "w") as f:
+            f.write(str(result))
