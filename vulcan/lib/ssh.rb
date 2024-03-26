@@ -6,8 +6,14 @@ class Vulcan
       @ssh = net_ssh_instance
     end
 
-    def parse_config(dir)
-      command = "cd #{Shellwords.escape(dir)} && python ./snakemake_utils/snake_runner.py --parse-config"
+    def run_snakemake(dir, config)
+      # TODO: properly escape config
+      command = "cd #{Shellwords.escape(dir)} && \
+                 python ./snakemake_utils/snake_runner.py \
+                 --run \
+                 --until #{config.keys.last} \
+                 --config #{config.to_json} \
+                 --local"
       invoke_ssh_command(command)
     end
 

@@ -197,22 +197,55 @@ describe VulcanV2Controller do
     end
 
 
-    it 'invokes up to n steps of the workflow' do
-      # auth_header(:guest)
-      # request = {
-      #   run_until_step: "3",
-      #   config: {
-      #
-      #   }
-      # }
-      # workflow_name = "test_workflow"
-      #
-      # post("/api/#{PROJECT}/#{workflow_name}/#{workspace_id}/run", request)
+    it 'invokes 1 step of the workflow' do
+      auth_header(:guest)
+      workspace_id = Vulcan::Workspace.all[0].id
+      request = {
+          config: {
+            count: {
+                poem: "/test-utils/test-input/poem.txt",
+                poem_2: "/test-utils/test-input/poem_2.txt",
+                count_byes: true,
+                count_chars: false
+              }
+          }
+        }
+
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run", request)
 
       # This should return:
       # - A list of output for each job that has run
       # - Whether the job was successful
     end
+
+    it 'invokes 2 steps of the workflow' do
+      auth_header(:guest)
+      require 'pry'; binding.pry
+      workspace_id = Vulcan::Workspace.all[0].id
+      request = {
+        config: {
+          count: {
+            poem: "/test-utils/test-input/poem.txt",
+            poem_2: "/test-utils/test-input/poem_2.txt",
+            count_byes: true,
+            count_chars: false
+          },
+          arithmetic: {
+            add: true,
+            multiply_by: 10
+          }
+        }
+      }
+
+      workflow_name = "test_workflow"
+
+      post("/api/#{PROJECT}/#{workspace_id}/run", request)
+
+      # This should return:
+      # - A list of output for each job that has run
+      # - Whether the job was successful
+    end
+
 
     it 'runs an entire workflow' do
       # This should return:

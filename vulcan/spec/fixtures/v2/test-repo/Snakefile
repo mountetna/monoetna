@@ -1,17 +1,17 @@
 rule all:
     input:
-        "output/final_count.txt"
+        "output/summary.txt"
 
 rule count:
     input:
-        poem=config["count"]["files"]["poem"],
-        poem_2=config["count"]["files"]["poem_2"]
+        poem=config["count"]["poem"],
+        poem_2=config["count"]["poem_2"]
     output:
         poem_count="output/count_poem.txt",
         poem_2_count="output/count_poem_2.txt"
     params:
-        count_bytes=config["count"]["params"]["count_bytes"],
-        count_chars=config["count"]["params"]["count_chars"]
+        count_bytes=config["count"]["count_bytes"],
+        count_chars=config["count"]["count_chars"]
     shell:
         """
         wc {'-c' if params.count_bytes else '-m' if params.count_chars else '-w'} {input.poem} | awk '{{print $1}}' > {output.poem_count}
@@ -23,10 +23,10 @@ rule arithmetic:
         poem_count="output/count_poem.txt",
         poem_2_count="output/count_poem_2.txt"
     output:
-        "output/final_count.txt"
+        "output/arithmetic.txt"
     params:
-        add=config["arithmetic"]["params"]["add"],
-        multiply_by=config["arithmetic"]["params"]["multiply_by"]
+        add=config["arithmetic"]["add"],
+        multiply_by=config["arithmetic"]["add_and_multiply_by"]
     run:
         with open(input.poem_count, "r") as f:
             count1 = int(f.read().strip())
@@ -36,7 +36,36 @@ rule arithmetic:
         if params.add:
             result = count1 + count2
         else:
-            result = count1 * count2 * params.multiply_by
+            result = (count1 + count2) * params.add_and_multiply_by
 
         with open(output[0], "w") as f:
             f.write(str(result))
+
+rule checker:
+    input:
+        "output/arithmetic.txt"
+    output:
+        "output/check.txt"
+    run:
+        with open(input[0], "r") as f:
+            if not f.read().strip():
+                raise ValueError("No value found in arithmetic.txt")
+        with open(output[0], "w") as f:
+            f.write("Value exists in arithmetic.txt\n")
+
+rule summary:
+    input:
+        poem_count="output/count_poem.txt",
+        poem_2_count="output/count_poem_2.txt",
+        arithmetic="output/arithmetic.txt",
+        checker="output/check.txt"
+    output:
+        "output/summary.txt"
+    params:
+        final_message=config["summary"]["final_message"]
+    run:
+        with open(output[0], "w") as f:
+            f.write(f"Count of poem.txt: {open(input.poem_count).read().strip()}\n")
+            f.write(f"Count of poem_2.txt: {open(input.poem_2_count).read().strip()}\n")
+            f.write(f"Result of arithmetic operation: {open(input.arithmetic).read().strip()}\n")
+            f.write(f"\n{params.final_message}\n")

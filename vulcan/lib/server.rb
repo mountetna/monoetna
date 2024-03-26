@@ -32,7 +32,7 @@ class Vulcan
     get 'api/v2/:project_name/workspace/:workspace_id', action: 'vulcan_v2#get_workspace'
 
     # Run API
-    post 'api/v2/:project_name/:workspace_id/run', action: 'vulcan_v2#run_workflow'
+    post 'api/v2/:project_name/workspace/:workspace_id/run', action: 'vulcan_v2#run_workflow'
 
 
     with auth: { user: { can_view?: :project_name } } do

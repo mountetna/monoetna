@@ -98,7 +98,7 @@ class VulcanV2Controller < Vulcan::Controller
         @ssh.mkdir(tmp_dir)
         @ssh.clone(@escaped_params[:repo_local_path], @escaped_params[:branch], tmp_dir)
         @ssh.checkout_tag(tmp_dir, @escaped_params[:tag])
-        config = @ssh.read_yaml_file("#{tmp_dir}/config.yaml")
+        config = @ssh.read_yaml_file("#{tmp_dir}/vulcan_config.yaml")
         # TODO: run a validation on the config
         obj = Vulcan::WorkflowV2.create(
           project: @escaped_params[:project_name],
@@ -193,9 +193,17 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   def run_workflow
-    # Submit the config
-    # Save the config
-    # Pass the config to snakemake
+    workspace = Vulcan::Workspace.first(
+      id: @params[:workspace_id],
+    )
+    begin
+      @ssh.run_snakemake(workspace.path, @params[:config])
+      # poll for success
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
+    # TODO Validation on steps
   end
 
 end
