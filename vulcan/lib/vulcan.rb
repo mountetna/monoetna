@@ -5,7 +5,16 @@ require_relative 'dependency_manager'
 
 class Vulcan
   include Etna::Application
-  attr_reader :db
+  attr_reader :db, :ssh
+
+  def setup_ssh()
+    c = config(:v2_ssh_config)
+    begin
+      @ssh ||= Net::SSH.start(c[:host], c[:username], password: c[:password])
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+    end
+  end
 
   def setup_db(load_models = true)
     @db = Sequel.connect(config(:db))
