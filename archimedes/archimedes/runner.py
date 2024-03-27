@@ -219,40 +219,52 @@ class KubernetesIsolator(Isolator[str]):
     target_outputs_dir = "/outputs"
     result = 1
 
-    def get_container_state(pod):
+    def get_container_state(self, pod):
         container = pod.status.container_statuses[-1]
         return [k for k in container.state.to_dict().items() if k[1] is not None][0]
 
     def pod_container_status(self, t: str, namespace='default'):
+        pod = None
         try:
             pod = self.kub_cli.read_namespaced_pod(t, namespace=namespace)
             return self.get_container_state(pod)
         except:
-            return ("Unknown", None)
+            return ("Unknown", pod)
     
     def delete_pod(self, t: str, namespace='default', timeout=60, maybe_repeat=False):
         try:
-            return self.kub_cli.delete_namespaced_pod(t, namespace=namespace, grace_period_seconds=timeout)
+            self.kub_cli.delete_namespaced_pod(t, namespace=namespace, grace_period_seconds=timeout)
+            return
         except:
             if maybe_repeat:
                 print("Error deleting pod {t}, but might have been deleted already.", file=sys.stderr)
             raise Exception(f"Error deleting pod {t}.")
 
-    def pod_and_log(self, t: str, namespace='default'):
+    def pod_and_log(self, t: str, namespace='default', pod_only: bool = False):
         try:
-            log = self.kub_cli.read_namespaced_pod_log(t, namespace=namespace)
+            log = ''
+            if not pod_only:
+                log = self.kub_cli.read_namespaced_pod_log(t, namespace=namespace)
             pod = self.kub_cli.read_namespaced_pod(t, namespace=namespace)
             return (pod, log)
         except:
             raise Exception(f"Error reading pod {t}.")
 
-    def __init__(self, kub_cli: Optional[DockerClient] = None ):
-        config.load_kube_config()
-        self.kub_cli = kub_cli or core_v1_api.CoreV1Api()
+    def __init__(self, kub_cli: Optional[DockerClient] = None):
+        if kub_cli is None:
+            # ToDo: config specified location!
+            config.load_kube_config('test_data/config')
+            self.kub_cli = core_v1_api.CoreV1Api()
+        else:
+            self.kub_cli = kub_cli
 
     def is_running(self, t: str, namespace='default') -> bool:
-        container_state = self.pod_container_status(t)[0]
-        return container_state in ["waiting", "running"]
+        if self.pod_and_log(t, namespace=namespace, pod_only=True)[0].status.phase == "Pending":
+            return True
+        container_state = self.pod_container_status(t, namespace=namespace)
+        if container_state[0] == "Unknown":
+            raise Exception("Unknown container state", container_state[1])
+        return container_state[0] in ["waiting", "running"]
 
     ## Because there is no analagous concept for the wait() goal of 'container is wrapping up, await that and report outcome'...
     # And because the usage is 'stop() on timeout, but always call wait() at end and use that to get final status code'...
@@ -261,7 +273,7 @@ class KubernetesIsolator(Isolator[str]):
     def wait(self, t: str, timeout=60) -> Tuple:
         if self.pod_container_status(t)[0] == "terminated":
             pod,log=self.pod_and_log(t)
-            return (self.get_container_state(pod).exit_code, log)
+            return (pod.status.container_statuses[-1].state.terminated.exit_code, log)
     
         log = self.pod_and_log(t)[1]
         pod = self.delete_pod(t, grace_period_seconds=timeout)
@@ -271,8 +283,8 @@ class KubernetesIsolator(Isolator[str]):
             pod,log = self.pod_and_log(t)
             time.sleep(1)
         
-        if self.get_container_state(pod)[0] == "terminated":
-            return (self.get_container_state(pod)[1].exit_code, log)
+        if self.get_container_state(t)[0] == "terminated":
+            return (pod.status.container_statuses[-1].state.terminated.exit_code, log)
         
         return ("Pod killed", log)
 
@@ -299,8 +311,6 @@ class KubernetesIsolator(Isolator[str]):
 
         pod_name = 'archimedes-job-' + secrets.token_hex(10)
 
-        print(f"Creating pod ...")
-
         pod_manifest = {
             'apiVersion': 'v1',
             'kind': 'Pod',
@@ -308,8 +318,14 @@ class KubernetesIsolator(Isolator[str]):
                 'name': pod_name
             },
             'spec': {
+                'restart_policy': 'Never',
+                'image_pull_secrets':[{
+                    'name': 'regcred'
+                }],
+                "hostNetwork": True,
                 'containers': [{
                     'image': image,
+                    'image_pull_policy': 'IfNotPresent',
                     'name': 'archimedes-job',
                     "args": _cmd,
                     **container_params
@@ -320,6 +336,7 @@ class KubernetesIsolator(Isolator[str]):
         # Returns V1Pod
         resp =  self.kub_cli.create_namespaced_pod(body=pod_manifest,
                                                   namespace='default')
+        time.sleep(1)
         return pod_name
 
     def start(self, request: RunRequest, exec_script_path: str):
@@ -347,8 +364,8 @@ class KubernetesIsolator(Isolator[str]):
                             "read_only": True,
                         }
                  ]
-        volumeMounts = [{"name": i.name, "mount_path": i.mount_path, "read_only": i.read_only} for i in mounts]
-        volumes = [{"name": i.name, "host_path": {"path": i.host_path}} for i in mounts]
+        volumeMounts = [{"name": i['name'], "mount_path": i['mount_path'], "read_only": i['read_only']} for i in mounts]
+        volumes = [{"name": i['name'], "host_path": {"path": i['host_path']}} for i in mounts]
 
         environment = request.environment + [
             f"INPUTS_DIR={self.target_inputs_dir}",
@@ -366,11 +383,6 @@ class KubernetesIsolator(Isolator[str]):
         # etc, to further lockdown the task.
         params = {
             "volumes": volumes,
-            "hostNetwork": True,
-            "extra_hosts": {
-                "metis.development.local": "172.16.238.10",
-                "magma.development.local": "172.16.238.10",
-            },
         }
 
         container_params = {
@@ -398,9 +410,9 @@ class KubernetesIsolator(Isolator[str]):
             exec_dir = exec_script_path.replace(request.target_file, "")
             return ["/bin/bash", "-c", f"cd {exec_dir}; cp /app/package.json package.json; npm install; node {exec_script_path}"]
         elif request.run_with("r"):
-            return f"Rscript {exec_script_path}"
+            return ["Rscript", exec_script_path]
         else:
-            return f"poetry run python {exec_script_path}"
+            return ["poetry", "run", "python", exec_script_path]
 
 LocalProcess = Tuple[subprocess.Popen, IO[bin], str]
 
@@ -529,7 +541,7 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 60, remove = 
                 else:
                     # KubernetesIsolator outputs stdout and stderr directly
                     res.error = log
-            if code != 0:
+            elif code != 0:
                 res.status = 'failed'
                 if code == 137:
                     # When the container exits because of a 137,
@@ -549,7 +561,7 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 60, remove = 
                 process.remove()
             if remove and isinstance(process, str):
                 print("Cleaning up kubernetes pod", file=sys.stderr)
-                process.delete_pod(process, maybe_repeat=True)
+                isolator.delete_pod(process, maybe_repeat=True)
 
     return res
 
@@ -571,7 +583,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--file', help="The script file to run")
-    parser.add_argument('--isolator', default='local', choices=['docker', 'local'])
+    parser.add_argument('--isolator', default='local', choices=['docker', 'local', 'kubernetes'])
     parser.add_argument('--image', default='etnaagent/archimedes:latest')
     parser.add_argument('--input', dest='inputs', default=[], action='append', help="input files of the form name:/path/on/host")
     parser.add_argument('--output', dest='outputs', default=[], action='append', help="output files of the form name:/path/on/host")

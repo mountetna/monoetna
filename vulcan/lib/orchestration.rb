@@ -95,6 +95,8 @@ class Vulcan
         "docker",
         "run",
         "--rm",
+        # TODO: Dev-only
+        "--net=host",
         "-i",
         "-v",
         "/var/run/docker.sock:/var/run/docker.sock:ro",
@@ -104,7 +106,8 @@ class Vulcan
         "poetry",
         "run",
         "archimedes-run",
-        "--isolator=docker",
+        # TODO: Kub-flag-only
+        "--isolator=kubernetes",
         "-e",
         "MAGMA_HOST=#{Vulcan.instance.config(:magma)&.dig(:host)}",
         "-e",
