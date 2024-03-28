@@ -30,6 +30,7 @@ x-base-etna-service:
     - 'rtemis.development.local:172.16.238.10'
     - 'archimedes.development.local:172.16.238.10'
     - 'polyphemus.development.local:172.16.238.10'
+    - 'host.docker.internal:host-gateway'
 
 x-base-etna-services:
   &base-etna-services # Default list of services an etna app may have.
