@@ -84,17 +84,26 @@ x-base-etna-services:
     volumes:
       - ./spec/fixtures/v2/test-repo:/test-utils/available-workflows/test-repo
       - ./spec/fixtures/v2/test-input:/test-utils/test-input
-      - ./spec/fixtures/v2/snakemake-git-init.sh:/test-utils/entrypoints/snakemake-git-init.sh
+      - ./spec/fixtures/v2/git-init.sh:/test-utils/entrypoints/git-init.sh
+      - ./spec/fixtures/v2/slurm/slurm-db-init.sh:/test-utils/entrypoints/slurm-db-init.sh
       - ./spec/fixtures/v2/slurm/slurm.conf:/usr/local/etc/slurm.conf
+      - ./spec/fixtures/v2/slurm/slurmdbd.conf:/usr/local/etc/slurmdbd.conf
       - ./spec/fixtures/v2/slurm/cgroup.conf:/usr/local/etc/cgroup.conf
     depends_on:
       - 'vulcan_app'
+    environment:
+      - USER=root
     entrypoint: >
       bash -c "service munge start &&
-               /usr/local/sbin/slurmctld &&
-               /usr/local/sbin/slurmd &&
-               /test-utils/entrypoints/snakemake-git-init.sh"
-
+                service mariadb start &&
+               /usr/sbin/sshd -D &&
+               ./test-utils/entrypoints/git-init.sh 
+               "
+  # TODO: sort out order
+  #./test-utils/entrypoints/slurm-db-init.sh
+  #/usr/local/sbin/slurmdbd &&
+  #/usr/local/sbin/slurmctld &&
+  #/usr/local/sbin/slurmd &&
 volumes:
   vulcan-db-data:
     driver: local

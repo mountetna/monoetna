@@ -10,6 +10,3 @@ if [ ! -d "/test-utils/available-workflows/test-repo/.git" ]; then
     git -C /test-utils/available-workflows/test-repo commit -m "Initial commit"
     git -C /test-utils/available-workflows/test-repo tag v1
 fi
-
-# Re-run sshd
-exec /usr/sbin/sshd -D

@@ -30,6 +30,7 @@ build-dev-etna-images:
 	cd etna && docker build . -t etna
 	cd docker/etna-base && docker build . -t etna-base
 
+build-c4-dev-image:
 	# Build c4-env image for Vulcan
 	cd docker/vulcan_c4_env && docker build . -t vulcan_c4_env
 
