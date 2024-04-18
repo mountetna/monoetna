@@ -4,6 +4,8 @@ require 'etna/clients/metis'
 require 'etna/clients/janus'
 require 'pathname'
 
+require 'singleton'
+
 class Vesta
   include Etna::Application
   attr_reader :db

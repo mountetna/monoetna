@@ -329,6 +329,15 @@ module Etna
         ))
       end
 
+      def get_stats
+        json = nil
+        @etna_client.get('/api/stats') do |res|
+          json = JSON.parse(res.body, symbolize_names: true)
+        end
+
+        json
+      end
+
       private
 
       def parent_folder_path(folder_path)
