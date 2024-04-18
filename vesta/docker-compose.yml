@@ -72,7 +72,7 @@ x-base-etna-services:
     volumes:
       - ./webapp/src:/app/src:delegated
       - ./webapp/public:/app/public:delegated
-      # - vesta-public-dir:/app/public:ro
+      - vesta-public-dir:/app/public:ro
     depends_on:
       - 'vesta_app'
     command: ["npm", "run", "dev"]
@@ -89,10 +89,8 @@ x-base-etna-services:
       - 'vesta_webapp'
     entrypoint: /entrypoints/development_app_fe.sh
     command: ['httpd', '-DFOREGROUND']
-    # command: ["sleep", "infinity"]
     environment:
       APP_NAME: 'vesta_app_fe'
-      NODE_ENV: 'development'
 
 version: '3.4'
 

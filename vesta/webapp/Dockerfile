@@ -3,9 +3,11 @@
 FROM node:20.11
 
 WORKDIR /app
-COPY . .
 
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
 RUN npm run build
 
 ENV NEXT_TELEMETRY_DISABLED 1

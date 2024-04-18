@@ -74,6 +74,15 @@ module Etna
 
         response.body
       end
+
+      def get_stats
+        json = nil
+        @etna_client.get('/api/stats') do |res|
+          json = JSON.parse(res.body, symbolize_names: true)
+        end
+
+        json
+      end
     end
   end
 end
