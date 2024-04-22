@@ -196,21 +196,23 @@ describe VulcanV2Controller do
       post("/api/v2/#{PROJECT}/workspace/create", request)
     end
 
+    it 'makes sure the run_config is valid' do
+    end
 
     it 'invokes 1 step of the workflow' do
       auth_header(:guest)
       workspace_id = Vulcan::Workspace.all[0].id
       request = {
-          config: {
+          run: {
             count: {
                 poem: "/test-utils/test-input/poem.txt",
                 poem_2: "/test-utils/test-input/poem_2.txt",
-                count_byes: true,
+                count_bytes: true,
                 count_chars: false
               }
           }
         }
-
+      # TODO: add a meta key that can switch profiles
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run", request)
 
       # This should return:
@@ -220,14 +222,13 @@ describe VulcanV2Controller do
 
     it 'invokes 2 steps of the workflow' do
       auth_header(:guest)
-      require 'pry'; binding.pry
       workspace_id = Vulcan::Workspace.all[0].id
       request = {
-        config: {
+        run: {
           count: {
             poem: "/test-utils/test-input/poem.txt",
             poem_2: "/test-utils/test-input/poem_2.txt",
-            count_byes: true,
+            count_bytes: true,
             count_chars: false
           },
           arithmetic: {

@@ -2,6 +2,7 @@ require 'etna'
 require 'digest'
 require_relative "./vulcan_controller"
 require_relative './../../ssh'
+require_relative './../../snakemake'
 
 
 # TODO: sort out disk location
@@ -147,6 +148,7 @@ class VulcanV2Controller < Vulcan::Controller
         # TODO: we probably want to store the name of the "master" branch
         @ssh.clone(workflow.repo_local_path, "main", workspace_dir)
         @ssh.checkout_tag(workspace_dir, workflow.repo_tag)
+        @ssh.mkdir("#{workspace_dir}/tmp/") # create a tmp directory
         #@ssh.mkdir(metis_mirror_path(workspace_dir)) # location of output files that will get mirrored back to metis
         @ssh.upload_dir(SNAKEMAKE_UTILS_DIR, workspace_dir, true)
         obj = Vulcan::Workspace.create(
@@ -193,17 +195,48 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   def run_workflow
-    workspace = Vulcan::Workspace.first(
-      id: @params[:workspace_id],
-    )
-    begin
-      @ssh.run_snakemake(workspace.path, @params[:config])
-      # poll for success
-    rescue => e
-      Vulcan.instance.logger.log_error(e)
-      raise Etna::BadRequest.new(e.message)
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    if workspace
+      response = {}
+      begin
+        run_config = @params[:run]
+        if workspace.workflow_v2.valid_run_config?(run_config)
+          config_path = "#{workspace.path}/tmp/run_config_#{Time.now.to_i}.json"
+          @ssh.write_file(config_path, run_config.to_json) # we must write the params of snakemake to a file to read them
+          command = Vulcan::SnakemakeCommandBuilder.new
+          command.options = {
+            run_until: run_config.keys.last,
+            config_path: config_path,
+            profile_path: "#{workspace.path}/snakemake_utils/profiles/test/",
+          }
+          out = @ssh.run_snakemake(workspace.path, command.build)
+        # out.slurm_id
+        # poll for success
+        # obj = Vulcan::Run.create(
+        #   workflow_id: workspace.id,
+        #   run_config: run_config,
+        #   created_at: Time.now,
+        #   updated_at: Time.now
+        # )
+        # response = {run_id: obj.id}
+        else
+          msg = "Workflow params are not valid"
+          response = {'Error': msg}
+        end
+      rescue => e
+        Vulcan.instance.logger.log_error(e)
+        raise Etna::BadRequest.new(e.message)
+      end
+    else
+      msg = "Workspace: for project: #{@params[:project_name]} does not exist."
+      response = {'Warning': msg}
     end
-    # TODO Validation on steps
+    success_json(response)
+  end
+
+  def get_workflow_status
+    #workspace = Vulcan::Run.first(id: @params[:run_id])
+    #@ssh.status(workspace.path, run_config)
   end
 
 end
