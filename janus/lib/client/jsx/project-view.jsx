@@ -246,12 +246,9 @@ const ProjectView = ({project_name}) => {
 
   const updateProject = () => {
     postUpdateProject(project_name, {
-      requires_agreement: projectType == 'community',
-      resource: projectType == 'community' || projectType == 'resource',
+      project_type: projectType,
       ...(projectCoc != project.cc_text && {cc_text: projectCoc}),
-      ...(projectContact != project.contact_email && {
-        contact_email: projectContact
-      }),
+      ...(projectContact != project.contact_email && { contact_email: projectContact }),
       ...(projectType != 'community' && {cc_text: '', contact_email: ''})
     })
       .then((project) => {
@@ -286,6 +283,10 @@ const ProjectView = ({project_name}) => {
     else if (type == 'resource')
       setError(
         "WARNING! Setting this project to 'resource' will allow any library user to view the project data."
+      );
+    else if (type == 'template')
+      setError(
+        "WARNING! Setting this project to 'template' will allow any library user to view the project template and prohibits adding records to the project."
       );
     else setError(null);
     setProjectType(type);
@@ -331,7 +332,7 @@ const ProjectView = ({project_name}) => {
                 value={projectType}
                 onChange={(e) => updateProjectType(e.target.value)}
               >
-                {['team', 'community', 'resource'].map((r) => (
+                {['team', 'community', 'resource', 'template'].map((r) => (
                   <MenuItem key={r} value={r}>
                     {r}
                   </MenuItem>
