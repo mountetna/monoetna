@@ -4,9 +4,11 @@ Sequel.migration do
       primary_key :id
       Integer :workspace_id, null: false
       foreign_key [:workspace_id], :workspaces
-      column :outputs_generated, 'text[]', null: false
-      column :jobs_invoked, 'text[]', null: false
-      Json :config, null: false
+      Json :run_config, null: false
+      Json :job_status, null: true
+      String :executor, null: false
+      Integer :executor_job_id, null: false
+      column :outputs_generated, 'text[]', null: true
       DateTime :created_at, null: false
       DateTime :updated_at, null: false
     end
