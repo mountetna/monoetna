@@ -1,6 +1,6 @@
 class Vulcan
   class Workspace < Sequel::Model
-    many_to_one :workflow
+    many_to_one :workflow_v2, :key => :workflow_id
     one_to_many :runs
   end
 
