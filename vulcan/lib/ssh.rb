@@ -6,14 +6,13 @@ class Vulcan
       @ssh = net_ssh_instance
     end
 
-    def run_snakemake(dir, config)
-      # TODO: properly escape config
-      command = "cd #{Shellwords.escape(dir)} && \
-                 python ./snakemake_utils/snake_runner.py \
-                 --run \
-                 --until #{config.keys.last} \
-                 --config #{config.to_json} \
-                 --local"
+    def run_snakemake(dir, command)
+      command = "cd #{Shellwords.escape(dir)} && #{command}"
+      invoke_ssh_command(command, true)
+    end
+
+    def write_file(remote_file_path, content)
+      command = "echo #{Shellwords.escape(content)} > #{remote_file_path}"
       invoke_ssh_command(command)
     end
 
@@ -73,40 +72,51 @@ class Vulcan
     end
 
     private
-    def invoke_ssh_command(command)
-      stdout_data = ""
-      stderr_data = ""
-      exit_status = nil
 
-      @ssh.open_channel do |channel|
-        channel.exec(command) do |ch, success|
-          unless success
-            raise "Command execution failed: #{command}"
-          end
-
-          channel.on_data do |_, data|
-            stdout_data += data
-          end
-
-          channel.on_extended_data do |_, type, data|
-            # Note: here stderr is used for both errors and information messages
-            stderr_data += data
-          end
-
-          channel.on_request("exit-status") do |_, data|
-            exit_status = data.read_long
+    def invoke_ssh_command(command, non_blocking = false)
+      if non_blocking
+        @ssh.open_channel do |channel|
+          channel.exec(command) do |ch, success|
+            unless success
+              raise "Command execution failed: #{command}"
+            end
           end
         end
+        @ssh.loop(0.1) # Adjust the loop timeout to handle connection events briefly
+        { command: command, message: "Command execution started in non-blocking mode." }
+      else
+        stdout_data = ""
+        stderr_data = ""
+        exit_status = nil
+
+        @ssh.open_channel do |channel|
+          channel.exec(command) do |ch, success|
+            unless success
+              raise "Command execution failed: #{command}"
+            end
+
+            channel.on_data do |_, data|
+              stdout_data += data
+            end
+
+            channel.on_extended_data do |_, type, data|
+              stderr_data += data
+            end
+
+            channel.on_request("exit-status") do |_, data|
+              exit_status = data.read_long
+            end
+          end
+        end
+
+        @ssh.loop
+
+        if exit_status != 0
+          raise "Command exited with status #{exit_status}. \n Command: #{command} \n Msg: #{stderr_data}"
+        end
+
+        {command: command, stdout: stdout_data, stderr_or_info: stderr_data, exit_status: exit_status }
       end
-
-      Vulcan.instance.ssh.loop
-
-      if exit_status != 0
-        raise "Command exited with status #{exit_status}: #{command}"
-      end
-
-      {command: command, stdout: stdout_data, stderr_or_info: stderr_data, exit_status: exit_status }
     end
-
   end
 end
