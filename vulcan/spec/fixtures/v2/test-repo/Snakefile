@@ -1,3 +1,5 @@
+configfile: "config.yaml"
+
 rule all:
     input:
         "output/summary.txt"
@@ -14,9 +16,11 @@ rule count:
         count_chars=config["count"]["count_chars"]
     shell:
         """
-        wc {'-c' if params.count_bytes else '-m' if params.count_chars else '-w'} {input.poem} | awk '{{print $1}}' > {output.poem_count}
-        wc {'-c' if params.count_bytes else '-m' if params.count_chars else '-w'} {input.poem_2} | awk '{{print $1}}' > {output.poem_2_count}
+            wc_option="-c" if params.count_bytes else "-m" if params.count_chars else "-w"
+            wc $wc_option {{input.poem}} | awk '{{print $1}}' > {{output.poem_count}}
+            wc $wc_option {{input.poem_2}} | awk '{{print $1}}' > {{output.poem_2_count}}
         """
+
 
 rule arithmetic:
     input:
