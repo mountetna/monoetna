@@ -4,7 +4,7 @@ import io
 import os
 import re
 import time
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from airflow.decorators import task
 from airflow.models.xcom_arg import XComArg
@@ -20,22 +20,39 @@ class RemoteHelpersBase:
         # A regex to match against any file name, resulting files will be linked.
         file_name_regex: re.Pattern = re.compile(r".*"),
         # This regex is matched against the folder subpath of the file
-        folder_path_regex: re.Pattern = re.compile(r".*"),):
+        folder_path_regex: re.Pattern = re.compile(r".*"),
+        additional_files: List[Tuple[str]] = [],):
         """
         Creates a task that filters the given file names by regexp, and can also apply a regexp against the
-        folder path for each file for further filtering.
+        folder path for each file for further filtering.  Then, can filter additional files whose paths
+        contain (sub)paths of previously picked files.
 
         args:
             files: List of files from tail_files or previous filter_files call
             file_name_regex: re.Pattern, i.e. re.compile(r".*\.fcs")
             folder_path_regex: re.Pattern, i.e. re.compile(r".*ipi.*")
+            additional_files: List[Tuple[str]], where each tuple contains 3 strings:
+                1 & 2 work together to transform originally picked files' full_path into a new directory regex
+                    that additional files' folder_path should match to ('re.sub(<1>, <2>, <file.full_path>)' + '.*')
+                3 forms a regex that additional files' full_path (folder_path + file_name) must match.
         """
 
         @task
         def filter_files(files):
-            result: List[RemoteFileBase] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
-
-            return result
+            filtered: List[RemoteFileBase] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
+            if additional_files:
+                new_files: XComArg = []
+                for start_regex, replacement_regex, new_magic_string in additional_files:
+                    folders: List[str] = list(dict.fromkeys(
+                        [re.sub(start_regex, replacement_regex, f.full_path)
+                            for f in filtered]
+                    ))
+                    for folder in folders:
+                        new_files += [f for f in files if
+                                      re.compile(folder + '.*').match(f.folder_path) and
+                                      re.compile(new_magic_string).match(os.path.join(f.folder_path, f.name))]
+                filtered += new_files
+            return list(dict.fromkeys(filtered))
 
         return filter_files(files)
 

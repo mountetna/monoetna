@@ -1,7 +1,7 @@
 import logging
 import os
 import re
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from airflow.decorators import task
 from airflow.models.taskinstance import Context
@@ -198,19 +198,8 @@ class CatEtlHelpers(RemoteHelpersBase):
 def load_cat_files_batch(
     cat: Cat,
     magic_string: str,
-    ignore_directories: List[str]
-) -> List[SftpEntry]:
-    return _load_cat_files_batch(
-        cat,
-        re.compile(f".*{magic_string}.*"),
-        ignore_directories
-    )
-
-
-def _load_cat_files_batch(
-    cat: Cat,
-    magic_string: re.Pattern,
-    ignore_directories: List[str]
+    ignore_directories: List[str],
+    additional_files: List[Tuple[str]]
 ) -> List[SftpEntry]:
     context: Context = get_current_context()
     _, end = get_batch_range(context)
@@ -221,8 +210,9 @@ def _load_cat_files_batch(
     )
 
     files = cat.tail(
-        magic_string=magic_string,
-        ignore_directories=ignore_directories
+        magic_string=re.compile(r'.*' + magic_string + r'[^/]*$'),
+        ignore_directories=ignore_directories,
+        additional_files=additional_files
     )
 
     return files
