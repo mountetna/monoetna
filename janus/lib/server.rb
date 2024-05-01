@@ -3,6 +3,7 @@ require_relative './server/controllers/janus_controller'
 require_relative './server/controllers/admin_controller'
 require_relative './server/controllers/user_controller'
 require_relative './server/controllers/authorization_controller'
+require_relative './server/controllers/stats_controller'
 
 class Janus
   class Server < Etna::Server

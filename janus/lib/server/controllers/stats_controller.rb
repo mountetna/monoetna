@@ -1,21 +1,37 @@
 class StatsController < Janus::Controller
   def stats
-    projects = Project.all.map do |proj|
+    projects_to_include = @params[:projects]
+
+    if projects_to_include.nil?
+      projects = Project.all
+      permissions = Permission.all
+    else
+      projects = Project
+        .where(project_name: projects_to_include)
+        .all
+      permissions = Permission
+        .left_join(:projects, id: :project_id)
+        .where(project_name: projects_to_include)
+        .all
+    end
+
+    projects = projects.map do |proj|
       {
         project_name: proj.project_name,
         project_name_full: proj.project_name_full,
         resource: proj.resource,
+        user_count: 0,
       }
     end
 
-    Permission.all.each do |perm|
+    permissions.each do |perm|
       project_name = perm.project.project_name
+      proj = projects.find { |proj| proj[:project_name] == project_name }
 
-      projects[project_name][:user_count] = 0 unless projects[project_name].key?(:user_count)
-      projects[project_name][:user_count] += 1
+      proj[:user_count] += 1
     end
 
-    user_count = User.all.count
+    user_count = User.count
 
     success_json({projects: projects, user_count: user_count})
   end
