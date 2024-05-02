@@ -1,28 +1,31 @@
 class StatsController < Metis::Controller
-  def stats
-    file_count_per_project = Metis::DataBlock
-      .left_join(:files, data_block_id: :id)
+  def file_count_by_project
+    projects_to_include = @params[:projects]
+
+    data_blocks = Metis::DataBlock.left_join(:files, data_block_id: :id)
+    data_blocks = data_blocks.where(project_name: projects_to_include) unless projects_to_include.nil?
+
+    file_count_by_project = data_blocks
       .distinct(:data_block_id)
       .select_map(:project_name)
       .tally
 
-    byte_count_per_project = Metis::DataBlock
-      .left_join(:files, data_block_id: :id)
+    success_json(file_count_by_project)
+  end
+
+  def byte_count_by_project
+    projects_to_include = @params[:projects]
+
+    data_blocks = Metis::DataBlock.left_join(:files, data_block_id: :id)
+    data_blocks = data_blocks.where(project_name: projects_to_include) unless projects_to_include.nil?
+
+    byte_count_by_project = data_blocks
       .distinct(:data_block_id)
       .select_map([:size, :project_name])
       .group_by(&:last)
       .map { |project_name,sizes| [ project_name, sizes.map(&:first).sum ]}
       .to_h
 
-    stats_per_project = {}
-
-    file_count_per_project.keys.each do |project|
-      stats_per_project[project] = {
-        file_count: file_count_per_project[project],
-        byte_count: byte_count_per_project[project],
-      }
-    end
-
-    success_json(stats_per_project)
+    success_json(byte_count_by_project)
   end
 end
