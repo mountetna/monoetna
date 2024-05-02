@@ -17,7 +17,8 @@ class Metis
 
     post '/api/exists', action: 'data_block#exists'
 
-    get '/api/stats', action: 'stats#stats', auth: { user: { is_supereditor?: true } }
+    get '/api/stats/files', action: 'stats#file_count_by_project', auth: { user: { is_supereditor?: true } }
+    get '/api/stats/bytes', action: 'stats#byte_count_by_project', auth: { user: { is_supereditor?: true } }
 
     get '/:project_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
     get '/:project_name/browse/:bucket_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
