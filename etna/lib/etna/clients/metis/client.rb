@@ -329,9 +329,28 @@ module Etna
         ))
       end
 
-      def get_stats
+      def get_file_count_by_project(get_file_count_by_project_request = GetFileCountByProjectRequest.new)
+        query = ""
+        unless get_file_count_by_project_request.project_names.nil?
+          query = "?#{create_query_list_str('projects', get_file_count_by_project_request.project_names)}"
+        end
+
         json = nil
-        @etna_client.get('/api/stats') do |res|
+        @etna_client.get("/api/stats/files#{query}") do |res|
+          json = JSON.parse(res.body, symbolize_names: true)
+        end
+
+        json
+      end
+
+      def get_byte_count_by_project(get_byte_count_by_project_request = GetByteCountByProjectRequest.new)
+        query = ""
+        unless get_byte_count_by_project_request.project_names.nil?
+          query = "?#{create_query_list_str('projects', get_byte_count_by_project_request.project_names)}"
+        end
+
+        json = nil
+        @etna_client.get("/api/stats/bytes#{query}") do |res|
           json = JSON.parse(res.body, symbolize_names: true)
         end
 
@@ -342,6 +361,12 @@ module Etna
 
       def parent_folder_path(folder_path)
         folder_path.split('/')[0..-2].join('/')
+      end
+
+      def create_query_list_str(name, values)
+        values.map do |val|
+          "#{name}[]=#{val}"
+        end.join('&')
       end
     end
   end
