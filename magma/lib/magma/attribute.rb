@@ -10,8 +10,6 @@ class Magma
     plugin :dirty
     plugin :auto_validations
 
-    DISPLAY_ONLY = [:child, :collection]
-
     EDITABLE_OPTIONS = [
       :description,
       :display_name,
@@ -160,6 +158,18 @@ class Magma
     def self.type_bulk_load_hook(loader, project_name, bulk_type_attributes)
     end
 
+    def is_foreign_key_type?
+      FOREIGN_KEY_ATTRIBUTES.include?(self.class.name)
+    end
+
+    def is_child_type?
+      CHILD_ATTRIBUTES.include?(self.class.name)
+    end
+
+    def is_data_type?
+      MAGMA_ATTRIBUTES.include?(self.class.name)
+    end
+
     private
 
     def after_magma_model_set
@@ -184,16 +194,11 @@ class Magma
       "Magma::ParentAttribute"
     ]
 
-    def attribute_class_name
-      case self.class.name
-      when *MAGMA_ATTRIBUTES
-        "Magma::Attribute"
-      when *FOREIGN_KEY_ATTRIBUTES
-        "Magma::ForeignKeyAttribute"
-      else
-        self.class.name
-      end
-    end
+    CHILD_ATTRIBUTES = [
+      "Magma::ChildAttribute",
+      "Magma::CollectionAttribute",
+      "Magma::TableAttribute"
+    ]
 
     # Use Sequel::Model validations to validate values before they get inserted
     # into the database. Call super first to execute validations provided by the
