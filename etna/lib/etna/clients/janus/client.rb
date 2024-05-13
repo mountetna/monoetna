@@ -75,7 +75,7 @@ module Etna
         response.body
       end
 
-      def get_stats(get_stats_request = GetStatsRequest.new)
+      def get_project_stats(get_stats_request = GetStatsRequest.new)
         query = ""
         unless get_stats_request.project_names.nil?
           query = "?"
@@ -85,7 +85,8 @@ module Etna
         end
 
         json = nil
-        @etna_client.get("/api/stats#{query}") do |res|
+
+        @etna_client.get("/api/stats/projects#{query}") do |res|
           json = JSON.parse(res.body, symbolize_names: true)
         end
 

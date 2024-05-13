@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+# TODO: remove
+require 'pry'
+
 require 'bundler'
 Bundler.require :default, (ENV['VESTA_ENV'] || :development).to_sym
 

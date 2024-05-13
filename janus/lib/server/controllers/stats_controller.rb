@@ -1,5 +1,5 @@
 class StatsController < Janus::Controller
-  def stats
+  def project_stats
     projects_to_include = @params[:projects]
 
     if projects_to_include.nil?

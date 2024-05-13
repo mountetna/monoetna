@@ -28,7 +28,7 @@ module WithEtnaClients
   end
 
   def janus_client
-    @magma_client ||= Etna::Clients::Janus.new(
+    @janus_client ||= Etna::Clients::Janus.new(
       token: token,
       host: Vesta.instance.config(:janus, environment)[:host])
   end

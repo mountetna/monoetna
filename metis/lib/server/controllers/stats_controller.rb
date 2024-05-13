@@ -10,7 +10,7 @@ class StatsController < Metis::Controller
       .select_map(:project_name)
       .tally
 
-    success_json(file_count_by_project)
+    success_json(count_detached!(file_count_by_project))
   end
 
   def byte_count_by_project
@@ -26,6 +26,13 @@ class StatsController < Metis::Controller
       .map { |project_name,sizes| [ project_name, sizes.map(&:first).sum ]}
       .to_h
 
-    success_json(byte_count_by_project)
+    success_json(count_detached!(byte_count_by_project))
+  end
+
+  private
+
+  def count_detached!(count_by_project)
+    count_by_project["Detached"] = count_by_project.delete(nil)
+    count_by_project.compact
   end
 end

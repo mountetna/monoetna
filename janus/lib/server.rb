@@ -11,7 +11,7 @@ class Janus
 
     post '/api/validate-login', action: 'authorization#validate_login', auth: { noauth: true }
 
-    get '/api/stats', action: 'stats#stats', auth: { user: { is_supereditor?: true } }
+    get '/api/stats/projects', action: 'stats#project_stats', auth: { user: { is_supereditor?: true } }
 
     # This generates nonces
     get '/time-signature', action: 'authorization#time_signature', auth: { noauth: true }
