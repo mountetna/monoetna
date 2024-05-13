@@ -4,6 +4,7 @@ require_relative '../magma'
 require_relative '../magma/server/retrieve'
 require_relative '../magma/server/query'
 require_relative '../magma/server/update'
+require_relative '../magma/server/expunge'
 require_relative '../magma/server/gnomon'
 require_relative '../magma/server/update_model'
 require_relative '../magma/server/flag'
@@ -23,6 +24,8 @@ class Magma
     post '/query', as: :query, action: 'query#action', auth: { user: { can_view?: :project_name } }
 
     post '/update', as: :update, action: 'update#action', auth: { user: { can_edit?: :project_name } }
+
+    post '/expunge', as: :expunge, action: 'expunge#action', auth: { user: { is_admin?: :project_name } }
 
     post '/update_model', action: 'update_model#action', auth: { user: { is_admin?: :project_name } }
 

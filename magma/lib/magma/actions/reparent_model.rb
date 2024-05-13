@@ -104,14 +104,6 @@ class Magma
 
     private
 
-    def child_type_attributes
-      [
-        Magma::ChildAttribute,
-        Magma::CollectionAttribute,
-        Magma::TableAttribute
-      ]
-    end
-
     def get_model(model_name)
       Magma.instance.get_model(
         @project_name,
@@ -157,16 +149,11 @@ class Magma
 
     def child_models_of(model_to_inspect)
       [].tap do |result|
-        model_to_inspect.attributes.values.select do |attribute|
-          child_type_attributes.include?(attribute.class)
-        end.map(&:link_model_name).map do |child_model_name|
-          result << get_model(child_model_name)
+        model_to_inspect.attributes.values
+          .select(&:is_child_type?).map do |attribute|
+          result << get_model(attribute.link_model_name)
         end
       end
-    end
-
-    def child_model_names
-      child_models.map(&:model_name)
     end
 
     def current_parent_attribute
