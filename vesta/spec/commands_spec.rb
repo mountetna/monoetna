@@ -4,16 +4,12 @@ describe 'Vesta Commands' do
   let(:vesta_instance) { double('Vesta') }
   let(:vesta_db_instance) { double('Sequel::Database') }
 
-  describe Vesta::CollectGlobalStats do
+  describe Vesta::CollectDLStats do
     subject(:collect_global_stats) {
-      described_class.new.execute(
-        magma_subject_models: magma_subject_models,
-        magma_sample_models: magma_sample_models,
-        magma_assay_models: magma_assay_models,
-      )
+      described_class.new
     }
 
-    it "" do
+    it "ddsa" do
     end
   end
 

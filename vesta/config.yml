@@ -7,6 +7,19 @@
     :host: https://timur.development.local
   :magma:
     :host: https://magma.development.local
+    :subject_models:
+      - subject
+      - patient
+    :sample_models:
+      - sample
+      - biospecimen
+    :assay_models:
+      - sc_seq
+      - rna_seq
+      - dna_seq
+      - immunoassay
+      - cytof
+      - omni_tcr_seq
   :vulcan:
     :host: https://vulcan.development.local
   :metis:
@@ -20,6 +33,7 @@
     :host: https://gnomon.development.local
   :vesta:
     :host: https://vesta.development.local
+    :token: eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6ImRldmVsb3BlckB1Y3NmLmVkdSIsIm5hbWUiOiJEZXZlbG9wZXJQZXJzb24iLCJwZXJtIjoiYTphZG1pbmlzdHJhdGlvbixleGFtcGxlLGlwaSx0ZXN0X3Byb2plY3QiLCJmbGFncyI6bnVsbCwiZXhwIjoxODA5NjI4OTQzfQ.hqejCkEijKq8TH34dDKKPqIZsz5tZVKTcx87LuDu2k9UV5JkQSOVSXSg8Ae3kF-WmQ1ZNVD6Gg9nvfA6qwawxfrfE5o-rPf_3HeGWT9AA_4LOjK6BquF-tn0qlKVIPJcgVM9rIHD2kObCNOUydOez7yseLCDAspiyErt5bEhzpV-F9_6NjBt0dUJ_0REotgQxG1dCjCME-VJOlN6lj7VPTu77C2KULpsfkQ6hapVuGEes-1iT9M3qwdC4UJ8vnCw8hZ_yXSej82i3Ykr0DmxxGntGx-GX6oQo73IGwrVsuCF2eFgMkRCLSk5-yla2M3wuMiYZCw8balLQ0rA7RTbPw
   :log_file: /dev/stdout
   :db:
     :adapter: postgres
@@ -43,26 +57,7 @@
     CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
     NQIDAQAB
     -----END PUBLIC KEY-----
-  :dateshift_salt: 123456
-  :redcap:
-    :host: https://redcap.development.local
-  :etl_secrets_key: A2345678901234567890123456789012
-  :ingest:
-    :filename_regex: ^some-string-that-uniquely-identifies-our-files
-    :sftp:
-      - :host: sftp.example.com
-        :username: user
-        :password: pass
-        :alias: cat
-        :root: /root/directory/to/scan
-        :ssh-key: public-key-of-server
-    :ssh:
-      - :host: ssh.example.com
-        :username: user
-        :password: pass
-        :alias: c4
-        :root: /root/directory/to/save/files/in
-        :ssh-key: public-key-of-server
+
 
 :test:
   :magma:
@@ -90,23 +85,3 @@
     :password: password
     :search_path: [ public ]
   :log_file: /dev/stdout
-  :dateshift_salt: 123456
-  :redcap:
-    :host: https://redcap.test
-  :etl_secrets_key: A2345678901234567890123456789012
-  :ingest:
-    :filename_regex: oligo
-    :sftp:
-      - :host: sftp.example.com
-        :username: user
-        :password: pass
-        :alias: cat
-        :root: /
-        :ssh-key: public-key-of-server
-    :ssh:
-      - :host: ssh.example.com
-        :username: user
-        :password: pass
-        :alias: c4
-        :root: /
-        :ssh-key: public-key-of-server

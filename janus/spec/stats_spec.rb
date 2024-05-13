@@ -5,7 +5,7 @@ describe StatsController do
     OUTER_APP
   end
 
-  context "#stats" do
+  context "#project_stats" do
     it "returns stats for all projects if none specified" do
       user1 = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
       user2 = create(:user, name: 'Vesta Bule', email: 'vesta@two-faces.org')
@@ -23,7 +23,7 @@ describe StatsController do
       create(:permission, project: gateway, user: user1, role: 'editor')
 
       header('Authorization', "Etna #{user1.create_token!}")
-      get('/api/stats')
+      get('/api/stats/projects')
 
       expect(last_response.status).to eq(200)
       expect(json_body[:projects]).to eq([
@@ -52,7 +52,7 @@ describe StatsController do
 
 
       header('Authorization', "Etna #{user.create_token!}")
-      get('/api/stats', projects: [tunnel.project_name, door.project_name])
+      get('/api/stats/projects', projects: [tunnel.project_name, door.project_name])
 
       expect(last_response.status).to eq(200)
       expect(json_body[:projects]).to eq([
@@ -70,7 +70,7 @@ describe StatsController do
       create(:permission, project: gateway, user: user, role: 'editor')
 
       header('Authorization', "Etna #{user.create_token!}")
-      get('/api/stats')
+      get('/api/stats/projects')
 
       expect(last_response.status).to eq(403)
     end
