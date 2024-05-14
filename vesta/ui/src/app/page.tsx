@@ -9,7 +9,7 @@ import Copyright from '@/components/Copyright';
 
 export default function Home() {
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="xl">
       <Box
         sx={{
           my: 4,
@@ -25,8 +25,6 @@ export default function Home() {
         <Link href="/about" color="secondary" component={NextLink}>
           Go to the about page
         </Link>
-        <ProTip />
-        <Copyright />
       </Box>
     </Container>
   );

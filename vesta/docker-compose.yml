@@ -65,28 +65,28 @@ x-base-etna-services:
       APP_NAME: 'vesta'
     container_name: 'vesta_db_1'
 
-  'vesta_webapp':
-    &base-etna-webapp # The 
-    build: ./webapp
-    image: vesta-webapp-dev
+  'vesta_ui':
+    &base-etna-ui # The JS UI
+    build: ./ui
+    image: vesta-ui-dev
     volumes:
-      - ./webapp/src:/app/src:delegated
-      - ./webapp/public:/app/public:delegated
+      - ./UI/src:/app/src:delegated
+      - ./UI/public:/app/public:delegated
       - vesta-public-dir:/app/public:ro
     depends_on:
       - 'vesta_app'
     command: ["npm", "run", "dev"]
     environment:
-      APP_NAME: 'vesta_webapp'
+      APP_NAME: 'vesta_ui'
 
   'vesta_app_fe':
-    &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the JS webapp and Ruby API
+    &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the JS UI and Ruby API
     image: etna-apache-v2
     volumes:
       - vesta-public-dir:/app/public:ro
     depends_on:
       - 'vesta_app'
-      - 'vesta_webapp'
+      - 'vesta_ui'
     entrypoint: /entrypoints/development_app_fe.sh
     command: ['httpd', '-DFOREGROUND']
     environment:

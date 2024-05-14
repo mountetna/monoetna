@@ -14,7 +14,6 @@ class Vesta
 
     def initialize
       super
-      # application.load_models
       application.setup_db
       application.setup_sequel
     end

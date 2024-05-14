@@ -25,15 +25,15 @@ IncludeOptional /usr/opt/httpd.conf.d/*.system.include
   ProxyPassMatch ^/api/(.*)$ http://-app_name-_app:3000/$1
   ProxyPassReverse ^/api/(.*)$ http://-app_name-_app:3000/$1
 
-  ProxyPassMatch ^/(.*)$ http://-app_name-_webapp:3000/$1
-  ProxyPassReverse ^/(.*)$ http://-app_name-_webapp:3000/$1
+  ProxyPassMatch ^/(.*)$ http://-app_name-_ui:3000/$1
+  ProxyPassReverse ^/(.*)$ http://-app_name-_ui:3000/$1
 
   # Handle websockets
   # https://httpd.apache.org/docs/2.4/mod/mod_proxy_wstunnel.html
   RewriteEngine on
   RewriteCond %{HTTP:Upgrade} websocket [NC]
   RewriteCond %{HTTP:Connection} upgrade [NC]
-  RewriteRule ^/?(.*)$ ws://-app_name-_webapp:3000/$1 [P,L]
+  RewriteRule ^/?(.*)$ ws://-app_name-_ui:3000/$1 [P,L]
 
   # Add the Service-Worker-Allowed header to make service workers simple to use.
   Header add Service-Worker-Allowed /
