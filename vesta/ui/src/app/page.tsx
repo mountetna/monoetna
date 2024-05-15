@@ -8,7 +8,7 @@ import NextLink from 'next/link';
 
 export default function Home() {
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth="desktopLg">
       <Box
         sx={{
           my: 4,
@@ -18,7 +18,7 @@ export default function Home() {
           alignItems: 'center',
         }}
       >
-        <Typography variant="h4" component="h1" sx={{ mb: 2 }}>
+        <Typography variant="h1" sx={{ mb: 2 }}>
           Material UI - Next.js App Router example in TypeScript
         </Typography>
         <NextLink href="/about" color="secondary">
