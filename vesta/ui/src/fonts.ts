@@ -80,14 +80,14 @@ export const relativeMonoPro10Pitch = localFont({
     src: './app/fonts/relative-mono-pro/relative-mono-10-pitch-pro.woff2',
 })
 
-export const relativeMonoPro11Pitch = localFont({
-    src: './app/fonts/relative-mono-pro/relative-mono-10-pitch-pro.woff2',
-})
+// export const relativeMonoPro11Pitch = localFont({
+//     src: './app/fonts/relative-mono-pro/relative-mono-10-pitch-pro.woff2',
+// })
 
-export const relativeMonoPro12Pitch = localFont({
-    src: './app/fonts/relative-mono-pro/relative-mono-10-pitch-pro.woff2',
-})
+// export const relativeMonoPro12Pitch = localFont({
+//     src: './app/fonts/relative-mono-pro/relative-mono-10-pitch-pro.woff2',
+// })
 
-export const relativeMonoProVariablePitch = localFont({
-    src: './app/fonts/relative-mono-pro/relative-mono-variable-pitch-pro.woff2',
-})
+// export const relativeMonoProVariablePitch = localFont({
+//     src: './app/fonts/relative-mono-pro/relative-mono-variable-pitch-pro.woff2',
+// })
