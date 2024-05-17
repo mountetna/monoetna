@@ -203,6 +203,7 @@ describe VulcanV2Controller do
       auth_header(:guest)
       workspace_id = Vulcan::Workspace.all[0].id
       request = {
+        #workflow_run_id: None,
           run: {
             count: {
                 poem: "/test-utils/test-input/poem.txt",
@@ -219,6 +220,29 @@ describe VulcanV2Controller do
       # - A list of output for each job that has run
       # - Whether the job was successful
     end
+
+    it 'invokes 1 step of the workflow and checks status' do
+      auth_header(:guest)
+      workspace_id = Vulcan::Workspace.all[0].id
+      request = {
+        run: {
+          count: {
+            poem: "/test-utils/test-input/poem.txt",
+            poem_2: "/test-utils/test-input/poem_2.txt",
+            count_bytes: true,
+            count_chars: false
+          }
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run", request)
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{json_body[:run_id]}")
+
+
+      # This should return:
+      # - A list of output for each job that has run
+      # - Whether the job was successful
+    end
+
 
     it 'invokes 2 steps of the workflow' do
       auth_header(:guest)

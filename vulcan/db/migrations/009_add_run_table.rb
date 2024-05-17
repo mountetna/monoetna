@@ -4,11 +4,10 @@ Sequel.migration do
       primary_key :id
       Integer :workspace_id, null: false
       foreign_key [:workspace_id], :workspaces
-      Json :run_config, null: false
-      Json :job_status, null: true
-      String :executor, null: false
-      Integer :executor_job_id, null: false
-      column :outputs_generated, 'text[]', null: true
+      String :slurm_run_uuid, null: false
+      String :log_path, null: false
+      String :config_path, null: false
+      # column :outputs_generated, 'text[]', null: true
       DateTime :created_at, null: false
       DateTime :updated_at, null: false
     end

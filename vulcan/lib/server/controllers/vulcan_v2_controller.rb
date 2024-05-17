@@ -6,6 +6,7 @@ require_relative './../../snakemake'
 
 
 # TODO: sort out disk location
+# Potentially move these to .env
 WORKFLOW_BASE_DIR = "/app/vulcan/workflows"
 WORKSPACE_BASE_DIR = "/app/vulcan/workspace"
 SNAKEMAKE_UTILS_DIR = "/app/snakemake_utils" # This is local
@@ -45,6 +46,10 @@ class VulcanV2Controller < Vulcan::Controller
 
   def metis_mirror_path(workspace_dir)
     "#{workspace_dir}/metis_output/"
+  end
+
+  def workspace_config_path(workspace_path)
+    "#{workspace_path}/run_config/#{Time.now.to_i}.json"
   end
 
   # Admin command complete prior
@@ -100,11 +105,11 @@ class VulcanV2Controller < Vulcan::Controller
         @ssh.clone(@escaped_params[:repo_local_path], @escaped_params[:branch], tmp_dir)
         @ssh.checkout_tag(tmp_dir, @escaped_params[:tag])
         config = @ssh.read_yaml_file("#{tmp_dir}/vulcan_config.yaml")
-        # TODO: run a validation on the config
+        # TODO: run a validation on the snakefile, config and the vulcan_config
         obj = Vulcan::WorkflowV2.create(
           project: @escaped_params[:project_name],
           workflow_name: @escaped_params[:workflow_name],
-          author: @escaped_params[:author],
+          author: @escaped_params[:author], #TODO: remove author
           repo_remote_url: @ssh.get_repo_remote_url(@escaped_params[:repo_local_path]),
           repo_local_path: @escaped_params[:repo_local_path],
           repo_tag: @escaped_params[:tag],
@@ -201,7 +206,7 @@ class VulcanV2Controller < Vulcan::Controller
       begin
         run_config = @params[:run]
         if workspace.workflow_v2.valid_run_config?(run_config)
-          config_path = "#{workspace.path}/tmp/run_config_#{Time.now.to_i}.json"
+          config_path = workspace_config_path(workspace.path)
           @ssh.write_file(config_path, run_config.to_json) # we must write the params of snakemake to a file to read them
           command = Vulcan::SnakemakeCommandBuilder.new
           command.options = {
@@ -209,16 +214,18 @@ class VulcanV2Controller < Vulcan::Controller
             config_path: config_path,
             profile_path: "#{workspace.path}/snakemake_utils/profiles/test/",
           }
-          out = @ssh.run_snakemake(workspace.path, command.build)
-        # out.slurm_id
-        # poll for success
-        # obj = Vulcan::Run.create(
-        #   workflow_id: workspace.id,
-        #   run_config: run_config,
-        #   created_at: Time.now,
-        #   updated_at: Time.now
-        # )
-        # response = {run_id: obj.id}
+          slurm_run_uuid = @ssh.run_snakemake(workspace.path, command.build)
+          #TODO: make absolute
+          log = @ssh.get_snakemake_log(workspace.path, slurm_run_uuid)
+          obj = Vulcan::Run.create(
+            workspace_id: workspace.id,
+            slurm_run_uuid: slurm_run_uuid,
+            config_path: config_path,
+            log_path: log,
+            created_at: Time.now,
+            updated_at: Time.now
+          )
+          response = {run_id: obj.id}
         else
           msg = "Workflow params are not valid"
           response = {'Error': msg}
@@ -235,8 +242,9 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   def get_workflow_status
-    #workspace = Vulcan::Run.first(id: @params[:run_id])
-    #@ssh.status(workspace.path, run_config)
+    workflow_run = Vulcan::Run.first(id: @params[:run_id], workspace_id: @params[:workspace_id])
+    # @ssh.parse_log_for_slurm_ids()
+    # @ssh.query_sacct()
   end
 
 end
