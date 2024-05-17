@@ -1,5 +1,5 @@
 'use client';
-import { createTheme, alpha, getContrastRatio, PaletteColor } from '@mui/material/styles';
+import { createTheme, alpha, PaletteColor } from '@mui/material/styles';
 import { theFuture, relativeMonoPro10Pitch } from '@/fonts';
 
 
@@ -129,6 +129,20 @@ declare module '@mui/material/styles' {
     md: false;
     lg: false;
     xl: false;
+  }
+
+  interface Duration {
+    ease: number;
+    swell: number;
+    expo: number;
+    quint: number;
+  }
+
+  interface Easing {
+    ease: string;
+    swell: string;
+    expo: string;
+    quint: string;
   }
 }
 
@@ -368,6 +382,20 @@ let theme = createTheme({
     overline: undefined,
   },
   components: {},
+  transitions: {
+    duration: {
+      ease: 300,
+      swell: 350,
+      expo: 360,
+      quint: 400,
+    },
+    easing: {
+      ease: 'ease',
+      swell: 'cubic-bezier(0.85, 0, 0.15, 1)',
+      expo: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      quint: 'cubic-bezier(0.92, 0, 0.06, 1)',
+    },
+  },
 });
 
 interface ColorTokens {
@@ -475,7 +503,6 @@ theme = createTheme(theme, {
   palette: paletteColors,
   typography: {
     h1: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 36,
       fontWeight: 700,
       lineHeight: '135%',
@@ -490,7 +517,6 @@ theme = createTheme(theme, {
       },
     },
     h2: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 24,
       fontWeight: 700,
       lineHeight: '140%',
@@ -505,7 +531,6 @@ theme = createTheme(theme, {
       },
     },
     h3: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 22,
       fontWeight: 700,
       lineHeight: '140%',
@@ -520,7 +545,6 @@ theme = createTheme(theme, {
       },
     },
     h3MediumWt: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 22,
       fontWeight: 500,
       lineHeight: '140%',
@@ -535,7 +559,6 @@ theme = createTheme(theme, {
       },
     },
     h3SmallCaps: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 22,
       fontWeight: 700,
       lineHeight: '140%',
@@ -543,14 +566,12 @@ theme = createTheme(theme, {
       fontVariant: 'all-small-caps', // TODO: verify this is accurate
     },
     h3Digits: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 46,
       fontWeight: 700,
       lineHeight: '140%',
       letterSpacing: '0em',
     },
     h4: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 22,
       fontWeight: 700,
       lineHeight: '140%',
@@ -565,7 +586,6 @@ theme = createTheme(theme, {
       },
     },
     h4SmallCaps: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 18,
       fontWeight: 700,
       lineHeight: '135%',
@@ -573,7 +593,6 @@ theme = createTheme(theme, {
       fontVariant: 'all-small-caps', // TODO: verify this is accurate
     },
     h5: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 20,
       fontWeight: 500,
       lineHeight: '140%',
@@ -588,7 +607,6 @@ theme = createTheme(theme, {
       },
     },
     h5BoldWt: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 20,
       fontWeight: 700,
       lineHeight: '140%',
@@ -603,7 +621,6 @@ theme = createTheme(theme, {
       },
     },
     h6: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 16,
       fontWeight: 500,
       lineHeight: '140%',
@@ -618,7 +635,6 @@ theme = createTheme(theme, {
       },
     },
     h6BoldWt: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 18,
       fontWeight: 700,
       lineHeight: '140%',
@@ -633,7 +649,6 @@ theme = createTheme(theme, {
       },
     },
     h6SmallCaps: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 14,
       fontWeight: 700,
       lineHeight: '153%',
@@ -641,7 +656,6 @@ theme = createTheme(theme, {
       fontVariant: 'all-small-caps', // TODO: verify this is accurate
     },
     pLarge: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 18,
       lineHeight: '150%',
       letterSpacing: DEFAULT_LETTER_SPACING,
@@ -656,7 +670,6 @@ theme = createTheme(theme, {
     },
     // only for tablet, desktop
     pLargeMediumWt: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 20,
       fontWeight: 500,
       lineHeight: '148%',
@@ -668,7 +681,6 @@ theme = createTheme(theme, {
     },
     // only for mobile, tablet
     pLargeBoldWt: {
-      // fontFamily: theFuture.style.fontFamily,
       fontSize: 18,
       fontWeight: 700,
       lineHeight: '150%',
