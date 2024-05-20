@@ -6,10 +6,10 @@ import { theFuture, relativeMonoPro10Pitch } from '@/fonts';
 declare module '@mui/material/styles' {
   // https://mui.com/material-ui/customization/palette/#typescript
   interface Palette {
-    utilityLowLight: Palette['primary'];
-    utilityhighlight: Palette['primary'];
-    utilitywhite: Palette['primary'];
-    utilitywhiteTransparent25: Palette['primary'];
+    utilityLowlight: Palette['primary'];
+    utilityHighlight: Palette['primary'];
+    utilityWhite: Palette['primary'];
+    utilityWhiteTransparent25: Palette['primary'];
     utilityUCSFNavy: Palette['primary'];
     utilityUCSFLightNavy: Palette['primary'];
     ground: Palette['primary'];
@@ -23,10 +23,10 @@ declare module '@mui/material/styles' {
   }
 
   interface PaletteOptions {
-    utilityLowLight?: PaletteOptions['primary'];
-    utilityhighlight?: PaletteOptions['primary'];
-    utilitywhite?: PaletteOptions['primary'];
-    utilitywhiteTransparent25?: PaletteOptions['primary'];
+    utilityLowlight?: PaletteOptions['primary'];
+    utilityHighlight?: PaletteOptions['primary'];
+    utilityWhite?: PaletteOptions['primary'];
+    utilityWhiteTransparent25?: PaletteOptions['primary'];
     utilityUCSFNavy?: PaletteOptions['primary'];
     utilityUCSFLightNavy?: PaletteOptions['primary'];
     ground?: PaletteOptions['primary'];
@@ -195,7 +195,6 @@ declare module '@mui/material/Typography' {
   }
 }
 
-
 const DEFAULT_LETTER_SPACING = '-0.01em'
 const DEFAULT_CONTRAST_RATIO = 4.5
 
@@ -218,11 +217,13 @@ let theme = createTheme({
     fontFamily: theFuture.style.fontFamily,
     // h1-6, pLarge defined below
     pTitleRegularWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 22,
       lineHeight: '140%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     pTitleMediumWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 22,
       fontWeight: 500,
       lineHeight: '140%',
@@ -242,12 +243,14 @@ let theme = createTheme({
       textTransform: 'uppercase',
     },
     pSubtitle: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 20,
       fontWeight: 500,
       lineHeight: '140%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     pSubtitleBoldWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 20,
       fontWeight: 700,
       lineHeight: '140%',
@@ -267,17 +270,20 @@ let theme = createTheme({
       textTransform: 'uppercase',
     },
     pMedium: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 18,
       lineHeight: '150%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     pMediumMediumWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 18,
       fontWeight: 500,
       lineHeight: '150%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     pMediumBoltWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 18,
       fontWeight: 700,
       lineHeight: '150%',
@@ -306,17 +312,20 @@ let theme = createTheme({
       textTransform: 'uppercase',
     },
     pBody: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 16,
       lineHeight: '153%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     pBodyMediumWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 16,
       fontWeight: 500,
       lineHeight: '153%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     pBodyBoldWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 16,
       fontWeight: 700,
       lineHeight: '153%',
@@ -329,33 +338,39 @@ let theme = createTheme({
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     pXS: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 15,
       lineHeight: '153%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     p2XS: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 14,
       lineHeight: '153%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     p2XSBoldWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 14,
       fontWeight: 700,
       lineHeight: '153%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     p3XS: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 12,
       lineHeight: '122%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     p3XSMediumWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 12,
       fontWeight: 500,
       lineHeight: '122%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     p3XSBoldWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 12,
       fontWeight: 700,
       lineHeight: '122%',
@@ -369,6 +384,7 @@ let theme = createTheme({
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
     p4XS: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 10,
       lineHeight: '122%',
       letterSpacing: DEFAULT_LETTER_SPACING,
@@ -381,7 +397,6 @@ let theme = createTheme({
     caption: undefined,
     overline: undefined,
   },
-  components: {},
   transitions: {
     duration: {
       ease: 300,
@@ -396,6 +411,14 @@ let theme = createTheme({
       quint: 'cubic-bezier(0.92, 0, 0.06, 1)',
     },
   },
+  components: {
+    // https://mui.com/material-ui/customization/theme-components/#theme-default-props
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+  }
 });
 
 interface ColorTokens {
@@ -404,10 +427,10 @@ interface ColorTokens {
 }
 
 const colors: Record<string, string | ColorTokens> = {
-  utilityLowLight: "#121212",
-  utilityhighlight: '#F9F8F6',
-  utilitywhite: '#FFFFFF',
-  utilitywhiteTransparent25: alpha('#FFFFFF', 0.75),
+  utilityLowlight: "#121212",
+  utilityHighlight: '#F9F8F6',
+  utilityWhite: '#FFFFFF',
+  utilityWhiteTransparent25: alpha('#FFFFFF', 0.75),
   utilityUCSFNavy: '#052049',
   utilityUCSFLightNavy: '#E6F4FB',
   ground: {
@@ -688,6 +711,22 @@ theme = createTheme(theme, {
       [theme.breakpoints.up('desktop')]: {
         fontSize: 20,
         lineHeight: '148%',
+      },
+    },
+  },
+  components: {
+    // https://mui.com/material-ui/customization/theme-components/#theme-default-props
+    MuiContainer: {
+      styleOverrides: {
+        root: {
+          padding: '0 8px',
+          [theme.breakpoints.up('tablet')]: {
+            padding: '0 10px',
+          },
+          [theme.breakpoints.up('desktop')]: {
+            padding: '0 16px',
+          },
+        }
       },
     },
   }
