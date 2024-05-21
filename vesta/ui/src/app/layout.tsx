@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 
 import theme from '@/theme';
 import Nav from '@/components/nav/Nav';
+import Footer from '@/components/Footer';
 
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
@@ -16,7 +17,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
             
             <Nav />
             <main>{props.children}</main>
-            {/* <Footer /> */}
+            <Footer />
 
           </ThemeProvider>
         </AppRouterCacheProvider>

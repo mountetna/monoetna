@@ -18,13 +18,11 @@ export default function Nav() {
     return (
         <nav>
             <Box
-                sx={{
-                    py: '10px',
-                    backgroundColor: 'utilityUCSFNavy.main',
-                }}
+                py='10px'
+                bgcolor='utilityUCSFNavy.main'
             >
                 <Container
-                    maxWidth="desktopLg"
+                    maxWidth='desktopLg'
                     sx={{
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -78,7 +76,6 @@ export default function Nav() {
                     </ButtonBase>
                 </Container>
                 <Box>
-
                     <DLNav />
                 </Box>
             </Box>
