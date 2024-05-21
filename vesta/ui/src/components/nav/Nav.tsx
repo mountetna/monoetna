@@ -1,6 +1,4 @@
 'use client'
-// needed to use sx with function param
-// TODO: figure out why necessary
 
 import * as React from 'react'
 import Container from '@mui/system/Container'
@@ -17,6 +15,7 @@ import UCSFHomeLink from './UCSFHomeLink';
 export default function Nav() {
     return (
         <nav>
+            {/* UCSF Nav */}
             <Box
                 py='10px'
                 bgcolor='utilityUCSFNavy.main'
@@ -43,7 +42,9 @@ export default function Nav() {
                     </Box>
                 </Container>
             </Box>
-            <Box sx={{ background: 'black' }}>
+
+            {/* DL Nav */}
+            <Box sx={{ backgroundColor: 'black' }}>
                 <Container
                     maxWidth="desktopLg"
                     sx={{
@@ -57,27 +58,37 @@ export default function Nav() {
                         tabIndex={0}
                         component={Link}
                         underline='none'
+                        sx={(theme) => ({
+                            mt: '16px',
+                            [theme.breakpoints.up('tablet')]: {
+                                mt: '24px',
+                            }
+                        })}
                     >
                         {/* TODO: logo variants */}
                         LOGO
                     </MUILink>
 
-                    <ButtonBase
-                        // variant='text'
-                        tabIndex={0}
-                        sx={(theme) => ({
-                            [theme.breakpoints.up('desktop')]: {
-                                display: 'none',
-                            }
-                        })}
+                    <Box
+                        sx={{}}
                     >
-                        {/* TODO: replace with hamburger icon */}
-                        HAMB
-                    </ButtonBase>
+                        <DLNav />
+
+                        <ButtonBase
+                            tabIndex={0}
+                            sx={(theme) => ({
+                                color: 'white',
+                                p: '8px',
+                                [theme.breakpoints.up('desktop')]: {
+                                    display: 'none',
+                                }
+                            })}
+                        >
+                            {/* TODO: replace with hamburger icon */}
+                            HAMB
+                        </ButtonBase>
+                    </Box>
                 </Container>
-                <Box>
-                    <DLNav />
-                </Box>
             </Box>
         </nav>
     )
