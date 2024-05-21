@@ -58,7 +58,7 @@ declare module '@mui/material/styles' {
     pSubtitleMonoCaps: React.CSSProperties;
     pMedium: React.CSSProperties;
     pMediumMediumWt: React.CSSProperties;
-    pMediumBoltWt: React.CSSProperties;
+    pMediumBoldWt: React.CSSProperties;
     pMediumMono: React.CSSProperties;
     pMediumMonoCaps: React.CSSProperties;
     pBoldMonoCaps: React.CSSProperties;
@@ -98,7 +98,7 @@ declare module '@mui/material/styles' {
     pSubtitleMonoCaps?: React.CSSProperties;
     pMedium?: React.CSSProperties;
     pMediumMediumWt?: React.CSSProperties;
-    pMediumBoltWt?: React.CSSProperties;
+    pMediumBoldWt?: React.CSSProperties;
     pMediumMono?: React.CSSProperties;
     pMediumMonoCaps?: React.CSSProperties;
     pBoldMonoCaps?: React.CSSProperties;
@@ -166,7 +166,7 @@ declare module '@mui/material/Typography' {
     pSubtitleMonoCaps: true;
     pMedium: true;
     pMediumMediumWt: true;
-    pMediumBoltWt: true;
+    pMediumBoldWt: true;
     pMediumMono: true;
     pMediumMonoCaps: true;
     pBoldMonoCaps: true;
@@ -282,7 +282,7 @@ let theme = createTheme({
       lineHeight: '150%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },
-    pMediumBoltWt: {
+    pMediumBoldWt: {
       fontFamily: theFuture.style.fontFamily,
       fontSize: 18,
       fontWeight: 700,

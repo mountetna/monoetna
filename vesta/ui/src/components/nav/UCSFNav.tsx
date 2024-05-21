@@ -8,10 +8,7 @@ function NavLink({ text, href }: { text: string, href: string }) {
     return (
         <Box
             component='li'
-            sx={{
-                display: 'inline-block',
-                mr: '29px',
-            }}
+            sx={{ display: 'inline-block' }}
         >
             <MUILink
                 href={href}
@@ -38,6 +35,9 @@ export default function UCSFNav() {
                 m: 0,
                 listStyle: 'none',
                 typography: 'pBody',
+                '& > *:not(:last-child)': {
+                    mr: '29px',
+                },
             }}
         >
             <NavLink
