@@ -70,9 +70,8 @@ x-base-etna-services:
     build: ./ui
     image: vesta-ui-dev
     volumes:
-      - ./UI/src:/app/src:delegated
-      - ./UI/public:/app/public:delegated
-      - vesta-public-dir:/app/public:ro
+      - ./ui/src:/app/src:delegated
+      - ./ui/public:/app/public:delegated
     depends_on:
       - 'vesta_app'
     command: ["npm", "run", "dev"]
@@ -82,8 +81,6 @@ x-base-etna-services:
   'vesta_app_fe':
     &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the JS UI and Ruby API
     image: etna-apache-v2
-    volumes:
-      - vesta-public-dir:/app/public:ro
     depends_on:
       - 'vesta_app'
       - 'vesta_ui'

@@ -10,18 +10,23 @@ import Link from 'next/link'
 import UCSFNav from './UCSFNav'
 import DLNav from './DLNav'
 import UCSFHomeLink from './UCSFHomeLink';
+import useIsStuck from '@/lib/utils/useIsStuck';
 
 
 export default function Nav() {
+    const mainNavRef = React.createRef<HTMLElement>()
+    const isStuck = useIsStuck(mainNavRef)
+    
     return (
-        <nav>
+        <React.Fragment>
             {/* UCSF Nav */}
             <Box
+                component='nav'
+                aria-label='UCSF Main'
                 py='10px'
                 bgcolor='utilityUCSFNavy.main'
             >
                 <Container
-                    maxWidth='desktopLg'
                     sx={{
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -32,7 +37,7 @@ export default function Nav() {
                         component='span'
                         sx={(theme) => ({
                             display: 'none',
-                            [theme.breakpoints.up('tablet')]: {
+                            [theme.breakpoints.up('desktop')]: {
                                 display: 'inline-block',
                                 ml: '29px',
                             }
@@ -44,9 +49,22 @@ export default function Nav() {
             </Box>
 
             {/* DL Nav */}
-            <Box sx={{ backgroundColor: 'black' }}>
+            <Box
+                component='nav'
+                aria-label='Main'
+                ref={mainNavRef}
+                className={`${isStuck && 'isStuck'}`}
+                sx={{
+                    position: 'sticky',
+                    top: 0,
+                    backgroundColor: 'utilityLowlight.main',
+                    '&.isStuck': {
+                        backgroundColor: 'utilityHighlight.main',
+
+                    },
+                }}
+            >
                 <Container
-                    maxWidth="desktopLg"
                     sx={{
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -72,7 +90,7 @@ export default function Nav() {
                     <Box
                         sx={{}}
                     >
-                        <DLNav />
+                        <DLNav isStuck={isStuck} />
 
                         <ButtonBase
                             tabIndex={0}
@@ -90,6 +108,6 @@ export default function Nav() {
                     </Box>
                 </Container>
             </Box>
-        </nav>
+        </React.Fragment>
     )
 }

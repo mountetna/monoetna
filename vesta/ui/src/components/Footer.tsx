@@ -36,7 +36,6 @@ function NavLink({ text, href }: { text: string, href: string }) {
 export default function Footer() {
     return (
         <Container
-            maxWidth='desktopLg'
             component='footer'
         >
             <Box
@@ -83,52 +82,59 @@ export default function Footer() {
                         LOGO
                     </Box>
                     <Box
-                        component='ol'
+                        component='nav'
+                        aria-label='UCSF Legal'
                         sx={(theme) => ({
-                            display: 'block',
-                            p: 0,
-                            m: 0,
-                            listStyle: 'none',
-                            '& > *:not(:last-child)': {
-                                mb: '10px',
-                            },
                             gridColumn: 'span 3',
-                            [theme.breakpoints.up('tablet')]: {
-                                py: '16px',
-                            },
                             [theme.breakpoints.up('desktop')]: {
                                 gridColumn: 'span 2',
                             },
                         })}
                     >
                         <Box
-                            component='li'
+                            component='ol'
                             sx={(theme) => ({
                                 display: 'block',
-                                typography: 'pBodyBoldWt',
+                                p: 0,
+                                m: 0,
+                                listStyle: 'none',
+                                '& > *:not(:last-child)': {
+                                    mb: '10px',
+                                },
                                 [theme.breakpoints.up('tablet')]: {
-                                    typography: 'pMediumBoldWt',
-                                }
+                                    py: '16px',
+                                },
                             })}
                         >
-                            General
+                            <Box
+                                component='li'
+                                sx={(theme) => ({
+                                    display: 'block',
+                                    typography: 'pBodyBoldWt',
+                                    [theme.breakpoints.up('tablet')]: {
+                                        typography: 'pMediumBoldWt',
+                                    }
+                                })}
+                            >
+                                General
+                            </Box>
+                            <NavLink
+                                text='Accessibility'
+                                href='https://www.ucsf.edu/accessibility-resources'
+                            />
+                            <NavLink
+                                text='Privacy Policy'
+                                href='https://www.ucsf.edu/website-privacy-policy'
+                            />
+                            <NavLink
+                                text='Terms of Use'
+                                href='https://websites.ucsf.edu/website-terms-use'
+                            />
+                            <NavLink
+                                text='A-Z Website List'
+                                href='https://websites.ucsf.edu/azlist'
+                            />
                         </Box>
-                        <NavLink
-                            text='Accessibility'
-                            href='https://www.ucsf.edu/accessibility-resources'
-                        />
-                        <NavLink
-                            text='Privacy Policy'
-                            href='https://www.ucsf.edu/website-privacy-policy'
-                        />
-                        <NavLink
-                            text='Terms of Use'
-                            href='https://websites.ucsf.edu/website-terms-use'
-                        />
-                        <NavLink
-                            text='A-Z Website List'
-                            href='https://websites.ucsf.edu/azlist'
-                        />
                     </Box>
                 </Box>
                 <Box typography='pXS'>
