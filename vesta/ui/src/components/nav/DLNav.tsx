@@ -6,7 +6,7 @@ import LibraryCardButton from '../library-card/LibraryCardButton';
 import LibraryCardTray from '../library-card/LibraryCardTray';
 
 
-function NavLink({ text, href }: { text: string, href: string }) {
+function NavLink({ text, href, isStuck }: { text: string, href: string, isStuck: boolean }) {
     return (
         <Box
             component='li'
@@ -20,7 +20,7 @@ function NavLink({ text, href }: { text: string, href: string }) {
                 tabIndex={0}
                 component={Link}
                 underline='none'
-                color='utilityHighlight.main'
+                color={isStuck ? 'utilityLowlight.main' : 'utilityHighlight.main'}
                 typography='pBodyMediumWt'
             >
                 {text}
@@ -30,7 +30,7 @@ function NavLink({ text, href }: { text: string, href: string }) {
 }
 
 
-export default function DLNav() {
+export default function DLNav({ isStuck }: { isStuck: boolean }) {
     return (
         <Box
             component='ol'
@@ -57,18 +57,22 @@ export default function DLNav() {
                 <NavLink
                     text='About the Library'
                     href='/about'
+                    isStuck={isStuck}
                 />
                 <NavLink
                     text='Themes'
                     href='/themes'
+                    isStuck={isStuck}
                 />
                 <NavLink
                     text='Projects'
                     href='/projects'
+                    isStuck={isStuck}
                 />
                 {/* <NavLink
                     text='Contibute'
                     href='#'
+                    isStuck={isStuck}
                 /> */}
             </Box>
             <Box
