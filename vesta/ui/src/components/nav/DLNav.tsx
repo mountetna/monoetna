@@ -48,9 +48,14 @@ export default function DLNav({ isStuck }: { isStuck: boolean }) {
                     display: 'none',
                     '& > *': {
                         mr: '29px',
+                        [theme.breakpoints.up('desktop')]: {
+                            mr: '54px',
+                        },
                     },
                     [theme.breakpoints.up('desktop')]: {
                         display: 'inline-block',
+                        pl: '30px',
+                        py: '18px'
                     },
                 })}
             >

@@ -2,10 +2,12 @@
 
 import * as React from 'react';
 import Container from '@mui/system/Container'
-import ButtonBase from '@mui/material/ButtonBase';
 import Box from '@mui/system/Box'
 import MUILink from '@mui/material/Link';
 import Link from 'next/link'
+import Image from 'next/image';
+
+import logoWordmarkRightLightSrc from '/public/images/logo/logo-wordmark-right-light.svg'
 
 
 function NavLink({ text, href }: { text: string, href: string }) {
@@ -69,6 +71,11 @@ export default function Footer() {
                     {/* TODO: replace */}
                     <Box
                         sx={(theme) => ({
+                            color: 'utilityHighlight.main',
+                            '& svg': {
+                                width: 'auto',
+                                height: '100%',
+                            },
                             gridColumn: 'span 6',
                             mb: '16px',
                             [theme.breakpoints.up('tablet')]: {
@@ -79,7 +86,11 @@ export default function Footer() {
                             },
                         })}
                     >
-                        LOGO
+                        {/* TODO: switch to right aligned wordmark */}
+                        <Image
+                            src={logoWordmarkRightLightSrc}
+                            alt='adsa'
+                        />
                     </Box>
                     <Box
                         component='nav'

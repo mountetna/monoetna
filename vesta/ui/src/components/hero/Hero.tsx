@@ -7,18 +7,21 @@ import Image from 'next/image';
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 
-import oscc1_fallback from '/public/images/hero/oscc1_fallback.png'
+import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
+import xeniumFallback from '/public/images/hero/xenium-fallback.png'
+import arrowUpRightLightSrc from '/public/images/icons/arrow-up-right-light.svg'
 
 import { getRandomItem } from '@/lib/utils/random';
 
 
+// TODO: fix nextjs server vs client src prop disagreement
 const VIDEOS = [
-    '/videos/hero/oscc1.mp4',
-    '/videos/hero/xenium.mp4',
+    { videoSrc: '/videos/hero/oscc1.mp4', imageSrc: oscc1Fallback },
+    { videoSrc: '/videos/hero/xenium.mp4', imageSrc: xeniumFallback },
 ]
 
 export default function Hero() {
-
+    const video = getRandomItem(VIDEOS)
 
     return (
         <Box
@@ -53,6 +56,7 @@ export default function Hero() {
                         })}
                     >
                         <video
+                            // poster={video.imageSrc.src}
                             width='100%'
                             height='auto'
                             playsInline
@@ -61,11 +65,11 @@ export default function Hero() {
                             muted
                         >
                             <source
-                                src={getRandomItem(VIDEOS)}
+                                src={video.videoSrc}
                                 type='video/mp4'
                             />
                             <Image
-                                src={oscc1_fallback}
+                                src={video.imageSrc}
                                 alt='Picture of Spatial Transcriptomics'
                             />
                         </video>
@@ -88,16 +92,36 @@ export default function Hero() {
                         </Typography>
                         <Box>
                             <ButtonBase
-                                // sx={{
-                                //     px: '16px',
-                                //     py: '8px',
-                                //     color: 'utilityHighlight.main',
-                                //     backgroundColor: 'blue.grade50',
-                                //     borderRadius: '10px',
-                                //     typography: 'pBodyMediumWt',
-                                // }}
+                            // sx={{
+                            //     px: '16px',
+                            //     py: '8px',
+                            //     color: 'utilityHighlight.main',
+                            //     backgroundColor: 'blue.grade50',
+                            //     borderRadius: '10px',
+                            // }}
                             >
-                                <Box sx={{ backgroundColor: 'white' }} component='span'>AR</Box>
+                                <Box
+                                    component='span'
+                                    sx={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        borderRadius: '50%',
+                                        width: '52px',
+                                        height: '52px',
+                                        backgroundColor: 'ground.grade25',
+                                        '& img': {
+                                            width: '32px',
+                                            height: 'auto',
+                                            transform: 'rotate(135deg)',
+                                        }
+                                    }}
+                                >
+                                    <Image
+                                        src={arrowUpRightLightSrc}
+                                        alt='sda'
+                                    />
+                                </Box>
                                 <Typography variant='pMedium' color='ground.grade50'>
                                     Scroll to explore
                                 </Typography>
