@@ -1,4 +1,5 @@
 'use client';
+
 import { createTheme, alpha, PaletteColor } from '@mui/material/styles';
 import { theFuture, relativeMonoPro10Pitch } from '@/fonts';
 
@@ -402,7 +403,7 @@ let theme = createTheme({
       ease: 300,
       swell: 350,
       expo: 360,
-      quint: 400,
+      quint: 450,
     },
     easing: {
       ease: 'ease',
