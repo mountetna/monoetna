@@ -137,6 +137,7 @@ declare module '@mui/material/styles' {
     swell: number;
     expo: number;
     quint: number;
+    long: number;
   }
 
   interface Easing {
@@ -404,6 +405,7 @@ let theme = createTheme({
       swell: 350,
       expo: 360,
       quint: 450,
+      long: 2000,
     },
     easing: {
       ease: 'ease',

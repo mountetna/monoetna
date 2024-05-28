@@ -7,22 +7,16 @@ import Image from 'next/image';
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 
-import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
-import xeniumFallback from '/public/images/hero/xenium-fallback.png'
 import arrowUpRightLightSrc from '/public/images/icons/arrow-up-right-light.svg'
+import StatsCarousel, { Stats } from './StatsCarousel';
 
-import { getRandomItem } from '@/lib/utils/random';
 
+export interface Video {
+    videoSrc: string
+    imageSrc: string
+}
 
-// TODO: fix nextjs server vs client src prop disagreement
-const VIDEOS = [
-    { videoSrc: '/videos/hero/oscc1.mp4', imageSrc: oscc1Fallback },
-    { videoSrc: '/videos/hero/xenium.mp4', imageSrc: xeniumFallback },
-]
-
-export default function Hero() {
-    const video = getRandomItem(VIDEOS)
-
+export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
     return (
         <Box
             sx={{
@@ -35,8 +29,14 @@ export default function Hero() {
                         display: 'grid',
                         gridTemplateColumns: 'repeat(12, 1fr)',
                         gridTemplateRows: 'auto',
+                        pt: '26px',
+                        gap: '26px 0',
+                        [theme.breakpoints.up('tablet')]: {
+                            px: '17px',
+                        },
                         [theme.breakpoints.up('desktop')]: {
                             gridTemplateColumns: 'repeat(14, 1fr)',
+                            alignItems: 'center',
                         },
                     })}
                 >
@@ -47,16 +47,18 @@ export default function Hero() {
                                 height: 'auto',
                             },
                             gridColumn: 'span 12',
+                            px: '31px',
                             [theme.breakpoints.up('tablet')]: {
                                 gridColumn: 'span 10',
+                                px: '0',
                             },
                             [theme.breakpoints.up('desktop')]: {
                                 gridColumn: 'span 7',
                             },
                         })}
                     >
-                        <video
-                            // poster={video.imageSrc.src}
+                        <ovideo
+                            poster={video.imageSrc}
                             width='100%'
                             height='auto'
                             playsInline
@@ -71,35 +73,37 @@ export default function Hero() {
                             <Image
                                 src={video.imageSrc}
                                 alt='Picture of Spatial Transcriptomics'
+                                width={1080}
+                                height={1080}
                             />
-                        </video>
+                        </ovideo>
                     </Box>
                     <Box
                         sx={(theme) => ({
                             gridColumn: 'span 12',
                             color: 'utilityHighlight.main',
+                            py: '8px',
                             [theme.breakpoints.up('tablet')]: {
                                 gridColumn: 'span 10',
+                                px: '24px',
+                                py: '24px',
                             },
                             [theme.breakpoints.up('desktop')]: {
                                 gridColumn: 'span 7',
                             },
                         })}
                     >
-                        <Typography variant='h3'>
+                        <Typography
+                            variant='h3'
+                            sx={(theme) => ({
+                                pb: '18px',
+                            })}
+                        >
                             A library capturing, curating, and sharing biological data
                             generated on UCSF campus—enabling radically collaborative research.
                         </Typography>
                         <Box>
-                            <ButtonBase
-                            // sx={{
-                            //     px: '16px',
-                            //     py: '8px',
-                            //     color: 'utilityHighlight.main',
-                            //     backgroundColor: 'blue.grade50',
-                            //     borderRadius: '10px',
-                            // }}
-                            >
+                            <ButtonBase>
                                 <Box
                                     component='span'
                                     sx={{
@@ -110,6 +114,7 @@ export default function Hero() {
                                         width: '52px',
                                         height: '52px',
                                         backgroundColor: 'ground.grade25',
+                                        mr: '12px',
                                         '& img': {
                                             width: '32px',
                                             height: 'auto',
@@ -126,6 +131,42 @@ export default function Hero() {
                                     Scroll to explore
                                 </Typography>
                             </ButtonBase>
+                        </Box>
+                    </Box>
+                    <Box
+                        sx={(theme) => ({
+                            gridColumn: 'span 12',
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(12, 1fr)',
+                            alignContent: 'stretch',
+                            color: 'utilityHighlight.main',
+                            py: '8px',
+                            [theme.breakpoints.up('tablet')]: {
+                            },
+                            [theme.breakpoints.up('desktop')]: {
+                                gridColumn: '8 / span 7',
+                            },
+                        })}
+                    >
+                        <Box
+                            sx={(theme) => ({
+                                gridColumn: 'span 12',
+                                [theme.breakpoints.up('tablet')]: {
+                                    gridColumn: 'span 6',
+                                },
+                            })}
+                        >
+                            <StatsCarousel stats={stats} />
+                        </Box>
+                        <Box
+                            sx={(theme) => ({
+                                gridColumn: 'span 12',
+                                [theme.breakpoints.up('tablet')]: {
+                                    gridColumn: 'span 6',
+                                },
+                            })}
+                        >
+                            blah
                         </Box>
                     </Box>
                 </Box>
