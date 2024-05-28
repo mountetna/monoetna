@@ -2,6 +2,8 @@ import * as React from 'react';
 
 // This works for elements not already at the top of page.
 // Probably not a generalized solution.
+// TODO: fix glitches https://css-tricks.com/how-to-create-a-shrinking-header-on-scroll-without-javascript/
+// https://stackoverflow.com/questions/62249752/why-does-changing-the-height-of-a-positionsticky-element-alter-the-scroll-pos
 export default function useIsStuck(
     ref: React.RefObject<HTMLElement>,
     observerSettings: IntersectionObserverInit = {

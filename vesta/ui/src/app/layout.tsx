@@ -10,11 +10,13 @@ import Footer from '@/components/Footer';
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+      </head>
       <body>
         <AppRouterCacheProvider>
           <ThemeProvider theme={theme}>
             <CssBaseline enableColorScheme={true} />
-            
+
             <Nav />
             <main>{props.children}</main>
             <Footer />
