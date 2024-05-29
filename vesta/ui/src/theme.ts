@@ -1,11 +1,20 @@
 'use client';
 
 import { createTheme, alpha, PaletteColor } from '@mui/material/styles';
+// import { PaletteColorOptions } from '@mui/material/styles/createPalette';
 import { theFuture, relativeMonoPro10Pitch } from '@/fonts';
 
 
 declare module '@mui/material/styles' {
   // https://mui.com/material-ui/customization/palette/#typescript
+  interface PalleteColorsDL {
+    grade100: string;
+    grade75: string;
+    grade50: string;
+    grade25: string;
+    grade10: string;
+  }
+
   interface Palette {
     utilityLowlight: Palette['primary'];
     utilityHighlight: Palette['primary'];
@@ -13,14 +22,22 @@ declare module '@mui/material/styles' {
     utilityWhiteTransparent25: Palette['primary'];
     utilityUCSFNavy: Palette['primary'];
     utilityUCSFLightNavy: Palette['primary'];
-    ground: Palette['primary'];
-    green: Palette['primary'];
-    teal: Palette['primary'];
-    blue: Palette['primary'];
-    magenta: Palette['primary'];
-    red: Palette['primary'];
-    orange: Palette['primary'];
-    yellow: Palette['primary'];
+    ground: Palette['primary'] & PalleteColorsDL;
+    green: Palette['primary'] & PalleteColorsDL;
+    teal: Palette['primary'] & PalleteColorsDL;
+    blue: Palette['primary'] & PalleteColorsDL;
+    magenta: Palette['primary'] & PalleteColorsDL;
+    red: Palette['primary'] & PalleteColorsDL;
+    orange: Palette['primary'] & PalleteColorsDL;
+    yellow: Palette['primary'] & PalleteColorsDL;
+  }
+
+  interface PalleteColorOptionsDL {
+    grade100?: string;
+    grade75?: string;
+    grade50?: string;
+    grade25?: string;
+    grade10?: string;
   }
 
   interface PaletteOptions {
@@ -30,14 +47,14 @@ declare module '@mui/material/styles' {
     utilityWhiteTransparent25?: PaletteOptions['primary'];
     utilityUCSFNavy?: PaletteOptions['primary'];
     utilityUCSFLightNavy?: PaletteOptions['primary'];
-    ground?: PaletteOptions['primary'];
-    green?: PaletteOptions['primary'];
-    teal?: PaletteOptions['primary'];
-    blue?: PaletteOptions['primary'];
-    magenta?: PaletteOptions['primary'];
-    red?: PaletteOptions['primary'];
-    orange?: PaletteOptions['primary'];
-    yellow?: PaletteOptions['primary'];
+    ground?: PaletteOptions['primary'] & PalleteColorOptionsDL;
+    green?: PaletteOptions['primary'] & PalleteColorOptionsDL;
+    teal?: PaletteOptions['primary'] & PalleteColorOptionsDL;
+    blue?: PaletteOptions['primary'] & PalleteColorOptionsDL;
+    magenta?: PaletteOptions['primary'] & PalleteColorOptionsDL;
+    red?: PaletteOptions['primary'] & PalleteColorOptionsDL;
+    orange?: PaletteOptions['primary'] & PalleteColorOptionsDL;
+    yellow?: PaletteOptions['primary'] & PalleteColorOptionsDL;
   }
 
   // https://mui.com/material-ui/customization/typography/#adding-amp-disabling-variants
@@ -534,6 +551,7 @@ theme = createTheme(theme, {
   palette: paletteColors,
   typography: {
     h1: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 36,
       fontWeight: 700,
       lineHeight: '135%',
@@ -548,6 +566,7 @@ theme = createTheme(theme, {
       },
     },
     h2: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 24,
       fontWeight: 700,
       lineHeight: '140%',
@@ -562,6 +581,7 @@ theme = createTheme(theme, {
       },
     },
     h3: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 22,
       fontWeight: 700,
       lineHeight: '140%',
@@ -576,6 +596,7 @@ theme = createTheme(theme, {
       },
     },
     h3MediumWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 22,
       fontWeight: 500,
       lineHeight: '140%',
@@ -590,6 +611,7 @@ theme = createTheme(theme, {
       },
     },
     h3SmallCaps: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 22,
       fontWeight: 700,
       lineHeight: '140%',
@@ -597,12 +619,22 @@ theme = createTheme(theme, {
       fontVariant: 'all-small-caps', // TODO: verify this is accurate
     },
     h3Digits: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 46,
       fontWeight: 700,
       lineHeight: '140%',
-      letterSpacing: '0em',
+      letterSpacing: DEFAULT_LETTER_SPACING,
+      [theme.breakpoints.up('tablet')]: {
+        fontSize: 46,
+        lineHeight: '140%',
+      },
+      [theme.breakpoints.up('desktop')]: {
+        fontSize: 46,
+        lineHeight: '140%',
+      },
     },
     h4: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 22,
       fontWeight: 700,
       lineHeight: '140%',
@@ -617,6 +649,7 @@ theme = createTheme(theme, {
       },
     },
     h4SmallCaps: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 18,
       fontWeight: 700,
       lineHeight: '135%',
@@ -624,6 +657,7 @@ theme = createTheme(theme, {
       fontVariant: 'all-small-caps', // TODO: verify this is accurate
     },
     h5: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 20,
       fontWeight: 500,
       lineHeight: '140%',
@@ -638,6 +672,7 @@ theme = createTheme(theme, {
       },
     },
     h5BoldWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 20,
       fontWeight: 700,
       lineHeight: '140%',
@@ -652,6 +687,7 @@ theme = createTheme(theme, {
       },
     },
     h6: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 16,
       fontWeight: 500,
       lineHeight: '140%',
@@ -666,6 +702,7 @@ theme = createTheme(theme, {
       },
     },
     h6BoldWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 18,
       fontWeight: 700,
       lineHeight: '140%',
@@ -680,6 +717,7 @@ theme = createTheme(theme, {
       },
     },
     h6SmallCaps: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 14,
       fontWeight: 700,
       lineHeight: '153%',
@@ -687,6 +725,7 @@ theme = createTheme(theme, {
       fontVariant: 'all-small-caps', // TODO: verify this is accurate
     },
     pLarge: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 18,
       lineHeight: '150%',
       letterSpacing: DEFAULT_LETTER_SPACING,
@@ -701,6 +740,7 @@ theme = createTheme(theme, {
     },
     // only for tablet, desktop
     pLargeMediumWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 20,
       fontWeight: 500,
       lineHeight: '148%',
@@ -712,6 +752,7 @@ theme = createTheme(theme, {
     },
     // only for mobile, tablet
     pLargeBoldWt: {
+      fontFamily: theFuture.style.fontFamily,
       fontSize: 18,
       fontWeight: 700,
       lineHeight: '150%',

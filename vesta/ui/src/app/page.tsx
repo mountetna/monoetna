@@ -25,7 +25,7 @@ async function getData() {
     heroVideo: getRandomItem(VIDEOS),
     // TODO: replace with real data
     stats: {
-      bytes: 37.6e12,
+      bytes: 376e12,
       assays: 348500,
       subjects: 221,
       files: 641202,
