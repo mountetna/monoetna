@@ -6,6 +6,8 @@ import Container from '@mui/system/Container';
 import Image from 'next/image';
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
+import MUILink from '@mui/material/Link';
+import Link from 'next/link'
 
 import arrowUpRightLightSrc from '/public/images/icons/arrow-up-right-light.svg'
 import StatsCarousel, { Stats } from './StatsCarousel';
@@ -30,9 +32,10 @@ export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
                         gridTemplateColumns: 'repeat(12, 1fr)',
                         gridTemplateRows: 'auto',
                         pt: '26px',
+                        pb: '8px',
                         gap: '26px 0',
                         [theme.breakpoints.up('tablet')]: {
-                            px: '17px',
+                            pb: '16px',
                         },
                         [theme.breakpoints.up('desktop')]: {
                             gridTemplateColumns: 'repeat(14, 1fr)',
@@ -57,7 +60,7 @@ export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
                             },
                         })}
                     >
-                        <ovideo
+                        <video
                             poster={video.imageSrc}
                             width='100%'
                             height='auto'
@@ -76,7 +79,7 @@ export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
                                 width={1080}
                                 height={1080}
                             />
-                        </ovideo>
+                        </video>
                     </Box>
                     <Box
                         sx={(theme) => ({
@@ -138,13 +141,20 @@ export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
                             gridColumn: 'span 12',
                             display: 'grid',
                             gridTemplateColumns: 'repeat(12, 1fr)',
+                            gap: '8px',
                             alignContent: 'stretch',
                             color: 'utilityHighlight.main',
-                            py: '8px',
-                            [theme.breakpoints.up('tablet')]: {
-                            },
                             [theme.breakpoints.up('desktop')]: {
                                 gridColumn: '8 / span 7',
+                            },
+                            '& > *': {
+                                height: '211px',
+                                [theme.breakpoints.up('tablet')]: {
+                                    height: '211px',
+                                },
+                                [theme.breakpoints.up('desktop')]: {
+                                    height: '211px',
+                                },
                             },
                         })}
                     >
@@ -154,20 +164,67 @@ export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
                                 [theme.breakpoints.up('tablet')]: {
                                     gridColumn: 'span 6',
                                 },
+                                '& > *': {
+                                    height: '100%',
+                                },
                             })}
                         >
                             <StatsCarousel stats={stats} />
                         </Box>
-                        <Box
+                        <MUILink
+                            href="#"
+                            tabIndex={0}
+                            component={Link}
+                            underline='none'
                             sx={(theme) => ({
                                 gridColumn: 'span 12',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                p: '16px',
+                                borderRadius: '30px',
+                                backgroundColor: 'ground.grade25',
                                 [theme.breakpoints.up('tablet')]: {
                                     gridColumn: 'span 6',
                                 },
                             })}
                         >
-                            blah
-                        </Box>
+                            <Typography
+                                variant='h5'
+                                color='utilityHighlight.main'
+                            >
+                                Get Access
+                            </Typography>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    justifyContent: 'flex-end',
+                                }}
+                            >
+                                <Box
+                                    component='span'
+                                    sx={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        borderRadius: '50%',
+                                        width: '64px',
+                                        height: '64px',
+                                        color: 'ground.grade75',
+                                        backgroundColor: 'ground.grade10',
+                                        '& img': {
+                                            width: '39px',
+                                            height: 'auto',
+                                        }
+                                    }}
+                                >
+                                    <Image
+                                        src={arrowUpRightLightSrc}
+                                        alt='sda'
+                                    />
+                                </Box>
+                            </Box>
+                        </MUILink>
                     </Box>
                 </Box>
             </Container>

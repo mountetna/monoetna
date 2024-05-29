@@ -769,7 +769,7 @@ theme = createTheme(theme, {
         root: {
           padding: '0 8px',
           [theme.breakpoints.up('tablet')]: {
-            padding: '0 10px',
+            padding: '0 16px',
           },
           [theme.breakpoints.up('desktop')]: {
             padding: '0 16px',
