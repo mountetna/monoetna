@@ -23,7 +23,9 @@ import logoWordmarkBottomLightSrc from '/public/images/logo/logo-wordmark-bottom
 
 export default function Nav() {
     const mainNavRef = React.createRef<HTMLElement>()
-    const isStuck = useIsStuck(mainNavRef)
+    // TODO: fix glitchiness
+    // const isStuck = useIsStuck(mainNavRef)
+    const isStuck = true
     const transition = theme.transitions.create(
         ['opacity', 'color', 'background-color'],
         {
