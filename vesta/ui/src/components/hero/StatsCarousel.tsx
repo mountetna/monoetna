@@ -5,7 +5,7 @@ import Box from '@mui/system/Box'
 import ButtonBase from '@mui/material/ButtonBase';
 import { alpha } from '@mui/material/styles'
 import SwipeableViews from 'react-swipeable-views'
-import { autoPlay, bindKeyboard, SlideRenderProps } from 'react-swipeable-views-utils'
+import { autoPlay, bindKeyboard, virtualize, SlideRenderProps } from 'react-swipeable-views-utils'
 import { mod } from 'react-swipeable-views-core';
 
 import SimpleStat from '../stats/SimpleStat'
@@ -22,12 +22,14 @@ export interface Stats {
     users: number
 }
 
-const darkText = 'ground.grade10'
-const lightText = 'utilityHighlight.main'
+const darkText = theme.palette.ground.grade10
+const lightText = theme.palette.utilityHighlight.main
 
 export default function StatsCarousel({ stats }: { stats: Stats }) {
     const [itemIndex, setItemIndex] = React.useState<number>(0)
     const [carouselIndex, setCarouselIndex] = React.useState<number>(0)
+    const carouselContainerRef = React.createRef<HTMLElement>()
+    const [carouselContainerHeight, setCarouselContainerHeight] = React.useState<number>()
 
     const items = [
         {
@@ -71,6 +73,7 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
         setItemIndex(mod(indexNext, items.length))
     }
 
+    // use with virtualize
     const slideRenderer = (params: SlideRenderProps) => {
         const { index, key } = params
         const itemIndex = mod(index, items.length)
@@ -102,36 +105,49 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
         setItemIndex(index)
     }
 
+    React.useEffect(() => {
+        setCarouselContainerHeight(carouselContainerRef.current?.offsetHeight)
+    }, [carouselContainerRef.current])
+
     return (
         <Box
             ref={containerRef}
             sx={(theme) => ({
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
                 borderRadius: '30px',
                 backgroundColor: items[itemIndex].backgroundColor,
                 transition: bgTransition,
+                '& > *:first-child': {
+                    flexGrow: 1,
+                },
             })}
         >
-            <EnhancedSwipeableViews
-                enableMouseEvents
-                springConfig={{
-                    duration: `${theme.transitions.duration.quint / 1000}s`,
-                    easeFunction: theme.transitions.easing.quint,
-                    delay: '0s',
-                }}
-                interval={theme.transitions.duration.long}
-                index={carouselIndex}
-                onChangeIndex={handleChangeIndex}
-            >
-                {items.map((item) => {
-                    return <SimpleStat
-                        primary={{
-                            value: item.value,
-                            label: item.label,
-                        }}
-                        textColor={item.textColor}
-                    />
-                })}
-            </EnhancedSwipeableViews>
+            <Box ref={carouselContainerRef}>
+                <EnhancedSwipeableViews
+                    enableMouseEvents
+                    springConfig={{
+                        duration: `${theme.transitions.duration.quint / 1000}s`,
+                        easeFunction: theme.transitions.easing.quint,
+                        delay: '0s',
+                    }}
+                    interval={theme.transitions.duration.long}
+                    index={carouselIndex}
+                    onChangeIndex={handleChangeIndex}
+                >
+                    {items.map((item) => {
+                        return <SimpleStat
+                            primary={{
+                                value: item.value,
+                                label: item.label,
+                            }}
+                            textColor={item.textColor}
+                            heightPx={carouselContainerHeight}
+                        />
+                    })}
+                </EnhancedSwipeableViews>
+            </Box>
             <Box
                 sx={{
                     display: 'inline-flex',

@@ -13,15 +13,21 @@ export default function SimpleStat({
     secondary,
     deltaSign,
     textColor,
+    heightPx,
 }: {
     primary: Stat,
     secondary?: Stat,
     deltaSign?: '+' | '-',
-    textColor?: string
+    textColor?: string,
+    heightPx?: number,
 }) {
     return (
         <Box
             sx={(theme) => ({
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: heightPx !== undefined ? `${heightPx}px` : 'unset',
                 p: '16px',
                 borderRadius: '30px',
                 color: textColor || 'unset',
@@ -30,7 +36,8 @@ export default function SimpleStat({
             <Typography
                 variant='h5'
                 sx={(theme) => ({
-                    mb: '1.5em',
+                    height: '100%'
+                    // mb: '1.5em',
                 })}
             >
                 {primary.label}
