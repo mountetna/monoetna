@@ -3,6 +3,8 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import 'react-multi-carousel/lib/styles.css'
+import 'swiper/css';
+import 'swiper/css/bundle';
 
 import theme from '@/theme';
 import Nav from '@/components/nav/nav';

@@ -28,11 +28,13 @@ const VIDEOS = [
 
 const ABOUT_ITEMS = [
   {
+    title: 'About the Library',
     header: 'About the Data Library',
     body: 'The UCSF Data Library project aims to capture, curate, and share biological data generated on campus — enabling data search, exploration, visualization and cross-project analyses through a series of applications in available in your web browser. The library engineering team in the Data Science CoLab is building these tools with close collaboration and input from the CoLabs, ImmunoX, and participating CoProject labs.',
     imageSrc: aboutImg1.src,
   },
   {
+    title: 'Contributing',
     header: 'Contributing to the library',
     body: 'Anyone at UCSF can contribute data from their project, and external collaborators can reach out to add their data from the library while sharing data alike. The library is here to be a source for open collaboration to enable new research.',
     link: {
@@ -44,6 +46,7 @@ const ABOUT_ITEMS = [
     imageSrc: aboutImg2.src,
   },
   {
+    title: 'Available tools',
     header: 'What tools are available',
     body: 'The data library has many tools at your disposal, Janus for administration and permissions, midas for enim sem ut tincidunt vehicula vulputate donec etiam morbi. Ac nec facilisis sagittis aliquet. Felis laoreet sed rhoncus a quis odio dignissim est nisl. At est vulputate id etiam felis. Proin ac dapibus nec a pretium vel. Tincidunt feugiat dolor risus maecenas est est varius senectus scelerisque.',
     link: {
@@ -53,6 +56,7 @@ const ABOUT_ITEMS = [
     imageSrc: aboutImg3.src,
   },
   {
+    title: 'Getting access',
     header: 'Getting access to the library',
     body: 'The Data Library requires a library card to access. Each project is unique, and must be added to your card separately. All projects require signing a data sharing agreement to access.',
     link: {

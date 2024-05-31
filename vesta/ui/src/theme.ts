@@ -1,6 +1,6 @@
 'use client';
 
-import { createTheme, alpha, PaletteColor, SxProps } from '@mui/material/styles';
+import { createTheme, alpha, PaletteColor, SxProps, Theme } from '@mui/material/styles';
 // import { PaletteColorOptions } from '@mui/material/styles/createPalette';
 import { theFuture, relativeMonoPro10Pitch } from '@/fonts';
 
@@ -547,7 +547,7 @@ for (const [name, val] of Object.entries(colors)) {
   paletteColors[name] = { ...paletteColors[name], ...colorTokens }
 }
 
-export const containerPadding: SxProps = {
+export const containerPadding = {
   padding: '0 8px',
   [theme.breakpoints.up('tablet')]: {
     padding: '0 16px',
