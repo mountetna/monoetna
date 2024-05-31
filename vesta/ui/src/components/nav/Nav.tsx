@@ -8,11 +8,11 @@ import MUILink from '@mui/material/Link';
 import Link from 'next/link'
 import Image from 'next/image';
 
-import UCSFNav from './UCSFNav'
-import DLNav from './DLNav'
-import UCSFHomeLink from './UCSFHomeLink';
-import useIsStuck from '@/lib/utils/useIsStuck';
-import theme from '@/theme';
+import UCSFNav from './ucsf-nav'
+import DLNav from './dl-nav'
+import UCSFHomeLink from './ucsf-home-link';
+import useIsStuck from '@/lib/utils/css';
+import { useTheme } from '@mui/material/styles';
 
 import hamburgerIconLightSrc from '/public/images/icons/hamburger-menu-icon-light.svg'
 import hamburgerIconDarkSrc from '/public/images/icons/hamburger-menu-icon-dark.svg'
@@ -26,6 +26,7 @@ export default function Nav() {
     // TODO: fix glitchiness
     // const isStuck = useIsStuck(mainNavRef)
     const isStuck = true
+    const theme = useTheme()
     const transition = theme.transitions.create(
         ['opacity', 'color', 'background-color'],
         {
