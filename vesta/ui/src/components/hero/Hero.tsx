@@ -10,7 +10,7 @@ import MUILink from '@mui/material/Link';
 import Link from 'next/link'
 
 import arrowUpRightLightSrc from '/public/images/icons/arrow-up-right-light.svg'
-import StatsCarousel, { Stats } from './StatsCarousel';
+import StatsCarousel, { Stats } from './stats-carousel';
 
 
 export interface Video {
@@ -150,10 +150,10 @@ export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
                             '& > *': {
                                 height: '211px',
                                 [theme.breakpoints.up('tablet')]: {
-                                    height: '211px',
+                                    height: '203px',
                                 },
                                 [theme.breakpoints.up('desktop')]: {
-                                    height: '211px',
+                                    height: '198px',
                                 },
                             },
                         })}

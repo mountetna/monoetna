@@ -2,10 +2,11 @@ import * as React from 'react';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import 'react-multi-carousel/lib/styles.css'
 
 import theme from '@/theme';
-import Nav from '@/components/nav/Nav';
-import Footer from '@/components/Footer';
+import Nav from '@/components/nav/nav';
+import Footer from '@/components/footer';
 
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (

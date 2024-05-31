@@ -74,7 +74,7 @@ x-base-etna-services:
       - ./ui/public:/app/public:delegated
     depends_on:
       - 'vesta_app'
-    command: ["npm", "run", "dev"]
+    # command: ["npm", "run", "dev"]
     environment:
       APP_NAME: 'vesta_ui'
 

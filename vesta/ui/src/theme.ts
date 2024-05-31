@@ -1,6 +1,6 @@
 'use client';
 
-import { createTheme, alpha, PaletteColor } from '@mui/material/styles';
+import { createTheme, alpha, PaletteColor, SxProps } from '@mui/material/styles';
 // import { PaletteColorOptions } from '@mui/material/styles/createPalette';
 import { theFuture, relativeMonoPro10Pitch } from '@/fonts';
 
@@ -547,8 +547,23 @@ for (const [name, val] of Object.entries(colors)) {
   paletteColors[name] = { ...paletteColors[name], ...colorTokens }
 }
 
+export const containerPadding: SxProps = {
+  padding: '0 8px',
+  [theme.breakpoints.up('tablet')]: {
+    padding: '0 16px',
+  },
+  [theme.breakpoints.up('desktop')]: {
+    padding: '0 16px',
+  },
+}
+
 theme = createTheme(theme, {
-  palette: paletteColors,
+  palette: {
+    ...paletteColors,
+    background: {
+      default: paletteColors.utilityHighlight.main,
+    },
+  },
   typography: {
     h1: {
       fontFamily: theFuture.style.fontFamily,
@@ -766,18 +781,30 @@ theme = createTheme(theme, {
   components: {
     MuiContainer: {
       styleOverrides: {
-        root: {
-          padding: '0 8px',
-          [theme.breakpoints.up('tablet')]: {
-            padding: '0 16px',
-          },
-          [theme.breakpoints.up('desktop')]: {
-            padding: '0 16px',
-          },
-        }
+        root: {...containerPadding},
       },
     },
   }
 })
+
+// figure out a better way to incorporate in theme
+export const spacing: SxProps = {
+  mt: '45px',
+  [theme.breakpoints.up('tablet')]: {
+    mt: '80px',
+  },
+  [theme.breakpoints.up('desktop')]: {
+    mt: '100px',
+  },
+  '& > *': {
+    mb: '145px',
+    [theme.breakpoints.up('tablet')]: {
+      mb: '158px',
+    },
+    [theme.breakpoints.up('desktop')]: {
+      mb: '158px',
+    },
+  },
+}
 
 export default theme;
