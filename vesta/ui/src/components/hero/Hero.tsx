@@ -61,7 +61,7 @@ export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
                         })}
                     >
                         <video
-                            poster={video.imageSrc}
+                            // poster={video.imageSrc}
                             width='100%'
                             height='auto'
                             playsInline

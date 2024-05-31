@@ -1,6 +1,7 @@
+'use client'
+
 import * as React from 'react'
 import Box from '@mui/system/Box'
-import Container from '@mui/system/Container'
 import { containerPadding } from '@/theme'
 
 
@@ -24,14 +25,36 @@ export default function AboutItem({
 }) {
     return (
         <Box
+            className='about-item'
             sx={{
-                ...containerPadding,
                 width: '100vw',
                 maxWidth: 'desktopLg',
-                backgroundColor: 'black',
             }}
         >
-            {header}
+            <Box
+                sx={{
+                    ...containerPadding,
+                }}
+            >
+                <Box
+                    sx={(theme) => ({
+                        bgcolor: 'utilityWhite.main',
+                        borderRadius: '30px',
+                        px: '8px',
+                        py: '8px',
+                        [theme.breakpoints.up('tablet')]: {
+                            px: '30px',
+                            py: '30px',
+                        },
+                        [theme.breakpoints.up('desktop')]: {
+                            px: '30px',
+                            py: '30px',
+                        },
+                    })}
+                >
+                    {header}
+                </Box>
+            </Box>
         </Box>
     )
 }

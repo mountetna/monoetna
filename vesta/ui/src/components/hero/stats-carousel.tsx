@@ -23,6 +23,20 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
     const theme = useTheme()
     const darkText = theme.palette.ground.grade10
     const lightText = theme.palette.utilityHighlight.main
+    const bgTransition = theme.transitions.create(
+        ['background-color'],
+        {
+            duration: theme.transitions.duration.quint,
+            easing: theme.transitions.easing.quint,
+        },
+    )
+    const transformTransition = theme.transitions.create(
+        ['transform'],
+        {
+            duration: theme.transitions.duration.quint,
+            easing: theme.transitions.easing.quint,
+        },
+    )
 
     const [itemIndex, setItemIndex] = React.useState<number>(0)
     const carouselRef = React.createRef<Carousel>()
@@ -65,22 +79,6 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
         carouselRef.current?.goToSlide(index, true)
     }
 
-    const bgTransition = theme.transitions.create(
-        ['background-color'],
-        {
-            duration: theme.transitions.duration.quint,
-            easing: theme.transitions.easing.quint,
-        },
-    )
-
-    const transformTransition = theme.transitions.create(
-        ['transform'],
-        {
-            duration: theme.transitions.duration.quint,
-            easing: theme.transitions.easing.quint,
-        },
-    )
-
     return (
         <Box
             sx={{
@@ -110,6 +108,7 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
                             items: 1,
                         }
                     }}
+                    deviceType='global'
                     beforeChange={(nextSlide) => setItemIndex(nextSlide)}
                     swipeable={true}
                     draggable={true}
