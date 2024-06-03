@@ -13,13 +13,11 @@ export default function SimpleStat({
     secondary,
     deltaSign,
     textColor,
-    heightPx,
 }: {
     primary: Stat,
     secondary?: Stat,
     deltaSign?: '+' | '-',
     textColor?: string,
-    heightPx?: number,
 }) {
     return (
         <Box
@@ -28,7 +26,6 @@ export default function SimpleStat({
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                height: heightPx !== undefined ? `${heightPx}px` : 'unset',
                 p: '16px',
                 borderRadius: '30px',
                 color: textColor || 'unset',

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Box from '@mui/system/Box'
 import Container from '@mui/system/Container';
-import Image from 'next/image';
+import Image, { StaticImageData } from 'next/image';
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import MUILink from '@mui/material/Link';
@@ -15,7 +15,7 @@ import StatsCarousel, { Stats } from './stats-carousel';
 
 export interface Video {
     videoSrc: string
-    imageSrc: string
+    imageSrc: StaticImageData
 }
 
 export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
@@ -76,8 +76,6 @@ export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
                             <Image
                                 src={video.imageSrc}
                                 alt='Picture of Spatial Transcriptomics'
-                                width={1080}
-                                height={1080}
                             />
                         </video>
                     </Box>
