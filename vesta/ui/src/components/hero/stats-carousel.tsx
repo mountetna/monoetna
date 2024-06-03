@@ -5,7 +5,8 @@ import Box from '@mui/system/Box'
 import ButtonBase from '@mui/material/ButtonBase';
 import { alpha } from '@mui/material/styles'
 import { useTheme } from '@mui/material/styles';
-import Carousel from 'react-multi-carousel'
+import { Swiper, SwiperSlide, SwiperClass } from 'swiper/react';
+import { A11y, Autoplay } from 'swiper/modules'
 
 import SimpleStat from '../stats/simple-stat'
 
@@ -39,7 +40,7 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
     )
 
     const [itemIndex, setItemIndex] = React.useState<number>(0)
-    const carouselRef = React.createRef<Carousel>()
+    const [swiperRef, setSwiperRef] = React.useState<SwiperClass>()
 
     const items = [
         {
@@ -76,7 +77,7 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
 
     const handleClickCarouselIndexIndicator = (index: number) => {
         setItemIndex(index)
-        carouselRef.current?.goToSlide(index, true)
+        swiperRef?.slideTo(index, undefined, false)
     }
 
     return (
@@ -95,35 +96,29 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
         >
             <Box
                 sx={{
-                    '& .react-multi-carousel-list, .react-multi-carousel-track, .simple-stat': {
+                    '& .swiper, .swiper-wrapper, .swiper-slide': {
                         height: '100%',
+                    },
+                    '& .simple-stat': {
+                        // TODO: why can't this be just 100%?
+                        height: 'calc(100% - 32px)',
+                    },
+                    '& .swiper-wrapper': {
+                        transition: transformTransition,
                     },
                 }}
             >
-                <Carousel
-                    ref={carouselRef}
-                    responsive={{
-                        global: {
-                            breakpoint: { max: 3000, min: 0 },
-                            items: 1,
-                        }
+                <Swiper
+                    modules={[A11y, Autoplay]}
+                    autoplay={{
+                        delay: theme.transitions.duration.long,
                     }}
-                    deviceType='global'
-                    beforeChange={(nextSlide) => setItemIndex(nextSlide)}
-                    swipeable={true}
-                    draggable={true}
-                    keyBoardControl={true}
-                    ssr={true}
-                    autoPlay={true}
-                    autoPlaySpeed={2000}
-                    customTransition={transformTransition}
-                    arrows={false}
-                    rewind={true}
-                    rewindWithAnimation={true}
+                    onInit={(swiper) => setSwiperRef(swiper)}
+                    onSlideChange={(swiper) => setItemIndex(swiper.activeIndex)}
                 >
                     {items.map((item) => {
                         return (
-                            <React.Fragment key={item.label}>
+                            <SwiperSlide key={item.label}>
                                 <SimpleStat
                                     primary={{
                                         value: item.value,
@@ -131,10 +126,10 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
                                     }}
                                     textColor={item.textColor}
                                 />
-                            </React.Fragment>
+                            </SwiperSlide>
                         )
                     })}
-                </Carousel>
+                </Swiper>
             </Box>
             <Box
                 sx={{

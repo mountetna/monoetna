@@ -1,7 +1,6 @@
 'use client';
 
-import { createTheme, alpha, PaletteColor, SxProps, Theme } from '@mui/material/styles';
-// import { PaletteColorOptions } from '@mui/material/styles/createPalette';
+import { createTheme, alpha, PaletteColor, SxProps } from '@mui/material/styles';
 import { theFuture, relativeMonoPro10Pitch } from '@/fonts';
 
 
@@ -443,6 +442,13 @@ let theme = createTheme({
         disableRipple: true,
       },
     },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          fontFeatureSettings: '"ss10"',
+        },
+      },
+    },
   }
 });
 
@@ -781,7 +787,7 @@ theme = createTheme(theme, {
   components: {
     MuiContainer: {
       styleOverrides: {
-        root: {...containerPadding},
+        root: { ...containerPadding },
       },
     },
   }

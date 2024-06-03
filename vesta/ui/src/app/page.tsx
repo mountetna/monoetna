@@ -21,9 +21,9 @@ export const metadata: Metadata = {
 }
 
 const VIDEOS = [
-  { videoSrc: '/videos/hero/oscc1.mp4', imageSrc: oscc1Fallback.src },
-  { videoSrc: '/videos/hero/xenium.mp4', imageSrc: xeniumFallback.src },
-  { videoSrc: '/videos/hero/tonsil.mp4', imageSrc: tonsilFallback.src },
+  { videoSrc: '/videos/hero/oscc1.mp4', imageSrc: oscc1Fallback },
+  { videoSrc: '/videos/hero/xenium.mp4', imageSrc: xeniumFallback },
+  { videoSrc: '/videos/hero/tonsil.mp4', imageSrc: tonsilFallback },
 ]
 
 const ABOUT_ITEMS = [
@@ -31,7 +31,10 @@ const ABOUT_ITEMS = [
     title: 'About the Library',
     header: 'About the Data Library',
     body: 'The UCSF Data Library project aims to capture, curate, and share biological data generated on campus — enabling data search, exploration, visualization and cross-project analyses through a series of applications in available in your web browser. The library engineering team in the Data Science CoLab is building these tools with close collaboration and input from the CoLabs, ImmunoX, and participating CoProject labs.',
-    imageSrc: aboutImg1.src,
+    image: {
+      src: aboutImg1,
+      alt: 'Random Data Library iconography',
+    },
   },
   {
     title: 'Contributing',
@@ -43,7 +46,10 @@ const ABOUT_ITEMS = [
       href: '#',
       label: 'Get in touch',
     },
-    imageSrc: aboutImg2.src,
+    image: {
+      src: aboutImg2,
+      alt: 'Biologist holding a test tube',
+    },
   },
   {
     title: 'Available tools',
@@ -53,7 +59,10 @@ const ABOUT_ITEMS = [
       href: '#',
       label: 'Get Access',
     },
-    imageSrc: aboutImg3.src,
+    image: {
+      src: aboutImg3,
+      alt: 'Screenshot of Data Library tools',
+    },
   },
   {
     title: 'Getting access',
@@ -63,7 +72,10 @@ const ABOUT_ITEMS = [
       href: '#',
       label: 'Get Access',
     },
-    imageSrc: aboutImg4.src,
+    image: {
+      src: aboutImg4,
+      alt: 'A few Data Library library cards',
+    },
   },
 ]
 
