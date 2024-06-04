@@ -8,16 +8,10 @@ import { useTheme } from '@mui/material/styles';
 import { Swiper, SwiperSlide, SwiperClass } from 'swiper/react';
 import { A11y, Autoplay } from 'swiper/modules'
 
-import SimpleStat from '../stats/simple-stat'
+import StatCard from './stat-card'
 
 
-export interface Stats {
-    bytes: number
-    assays: number
-    subjects: number
-    files: number
-    users: number
-}
+export type Stats = Record<'bytes' | 'assays' | 'subjects' | 'files' | 'users', number>
 
 
 export default function StatsCarousel({ stats }: { stats: Stats }) {
@@ -80,6 +74,8 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
         swiperRef?.slideTo(index, undefined, false)
     }
 
+    const simpleStatPaddingPx = 16
+
     return (
         <Box
             sx={{
@@ -101,7 +97,8 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
                     },
                     '& .simple-stat': {
                         // TODO: why can't this be just 100%?
-                        height: 'calc(100% - 32px)',
+                        height: `calc(100% - ${simpleStatPaddingPx * 2}px)`,
+                        padding: `${simpleStatPaddingPx * 2}px)`
                     },
                     '& .swiper-wrapper': {
                         transition: transformTransition,
@@ -119,7 +116,7 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
                     {items.map((item) => {
                         return (
                             <SwiperSlide key={item.label}>
-                                <SimpleStat
+                                <StatCard
                                     primary={{
                                         value: item.value,
                                         label: item.label,

@@ -5,7 +5,8 @@ import Box from '@mui/system/Box'
 import Hero from '@/components/hero/hero';
 import { getRandomItem } from '@/lib/utils/random';
 import AboutCarousel from '@/components/about/about-carousel';
-import { spacing } from '@/theme';
+import LibraryStats from '@/components/stats/library-stats';
+import { sectionMargins } from '@/theme';
 
 import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
 import xeniumFallback from '/public/images/hero/xenium-fallback.png'
@@ -79,17 +80,41 @@ const ABOUT_ITEMS = [
   },
 ]
 
+function getRandomArbitrary(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min) + min)
+}
+
+const startDate = new Date(Date.now())
+startDate.setDate(startDate.getDate() - 365)
+
+const STATS = {
+  bytes: Array(365).fill(null).map((_, i) => ({
+    timestamp: (new Date(startDate.getDate() + i)).getTime(),
+    value: getRandomArbitrary(1e12, 999e12)
+  })),
+  assays: Array(365).fill(null).map((_, i) => ({
+    timestamp: (new Date(startDate.getDate() + i)).getTime(),
+    value: getRandomArbitrary(1000, 400000)
+  })),
+  subjects: Array(365).fill(null).map((_, i) => ({
+    timestamp: (new Date(startDate.getDate() + i)).getTime(),
+    value: getRandomArbitrary(10, 999)
+  })),
+  files: Array(365).fill(null).map((_, i) => ({
+    timestamp: (new Date(startDate.getDate() + i)).getTime(),
+    value: getRandomArbitrary(1000, 999999)
+  })),
+  users: Array(365).fill(null).map((_, i) => ({
+    timestamp: (new Date(startDate.getDate() + i)).getTime(),
+    value: getRandomArbitrary(100, 1000)
+  })),
+}
+
 async function getData() {
   return {
     heroVideo: getRandomItem(VIDEOS),
     // TODO: replace with real data
-    stats: {
-      bytes: 376e12,
-      assays: 348500,
-      subjects: 221,
-      files: 641202,
-      users: 519,
-    },
+    stats: STATS,
     // TODO: replace with real data
     aboutItems: ABOUT_ITEMS,
   }
@@ -98,16 +123,31 @@ async function getData() {
 export default async function Home() {
   const data = await getData()
 
+  // @ts-ignore
+  const latestStats: Record<keyof typeof STATS, number> = {}
+  for (const [k, v] of Object.entries(STATS)) {
+    // @ts-ignore
+    latestStats[k] = v[v.length - 1].value
+  }
+
   return (
     <React.Fragment>
       <Hero
         video={data.heroVideo}
-        stats={data.stats}
+        stats={latestStats}
         scrollTargetId='about'
       />
-      <Box sx={spacing} id='about'>
-        <AboutCarousel items={data.aboutItems} />
+
+      <Box sx={sectionMargins}>
+        <Box id='about'>
+          <AboutCarousel items={data.aboutItems} />
+        </Box>
+
+        <Box id='stats'>
+          <LibraryStats stats={data.stats} />
+        </Box>
       </Box>
+
     </React.Fragment>
   );
 }

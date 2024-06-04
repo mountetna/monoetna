@@ -794,7 +794,7 @@ theme = createTheme(theme, {
 })
 
 // figure out a better way to incorporate in theme
-export const spacing: SxProps = {
+export const sectionMargins: SxProps = {
   mt: '45px',
   [theme.breakpoints.up('tablet')]: {
     mt: '80px',
@@ -810,6 +810,17 @@ export const spacing: SxProps = {
     [theme.breakpoints.up('desktop')]: {
       mb: '158px',
     },
+  },
+}
+
+// figure out a better way to incorporate in theme
+export const headerMargins: SxProps = {
+  mb: '30px',
+  [theme.breakpoints.up('tablet')]: {
+    mb: '30px',
+  },
+  [theme.breakpoints.up('desktop')]: {
+    mb: '30px',
   },
 }
 

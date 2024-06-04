@@ -101,12 +101,12 @@ export default function DLNav({ isStuck }: { isStuck: boolean }) {
                     isStuck={isStuck}
                     onClick={handleClickNavLink}
                 />
-                {/* <NavLink
+                <NavLink
                     text='Contibute'
                     href='#'
                     isStuck={isStuck}
                     onClick={handleClickNavLink}
-                /> */}
+                />
             </Box>
             <Box
                 component='li'

@@ -10,8 +10,8 @@ import MUILink from '@mui/material/Link';
 import Link from 'next/link'
 import { useRouter } from 'next/navigation';
 
+import StatsCarousel, { Stats } from '@/components/stats/stats-carousel';
 import arrowUpRightLightSrc from '/public/images/icons/arrow-up-right-light.svg'
-import StatsCarousel, { Stats } from './stats-carousel';
 
 
 export interface Video {
@@ -113,7 +113,7 @@ export default function Hero({ video, stats, scrollTargetId }: { video: Video, s
                             })}
                         >
                             A library capturing, curating, and sharing biological data
-                            generated on UCSF campus—enabling radically collaborative research.
+                            generated on UCSF campus — enabling radically collaborative research.
                         </Typography>
                         <Box>
                             <ButtonBase
