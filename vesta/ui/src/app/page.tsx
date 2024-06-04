@@ -103,8 +103,9 @@ export default async function Home() {
       <Hero
         video={data.heroVideo}
         stats={data.stats}
+        scrollTargetId='about'
       />
-      <Box sx={spacing}>
+      <Box sx={spacing} id='about'>
         <AboutCarousel items={data.aboutItems} />
       </Box>
     </React.Fragment>

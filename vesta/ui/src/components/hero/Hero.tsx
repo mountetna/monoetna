@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import MUILink from '@mui/material/Link';
 import Link from 'next/link'
+import { useRouter } from 'next/navigation';
 
 import arrowUpRightLightSrc from '/public/images/icons/arrow-up-right-light.svg'
 import StatsCarousel, { Stats } from './stats-carousel';
@@ -18,7 +19,18 @@ export interface Video {
     imageSrc: StaticImageData
 }
 
-export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
+export default function Hero({ video, stats, scrollTargetId }: { video: Video, stats: Stats, scrollTargetId: string }) {
+    const router = useRouter()
+
+    const handleClickScrollToExplore = (event: React.MouseEvent<HTMLElement>) => {
+        const el = document.getElementById(scrollTargetId)
+
+        window.scrollTo({
+            top: el?.offsetTop,
+            behavior: 'smooth',
+        })
+    }
+
     return (
         <Box
             sx={{
@@ -104,7 +116,9 @@ export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
                             generated on UCSF campus—enabling radically collaborative research.
                         </Typography>
                         <Box>
-                            <ButtonBase>
+                            <ButtonBase
+                                onClick={handleClickScrollToExplore}
+                            >
                                 <Box
                                     component='span'
                                     sx={{
@@ -125,7 +139,7 @@ export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
                                 >
                                     <Image
                                         src={arrowUpRightLightSrc}
-                                        alt='sda'
+                                        alt='Arrow pointing down'
                                     />
                                 </Box>
                                 <Typography variant='pMedium' color='ground.grade50'>
@@ -218,7 +232,7 @@ export default function Hero({ video, stats }: { video: Video, stats: Stats }) {
                                 >
                                     <Image
                                         src={arrowUpRightLightSrc}
-                                        alt='sda'
+                                        alt='Arrow pointing up-right'
                                     />
                                 </Box>
                             </Box>
