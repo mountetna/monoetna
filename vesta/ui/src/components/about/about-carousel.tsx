@@ -218,10 +218,10 @@ export default function AboutCarousel({ items }: { items: AboutItemProps[] }) {
                         top: 0,
                         width: '47px',
                         height: '100%',
-                        [theme.breakpoints.up(theme.breakpoints.values.desktopLg)]: {
+                        [theme.breakpoints.up(theme.breakpoints.values.desktopLg + 47)]: {
                             display: 'block',
                         },
-                        [theme.breakpoints.up(theme.breakpoints.values.desktopLg + 220)]: {
+                        [theme.breakpoints.up(theme.breakpoints.values.desktopLg + 300)]: {
                             width: '220px'
                         },
                     },
