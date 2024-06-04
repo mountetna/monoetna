@@ -44,7 +44,7 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
 
     const items = [
         {
-            label: 'Total Data',
+            label: 'Total Data Stored',
             value: `${Math.round(stats.bytes / 1e12).toLocaleString()}TB`,
             textColor: darkText,
             backgroundColor: theme.palette.yellow.grade50,

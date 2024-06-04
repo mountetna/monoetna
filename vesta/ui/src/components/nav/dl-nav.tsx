@@ -5,9 +5,15 @@ import Box from '@mui/material/Box';
 
 import LibraryCardButton from '../library-card/LibraryCardButton';
 import LibraryCardTray from '../library-card/LibraryCardTray';
+import { useRouter } from 'next/navigation';
 
 
-function NavLink({ text, href, isStuck }: { text: string, href: string, isStuck: boolean }) {
+function NavLink({ text, href, isStuck, onClick }: {
+    text: string,
+    href: string,
+    isStuck: boolean,
+    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void,
+}) {
     return (
         <Box
             component='li'
@@ -23,6 +29,7 @@ function NavLink({ text, href, isStuck }: { text: string, href: string, isStuck:
                 underline='none'
                 color={isStuck ? 'utilityLowlight.main' : 'utilityHighlight.main'}
                 typography='pBodyMediumWt'
+                onClick={onClick}
             >
                 {text}
             </MUILink>
@@ -32,6 +39,22 @@ function NavLink({ text, href, isStuck }: { text: string, href: string, isStuck:
 
 
 export default function DLNav({ isStuck }: { isStuck: boolean }) {
+    const router = useRouter()
+
+    const handleClickNavLink = (event: React.MouseEvent<HTMLAnchorElement>) => {
+        event.preventDefault()
+
+        const href = event.currentTarget.href
+        const elId = href.split('#')[1]
+        const el = document.getElementById(elId)
+
+        router.push(href, { scroll: false })
+        window.scrollTo({
+            top: el?.offsetTop,
+            behavior: 'smooth',
+        })
+    }
+
     return (
         <Box
             component='ol'
@@ -62,23 +85,27 @@ export default function DLNav({ isStuck }: { isStuck: boolean }) {
             >
                 <NavLink
                     text='About the Library'
-                    href='/about'
+                    href='#about'
                     isStuck={isStuck}
+                    onClick={handleClickNavLink}
                 />
                 <NavLink
                     text='Themes'
-                    href='/themes'
+                    href='#'
                     isStuck={isStuck}
+                    onClick={handleClickNavLink}
                 />
                 <NavLink
                     text='Projects'
-                    href='/projects'
+                    href='#'
                     isStuck={isStuck}
+                    onClick={handleClickNavLink}
                 />
                 {/* <NavLink
                     text='Contibute'
                     href='#'
                     isStuck={isStuck}
+                    onClick={handleClickNavLink}
                 /> */}
             </Box>
             <Box
