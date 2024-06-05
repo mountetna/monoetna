@@ -3,8 +3,8 @@ import MUILink from '@mui/material/Link';
 import Link from 'next/link'
 import Box from '@mui/material/Box';
 
-import LibraryCardButton from '../library-card/LibraryCardButton';
-import LibraryCardTray from '../library-card/LibraryCardTray';
+import LibraryCardButton from '../library-card/library-card-button';
+import LibraryCardTray from '../library-card/library-card-tray';
 import { useRouter } from 'next/navigation';
 
 

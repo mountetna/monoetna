@@ -1,17 +1,21 @@
-import { unit, format } from 'mathjs'
-
-
 export interface SIValue {
     value: number
     SIUnitPrefix: string
 }
 
-export function roundValueToNearestSIUnit(value: number, precision: number = 3): SIValue {
-    const simpleSIUnit = 'Hz'
-    const formatted = format(unit(value, simpleSIUnit), precision).split(' ')
+const SI_PREFIXES = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+
+export function roundValueToNearestSIPrefix(value: number, precision: number = 3): SIValue {
+    const base = 1000
+    let index = 0
+
+    while (Math.abs(value) >= base && index < SI_PREFIXES.length - 1) {
+        value /= base
+        index++
+    }
 
     return {
-        value: Number(formatted[0]),
-        SIUnitPrefix: formatted[1].replace(simpleSIUnit, '')
+        value: Number(Number(value.toFixed(0)).toPrecision(precision)),
+        SIUnitPrefix: SI_PREFIXES[index]
     }
 }
