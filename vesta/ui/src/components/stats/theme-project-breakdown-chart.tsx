@@ -2,10 +2,10 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 
 
-export default function StatGraph() {
+export default function ThemeProjectBreakdownChart() {
     return (
         <Box
-            className='stat-graph'
+            className='theme-project-breakdown-chart'
         >
 
         </Box>

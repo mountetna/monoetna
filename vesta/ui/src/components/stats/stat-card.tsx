@@ -5,6 +5,8 @@ import Image from 'next/image';
 
 import carrotDarkUp from '/public/images/icons/indicator-arrow-dark.svg'
 import carrotLightUp from '/public/images/icons/indicator-arrow-light.svg'
+import { useTheme } from '@mui/material';
+import { useWindowDimensions } from '@/lib/utils/responsive';
 
 
 interface Stat {
@@ -19,6 +21,7 @@ export default function StatCard({
     deltaColor,
     textColor,
     backgroundColor,
+    alwaysShowSecondary = false,
 }: {
     primary: Stat,
     secondary?: Stat,
@@ -26,10 +29,48 @@ export default function StatCard({
     deltaColor?: 'light' | 'dark',
     textColor?: string,
     backgroundColor?: string,
+    alwaysShowSecondary?: boolean,
 }) {
+    const theme = useTheme()
+    const {
+        dimensions: windowDimensions,
+        isResizing: isWindowResizing,
+    } = useWindowDimensions()
+
+    const transition = theme.transitions.create(
+        ['all'],
+        {
+            duration: theme.transitions.duration.ease,
+            easing: theme.transitions.easing.ease,
+        },
+    )
+
+    const statContainer = React.useRef<HTMLElement>()
+    const statPrimaryContainer = React.useRef<HTMLElement>()
+    const [
+        statPrimaryContainerInitialVerticalOffsetPx,
+        setStatPrimaryContainerInitialVerticalOffsetPx
+    ] = React.useState<number>(0)
+
+    React.useEffect(() => {
+        const _statContainer = statContainer.current
+        const _statPrimaryContainer = statPrimaryContainer.current
+        if (
+            alwaysShowSecondary === true
+            || (_statContainer === undefined || _statPrimaryContainer === undefined)
+            || [_statContainer.offsetHeight, _statPrimaryContainer.offsetHeight].indexOf(0) >= 0
+        ) {
+            return
+        }
+
+        setStatPrimaryContainerInitialVerticalOffsetPx(
+            _statContainer.offsetHeight - _statPrimaryContainer.offsetHeight
+        )
+    }, [statContainer, statPrimaryContainer, windowDimensions])
+
     return (
         <Box
-            className='simple-stat'
+            className='stat-card'
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -38,17 +79,38 @@ export default function StatCard({
                 borderRadius: '30px',
                 color: textColor || 'unset',
                 bgcolor: backgroundColor || 'unset',
+                '& .stat-primary': {
+                    position: 'relative',
+                    top: `${statPrimaryContainerInitialVerticalOffsetPx}px`,
+                    transition: isWindowResizing ? 'unset': transition,
+                },
+                '& .delta-icon, & .stat-secondary': {
+                    transition: transition,
+                    opacity: alwaysShowSecondary ? 1 : 0,
+                },
+                '&:hover, &:focus': {
+                    '& .stat-primary': {
+                        position: 'relative',
+                        top: 0,
+                    },
+                    '& .delta-icon, & .stat-secondary': {
+                        opacity: 1,
+                    },
+                },
             }}
         >
             <Typography variant='h5'>
                 {primary.label}
             </Typography>
             <Box
+                ref={statContainer}
                 sx={{
                     mb: '5px',
                 }}
             >
                 <Box
+                    ref={statPrimaryContainer}
+                    className='stat stat-primary'
                     sx={{
                         display: 'flex',
                     }}
@@ -58,6 +120,7 @@ export default function StatCard({
                     </Typography>
                     {deltaSign &&
                         <Box
+                            className='delta-icon'
                             sx={{
                                 ml: '10px',
                                 transform: `rotate(${deltaSign === '+' ? '0' : '180'}deg)`
@@ -70,7 +133,9 @@ export default function StatCard({
                         </Box>}
                 </Box>
                 {secondary &&
-                    <Box>
+                    <Box
+                        className='stat stat-secondary'
+                    >
                         <Typography variant='h5'>
                             {secondary.value} {secondary.label}
                         </Typography>

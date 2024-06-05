@@ -15,6 +15,7 @@ import aboutImg1 from '/public/images/about-carousel/carousel-img-1.png'
 import aboutImg2 from '/public/images/about-carousel/carousel-img-2.png'
 import aboutImg3 from '/public/images/about-carousel/carousel-img-3.png'
 import aboutImg4 from '/public/images/about-carousel/carousel-img-4.png'
+import { Instance } from '@/components/stats/types';
 
 
 export const metadata: Metadata = {
@@ -90,23 +91,27 @@ startDate.setDate(startDate.getDate() - 365)
 const STATS = {
   bytes: Array(365).fill(null).map((_, i) => ({
     timestamp: (new Date(startDate.getDate() + i)).getTime(),
-    value: getRandomArbitrary(1e12, 999e12)
+    value: getRandomArbitrary(1e12, 999e12),
   })),
   assays: Array(365).fill(null).map((_, i) => ({
     timestamp: (new Date(startDate.getDate() + i)).getTime(),
-    value: getRandomArbitrary(1000, 400000)
+    value: getRandomArbitrary(1000, 400000),
   })),
   subjects: Array(365).fill(null).map((_, i) => ({
     timestamp: (new Date(startDate.getDate() + i)).getTime(),
-    value: getRandomArbitrary(10, 999)
+    value: getRandomArbitrary(10, 999),
   })),
   files: Array(365).fill(null).map((_, i) => ({
     timestamp: (new Date(startDate.getDate() + i)).getTime(),
-    value: getRandomArbitrary(1000, 999999)
+    value: getRandomArbitrary(1000, 999999),
+  })),
+  samples: Array(365).fill(null).map((_, i) => ({
+    timestamp: (new Date(startDate.getDate() + i)).getTime(),
+    value: getRandomArbitrary(100000, 999999),
   })),
   users: Array(365).fill(null).map((_, i) => ({
     timestamp: (new Date(startDate.getDate() + i)).getTime(),
-    value: getRandomArbitrary(100, 1000)
+    value: getRandomArbitrary(100, 1000),
   })),
 }
 
@@ -123,28 +128,30 @@ async function getData() {
 export default async function Home() {
   const data = await getData()
 
-  // @ts-ignore
-  const latestStats: Record<keyof typeof STATS, number> = {}
-  for (const [k, v] of Object.entries(STATS)) {
-    // @ts-ignore
-    latestStats[k] = v[v.length - 1].value
+  const carouselStats = {} as Record<keyof typeof STATS, number>
+  for (const [k, v] of (Object.entries(STATS) as [keyof typeof STATS, Instance<number>[]][])) {
+    carouselStats[k] = v[v.length - 1].value
   }
 
   return (
     <React.Fragment>
       <Hero
         video={data.heroVideo}
-        stats={latestStats}
+        stats={carouselStats}
         scrollTargetId='about'
       />
 
       <Box sx={sectionMargins}>
         <Box id='about'>
-          <AboutCarousel items={data.aboutItems} />
+          <AboutCarousel
+            items={data.aboutItems}
+          />
         </Box>
 
         <Box id='stats'>
-          <LibraryStats stats={data.stats} />
+          <LibraryStats
+            stats={data.stats}
+          />
         </Box>
       </Box>
 
