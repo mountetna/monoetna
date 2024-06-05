@@ -11,29 +11,39 @@ import StatGraph from './stat-graph'
 import { Instance } from './types';
 import theme, { headerMargins } from '@/theme';
 import { SIValue, roundValueToNearestSIPrefix } from '@/lib/utils/units';
+import ThemeProjectBreakdownChart from './theme-project-breakdown-chart';
 
 
 export type StatsTimeseries = Record<keyof StatsProp, Instance<number>[]>
 
 export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
-    const gridGap = '16px'
+    const darkText = theme.palette.ground.grade10
+    const lightText = theme.palette.utilityHighlight.main
+    const itemGap = '16px'
+    const itemBorderRadius = '30px'
 
-    // @ts-ignore
-    const latestStats: Record<keyof StatsProp, SIValue> = {}
-    // @ts-ignore
-    const since7DaysAgo: Record<keyof StatsProp, SIValue> = {}
+    const latestStats = {} as Record<keyof StatsProp, SIValue>
+    const since7DaysAgo = {} as Record<keyof StatsProp, SIValue>
+    const carouselStats = {} as Record<keyof StatsProp, number>
 
-    for (const [k, v] of Object.entries(stats)) {
+    for (const [k, v] of (Object.entries(stats) as [keyof StatsProp, Instance<number>[]][])) {
 
         const latest = v[v.length - 1].value
-        // @ts-ignore
         latestStats[k] = roundValueToNearestSIPrefix(latest)
-        // @ts-ignore
         since7DaysAgo[k] = roundValueToNearestSIPrefix(latest - v[v.length - 8].value)
+        carouselStats[k] = latest
     }
 
+    const gridGap = '16px'
+
     return (
-        <Container>
+        <Container
+            sx={{
+                '& > *:not(:first-child)': {
+                    mb: itemGap,
+                },
+            }}
+        >
             <Typography
                 variant='h1'
                 sx={{
@@ -48,8 +58,17 @@ export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(12, 1fr)',
                     columnGap: gridGap,
+                    height: '653px',
+                    [theme.breakpoints.up('tablet')]: {
+                        height: '659px',
+                    },
+                    [theme.breakpoints.up('desktop')]: {
+                        height: '622px',
+                    },
                     '& .stat-graph': {
                         gridColumn: 'span 12',
+                        bgcolor: 'magenta.grade50',
+                        borderRadius: itemBorderRadius,
                         [theme.breakpoints.up('tablet')]: {
                             gridColumn: 'span 8',
                         },
@@ -57,7 +76,7 @@ export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
                             gridColumn: 'span 9',
                         },
                     },
-                    '& .simple-stat': {
+                    '& .stat-card': {
                         display: 'none',
                         [theme.breakpoints.up('tablet')]: {
                             display: 'flex',
@@ -80,30 +99,121 @@ export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
                         label: 'added this week',
                     }}
                     deltaSign='+'
-                    textColor='utilityLowlight.main'
+                    textColor={darkText}
                     backgroundColor={theme.palette.yellow.grade50}
+                    alwaysShowSecondary={true}
                 />
             </Box>
             <Box
                 sx={(theme) => ({
+                    height: '198px',
                     [theme.breakpoints.up('tablet')]: {
                         display: 'none',
                     },
-                })}
-            >
-                <StatsCarousel stats={latestStats} />
-            </Box>
-            <Box
-                sx={(theme) => ({
-                    display: 'none',
-                    [theme.breakpoints.up('tablet')]: {
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(2, 1fr)',
-                        columnGap: '',
+                    '& .stats-carousel': {
+                        height: '100%',
                     },
                 })}
             >
+                <StatsCarousel stats={carouselStats} />
+            </Box>
+            <Box
+                sx={(theme) => ({
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(13, 1fr)',
+                    gap: itemGap,
+                })}
+            >
+                <Box
+                    sx={(theme) => ({
+                        display: 'none',
+                        [theme.breakpoints.up('tablet')]: {
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(2, 1fr)',
+                            gridColumn: 'span 13',
+                            gap: itemGap,
+                            '& .stat-card': {
+                                height: '284px',
+                            },
+                        },
+                        [theme.breakpoints.up('desktop')]: {
+                            gridColumn: 'span 6',
+                            '& .stat-card': {
+                                height: '290px',
+                            },
+                        },
+                    })}
+                >
+                    <StatCard
+                        primary={{
+                            value: latestStats.files.rawValue.toLocaleString(),
+                            label: 'Files',
+                        }}
+                        secondary={{
+                            value: since7DaysAgo.files.rawValue.toLocaleString(),
+                            label: 'added this week',
+                        }}
+                        deltaSign='+'
+                        deltaColor='light'
+                        textColor={lightText}
+                        backgroundColor={theme.palette.teal.grade50}
+                    />
+                    <StatCard
+                        primary={{
+                            value: latestStats.samples.rawValue.toLocaleString(),
+                            label: 'Samples',
+                        }}
+                        secondary={{
+                            value: since7DaysAgo.samples.rawValue.toLocaleString(),
+                            label: 'added this week',
+                        }}
+                        deltaSign='+'
+                        textColor={darkText}
+                        backgroundColor={theme.palette.green.grade75}
+                    />
+                    <StatCard
+                        primary={{
+                            value: latestStats.subjects.rawValue.toLocaleString(),
+                            label: 'Subjects',
+                        }}
+                        secondary={{
+                            value: since7DaysAgo.subjects.rawValue.toLocaleString(),
+                            label: 'added this week',
+                        }}
+                        deltaSign='+'
+                        deltaColor='light'
+                        textColor={lightText}
+                        backgroundColor={theme.palette.orange.grade50}
+                    />
+                    <StatCard
+                        primary={{
+                            value: latestStats.assays.rawValue.toLocaleString(),
+                            label: 'Assays',
+                        }}
+                        secondary={{
+                            value: since7DaysAgo.assays.rawValue.toLocaleString(),
+                            label: 'added this week',
+                        }}
+                        deltaSign='+'
+                        deltaColor='light'
+                        textColor={lightText}
+                        backgroundColor={theme.palette.blue.grade50}
+                    />
+                </Box>
+                <Box
+                    sx={(theme) => ({
+                        gridColumn: 'span 13',
+                        bgcolor: 'ground.grade10',
+                        borderRadius: itemBorderRadius,
+                        [theme.breakpoints.up('desktop')]: {
+                            gridColumn: 'span 7',
+                        },
+                    })}
+                >
+                    <ThemeProjectBreakdownChart
 
+                    />
+                </Box>
             </Box>
         </Container>
     )

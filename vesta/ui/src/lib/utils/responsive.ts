@@ -1,19 +1,34 @@
-import { useState, useEffect } from 'react';
-import _ from 'lodash';
+import { useState, useEffect } from 'react'
+import _ from 'lodash'
 
 
 export function useWindowDimensions(triggerDelayMs: number = 100) {
-    const [dimensions, setDimensions] = useState<number[]>();
+    const [dimensions, setDimensions] = useState<number[]>()
+    const [isResizing, setIsResizing] = useState<boolean>(false)
 
     useEffect(() => {
-        const debouncedResizeHandler = _.debounce(() => {
-            setDimensions([window.innerWidth, window.innerHeight]);
-        }, triggerDelayMs);
+        const dimensionsHandler = _.throttle(() => {
+            setDimensions([window.innerWidth, window.innerHeight])
+        }, triggerDelayMs)
 
-        window.addEventListener('resize', debouncedResizeHandler);
+        const resizingTrueHandler = _.throttle(() => {
+            setIsResizing(true)
+        }, triggerDelayMs)
+        const resizingFalseHandler = _.debounce(() => {
+            resizingTrueHandler.cancel()
+            setIsResizing(false)
+        }, triggerDelayMs)
 
-        return () => window.removeEventListener('resize', debouncedResizeHandler);
-    }, [triggerDelayMs]);
+        window.addEventListener('resize', dimensionsHandler)
+        window.addEventListener('resize', resizingTrueHandler)
+        window.addEventListener('resize', resizingFalseHandler)
 
-    return dimensions;
+        return () => {
+            window.removeEventListener('resize', dimensionsHandler)
+            window.removeEventListener('resize', resizingTrueHandler)
+            window.removeEventListener('resize', resizingFalseHandler)
+        }
+    }, [triggerDelayMs])
+
+    return { dimensions, isResizing }
 }

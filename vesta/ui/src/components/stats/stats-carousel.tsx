@@ -11,7 +11,7 @@ import { A11y, Autoplay } from 'swiper/modules'
 import StatCard from './stat-card'
 
 
-export type Stats = Record<'bytes' | 'assays' | 'subjects' | 'files' | 'users', number>
+export type Stats = Record<'bytes' | 'assays' | 'subjects' | 'files' | 'samples' | 'users', number>
 
 
 export default function StatsCarousel({ stats }: { stats: Stats }) {
@@ -62,6 +62,13 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
             backgroundColor: theme.palette.teal.grade50,
         },
         {
+            label: 'Samples',
+            value: stats.samples.toLocaleString(),
+            textColor: darkText,
+            backgroundColor: theme.palette.green.grade75,
+        },
+
+        {
             label: 'Users',
             value: stats.users.toLocaleString(),
             textColor: darkText,
@@ -78,6 +85,7 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
 
     return (
         <Box
+            className='stats-carousel'
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -95,7 +103,7 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
                     '& .swiper, .swiper-wrapper, .swiper-slide': {
                         height: '100%',
                     },
-                    '& .simple-stat': {
+                    '& .stat-card': {
                         // TODO: why can't this be just 100%?
                         height: `calc(100% - ${simpleStatPaddingPx * 2}px)`,
                         padding: `${simpleStatPaddingPx * 2}px)`

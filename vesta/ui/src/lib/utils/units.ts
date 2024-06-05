@@ -1,4 +1,5 @@
 export interface SIValue {
+    rawValue: number
     value: number
     SIUnitPrefix: string
 }
@@ -6,6 +7,7 @@ export interface SIValue {
 const SI_PREFIXES = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 
 export function roundValueToNearestSIPrefix(value: number, precision: number = 3): SIValue {
+    const initValue = value
     const base = 1000
     let index = 0
 
@@ -15,6 +17,7 @@ export function roundValueToNearestSIPrefix(value: number, precision: number = 3
     }
 
     return {
+        rawValue: initValue,
         value: Number(Number(value.toFixed(0)).toPrecision(precision)),
         SIUnitPrefix: SI_PREFIXES[index]
     }
