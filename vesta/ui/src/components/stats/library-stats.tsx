@@ -10,7 +10,7 @@ import StatsCarousel, { Stats as StatsProp } from './stats-carousel'
 import StatGraph from './stat-graph'
 import { Instance } from './types';
 import theme, { headerMargins } from '@/theme';
-import { SIValue, roundValueToNearestSIUnit } from '@/lib/utils/units';
+import { SIValue, roundValueToNearestSIPrefix } from '@/lib/utils/units';
 
 
 export type StatsTimeseries = Record<keyof StatsProp, Instance<number>[]>
@@ -27,9 +27,9 @@ export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
 
         const latest = v[v.length - 1].value
         // @ts-ignore
-        latestStats[k] = roundValueToNearestSIUnit(latest)
+        latestStats[k] = roundValueToNearestSIPrefix(latest)
         // @ts-ignore
-        since7DaysAgo[k] = roundValueToNearestSIUnit(latest - v[v.length - 8].value)
+        since7DaysAgo[k] = roundValueToNearestSIPrefix(latest - v[v.length - 8].value)
     }
 
     return (
