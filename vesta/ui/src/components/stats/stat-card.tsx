@@ -82,7 +82,7 @@ export default function StatCard({
                 '& .stat-primary': {
                     position: 'relative',
                     top: `${statPrimaryContainerInitialVerticalOffsetPx}px`,
-                    transition: isWindowResizing ? 'unset': transition,
+                    transition: isWindowResizing ? 'unset' : transition,
                 },
                 '& .delta-icon, & .stat-secondary': {
                     transition: transition,
@@ -115,7 +115,7 @@ export default function StatCard({
                         display: 'flex',
                     }}
                 >
-                    <Typography variant='h3Digits'>
+                    <Typography variant='h3Digits' component='h3'>
                         {primary.value}
                     </Typography>
                     {deltaSign &&

@@ -14,19 +14,26 @@ export function useWindowDimensions(triggerDelayMs: number = 100) {
         const resizingTrueHandler = _.throttle(() => {
             setIsResizing(true)
         }, triggerDelayMs)
+
         const resizingFalseHandler = _.debounce(() => {
             resizingTrueHandler.cancel()
             setIsResizing(false)
         }, triggerDelayMs)
 
-        window.addEventListener('resize', dimensionsHandler)
-        window.addEventListener('resize', resizingTrueHandler)
-        window.addEventListener('resize', resizingFalseHandler)
+        const handlers = [
+            dimensionsHandler,
+            resizingTrueHandler,
+            resizingFalseHandler,
+        ]
+
+        for (const handler of handlers) {
+            window.addEventListener('resize', handler)
+        }
 
         return () => {
-            window.removeEventListener('resize', dimensionsHandler)
-            window.removeEventListener('resize', resizingTrueHandler)
-            window.removeEventListener('resize', resizingFalseHandler)
+            for (const handler of handlers) {
+                window.removeEventListener('resize', handler)
+            }
         }
     }, [triggerDelayMs])
 
