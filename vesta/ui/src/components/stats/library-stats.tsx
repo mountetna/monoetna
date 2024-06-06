@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography';
 
 import StatCard from './stat-card'
 import StatsCarousel, { Stats as StatsProp } from './stats-carousel'
-import StatGraph from './stat-graph'
+import StatTimeseriesLineChart from './stat-timeseries-line-chart'
 import { Instance } from './types';
 import theme, { headerMargins } from '@/theme';
 import { SIValue, roundValueToNearestSIPrefix } from '@/lib/utils/units';
@@ -39,7 +39,7 @@ export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
     return (
         <Container
             sx={{
-                '& > *:not(:first-child)': {
+                '& > *:not(:first-child, :last-child)': {
                     mb: itemGap,
                 },
             }}
@@ -67,8 +67,6 @@ export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
                     },
                     '& .stat-graph': {
                         gridColumn: 'span 12',
-                        bgcolor: 'magenta.grade50',
-                        borderRadius: itemBorderRadius,
                         [theme.breakpoints.up('tablet')]: {
                             gridColumn: 'span 8',
                         },
@@ -88,7 +86,11 @@ export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
                     },
                 })}
             >
-                <StatGraph />
+                <StatTimeseriesLineChart
+                    headingLabel='Overall Membership'
+                    headingValue={`${latestStats.users.rawValue} users`}
+                    data={stats.users}
+                />
                 <StatCard
                     primary={{
                         value: `${latestStats.bytes.value}${latestStats.bytes.SIUnitPrefix}B`,
@@ -120,25 +122,33 @@ export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
             <Box
                 sx={(theme) => ({
                     display: 'grid',
+                    // TODO?: switch to gridAutoColumns
+                    // to avoid switching b/w gap definitions
                     gridTemplateColumns: 'repeat(13, 1fr)',
-                    gap: itemGap,
+                    columnGap: itemGap,
+                    [theme.breakpoints.up('tablet')]: {
+                        gap: itemGap,
+                    },
                 })}
             >
                 <Box
                     sx={(theme) => ({
-                        display: 'none',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: itemGap,
                         [theme.breakpoints.up('tablet')]: {
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(2, 1fr)',
                             gridColumn: 'span 13',
-                            gap: itemGap,
-                            '& .stat-card': {
-                                height: '284px',
-                            },
                         },
                         [theme.breakpoints.up('desktop')]: {
                             gridColumn: 'span 6',
-                            '& .stat-card': {
+                        },
+                        '& .stat-card': {
+                            display: 'none',
+                            [theme.breakpoints.up('tablet')]: {
+                                display: 'grid',
+                                height: '284px',
+                            },
+                            [theme.breakpoints.up('desktop')]: {
                                 height: '290px',
                             },
                         },

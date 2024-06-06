@@ -90,27 +90,27 @@ startDate.setDate(startDate.getDate() - 365)
 
 const STATS = {
   bytes: Array(365).fill(null).map((_, i) => ({
-    timestamp: (new Date(startDate.getDate() + i)).getTime(),
+    date: (new Date(startDate.getDate() + i)),
     value: getRandomArbitrary(1e12, 999e12),
   })),
   assays: Array(365).fill(null).map((_, i) => ({
-    timestamp: (new Date(startDate.getDate() + i)).getTime(),
+    date: (new Date(startDate.getDate() + i)),
     value: getRandomArbitrary(1000, 400000),
   })),
   subjects: Array(365).fill(null).map((_, i) => ({
-    timestamp: (new Date(startDate.getDate() + i)).getTime(),
+    date: (new Date(startDate.getDate() + i)),
     value: getRandomArbitrary(10, 999),
   })),
   files: Array(365).fill(null).map((_, i) => ({
-    timestamp: (new Date(startDate.getDate() + i)).getTime(),
+    date: (new Date(startDate.getDate() + i)),
     value: getRandomArbitrary(1000, 999999),
   })),
   samples: Array(365).fill(null).map((_, i) => ({
-    timestamp: (new Date(startDate.getDate() + i)).getTime(),
+    date: (new Date(startDate.getDate() + i)),
     value: getRandomArbitrary(100000, 999999),
   })),
   users: Array(365).fill(null).map((_, i) => ({
-    timestamp: (new Date(startDate.getDate() + i)).getTime(),
+    date: (new Date(startDate.getDate() + i)),
     value: getRandomArbitrary(100, 1000),
   })),
 }

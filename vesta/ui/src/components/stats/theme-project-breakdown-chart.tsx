@@ -7,7 +7,7 @@ export default function ThemeProjectBreakdownChart() {
         <Box
             className='theme-project-breakdown-chart'
         >
-
+            hi
         </Box>
     )
 }
