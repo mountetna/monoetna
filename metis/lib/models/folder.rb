@@ -142,6 +142,12 @@ class Metis
       folder_id == nil
     end
 
+    def size
+      Metis::File.total_size(
+        folder: [ self ] + child_folders
+      )
+    end
+
     def folder_path
       parent_folders.map(&:folder_name) + [ folder_name ]
     end
