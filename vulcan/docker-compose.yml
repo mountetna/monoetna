@@ -94,16 +94,15 @@ x-base-etna-services:
     environment:
       - USER=root
     entrypoint: >
-      bash -c "service munge start &&
-                service mariadb start &&
-               /usr/sbin/sshd -D &&
-               ./test-utils/entrypoints/git-init.sh 
-               "
-  # TODO: sort out order
-  #./test-utils/entrypoints/slurm-db-init.sh
-  #/usr/local/sbin/slurmdbd &&
-  #/usr/local/sbin/slurmctld &&
-  #/usr/local/sbin/slurmd &&
+      bash -c " service munge start &&
+               service mariadb start &&
+               ./test-utils/entrypoints/git-init.sh &&
+               ./test-utils/entrypoints/slurm-db-init.sh &&
+               /usr/local/sbin/slurmdbd &&
+               /usr/local/sbin/slurmctld &&
+               /usr/local/sbin/slurmd &&
+               /usr/sbin/sshd -D "
+
 volumes:
   vulcan-db-data:
     driver: local
