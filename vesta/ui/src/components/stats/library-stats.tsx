@@ -58,12 +58,14 @@ export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(12, 1fr)',
                     columnGap: gridGap,
-                    height: '653px',
-                    [theme.breakpoints.up('tablet')]: {
-                        height: '659px',
-                    },
-                    [theme.breakpoints.up('desktop')]: {
-                        height: '622px',
+                    '&, & > .stat-graph': {
+                        height: '653px',
+                        [theme.breakpoints.up('tablet')]: {
+                            height: '659px',
+                        },
+                        [theme.breakpoints.up('desktop')]: {
+                            height: '659px',
+                        },
                     },
                     '& .stat-graph': {
                         gridColumn: 'span 12',
@@ -145,7 +147,7 @@ export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
                         '& .stat-card': {
                             display: 'none',
                             [theme.breakpoints.up('tablet')]: {
-                                display: 'grid',
+                                display: 'flex',
                                 height: '284px',
                             },
                             [theme.breakpoints.up('desktop')]: {
