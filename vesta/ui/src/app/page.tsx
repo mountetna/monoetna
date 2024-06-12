@@ -87,30 +87,31 @@ function getRandomArbitrary(min: number, max: number): number {
 
 const startDate = new Date(Date.now())
 startDate.setDate(startDate.getDate() - 365)
+const dayInMs = 24 * 60 * 60 * 1000
 
 const STATS = {
   bytes: Array(365).fill(null).map((_, i) => ({
-    date: (new Date(startDate.getDate() + i)),
+    date: new Date(startDate.getTime() + i * dayInMs),
     value: getRandomArbitrary(1e12, 999e12),
   })),
   assays: Array(365).fill(null).map((_, i) => ({
-    date: (new Date(startDate.getDate() + i)),
+    date: new Date(startDate.getTime() + i * dayInMs),
     value: getRandomArbitrary(1000, 400000),
   })),
   subjects: Array(365).fill(null).map((_, i) => ({
-    date: (new Date(startDate.getDate() + i)),
+    date: new Date(startDate.getTime() + i * dayInMs),
     value: getRandomArbitrary(10, 999),
   })),
   files: Array(365).fill(null).map((_, i) => ({
-    date: (new Date(startDate.getDate() + i)),
+    date: new Date(startDate.getTime() + i * dayInMs),
     value: getRandomArbitrary(1000, 999999),
   })),
   samples: Array(365).fill(null).map((_, i) => ({
-    date: (new Date(startDate.getDate() + i)),
+    date: new Date(startDate.getTime() + i * dayInMs),
     value: getRandomArbitrary(100000, 999999),
   })),
   users: Array(365).fill(null).map((_, i) => ({
-    date: (new Date(startDate.getDate() + i)),
+    date: new Date(startDate.getTime() + i * dayInMs),
     value: getRandomArbitrary(100, 1000),
   })),
 }

@@ -188,6 +188,7 @@ export default function AboutCarousel({ items }: { items: AboutItemProps[] }) {
                 className='swiper-mobile'
                 modules={[A11y, EffectFade]}
                 allowTouchMove={false}
+                autoHeight={true}
                 onInit={(swiper) => setSwiperRefMobile(swiper)}
                 onSlideChange={(swiper) => setItemIndex(swiper.activeIndex)}
                 effect={'fade'}
@@ -238,6 +239,7 @@ export default function AboutCarousel({ items }: { items: AboutItemProps[] }) {
                     className='swiper-tablet-desktop'
                     modules={[A11y]}
                     allowTouchMove={false}
+                    autoHeight={true}
                     onInit={(swiper) => setSwiperRefTabletDesktop(swiper)}
                     onSlideChange={(swiper) => setItemIndex(swiper.activeIndex)}
                     centeredSlides={true}

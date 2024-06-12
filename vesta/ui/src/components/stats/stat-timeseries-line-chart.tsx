@@ -1,10 +1,21 @@
+'use client'
+
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import * as d3 from 'd3'
+import { useTheme } from '@mui/material';
+import * as Plot from '@observablehq/plot'
 
 import { Instance as StatInstance } from './types';
+import { useWindowDimensions } from '@/lib/utils/responsive';
 
+
+const dateToLocaleString = (date: Date): string => {
+    return [
+        date.toLocaleString('local', { month: 'short' }),
+        date.toLocaleString('local', { year: 'numeric' }),
+    ].join(' ')
+}
 
 export default function StatTimeseriesLineChart({
     headingLabel,
@@ -17,28 +28,50 @@ export default function StatTimeseriesLineChart({
 
 }) {
     const chartContainerRef = React.useRef<HTMLElement>()
-    const dataValues = data.map((datum) => datum.value)
-    const dataMin = Math.min(...dataValues)
-    const dataMax = Math.max(...dataValues)
+    const windowDimensions = useWindowDimensions()
+    const horizontalPaddingPx = 16
+
+    const theme = useTheme()
 
     React.useEffect(() => {
-        const element = chartContainerRef.current
-        if (element === undefined) return
+        const svgContainer = chartContainerRef.current
+        if (svgContainer === undefined) return
 
-        const width = element.offsetHeight
-        const height = element.offsetWidth
+        const width = svgContainer.offsetWidth
+        const height = svgContainer.offsetHeight
 
-        const xScale = d3.scaleTime()
-            .domain([data[0].date, data[data.length - 1].date])
-            .range([0, width])
+        const plot = Plot.plot({
+            width,
+            height,
+            marginLeft: 0,
+            marginRight: 0,
+            x: {
+                insetLeft: horizontalPaddingPx,
+                insetRight: horizontalPaddingPx,
+            },
+            y: { axis: null },
+            marks: [
+                Plot.lineY(data, {
+                    x: 'date',
+                    y: 'value',
+                    tip: true,
+                    stroke: theme.palette.red.grade25,
+                    strokeWidth: 3,
+                }),
+                Plot.axisX({
+                    tickSize: 0,
+                    tickFormat: (d: Date) => dateToLocaleString(d),
+                }),
+                Plot.frame({ anchor: 'bottom' })
+            ],
+        })
 
-        const yScale = d3.scaleLinear()
-            .domain([dataMin, dataMax])
-            .range([0, height])
+        svgContainer.appendChild(plot)
 
-        // debugger
-
-    }, [data])
+        return () => plot.remove()
+    },
+        [data, windowDimensions]
+    )
 
     return (
         <Box
@@ -46,22 +79,31 @@ export default function StatTimeseriesLineChart({
             sx={(theme) => ({
                 display: 'flex',
                 flexDirection: 'column',
-                p: '16px',
+                // p: `${horizontalPaddingPx}px`,
                 bgcolor: 'magenta.grade50',
                 borderRadius: '30px',
+                overflow: 'hidden',
             })}
         >
-            <Typography variant='h5'>
-                {headingLabel}
-            </Typography>
-            <Typography variant='h3Digits' component='h3'>
-                {headingValue}
-            </Typography>
+            <Box
+                sx={{
+                    p: `${horizontalPaddingPx}px`,
+                }}
+            >
+                <Typography variant='h5'>
+                    {headingLabel}
+                </Typography>
+                <Typography variant='h3Digits' component='h3'>
+                    {headingValue}
+                </Typography>
+            </Box>
             <Box
                 ref={chartContainerRef}
-            >
-
-            </Box>
+                sx={{
+                    flexGrow: 1,
+                    overflow: 'hidden',
+                }}
+            />
         </Box>
     )
 }

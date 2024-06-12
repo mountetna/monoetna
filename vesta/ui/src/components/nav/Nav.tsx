@@ -28,7 +28,8 @@ export default function Nav() {
     const isStuck = true
     const theme = useTheme()
     const transition = theme.transitions.create(
-        ['opacity', 'color', 'background-color'],
+        // ['opacity', 'color', 'background-color'],
+        ['all'],
         {
             duration: theme.transitions.duration.quint,
             easing: theme.transitions.easing.quint,
@@ -76,10 +77,13 @@ export default function Nav() {
                 sx={(theme) => ({
                     position: 'sticky',
                     top: 0,
+                    width: '100%',
                     backgroundColor: 'utilityLowlight.main',
                     transition: transition,
                     px: '8px',
                     '&.stuck': {
+                        // position: 'fixed',
+                        top: 0,
                         backgroundColor: 'utilityHighlight.main',
                         '.logo-no-wordmark-dark, .icon-dark': {
                             opacity: '1',
@@ -112,6 +116,7 @@ export default function Nav() {
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
+                        // transition: transition,
                         [theme.breakpoints.up('tablet')]: {
                             alignItems: 'flex-start',
                             pl: '32px',
