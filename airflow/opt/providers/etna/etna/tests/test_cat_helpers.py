@@ -469,8 +469,8 @@ def test_cat_files_etl_ingest_metis_with_project_bucket(mock_etna, mock_load, re
 @mock.patch('providers.etna.etna.etls.decorators.load_cat_files_batch', side_effect=[mock_tail(), []])
 @mock.patch.object(EtnaHook, 'for_project', return_value=mock_etna_hook)
 @mock.patch.object(Variable, 'get', side_effect=[mock_var_get("c4"), mock_var_get("metis")])
-@mock.patch.object(Variable, 'set')
-def test_ingest_updates_cursor(mock_set, mock_get, mock_etna, mock_load, reset_db):
+@mock.patch.object(Variable, 'update')
+def test_ingest_updates_cursor(mock_update, mock_get, mock_etna, mock_load, reset_db):
 
     set_up_mocks()
 
@@ -535,8 +535,8 @@ def test_mark_ingested_updates_cursor(mock_get, reset_db):
 
 
 @mock.patch.object(Variable, 'get', side_effect=[mock_var_get("c4"), mock_var_get("metis"), mock_var_get("c4")])
-@mock.patch.object(Variable, 'set')
-def test_update_cursor_saves_variable(mock_set, mock_get, reset_db):
+@mock.patch.object(Variable, 'update')
+def test_update_cursor_saves_variable(mock_update, mock_get, reset_db):
     set_up_mocks()
 
     cat = Cat(mock_cat_hook)
@@ -551,7 +551,7 @@ def test_update_cursor_saves_variable(mock_set, mock_get, reset_db):
         'metis': {}
     }
     cat.update_cursor("c4")
-    mock_set.assert_called_with(
+    mock_update.assert_called_with(
         'cat_ingest_cursor-c4',
         {
             "parent/child/grandchild/123.txt": f"1-{timestamp(2022, 1, 1)}",
