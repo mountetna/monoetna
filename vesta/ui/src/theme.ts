@@ -213,8 +213,8 @@ declare module '@mui/material/Typography' {
   }
 }
 
-const DEFAULT_LETTER_SPACING = '-0.01em'
-const DEFAULT_CONTRAST_RATIO = 4.5
+export const DEFAULT_LETTER_SPACING = '-0.01em'
+export const DEFAULT_CONTRAST_RATIO = 4.5
 
 let theme = createTheme({
   palette: {
