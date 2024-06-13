@@ -3,19 +3,37 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material';
-import * as Plot from '@observablehq/plot'
+import { alpha, useMediaQuery, useTheme } from '@mui/material';
+import { useParentSize } from '@visx/responsive'
+import {
+    Axis,
+    AnimatedLineSeries,
+    XYChart,
+    Tooltip,
+} from '@visx/xychart';
 
 import { Instance as StatInstance } from './types';
-import { useWindowDimensions } from '@/lib/utils/responsive';
+import { DEFAULT_LETTER_SPACING } from '@/theme';
+import Dropdown from '../inputs/dropdown';
 
 
-const dateToLocaleString = (date: Date): string => {
-    return [
+const dateToLocaleString = (date: Date, includeDay: boolean = true): string => {
+    const parts = [
         date.toLocaleString('local', { month: 'short' }),
         date.toLocaleString('local', { year: 'numeric' }),
-    ].join(' ')
+    ]
+
+    if (includeDay) {
+        parts.unshift(
+            date.toLocaleString('local', { day: 'numeric' })
+        )
+    }
+
+    return parts.join(' ')
 }
+
+const dayInMs = 24 * 60 * 60 * 1000
+
 
 export default function StatTimeseriesLineChart({
     headingLabel,
@@ -27,51 +45,44 @@ export default function StatTimeseriesLineChart({
     data: StatInstance<number>[]
 
 }) {
-    const chartContainerRef = React.useRef<HTMLElement>()
-    const windowDimensions = useWindowDimensions()
-    const horizontalPaddingPx = 16
+    const [dropwdownVal, setDropdownVal] = React.useState<keyof typeof timeWindowOptions>('all')
+
+    const {
+        parentRef: chartContainerRef,
+        width: chartContainerWidth,
+        height: chartContainerHeight,
+    } = useParentSize({ debounceTime: 100, })
+    const paddingPx = 16
 
     const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('tablet'))
+    const isTablet = useMediaQuery(theme.breakpoints.between(
+        theme.breakpoints.values.tablet,
+        theme.breakpoints.values.desktop,
+    ))
+    const isDesktop = useMediaQuery(theme.breakpoints.between(
+        theme.breakpoints.values.desktop,
+        theme.breakpoints.values.desktopLg,
+    ))
+    // const isDesktopLg = useMediaQuery(theme.breakpoints.up('desktopLg'))
 
-    React.useEffect(() => {
-        const svgContainer = chartContainerRef.current
-        if (svgContainer === undefined) return
+    const accessors = {
+        xAccessor: (d: StatInstance<number>) => d.date,
+        yAccessor: (d: StatInstance<number>) => d.value,
+    };
 
-        const width = svgContainer.offsetWidth
-        const height = svgContainer.offsetHeight
+    const timeWindowOptions = {
+        week: { short: 'Week', full: 'Week', timeWindowStart: new Date(Date.now() - 7 * dayInMs) },
+        month: { short: 'Month', full: 'Month', timeWindowStart: new Date(Date.now() - 30 * dayInMs) },
+        year: { short: 'Year', full: 'Year', timeWindowStart: new Date(Date.now() - 365 * dayInMs) },
+        all: { short: 'All', full: 'All time', timeWindowStart: new Date(0) },
+    }
 
-        const plot = Plot.plot({
-            width,
-            height,
-            marginLeft: 0,
-            marginRight: 0,
-            x: {
-                insetLeft: horizontalPaddingPx,
-                insetRight: horizontalPaddingPx,
-            },
-            y: { axis: null },
-            marks: [
-                Plot.lineY(data, {
-                    x: 'date',
-                    y: 'value',
-                    tip: true,
-                    stroke: theme.palette.red.grade25,
-                    strokeWidth: 3,
-                }),
-                Plot.axisX({
-                    tickSize: 0,
-                    tickFormat: (d: Date) => dateToLocaleString(d),
-                }),
-                Plot.frame({ anchor: 'bottom' })
-            ],
-        })
+    const filteredData = data.filter((val) => (
+        val.date >= timeWindowOptions[dropwdownVal].timeWindowStart
+    ))
 
-        svgContainer.appendChild(plot)
-
-        return () => plot.remove()
-    },
-        [data, windowDimensions]
-    )
+    const showDayInAxis = ['month', 'week'].indexOf(dropwdownVal) >= 0 || filteredData.length <= 30
 
     return (
         <Box
@@ -79,15 +90,18 @@ export default function StatTimeseriesLineChart({
             sx={(theme) => ({
                 display: 'flex',
                 flexDirection: 'column',
-                // p: `${horizontalPaddingPx}px`,
                 bgcolor: 'magenta.grade50',
                 borderRadius: '30px',
                 overflow: 'hidden',
+                [theme.breakpoints.up('desktop')]: {
+                    pb: `${paddingPx}px`,
+                },
             })}
         >
             <Box
                 sx={{
-                    p: `${horizontalPaddingPx}px`,
+                    mb: '10px',
+                    p: `${paddingPx}px`,
                 }}
             >
                 <Typography variant='h5'>
@@ -103,7 +117,77 @@ export default function StatTimeseriesLineChart({
                     flexGrow: 1,
                     overflow: 'hidden',
                 }}
-            />
+            >
+                <XYChart
+                    width={chartContainerWidth}
+                    height={chartContainerHeight}
+                    xScale={{ type: 'time' }}
+                    yScale={{ type: 'linear' }}
+                    margin={{ top: 0, right: 0, bottom: 32, left: 0 }}
+                >
+                    <Axis
+                        orientation='bottom'
+                        hideZero
+                        hideTicks
+                        stroke={alpha('#000', 0.15)}
+                        tickFormat={(v: Date) => dateToLocaleString(v, showDayInAxis)}
+                        numTicks={isMobile ? 3 : isTablet ? 3 : isDesktop ? 6 : 7}
+                        tickLabelProps={{
+                            style: {
+                                fontFamily: theme.typography.pLarge.fontFamily,
+                                fontSize: isMobile ? 18 : isTablet ? 20 : 22,
+                                letterSpacing: DEFAULT_LETTER_SPACING,
+                                lineHeight: isMobile ? '150%' : isTablet ? '148%' : '148%',
+                            },
+                            stroke: theme.palette.ground.grade10,
+                            textAnchor: 'start',
+                            dy: 16,
+                        }}
+
+                    />
+                    <AnimatedLineSeries
+                        dataKey='Users'
+                        data={filteredData}
+                        stroke={theme.palette.red.grade25}
+                        strokeWidth={3}
+                        {...accessors}
+                    />
+                    <Tooltip<StatInstance<number>>
+                        renderTooltip={({ tooltipData }) => {
+                            if (tooltipData?.nearestDatum?.datum === undefined) return <div></div>
+
+                            return (
+                                <div>
+                                    {accessors.yAccessor(tooltipData.nearestDatum.datum)} users
+                                    {', '}
+                                    {accessors.xAccessor(tooltipData.nearestDatum.datum).toLocaleDateString()}
+                                </div>
+                            )
+                        }}
+                    />
+                </XYChart>
+            </Box>
+            <Box
+                sx={(theme) => ({
+                    p: `${paddingPx}px`,
+                    [theme.breakpoints.up('desktop')]: {
+                        display: 'none',
+                    },
+                    '& .dropdown-button-content': {
+                        justifyContent: 'center',
+                    },
+                })}
+            >
+                <Dropdown
+                    options={
+                        Object.entries(timeWindowOptions).map(
+                            ([k, v]) => ({ value: k, label: v.full })
+                        )
+                    }
+                    value={dropwdownVal}
+                    onChange={(newVal) => setDropdownVal(newVal)}
+                />
+            </Box>
         </Box>
     )
 }
