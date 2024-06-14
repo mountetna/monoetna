@@ -89,9 +89,11 @@ export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
                 })}
             >
                 <StatTimeseriesLineChart
-                    headingLabel='Overall Membership'
-                    headingValue={`${latestStats.users.rawValue} users`}
                     data={stats.users}
+                    dataLabelSingular='user'
+                    dataLabelPlural='users'
+                    headingLabel='Overall Membership'
+                    headingValue={latestStats.users.rawValue}
                 />
                 <StatCard
                     primary={{

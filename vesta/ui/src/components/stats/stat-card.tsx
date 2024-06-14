@@ -122,8 +122,17 @@ export default function StatCard({
                         <Box
                             className='delta-icon'
                             sx={{
+                                display: 'flex',
+                                alignItems: 'flex-end',
                                 ml: '10px',
-                                transform: `rotate(${deltaSign === '+' ? '0' : '180'}deg)`
+                                transform: `rotate(${deltaSign === '+' ? '0' : '180'}deg)`,
+                                alignSelf: 'start',
+                                width: '24px',
+                                height: '24px',
+                                '& img': {
+                                    width: '100%',
+                                    height: 'auto',
+                                },
                             }}
                         >
                             <Image
