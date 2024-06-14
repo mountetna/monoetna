@@ -4,6 +4,7 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import { alpha, useMediaQuery, useTheme } from '@mui/material';
+import ButtonBase from '@mui/material/ButtonBase';
 import { useParentSize } from '@visx/responsive'
 import {
     Axis,
@@ -11,10 +12,13 @@ import {
     XYChart,
     Tooltip,
 } from '@visx/xychart';
+import Image from 'next/image';
 
 import { Instance as StatInstance } from './types';
 import { DEFAULT_LETTER_SPACING } from '@/theme';
 import Dropdown from '../inputs/dropdown';
+
+import indicatorArrowDark from '/public/images/icons/indicator-arrow-dark.svg'
 
 
 const dateToLocaleString = (date: Date, includeDay: boolean = true): string => {
@@ -34,18 +38,50 @@ const dateToLocaleString = (date: Date, includeDay: boolean = true): string => {
 
 const dayInMs = 24 * 60 * 60 * 1000
 
+const IndicatorArrowDark = (
+    <Box
+        sx={{
+            display: 'flex',
+            transform: 'rotate(180deg)',
+            '& img': {
+                width: '19px',
+                height: 'auto',
+            },
+        }}
+        component='span'
+    >
+        <Image
+            src={indicatorArrowDark}
+            alt='Indicator arrow pointing down'
+        />
+    </Box>
+)
+
 
 export default function StatTimeseriesLineChart({
+    data,
+    dataLabelSingular,
+    dataLabelPlural,
     headingLabel,
     headingValue,
-    data,
 }: {
-    headingLabel: string,
-    headingValue: string,
     data: StatInstance<number>[]
+    dataLabelSingular: string,
+    dataLabelPlural: string,
+    headingLabel: string,
+    headingValue: number,
 
 }) {
-    const [dropwdownVal, setDropdownVal] = React.useState<keyof typeof timeWindowOptions>('all')
+    const [timeWindowVal, setTimeWindowVal] = React.useState<keyof typeof timeWindowOptions>('all')
+
+    const theme = useTheme()
+    const transition = theme.transitions.create(
+        ['all'],
+        {
+            duration: theme.transitions.duration.ease,
+            easing: theme.transitions.easing.ease,
+        },
+    )
 
     const {
         parentRef: chartContainerRef,
@@ -54,7 +90,6 @@ export default function StatTimeseriesLineChart({
     } = useParentSize({ debounceTime: 100, })
     const paddingPx = 16
 
-    const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('tablet'))
     const isTablet = useMediaQuery(theme.breakpoints.between(
         theme.breakpoints.values.tablet,
@@ -79,10 +114,10 @@ export default function StatTimeseriesLineChart({
     }
 
     const filteredData = data.filter((val) => (
-        val.date >= timeWindowOptions[dropwdownVal].timeWindowStart
+        val.date >= timeWindowOptions[timeWindowVal].timeWindowStart
     ))
 
-    const showDayInAxis = ['month', 'week'].indexOf(dropwdownVal) >= 0 || filteredData.length <= 30
+    const showDayInAxis = ['month', 'week'].indexOf(timeWindowVal) >= 0 || filteredData.length <= 30
 
     return (
         <Box
@@ -100,16 +135,74 @@ export default function StatTimeseriesLineChart({
         >
             <Box
                 sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
                     mb: '10px',
                     p: `${paddingPx}px`,
                 }}
             >
-                <Typography variant='h5'>
-                    {headingLabel}
-                </Typography>
-                <Typography variant='h3Digits' component='h3'>
-                    {headingValue}
-                </Typography>
+                <Box
+                    sx={{
+                        color: 'ground.grade10',
+                    }}
+                >
+                    <Typography variant='h5'>
+                        {headingLabel}
+                    </Typography>
+                    <Typography variant='h3Digits' component='h3'>
+                        {headingValue} {headingValue === 1 ? dataLabelSingular : dataLabelPlural}
+                    </Typography>
+                </Box>
+                <Box
+                    sx={(theme) => ({
+                        display: 'none',
+                        [theme.breakpoints.up('desktop')]: {
+                            display: 'block',
+                        },
+                    })}
+                    role='listbox'
+                >
+                    {Object.entries(timeWindowOptions).map(([k, v]) => {
+                        const isSelected = k === timeWindowVal
+
+                        return (
+                            // @ts-ignore
+                            <ButtonBase
+                                key={k}
+                                className={`time-window-option time-window-option-desktop${isSelected ? ' selected' : ''}`}
+                                sx={{
+                                    color: 'ground.grade10',
+                                    px: '20px',
+                                    '&:not(:last-child)': {
+                                        mr: '10px',
+                                    },
+                                    borderRadius: '40px',
+                                    transition: transition,
+                                    // '&.active, &:hover': {
+                                    //     color: 'blue.grade50',
+                                    // },
+                                    // '&.active': {
+                                    //     borderColor: 'blue.grade50',
+                                    // },
+                                    '&.selected': {
+                                        bgcolor: 'utilityWhite.main',
+                                    },
+                                }}
+                                onClick={_ => {
+                                    // @ts-ignore
+                                    setTimeWindowVal(k)
+                                }}
+                                role='option'
+                                aria-selected={isSelected}
+                            >
+                                <Typography variant='pLarge'>
+                                    {v.short}
+                                </Typography>
+                            </ButtonBase>
+                        )
+                    })}
+                </Box>
             </Box>
             <Box
                 ref={chartContainerRef}
@@ -123,7 +216,7 @@ export default function StatTimeseriesLineChart({
                     height={chartContainerHeight}
                     xScale={{ type: 'time' }}
                     yScale={{ type: 'linear' }}
-                    margin={{ top: 0, right: 0, bottom: 32, left: 0 }}
+                    margin={{ top: 0, right: 0, bottom: 52, left: 0 }}
                 >
                     <Axis
                         orientation='bottom'
@@ -141,7 +234,7 @@ export default function StatTimeseriesLineChart({
                             },
                             stroke: theme.palette.ground.grade10,
                             textAnchor: 'start',
-                            dy: 16,
+                            dy: 26,
                         }}
 
                     />
@@ -155,12 +248,14 @@ export default function StatTimeseriesLineChart({
                     <Tooltip<StatInstance<number>>
                         renderTooltip={({ tooltipData }) => {
                             if (tooltipData?.nearestDatum?.datum === undefined) return <div></div>
+                            const xVal = accessors.xAccessor(tooltipData.nearestDatum.datum)
+                            const yVal = accessors.yAccessor(tooltipData.nearestDatum.datum)
 
                             return (
                                 <div>
-                                    {accessors.yAccessor(tooltipData.nearestDatum.datum)} users
+                                    {yVal} {yVal === 1 ? dataLabelSingular : dataLabelPlural}
                                     {', '}
-                                    {accessors.xAccessor(tooltipData.nearestDatum.datum).toLocaleDateString()}
+                                    {xVal.toLocaleDateString()}
                                 </div>
                             )
                         }}
@@ -184,8 +279,18 @@ export default function StatTimeseriesLineChart({
                             ([k, v]) => ({ value: k, label: v.full })
                         )
                     }
-                    value={dropwdownVal}
-                    onChange={(newVal) => setDropdownVal(newVal)}
+                    value={timeWindowVal}
+                    onChange={(newVal) => setTimeWindowVal(newVal)}
+                    icon={IndicatorArrowDark}
+                    listboxStyles={{
+                        backgroundColor: theme.palette.utilityHighlight.main,
+                        border: 'none',
+                    }}
+                    optionStyles={{
+                        textAlign: 'center',
+                    }}
+                    optionTypographyVariant='pSubtitleBoldWt'
+                    selectedOptionTypographyVariant='pSubtitle'
                 />
             </Box>
         </Box>
