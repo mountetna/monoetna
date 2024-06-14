@@ -3,9 +3,10 @@ require 'timeout'
 require_relative "./path"
 
 class Vulcan
-  class SSH
-    def initialize(net_ssh_instance)
-      @ssh = net_ssh_instance
+
+  class RemoteServerManager
+    def initialize(ssh_pool)
+      @ssh_pool = ssh_pool
     end
 
     def run_snakemake(dir, snakemake_command)
@@ -15,30 +16,43 @@ class Vulcan
       # tmp/boot.log. We then tail this file to capture this output and then immediately exit.
       # The boot.log can then me removed since snakemake is also logging this output in
       # a canonical location.
-      # TODO: investigate why I must use ssh.exec! in this entire function
-      # TODO: figure out how to properly manage the ssh connection
 
-      file_to_tail = "#{dir}/#{Vulcan::Path::WORKSPACE_BOOT_LOG}"
+      boot_log = "#{dir}/#{Vulcan::Path::WORKSPACE_BOOT_LOG}"
       slurm_uuid = nil
 
-      command = "nohup sh -c 'cd #{Shellwords.escape(dir)} && #{snakemake_command} > #{Vulcan::Path::WORKSPACE_BOOT_LOG} 2>&1' &"
-      # TODO: why don't I need a  @ssh.loop here? This is the only way I can run background commands
-      @ssh.exec(command)
-      if file_exists(file_to_tail, true)
-        regex = /SLURM run ID: ([a-f0-9\-]+)/
+      command = "cd #{Shellwords.escape(dir)} && #{snakemake_command} > #{Vulcan::Path::WORKSPACE_BOOT_LOG}"
+      invoke_background_ssh_command(command)
+      if file_exists(boot_log, true)
         begin
-          slurm_uuid = tail_and_match(file_to_tail, regex, 3)
+          regex = /SLURM run ID: ([a-f0-9\-]+)/
+          matched = find_string(boot_log, regex)
+          if matched.nil?
+            file_output = invoke_ssh_command("cat #{boot_log}")
+            raise "Could not capture slurm id, error is: #{file_output}"
+          end
+          slurm_uuid = matched[1]
         rescue => e
-          file_output = @ssh.exec!("cat #{file_to_tail}")
-          require 'pry'; binding.pry
-          raise "Could not capture slurm id, error is: #{file_output}"
+          raise e
         end
       else
-        raise "Could not create: #{file_to_tail}, command is: #{command}"
+        raise "Could not create: #{boot_log}, command is: #{command}"
       end
       # We no longer need the boot.log
-      @ssh.exec!("rm #{Shellwords.escape(file_to_tail)}")
+      invoke_ssh_command("rm #{Shellwords.escape(boot_log)}")
       slurm_uuid
+    end
+
+    def find_string(file, regex, attempts = 3)
+      found = nil
+      attempts.times do
+        matched = read_file_to_memory(file).match(regex)
+        if matched
+          found = matched
+        else
+          sleep 0.5
+        end
+      end
+      found
     end
 
     def parse_log_for_slurm_ids(snakemake_log)
@@ -53,8 +67,8 @@ class Vulcan
 
     def get_snakemake_log(dir, slurm_run_uuid)
       command = "cd #{Shellwords.escape(dir)} && grep -rl #{slurm_run_uuid} #{Vulcan::Path::WORKSPACE_SNAKEMAKE_LOG_DIR}"
-      out = @ssh.exec!(command)
-      out.gsub("\n", "")
+      out = invoke_ssh_command(command)
+      out[:stdout].gsub("\n", "")
     end
 
     def write_file(remote_file_path, content)
@@ -73,7 +87,9 @@ class Vulcan
     end
 
     def upload_dir(local_dir, remote_dir, recurse)
-      @ssh.scp.upload!(local_dir, remote_dir, recursive: recurse)
+      @ssh_pool.with_conn do |ssh|
+        ssh.scp.upload!(local_dir, remote_dir, recursive: recurse)
+      end
     end
 
     def mkdir(dir)
@@ -123,8 +139,13 @@ class Vulcan
 
     def file_exists(file_path, wait = False)
       def remote_file_exists?(file_path)
-        result = @ssh.exec!("test -f #{file_path} && echo 'exists' || echo 'not exists'")
-        result.strip == 'exists'
+        begin
+          command = "test -f #{file_path} && echo 'exists' || echo 'not exists'"
+          result = invoke_ssh_command(command, 1)
+          result[:stdout].strip == 'exists'
+        rescue => e
+          raise e unless e.message.include?("timed out")
+        end
       end
 
       if wait
@@ -149,82 +170,79 @@ class Vulcan
       end
     end
 
-
-    def tail_and_match(file_to_tail, regex, timeout_duration)
-      captured_string = nil
-      begin
-        Timeout.timeout(timeout_duration) do
-          channel_data = ""
-          @ssh.exec!("tail -f #{file_to_tail}") do |channel, stream, data|
-            channel_data << data
-            match_data = channel_data.match(regex)
-            if match_data
-              captured_string = match_data[1]
-              # Close the channel to stop the tail command
-              channel.close
-            end
-          end
-        end
-      rescue Timeout::Error
-        # Handle the timeout error if necessary
-        raise "Could not tail and match. Operation timed out after #{timeout_duration} seconds."
-      end
-      captured_string
-    end
-
-
     private
 
-    def invoke_ssh_command(command)
+    def invoke_background_ssh_command(command)
+      # Runs a ssh command as a async background process.
+      # Combines standard err and standard out to the same stream
+      # Immediately closes the ssh channel.
+      wrapped_command = "nohup sh -c '#{command} 2>&1' &"
+      @ssh_pool.with_conn do |ssh|
+        ssh.open_channel do |channel|
+          channel.exec(wrapped_command)
+          channel.close
+          end
+        end
+    end
+
+    def invoke_ssh_command(command, timeout = 10)
+      # This function runs a async command and keeps polling until the command has completed
+      # or until the timeout occurs.
+      # This function gathers metadata about a command, so is useful when you want
+      # explicit return information.
       stdout_data = ""
       stderr_data = ""
       exit_status = nil
       completed = false
 
-      @ssh.open_channel do |channel|
-        channel.exec(command) do |ch, success|
-          unless success
-            raise "Command execution failed: #{command}"
-          end
+      @ssh_pool.with_conn do |ssh|
+        ssh.open_channel do |channel|
+          channel.exec(command) do |ch, success|
+            unless success
+              raise "Command execution failed: #{command}"
+            end
 
-          channel.on_data do |_, data|
-            stdout_data += data
-          end
+            ch.on_data do |_, data|
+              stdout_data += data
+            end
 
-          channel.on_extended_data do |_, type, data|
-            stderr_data += data
-          end
+            ch.on_extended_data do |_, _, data|
+              stderr_data += data
+            end
 
-          channel.on_request("exit-status") do |_, data|
-            exit_status = data.read_long
-            completed = true
-          end
+            ch.on_request("exit-status") do |_, data|
+              exit_status = data.read_long
+              completed = true
+            end
 
-          channel.on_close do
-            completed = true
+            ch.on_close do
+              completed = true
+            end
           end
         end
+
+        # Start a separate thread to monitor the timeout
+        timeout_thread = Thread.new do
+          sleep timeout
+          unless completed
+            ssh.close
+            raise "Command execution timed out: #{command}"
+          end
+        end
+
+        until completed
+          ssh.loop(0.1) # 0.1 second loop interval
+        end
+
+        # Ensure the timeout thread is terminated
+        timeout_thread.kill
+
+        if exit_status != 0
+          raise "Command exited with status #{exit_status}. \n Command: #{command} \n Msg: #{stderr_data}"
+        end
       end
-
-      # Loop with a timeout to avoid long wait times
-      timeout = 10 # seconds
-      start_time = Time.now
-
-      until completed || (Time.now - start_time) > timeout
-        @ssh.loop(0.1) # 0.1 second loop interval
-      end
-
-      if (Time.now - start_time) > timeout
-        raise "Command execution timeout: #{command}"
-      end
-
-      if exit_status != 0
-        raise "Command exited with status #{exit_status}. \n Command: #{command} \n Msg: #{stderr_data}"
-      end
-
       {command: command, stdout: stdout_data, stderr_or_info: stderr_data, exit_status: exit_status }
     end
-
 
   end
 end

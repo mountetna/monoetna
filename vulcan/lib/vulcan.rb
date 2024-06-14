@@ -2,15 +2,16 @@ require_relative 'commands'
 require_relative 'storage'
 require_relative 'orchestration'
 require_relative 'dependency_manager'
+require_relative './ssh_connection_pool'
 
 class Vulcan
   include Etna::Application
-  attr_reader :db, :ssh
+  attr_reader :db, :ssh_pool
 
   def setup_ssh()
     c = config(:v2_ssh_config)
     begin
-      @ssh ||= Net::SSH.start(c[:host], c[:username], password: c[:password])
+      @ssh_pool ||= SSHConnectionPool.new(c[:host], c[:username], c[:password])
     rescue => e
       Vulcan.instance.logger.log_error(e)
     end

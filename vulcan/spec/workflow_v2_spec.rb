@@ -10,7 +10,7 @@ describe VulcanV2Controller do
     OUTER_APP
   end
 
-  let(:ssh) {Vulcan::SSH.new(Vulcan.instance.ssh)}
+  let(:remote_manager) {Vulcan::RemoteServerManager.new(Vulcan.instance.ssh_pool)}
   let(:create_repo_request) {{
     project_name: PROJECT,
     repo_url: "/test-utils/available-workflows/test-repo",
@@ -31,9 +31,9 @@ describe VulcanV2Controller do
   end
 
   def remove_all_dirs
-    ssh.rmdir(Vulcan::Path::WORKFLOW_BASE_DIR, Vulcan::Path::ALLOWED_DIRECTORIES)
-    ssh.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR, Vulcan::Path::ALLOWED_DIRECTORIES)
-    ssh.rmdir(Vulcan::Path::TMPDIR, Vulcan::Path::ALLOWED_DIRECTORIES)
+    remote_manager.rmdir(Vulcan::Path::WORKFLOW_BASE_DIR, Vulcan::Path::ALLOWED_DIRECTORIES)
+    remote_manager.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR, Vulcan::Path::ALLOWED_DIRECTORIES)
+    remote_manager.rmdir(Vulcan::Path::TMPDIR, Vulcan::Path::ALLOWED_DIRECTORIES)
   end
 
   context 'ssh' do
@@ -48,8 +48,8 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
       # Proper dirs are created
       project_dir = "#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}"
-      expect(ssh.dir_exists?(project_dir)).to be_truthy
-      expect(ssh.dir_exists?("#{project_dir}/test-repo")).to be_truthy
+      expect(remote_manager.dir_exists?(project_dir)).to be_truthy
+      expect(remote_manager.dir_exists?("#{project_dir}/test-repo")).to be_truthy
     end
   end
 
@@ -131,8 +131,8 @@ describe VulcanV2Controller do
 
       # Proper dirs are created
       workspace_project_dir = "#{Vulcan::Path::WORKSPACE_BASE_DIR}/#{PROJECT}"
-      expect(ssh.dir_exists?(workspace_project_dir)).to be_truthy
-      expect(ssh.dir_exists?(obj.path)).to be_truthy
+      expect(remote_manager.dir_exists?(workspace_project_dir)).to be_truthy
+      expect(remote_manager.dir_exists?(obj.path)).to be_truthy
 
     end
 
