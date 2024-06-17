@@ -144,7 +144,6 @@ export default function StatTimeseriesLineChart({
         theme.breakpoints.values.desktop,
         theme.breakpoints.values.desktopLg,
     ))
-    const isDesktopLg = useMediaQuery(theme.breakpoints.up('desktopLg'))
 
     const accessors = {
         xAccessor: (d: StatInstance<number>) => d.date,
@@ -266,28 +265,8 @@ export default function StatTimeseriesLineChart({
                     height={chartContainerHeight}
                     xScale={{ type: 'time' }}
                     yScale={{ type: 'linear' }}
-                    margin={{ top: 0, right: 1, bottom: -53, left: 1 }}
+                    margin={{ top: 0, right: 0, bottom: -45, left: 0 }}
                 >
-                    {/* <Axis
-                        orientation='bottom'
-                        hideZero
-                        hideTicks
-                        stroke={alpha('#000', 0.15)}
-                        tickFormat={(v: Date) => dateToLocaleString(v, showDayInAxis)}
-                        numTicks={isMobile ? 3 : isTablet ? 3 : isDesktop ? 6 : 7}
-                        tickLabelProps={{
-                            style: {
-                                fontFamily: theme.typography.pLarge.fontFamily,
-                                fontSize: isMobile ? 18 : isTablet ? 20 : 22,
-                                letterSpacing: DEFAULT_LETTER_SPACING,
-                                lineHeight: isMobile ? '150%' : isTablet ? '148%' : '148%',
-                            },
-                            stroke: theme.palette.ground.grade10,
-                            textAnchor: 'start',
-                            dy: 26,
-                        }}
-
-                    /> */}
                     <AnimatedLineSeries
                         dataKey='Users'
                         data={filteredData}
@@ -295,11 +274,6 @@ export default function StatTimeseriesLineChart({
                         strokeWidth={3}
                         {...accessors}
                     />
-                    {/* <GlyphSeries
-                        dataKey='Users'
-                        data={filteredData}
-                        {...accessors}
-                    /> */}
                     <Tooltip<StatInstance<number>>
                         renderTooltip={({ tooltipData }) => {
                             if (tooltipData?.nearestDatum?.datum === undefined) return <div></div>
@@ -318,7 +292,7 @@ export default function StatTimeseriesLineChart({
                     />
                 </XYChart>
             </Box>
-            {/* TODO: replace with visx or d3 axis */}
+            {/* TODO?: replace with visx or d3 axis */}
             <Box
                 sx={{
                     borderTop: `1px solid ${alpha('#000', 0.15)}`,
