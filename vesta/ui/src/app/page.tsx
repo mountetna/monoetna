@@ -1,11 +1,14 @@
 import * as React from 'react';
 import { Metadata } from 'next';
 import Box from '@mui/system/Box'
+import { faker } from '@faker-js/faker'
 
 import Hero from '@/components/hero/hero';
 import { getRandomItem } from '@/lib/utils/random';
 import AboutCarousel from '@/components/about/about-carousel';
 import LibraryStats from '@/components/stats/library-stats';
+import { Instance } from '@/components/stats/types';
+import { Project } from '@/components/stats/theme-project-breakdown-chart';
 import { sectionMargins } from '@/theme';
 
 import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
@@ -15,7 +18,6 @@ import aboutImg1 from '/public/images/about-carousel/carousel-img-1.png'
 import aboutImg2 from '/public/images/about-carousel/carousel-img-2.png'
 import aboutImg3 from '/public/images/about-carousel/carousel-img-3.png'
 import aboutImg4 from '/public/images/about-carousel/carousel-img-4.png'
-import { Instance } from '@/components/stats/types';
 
 
 export const metadata: Metadata = {
@@ -116,6 +118,35 @@ const STATS = {
   })),
 }
 
+interface Theme {
+  color: string
+  count: number
+}
+
+const THEMES: Record<string, Theme> = {
+  Infection: { color: '#89A7CE', count: 11 },
+  Autoimmunity: { color: '#DDA373', count: 23 },
+  Inflammation: { color: '#D6D8A8', count: 8 },
+  Fibrosis: { color: '#A2A648', count: 2 },
+  'Early life': { color: '#7FA190', count: 8 },
+  Cancer: { color: '#E4B8C7', count: 21 },
+  Neurodegeneration: { color: '#556E66', count: 6 },
+  "Women's Health": { color: '#E9C54E', count: 10 },
+  'Healthy reference': { color: '#DFDED6', count: 4 },
+}
+
+const PROJECTS: Project[] = []
+Object.entries(THEMES).forEach(([k, v]) => {
+  for (let i = 0; i < v.count; i++) {
+    const project: Project = {
+      name: faker.company.name(),
+      theme: k,
+    }
+    
+    PROJECTS.push(project)
+  }
+})
+
 async function getData() {
   return {
     heroVideo: getRandomItem(VIDEOS),
@@ -123,6 +154,8 @@ async function getData() {
     stats: STATS,
     // TODO: replace with real data
     aboutItems: ABOUT_ITEMS,
+    themes: THEMES,
+    projects: PROJECTS,
   }
 }
 
@@ -133,6 +166,11 @@ export default async function Home() {
   for (const [k, v] of (Object.entries(STATS) as [keyof typeof STATS, Instance<number>[]][])) {
     carouselStats[k] = v[v.length - 1].value
   }
+
+  const themeColors = {} as Record<string, string>
+  Object.entries(data.themes).forEach(([k, v]) => {
+    themeColors[k] = v.color
+  })
 
   return (
     <React.Fragment>
@@ -152,6 +190,8 @@ export default async function Home() {
         <Box id='stats'>
           <LibraryStats
             stats={data.stats}
+            themeColors={themeColors}
+            projectsByTheme={data.projects}
           />
         </Box>
       </Box>

@@ -25,6 +25,7 @@
     "swiper": "^11.1.4"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
     "@types/d3": "^7.4.3",
     "@types/lodash": "^4.17.4",
     "@types/node": "^20.12.12",

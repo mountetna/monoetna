@@ -11,16 +11,23 @@ import StatTimeseriesLineChart from './stat-timeseries-line-chart'
 import { Instance } from './types';
 import theme, { headerMargins } from '@/theme';
 import { SIValue, roundValueToNearestSIPrefix } from '@/lib/utils/units';
-import ThemeProjectBreakdownChart from './theme-project-breakdown-chart';
+import ThemeProjectBreakdownChart, { Project } from './theme-project-breakdown-chart';
 
 
 export type StatsTimeseries = Record<keyof StatsProp, Instance<number>[]>
 
-export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
+export default function LibraryStats({
+    stats,
+    themeColors,
+    projectsByTheme,
+}: {
+    stats: StatsTimeseries,
+    themeColors: Record<string, string>,
+    projectsByTheme: Project[],
+}) {
     const darkText = theme.palette.ground.grade10
     const lightText = theme.palette.utilityHighlight.main
     const itemGap = '16px'
-    const itemBorderRadius = '30px'
 
     const latestStats = {} as Record<keyof StatsProp, SIValue>
     const since7DaysAgo = {} as Record<keyof StatsProp, SIValue>
@@ -217,8 +224,6 @@ export default function LibraryStats({ stats }: { stats: StatsTimeseries }) {
                 <Box
                     sx={(theme) => ({
                         gridColumn: 'span 13',
-                        bgcolor: 'ground.grade10',
-                        borderRadius: itemBorderRadius,
                         [theme.breakpoints.up('desktop')]: {
                             gridColumn: 'span 7',
                         },
