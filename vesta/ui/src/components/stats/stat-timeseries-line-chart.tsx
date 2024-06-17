@@ -11,11 +11,12 @@ import {
     AnimatedLineSeries,
     XYChart,
     Tooltip,
+    GlyphSeries,
 } from '@visx/xychart';
+import * as d3 from 'd3'
 import Image from 'next/image';
 
 import { Instance as StatInstance } from './types';
-import { DEFAULT_LETTER_SPACING } from '@/theme';
 import Dropdown from '../inputs/dropdown';
 
 import indicatorArrowDark from '/public/images/icons/indicator-arrow-dark.svg'
@@ -56,6 +57,50 @@ const IndicatorArrowDark = (
         />
     </Box>
 )
+
+
+function TimeAxis({
+    scale,
+    numTicks,
+    showDay,
+}: {
+    scale: d3.ScaleTime<number, number, never>,
+    numTicks: number,
+    showDay: boolean,
+}) {
+    return (
+        <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                textAlign: 'center',
+            }}
+        >
+            {Array(numTicks).fill(null).map((_, index) => {
+                const date = scale.invert(index / (numTicks - 1) * scale.range()[1])
+                const asStr = dateToLocaleString(date, showDay)
+
+                return (
+                    <Typography
+                        key={index}
+                        variant='pLarge'
+                        sx={{
+                            mx: '8px',
+                            '&:first-child': {
+                                ml: '0',
+                            },
+                            '&:last-child': {
+                                mr: '0',
+                            },
+                        }}
+                    >
+                        {asStr}
+                    </Typography>
+                )
+            })}
+        </Box>
+    )
+}
 
 
 export default function StatTimeseriesLineChart({
@@ -99,7 +144,7 @@ export default function StatTimeseriesLineChart({
         theme.breakpoints.values.desktop,
         theme.breakpoints.values.desktopLg,
     ))
-    // const isDesktopLg = useMediaQuery(theme.breakpoints.up('desktopLg'))
+    const isDesktopLg = useMediaQuery(theme.breakpoints.up('desktopLg'))
 
     const accessors = {
         xAccessor: (d: StatInstance<number>) => d.date,
@@ -117,7 +162,15 @@ export default function StatTimeseriesLineChart({
         val.date >= timeWindowOptions[timeWindowVal].timeWindowStart
     ))
 
+    const xScale = d3.scaleTime(
+        [filteredData[0].date, filteredData[filteredData.length - 1].date],
+        [0, chartContainerWidth],
+    )
+
     const showDayInAxis = ['month', 'week'].indexOf(timeWindowVal) >= 0 || filteredData.length <= 30
+
+    const numTicksWithDay = isMobile ? 3 : isTablet ? 3 : isDesktop ? 6 : 7
+    const numTicksWODay = isMobile ? 3 : isTablet ? 3 : isDesktop ? 8 : 8
 
     return (
         <Box
@@ -128,9 +181,6 @@ export default function StatTimeseriesLineChart({
                 bgcolor: 'magenta.grade50',
                 borderRadius: '30px',
                 overflow: 'hidden',
-                [theme.breakpoints.up('desktop')]: {
-                    pb: `${paddingPx}px`,
-                },
             })}
         >
             <Box
@@ -216,9 +266,9 @@ export default function StatTimeseriesLineChart({
                     height={chartContainerHeight}
                     xScale={{ type: 'time' }}
                     yScale={{ type: 'linear' }}
-                    margin={{ top: 0, right: 0, bottom: 52, left: 0 }}
+                    margin={{ top: 0, right: 1, bottom: -53, left: 1 }}
                 >
-                    <Axis
+                    {/* <Axis
                         orientation='bottom'
                         hideZero
                         hideTicks
@@ -237,7 +287,7 @@ export default function StatTimeseriesLineChart({
                             dy: 26,
                         }}
 
-                    />
+                    /> */}
                     <AnimatedLineSeries
                         dataKey='Users'
                         data={filteredData}
@@ -245,6 +295,11 @@ export default function StatTimeseriesLineChart({
                         strokeWidth={3}
                         {...accessors}
                     />
+                    {/* <GlyphSeries
+                        dataKey='Users'
+                        data={filteredData}
+                        {...accessors}
+                    /> */}
                     <Tooltip<StatInstance<number>>
                         renderTooltip={({ tooltipData }) => {
                             if (tooltipData?.nearestDatum?.datum === undefined) return <div></div>
@@ -259,8 +314,24 @@ export default function StatTimeseriesLineChart({
                                 </div>
                             )
                         }}
+                        showDatumGlyph={true}
                     />
                 </XYChart>
+            </Box>
+            {/* TODO: replace with visx or d3 axis */}
+            <Box
+                sx={{
+                    borderTop: `1px solid ${alpha('#000', 0.15)}`,
+                    mt: '10px',
+                    p: `${paddingPx}px`,
+                }}
+            >
+                {/* Prevent rendering when xScale's range is [0, 0] */}
+                {chartContainerWidth > 0 && <TimeAxis
+                    scale={xScale}
+                    numTicks={showDayInAxis ? numTicksWithDay : numTicksWODay}
+                    showDay={showDayInAxis}
+                />}
             </Box>
             <Box
                 sx={(theme) => ({

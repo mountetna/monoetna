@@ -148,9 +148,9 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
                         height: '15px',
                         borderRadius: '50%',
                         transition: bgTransition,
-                        backgroundColor: alpha(theme.palette.ground.grade10, 0.4),
+                        bgcolor: alpha(theme.palette.ground.grade10, 0.4),
                         '&.active': {
-                            backgroundColor: theme.palette.ground.grade10,
+                            bgcolor: theme.palette.ground.grade10,
                         },
                         '&:not(:last-child)': {
                             mr: '11px',
