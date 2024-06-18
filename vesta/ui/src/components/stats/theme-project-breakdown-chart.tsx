@@ -2,32 +2,60 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import { useParentSize } from '@visx/responsive'
-import Pie from '@visx/shape/lib/shapes/Pie';
+import Pie, { ProvidedProps, PieArcDatum } from '@visx/shape/lib/shapes/Pie';
 import { Group } from '@visx/group';
 import { scaleOrdinal } from '@visx/scale';
+import { animated, useTransition, to, useSpring, UseTransitionProps } from '@react-spring/web';
+import { alpha } from '@mui/material';
 
 
-export interface Project {
+export interface ThemeData {
     name: string
-    theme: string
+    color: string
+    project_count: number
 }
 
 
 export default function ThemeProjectBreakdownChart({
-    themeColors,
-    projectsByTheme,
+    data,
 }: {
-    themeColors: Record<string, string>,
-    projectsByTheme: Project[],
+    data: ThemeData[],
 }) {
+    const [selectedTheme, setSelectedTheme] = React.useState<string | null>(null)
+
     const {
         parentRef: chartContainerRef,
         width: chartContainerWidth,
         height: chartContainerHeight,
     } = useParentSize({ debounceTime: 100, })
 
-    const centerSize = 20
-    const chartOuterRadius = Math.min(chartContainerWidth, chartContainerHeight) * 0.5 - (centerSize + 10)
+    let totalProjectCount = 0
+    for (const theme of data) {
+        totalProjectCount += theme.project_count
+    }
+
+    const themes = data.map(d => d.name)
+
+    const getThemeColor = scaleOrdinal({
+        domain: themes,
+        range: data.map(d => d.color),
+    })
+
+    const radius = Math.min(chartContainerWidth, chartContainerHeight) / 2
+    const centerY = chartContainerHeight / 2
+    const centerX = chartContainerWidth / 2
+    const donutThickness = 10
+
+    const transitionProps: UseTransitionProps<any> = {
+        from: { opacity: 0 },
+        enter: { opacity: 1 },
+        leave: { opacity: 0 },
+        trail: 100,
+    }
+    const donutLabelCount = selectedTheme ? data.find(val => val.name === selectedTheme)?.project_count : totalProjectCount
+    const donutLabelCountTransitions = useTransition(donutLabelCount, transitionProps)
+    const donutLabelText = selectedTheme ?? 'Projects'
+    const donutLabelTextTransitions = useTransition(donutLabelText, transitionProps)
 
     return (
         <Box
@@ -75,6 +103,7 @@ export default function ThemeProjectBreakdownChart({
                 <Box
                     ref={chartContainerRef}
                     sx={(theme) => ({
+                        position: 'relative',
                         width: '264px',
                         height: '264px',
                         [theme.breakpoints.up('tablet')]: {
@@ -90,7 +119,87 @@ export default function ThemeProjectBreakdownChart({
                         width={chartContainerWidth}
                         height={chartContainerHeight}
                     >
+                        <Group top={centerY} left={centerX}>
+                            <Pie
+                                data={data}
+                                pieValue={d => d.project_count}
+                                outerRadius={radius}
+                                innerRadius={radius - donutThickness}
+                                cornerRadius={50}
+                                padAngle={0.025}
+                            >
+                                {(pie) => (
+                                    <AnimatedPie<ThemeData>
+                                        {...pie}
+                                        animate={true}
+                                        getKey={(arc) => arc.data.name}
+                                        onClickDatum={({ data: { name } }) =>
+                                            setSelectedTheme(selectedTheme && selectedTheme === name ? null : name)
+                                        }
+                                        getColor={(arc) => {
+                                            const baseColor = getThemeColor(arc.data.name)
+
+                                            if (selectedTheme === null) return baseColor
+                                            return selectedTheme === arc.data.name ? baseColor : alpha(baseColor, 0.25)
+                                        }}
+                                    />
+                                )}
+                            </Pie>
+                        </Group>
                     </svg>
+                    <Typography
+                        variant='h1'
+                        component='div'
+                        sx={{
+                            display: 'inline-block',
+                            position: 'absolute',
+                            minHeight: '1em',
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, calc(-50% - 0.7em))',
+                            color: 'utilityWhite.main',
+                        }}
+                    >
+                        {donutLabelCountTransitions((style, item) => (
+                            <animated.span style={{
+                                ...style,
+                                position: 'absolute',
+                                top: 0,
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                textAlign: 'center',
+                            }}>
+                                {item}
+                            </animated.span>
+                        ))}
+                    </Typography>
+                    <Typography
+                        variant='h5BoldWt'
+                        component='div'
+                        sx={{
+                            display: 'inline-block',
+                            position: 'absolute',
+                            minHeight: '1em',
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, calc(-50% + 0.7em))',
+                            color: 'utilityWhite.main',
+                        }}
+                    >
+                        {donutLabelTextTransitions((style, item) => (
+                            <animated.span style={{
+                                ...style,
+                                position: 'absolute',
+                                top: 0,
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                textAlign: 'center',
+                                minWidth: '7em',
+                            }}>
+                                {item}
+                            </animated.span>
+                        ))}
+                    </Typography>
                 </Box>
             </Box>
             <Box
@@ -115,8 +224,72 @@ export default function ThemeProjectBreakdownChart({
                     },
                 })}
             >
-                
+
             </Box>
         </Box>
     )
+}
+
+
+type AnimatedStyles = { startAngle: number; endAngle: number; opacity: number };
+
+const fromLeaveTransition = ({ endAngle }: PieArcDatum<any>) => ({
+    // enter from 360° if end angle is > 180°
+    startAngle: endAngle > Math.PI ? 2 * Math.PI : 0,
+    endAngle: endAngle > Math.PI ? 2 * Math.PI : 0,
+    opacity: 0,
+});
+const enterUpdateTransition = ({ startAngle, endAngle }: PieArcDatum<any>) => ({
+    startAngle,
+    endAngle,
+    opacity: 1,
+});
+
+type AnimatedPieProps<Datum> = ProvidedProps<Datum> & {
+    animate?: boolean;
+    getKey: (d: PieArcDatum<Datum>) => string;
+    getColor: (d: PieArcDatum<Datum>) => string;
+    onClickDatum: (d: PieArcDatum<Datum>) => void;
+    delay?: number;
+};
+
+function AnimatedPie<Datum>({
+    animate,
+    arcs,
+    path,
+    getKey,
+    getColor,
+    onClickDatum,
+}: AnimatedPieProps<Datum>) {
+    const transitions = useTransition<PieArcDatum<Datum>, AnimatedStyles>(arcs, {
+        from: animate ? fromLeaveTransition : enterUpdateTransition,
+        enter: enterUpdateTransition,
+        update: enterUpdateTransition,
+        leave: animate ? fromLeaveTransition : enterUpdateTransition,
+        keys: getKey,
+    });
+
+    return transitions((props, arc, { key }) => {
+        const animatedFill = useSpring({
+            fill: getColor(arc)
+        })
+
+        return (
+            <g key={key} style={{ cursor: 'pointer' }}>
+                <animated.path
+                    // compute interpolated path d attribute from intermediate angle values
+                    d={to([props.startAngle, props.endAngle], (startAngle, endAngle) =>
+                        path({
+                            ...arc,
+                            startAngle,
+                            endAngle,
+                        }),
+                    )}
+                    style={animatedFill}
+                    onClick={() => onClickDatum(arc)}
+                    onTouchStart={() => onClickDatum(arc)}
+                />
+            </g>
+        );
+    });
 }
