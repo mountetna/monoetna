@@ -118,6 +118,12 @@ export default function ThemeProjectBreakdownChart({
                     <svg
                         width={chartContainerWidth}
                         height={chartContainerHeight}
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            zIndex: 1,
+                        }}
                     >
                         <Group top={centerY} left={centerX}>
                             <Pie
@@ -147,59 +153,86 @@ export default function ThemeProjectBreakdownChart({
                             </Pie>
                         </Group>
                     </svg>
-                    <Typography
-                        variant='h1'
-                        component='div'
+                    <Box
                         sx={{
-                            display: 'inline-block',
-                            position: 'absolute',
-                            minHeight: '1em',
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%, calc(-50% - 0.7em))',
-                            color: 'utilityWhite.main',
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
                         }}
                     >
-                        {donutLabelCountTransitions((style, item) => (
-                            <animated.span style={{
-                                ...style,
-                                position: 'absolute',
-                                top: 0,
-                                left: '50%',
-                                transform: 'translateX(-50%)',
+                        <Typography
+                            variant='h1'
+                            component='div'
+                            sx={{
+                                position: 'relative',
+                                color: 'utilityWhite.main',
                                 textAlign: 'center',
-                            }}>
-                                {item}
-                            </animated.span>
-                        ))}
-                    </Typography>
-                    <Typography
-                        variant='h5BoldWt'
-                        component='div'
-                        sx={{
-                            display: 'inline-block',
-                            position: 'absolute',
-                            minHeight: '1em',
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%, calc(-50% + 0.7em))',
-                            color: 'utilityWhite.main',
-                        }}
-                    >
-                        {donutLabelTextTransitions((style, item) => (
-                            <animated.span style={{
-                                ...style,
-                                position: 'absolute',
-                                top: 0,
-                                left: '50%',
-                                transform: 'translateX(-50%)',
+                                lineHeight: '1em',
+                            }}
+                        >
+                            <Box
+                                component='span'
+                                sx={{
+                                    minWidth: '7em',
+                                    maxWidth: '10em',
+                                    width: '100%',
+                                    visibility: 'hidden',
+                                }}
+                            >
+                                {donutLabelCount}
+                            </Box>
+                            {donutLabelCountTransitions((style, item) => (
+                                <animated.span style={{
+                                    ...style,
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                }}>
+                                    {item}
+                                </animated.span>
+                            ))}
+                        </Typography>
+                        <Typography
+                            variant='h5BoldWt'
+                            component='div'
+                            sx={{
+                                position: 'relative',
+                                color: 'utilityWhite.main',
                                 textAlign: 'center',
-                                minWidth: '7em',
-                            }}>
-                                {item}
-                            </animated.span>
-                        ))}
-                    </Typography>
+                            }}
+                        >
+                            <Box
+                                component='span'
+                                sx={{
+                                    minWidth: '7em',
+                                    maxWidth: '10em',
+                                    width: '100%',
+                                    visibility: 'hidden',
+                                }}
+                            >
+                                {donutLabelText}
+                            </Box>
+                            {donutLabelTextTransitions((style, item) => (
+                                <animated.span style={{
+                                    ...style,
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    width: '100%',
+                                    minWidth: '7em',
+                                    maxWidth: '10em',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                }}>
+                                    {item}
+                                </animated.span>
+                            ))}
+                        </Typography>
+                    </Box>
                 </Box>
             </Box>
             <Box
