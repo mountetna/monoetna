@@ -194,7 +194,7 @@ class VulcanV2Controller < Vulcan::Controller
         raise Etna::BadRequest.new(e.message)
       end
     else
-      msg = "Workspace: for project: #{@params[:project_name]} does not exist."
+      msg = "Workspace for project: #{@params[:project_name]} does not exist."
       response = {'Warning': msg}
     end
     success_json(response)
@@ -203,10 +203,19 @@ class VulcanV2Controller < Vulcan::Controller
   def get_workflow_status
     workflow_run = Vulcan::Run.first(id: @params[:run_id], workspace_id: @params[:workspace_id])
     if workflow_run
-      path = workflow_run.workspace.path
+      response = {}
+      begin
+        config = @remote_manager.read_json_file(workflow_run.run_config_path)
+        job_id_hash = @remote_manager.parse_log_for_slurm_ids(config.keys, workflow_run.snakemake_log_path)
+        response = @remote_manager.query_sacct(workflow_run.slurm_run_uuid, job_id_hash)
+      rescue => e
+        Vulcan.instance.logger.log_error(e)
+        raise Etna::BadRequest.new(e.message)
+      end
+    else
+      msg = "Workflow for project: #{@params[:project_name]} does not exist."
+      response = {'Warning': msg}
     end
-    # @remote_manager.parse_log_for_slurm_ids(workflow.log_path)
-    # @remote_manager.query_sacct()
+    success_json(response)
   end
-
 end

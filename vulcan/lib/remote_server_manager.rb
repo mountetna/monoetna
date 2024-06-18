@@ -55,13 +55,36 @@ class Vulcan
       found
     end
 
-    def parse_log_for_slurm_ids(snakemake_log)
+    def parse_log_for_slurm_ids(rules, snakemake_log)
       # The slurm snakemake integration uses comments to write the name of the rule to the slurm back-end db
       # (along with the uuid). Currently --comments are disabled on the slurm instance on c4.
       # This make it very tricky to query the db and determine the mapping between rules and slurm job ids.
       # We can always query the db with the slurm snakemake uuid, and get a list of slurm jobs, but they
       # are un-identified. So, we must parse the snakemake log to figure out this mapping.
-      out = read_file_to_memory(snakemake_log)
+      rule_to_job_id = {}
+      log = read_file_to_memory(snakemake_log)
+
+      rules.each do |rule|
+        regex = /rule #{rule}:[\s\S]*?Job \d+ has been submitted with SLURM jobid (\d+)/
+        match = log.match(regex)
+        rule_to_job_id[rule] = match ? match[1] : nil
+      end
+
+      rule_to_job_id
+    end
+
+    def query_sacct(slurm_uuid, job_id_hash)
+      status_hash = {}
+      job_id_hash.each do |job_name, job_id|
+        if job_id.nil?
+          status_hash[job_name] = "NOT STARTED"
+        else
+          command = "sacct --name=#{Shellwords.escape(slurm_uuid)} -j #{Shellwords.escape(job_id)} -X -o State -n"
+          out = invoke_ssh_command(command)
+          status_hash[job_name] = out[:stdout].empty? ?  "NOT STARTED" : out[:stdout].strip
+        end
+      end
+      status_hash
     end
 
 
@@ -85,6 +108,10 @@ class Vulcan
     def read_yaml_file(remote_file_path)
       YAML.safe_load(read_file_to_memory(remote_file_path))
     end
+
+    def read_json_file(remote_file_path)
+      JSON.parse(read_file_to_memory(remote_file_path))
+  end
 
     def upload_dir(local_dir, remote_dir, recurse)
       @ssh_pool.with_conn do |ssh|
