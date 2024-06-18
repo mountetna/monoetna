@@ -8,7 +8,7 @@ import { getRandomItem } from '@/lib/utils/random';
 import AboutCarousel from '@/components/about/about-carousel';
 import LibraryStats from '@/components/stats/library-stats';
 import { Instance } from '@/components/stats/types';
-import { Project } from '@/components/stats/theme-project-breakdown-chart';
+import { Project, ThemeData } from '@/components/stats/theme-project-breakdown-chart';
 import { sectionMargins } from '@/theme';
 
 import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
@@ -142,7 +142,7 @@ Object.entries(THEMES).forEach(([k, v]) => {
       name: faker.company.name(),
       theme: k,
     }
-    
+
     PROJECTS.push(project)
   }
 })
@@ -167,9 +167,13 @@ export default async function Home() {
     carouselStats[k] = v[v.length - 1].value
   }
 
-  const themeColors = {} as Record<string, string>
+  const themeProjectBreakdown: ThemeData[] = []
   Object.entries(data.themes).forEach(([k, v]) => {
-    themeColors[k] = v.color
+    themeProjectBreakdown.push({
+      name: k,
+      color: v.color,
+      project_count: v.count,
+    })
   })
 
   return (
@@ -190,8 +194,7 @@ export default async function Home() {
         <Box id='stats'>
           <LibraryStats
             stats={data.stats}
-            themeColors={themeColors}
-            projectsByTheme={data.projects}
+            themeProjectBreakdown={themeProjectBreakdown}
           />
         </Box>
       </Box>
