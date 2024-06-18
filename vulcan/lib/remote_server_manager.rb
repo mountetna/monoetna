@@ -1,0 +1,275 @@
+require 'shellwords'
+require 'timeout'
+require_relative "./path"
+
+class Vulcan
+
+  class RemoteServerManager
+    def initialize(ssh_pool)
+      @ssh_pool = ssh_pool
+    end
+
+    def run_snakemake(dir, snakemake_command)
+      # The slurm snakemake integration uses a uuid in order to track workflow submissions.
+      # It logs the uuid when snakemake has properly booted up.
+      # So we run the snakemake command as a background process and write its output to
+      # tmp/boot.log. We then tail this file to capture this output and then immediately exit.
+      # The boot.log can then me removed since snakemake is also logging this output in
+      # a canonical location.
+
+      boot_log = "#{dir}/#{Vulcan::Path::WORKSPACE_BOOT_LOG}"
+      slurm_uuid = nil
+
+      command = "cd #{Shellwords.escape(dir)} && #{snakemake_command} > #{Vulcan::Path::WORKSPACE_BOOT_LOG}"
+      invoke_background_ssh_command(command)
+      if file_exists(boot_log, true)
+        begin
+          regex = /SLURM run ID: ([a-f0-9\-]+)/
+          matched = find_string(boot_log, regex)
+          if matched.nil?
+            file_output = invoke_ssh_command("cat #{boot_log}")
+            raise "Could not capture slurm id, error is: #{file_output}"
+          end
+          slurm_uuid = matched[1]
+        rescue => e
+          raise e
+        end
+      else
+        raise "Could not create: #{boot_log}, command is: #{command}"
+      end
+      # We no longer need the boot.log
+      invoke_ssh_command("rm #{Shellwords.escape(boot_log)}")
+      slurm_uuid
+    end
+
+    def find_string(file, regex, attempts = 3)
+      found = nil
+      attempts.times do
+        matched = read_file_to_memory(file).match(regex)
+        if matched
+          found = matched
+        else
+          sleep 0.5
+        end
+      end
+      found
+    end
+
+    def parse_log_for_slurm_ids(rules, snakemake_log)
+      # The slurm snakemake integration uses comments to write the name of the rule to the slurm back-end db
+      # (along with the uuid). Currently --comments are disabled on the slurm instance on c4.
+      # This make it very tricky to query the db and determine the mapping between rules and slurm job ids.
+      # We can always query the db with the slurm snakemake uuid, and get a list of slurm jobs, but they
+      # are un-identified. So, we must parse the snakemake log to figure out this mapping.
+      rule_to_job_id = {}
+      log = read_file_to_memory(snakemake_log)
+
+      rules.each do |rule|
+        regex = /rule #{rule}:[\s\S]*?Job \d+ has been submitted with SLURM jobid (\d+)/
+        match = log.match(regex)
+        rule_to_job_id[rule] = match ? match[1] : nil
+      end
+
+      rule_to_job_id
+    end
+
+    def query_sacct(slurm_uuid, job_id_hash)
+      status_hash = {}
+      job_id_hash.each do |job_name, job_id|
+        if job_id.nil?
+          status_hash[job_name] = "NOT STARTED"
+        else
+          command = "sacct --name=#{Shellwords.escape(slurm_uuid)} -j #{Shellwords.escape(job_id)} -X -o State -n"
+          out = invoke_ssh_command(command)
+          status_hash[job_name] = out[:stdout].empty? ?  "NOT STARTED" : out[:stdout].strip
+        end
+      end
+      status_hash
+    end
+
+
+    def get_snakemake_log(dir, slurm_run_uuid)
+      command = "cd #{Shellwords.escape(dir)} && grep -rl #{slurm_run_uuid} #{Vulcan::Path::WORKSPACE_SNAKEMAKE_LOG_DIR}"
+      out = invoke_ssh_command(command)
+      out[:stdout].gsub("\n", "")
+    end
+
+    def write_file(remote_file_path, content)
+      command = "mkdir -p $(dirname #{remote_file_path}) && echo #{Shellwords.escape(content)} > #{remote_file_path}"
+      invoke_ssh_command(command)
+    end
+
+    def read_file_to_memory(remote_file_path)
+      command = Shellwords.join(['cat', remote_file_path])
+      result = invoke_ssh_command(command)
+      result[:stdout]
+    end
+
+    def read_yaml_file(remote_file_path)
+      YAML.safe_load(read_file_to_memory(remote_file_path))
+    end
+
+    def read_json_file(remote_file_path)
+      JSON.parse(read_file_to_memory(remote_file_path))
+  end
+
+    def upload_dir(local_dir, remote_dir, recurse)
+      @ssh_pool.with_conn do |ssh|
+        ssh.scp.upload!(local_dir, remote_dir, recursive: recurse)
+      end
+    end
+
+    def mkdir(dir)
+      # Make project directory if it doesnt exist
+      command = Shellwords.join(["mkdir", "-p", dir])
+      invoke_ssh_command(command)
+    end
+
+    def list_dirs(dir)
+      command = "ls -d #{Shellwords.escape(dir)}/*/"
+      result = invoke_ssh_command(command)
+      result[:stdout].split("\n").map { |path| File.basename(path) }
+    end
+
+
+    def rmdir(dir, allowed_directories)
+      # Check if the dir is in the allowed_directories
+      if allowed_directories.any? { |allowed_dir| dir.start_with?(allowed_dir) }
+        command = Shellwords.join(["rm", "-r", "-f", dir])
+        invoke_ssh_command(command)
+      else
+        raise ArgumentError, "Directory #{dir} is not in the list of allowed directories."
+      end
+    end
+
+    def dir_exists?(dir)
+      command = "[ -d #{dir} ] && echo 'Directory exists.' || echo 'Directory does not exist.'"
+      out = invoke_ssh_command(command)
+      out[:stdout].chomp == 'Directory exists.'
+    end
+
+    def clone(repo, branch, target_dir)
+      command = Shellwords.join(['git', 'clone', '-b', branch, repo, target_dir])
+      invoke_ssh_command(command)
+    end
+
+    def checkout_tag(dir, tag)
+      command = "cd #{Shellwords.escape(dir)} && git checkout tags/#{Shellwords.escape(tag)}"
+      invoke_ssh_command(command)
+    end
+
+    def get_repo_remote_url(repo_dir)
+      command = "cd #{Shellwords.escape(repo_dir)} && git config --get remote.origin.url"
+      result = invoke_ssh_command(command)
+      result[:stdout].chomp
+    end
+
+    def file_exists(file_path, wait = False)
+      def remote_file_exists?(file_path)
+        begin
+          command = "test -f #{file_path} && echo 'exists' || echo 'not exists'"
+          result = invoke_ssh_command(command, 1)
+          result[:stdout].strip == 'exists'
+        rescue => e
+          raise e unless e.message.include?("timed out")
+        end
+      end
+
+      if wait
+        max_retries = 3
+        attempt = 0
+        file_found = false
+
+        while attempt <= max_retries && !file_found
+          if remote_file_exists?(file_path)
+            file_found = true
+          else
+            attempt += 1
+            sleep 0.5
+          end
+          if file_found
+            break
+          end
+        end
+        file_found
+      else
+        remote_file_exists?(file_path)
+      end
+    end
+
+    private
+
+    def invoke_background_ssh_command(command)
+      # Runs a ssh command as a async background process.
+      # Combines standard err and standard out to the same stream
+      # Immediately closes the ssh channel.
+      wrapped_command = "nohup sh -c '#{command} 2>&1' &"
+      @ssh_pool.with_conn do |ssh|
+        ssh.open_channel do |channel|
+          channel.exec(wrapped_command)
+          channel.close
+          end
+        end
+    end
+
+    def invoke_ssh_command(command, timeout = 10)
+      # This function runs a async command and keeps polling until the command has completed
+      # or until the timeout occurs.
+      # This function gathers metadata about a command, so is useful when you want
+      # explicit return information.
+      stdout_data = ""
+      stderr_data = ""
+      exit_status = nil
+      completed = false
+
+      @ssh_pool.with_conn do |ssh|
+        ssh.open_channel do |channel|
+          channel.exec(command) do |ch, success|
+            unless success
+              raise "Command execution failed: #{command}"
+            end
+
+            ch.on_data do |_, data|
+              stdout_data += data
+            end
+
+            ch.on_extended_data do |_, _, data|
+              stderr_data += data
+            end
+
+            ch.on_request("exit-status") do |_, data|
+              exit_status = data.read_long
+              completed = true
+            end
+
+            ch.on_close do
+              completed = true
+            end
+          end
+        end
+
+        # Start a separate thread to monitor the timeout
+        timeout_thread = Thread.new do
+          sleep timeout
+          unless completed
+            ssh.close
+            raise "Command execution timed out: #{command}"
+          end
+        end
+
+        until completed
+          ssh.loop(0.1) # 0.1 second loop interval
+        end
+
+        # Ensure the timeout thread is terminated
+        timeout_thread.kill
+
+        if exit_status != 0
+          raise "Command exited with status #{exit_status}. \n Command: #{command} \n Msg: #{stderr_data}"
+        end
+      end
+      {command: command, stdout: stdout_data, stderr_or_info: stderr_data, exit_status: exit_status }
+    end
+
+  end
+end
