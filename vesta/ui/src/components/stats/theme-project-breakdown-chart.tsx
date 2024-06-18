@@ -6,7 +6,20 @@ import Pie, { ProvidedProps, PieArcDatum } from '@visx/shape/lib/shapes/Pie';
 import { Group } from '@visx/group';
 import { scaleOrdinal } from '@visx/scale';
 import { animated, useTransition, to, useSpring, UseTransitionProps } from '@react-spring/web';
-import { alpha } from '@mui/material';
+import { alpha, useTheme } from '@mui/material';
+import Image from 'next/image';
+
+import plusLight from '/public/images/icons/plus-light.svg'
+import minusLight from '/public/images/icons/minus-light.svg'
+
+
+
+/*
+TODOS:
+1. fixed height tablet on svg + legend container—not just svg
+2. legends as grid to fix margins?
+*/
+
 
 
 export interface ThemeData {
@@ -22,6 +35,20 @@ export default function ThemeProjectBreakdownChart({
     data: ThemeData[],
 }) {
     const [selectedTheme, setSelectedTheme] = React.useState<string | null>(null)
+
+    const [breakdownOpen, setBreakdownOpen] = React.useState(false)
+    const breakdownContainerRef = React.useRef<HTMLElement>()
+    const [breakdownStyle, animateBreakdown] = useSpring(
+        () => ({ height: '0px', opacity: 0 }), []
+    )
+
+    const toggleBreakdown = () => {
+        setBreakdownOpen(!breakdownOpen)
+        animateBreakdown({
+            height: `${breakdownOpen ? 0 : breakdownContainerRef.current?.offsetHeight}px`,
+            opacity: breakdownOpen ? 0 : 1,
+        })
+    }
 
     const {
         parentRef: chartContainerRef,
@@ -57,11 +84,17 @@ export default function ThemeProjectBreakdownChart({
     const donutLabelText = selectedTheme ?? 'Projects'
     const donutLabelTextTransitions = useTransition(donutLabelText, transitionProps)
 
+    const handleClickThemeItem = (themeName: string) => {
+        if (themeName === selectedTheme) return setSelectedTheme(null)
+        setSelectedTheme(themeName)
+    }
+
     return (
         <Box
             className='theme-project-breakdown-chart'
             sx={(theme) => ({
                 display: 'grid',
+                alignItems: 'center',
                 p: '8px 8px 12px 8px',
                 bgcolor: 'ground.grade10',
                 borderRadius: '30px',
@@ -70,6 +103,7 @@ export default function ThemeProjectBreakdownChart({
                 },
                 [theme.breakpoints.up('desktop')]: {
                     gridTemplateColumns: 'repeat(6, 1fr)',
+                    height: '100%',
                 },
             })}
         >
@@ -106,12 +140,16 @@ export default function ThemeProjectBreakdownChart({
                         position: 'relative',
                         width: '264px',
                         height: '264px',
+                        my: '48px',
                         [theme.breakpoints.up('tablet')]: {
-
+                            mx: '32px',
+                            my: '32px',
                         },
                         [theme.breakpoints.up('desktop')]: {
                             width: '331px',
                             height: '331px',
+                            mx: '32px',
+                            my: '32px',
                         },
                     })}
                 >
@@ -245,20 +283,167 @@ export default function ThemeProjectBreakdownChart({
                     [theme.breakpoints.up('desktop')]: {
                         gridColumn: 'span 3',
                     },
+                    '& .theme-item': {
+                        display: 'inline-flex',
+                        mr: '16px',
+                        '&.selected': {
+                            bgcolor: 'ground.grade25',
+                        },
+                        '&:not(:last-child)': {
+                            mb: '16px',
+                        },
+                    },
                 })}
             >
-
+                {data.map(d => (
+                    <ThemeItem
+                        key={d.name}
+                        name={d.name}
+                        color={d.color}
+                        count={d.project_count}
+                        selected={selectedTheme === d.name}
+                        onClick={handleClickThemeItem}
+                    />
+                ))}
             </Box>
             <Box
                 sx={(theme) => ({
                     display: 'block',
+                    p: '16px',
+                    borderRadius: '16px',
+                    bgcolor: 'ground.grade25',
                     [theme.breakpoints.up('tablet')]: {
                         display: 'none',
                     },
                 })}
             >
-
+                <Typography
+                    variant='h6BoldWt'
+                    component='div'
+                    color='ground.grade75'
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        px: '8px',
+                        py: '6px',
+                        cursor: 'pointer',
+                    }}
+                    onClick={toggleBreakdown}
+                >
+                    <span>{breakdownOpen ? 'Close' : 'Open'} breakdown</span>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            p: '6px',
+                            borderRadius: '50%',
+                            bgcolor: 'ground.grade10',
+                        }}
+                    >
+                        <Image
+                            src={breakdownOpen ? minusLight : plusLight}
+                            alt={breakdownOpen ? 'Minus sign' : 'Plus sign'}
+                            width={27}
+                            height={27}
+                        />
+                    </Box>
+                </Typography>
+                <animated.div
+                    style={{
+                        overflow: 'hidden',
+                        ...breakdownStyle,
+                    }}
+                >
+                    <Box
+                        ref={breakdownContainerRef}
+                        sx={{
+                            overflow: 'hidden',
+                            pt: '16px',
+                            '& > *:not(:last-child)': {
+                                mb: '16px',
+                            },
+                        }}
+                    >
+                        {data.map(d => (
+                            <ThemeItem
+                                key={d.name}
+                                name={d.name}
+                                color={d.color}
+                                count={d.project_count}
+                                selected={selectedTheme === d.name}
+                                onClick={handleClickThemeItem}
+                            />
+                        ))}
+                    </Box>
+                </animated.div>
             </Box>
+        </Box>
+    )
+}
+
+
+function ThemeItem({
+    name,
+    color,
+    count,
+    selected,
+    onClick,
+}: {
+    name: string,
+    color: string,
+    count: number,
+    selected: boolean,
+    onClick: (name: string) => void,
+}) {
+    const theme = useTheme()
+
+    return (
+        <Box
+            className={`theme-item${selected ? ' selected' : ''}`}
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                px: '8px',
+                py: '6px',
+                borderRadius: '8px',
+                color: 'ground.grade75',
+                cursor: 'pointer',
+                transition: theme.transitions.create(
+                    ['background-color'],
+                    {
+                        duration: theme.transitions.duration.ease,
+                        easing: theme.transitions.easing.ease,
+                    },
+                ),
+                '&.selected': {
+                    bgcolor: 'ground.grade10',
+                },
+                '& > *:not(:last-child)': {
+                    mr: '11px',
+                },
+            }}
+            onClick={_ => onClick(name)}
+        >
+            <Box
+                sx={{
+                    width: '34px',
+                    height: '17px',
+                    bgcolor: color,
+                    borderRadius: '4px',
+                }}
+            />
+            <Typography
+                variant='pLargeBoldWt'
+                component='div'
+            >
+                {name}
+            </Typography>
+            <Typography
+                variant='pLarge'
+                component='div'
+            >
+                {count}
+            </Typography>
         </Box>
     )
 }
