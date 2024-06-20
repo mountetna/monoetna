@@ -17,7 +17,6 @@ import minusLight from '/public/images/icons/minus-light.svg'
 /*
 TODOS:
 1. fixed height tablet on svg + legend container—not just svg
-2. legends as grid to fix margins?
 */
 
 
@@ -77,7 +76,6 @@ export default function ThemeProjectBreakdownChart({
         from: { opacity: 0 },
         enter: { opacity: 1 },
         leave: { opacity: 0 },
-        trail: 100,
     }
     const donutLabelCount = selectedTheme ? data.find(val => val.name === selectedTheme)?.project_count : totalProjectCount
     const donutLabelCountTransitions = useTransition(donutLabelCount, transitionProps)
@@ -215,6 +213,7 @@ export default function ThemeProjectBreakdownChart({
                                 sx={{
                                     minWidth: '7em',
                                     maxWidth: '10em',
+                                    // maxWidth: '80%',
                                     width: '100%',
                                     visibility: 'hidden',
                                 }}
@@ -277,20 +276,21 @@ export default function ThemeProjectBreakdownChart({
                 sx={(theme) => ({
                     display: 'none',
                     [theme.breakpoints.up('tablet')]: {
-                        display: 'block',
                         gridColumn: 'span 7',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '16px',
+                        // alignSelf: 'start',
                     },
                     [theme.breakpoints.up('desktop')]: {
                         gridColumn: 'span 3',
+                        flexDirection: 'column',
                     },
                     '& .theme-item': {
                         display: 'inline-flex',
-                        mr: '16px',
+                        width: 'fit-content',
                         '&.selected': {
                             bgcolor: 'ground.grade25',
-                        },
-                        '&:not(:last-child)': {
-                            mb: '16px',
                         },
                     },
                 })}

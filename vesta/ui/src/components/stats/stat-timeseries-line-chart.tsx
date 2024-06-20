@@ -260,37 +260,38 @@ export default function StatTimeseriesLineChart({
                     overflow: 'hidden',
                 }}
             >
-                <XYChart
-                    width={chartContainerWidth}
-                    height={chartContainerHeight}
-                    xScale={{ type: 'time' }}
-                    yScale={{ type: 'linear' }}
-                    margin={{ top: 0, right: 0, bottom: -45, left: 0 }}
-                >
-                    <AnimatedLineSeries
-                        dataKey='Users'
-                        data={filteredData}
-                        stroke={theme.palette.red.grade25}
-                        strokeWidth={3}
-                        {...accessors}
-                    />
-                    <Tooltip<StatInstance<number>>
-                        renderTooltip={({ tooltipData }) => {
-                            if (tooltipData?.nearestDatum?.datum === undefined) return <div></div>
-                            const xVal = accessors.xAccessor(tooltipData.nearestDatum.datum)
-                            const yVal = accessors.yAccessor(tooltipData.nearestDatum.datum)
+                {chartContainerWidth > 0 && chartContainerHeight > 0 &&
+                    <XYChart
+                        width={chartContainerWidth}
+                        height={chartContainerHeight}
+                        xScale={{ type: 'time' }}
+                        yScale={{ type: 'linear' }}
+                        margin={{ top: 0, right: 0, bottom: -45, left: 0 }}
+                    >
+                        <AnimatedLineSeries
+                            dataKey='Users'
+                            data={filteredData}
+                            stroke={theme.palette.red.grade25}
+                            strokeWidth={3}
+                            {...accessors}
+                        />
+                        <Tooltip<StatInstance<number>>
+                            renderTooltip={({ tooltipData }) => {
+                                if (tooltipData?.nearestDatum?.datum === undefined) return <div></div>
+                                const xVal = accessors.xAccessor(tooltipData.nearestDatum.datum)
+                                const yVal = accessors.yAccessor(tooltipData.nearestDatum.datum)
 
-                            return (
-                                <div>
-                                    {yVal} {yVal === 1 ? dataLabelSingular : dataLabelPlural}
-                                    {', '}
-                                    {xVal.toLocaleDateString()}
-                                </div>
-                            )
-                        }}
-                        showDatumGlyph={true}
-                    />
-                </XYChart>
+                                return (
+                                    <Box>
+                                        {yVal} {yVal === 1 ? dataLabelSingular : dataLabelPlural}
+                                        {', '}
+                                        {xVal.toLocaleDateString()}
+                                    </Box>
+                                )
+                            }}
+                            showDatumGlyph={true}
+                        />
+                    </XYChart>}
             </Box>
             {/* TODO?: replace with visx or d3 axis */}
             <Box

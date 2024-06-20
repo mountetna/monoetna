@@ -2,14 +2,17 @@ import * as React from 'react';
 import { Metadata } from 'next';
 import Box from '@mui/system/Box'
 import { faker } from '@faker-js/faker'
+import _ from 'lodash'
 
 import Hero from '@/components/hero/hero';
 import { getRandomItem } from '@/lib/utils/random';
 import AboutCarousel from '@/components/about/about-carousel';
 import LibraryStats from '@/components/stats/library-stats';
 import { Instance } from '@/components/stats/types';
-import { Project, ThemeData } from '@/components/stats/theme-project-breakdown-chart';
+import { ThemeData as ThemeProjectBreakdownData } from '@/components/stats/theme-project-breakdown-chart';
 import { sectionMargins } from '@/theme';
+import ThemeShelf from '@/components/themes/theme-shelf';
+import { ThemeData } from '@/components/themes/theme-book';
 
 import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
 import xeniumFallback from '/public/images/hero/xenium-fallback.png'
@@ -18,6 +21,15 @@ import aboutImg1 from '/public/images/about-carousel/carousel-img-1.png'
 import aboutImg2 from '/public/images/about-carousel/carousel-img-2.png'
 import aboutImg3 from '/public/images/about-carousel/carousel-img-3.png'
 import aboutImg4 from '/public/images/about-carousel/carousel-img-4.png'
+import autoimmunityThemeImg from '/public/images/themes/Autoimmunity.png'
+import cancerThemeImg from '/public/images/themes/Cancer.png'
+import earlyLifeThemeImg from '/public/images/themes/Early Life.png'
+import fibrosisThemeImg from '/public/images/themes/Fibrosis.png'
+import healthyReferenceThemeImg from '/public/images/themes/Healthy Reference.png'
+import infectionThemeImg from '/public/images/themes/Infection.png'
+import inflammationThemeImg from '/public/images/themes/Inflammation.png'
+import neurodegenerationThemeImg from '/public/images/themes/Neurodegeneration.png'
+import womensHealthThemeImg from '/public/images/themes/Women\'s Health.png'
 
 
 export const metadata: Metadata = {
@@ -118,26 +130,93 @@ const STATS = {
   })),
 }
 
-interface Theme {
-  color: string
-  count: number
-}
 
-const THEMES: Record<string, Theme> = {
-  Infection: { color: '#89A7CE', count: 11 },
-  Autoimmunity: { color: '#DDA373', count: 23 },
-  Inflammation: { color: '#D6D8A8', count: 8 },
-  Fibrosis: { color: '#A2A648', count: 2 },
-  'Early life': { color: '#7FA190', count: 8 },
-  Cancer: { color: '#E4B8C7', count: 21 },
-  Neurodegeneration: { color: '#556E66', count: 6 },
-  "Women's Health": { color: '#E9C54E', count: 10 },
-  'Healthy reference': { color: '#DFDED6', count: 4 },
+const THEMES: ThemeData[] = [
+  {
+    name: 'Infection',
+    color: '#89A7CE',
+    project_count: 11,
+    projects_link: '',
+    description: faker.commerce.productDescription(),
+    image: infectionThemeImg
+  },
+  {
+    name: 'Autoimmunity',
+    color: '#DDA373',
+    project_count: 23,
+    projects_link: '',
+    description: faker.commerce.productDescription(),
+    image: autoimmunityThemeImg
+  },
+  {
+    name: 'Inflammation',
+    color: '#D6D8A8',
+    project_count: 8,
+    projects_link: '',
+    description: faker.commerce.productDescription(),
+    image: inflammationThemeImg
+  },
+  {
+    name: 'Fibrosis',
+    color: '#A2A648',
+    project_count: 2,
+    projects_link: '',
+    description: faker.commerce.productDescription(),
+    image: fibrosisThemeImg
+  },
+  {
+    name: 'Early Life'
+    , color: '#7FA190'
+    , project_count: 8,
+    projects_link: '',
+    description: faker.commerce.productDescription(),
+    image: earlyLifeThemeImg
+  },
+  {
+    name: 'Cancer',
+    color: '#E4B8C7',
+    project_count: 21,
+    projects_link: '',
+    description: faker.commerce.productDescription(),
+    image: cancerThemeImg
+  },
+  {
+    name: 'Neurodegeneration',
+    color: '#556E66',
+    project_count: 6,
+    projects_link: '',
+    description: faker.commerce.productDescription(),
+    image: neurodegenerationThemeImg
+  },
+  {
+    name: "Women's Health",
+    color: '#E9C54E',
+    project_count: 10,
+    projects_link: '',
+    description: faker.commerce.productDescription(),
+    image: womensHealthThemeImg
+  },
+  {
+    name: 'Healthy Reference',
+    color: '#DFDED6',
+    project_count: 4,
+    projects_link: '',
+    description: faker.commerce.productDescription(),
+    image: healthyReferenceThemeImg
+  },
+]
+
+THEMES.forEach(theme => {
+  theme.projects_link = `#projects__${_.kebabCase(theme.name)}`
+})
+
+interface Project {
+
 }
 
 const PROJECTS: Project[] = []
 Object.entries(THEMES).forEach(([k, v]) => {
-  for (let i = 0; i < v.count; i++) {
+  for (let i = 0; i < v.project_count; i++) {
     const project: Project = {
       name: faker.company.name(),
       theme: k,
@@ -167,12 +246,12 @@ export default async function Home() {
     carouselStats[k] = v[v.length - 1].value
   }
 
-  const themeProjectBreakdown: ThemeData[] = []
-  Object.entries(data.themes).forEach(([k, v]) => {
+  const themeProjectBreakdown: ThemeProjectBreakdownData[] = []
+  data.themes.forEach((theme) => {
     themeProjectBreakdown.push({
-      name: k,
-      color: v.color,
-      project_count: v.count,
+      name: theme.name,
+      color: theme.color,
+      project_count: theme.project_count,
     })
   })
 
@@ -195,6 +274,12 @@ export default async function Home() {
           <LibraryStats
             stats={data.stats}
             themeProjectBreakdown={themeProjectBreakdown}
+          />
+        </Box>
+
+        <Box id='themes'>
+          <ThemeShelf
+            themeData={data.themes}
           />
         </Box>
       </Box>
