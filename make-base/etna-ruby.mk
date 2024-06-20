@@ -3,8 +3,7 @@ app_db_name:=${app_name}_db
 app_name_capitalized:=$(shell echo ${app_name} | tr [a-z] [A-Z])
 EXTRA_DOCKER_ARGS:=
 
-config.yml: config.yml.template
-	$(call find_project_file,build_support,maybe-move-config)
+config.yml: config.yml
 
 config-ready:: $(app_name)_app_fe config.yml Dockerfile
 	@ true
@@ -30,3 +29,6 @@ run-image-test::
 
 update-ready::
 	docker-compose up -d $(app_db_name)
+
+update-configs:: config.yml.template
+	$(call find_project_file,build_support,maybe-move-config)

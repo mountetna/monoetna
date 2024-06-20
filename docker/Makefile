@@ -29,6 +29,10 @@ update:
 update-all: compose-ready ## Runs all projects' updates, running bundle and npm install
 	@ set -e && for project in $(compose_projects); do make -C $$project update; done
 
+.PHONY: update-all-configs
+update-all-configs: compose-ready ## Runs all projects' update-configs
+	@ set -e && for project in $(compose_projects); do make -C $$project update-configs; done
+
 .PHONY: up
 up: compose-ready ## Starts up all containers of this project in the background
 	@ set -e; for project in $(compose_projects); do make -C $$project compose-ready; done

@@ -70,6 +70,10 @@ config-ready:: ## Setup step that ensures that configuration files necessary for
 update:: update-ready ## Step to force update of database and development dependencies.
 	@ true
 
+.PHONY: update-configs
+update-configs:: update-ready ## Step to update config.yml from config.yml.template
+	@ true
+
 .PHONY: update-ready
 update-ready::
 	@ true
