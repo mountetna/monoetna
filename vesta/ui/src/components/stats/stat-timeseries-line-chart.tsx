@@ -7,13 +7,12 @@ import { alpha, useMediaQuery, useTheme } from '@mui/material';
 import ButtonBase from '@mui/material/ButtonBase';
 import { useParentSize } from '@visx/responsive'
 import {
-    Axis,
     AnimatedLineSeries,
     XYChart,
     Tooltip,
-    GlyphSeries,
 } from '@visx/xychart';
-import * as d3 from 'd3'
+import { scaleTime } from '@visx/scale'
+import { ScaleTime } from '@visx/vendor/d3-scale'
 import Image from 'next/image';
 
 import { Instance as StatInstance } from './types';
@@ -64,7 +63,7 @@ function TimeAxis({
     numTicks,
     showDay,
 }: {
-    scale: d3.ScaleTime<number, number, never>,
+    scale: ScaleTime<number, number, never>,
     numTicks: number,
     showDay: boolean,
 }) {
@@ -161,10 +160,10 @@ export default function StatTimeseriesLineChart({
         val.date >= timeWindowOptions[timeWindowVal].timeWindowStart
     ))
 
-    const xScale = d3.scaleTime(
-        [filteredData[0].date, filteredData[filteredData.length - 1].date],
-        [0, chartContainerWidth],
-    )
+    const xScale = scaleTime({
+        domain: [filteredData[0].date, filteredData[filteredData.length - 1].date],
+        range: [0, chartContainerWidth],
+    })
 
     const showDayInAxis = ['month', 'week'].indexOf(timeWindowVal) >= 0 || filteredData.length <= 30
 

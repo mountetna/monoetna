@@ -37,13 +37,13 @@ export default function ThemeProjectBreakdownChart({
 
     const [breakdownOpen, setBreakdownOpen] = React.useState(false)
     const breakdownContainerRef = React.useRef<HTMLElement>()
-    const [breakdownStyle, animateBreakdown] = useSpring(
+    const [breakdownStyle, animateBreakdownApi] = useSpring(
         () => ({ height: '0px', opacity: 0 }), []
     )
 
     const toggleBreakdown = () => {
         setBreakdownOpen(!breakdownOpen)
-        animateBreakdown({
+        animateBreakdownApi.start({
             height: `${breakdownOpen ? 0 : breakdownContainerRef.current?.offsetHeight}px`,
             opacity: breakdownOpen ? 0 : 1,
         })
