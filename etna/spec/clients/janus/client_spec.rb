@@ -58,21 +58,21 @@ describe 'Janus Client class' do
   end
 
   it 'can fetch stats' do
-    stub_janus_get_stats
-    test_class.get_stats(Etna::Clients::Janus::GetStatsRequest.new)
-    expect(WebMock).to have_requested(:get, %r!#{JANUS_HOST}/api/stats!)
+    stub_janus_get_project_stats
+    test_class.get_project_stats(Etna::Clients::Janus::GetStatsRequest.new)
+    expect(WebMock).to have_requested(:get, %r!#{JANUS_HOST}/api/stats/projects!)
   end
 
   it 'can fetch stats with projects specified' do
     project_names = ['test']
 
-    stub_janus_get_stats(project_names)
+    stub_janus_get_project_stats(project_names)
 
     query = project_names.map do |name|
       "projects%5B%5D=#{name}"
     end.join('&')
 
-    test_class.get_stats(Etna::Clients::Janus::GetStatsRequest.new(project_names: project_names))
-    expect(WebMock).to have_requested(:get, %r!#{JANUS_HOST}/api/stats\?#{query}!)
+    test_class.get_project_stats(Etna::Clients::Janus::GetStatsRequest.new(project_names: project_names))
+    expect(WebMock).to have_requested(:get, %r!#{JANUS_HOST}/api/stats/projects\?#{query}!)
   end
 end
