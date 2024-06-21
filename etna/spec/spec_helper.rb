@@ -275,9 +275,9 @@ def stub_janus_setup
     })
 end
 
-def stub_janus_get_stats(projects=nil)
+def stub_janus_get_project_stats(projects=nil)
   if projects.nil?
-    stub_request(:get, %r!#{JANUS_HOST}/api/stats!)
+    stub_request(:get, %r!#{JANUS_HOST}/api/stats/projects!)
     .to_return({
       status: 200,
       body: {}.to_json
@@ -287,7 +287,7 @@ def stub_janus_get_stats(projects=nil)
       "projects%5B%5D=#{name}"
     end.join('&')
 
-    stub_request(:get, %r!#{JANUS_HOST}/api/stats?#{projects}!)
+    stub_request(:get, %r!#{JANUS_HOST}/api/stats/projects?#{projects}!)
     .to_return({
       status: 200,
       body: {}.to_json
