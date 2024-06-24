@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Image, { StaticImageData } from "next/image"
+import Image from "next/image"
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import MUILink from '@mui/material/Link';
@@ -8,20 +8,10 @@ import { useSpring, animated } from 'react-spring';
 import ButtonBase from '@mui/material/ButtonBase';
 
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
-import { useMediaQuery, useTheme } from '@mui/material';
+import { ProjectCount, ThemeData } from './shared';
 
 
-export interface ThemeData {
-    name: string
-    description: string
-    project_count: number
-    projects_link: string
-    color: string
-    image: StaticImageData
-}
-
-
-export default function ThemeBook({
+export default function ThemeBookVertical({
     data,
     onClickSeeProjects,
     open,
@@ -34,22 +24,15 @@ export default function ThemeBook({
     onSetOpen: (newState: boolean) => void,
     onFinishOpen: () => void,
 }) {
-    const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.between(
-        theme.breakpoints.values.mobile,
-        theme.breakpoints.values.tablet,
-    ))
-
     const mainContentRef = React.useRef<HTMLElement>()
-    const [mainContentStyle, animateMainContentApi] = useSpring(
-        () => ({
+    const [mainContentStyle, animateMainContentApi] = useSpring(() => {
+        return {
             height: '0px',
             opacity: 0,
             // TODO: fix. why doesn't this trigger?
-            // onRest: () => onFinishOpen(),
-        }),
-        []
-    )
+            onRest: () => onFinishOpen,
+        }
+    }, [open])
 
     React.useEffect(() => {
         animateMainContentApi.start({
@@ -58,53 +41,43 @@ export default function ThemeBook({
         })
     }, [open])
 
-    const content = (
+    return (
         <Box
             role='listitem'
             sx={(theme) => ({
                 display: 'flex',
                 flexDirection: 'column',
-                // rowGap: '24px',
                 p: '16px',
                 bgcolor: 'utilityWhite.main',
                 borderRadius: '20px',
             })}
         >
             {/* HEADING */}
-            <Box
-                sx={(theme) => ({
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                })}
+            <ButtonBase
+                onClick={() => onSetOpen(!open)}
+                tabIndex={0}
             >
-                <Typography
-                    variant='pSubtitleMonoCaps'
-                    component='span'
-                >
-                    {data.name.slice(0, 4)}
-                </Typography>
-                <Typography
-                    variant='pSubtitleMonoCaps'
-                    component='div'
+                <Box
                     sx={(theme) => ({
-                        display: 'none',
-                        [theme.breakpoints.up('tablet')]: {
-                            display: 'inline-block',
-                        },
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        flexGrow: '1',
                     })}
                 >
-                    <ProjectCount
-                        count={data.project_count}
-
-                    />
-                </Typography>
-                <Typography
-                    variant='h5'
-                    component='span'
-                >
-                    {data.name}
-                </Typography>
-            </Box>
+                    <Typography
+                        variant='pSubtitleMonoCaps'
+                        component='span'
+                    >
+                        {data.name.slice(0, 4)}
+                    </Typography>
+                    <Typography
+                        variant='h5'
+                        component='span'
+                    >
+                        {data.name}
+                    </Typography>
+                </Box>
+            </ButtonBase>
 
             {/* MAIN CONTENT */}
             <animated.div
@@ -240,48 +213,6 @@ export default function ThemeBook({
                     </Box>
                 </Box>
             </animated.div>
-        </Box>
-    )
-
-    return (
-        isMobile ?
-            <ButtonBase
-                onClick={() => onSetOpen(!open)}
-                tabIndex={0}
-            >
-                {content}
-            </ButtonBase>
-            : content
-    )
-}
-
-
-function ProjectCount({
-    count,
-}: {
-    count: number,
-}) {
-    return (
-        <Box
-            component='span'
-            sx={{
-                display: 'inline-flex',
-                columnGap: '10px',
-                py: '10px',
-                borderRadius: '30px',
-                color: 'utilityWhite.main',
-                bgcolor: 'ground.grade10',
-                writingMode: 'vertical-lr',
-                textOrientation: 'mixed',
-                rotate: '180deg',
-            }}
-        >
-            <Box component='span'>
-                {count}
-            </Box>
-            <Box component='span'>
-                {`PROJECT${count > 1 ? 'S' : ''}`}
-            </Box>
         </Box>
     )
 }
