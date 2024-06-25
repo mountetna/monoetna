@@ -9,7 +9,17 @@ export interface ThemeData {
     project_count: number
     projects_link: string
     color: string
+    textColor: 'light' | 'dark'
     image: StaticImageData
+}
+
+
+export interface ThemeBookProps {
+    data: ThemeData,
+    onClickSeeProjects: (event: React.MouseEvent<HTMLAnchorElement>, href: string) => void,
+    open: boolean,
+    onSetOpen: (newState: boolean) => void,
+    onFinishOpen: () => void,
 }
 
 
