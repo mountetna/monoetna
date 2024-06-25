@@ -8,7 +8,9 @@ import { useSpring, animated } from 'react-spring';
 import ButtonBase from '@mui/material/ButtonBase';
 
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
-import { ProjectCount, ThemeData } from './shared';
+import { ProjectCount, ThemeBookProps } from './shared';
+import { useWindowDimensions } from '@/lib/utils/responsive';
+import { useTheme } from '@mui/material';
 
 
 export default function ThemeBookHorizontal({
@@ -17,87 +19,97 @@ export default function ThemeBookHorizontal({
     open,
     onSetOpen,
     onFinishOpen,
-}: {
-    data: ThemeData,
-    onClickSeeProjects: (event: React.MouseEvent<HTMLAnchorElement>, href: string) => void,
-    open: boolean,
-    onSetOpen: (newState: boolean) => void,
-    onFinishOpen: () => void,
-}) {
+}: ThemeBookProps) {
     const mainContentRef = React.useRef<HTMLElement>()
     const [mainContentStyle, animateMainContentApi] = useSpring(() => {
         return {
-            // width: '0px',
-            // opacity: 0,
-            // TODO: fix. why doesn't this trigger?
-            onRest: () => onFinishOpen,
+            width: '0px',
+            opacity: 0,
+            onRest: () => open && onFinishOpen(),
         }
     }, [])
     const coverRef = React.useRef<HTMLElement>()
     const [coverStyle, animateCoverApi] = useSpring(() => {
         return {
-            // width: '0px',
-            // opacity: 0,
-            // TODO: fix. why doesn't this trigger?
-            onRest: () => onFinishOpen,
+            width: '0px',
+            opacity: 0,
+            onRest: () => open && onFinishOpen(),
         }
     }, [])
 
-    // React.useEffect(() => {
-    //     animateMainContentApi.start({
-    //         width: `${open ? mainContentRef.current?.offsetWidth : 0}px`,
-    //         opacity: open ? 1 : 0,
-    //     })
-    //     animateCoverApi.start({
-    //         width: `${open ? coverRef.current?.offsetWidth : 0}px`,
-    //         opacity: open ? 1 : 0,
-    //     })
-    // }, [open])
+    const { dimensions, isResizing } = useWindowDimensions()
+    React.useEffect(() => {
+        animateMainContentApi.start({
+            width: `${open ? mainContentRef.current?.offsetWidth : 0}px`,
+            opacity: open ? 1 : 0,
+        })
+        animateCoverApi.start({
+            width: `${open ? coverRef.current?.offsetWidth : 0}px`,
+            opacity: open ? 1 : 0,
+        })
+    }, [open, isResizing])
+
+    const theme = useTheme()
+    const headingTextColor = data.textColor === 'light' ?
+        theme.palette.utilityHighlight.main : theme.palette.ground.grade10
 
     return (
         <Box
             role='listitem'
-            sx={(theme) => ({
-                display: 'flex',
-                flexDirection: 'row',
-                // rowGap: '24px',
-                p: '16px',
-                bgcolor: 'utilityWhite.main',
-                borderRadius: '20px',
-            })}
+            sx={() => {
+                const styles = {
+                    display: 'flex',
+                    flexDirection: 'row',
+                    transition: theme.transitions.create(
+                        ['transform'],
+                        {
+                            duration: theme.transitions.duration.ease,
+                            easing: theme.transitions.easing.ease,
+                        }
+                    ),
+                }
+
+                return open ? styles : {
+                    ...styles,
+                    '&:hover, &:focus': {
+                        transform: 'translateY(-30px)',
+                    },
+                }
+            }}
         >
             {/* MAIN CONTENT */}
             <animated.div
                 style={{
+                    display: 'flex',
                     overflow: 'hidden',
                     ...mainContentStyle,
                 }}
             >
                 <Box
                     ref={mainContentRef}
-                    sx={(theme) => ({
+                    sx={{
                         display: 'flex',
+                        minWidth: '280px',
                         flexDirection: 'column',
-                        gap: '19px',
-                        pt: '24px',
-                    })}
+                        p: '16px',
+                    }}
                 >
-
-
                     <Box
-                        sx={(theme) => ({
+                        sx={{
                             display: 'flex',
                             flexDirection: 'column',
+                            flexGrow: '1',
+                            justifyContent: 'space-between',
                             gap: '24px',
-                        })}
+                        }}
                     >
                         <Box
-                            sx={(theme) => ({
+                            sx={{
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '16px',
                                 textAlign: 'left',
-                            })}
+                            }}
                         >
                             <Typography variant='h5'>
                                 {data.name}
@@ -107,6 +119,7 @@ export default function ThemeBookHorizontal({
                             </Typography>
                         </Box>
 
+                        {/* SEE PROJECTS BUTTON */}
                         <Box
                             sx={{
                                 display: 'flex',
@@ -118,14 +131,14 @@ export default function ThemeBookHorizontal({
                                 tabIndex={0}
                                 component={Link}
                                 underline='none'
-                                color='utilityHighlight.main'
-                                bgcolor='ground.grade10'
                                 onClick={e => onClickSeeProjects(e, data.projects_link)}
-                                sx={(theme) => ({
+                                sx={{
                                     display: 'inline-flex',
                                     alignItems: 'center',
                                     borderRadius: '60px',
-                                })}
+                                    color: 'utilityHighlight.main',
+                                    bgcolor: 'ground.grade10',
+                                }}
                             >
                                 <Typography
                                     variant='pLarge'
@@ -156,99 +169,142 @@ export default function ThemeBookHorizontal({
             </animated.div>
 
             {/* HEADING */}
-            <ButtonBase
-                onClick={() => onSetOpen(!open)}
-                tabIndex={0}
-            >
-                <Box
-                    sx={(theme) => ({
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        flexGrow: '1',
-                    })}
-                >
-                    <Typography
-                        variant='pSubtitleMonoCaps'
-                        component='span'
-                    >
-                        {data.name.slice(0, 4)}
-                    </Typography>
-                    <Typography
-                        variant='pSubtitleMonoCaps'
-                        component='div'
-                        sx={{
-                            display: 'inline-block',
-                        }}
-                    >
-                        <ProjectCount
-                            count={data.project_count}
-
-                        />
-                    </Typography>
-                    <Typography
-                        variant='h5'
-                        component='span'
-                    >
-                        {data.name}
-                    </Typography>
-                </Box>
-            </ButtonBase>
-
-            {/* COVER */}
-            <animated.div
-                style={{
-                    overflow: 'hidden',
-                    ...coverStyle,
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
                 }}
             >
-
-                <Box
+                <ButtonBase
+                    onClick={() => onSetOpen(!open)}
+                    tabIndex={0}
                     sx={(theme) => ({
                         display: 'flex',
-                        justifyContent: 'space-between',
-                        gap: '16px',
-                        p: '16px',
                         borderRadius: '20px',
-                        bgcolor: data.color,
-                        objectFit: 'contain',
+                        borderTopRightRadius: open ? '0px' : '20px',
+                        borderBottomRightRadius: open ? '0px' : '20px',
+                        p: '16px',
+                        bgcolor: open ? data.color : 'utilityWhite.main',
+                        transition: theme.transitions.create(
+                            ['background-color', 'border-radius'],
+                            {
+                                duration: theme.transitions.duration.ease,
+                                easing: theme.transitions.easing.ease,
+                            }
+                        ),
                     })}
                 >
-                    <Typography
-                        variant='pMediumMonoCaps'
-                        component='div'
-                        sx={(theme) => ({
-                            alignSelf: 'flex-end',
-                            display: 'flex',
-                            [theme.breakpoints.up('tablet')]: {
-                                display: 'none',
-                            },
-                        })}
-                    >
-                        <ProjectCount
-                            count={data.project_count}
-                        />
-                    </Typography>
                     <Box
-                        sx={(theme) => ({
+                        sx={{
+                            flexGrow: '1',
                             display: 'flex',
-                            alignSelf: 'flex-start',
-                            '& img': {
-                                // aspectRatio: '270 / 272',
-                                objectFit: 'cover',
-                                objectPosition: 'center center',
-                                borderRadius: '16px',
+                            justifyContent: 'space-between',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            height: '100%',
+                            '& .short-code, & .name': {
+                                writingMode: 'vertical-lr',
+                                textOrientation: 'mixed',
+                                rotate: '180deg',
                             },
-                        })}
+                        }}
                     >
-                        <Image
-                            src={data.image}
-                            alt={`${data.name} theme abstract image`}
-                            width={399}
-                            height={570}
-                        />
+                        <Typography
+                            variant='h5'
+                            component='span'
+                            className='name'
+                            sx={{
+                                color: open ? headingTextColor : 'unset',
+                                transition: theme.transitions.create(
+                                    ['color'],
+                                    {
+                                        duration: theme.transitions.duration.ease,
+                                        easing: theme.transitions.easing.ease,
+                                    }
+                                ),
+                            }}
+                        >
+                            {data.name}
+                        </Typography>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '10px',
+                            }}
+                        >
+                            <Typography
+                                variant='pSubtitleMonoCaps'
+                                component='div'
+                                sx={{
+                                    display: 'inline-flex',
+                                }}
+                            >
+                                <ProjectCount
+                                    count={data.project_count}
+
+                                />
+                            </Typography>
+                            <Typography
+                                variant='pSubtitleMonoCaps'
+                                component='span'
+                                className='short-code'
+                                sx={{
+                                    color: open ? headingTextColor : 'unset',
+                                    transition: theme.transitions.create(
+                                        ['color'],
+                                        {
+                                            duration: theme.transitions.duration.ease,
+                                            easing: theme.transitions.easing.ease,
+                                        }
+                                    ),
+                                }}
+                            >
+                                {data.name.slice(0, 4)}
+                            </Typography>
+                        </Box>
                     </Box>
-                </Box>
-            </animated.div>
+                </ButtonBase>
+
+                {/* COVER */}
+                <animated.div
+                    style={{
+                        display: 'flex',
+                        borderRadius: '20px',
+                        borderTopLeftRadius: '0px',
+                        borderBottomLeftRadius: '0px',
+                        backgroundColor: data.color,
+                        overflow: 'hidden',
+                        ...coverStyle,
+                    }}
+                >
+                    <Box
+                        ref={coverRef}
+                    >
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                width: '399px',
+                                height: '570px',
+                                overflow: 'hidden',
+                                p: '16px',
+                            }}
+                        >
+                            <Image
+                                src={data.image}
+                                alt={`${data.name} theme abstract image`}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    objectPosition: 'center center',
+                                    borderRadius: '16px',
+                                }}
+                            />
+                        </Box>
+                    </Box>
+                </animated.div>
+            </Box>
         </Box>
     )
 }

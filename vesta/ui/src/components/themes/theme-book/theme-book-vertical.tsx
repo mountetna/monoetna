@@ -8,7 +8,8 @@ import { useSpring, animated } from 'react-spring';
 import ButtonBase from '@mui/material/ButtonBase';
 
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
-import { ProjectCount, ThemeData } from './shared';
+import { ProjectCount, ThemeBookProps } from './shared';
+import { useWindowDimensions } from '@/lib/utils/responsive';
 
 
 export default function ThemeBookVertical({
@@ -17,29 +18,23 @@ export default function ThemeBookVertical({
     open,
     onSetOpen,
     onFinishOpen,
-}: {
-    data: ThemeData,
-    onClickSeeProjects: (event: React.MouseEvent<HTMLAnchorElement>, href: string) => void,
-    open: boolean,
-    onSetOpen: (newState: boolean) => void,
-    onFinishOpen: () => void,
-}) {
+}: ThemeBookProps) {
     const mainContentRef = React.useRef<HTMLElement>()
     const [mainContentStyle, animateMainContentApi] = useSpring(() => {
         return {
             height: '0px',
             opacity: 0,
-            // TODO: fix. why doesn't this trigger?
-            onRest: () => onFinishOpen,
+            onRest: () => open && onFinishOpen(),
         }
     }, [open])
 
+    const {dimensions, isResizing} = useWindowDimensions()
     React.useEffect(() => {
         animateMainContentApi.start({
             height: `${open ? mainContentRef.current?.offsetHeight : 0}px`,
             opacity: open ? 1 : 0,
         })
-    }, [open])
+    }, [open, isResizing])
 
     return (
         <Box

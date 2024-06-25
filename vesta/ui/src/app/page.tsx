@@ -12,7 +12,7 @@ import { Instance } from '@/components/stats/types';
 import { ThemeData as ThemeProjectBreakdownData } from '@/components/stats/theme-project-breakdown-chart';
 import { sectionMargins } from '@/theme';
 import ThemeShelf from '@/components/themes/theme-shelf';
-import { ThemeData } from '@/components/themes/theme-book';
+import { ThemeData } from '@/components/themes/theme-book/shared';
 
 import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
 import xeniumFallback from '/public/images/hero/xenium-fallback.png'
@@ -136,6 +136,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Infection',
     color: '#89A7CE',
+    textColor: 'dark',
     project_count: 11,
     projects_link: '',
     description: faker.commerce.productDescription(),
@@ -144,6 +145,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Autoimmunity',
     color: '#DDA373',
+    textColor: 'dark',
     project_count: 23,
     projects_link: '',
     description: faker.commerce.productDescription(),
@@ -152,6 +154,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Inflammation',
     color: '#D6D8A8',
+    textColor: 'dark',
     project_count: 8,
     projects_link: '',
     description: faker.commerce.productDescription(),
@@ -160,15 +163,17 @@ const THEMES: ThemeData[] = [
   {
     name: 'Fibrosis',
     color: '#A2A648',
+    textColor: 'dark',
     project_count: 2,
     projects_link: '',
     description: faker.commerce.productDescription(),
     image: fibrosisThemeImg
   },
   {
-    name: 'Early Life'
-    , color: '#7FA190'
-    , project_count: 8,
+    name: 'Early Life',
+    color: '#7FA190',
+    textColor: 'dark',
+    project_count: 8,
     projects_link: '',
     description: faker.commerce.productDescription(),
     image: earlyLifeThemeImg
@@ -176,6 +181,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Cancer',
     color: '#E4B8C7',
+    textColor: 'dark',
     project_count: 21,
     projects_link: '',
     description: faker.commerce.productDescription(),
@@ -184,6 +190,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Neurodegeneration',
     color: '#556E66',
+    textColor: 'light',
     project_count: 6,
     projects_link: '',
     description: faker.commerce.productDescription(),
@@ -192,6 +199,7 @@ const THEMES: ThemeData[] = [
   {
     name: "Women's Health",
     color: '#E9C54E',
+    textColor: 'dark',
     project_count: 10,
     projects_link: '',
     description: faker.commerce.productDescription(),
@@ -200,6 +208,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Healthy Reference',
     color: '#DFDED6',
+    textColor: 'dark',
     project_count: 4,
     projects_link: '',
     description: faker.commerce.productDescription(),

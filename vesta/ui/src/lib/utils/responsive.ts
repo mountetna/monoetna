@@ -1,9 +1,11 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import _ from 'lodash'
 
 
 export function useWindowDimensions(triggerDelayMs: number = 100) {
-    const [dimensions, setDimensions] = useState<number[]>()
+    const [dimensions, setDimensions] = useState<number[] | null>(null)
     const [isResizing, setIsResizing] = useState<boolean>(false)
 
     useEffect(() => {
@@ -28,6 +30,8 @@ export function useWindowDimensions(triggerDelayMs: number = 100) {
 
         for (const handler of handlers) {
             window.addEventListener('resize', handler)
+            // trigger handlers on react mount
+            handler()
         }
 
         return () => {
