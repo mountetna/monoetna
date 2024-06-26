@@ -4,7 +4,7 @@ import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import MUILink from '@mui/material/Link';
 import Link from 'next/link'
-import { useSpring, animated } from 'react-spring';
+import { useSpring, animated, easings } from '@react-spring/web';
 import ButtonBase from '@mui/material/ButtonBase';
 
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
@@ -20,36 +20,39 @@ export default function ThemeBookHorizontal({
     onSetOpen,
     onFinishOpen,
 }: ThemeBookProps) {
-    const mainContentRef = React.useRef<HTMLElement>()
-    const [mainContentStyle, animateMainContentApi] = useSpring(() => {
-        return {
-            width: '0px',
-            opacity: 0,
-            onRest: () => open && onFinishOpen(),
-        }
-    }, [])
-    const coverRef = React.useRef<HTMLElement>()
-    const [coverStyle, animateCoverApi] = useSpring(() => {
-        return {
-            width: '0px',
-            opacity: 0,
-            onRest: () => open && onFinishOpen(),
-        }
-    }, [])
+    const theme = useTheme()
 
-    const { dimensions, isResizing } = useWindowDimensions()
+    const mainContentRef = React.useRef<HTMLElement>()
+    const coverRef = React.useRef<HTMLElement>()
+
+    const springParams = {
+        width: '0px',
+        opacity: 0,
+        onRest: () => open && onFinishOpen(),
+    }
+    const [mainContentStyle, animateMainContentApi] = useSpring(() => ({ ...springParams }), [])
+    const [coverStyle, animateCoverApi] = useSpring(() => ({ ...springParams }), [])
+
+    const { isResizing: isWindowResizing } = useWindowDimensions()
     React.useEffect(() => {
         animateMainContentApi.start({
             width: `${open ? mainContentRef.current?.offsetWidth : 0}px`,
             opacity: open ? 1 : 0,
+            config: {
+                easing: theme.transitions.easing.quintFn,
+                duration: theme.transitions.duration.quint,
+            },
         })
         animateCoverApi.start({
             width: `${open ? coverRef.current?.offsetWidth : 0}px`,
             opacity: open ? 1 : 0,
+            config: {
+                easing: theme.transitions.easing.quintFn,
+                duration: theme.transitions.duration.quint,
+            },
         })
-    }, [open, isResizing])
+    }, [open, isWindowResizing])
 
-    const theme = useTheme()
     const headingTextColor = data.textColor === 'light' ?
         theme.palette.utilityHighlight.main : theme.palette.ground.grade10
 

@@ -192,7 +192,7 @@ export default function ThemeShelf({
                             display: 'flex',
                             flexDirection: 'row',
                             columnGap: `${tabletDesktopThemeBookGapPx}px`,
-                            justifyContent: 'space-between',
+                            // justifyContent: 'space-between',
                             width: '100%',
                             overflowX: 'scroll',
                             ...containerPadding,
