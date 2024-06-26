@@ -42,7 +42,6 @@ export default function ThemeBookVertical({
             sx={(theme) => ({
                 display: 'flex',
                 flexDirection: 'column',
-                p: '16px',
                 bgcolor: 'utilityWhite.main',
                 borderRadius: '20px',
             })}
@@ -51,6 +50,9 @@ export default function ThemeBookVertical({
             <ButtonBase
                 onClick={() => onSetOpen(!open)}
                 tabIndex={0}
+                sx={{
+                    p: '16px',
+                }}
             >
                 <Box
                     sx={(theme) => ({
@@ -87,7 +89,7 @@ export default function ThemeBookVertical({
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '19px',
-                        pt: '24px',
+                        p: '8px 16px 16px 16px',
                     })}
                 >
                     <Box
