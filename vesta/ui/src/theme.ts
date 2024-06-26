@@ -553,13 +553,13 @@ for (const [name, val] of Object.entries(colors)) {
   paletteColors[name] = { ...paletteColors[name], ...colorTokens }
 }
 
-export const containerPadding: SxProps = {
-  p: '0 8px',
+export const containerPadding = {
+  padding: '0 8px',
   [theme.breakpoints.up('tablet')]: {
-    p: '0 16px',
+    padding: '0 24px',
   },
   [theme.breakpoints.up('desktop')]: {
-    p: '0 16px',
+    padding: '0 24px',
   },
 }
 
