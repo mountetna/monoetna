@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react';
 import Box from '@mui/system/Box'
 import { Select } from '@mui/base/Select';
@@ -49,8 +51,6 @@ export default function Dropdown({
     optionTypographyVariant?: TypographyOwnProps['variant'],
     selectedOptionTypographyVariant?: TypographyOwnProps['variant'],
 }) {
-    const listboxId = _.uniqueId('dropdown-')
-
     const {
         parentRef: selectContainerRef,
         width: selectContainerWidth,
@@ -148,7 +148,6 @@ export default function Dropdown({
                     border: 'none',
                     borderRadius: '10px',
                 }}
-                listboxId={listboxId}
                 renderValue={(option) => (
                     <Box
                         className='dropdown-button-content'

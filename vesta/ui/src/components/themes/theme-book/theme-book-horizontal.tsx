@@ -89,7 +89,6 @@ export default function ThemeBookHorizontal({
                     ref={mainContentRef}
                     sx={{
                         display: 'flex',
-                        minWidth: '280px',
                         flexDirection: 'column',
                         p: '16px',
                     }}
@@ -109,12 +108,16 @@ export default function ThemeBookHorizontal({
                                 flexDirection: 'column',
                                 gap: '16px',
                                 textAlign: 'left',
+                                minWidth: '280px',
+                                [theme.breakpoints.up('desktop')]: {
+                                    minWidth: '362px',
+                                },
                             }}
                         >
                             <Typography variant='h5'>
                                 {data.name}
                             </Typography>
-                            <Typography variant='pLarge'>
+                            <Typography variant='pLarge' component='div'>
                                 {data.description}
                             </Typography>
                         </Box>
@@ -282,13 +285,17 @@ export default function ThemeBookHorizontal({
                         ref={coverRef}
                     >
                         <Box
-                            sx={{
+                            sx={(theme) => ({
                                 display: 'flex',
-                                width: '399px',
-                                height: '570px',
                                 overflow: 'hidden',
                                 p: '16px',
-                            }}
+                                width: '399px',
+                                height: '570px',
+                                [theme.breakpoints.up('desktop')]: {
+                                    width: '516px',
+                                    height: '671px',
+                                },
+                            })}
                         >
                             <Image
                                 src={data.image}
