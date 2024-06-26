@@ -2,6 +2,8 @@
 
 import { createTheme, alpha, PaletteColor, SxProps } from '@mui/material/styles';
 import { theFuture, relativeMonoPro10Pitch } from '@/fonts';
+import { easings, EasingFunction } from 'react-spring';
+import BezierEasing from 'bezier-easing'
 
 
 declare module '@mui/material/styles' {
@@ -158,9 +160,13 @@ declare module '@mui/material/styles' {
 
   interface Easing {
     ease: string;
+    easeFn: EasingFunction;
     swell: string;
+    swellFn: EasingFunction;
     expo: string;
+    expoFn: EasingFunction;
     quint: string;
+    quintFn: EasingFunction;
   }
 }
 
@@ -425,9 +431,13 @@ let theme = createTheme({
     },
     easing: {
       ease: 'ease',
+      easeFn: easings.easeInBack,
       swell: 'cubic-bezier(0.85, 0, 0.15, 1)',
+      swellFn: BezierEasing(0.85, 0, 0.15, 1),
       expo: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      expoFn: BezierEasing(0.16, 1, 0.3, 1),
       quint: 'cubic-bezier(0.92, 0, 0.06, 1)',
+      quintFn: BezierEasing(0.92, 0, 0.06, 1),
     },
   },
   components: {
