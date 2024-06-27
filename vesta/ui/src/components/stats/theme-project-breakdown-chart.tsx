@@ -41,11 +41,17 @@ export default function ThemeProjectBreakdownChart({
         () => ({ height: '0px', opacity: 0 }), []
     )
 
+    const theme = useTheme()
+    
     const toggleBreakdown = () => {
         setBreakdownOpen(!breakdownOpen)
         animateBreakdownApi.start({
             height: `${breakdownOpen ? 0 : breakdownContainerRef.current?.offsetHeight}px`,
             opacity: breakdownOpen ? 0 : 1,
+            config: {
+                easing: theme.transitions.easing.quintFn,
+                duration: theme.transitions.duration.quint,
+            },
         })
     }
 

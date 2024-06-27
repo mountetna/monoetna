@@ -17,7 +17,6 @@ import Image from 'next/image';
 
 import { Instance as StatInstance } from './types';
 import Dropdown from '../inputs/dropdown';
-
 import indicatorArrowDark from '/public/images/icons/indicator-arrow-dark.svg'
 
 

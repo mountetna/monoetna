@@ -30,6 +30,7 @@ import infectionThemeImg from '/public/images/themes/Infection.png'
 import inflammationThemeImg from '/public/images/themes/Inflammation.png'
 import neurodegenerationThemeImg from '/public/images/themes/Neurodegeneration.png'
 import womensHealthThemeImg from '/public/images/themes/Women\'s Health.png'
+import ProjectListings from '@/components/project-listings/project-listings';
 
 
 export const metadata: Metadata = {
@@ -290,6 +291,11 @@ export default async function Home() {
         <Box id='themes'>
           <ThemeShelf
             themeData={data.themes}
+          />
+        </Box>
+
+        <Box id="projects">
+          <ProjectListings
           />
         </Box>
       </Box>

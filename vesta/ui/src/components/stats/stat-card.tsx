@@ -40,8 +40,8 @@ export default function StatCard({
     const transition = theme.transitions.create(
         ['all'],
         {
-            duration: theme.transitions.duration.ease,
-            easing: theme.transitions.easing.ease,
+            duration: theme.transitions.duration.quint,
+            easing: theme.transitions.easing.quint,
         },
     )
 

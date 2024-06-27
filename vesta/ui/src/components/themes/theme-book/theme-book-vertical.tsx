@@ -6,6 +6,7 @@ import MUILink from '@mui/material/Link';
 import Link from 'next/link'
 import { useSpring, animated } from 'react-spring';
 import ButtonBase from '@mui/material/ButtonBase';
+import { useTheme } from '@mui/material';
 
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
 import { ProjectCount, ThemeBookProps } from './shared';
@@ -28,23 +29,28 @@ export default function ThemeBookVertical({
         }
     }, [open])
 
-    const {dimensions, isResizing} = useWindowDimensions()
+    const {dimensions: windowDimensions} = useWindowDimensions()
+    const theme = useTheme()
     React.useEffect(() => {
         animateMainContentApi.start({
             height: `${open ? mainContentRef.current?.offsetHeight : 0}px`,
             opacity: open ? 1 : 0,
+            config: {
+                easing: theme.transitions.easing.quintFn,
+                duration: theme.transitions.duration.quint,
+            },
         })
-    }, [open, isResizing])
+    }, [open, windowDimensions])
 
     return (
         <Box
             role='listitem'
-            sx={(theme) => ({
+            sx={{
                 display: 'flex',
                 flexDirection: 'column',
                 bgcolor: 'utilityWhite.main',
                 borderRadius: '20px',
-            })}
+            }}
         >
             {/* HEADING */}
             <ButtonBase
