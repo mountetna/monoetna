@@ -4,7 +4,7 @@ import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import MUILink from '@mui/material/Link';
 import Link from 'next/link'
-import { useSpring, animated, easings } from '@react-spring/web';
+import { useSpring, animated } from '@react-spring/web';
 import ButtonBase from '@mui/material/ButtonBase';
 
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
@@ -34,23 +34,21 @@ export default function ThemeBookHorizontal({
     const [coverStyle, animateCoverApi] = useSpring(() => ({ ...springParams }), [])
 
     const { isResizing: isWindowResizing } = useWindowDimensions()
+    
+    const getSpringApiParams = (ref: React.RefObject<HTMLElement | undefined>) => {
+        return {
+            width: `${open ? ref.current?.offsetWidth : 0}px`,
+            opacity: open ? 1 : 0,
+            config: {
+                easing: theme.transitions.easing.quintFn,
+                duration: theme.transitions.duration.quint,
+            },
+        }
+    }
+
     React.useEffect(() => {
-        animateMainContentApi.start({
-            width: `${open ? mainContentRef.current?.offsetWidth : 0}px`,
-            opacity: open ? 1 : 0,
-            config: {
-                easing: theme.transitions.easing.quintFn,
-                duration: theme.transitions.duration.quint,
-            },
-        })
-        animateCoverApi.start({
-            width: `${open ? coverRef.current?.offsetWidth : 0}px`,
-            opacity: open ? 1 : 0,
-            config: {
-                easing: theme.transitions.easing.quintFn,
-                duration: theme.transitions.duration.quint,
-            },
-        })
+        animateMainContentApi.start(getSpringApiParams(mainContentRef))
+        animateCoverApi.start(getSpringApiParams(coverRef))
     }, [open, isWindowResizing])
 
     const headingTextColor = data.textColor === 'light' ?
@@ -66,8 +64,8 @@ export default function ThemeBookHorizontal({
                     transition: theme.transitions.create(
                         ['transform'],
                         {
-                            duration: theme.transitions.duration.ease,
-                            easing: theme.transitions.easing.ease,
+                            duration: theme.transitions.duration.quint,
+                            easing: theme.transitions.easing.quint,
                         }
                     ),
                 }
@@ -194,8 +192,8 @@ export default function ThemeBookHorizontal({
                         transition: theme.transitions.create(
                             ['background-color', 'border-radius'],
                             {
-                                duration: theme.transitions.duration.ease,
-                                easing: theme.transitions.easing.ease,
+                                duration: theme.transitions.duration.quint,
+                                easing: theme.transitions.easing.quint,
                             }
                         ),
                     })}
@@ -224,8 +222,8 @@ export default function ThemeBookHorizontal({
                                 transition: theme.transitions.create(
                                     ['color'],
                                     {
-                                        duration: theme.transitions.duration.ease,
-                                        easing: theme.transitions.easing.ease,
+                                        duration: theme.transitions.duration.quint,
+                                        easing: theme.transitions.easing.quint,
                                     }
                                 ),
                             }}
@@ -260,8 +258,8 @@ export default function ThemeBookHorizontal({
                                     transition: theme.transitions.create(
                                         ['color'],
                                         {
-                                            duration: theme.transitions.duration.ease,
-                                            easing: theme.transitions.easing.ease,
+                                            duration: theme.transitions.duration.quint,
+                                            easing: theme.transitions.easing.quint,
                                         }
                                     ),
                                 }}

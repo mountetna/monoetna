@@ -91,13 +91,13 @@ export default function DLNav({ isStuck }: { isStuck: boolean }) {
                 />
                 <NavLink
                     text='Themes'
-                    href='#'
+                    href='#themes'
                     isStuck={isStuck}
                     onClick={handleClickNavLink}
                 />
                 <NavLink
                     text='Projects'
-                    href='#'
+                    href='#projects'
                     isStuck={isStuck}
                     onClick={handleClickNavLink}
                 />
