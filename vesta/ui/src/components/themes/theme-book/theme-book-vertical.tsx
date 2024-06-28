@@ -115,13 +115,14 @@ export default function ThemeBookVertical({
                             sx={(theme) => ({
                                 alignSelf: 'flex-end',
                                 display: 'flex',
+                                rotate: '180deg',
                                 [theme.breakpoints.up('tablet')]: {
                                     display: 'none',
                                 },
                             })}
                         >
                             <ProjectCount
-                                count={data.project_count}
+                                count={data.projectCount}
                             />
                         </Typography>
                         <Box
@@ -140,7 +141,7 @@ export default function ThemeBookVertical({
                             })}
                         >
                             <Image
-                                src={data.image}
+                                src={data.coverImage}
                                 alt={`${data.name} theme abstract image`}
                             />
                         </Box>
@@ -176,13 +177,13 @@ export default function ThemeBookVertical({
                             }}
                         >
                             <MUILink
-                                href={data.projects_link}
+                                href={data.projectsLink}
                                 tabIndex={0}
                                 component={Link}
                                 underline='none'
                                 color='utilityHighlight.main'
                                 bgcolor='ground.grade10'
-                                onClick={e => onClickSeeProjects(e, data.projects_link)}
+                                onClick={e => onClickSeeProjects(e, data.projectsLink)}
                                 sx={(theme) => ({
                                     display: 'inline-flex',
                                     alignItems: 'center',

@@ -20,6 +20,7 @@ interface AboutItemProps {
     image: ImageProps
 }
 
+
 export default function AboutCarousel({ items }: { items: AboutItemProps[] }) {
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.between(

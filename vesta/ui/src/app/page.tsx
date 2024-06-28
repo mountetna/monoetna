@@ -9,10 +9,12 @@ import { getRandomItem } from '@/lib/utils/random';
 import AboutCarousel from '@/components/about/about-carousel';
 import LibraryStats from '@/components/stats/library-stats';
 import { Instance } from '@/components/stats/types';
-import { ThemeData as ThemeProjectBreakdownData } from '@/components/stats/theme-project-breakdown-chart';
+import { ThemeProjectBreakdownData } from '@/components/stats/theme-project-breakdown-chart';
 import { sectionMargins } from '@/theme';
 import ThemeShelf from '@/components/themes/theme-shelf';
-import { ThemeData } from '@/components/themes/theme-book/shared';
+import { ThemeData } from '@/components/themes/models';
+import ProjectListings from '@/components/project-listings/project-listings';
+import { Project, ProjectStatus, ProjectType } from '@/components/project-listings/models';
 
 import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
 import xeniumFallback from '/public/images/hero/xenium-fallback.png'
@@ -21,16 +23,46 @@ import aboutImg1 from '/public/images/about-carousel/carousel-img-1.png'
 import aboutImg2 from '/public/images/about-carousel/carousel-img-2.png'
 import aboutImg3 from '/public/images/about-carousel/carousel-img-3.png'
 import aboutImg4 from '/public/images/about-carousel/carousel-img-4.png'
-import autoimmunityThemeImg from '/public/images/themes/Autoimmunity.png'
-import cancerThemeImg from '/public/images/themes/Cancer.png'
-import earlyLifeThemeImg from '/public/images/themes/Early Life.png'
-import fibrosisThemeImg from '/public/images/themes/Fibrosis.png'
-import healthyReferenceThemeImg from '/public/images/themes/Healthy Reference.png'
-import infectionThemeImg from '/public/images/themes/Infection.png'
-import inflammationThemeImg from '/public/images/themes/Inflammation.png'
-import neurodegenerationThemeImg from '/public/images/themes/Neurodegeneration.png'
-import womensHealthThemeImg from '/public/images/themes/Women\'s Health.png'
-import ProjectListings from '@/components/project-listings/project-listings';
+
+import autoimmunityThemeImg from '/public/images/themes/covers/autoimmunity.png'
+import cancerThemeImg from '/public/images/themes/covers/cancer.png'
+import earlyLifeThemeImg from '/public/images/themes/covers/early-life.png'
+import fibrosisThemeImg from '/public/images/themes/covers/fibrosis.png'
+import healthyReferenceThemeImg from '/public/images/themes/covers/healthy-reference.png'
+import infectionThemeImg from '/public/images/themes/covers/infection.png'
+import inflammationThemeImg from '/public/images/themes/covers/inflammation.png'
+import neurodegenerationThemeImg from '/public/images/themes/covers/neurodegeneration.png'
+import womensHealthThemeImg from '/public/images/themes/covers/womens-health.png'
+
+import autoimmunityThemeIcon from '/public/images/themes/icons/lg/svg/autoimmunity.svg'
+import cancerThemeIcon from '/public/images/themes/icons/lg/svg/cancer.svg'
+import earlyLifeThemeIcon from '/public/images/themes/icons/lg/svg/early-life.svg'
+import fibrosisThemeIcon from '/public/images/themes/icons/lg/svg/fibrosis.svg'
+import healthyReferenceThemeIcon from '/public/images/themes/icons/lg/svg/healthy-reference.svg'
+import infectionThemeIcon from '/public/images/themes/icons/lg/svg/infection.svg'
+import inflammationThemeIcon from '/public/images/themes/icons/lg/svg/inflammation.svg'
+import neurodegenerationThemeIcon from '/public/images/themes/icons/lg/svg/neurodegeneration.svg'
+import womensHealthThemeIcon from '/public/images/themes/icons/lg/svg/womens-health.svg'
+
+import autoimmunityThemeFiltered from '/public/images/themes/components/autoimmunity-filteredimg.png'
+import cancerThemeFiltered from '/public/images/themes/components/cancer-filteredimg.png'
+import earlyLifeThemeFiltered from '/public/images/themes/components/early-life-filteredimg.png'
+import fibrosisThemeFiltered from '/public/images/themes/components/fibrosis-filteredimg.png'
+import healthyReferenceThemeFiltered from '/public/images/themes/components/healthy-reference-filteredimg.png'
+import infectionThemeFiltered from '/public/images/themes/components/infection-filteredimg.png'
+import inflammationThemeFiltered from '/public/images/themes/components/inflammation-filteredimg.png'
+import neurodegenerationThemeFiltered from '/public/images/themes/components/neurodegeneration-filteredimg.png'
+import womensHealthThemeFiltered from '/public/images/themes/components/womens-health-filteredimg.png'
+
+import autoimmunityThemeProjectBg from '/public/images/themes/components/autoimmunity-projbg.png'
+import cancerThemeProjectBg from '/public/images/themes/components/cancer-projbg.png'
+import earlyLifeThemeProjectBg from '/public/images/themes/components/early-life-projbg.png'
+import fibrosisThemeProjectBg from '/public/images/themes/components/fibrosis-projbg.png'
+import healthyReferenceThemeProjectBg from '/public/images/themes/components/healthy-reference-projbg.png'
+import infectionThemeProjectBg from '/public/images/themes/components/infection-projbg.png'
+import inflammationThemeProjectBg from '/public/images/themes/components/inflammation-projbg.png'
+import neurodegenerationThemeProjectBg from '/public/images/themes/components/neurodegeneration-projbg.png'
+import womensHealthThemeProjectBg from '/public/images/themes/components/womens-health-projbg.png'
 
 
 export const metadata: Metadata = {
@@ -95,11 +127,7 @@ const ABOUT_ITEMS = [
     },
   },
 ]
-
-function getRandomArbitrary(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min) + min)
-}
-
+debugger
 const startDate = new Date(Date.now())
 const daysInRange = 365 * 4
 startDate.setDate(startDate.getDate() - daysInRange)
@@ -108,27 +136,27 @@ const dayInMs = 24 * 60 * 60 * 1000
 const STATS = {
   bytes: Array(daysInRange).fill(null).map((_, i) => ({
     date: new Date(startDate.getTime() + i * dayInMs),
-    value: getRandomArbitrary(1e12, 999e12),
+    value: faker.helpers.rangeToNumber({ min: 1e12, max: 999e12, }),
   })),
   assays: Array(daysInRange).fill(null).map((_, i) => ({
     date: new Date(startDate.getTime() + i * dayInMs),
-    value: getRandomArbitrary(1000, 400000),
+    value: faker.helpers.rangeToNumber({ min: 1000, max: 400000, }),
   })),
   subjects: Array(daysInRange).fill(null).map((_, i) => ({
     date: new Date(startDate.getTime() + i * dayInMs),
-    value: getRandomArbitrary(10, 999),
+    value: faker.helpers.rangeToNumber({ min: 10, max: 999, }),
   })),
   files: Array(daysInRange).fill(null).map((_, i) => ({
     date: new Date(startDate.getTime() + i * dayInMs),
-    value: getRandomArbitrary(1000, 999999),
+    value: faker.helpers.rangeToNumber({ min: 1000, max: 999999, }),
   })),
   samples: Array(daysInRange).fill(null).map((_, i) => ({
     date: new Date(startDate.getTime() + i * dayInMs),
-    value: getRandomArbitrary(100000, 999999),
+    value: faker.helpers.rangeToNumber({ min: 100000, max: 999999, }),
   })),
   users: Array(daysInRange).fill(null).map((_, i) => ({
     date: new Date(startDate.getTime() + i * dayInMs),
-    value: getRandomArbitrary(100, 1000),
+    value: faker.helpers.rangeToNumber({ min: 100, max: 1000, }),
   })),
 }
 
@@ -138,104 +166,167 @@ const THEMES: ThemeData[] = [
     name: 'Infection',
     color: '#89A7CE',
     textColor: 'dark',
-    project_count: 11,
-    projects_link: '',
+    projectCount: 11,
+    projectsLink: '',
     description: faker.commerce.productDescription(),
-    image: infectionThemeImg
+    imageComponents: {
+      filtered: infectionThemeFiltered,
+      projectBackground: infectionThemeProjectBg,
+    },
+    coverImage: infectionThemeImg,
+    icon: infectionThemeIcon,
   },
   {
     name: 'Autoimmunity',
     color: '#DDA373',
     textColor: 'dark',
-    project_count: 23,
-    projects_link: '',
+    projectCount: 23,
+    projectsLink: '',
     description: faker.commerce.productDescription(),
-    image: autoimmunityThemeImg
+    imageComponents: {
+      filtered: autoimmunityThemeFiltered,
+      projectBackground: autoimmunityThemeProjectBg,
+    },
+    coverImage: autoimmunityThemeImg,
+    icon: autoimmunityThemeIcon,
   },
   {
     name: 'Inflammation',
     color: '#D6D8A8',
     textColor: 'dark',
-    project_count: 8,
-    projects_link: '',
+    projectCount: 8,
+    projectsLink: '',
     description: faker.commerce.productDescription(),
-    image: inflammationThemeImg
+    imageComponents: {
+      filtered: inflammationThemeFiltered,
+      projectBackground: inflammationThemeProjectBg,
+    },
+    coverImage: inflammationThemeImg,
+    icon: inflammationThemeIcon,
   },
   {
     name: 'Fibrosis',
     color: '#A2A648',
     textColor: 'dark',
-    project_count: 2,
-    projects_link: '',
+    projectCount: 2,
+    projectsLink: '',
     description: faker.commerce.productDescription(),
-    image: fibrosisThemeImg
+    imageComponents: {
+      filtered: fibrosisThemeFiltered,
+      projectBackground: fibrosisThemeProjectBg,
+    },
+    coverImage: fibrosisThemeImg,
+    icon: fibrosisThemeIcon,
   },
   {
     name: 'Early Life',
     color: '#7FA190',
     textColor: 'dark',
-    project_count: 8,
-    projects_link: '',
+    projectCount: 8,
+    projectsLink: '',
     description: faker.commerce.productDescription(),
-    image: earlyLifeThemeImg
+    imageComponents: {
+      filtered: earlyLifeThemeFiltered,
+      projectBackground: earlyLifeThemeProjectBg,
+    },
+    coverImage: earlyLifeThemeImg,
+    icon: earlyLifeThemeIcon,
   },
   {
     name: 'Cancer',
     color: '#E4B8C7',
     textColor: 'dark',
-    project_count: 21,
-    projects_link: '',
+    projectCount: 21,
+    projectsLink: '',
     description: faker.commerce.productDescription(),
-    image: cancerThemeImg
+    imageComponents: {
+      filtered: cancerThemeFiltered,
+      projectBackground: cancerThemeProjectBg,
+    },
+    coverImage: cancerThemeImg,
+    icon: cancerThemeIcon,
   },
   {
     name: 'Neurodegeneration',
     color: '#556E66',
     textColor: 'light',
-    project_count: 6,
-    projects_link: '',
+    projectCount: 6,
+    projectsLink: '',
     description: faker.commerce.productDescription(),
-    image: neurodegenerationThemeImg
+    imageComponents: {
+      filtered: neurodegenerationThemeFiltered,
+      projectBackground: neurodegenerationThemeProjectBg,
+    },
+    coverImage: neurodegenerationThemeImg,
+    icon: neurodegenerationThemeIcon,
   },
   {
     name: "Women's Health",
     color: '#E9C54E',
     textColor: 'dark',
-    project_count: 10,
-    projects_link: '',
+    projectCount: 10,
+    projectsLink: '',
     description: faker.commerce.productDescription(),
-    image: womensHealthThemeImg
+    imageComponents: {
+      filtered: womensHealthThemeFiltered,
+      projectBackground: womensHealthThemeProjectBg,
+    },
+    coverImage: womensHealthThemeImg,
+    icon: womensHealthThemeIcon,
   },
   {
     name: 'Healthy Reference',
     color: '#DFDED6',
     textColor: 'dark',
-    project_count: 4,
-    projects_link: '',
+    projectCount: 4,
+    projectsLink: '',
     description: faker.commerce.productDescription(),
-    image: healthyReferenceThemeImg
+    imageComponents: {
+      filtered: healthyReferenceThemeFiltered,
+      projectBackground: healthyReferenceThemeProjectBg,
+    },
+    coverImage: healthyReferenceThemeImg,
+    icon: healthyReferenceThemeIcon,
   },
 ]
 
 THEMES.forEach(theme => {
-  theme.projects_link = `#projects__${_.kebabCase(theme.name)}`
+  theme.projectsLink = `#projects__${_.kebabCase(theme.name)}`
 })
 
-interface Project {
-
+function createRandomArray<E extends any>(min: number, max: number, generator: () => E): Array<E> {
+  const result = [] as Array<E>
+  for (let i = 0; i < faker.helpers.rangeToNumber({ min: min, max: max, }); i++) {
+    result.push(generator())
+  }
+  return result
 }
 
 const PROJECTS: Project[] = []
-Object.entries(THEMES).forEach(([k, v]) => {
-  for (let i = 0; i < v.project_count; i++) {
+THEMES.forEach(theme => {
+  for (let i = 0; i < theme.projectCount; i++) {
+    const name = faker.company.name().replace(' -', '')
+
     const project: Project = {
-      name: faker.company.name(),
-      theme: k,
+      name: name.toLowerCase().slice(0, 4),
+      fullName: name,
+      heading: Math.round(Math.random()) === 1 ? faker.lorem.sentence() : undefined,
+      description: faker.lorem.paragraphs({ min: 1, max: 3 }),
+      fundingSource: faker.commerce.department(),
+      principalInvestigators: createRandomArray(1, 5, () => faker.person.fullName()),
+      status: faker.helpers.arrayElement(Object.values(ProjectStatus)),
+      type: faker.helpers.arrayElement(Object.values(ProjectType)),
+      species: faker.lorem.word(),
+      startDate: faker.date.between({ from: '2018-01-01T00:00:00.000Z', to: '2024-01-01T00:00:00.000Z' }),
+      dataCollectionComplete: Math.round(Math.random()) === 1,
+      userCount: faker.helpers.rangeToNumber({ min: 5, max: 100, }),
+      theme: theme,
     }
 
     PROJECTS.push(project)
   }
 })
+
 
 async function getData() {
   return {
@@ -262,7 +353,7 @@ export default async function Home() {
     themeProjectBreakdown.push({
       name: theme.name,
       color: theme.color,
-      project_count: theme.project_count,
+      projectCount: theme.projectCount,
     })
   })
 
@@ -296,6 +387,7 @@ export default async function Home() {
 
         <Box id="projects">
           <ProjectListings
+            projectData={_.sortBy(data.projects, (p) => p.fullName)}
           />
         </Box>
       </Box>

@@ -9,6 +9,8 @@ import { animated, useTransition, to, useSpring, UseTransitionProps } from '@rea
 import { alpha, useTheme } from '@mui/material';
 import Image from 'next/image';
 
+import { ThemeData } from '../themes/models';
+
 import plusLight from '/public/images/icons/plus-light.svg'
 import minusLight from '/public/images/icons/minus-light.svg'
 
@@ -19,19 +21,13 @@ TODOS:
 1. fixed height tablet on svg + legend container—not just svg
 */
 
-
-
-export interface ThemeData {
-    name: string
-    color: string
-    project_count: number
-}
+export type ThemeProjectBreakdownData = Pick<ThemeData, 'name' | 'color' | 'projectCount'>
 
 
 export default function ThemeProjectBreakdownChart({
     data,
 }: {
-    data: ThemeData[],
+    data: ThemeProjectBreakdownData[],
 }) {
     const [selectedTheme, setSelectedTheme] = React.useState<string | null>(null)
 
@@ -42,7 +38,7 @@ export default function ThemeProjectBreakdownChart({
     )
 
     const theme = useTheme()
-    
+
     const toggleBreakdown = () => {
         setBreakdownOpen(!breakdownOpen)
         animateBreakdownApi.start({
@@ -63,7 +59,7 @@ export default function ThemeProjectBreakdownChart({
 
     let totalProjectCount = 0
     for (const theme of data) {
-        totalProjectCount += theme.project_count
+        totalProjectCount += theme.projectCount
     }
 
     const themes = data.map(d => d.name)
@@ -83,7 +79,7 @@ export default function ThemeProjectBreakdownChart({
         enter: { opacity: 1 },
         leave: { opacity: 0 },
     }
-    const donutLabelCount = selectedTheme ? data.find(val => val.name === selectedTheme)?.project_count : totalProjectCount
+    const donutLabelCount = selectedTheme ? data.find(val => val.name === selectedTheme)?.projectCount : totalProjectCount
     const donutLabelCountTransitions = useTransition(donutLabelCount, transitionProps)
     const donutLabelText = selectedTheme ?? 'Projects'
     const donutLabelTextTransitions = useTransition(donutLabelText, transitionProps)
@@ -170,7 +166,7 @@ export default function ThemeProjectBreakdownChart({
                         <Group top={centerY} left={centerX}>
                             <Pie
                                 data={data}
-                                pieValue={d => d.project_count}
+                                pieValue={d => d.projectCount}
                                 outerRadius={radius}
                                 innerRadius={radius - donutThickness}
                                 cornerRadius={50}
@@ -306,7 +302,7 @@ export default function ThemeProjectBreakdownChart({
                         key={d.name}
                         name={d.name}
                         color={d.color}
-                        count={d.project_count}
+                        count={d.projectCount}
                         selected={selectedTheme === d.name}
                         onClick={handleClickThemeItem}
                     />
@@ -375,7 +371,7 @@ export default function ThemeProjectBreakdownChart({
                                 key={d.name}
                                 name={d.name}
                                 color={d.color}
-                                count={d.project_count}
+                                count={d.projectCount}
                                 selected={selectedTheme === d.name}
                                 onClick={handleClickThemeItem}
                             />

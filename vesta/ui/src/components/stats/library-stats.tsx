@@ -102,11 +102,11 @@ export default function LibraryStats({
                 />
                 <StatCard
                     primary={{
-                        value: `${latestStats.bytes.value}${latestStats.bytes.SIUnitPrefix}B`,
+                        value: `${latestStats.bytes.value}${latestStats.bytes.siUnitPrefix}B`,
                         label: 'Total Data Stored',
                     }}
                     secondary={{
-                        value: `${since7DaysAgo.bytes.value}${since7DaysAgo.bytes.SIUnitPrefix}B`,
+                        value: `${since7DaysAgo.bytes.value}${since7DaysAgo.bytes.siUnitPrefix}B`,
                         label: 'added this week',
                     }}
                     deltaSign='+'
