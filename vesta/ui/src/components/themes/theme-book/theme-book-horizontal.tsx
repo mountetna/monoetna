@@ -131,11 +131,11 @@ export default function ThemeBookHorizontal({
                             }}
                         >
                             <MUILink
-                                href={data.projects_link}
+                                href={data.projectsLink}
                                 tabIndex={0}
                                 component={Link}
                                 underline='none'
-                                onClick={e => onClickSeeProjects(e, data.projects_link)}
+                                onClick={e => onClickSeeProjects(e, data.projectsLink)}
                                 sx={{
                                     display: 'inline-flex',
                                     alignItems: 'center',
@@ -172,13 +172,13 @@ export default function ThemeBookHorizontal({
                 </Box>
             </animated.div>
 
-            {/* HEADING */}
             <Box
                 sx={{
                     display: 'flex',
                     flexDirection: 'row',
                 }}
             >
+                {/* HEADING */}
                 <ButtonBase
                     onClick={() => onSetOpen(!open)}
                     tabIndex={0}
@@ -203,13 +203,13 @@ export default function ThemeBookHorizontal({
                             flexGrow: '1',
                             display: 'flex',
                             justifyContent: 'space-between',
-                            flexDirection: 'column',
+                            flexDirection: 'column-reverse',
                             alignItems: 'center',
                             height: '100%',
+                            rotate: '180deg',
                             '& .short-code, & .name': {
                                 writingMode: 'vertical-lr',
                                 textOrientation: 'mixed',
-                                rotate: '180deg',
                             },
                         }}
                     >
@@ -234,21 +234,10 @@ export default function ThemeBookHorizontal({
                             sx={{
                                 display: 'flex',
                                 flexDirection: 'column',
+                                alignItems: 'center',
                                 gap: '10px',
                             }}
                         >
-                            <Typography
-                                variant='pSubtitleMonoCaps'
-                                component='div'
-                                sx={{
-                                    display: 'inline-flex',
-                                }}
-                            >
-                                <ProjectCount
-                                    count={data.project_count}
-
-                                />
-                            </Typography>
                             <Typography
                                 variant='pSubtitleMonoCaps'
                                 component='span'
@@ -265,6 +254,18 @@ export default function ThemeBookHorizontal({
                                 }}
                             >
                                 {data.name.slice(0, 4)}
+                            </Typography>
+                            <Typography
+                                variant='pSubtitleMonoCaps'
+                                component='div'
+                                sx={{
+                                    display: 'inline-flex',
+                                }}
+                            >
+                                <ProjectCount
+                                    count={data.projectCount}
+
+                                />
                             </Typography>
                         </Box>
                     </Box>
@@ -299,7 +300,7 @@ export default function ThemeBookHorizontal({
                             })}
                         >
                             <Image
-                                src={data.image}
+                                src={data.coverImage}
                                 alt={`${data.name} theme abstract image`}
                                 style={{
                                     width: '100%',

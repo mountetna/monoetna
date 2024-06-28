@@ -1,17 +1,6 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
-import { StaticImageData } from "next/image"
-
-
-export interface ThemeData {
-    name: string
-    description: string
-    project_count: number
-    projects_link: string
-    color: string
-    textColor: 'light' | 'dark'
-    image: StaticImageData
-}
+import { ThemeData } from '../models'
 
 
 export interface ThemeBookProps {
@@ -40,7 +29,6 @@ export function ProjectCount({
                 bgcolor: 'ground.grade10',
                 writingMode: 'vertical-lr',
                 textOrientation: 'mixed',
-                rotate: '180deg',
             }}
         >
             <Box component='span'>

@@ -8,7 +8,7 @@ import { useMediaQuery, useTheme } from '@mui/system';
 
 import ThemeBookVertical from './theme-book/theme-book-vertical'
 import ThemeBookHorizontal from './theme-book/theme-book-horizontal'
-import { ThemeData } from './theme-book/shared';
+import { ThemeData } from './models';
 import PaginationArrows from '../inputs/pagination-arrows';
 import { useWindowDimensions } from '@/lib/utils/responsive';
 import { containerPadding } from '@/theme';
