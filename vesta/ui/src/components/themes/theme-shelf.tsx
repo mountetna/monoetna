@@ -70,7 +70,6 @@ export default function ThemeShelf({
                 behavior: 'smooth',
             })
         }
-
     }
 
     // handle positioning ThemeBook for max-width desktop
@@ -136,7 +135,7 @@ export default function ThemeShelf({
                         data={theme}
                         onClickSeeProjects={handleClickSeeProjects}
                         open={bookOpens[i][0]}
-                        onSetOpen={(open: boolean) => handleSetBookOpen(open, i)}
+                        onSetOpen={open => handleSetBookOpen(open, i)}
                         onFinishOpen={() => scrollToBook(i)}
                     />
                 ))}

@@ -29,7 +29,7 @@ export default function ThemeBookVertical({
         }
     }, [open])
 
-    const {dimensions: windowDimensions} = useWindowDimensions()
+    const { dimensions: windowDimensions } = useWindowDimensions()
     const theme = useTheme()
     React.useEffect(() => {
         animateMainContentApi.start({
@@ -91,12 +91,12 @@ export default function ThemeBookVertical({
             >
                 <Box
                     ref={mainContentRef}
-                    sx={(theme) => ({
+                    sx={{
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '19px',
                         p: '8px 16px 16px 16px',
-                    })}
+                    }}
                 >
                     <Box
                         sx={(theme) => ({

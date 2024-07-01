@@ -17,6 +17,35 @@ export default function ProjectListings({
 }) {
     const theme = useTheme()
 
+    const projectListRef = React.createRef<HTMLDivElement>()
+
+    // handle book open state to coordinate only having one open at a time
+    const projectOpens = projectData.map((_, i) => React.useState(false))
+
+    const handleSetProjectOpen = (newOpenState: boolean, projectIdx: number) => {
+        for (const [idx, [open, setOpen]] of projectOpens.entries()) {
+            if (idx === projectIdx) {
+                setOpen(newOpenState)
+                continue
+            }
+            if (open) {
+                setOpen(false)
+            }
+        }
+    }
+
+    const scrollToProject = (bookIdx: number) => {
+        const projectEl = projectListRef.current?.children[bookIdx] as HTMLElement | null
+        if (projectEl === null) {
+            return
+        }
+
+        window.scroll({
+            top: projectEl.offsetTop,
+            behavior: 'smooth',
+        })
+    }
+
     return (
         <Container
             sx={{
@@ -49,15 +78,23 @@ export default function ProjectListings({
                 </Box>
 
                 <Box
+                    ref={projectListRef}
                     role='list'
+                    sx={{
+                        bgcolor: 'utilityWhite.main',
+                        borderRadius: '20px',
+                    }}
                 >
-                    {projectData.map(project => (
+                    {projectData.map((project, i) => (
                         <Box
                             key={project.fullName}
                             role='listitem'
                         >
                             <ProjectListingItem
                                 data={project}
+                                open={projectOpens[i][0]}
+                                onSetOpen={open => handleSetProjectOpen(open, i)}
+                                onFinishOpen={() => scrollToProject(i)}
                             />
                         </Box>
                     ))}

@@ -14,7 +14,7 @@ import { sectionMargins } from '@/theme';
 import ThemeShelf from '@/components/themes/theme-shelf';
 import { ThemeData } from '@/components/themes/models';
 import ProjectListings from '@/components/project-listings/project-listings';
-import { Project, ProjectStatus, ProjectType } from '@/components/project-listings/models';
+import { Project, ProjectStatus, ProjectType, DataType } from '@/components/project-listings/models';
 
 import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
 import xeniumFallback from '/public/images/hero/xenium-fallback.png'
@@ -316,6 +316,7 @@ THEMES.forEach(theme => {
       principalInvestigators: createRandomArray(1, 5, () => faker.person.fullName()),
       status: faker.helpers.arrayElement(Object.values(ProjectStatus)),
       type: faker.helpers.arrayElement(Object.values(ProjectType)),
+      dataTypes: createRandomArray(1, 5, () => faker.helpers.arrayElement(Object.values(DataType))),
       species: faker.lorem.word(),
       startDate: faker.date.between({ from: '2018-01-01T00:00:00.000Z', to: '2024-01-01T00:00:00.000Z' }),
       dataCollectionComplete: Math.round(Math.random()) === 1,
