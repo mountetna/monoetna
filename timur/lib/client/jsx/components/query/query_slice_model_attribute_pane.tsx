@@ -57,23 +57,23 @@ const QuerySliceModelAttributePane = ({
   }, [column, graph, rootModel, matrixModelNames]);
 
   return (
-    <React.Fragment>
+    <Grid container className={classes.slices}>
+      <Typography>Where:</Typography>
+      {
+      (column && column.slices.length) ?
       <Grid container direction='column' className={classes.grid}>
         {column?.slices.map((slice: QuerySlice, index: number) => (
-          <Paper className={classes.paper} key={index}>
-            <Grid container spacing={1} alignItems='center'>
-              <QuerySliceControl
-                key={`model-${column.model_name}-${index}-${updateCounter}`}
-                slice={slice}
-                modelNames={sliceableModelNames}
-                graph={graph}
-                patchSlice={(updatedSlice: QuerySlice) =>
-                  handlePatchSlice(index, updatedSlice)
-                }
-                removeSlice={() => handleRemoveSlice(index)}
-              />
-            </Grid>
-          </Paper>
+            <QuerySliceControl
+              key={`model-${column.model_name}-${index}-${updateCounter}`}
+              slice={slice}
+              sliceIndex={index}
+              modelNames={sliceableModelNames}
+              graph={graph}
+              patchSlice={(updatedSlice: QuerySlice) =>
+                handlePatchSlice(index, updatedSlice)
+              }
+              removeSlice={() => handleRemoveSlice(index)}
+            />
         ))}
       </Grid>
       <Tooltip title='Add slice' aria-label='Add slice'>

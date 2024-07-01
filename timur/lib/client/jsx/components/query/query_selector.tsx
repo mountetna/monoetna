@@ -21,12 +21,14 @@ const Selector = React.memo(
     onSelect,
     label,
     name,
+    placeholder,
     choiceSet
   }: {
     canEdit: boolean;
     onSelect: (name: string) => void;
     label: string;
     name: string;
+    placeholder: string;
     choiceSet: string[];
   }) => {
     const classes = useStyles();
@@ -38,8 +40,10 @@ const Selector = React.memo(
         <Select
           labelId={id(label)}
           value={name}
+          displayEmpty
           onChange={(e) => onSelect(e.target.value as string)}
         >
+          <MenuItem disabled value=''><Typography color='gray'>{placeholder}</Typography></MenuItem>
           {choiceSet.sort().map((option: string, index: number) => (
             <MenuItem key={index} value={option}>
               {option}

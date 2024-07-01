@@ -13,7 +13,13 @@ import useUriQueryParams from '../../contexts/query/use_uri_query_params';
 
 const useStyles = makeStyles((theme) => ({
   container: {
-    width: '100%'
+    flex: '1 1 30%',
+    fontFamily: 'Baskervville',
+    fontWeight: 100,
+    fontSize: '1.2em',
+    width: 'auto',
+    height: '100%',
+    overflowY: 'scroll'
   },
   item: {
     width: '100%'
@@ -46,7 +52,6 @@ const QueryControls = () => {
       justify='flex-start'
       alignItems='center'
       direction='column'
-      xs={12}
     >
       <QueryFromPane />
       <QueryWherePane />

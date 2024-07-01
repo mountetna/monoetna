@@ -6,6 +6,7 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import {makeStyles} from '@material-ui/core/styles';
 import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
 import AddIcon from '@material-ui/icons/Add';
 
 import {
@@ -17,10 +18,14 @@ import {emptyQueryClauseStamp} from '../../selectors/query_selector';
 import useQueryClause from './query_use_query_clause';
 import {QueryGraph} from '../../utils/query_graph';
 import RemoveIcon from './query_remove_icon';
+import QueryNumber from './query_number';
 import Selector from './query_selector';
 import QueryFilterSubclause from './query_filter_subclause';
 
 const useStyles = makeStyles((theme) => ({
+  filter_clause: {
+    paddingLeft: '25px'
+  },
   addSubclauseBtn: {
     paddingLeft: 'calc(0.5rem - 4px)',
     marginBottom: '0.5rem'
@@ -42,7 +47,9 @@ const QueryFilterClause = ({
   eager,
   showRemoveIcon,
   canAddSubclause = false,
+  hasModelChildren,
   patchClause,
+  index,
   removeClause
 }: {
   clause: QueryClause;
@@ -51,8 +58,10 @@ const QueryFilterClause = ({
   isColumnFilter: boolean;
   waitTime?: number;
   eager?: boolean;
+  index?: number;
   showRemoveIcon: boolean;
   canAddSubclause: boolean;
+  hasModelChildren: boolean;
   patchClause: (clause: QueryClause) => void;
   removeClause: () => void;
 }) => {
@@ -108,25 +117,32 @@ const QueryFilterClause = ({
   }, [clause, patchClause]);
 
   return (
-    <Grid container alignItems='center'>
-      <Grid item xs={3}>
-        <Selector
+     <Grid item container alignItems='center'>
+        <RemoveIcon
+          showRemoveIcon={showRemoveIcon}
+          onClick={removeClause}
+          label='clause'
+        />
+        <QueryNumber number={index} level={1}/>
+        {
+          hasModelChildren && <Selector
+            canEdit={true}
+            name={clause.any ? 'Any' : 'Every'}
+            onSelect={(val: string) =>
+              handleClauseAnySelect(val, clause, index)
+            }
+            choiceSet={['Any', 'Every']}
+            label='model'
+          />
+        }
+        <MapSelector
           canEdit={true}
           name={clause.modelName}
           onSelect={handleModelSelect}
           choiceSet={modelNames}
           label='model'
         />
-      </Grid>
-      <Grid
-        item
-        xs={8}
-        container
-        direction='column'
-        alignItems='center'
-        className={classes.fullWidth}
-      >
-        <Grid item className={classes.fullWidth}>
+        <Grid container className={classes.filter_clause} direction='column' alignItems='flex-start'>
           {clause.subclauses?.map(
             (subclause: QuerySubclause, index: number) => {
               return (
@@ -154,22 +170,16 @@ const QueryFilterClause = ({
           {canAddSubclause ? (
             <Tooltip title='Add subclause' aria-label='Add subclause'>
               <Button
+                variant='text'
                 className={classes.addSubclauseBtn}
                 startIcon={<AddIcon />}
                 onClick={handleAddSubclause}
               >
-                Subclause
+                <QueryNumber number={clause.subclauses.length} level={2}/>
+                Add subclause
               </Button>
             </Tooltip>
           ) : null}
-        </Grid>
-      </Grid>
-      <Grid item xs={1}>
-        <RemoveIcon
-          showRemoveIcon={showRemoveIcon}
-          onClick={removeClause}
-          label='clause'
-        />
       </Grid>
     </Grid>
   );

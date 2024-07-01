@@ -5,6 +5,7 @@ import {QueryClause, QuerySlice} from '../../contexts/query/query_types';
 import {QueryGraph} from '../../utils/query_graph';
 import QueryFilterClause from './query_filter_clause';
 import RemoveIcon from './query_remove_icon';
+import QueryNumber from './query_number';
 
 const QuerySliceControl = ({
   slice,
@@ -29,24 +30,19 @@ const QuerySliceControl = ({
     [patchSlice, slice]
   );
 
-  return (
-    <>
-      <Grid item container xs={11}>
-        <QueryFilterClause
-          clause={slice.clause}
-          graph={graph}
-          modelNames={modelNames}
-          isColumnFilter={true}
-          patchClause={handlePatchClause}
-          removeClause={() => {}}
-          showRemoveIcon={false}
-          canAddSubclause={false}
-        />
-      </Grid>
-      <Grid item xs={1} container justify='flex-end'>
-        <RemoveIcon showRemoveIcon={true} onClick={removeSlice} label='slice' />
-      </Grid>
-    </>
-  );
+  return <Grid item container alignItems='center'>
+    <QueryNumber number={sliceIndex} level={2}/>
+    <QueryFilterClause
+      clause={slice.clause}
+      graph={graph}
+      modelNames={modelNames}
+      isColumnFilter={true}
+      patchClause={handlePatchClause}
+      removeClause={() => {}}
+      showRemoveIcon={false}
+      canAddSubclause={false}
+    />
+    <RemoveIcon showRemoveIcon={true} onClick={removeSlice} label='slice' />
+  </Grid>;
 };
 export default QuerySliceControl;

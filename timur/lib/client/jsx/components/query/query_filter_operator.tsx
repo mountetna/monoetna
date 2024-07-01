@@ -8,42 +8,42 @@ export default class FilterOperator {
 
   static queryOperatorsByType: {[key: string]: {[key: string]: string}} = {
     base: {
-      'Is present': '::has',
-      'Is missing': '::lacks'
+      'is present': '::has',
+      'is missing': '::lacks'
     },
     boolean: {
-      'Is true': '::true',
-      'Is false': '::false',
-      'Is untrue': '::untrue'
+      'is true': '::true',
+      'is false': '::false',
+      'is untrue': '::untrue'
     },
     number: {
-      In: '::in',
-      Equals: '::=',
-      'Greater than': '::>',
-      'Greater than or equals': '::>=',
-      'Less than': '::<',
-      'Less than or equals': '::<=',
-      'Not equals': '::!=',
-      'Not in': '::notin'
+      'is in': '::in',
+      'is equal to': '::=',
+      'is greater than': '::>',
+      'is greater than or equal to': '::>=',
+      'is less than': '::<',
+      'is less than or equal to': '::<=',
+      'is not equal to': '::!=',
+      'is not in': '::notin'
     },
     date: {
-      Equals: '::=',
-      'Greater than': '::>',
-      'Greater than or equals': '::>=',
-      'Less than': '::<',
-      'Less than or equals': '::<=',
-      'Not equals': '::!='
+      'is equal to': '::=',
+      'is greater than': '::>',
+      'is greater than or equal to': '::>=',
+      'is less than': '::<',
+      'is less than or equal to': '::<=',
+      'is not equal to': '::!='
     },
     text: {
-      In: '::in',
-      Equals: '::equals',
-      Contains: '::matches',
-      Not: '::not',
-      'Not in': '::notin',
-      'Greater than': '::>',
-      'Greater than or equals': '::>=',
-      'Less than': '::<',
-      'Less than or equals': '::<='
+      'is in': '::in',
+      'is equal to': '::equals',
+      'is matching': '::matches',
+      'is not equal to': '::not',
+      'is not in': '::notin',
+      'is greater than': '::>',
+      'is greater than or equal to': '::>=',
+      'is less than': '::<',
+      'is less than or equal to': '::<='
     }
   };
 

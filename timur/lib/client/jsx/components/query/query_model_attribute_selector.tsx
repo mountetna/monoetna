@@ -177,63 +177,38 @@ const QueryModelAttributeSelector = React.memo(
     }, [column, graph]);
 
     return (
-      <Paper>
+      <Grid container direction='column'>
         <Grid
+          item
           container
           alignItems='center'
-          justify='flex-start'
+          justifyContent='flex-start'
           className='query-column-selector'
         >
-          <Grid item xs={2}>
-            <TextField
-              value={column.display_label}
-              onChange={(e) => onChangeLabel(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={2}>
-            <Selector
-              canEdit={canEdit}
-              label={label}
-              name={column.model_name}
-              onSelect={onSelectModel}
-              choiceSet={modelChoiceSet}
-            />
-          </Grid>
-          {column.model_name && selectableModelAttributes.length > 0 ? (
-            <React.Fragment>
-              <Grid item xs={2} container direction='row'>
-                <Grid
-                  item
-                  xs={showFilePredicates ? 9 : 12}
-                  className={classes.topMargin}
-                >
-                  <AttributeSelector
-                    onSelect={onSelectAttribute}
-                    canEdit={canEdit}
-                    label={label}
-                    attributeChoiceSet={selectableModelAttributes.sort()}
-                    column={column}
-                  />
-                </Grid>
-                {showFilePredicates ? (
-                  <Grid item xs={3}>
-                    <FilePredicateSelector
-                      value={column.predicate || 'url'}
-                      onSelect={onSelectPredicate}
-                    />
-                  </Grid>
-                ) : null}
-              </Grid>
-              <Grid item xs={5}>
-                {isSliceable && canEdit ? (
-                  <QuerySlicePane column={column} columnIndex={columnIndex} />
-                ) : null}
-              </Grid>
-            </React.Fragment>
-          ) : (
-            <Grid item xs={7}></Grid>
-          )}
-          <Grid item container justify='flex-end' xs={1}>
+          { columnIndex }.&nbsp;
+          <MapSelector
+            setModel={onSelectModel}
+            setAttribute={onSelectAttribute}
+            options={modelChoiceSet}
+            modelName={column.model_name}
+            attributeName={column.attribute_name}
+          />
+          {
+            column.model_name && 
+              selectableModelAttributes.length > 0 &&
+              showFilePredicates &&
+              <FilePredicateSelector
+                value={column.predicate || 'url'}
+                onSelect={onSelectPredicate}
+              />
+          }
+          <Typography>&nbsp;as column&nbsp;</Typography>
+          <TextField
+            variant='standard'
+            value={column.display_label}
+            onChange={(e) => onChangeLabel(e.target.value)}
+          />
+          <Grid item container justifyContent='flex-end' style={{ width: 'auto' }}>
             <CopyIcon canEdit={canEdit} onClick={onCopyColumn} label='column' />
             <RemoveIcon
               showRemoveIcon={canEdit}

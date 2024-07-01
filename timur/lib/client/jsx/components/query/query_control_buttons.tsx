@@ -212,8 +212,8 @@ const QueryControlButtons = () => {
     <Grid
       item
       container
-      direction='column'
-      justify='flex-end'
+      direction='row'
+      justifyContent='flex-end'
       alignItems='flex-end'
     >
       <Grid item>

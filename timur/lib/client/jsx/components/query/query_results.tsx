@@ -36,8 +36,7 @@ const useStyles = makeStyles((theme) => ({
   },
   resultsPane: {
     overflowX: 'auto',
-    maxWidth: '100%',
-    maxHeight: '100%'
+    flex: '1 1 70%'
   }
 }));
 
