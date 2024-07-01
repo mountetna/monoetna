@@ -28,13 +28,12 @@ export default function ThemeBookHorizontal({
     const springParams = {
         width: '0px',
         opacity: 0,
-        onRest: () => open && onFinishOpen(),
     }
-    const [mainContentStyle, animateMainContentApi] = useSpring(() => ({ ...springParams }), [])
-    const [coverStyle, animateCoverApi] = useSpring(() => ({ ...springParams }), [])
+    const [mainContentStyle, animateMainContentApi] = useSpring(() => ({ ...springParams, onRest: () => open && onFinishOpen(), }), [open])
+    const [coverStyle, animateCoverApi] = useSpring(() => ({ ...springParams }), [open])
 
     const { isResizing: isWindowResizing } = useWindowDimensions()
-    
+
     const getSpringApiParams = (ref: React.RefObject<HTMLElement | undefined>) => {
         return {
             width: `${open ? ref.current?.offsetWidth : 0}px`,

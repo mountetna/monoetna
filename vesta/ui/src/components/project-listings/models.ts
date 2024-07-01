@@ -16,6 +16,12 @@ export const ProjectType = {
     external: 'External',
 } as const
 
+export const DataType = {
+    cytof: 'CyTOF',
+    bulkRnaSeq: 'Bulk RNA-Seq',
+    citeSeq: 'CITE-Seq',
+} as const
+
 export interface Project {
     name: string
     fullName: string
@@ -25,6 +31,7 @@ export interface Project {
     principalInvestigators: string[]
     status: typeof ProjectStatus[keyof typeof ProjectStatus]
     type: typeof ProjectType[keyof typeof ProjectType]
+    dataTypes: (typeof DataType[keyof typeof DataType])[]
     species: string
     startDate: Date
     dataCollectionComplete: boolean
