@@ -13,6 +13,7 @@ export interface ThemeData {
     projectCount: number
     projectsLink: string
     color: string
+    altColor: string
     textColor: 'light' | 'dark'
     imageComponents: ThemeImageComponents
     coverImage: StaticImageData

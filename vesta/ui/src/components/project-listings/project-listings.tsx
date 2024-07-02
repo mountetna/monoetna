@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material';
 
 import { Project } from './models';
-import ProjectListingItem from './project-listing-item';
+import ProjectListing from './project-listing';
 
 
 export default function ProjectListings({
@@ -90,7 +90,7 @@ export default function ProjectListings({
                             key={project.fullName}
                             role='listitem'
                         >
-                            <ProjectListingItem
+                            <ProjectListing
                                 data={project}
                                 open={projectOpens[i][0]}
                                 onSetOpen={open => handleSetProjectOpen(open, i)}

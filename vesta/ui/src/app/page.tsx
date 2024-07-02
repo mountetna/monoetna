@@ -165,6 +165,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Infection',
     color: '#89A7CE',
+    altColor: '#E8F2FF',
     textColor: 'dark',
     projectCount: 11,
     projectsLink: '',
@@ -179,6 +180,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Autoimmunity',
     color: '#DDA373',
+    altColor: '#556E66',
     textColor: 'dark',
     projectCount: 23,
     projectsLink: '',
@@ -193,6 +195,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Inflammation',
     color: '#D6D8A8',
+    altColor: '#F3F2E3',
     textColor: 'dark',
     projectCount: 8,
     projectsLink: '',
@@ -207,6 +210,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Fibrosis',
     color: '#A2A648',
+    altColor: '#13283F',
     textColor: 'dark',
     projectCount: 2,
     projectsLink: '',
@@ -221,6 +225,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Early Life',
     color: '#7FA190',
+    altColor: '#3A4B48',
     textColor: 'dark',
     projectCount: 8,
     projectsLink: '',
@@ -235,6 +240,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Cancer',
     color: '#E4B8C7',
+    altColor: '#B53B38',
     textColor: 'dark',
     projectCount: 21,
     projectsLink: '',
@@ -249,6 +255,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Neurodegeneration',
     color: '#556E66',
+    altColor: '#2A5A8D',
     textColor: 'light',
     projectCount: 6,
     projectsLink: '',
@@ -263,6 +270,7 @@ const THEMES: ThemeData[] = [
   {
     name: "Women's Health",
     color: '#E9C54E',
+    altColor: '#B53B38',
     textColor: 'dark',
     projectCount: 10,
     projectsLink: '',
@@ -277,6 +285,7 @@ const THEMES: ThemeData[] = [
   {
     name: 'Healthy Reference',
     color: '#DFDED6',
+    altColor: '#F9F8F6',
     textColor: 'dark',
     projectCount: 4,
     projectsLink: '',

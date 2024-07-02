@@ -4,9 +4,14 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography, { TypographyOwnProps } from '@mui/material/Typography';
 import { useTheme } from '@mui/material';
-import Image from 'next/image';
 import ButtonBase from '@mui/material/ButtonBase';
+import MUILink from '@mui/material/Link';
+import Link from 'next/link'
+import Image from 'next/image';
 import { useSpring, animated } from '@react-spring/web';
+import { Group } from '@visx/group';
+import { Pack, hierarchy } from '@visx/hierarchy';
+import { useParentSize } from '@visx/responsive'
 
 import { Project } from "./models";
 
@@ -24,7 +29,12 @@ const projectAspects: ProjectAspect[] = [
     { title: 'Principal Investigators', propName: 'principalInvestigators', itemType: 'basic', },
 ]
 
-export default function ProjectListingItem({
+interface UserCountItem {
+    radius: number
+}
+
+
+export default function ProjectListing({
     data,
     open,
     onSetOpen,
@@ -37,8 +47,10 @@ export default function ProjectListingItem({
 }) {
     const theme = useTheme()
 
-    const mainContentRef = React.useRef<HTMLElement>()
+    const userHasAccess = false
 
+    // Manage open/close
+    const mainContentRef = React.useRef<HTMLElement>()
     const [mainContentStyle, animateMainContentApi] = useSpring(() => ({
         height: '0px',
         opacity: 0,
@@ -58,6 +70,38 @@ export default function ProjectListingItem({
         )
     }, [open])
 
+
+    // Manage user count pack
+    let {
+        parentRef: userCountPackContainerRef,
+        width: userCountPackContainerWidth,
+        height: userCountPackContainerHeight,
+    } = useParentSize({ debounceTime: 100, })
+    const packMarginPx = 3
+    userCountPackContainerWidth -= packMarginPx * 2
+    userCountPackContainerHeight -= packMarginPx * 2
+
+    // Make pack item size dependent on container width
+    // so we can consistently size the center gap as a portion of container width
+    const packItemAreaPx = Math.PI * ((userCountPackContainerWidth / 2) ** 2) / data.userCount
+    const packItemRadiusPx = Math.sqrt(packItemAreaPx) / Math.PI
+    const gapItemRadius = 0.33 * userCountPackContainerWidth / 2
+
+    const packItems: UserCountItem[] = Array(data.userCount).fill({ radius: packItemRadiusPx })
+    packItems.unshift({ radius: gapItemRadius })
+
+    const pack = {
+        children: packItems,
+        name: 'root',
+        radius: 0,
+        distance: 0,
+    }
+
+    const packRoot = hierarchy<UserCountItem>(pack)
+        .sum(d => d.radius ** 2)
+
+
+    // Manage project aspects
     const projectAspectContentProps: TypographyOwnProps = {
         variant: 'pMedium',
         sx: {
@@ -218,14 +262,178 @@ export default function ProjectListingItem({
                                 px: '8.21px',
                             }}
                         >
-                            <Box>
-                                <Box>
-                                    Image placeholder
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '24px',
+                                }}
+                            >
+                                <Box
+                                    sx={{
+                                        position: 'relative',
+                                        display: 'flex',
+                                        aspectRatio: '344.57 / 247',
+                                        borderRadius: '11.29px',
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    <Image
+                                        src={data.theme.imageComponents.projectBackground}
+                                        alt={`Abstract background for ${data.theme.name} theme`}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                        }}
+                                    />
+                                    <Box
+                                        sx={{
+                                            position: 'absolute',
+                                            width: '100%',
+                                            height: '100%',
+                                            top: 0,
+                                            left: 0,
+                                        }}
+                                    >
+                                        <Typography
+                                            variant='h5'
+                                            component='div'
+                                            sx={{
+                                                width: '100%',
+                                                height: '100%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
+
+                                            {/* Contributors count */}
+                                            <Box
+                                                sx={{
+                                                    position: 'absolute',
+                                                    left: 0,
+                                                    top: 0,
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    display: 'flex',
+                                                    alignItems: 'flex-end',
+                                                    justifyContent: 'flex-end',
+                                                    color: data.theme.textColor === 'light' ? 'utilityHighlight.main' : 'ground.grade10',
+                                                    // color: data.theme.altColor,
+                                                    px: '8px',
+                                                    py: '5px',
+                                                }}
+                                            >
+                                                <Box>
+                                                    {`${data.userCount} Contributor${data.userCount === 1 ? '' : 's'}`}
+                                                </Box>
+                                            </Box>
+
+                                            {/* User circles */}
+                                            <Box
+                                                sx={{
+                                                    aspectRatio: '409 / 404',
+                                                    height: '85%',
+                                                    maxHeight: 'calc(100% - (1.5em * 2))',
+                                                    borderRadius: '50%',
+                                                    overflow: 'hidden',
+                                                    position: 'relative',
+                                                }}
+                                            >
+                                                <Image
+                                                    src={data.theme.imageComponents.filtered}
+                                                    alt={`Abstract foreground for ${data.theme.name} theme`}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        objectFit: 'cover',
+                                                    }}
+                                                />
+                                                <Box
+                                                    ref={userCountPackContainerRef}
+                                                    sx={{
+                                                        position: 'absolute',
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        left: packMarginPx,
+                                                        top: packMarginPx,
+                                                    }}
+                                                >
+                                                    {userCountPackContainerWidth > 10 &&
+                                                        <svg
+                                                            width={userCountPackContainerWidth}
+                                                            height={userCountPackContainerHeight}
+                                                            rx={userCountPackContainerWidth}
+                                                            ry={userCountPackContainerHeight}
+                                                        >
+                                                            <Pack<object>
+                                                                root={packRoot}
+                                                                size={[userCountPackContainerWidth, userCountPackContainerHeight]}
+                                                                padding={2}
+                                                            >
+                                                                {(packData) => {
+                                                                    // skip root and center gap
+                                                                    const circles = packData.descendants().slice(2)
+
+                                                                    return (
+                                                                        <Group>
+                                                                            {circles.map((circle, i) => (
+                                                                                <circle
+                                                                                    key={`circle-${i}`}
+                                                                                    r={circle.r}
+                                                                                    cx={circle.x}
+                                                                                    cy={circle.y}
+                                                                                    fill={data.theme.altColor}
+                                                                                />
+                                                                            ))}
+                                                                        </Group>
+                                                                    )
+                                                                }}
+                                                            </Pack>
+                                                        </svg>
+                                                    }
+                                                </Box>
+                                            </Box>
+                                        </Typography>
+                                    </Box>
                                 </Box>
 
-                                <Box>
-                                    MUILink Get access placeholder
-                                </Box>
+                                <MUILink
+                                    // TODO: href
+                                    href={'#'}
+                                    tabIndex={0}
+                                    component={Link}
+                                    underline='none'
+                                    sx={{
+                                        display: 'flex',
+                                        minWidth: '100%',
+                                        minHeight: '65.71px',
+                                        px: '16.43px',
+                                        py: '8.21px',
+                                        borderRadius: '8.21px',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        bgcolor: 'ground.grade10',
+                                        transition: theme.transitions.create(
+                                            ['background-color'],
+                                            {
+                                                easing: theme.transitions.easing.ease,
+                                                duration: theme.transitions.duration.ease,
+                                            },
+                                        ),
+                                        '&:hover, &:focus': {
+                                            bgcolor: 'ground.grade25',
+                                        },
+                                    }}
+                                >
+                                    <Typography
+                                        variant='pSubtitle'
+                                        color='#F5F5F5'
+                                    >
+                                        {userHasAccess ? 'Visit Project' : 'Get Access'}
+                                    </Typography>
+                                </MUILink>
                             </Box>
 
                             <Box
