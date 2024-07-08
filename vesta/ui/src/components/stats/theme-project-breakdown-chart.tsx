@@ -55,7 +55,7 @@ export default function ThemeProjectBreakdownChart({
         parentRef: chartContainerRef,
         width: chartContainerWidth,
         height: chartContainerHeight,
-    } = useParentSize({ debounceTime: 100, })
+    } = useParentSize({ debounceTime: 500, })
 
     let totalProjectCount = 0
     for (const theme of data) {

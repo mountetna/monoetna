@@ -54,7 +54,7 @@ export default function Dropdown({
     const {
         parentRef: selectContainerRef,
         width: selectContainerWidth,
-    } = useParentSize({ debounceTime: 100, })
+    } = useParentSize({ debounceTime: 500, })
 
     const Listbox = styled('ul')(
         ({ theme }) => `

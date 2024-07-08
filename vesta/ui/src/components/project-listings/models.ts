@@ -1,26 +1,31 @@
 import { ThemeData } from "../themes/models";
 
 
-export const ProjectStatus = {
-    init: 'Initial Launch',
-    assays: 'Assays',
-    analysis: 'Analysis',
-    public: 'Public Launch',
-} as const
+export enum ProjectStatus {
+    team = 'Team',
+    community = 'Community',
+}
 
-export const ProjectType = {
-    coproject: 'CoProject',
-    consortium: 'Consortium',
-    copilot: 'CoPilot',
-    collab: 'Collaboration',
-    external: 'External',
-} as const
+export enum ExternalProjectStatus {
+    init = 'Initial Launch',
+    sampling = 'Sampling',
+    analysis = 'Analysis',
+    public = 'Public',
+}
 
-export const DataType = {
-    cytof: 'CyTOF',
-    bulkRnaSeq: 'Bulk RNA-Seq',
-    citeSeq: 'CITE-Seq',
-} as const
+export enum ProjectType {
+    coproject = 'CoProject',
+    consortium = 'Consortium',
+    copilot = 'CoPilot',
+    collab = 'Collaboration',
+    external = 'External',
+}
+
+export enum DataType {
+    cytof = 'CyTOF',
+    bulkRnaSeq = 'Bulk RNA-Seq',
+    citeSeq = 'CITE-Seq',
+}
 
 export interface Project {
     name: string
@@ -29,13 +34,28 @@ export interface Project {
     description: string
     fundingSource: string
     principalInvestigators: string[]
-    status: typeof ProjectStatus[keyof typeof ProjectStatus]
-    type: typeof ProjectType[keyof typeof ProjectType]
-    dataTypes: (typeof DataType[keyof typeof DataType])[]
+    status: ProjectStatus
+    type: ProjectType
+    dataTypes: DataType[]
+    hasSamples: boolean
+    hasAssays: boolean
     species: string
     startDate: Date
     dataCollectionComplete: boolean
     userCount: number
 
     theme: ThemeData
+}
+
+
+export function getExternalProjectStatus(proj: Project): ExternalProjectStatus {
+    if (proj.status === ProjectStatus.community) {
+        return ExternalProjectStatus.public
+    } else if (proj.hasAssays) {
+        return ExternalProjectStatus.analysis
+    } else if (proj.hasSamples) {
+        return ExternalProjectStatus.sampling
+    } else {
+        return ExternalProjectStatus.init
+    }
 }

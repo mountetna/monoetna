@@ -166,7 +166,7 @@ const THEMES: ThemeData[] = [
     name: 'Infection',
     color: '#89A7CE',
     altColor: '#E8F2FF',
-    textColor: 'dark',
+    textColor: 'light',
     projectCount: 11,
     projectsLink: '',
     description: faker.commerce.productDescription(),
@@ -179,9 +179,9 @@ const THEMES: ThemeData[] = [
   },
   {
     name: 'Autoimmunity',
-    color: '#DDA373',
+    color: '#D36F49',
     altColor: '#556E66',
-    textColor: 'dark',
+    textColor: 'light',
     projectCount: 23,
     projectsLink: '',
     description: faker.commerce.productDescription(),
@@ -211,7 +211,7 @@ const THEMES: ThemeData[] = [
     name: 'Fibrosis',
     color: '#A2A648',
     altColor: '#13283F',
-    textColor: 'dark',
+    textColor: 'light',
     projectCount: 2,
     projectsLink: '',
     description: faker.commerce.productDescription(),
@@ -226,7 +226,7 @@ const THEMES: ThemeData[] = [
     name: 'Early Life',
     color: '#7FA190',
     altColor: '#3A4B48',
-    textColor: 'dark',
+    textColor: 'light',
     projectCount: 8,
     projectsLink: '',
     description: faker.commerce.productDescription(),
@@ -311,6 +311,10 @@ function createRandomArray<E extends any>(min: number, max: number, generator: (
   return result
 }
 
+function randomBool(): boolean {
+  return Math.round(Math.random()) === 1
+}
+
 const PROJECTS: Project[] = []
 THEMES.forEach(theme => {
   for (let i = 0; i < theme.projectCount; i++) {
@@ -319,7 +323,7 @@ THEMES.forEach(theme => {
     const project: Project = {
       name: name.toLowerCase().slice(0, 4),
       fullName: name,
-      heading: Math.round(Math.random()) === 1 ? faker.lorem.sentence() : undefined,
+      heading: randomBool() ? faker.lorem.sentence() : undefined,
       description: faker.lorem.paragraphs({ min: 1, max: 3 }),
       fundingSource: faker.commerce.department(),
       principalInvestigators: createRandomArray(1, 5, () => faker.person.fullName()),
@@ -328,9 +332,11 @@ THEMES.forEach(theme => {
       dataTypes: createRandomArray(1, 5, () => faker.helpers.arrayElement(Object.values(DataType))),
       species: faker.lorem.word(),
       startDate: faker.date.between({ from: '2018-01-01T00:00:00.000Z', to: '2024-01-01T00:00:00.000Z' }),
-      dataCollectionComplete: Math.round(Math.random()) === 1,
+      dataCollectionComplete: randomBool(),
       userCount: faker.helpers.rangeToNumber({ min: 5, max: 100, }),
       theme: theme,
+      hasSamples: randomBool(),
+      hasAssays: randomBool(),
     }
 
     PROJECTS.push(project)

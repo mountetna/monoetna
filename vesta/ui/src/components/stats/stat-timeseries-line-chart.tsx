@@ -130,7 +130,7 @@ export default function StatTimeseriesLineChart({
         parentRef: chartContainerRef,
         width: chartContainerWidth,
         height: chartContainerHeight,
-    } = useParentSize({ debounceTime: 100, })
+    } = useParentSize({ debounceTime: 500, })
     const paddingPx = 16
 
     const isMobile = useMediaQuery(theme.breakpoints.down('tablet'))

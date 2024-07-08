@@ -147,10 +147,8 @@ export default function AboutCarousel({ items }: { items: AboutItemProps[] }) {
                             pb: '8px',
                             borderBottom: '3px solid transparent',
                             transition: transition,
-                            '&.active, &:hover': {
-                                color: 'blue.grade50',
-                            },
                             '&.active': {
+                                color: 'blue.grade50',
                                 borderColor: 'blue.grade50',
                             },
                         },

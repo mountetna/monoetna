@@ -12,8 +12,10 @@ import { useSpring, animated } from '@react-spring/web';
 import { Group } from '@visx/group';
 import { Pack, hierarchy } from '@visx/hierarchy';
 import { useParentSize } from '@visx/responsive'
+import _ from 'lodash';
 
-import { Project } from "./models";
+import { ExternalProjectStatus, getExternalProjectStatus, Project } from "./models";
+import { useWindowDimensions } from '@/lib/utils/responsive';
 
 
 interface ProjectAspect {
@@ -47,7 +49,10 @@ export default function ProjectListing({
 }) {
     const theme = useTheme()
 
+    // TODO
     const userHasAccess = false
+
+    const { isResizing: isWindowResizing } = useWindowDimensions()
 
     // Manage open/close
     const mainContentRef = React.useRef<HTMLElement>()
@@ -68,7 +73,7 @@ export default function ProjectListing({
                 },
             }
         )
-    }, [open])
+    }, [open, isWindowResizing])
 
 
     // Manage user count pack
@@ -76,8 +81,11 @@ export default function ProjectListing({
         parentRef: userCountPackContainerRef,
         width: userCountPackContainerWidth,
         height: userCountPackContainerHeight,
-    } = useParentSize({ debounceTime: 100, })
-    const packMarginPx = 3
+    } = useParentSize({ debounceTime: 500, })
+    // Add some variability to similar-looking packs
+    const [packMarginPx] = React.useState<number>(_.random(3, 15, false))
+    const [rotationDeg] = React.useState<number>(_.random(0, 360, false))
+
     userCountPackContainerWidth -= packMarginPx * 2
     userCountPackContainerHeight -= packMarginPx * 2
 
@@ -122,6 +130,10 @@ export default function ProjectListing({
             borderRadius: '20px',
         },
     }
+
+    const allExtStatuses = Object.values(ExternalProjectStatus)
+    const extStatus = getExternalProjectStatus(data)
+    const currentExtStatusIdx = allExtStatuses.indexOf(extStatus)
 
     return (
         <Box
@@ -243,7 +255,14 @@ export default function ProjectListing({
                         pt: '0px',
                     }}
                 >
-                    <Typography variant='h3MediumWt'>
+                    <Typography
+                        variant='h3MediumWt'
+                        sx={{
+                            [theme.breakpoints.up('tablet')]: {
+                                display: 'none',
+                            }
+                        }}
+                    >
                         {data.fullName}
                     </Typography>
 
@@ -252,6 +271,9 @@ export default function ProjectListing({
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '8px',
+                            [theme.breakpoints.up('tablet')]: {
+                                flexDirection: 'row',
+                            },
                         }}
                     >
                         <Box
@@ -260,6 +282,10 @@ export default function ProjectListing({
                                 flexDirection: 'column',
                                 gap: '30px',
                                 px: '8.21px',
+                                [theme.breakpoints.up('tablet')]: {
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(6, 1fr)',
+                                },
                             }}
                         >
                             <Box
@@ -267,6 +293,9 @@ export default function ProjectListing({
                                     display: 'flex',
                                     flexDirection: 'column',
                                     gap: '24px',
+                                    [theme.breakpoints.up('tablet')]: {
+                                        gridColumn: 'span 3',
+                                    },
                                 }}
                             >
                                 <Box
@@ -356,8 +385,11 @@ export default function ProjectListing({
                                                         position: 'absolute',
                                                         width: '100%',
                                                         height: '100%',
-                                                        left: packMarginPx,
-                                                        top: packMarginPx,
+                                                        left: 0,
+                                                        top: 0,
+                                                        display: 'flex',
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center',
                                                     }}
                                                 >
                                                     {userCountPackContainerWidth > 10 &&
@@ -366,8 +398,11 @@ export default function ProjectListing({
                                                             height={userCountPackContainerHeight}
                                                             rx={userCountPackContainerWidth}
                                                             ry={userCountPackContainerHeight}
+                                                            style={{
+                                                                rotate: `${rotationDeg}deg`,
+                                                            }}
                                                         >
-                                                            <Pack<object>
+                                                            <Pack<UserCountItem>
                                                                 root={packRoot}
                                                                 size={[userCountPackContainerWidth, userCountPackContainerHeight]}
                                                                 padding={2}
@@ -385,6 +420,17 @@ export default function ProjectListing({
                                                                                     cx={circle.x}
                                                                                     cy={circle.y}
                                                                                     fill={data.theme.altColor}
+                                                                                    // onPointerEnter={e => e.currentTarget.style.fill = data.theme.color}
+                                                                                    // onPointerLeave={e => e.currentTarget.style.fill = data.theme.altColor}
+                                                                                    style={{
+                                                                                        transition: theme.transitions.create(
+                                                                                            ['fill'],
+                                                                                            {
+                                                                                                easing: theme.transitions.easing.ease,
+                                                                                                duration: theme.transitions.duration.ease,
+                                                                                            }
+                                                                                        ),
+                                                                                    }}
                                                                                 />
                                                                             ))}
                                                                         </Group>
@@ -441,6 +487,9 @@ export default function ProjectListing({
                                     display: 'flex',
                                     flexDirection: 'column',
                                     gap: '28.75px',
+                                    [theme.breakpoints.up('tablet')]: {
+                                        gridColumn: 'span 3',
+                                    },
                                 }}
                             >
                                 <Typography variant='pMedium'>
@@ -485,28 +534,27 @@ export default function ProjectListing({
                                                     {aspect.title}
                                                 </Typography>
 
-                                                {
-                                                    Array.isArray(data[aspect.propName]) ?
-                                                        <Box className='pill-container'>
-                                                            {
-                                                                // @ts-ignore
-                                                                data[aspect.propName].map((d, i) => (
-                                                                    <Typography
-                                                                        key={`${aspect.propName}_${i}`}
-                                                                        {...(aspect.itemType === 'basic' ? projectAspectContentProps : projectAspectContentPillProps)}
-                                                                    >
-                                                                        {d}
-                                                                    </Typography>
+                                                <Box className={aspect.itemType === 'basic' ? 'basic-container' : 'pill-container'}>
+                                                    {
+                                                        Array.isArray(data[aspect.propName]) ?
+                                                            // @ts-ignore
+                                                            data[aspect.propName].map((d, i) => (
+                                                                <Typography
+                                                                    key={`${aspect.propName}_${i}`}
+                                                                    {...(aspect.itemType === 'basic' ? projectAspectContentProps : projectAspectContentPillProps)}
+                                                                >
+                                                                    {d}
+                                                                </Typography>
 
-                                                                ))
-                                                            }
-                                                        </Box> :
-                                                        <Typography
-                                                            {...(aspect.itemType === 'basic' ? projectAspectContentProps : projectAspectContentPillProps)}
-                                                        >
-                                                            {aspect.propName === 'theme' ? data.theme.name : data[aspect.propName]?.toString()}
-                                                        </Typography>
-                                                }
+                                                            ))
+                                                            :
+                                                            <Typography
+                                                                {...(aspect.itemType === 'basic' ? projectAspectContentProps : projectAspectContentPillProps)}
+                                                            >
+                                                                {aspect.propName === 'theme' ? data.theme.name : data[aspect.propName]?.toString()}
+                                                            </Typography>
+                                                    }
+                                                </Box>
                                             </Box>
                                         )
                                     })}
@@ -519,6 +567,9 @@ export default function ProjectListing({
                                     flexDirection: 'column',
                                     gap: '8px',
                                     pb: '24px',
+                                    [theme.breakpoints.up('tablet')]: {
+                                        gridColumn: 'span 6',
+                                    },
                                 }}
                             >
                                 <Typography
@@ -528,11 +579,15 @@ export default function ProjectListing({
                                     Project Status
                                 </Typography>
 
+                                {/* Mobile Status */}
                                 <Box
                                     sx={{
                                         display: 'flex',
                                         flexDirection: 'row',
                                         gap: '10px',
+                                        [theme.breakpoints.up('tablet')]: {
+                                            display: 'none',
+                                        },
                                     }}
                                 >
                                     <Typography
@@ -544,24 +599,127 @@ export default function ProjectListing({
                                             px: '9px',
                                         }}
                                     >
-                                        # of #
+                                        {`${currentExtStatusIdx + 1} of ${allExtStatuses.length}`}
                                     </Typography>
 
                                     <Typography
                                         variant='pMediumMediumWt'
                                     >
-                                        {data.status}
+                                        {extStatus}
                                     </Typography>
+                                </Box>
+
+                                {/* Tablet/Desktop Status */}
+                                <Box
+                                    sx={{
+                                        display: 'none',
+                                        [theme.breakpoints.up('tablet')]: {
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(12, 1fr)',
+                                            '& .stage': {
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '13.35px',
+                                                gridColumn: 'span 3',
+                                                // '&:last-child': {
+                                                //     gridColumn: 'span 2',
+                                                // },
+                                            },
+                                            '& .bubble-container': {
+                                                position: 'relative',
+                                                width: '100%',
+                                                height: '19px',
+                                            },
+                                            '& .bubble': {
+                                                width: '100%',
+                                                height: '100%',
+                                                bgcolor: 'ground.grade50',
+                                            },
+                                            '& .bubble-overlay': {
+                                                position: 'absolute',
+                                                left: 0,
+                                                top: 0,
+                                                height: '100%',
+                                                bgcolor: 'ground.grade10',
+                                            },
+                                            '& .bubble, & .bubble-overlay': {
+                                                borderRadius: '40px',
+                                            },
+                                            '& .stage.passed .bubble, & .stage.current:last-child .bubble': {
+                                                bgcolor: 'ground.grade10',
+                                            },
+                                            // '& .stage.current:first-child .bubble-overlay': {
+                                            '& .stage.current:not(:last-child) .bubble-overlay': {
+                                                width: '10%',
+                                            },
+                                            '& .tick-text-container': {
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '7.19px',
+                                            },
+                                            '& .tick': {
+                                                width: '1px',
+                                                height: '12px',
+                                                bgcolor: 'ground.grade25',
+                                                opacity: 0.4,
+                                            },
+                                            '& .text': {
+                                                color: 'ground.grade25',
+                                                opacity: 0.4,
+                                            },
+                                            '& .stage.current': {
+                                                '& .tick': {
+                                                    bgcolor: 'ground.grade10',
+                                                    opacity: 1,
+                                                },
+                                                '& .text': {
+                                                    color: 'ground.grade10',
+                                                    opacity: 1,
+                                                },
+                                            },
+                                        },
+                                    }}
+                                >
+                                    {allExtStatuses.map((extStatus, i) => (
+                                        <Box
+                                            key={i}
+                                            className={`stage${currentExtStatusIdx > i ? ' passed' : currentExtStatusIdx === i ? ' current' : ''}`}
+                                        >
+                                            <Box className='bubble-container'>
+                                                <Box className='bubble'></Box>
+                                                <Box className='bubble-overlay'></Box>
+                                            </Box>
+
+                                            <Box className='tick-text-container'>
+                                                <Box className='tick'></Box>
+
+                                                <Typography
+                                                    variant='pMediumBoldWt'
+                                                    className='text'
+                                                >
+                                                    {extStatus}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    ))}
                                 </Box>
                             </Box>
                         </Box>
 
+                        {/* Dewey Decimal */}
                         <Box
                             sx={{
                                 display: 'flex',
                                 flexDirection: 'row',
                                 gap: '8.63px',
                                 p: '5.4px',
+                                [theme.breakpoints.up('tablet')]: {
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    '& img': {
+                                        rotate: '90deg',
+                                    },
+                                },
                             }}
                         >
                             <Image
@@ -578,13 +736,17 @@ export default function ProjectListing({
                                     flexDirection: 'row',
                                     gap: '3.4px',
                                     textTransform: 'uppercase',
+                                    [theme.breakpoints.up('tablet')]: {
+                                        writingMode: 'vertical-lr',
+                                        textOrientation: 'mixed',
+                                    },
                                 }}
                             >
                                 <Box>
                                     {`${data.theme.name.slice(0, 2)}.${data.name}`}
                                 </Box>
                                 <Box>
-                                    {`${data.type.slice(0, 4)}.????`}
+                                    {`${data.type.slice(0, 4)}.${data.status.slice(0, 4)}`}
                                 </Box>
                                 <Box>
                                     {data.startDate.getFullYear()}

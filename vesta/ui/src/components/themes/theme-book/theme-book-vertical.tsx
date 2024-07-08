@@ -29,7 +29,7 @@ export default function ThemeBookVertical({
         }
     }, [open])
 
-    const { dimensions: windowDimensions } = useWindowDimensions()
+    const { isResizing: isWindowResizing } = useWindowDimensions()
     const theme = useTheme()
     React.useEffect(() => {
         animateMainContentApi.start({
@@ -40,7 +40,7 @@ export default function ThemeBookVertical({
                 duration: theme.transitions.duration.quint,
             },
         })
-    }, [open, windowDimensions])
+    }, [open, isWindowResizing])
 
     return (
         <Box
