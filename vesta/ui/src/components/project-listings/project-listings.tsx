@@ -8,6 +8,7 @@ import { useTheme } from '@mui/material';
 
 import { Project } from './models';
 import ProjectListing from './project-listing';
+import Pagination from '@/components/searchable-list/controls/pagination'
 
 
 export default function ProjectListings({
@@ -17,10 +18,16 @@ export default function ProjectListings({
 }) {
     const theme = useTheme()
 
+    const [currentPage, setCurrentPage] = React.useState(0)
+    const pageSize = 12
+
+    const filteredProjectData = projectData
+        .slice(currentPage * pageSize, currentPage * pageSize + pageSize)
+
     const projectListRef = React.createRef<HTMLDivElement>()
 
     // handle book open state to coordinate only having one open at a time
-    const projectOpens = projectData.map((_, i) => React.useState(false))
+    const projectOpens = projectData.map(_ => React.useState(false))
 
     const handleSetProjectOpen = (newOpenState: boolean, projectIdx: number) => {
         for (const [idx, [open, setOpen]] of projectOpens.entries()) {
@@ -44,6 +51,12 @@ export default function ProjectListings({
             top: projectEl.offsetTop,
             behavior: 'smooth',
         })
+    }
+
+    const handleSetCurrentPage = (page: number) => {
+        // close all open projects
+        handleSetProjectOpen(false, 0)
+        setCurrentPage(page)
     }
 
     return (
@@ -73,8 +86,25 @@ export default function ProjectListings({
                     },
                 }}
             >
-                <Box>
-                    controls placeholder
+                <Box
+                    sx={{
+                        [theme.breakpoints.up('tablet')]: {
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                        }
+                    }}
+                >
+                    <Box>Search and filter placeholder</Box>
+
+                    <Pagination
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                        listSize={projectData.length}
+                        onClickPrev={() => handleSetCurrentPage(currentPage - 1)}
+                        onClickNext={() => handleSetCurrentPage(currentPage + 1)}
+                        listItemLabel='projects'
+                    />
                 </Box>
 
                 <Box
@@ -85,7 +115,7 @@ export default function ProjectListings({
                         borderRadius: '20px',
                     }}
                 >
-                    {projectData.map((project, i) => (
+                    {filteredProjectData.map((project, i) => (
                         <Box
                             key={project.fullName}
                             role='listitem'

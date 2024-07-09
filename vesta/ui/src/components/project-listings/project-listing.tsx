@@ -344,7 +344,7 @@ export default function ProjectListing({
                                         overflow: 'hidden',
                                     }}
                                 >
-                                    <Image
+                                    {isMainContentVisible && <Image
                                         src={data.theme.imageComponents.projectBackground}
                                         alt={`Abstract background for ${data.theme.name} theme`}
                                         style={{
@@ -352,7 +352,7 @@ export default function ProjectListing({
                                             height: '100%',
                                             objectFit: 'cover',
                                         }}
-                                    />
+                                    />}
                                     <Box
                                         sx={{
                                             position: 'absolute',
@@ -407,7 +407,7 @@ export default function ProjectListing({
                                                     position: 'relative',
                                                 }}
                                             >
-                                                <Image
+                                                {isMainContentVisible && <Image
                                                     src={data.theme.imageComponents.filtered}
                                                     alt={`Abstract foreground for ${data.theme.name} theme`}
                                                     style={{
@@ -415,7 +415,7 @@ export default function ProjectListing({
                                                         height: '100%',
                                                         objectFit: 'cover',
                                                     }}
-                                                />
+                                                />}
                                                 <Box
                                                     ref={userCountPackContainerRef}
                                                     sx={{
@@ -429,7 +429,7 @@ export default function ProjectListing({
                                                         alignItems: 'center',
                                                     }}
                                                 >
-                                                    {userCountPackContainerWidth > 10 &&
+                                                    {isMainContentVisible && userCountPackContainerWidth > 10 &&
                                                         <svg
                                                             width={userCountPackContainerWidth}
                                                             height={userCountPackContainerHeight}
@@ -559,6 +559,9 @@ export default function ProjectListing({
                                                         columnGap: '12.32px',
                                                         rowGap: '8px',
                                                         p: '4.11px',
+                                                    },
+                                                    '& .pi-container > *': {
+                                                        // maxWidth: 'calc(100% / 4)',
                                                     },
                                                 }}
                                             >

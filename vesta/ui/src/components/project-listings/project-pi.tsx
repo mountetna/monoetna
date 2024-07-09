@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material';
 
 import { PrincipalInvestigator } from "./models";
 import Image from 'next/image';
@@ -19,6 +20,10 @@ export default function ProjectPI({
     data: PrincipalInvestigator,
     showAvatar?: boolean,
 }) {
+    const theme = useTheme()
+
+    const [imageLoaded, setImageLoaded] = React.useState(false)
+
     return (
         <Box
             sx={{
@@ -29,10 +34,13 @@ export default function ProjectPI({
         >
             <Box
                 sx={{
-                    width: '41px',
-                    height: '41px',
+                    minWidth: '41px',
+                    maxWidth: '41px',
+                    minHeight: '41px',
+                    maxHeight: '41px',
                     borderRadius: '50%',
                     overflow: 'hidden',
+                    position: 'relative',
                     '& > *': {
                         width: '100%',
                         minWidth: '100%',
@@ -41,40 +49,56 @@ export default function ProjectPI({
                     },
                 }}
             >
-                {showAvatar && data.imageUrl ?
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        bgcolor: data.color,
+                    }}
+                >
+                    <Typography variant='pBodyBoldWt'>
+                        {data.name[0].toUpperCase()}
+                    </Typography>
+                </Box>
+
+                {showAvatar && data.imageUrl &&
                     <Image
                         src={data.imageUrl}
                         alt={`Profile image for ${data.name}`}
                         width={41}
                         height={41}
-                    />
-                    :
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            bgcolor: data.color,
+                        onLoad={() => setImageLoaded(true)}
+                        style={{
+                            opacity: imageLoaded ? 1 : 0,
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            transition: theme.transitions.create(
+                                ['opacity'],
+                                {
+                                    easing: theme.transitions.easing.swell,
+                                    duration: theme.transitions.duration.swell,
+                                },
+                            ),
                         }}
-                    >
-                        <Typography variant='pBodyBoldWt'>
-                            {data.name[0].toUpperCase()}
-                        </Typography>
-                    </Box>
+                    />
                 }
             </Box>
 
             <Box
                 sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
+                    overflow: 'hidden',
                     // justifyContent: 'space-around',
                     '& *': {
+                        display: 'block',
+                        overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        textWrap: 'nowrap',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 1,
-                        WebkitBoxOrient: 'vertical',
+                        // textWrap: 'nowrap',
+                        textWrap: 'wrap',
+                        // '&:hover, &:focus': {
+                        //     textWrap: 'nowrap',
+                        // },
                     },
                 }}
             >
