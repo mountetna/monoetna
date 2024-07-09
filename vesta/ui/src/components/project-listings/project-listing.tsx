@@ -60,12 +60,26 @@ export default function ProjectListing({
 
     const { isResizing: isWindowResizing } = useWindowDimensions()
 
+    // Manage lazy loading PI images
+    const [isMainContentVisible, setIsMainContentVisible] = React.useState(false)
+    React.useEffect(() => {
+        if (open) {
+            setIsMainContentVisible(true)
+        }
+    }, [open])
+
     // Manage open/close
     const mainContentRef = React.useRef<HTMLElement>()
     const [mainContentStyle, animateMainContentApi] = useSpring(() => ({
         height: '0px',
         opacity: 0,
-        onRest: () => open && onFinishOpen(),
+        onRest: () => {
+            if (open) {
+                onFinishOpen()
+            } else {
+                setIsMainContentVisible(false)
+            }
+        },
     }), [open])
 
     React.useEffect(() => {
@@ -563,6 +577,7 @@ export default function ProjectListing({
 
                                                 <Box className={`${aspect.itemType}-container`}>
                                                     {['basic', 'pill'].includes(aspect.itemType) ? (
+
                                                         Array.isArray(data[aspect.propName]) ?
                                                             // @ts-ignore
                                                             data[aspect.propName].map((d, i) => (
@@ -580,14 +595,17 @@ export default function ProjectListing({
                                                             >
                                                                 {aspect.propName === 'theme' ? data.theme.name : data[aspect.propName]?.toString()}
                                                             </Typography>
+
                                                     ) : aspect.propName === 'principalInvestigators' ? (
+
                                                         data[aspect.propName].map((piData, i) => (
                                                             <ProjectPI
                                                                 key={`${aspect.propName}_${i}`}
                                                                 data={piData}
-                                                                showAvatar={open}
+                                                                showAvatar={isMainContentVisible}
                                                             />
                                                         ))
+
                                                     ) : null
                                                     }
                                                 </Box>
