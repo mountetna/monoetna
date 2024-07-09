@@ -326,7 +326,12 @@ THEMES.forEach(theme => {
       heading: randomBool() ? faker.lorem.sentence() : undefined,
       description: faker.lorem.paragraphs({ min: 1, max: 3 }),
       fundingSource: faker.commerce.department(),
-      principalInvestigators: createRandomArray(1, 5, () => faker.person.fullName()),
+      principalInvestigators: createRandomArray(1, 5, () => ({
+        name: faker.person.fullName(),
+        title: randomBool() ? faker.person.jobTitle() : undefined,
+        imageUrl: randomBool() ? faker.image.avatar(): undefined,
+        color: faker.helpers.arrayElement(THEMES).color,
+      })),
       status: faker.helpers.arrayElement(Object.values(ProjectStatus)),
       type: faker.helpers.arrayElement(Object.values(ProjectType)),
       dataTypes: createRandomArray(1, 5, () => faker.helpers.arrayElement(Object.values(DataType))),

@@ -27,13 +27,20 @@ export enum DataType {
     citeSeq = 'CITE-Seq',
 }
 
+export interface PrincipalInvestigator {
+    name: string
+    title?: string
+    imageUrl?: string
+    color: string
+}
+
 export interface Project {
     name: string
     fullName: string
     heading?: string
     description: string
     fundingSource: string
-    principalInvestigators: string[]
+    principalInvestigators: PrincipalInvestigator[]
     status: ProjectStatus
     type: ProjectType
     dataTypes: DataType[]
