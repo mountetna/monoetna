@@ -37,6 +37,7 @@ export default function Pagination({
             display: 'flex',
             flexDirection: 'row',
             gap: '10px',
+            justifyContent: 'space-between',
             alignItems: 'center',
         }}
         >
@@ -46,6 +47,9 @@ export default function Pagination({
                     display: 'flex',
                     flexDirection: 'row',
                     gap: '3px',
+                    p: '7px 21px',
+                    bgcolor: 'utilityWhite.main',
+                    borderRadius: '38px',
                     '& .info': {
                         display: 'inline-block',
                         color: 'ground.grade10',

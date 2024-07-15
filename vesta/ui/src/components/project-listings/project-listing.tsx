@@ -210,7 +210,7 @@ export default function ProjectListing({
                         <Box
                             sx={{
                                 display: 'flex',
-                                p: '8px',
+                                p: '6px',
                                 bgcolor: data.theme.color,
                                 borderRadius: '50%',
                             }}

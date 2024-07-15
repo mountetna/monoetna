@@ -20,6 +20,8 @@
       - immunoassay
       - cytof
       - omni_tcr_seq
+    :clinical_models:
+      - TODO
   :vulcan:
     :host: https://vulcan.development.local
   :metis:
