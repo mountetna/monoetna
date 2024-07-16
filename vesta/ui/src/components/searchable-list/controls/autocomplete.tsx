@@ -15,6 +15,8 @@ import useForkRef from '@mui/utils/useForkRef';
 import Typography from '@mui/material/Typography';
 import { useTheme, SxProps } from '@mui/material';
 import Image, { StaticImageData } from 'next/image';
+import _ from 'lodash'
+
 import { forwardRef } from '@/lib/utils/types';
 
 
@@ -29,6 +31,7 @@ interface AutocompleteProps<Value> extends UseAutocompleteProps<Value, boolean, 
   showResultsOnEmpty?: boolean;
   renderOption: (params: UseAutocompleteRenderedOption<Value>) => React.ReactNode;
   renderGroup?: (params: _AutocompleteGroupedOption<Value>) => React.ReactNode;
+  renderNoResults?: () => React.ReactNode;
   sx?: SxProps;
 }
 
@@ -50,10 +53,18 @@ function Autocomplete<Value>(
   } = useAutocomplete(props);
 
   const rootRef = useForkRef(ref, setAnchorEl);
+  const listBoxRef = React.useRef<HTMLUListElement>(null)
 
   const renderGroupedOptions = () => {
     if (groupedOptions.length === 0) {
-      return <NoOptions>No results</NoOptions>
+      return (
+        <NoOptions>
+          {props.renderNoResults !== undefined ?
+            props.renderNoResults() :
+            'No results'
+          }
+        </NoOptions>
+      )
     }
 
     if (props.groupBy === undefined) {
@@ -140,6 +151,7 @@ function Autocomplete<Value>(
           <StyledInput
             {...getInputProps()}
             placeholder={props.placeholder}
+            // onChangeCapture={() => _.throttle(() => listBoxRef.current?.scrollTo({ top: 0 }), 100)}
             sx={{
               display: 'flex',
               flexGrow: 1,
@@ -156,12 +168,9 @@ function Autocomplete<Value>(
           />
         </Box>
       </Root>
-      {/* {showResults && anchorEl && (
+      {showResults && anchorEl && (
         <Popper
-          open={popupOpen} */}
-      {anchorEl && (
-        <Popper
-          open={true}
+          open={popupOpen}
           anchorEl={anchorEl}
           slots={{
             root: StyledPopper,
@@ -172,6 +181,7 @@ function Autocomplete<Value>(
         >
           <Listbox
             {...getListboxProps()}
+            ref={listBoxRef}
             sx={{
               bgcolor: 'utilityWhite.main',
               borderRadius: '16px',

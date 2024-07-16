@@ -18,6 +18,7 @@ import { ValueOf } from '@/lib/utils/types';
 
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
+import ProjectPI from './project-pi';
 
 
 const collapsedInfoSets = [
@@ -242,7 +243,11 @@ export default function ProjectListings({
                                     <Box
                                         key={params.key}
                                         role='listitem'
-                                        sx={{}}
+                                        sx={{
+                                            '&:not(:last-child)': {
+                                                mb: '10px',
+                                            },
+                                        }}
                                     >
                                         <Typography
                                             variant='pMediumMediumWt'
@@ -252,6 +257,7 @@ export default function ProjectListings({
                                                 opacity: 0.4,
                                                 p: '4.11px',
                                                 pl: '0px',
+                                                mb: '8px',
                                             }}
                                         >
                                             {_.startCase(params.group)}
@@ -259,12 +265,19 @@ export default function ProjectListings({
                                         <Box
                                             role='list'
                                             sx={{
-                                                
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '8px',
                                             }}
                                         >
                                             {params.options}
                                         </Box>
                                     </Box>
+                                )}
+                                renderNoResults={() => (
+                                    <Typography variant='pMedium'>
+                                        No results
+                                    </Typography>
                                 )}
                                 sx={{
                                     flexGrow: 1,
@@ -335,10 +348,22 @@ function SearchOption({
     option: SearchOption,
     index: number,
 }) {
+
     return (
-        <Box>
-            type: {option.type}
-            index: {index}
+        <Box
+            sx={{
+                p: '8px',
+            }}
+        >
+            {option.type === 'principalInvestigator' ?
+                <ProjectPI
+                    data={option.value as PrincipalInvestigator}
+                /> :
+                <Typography variant='pMedium'>
+                    {/* @ts-ignore */}
+                    {option.value}
+                </Typography>
+            }
         </Box>
     )
 }
