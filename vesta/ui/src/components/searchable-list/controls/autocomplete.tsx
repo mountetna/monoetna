@@ -13,8 +13,8 @@ import { Popper } from '@mui/base/Popper';
 import { styled } from '@mui/system';
 import useForkRef from '@mui/utils/useForkRef';
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material';
-import { StaticImageData } from 'next/image';
+import { useTheme, SxProps } from '@mui/material';
+import Image, { StaticImageData } from 'next/image';
 import { forwardRef } from '@/lib/utils/types';
 
 
@@ -25,9 +25,11 @@ interface _AutocompleteGroupedOption<Value = string> extends Omit<AutocompleteGr
 
 interface AutocompleteProps<Value> extends UseAutocompleteProps<Value, boolean, boolean, boolean> {
   icon: StaticImageData;
-  placeholder: string;
+  placeholder?: string;
+  showResultsOnEmpty?: boolean;
   renderOption: (params: UseAutocompleteRenderedOption<Value>) => React.ReactNode;
   renderGroup?: (params: _AutocompleteGroupedOption<Value>) => React.ReactNode;
+  sx?: SxProps;
 }
 
 // Adapted from https://mui.com/base-ui/react-autocomplete/#using-a-portal
@@ -80,18 +82,86 @@ function Autocomplete<Value>(
     }
   }
 
+  const inputValue = getInputProps().value?.valueOf()
+  const inputHasValue = inputValue !== undefined && inputValue.toString().length > 0
+  const showResultsOnEmpty = props.showResultsOnEmpty === undefined ? true : props.showResultsOnEmpty
+  const showResults = inputHasValue || showResultsOnEmpty
+
+  const theme = useTheme()
+
   return (
-    <React.Fragment>
+    <Box
+      sx={{
+        display: 'flex',
+        ...(props.sx || {})
+      }}
+    >
       <Root
         {...getRootProps()}
         ref={rootRef}
         className={focused ? 'Mui-focused' : ''}
+        sx={{
+          display: 'flex',
+          width: '100%',
+        }}
       >
-        <StyledInput {...getInputProps()} />
+        <Box
+          className={focused ? 'Mui-focused' : ''}
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            gap: '10px',
+            alignItems: 'center',
+            bgcolor: 'utilityWhite.main',
+            borderRadius: '30px',
+            p: '14px 16px',
+            outline: '1px solid transparent',
+            '&:focus-visible, &.Mui-focused': {
+              outline: `1px solid ${theme.palette.ground.grade75}`,
+            },
+            '&:hover, &:focus-visible, &.Mui-focused': {
+              bgcolor: 'ground.grade100',
+            },
+            transition: theme.transitions.create(
+              'all',
+              {
+                easing: theme.transitions.easing.ease,
+                duration: theme.transitions.duration.ease,
+              }
+            ),
+          }}
+        >
+          <Image
+            src={props.icon}
+            alt='Search icon'
+          />
+
+          <StyledInput
+            {...getInputProps()}
+            placeholder={props.placeholder}
+            sx={{
+              display: 'flex',
+              flexGrow: 1,
+              border: 'none',
+              outline: 'none',
+              p: '0',
+              background: 'inherit',
+              ...theme.typography.pBody,
+              color: 'ground.grade10',
+              '&::placeholder': {
+                color: '#777777'
+              },
+            }}
+          />
+        </Box>
       </Root>
+      {/* {showResults && anchorEl && (
+        <Popper
+          open={popupOpen} */}
       {anchorEl && (
         <Popper
-          open={popupOpen}
+          open={true}
           anchorEl={anchorEl}
           slots={{
             root: StyledPopper,
@@ -100,12 +170,23 @@ function Autocomplete<Value>(
             width: anchorEl.offsetWidth,
           }}
         >
-          <Listbox {...getListboxProps()}>
+          <Listbox
+            {...getListboxProps()}
+            sx={{
+              bgcolor: 'utilityWhite.main',
+              borderRadius: '16px',
+              listStyle: 'none',
+              maxHeight: '50vh',
+              overflow: 'scroll',
+              m: '10px 0',
+              p: '16px',
+            }}
+          >
             {renderGroupedOptions()}
           </Listbox>
         </Popper>
       )}
-    </React.Fragment >
+    </Box >
   );
 };
 
@@ -136,7 +217,6 @@ function renderOptions<Value>(
   })
 }
 
-
 function defaultRenderGroup<Value>(params: _AutocompleteGroupedOption<Value>) {
   return (
     <li key={params.key}>
@@ -145,22 +225,6 @@ function defaultRenderGroup<Value>(params: _AutocompleteGroupedOption<Value>) {
     </li>
   )
 }
-
-
-// export function UseAutocompletePopper() {
-//   const [value, setValue] = React.useState<(typeof top100Films)[number] | null>(
-//     null,
-//   );
-
-//   const handleChange = (
-//     event: React.SyntheticEvent,
-//     newValue: (typeof top100Films)[number] | null,
-//   ) => setValue(newValue);
-
-//   return (
-//     <Autocomplete options={top100Films} value={value} onChange={handleChange} />
-//   );
-// }
 
 const Root = styled('div')(
   ({ theme }) => `
@@ -190,7 +254,7 @@ const StyledPopper = styled('div')`
 const Listbox = styled('ul')(
   ({ theme }) => `
   z-index: 1;
-    };
+  
   `,
 );
 

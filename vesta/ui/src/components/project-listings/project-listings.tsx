@@ -5,6 +5,7 @@ import Container from '@mui/system/Container'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material';
+import _ from 'lodash'
 
 import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project } from './models';
 import ProjectListing from './project-listing';
@@ -110,7 +111,7 @@ export default function ProjectListings({
         return [..._searchOptions].sort((a, b) => a.type.localeCompare(b.type))
     })
 
-    const [searchOptionValue, setSearchOptionValue] = React.useState<SearchOption[]>([])
+    const [searchOptionValue, setSearchOptionValue] = React.useState<SearchOption[] | null>(null)
 
     const filteredProjectData = projectData
         .slice(currentPage * pageSize, currentPage * pageSize + pageSize)
@@ -210,6 +211,7 @@ export default function ProjectListings({
                                 display: 'flex',
                                 flexDirection: 'row',
                                 gap: '8px',
+                                height: '52px',
                             }}
                         >
                             <DrawerButton
@@ -225,9 +227,9 @@ export default function ProjectListings({
                                 placeholder='Search e.g. "Fibrosis"'
                                 options={searchOptions}
                                 multiple
-                                freeSolo
-                                onChange={(_, value) => console.log(value)}
-                                value={searchOptionValue}
+                                showResultsOnEmpty={false}
+                                onChange={(_, value) => setSearchOptionValue((value as SearchOption[] | null))}
+                                value={searchOptionValue ?? []}
                                 getOptionLabel={getOptionLabel}
                                 renderOption={(params) => (
                                     <SearchOption
@@ -237,11 +239,37 @@ export default function ProjectListings({
                                 )}
                                 groupBy={option => option.type}
                                 renderGroup={(params) => (
-                                    <li key={params.key}>
-                                        <h1>{params.group}</h1>
-                                        <ul>{params.options}</ul>
-                                    </li>
+                                    <Box
+                                        key={params.key}
+                                        role='listitem'
+                                        sx={{}}
+                                    >
+                                        <Typography
+                                            variant='pMediumMediumWt'
+                                            component='div'
+                                            sx={{
+                                                color: 'ground.grade10',
+                                                opacity: 0.4,
+                                                p: '4.11px',
+                                                pl: '0px',
+                                            }}
+                                        >
+                                            {_.startCase(params.group)}
+                                        </Typography>
+                                        <Box
+                                            role='list'
+                                            sx={{
+                                                
+                                            }}
+                                        >
+                                            {params.options}
+                                        </Box>
+                                    </Box>
                                 )}
+                                sx={{
+                                    flexGrow: 1,
+                                    maxHeight: '100%',
+                                }}
                             />
                         </Box>
 
