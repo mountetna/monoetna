@@ -51,6 +51,10 @@ class Vulcan
       "#{workspace_path}/run_config/#{Time.now.to_i}.json"
     end
 
+    def self.workspace_output_path(workspace_path)
+      "#{workspace_path}/output/"
+    end
+
     def self.profile_dir(workspace_path)
       "#{workspace_path}/#{WORKSPACE_PROFILE_DIR}"
     end

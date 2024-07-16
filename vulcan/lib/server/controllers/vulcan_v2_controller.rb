@@ -218,4 +218,41 @@ class VulcanV2Controller < Vulcan::Controller
     end
     success_json(response)
   end
+
+
+  def write_files
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    raise Etna::BadRequest.new("Workspace not found") unless workspace
+    raise Etna::BadRequest.new("Unsupported Content-Type: #{request.content_type}")  unless @request.content_type.start_with?('multipart/form-data')
+    files = @params[:files] || []
+    raise Etna:BadRequest.new("No files provided" ) if files.empty?
+    begin
+      files.each do |file|
+        content = file[:tempfile].read()
+        output_path = Vulcan::Path.workspace_output_path(workspace.path)
+        @remote_manager.write_file("#{output_path}#{file[:filename]}", content)
+      end
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
+    success_json({'status': "success"})
+  end
+
+  def read_files
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    raise Etna::BadRequest.new("Workspace not found") unless workspace
+    file_names = @params[:file_names] || []
+    raise Etna:BadRequest.new("No files provided" ) if file_names.empty?
+    file_contents = file_names.map do |file_name|
+      output_path = Vulcan::Path.workspace_output_path(workspace.path)
+      content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
+      {
+        filename: file_name,
+        content: Base64.encode64(content)
+      }
+    end
+    success_json({files: file_contents})
+  end
+
 end

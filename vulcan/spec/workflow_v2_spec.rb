@@ -30,6 +30,13 @@ describe VulcanV2Controller do
     remove_all_dirs
   end
 
+  def create_temp_file
+    file1 = Tempfile.new(['test_file1', '.txt'])
+    file1.write("This is a test file, with content 1")
+    file1.rewind
+    Rack::Test::UploadedFile.new(file1.path, 'text/plain')
+  end
+
   def remove_all_dirs
     remote_manager.rmdir(Vulcan::Path::WORKFLOW_BASE_DIR, Vulcan::Path::ALLOWED_DIRECTORIES)
     remote_manager.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR, Vulcan::Path::ALLOWED_DIRECTORIES)
@@ -186,6 +193,67 @@ describe VulcanV2Controller do
 
   end
 
+  context 'write files' do
+
+    before do
+      auth_header(:guest)
+      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/workflow/publish", publish_workflow_request)
+      request = {
+        workflow_id: json_body[:workflow_id]
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+    end
+
+    it 'writes a file to the workspace' do
+      file_to_upload = create_temp_file
+      auth_header(:guest)
+      workspace_id = Vulcan::Workspace.all[0].id
+      request = {
+        files: [file_to_upload]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+      expect(last_response.status).to eq(200)
+      # Assert file exists
+    end
+
+    it 'writes multiple files' do
+    end
+
+  end
+
+
+  context 'read files' do
+
+    before do
+      auth_header(:guest)
+      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/workflow/publish", publish_workflow_request)
+      request = {
+        workflow_id: json_body[:workflow_id]
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+    end
+
+    it 'requests a file from the workspace' do
+      # Write a file to the workspace
+      temp_file = create_temp_file
+      workspace_id = Vulcan::Workspace.all[0].id
+      request = {
+        files: [temp_file]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+
+      # Read that file
+      request = {
+        file_names: [temp_file.original_filename]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/read", request)
+      expect(last_response.status).to eq(200)
+    end
+
+  end
+
   context 'running workflows' do
 
     before do
@@ -263,11 +331,8 @@ describe VulcanV2Controller do
           }
         }
       }
-
-      workflow_name = "test_workflow"
-
-      post("/api/#{PROJECT}/#{workspace_id}/run", request)
-
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run", request)
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{json_body[:run_id]}")
       # This should return:
       # - A list of output for each job that has run
       # - Whether the job was successful
@@ -301,5 +366,6 @@ describe VulcanV2Controller do
     end
 
   end
+
 
 end

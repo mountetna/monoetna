@@ -35,6 +35,10 @@ class Vulcan
     post 'api/v2/:project_name/workspace/:workspace_id/run', action: 'vulcan_v2#run_workflow'
     get'api/v2/:project_name/workspace/:workspace_id/run/:run_id', action: 'vulcan_v2#get_workflow_status'
 
+    # File API
+    post 'api/v2/:project_name/workspace/:workspace_id/file/write', action: 'vulcan_v2#write_files'
+    post 'api/v2/:project_name/workspace/:workspace_id/file/read', action: 'vulcan_v2#read_files'
+
     with auth: { user: { can_view?: :project_name } } do
       get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true
       post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true
