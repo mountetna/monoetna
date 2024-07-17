@@ -71,7 +71,7 @@ function Autocomplete<Value>(
       return renderOptions(
         groupedOptions as Value[],
         getOptionProps,
-        props.renderOption
+        props.renderOption,
       )
     } else {
       return (groupedOptions as AutocompleteGroupedOption<Value>[]).map((group) => {
@@ -79,7 +79,8 @@ function Autocomplete<Value>(
         const options = renderOptions(
           group.options,
           getOptionProps,
-          props.renderOption
+          props.renderOption,
+          group.index,
         )
         const renderGroupParams: _AutocompleteGroupedOption<Value> = {
           ...group,
@@ -179,21 +180,28 @@ function Autocomplete<Value>(
             width: anchorEl.offsetWidth,
           }}
         >
-          <Listbox
-            {...getListboxProps()}
-            ref={listBoxRef}
+          <Box
             sx={{
               bgcolor: 'utilityWhite.main',
               borderRadius: '16px',
-              listStyle: 'none',
-              maxHeight: '50vh',
-              overflow: 'scroll',
               m: '10px 0',
               p: '16px',
             }}
           >
-            {renderGroupedOptions()}
-          </Listbox>
+            <Listbox
+              {...getListboxProps()}
+              ref={listBoxRef}
+              sx={{
+                listStyle: 'none',
+                maxHeight: '50vh',
+                overflow: 'scroll',
+                m: '0',
+                p: '0',
+              }}
+            >
+              {renderGroupedOptions()}
+            </Listbox>
+          </Box>
         </Popper>
       )}
     </Box >
@@ -207,17 +215,19 @@ function renderOptions<Value>(
   options: Value[],
   getOptionProps: UseAutocompleteReturnValue<Value>['getOptionProps'],
   renderOption: AutocompleteProps<Value>['renderOption'],
+  // required as per https://github.com/mui/material-ui/blob/next/packages/mui-material/src/Autocomplete/Autocomplete.js#L679C17-L679C33
+  // if using groups
+  indexOffset: number = 0,
 ): React.ReactNode {
 
 
 
   return options.map((option, index) => {
-    const optionProps = getOptionProps({ option, index })
+    const optionProps = getOptionProps({ option, index: indexOffset + index })
     // @ts-ignore
     const key = optionProps.key as string
     // @ts-ignore
     delete optionProps.key
-    // }
 
     return (
       <Option key={key} {...optionProps}>
@@ -272,12 +282,15 @@ const Option = styled('li')(
   ({ theme }) => `
   list-style: none;
   cursor: default;
+  outline: 1px solid transparent;
+  transition: ${theme.transitions.create('all', { easing: theme.transitions.easing.ease, duration: theme.transitions.duration.ease })};
 
   &:last-of-type {
   }
 
   &:hover {
     cursor: pointer;
+    outline: 1px solid black;
   }
 
   &[aria-selected=true] {

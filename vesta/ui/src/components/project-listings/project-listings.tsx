@@ -19,6 +19,7 @@ import { ValueOf } from '@/lib/utils/types';
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
 import ProjectPI from './project-pi';
+import FilterPill from '../searchable-list/filter-pill';
 
 
 const collapsedInfoSets = [
@@ -34,9 +35,12 @@ interface SearchableProjectData extends Pick<Project, 'fullName' | 'principalInv
     status: ExternalProjectStatus
 }
 
-interface SearchOption {
-    value: (ValueOf<Omit<SearchableProjectData, 'principalInvestigators' | 'dataTypes'>>) | PrincipalInvestigator | DataType
-    type: (keyof Omit<SearchableProjectData, 'principalInvestigators' | 'dataTypes'>) | 'principalInvestigator' | 'dataType'
+interface FilterItem {
+    value: (ValueOf<Omit<SearchableProjectData, 'principalInvestigators' | 'dataTypes' | 'theme'>>) | PrincipalInvestigator | DataType
+    type: (keyof Omit<SearchableProjectData, 'principalInvestigators' | 'dataTypes' | 'fullName'>) | 'principalInvestigator' | 'dataType' | 'name'
+    label: string;
+    key: string;
+    projectKey: keyof SearchableProjectData;
 }
 
 
@@ -52,20 +56,22 @@ export default function ProjectListings({
     const pageSize = 12
     const [searchOptions] = React.useState(() => {
 
-        const _searchOptions: Set<SearchOption> = new Set()
+        const _searchOptions: Set<FilterItem> = new Set()
 
-        const searchOptionsByType = {} as Record<keyof SearchableProjectData, Set<string>>
-        for (const key of searchableProjectKeys) {
-            searchOptionsByType[key] = new Set()
-        }
+        const existingOptions = new Set<string>()
 
-        function addOption(option: SearchOption, projectKey: keyof SearchableProjectData) {
-            const label = getOptionLabel(option)
-            const existingOptions = searchOptionsByType[projectKey]
+        function addOption(value: FilterItem['value'], type: FilterItem['type'], projectKey: keyof SearchableProjectData) {
+            const key = getFilterItemKey(value, type)
 
-            if (!existingOptions.has(label)) {
-                existingOptions.add(label)
-                _searchOptions.add(option)
+            if (!existingOptions.has(key)) {
+                existingOptions.add(key)
+                _searchOptions.add({
+                    value,
+                    type,
+                    label: getFilterItemLabel(value, type),
+                    key,
+                    projectKey,
+                })
             }
         }
 
@@ -73,10 +79,9 @@ export default function ProjectListings({
             for (const projectKey of searchableProjectKeys) {
 
                 let value = project[projectKey]
-                let type: SearchOption['type']
+                let type: FilterItem['type']
 
                 switch (projectKey) {
-                    case 'fullName':
                     case 'type':
                     case 'status':
                         type = projectKey
@@ -84,6 +89,9 @@ export default function ProjectListings({
                     case 'theme':
                         value = (value as ThemeData).name
                         type = projectKey
+                        break
+                    case 'fullName':
+                        type = 'name'
                         break
                     case 'principalInvestigators':
                         type = 'principalInvestigator'
@@ -95,26 +103,71 @@ export default function ProjectListings({
 
                 if (Array.isArray(value)) {
                     for (const item of value) {
-                        addOption({
-                            value: item,
+                        addOption(
+                            item,
                             type,
-                        }, projectKey)
+                            projectKey
+                        )
                     }
                 } else {
-                    addOption({
-                        value: value,
+                    addOption(
+                        value,
                         type,
-                    }, projectKey)
+                        projectKey,
+                    )
                 }
             }
         }
         // Must sort by type in order for grouping to work
-        return [..._searchOptions].sort((a, b) => a.type.localeCompare(b.type))
+        return _searchOptions
     })
 
-    const [searchOptionValue, setSearchOptionValue] = React.useState<SearchOption[] | null>(null)
+    const [filterItems, setFilterItems] = React.useState<FilterItem[]>([])
 
     const filteredProjectData = projectData
+        .filter((project) => {
+            if (filterItems.length === 0) return true;
+
+            for (const filterItem of filterItems) {
+
+                const projectKey = filterItem.projectKey
+                let projectValue
+                switch (projectKey) {
+                    case 'fullName':
+                    case 'type':
+                        projectValue = project[projectKey]
+                        break
+                    case 'dataTypes':
+                        for (const dt of project.dataTypes) {
+                            if (dt === filterItem.value) {
+                                return true
+                            }
+                        }
+                        continue
+                    case 'theme':
+                        projectValue = project.theme.name
+                        break
+                    case 'status':
+                        projectValue = getExternalProjectStatus(project)
+                        break
+                    case 'principalInvestigators':
+                        for (const pi of project.principalInvestigators) {
+                            if (pi.name === (filterItem.value as PrincipalInvestigator).name) {
+                                return true
+                            }
+                        }
+                        continue
+                }
+
+                if (projectValue === filterItem.value) {
+                    return true
+                }
+            }
+
+            return false
+        })
+
+    const paginatedFilteredProjectData = filteredProjectData
         .slice(currentPage * pageSize, currentPage * pageSize + pageSize)
 
     const projectListRef = React.createRef<HTMLDivElement>()
@@ -137,11 +190,14 @@ export default function ProjectListings({
         }
     }
 
-    const handleSetCurrentPage = (page: number) => {
-        // close all open projects
+    const closeAllProjects = () => {
         for (const [_, setOpen] of projectOpens) {
             setOpen(false)
         }
+    }
+
+    const handleSetCurrentPage = (page: number) => {
+        closeAllProjects()
         setCurrentPage(page)
     }
 
@@ -155,6 +211,20 @@ export default function ProjectListings({
             top: projectEl.offsetTop,
             behavior: 'smooth',
         })
+    }
+
+    const handleChangeAutocomplete = (filterItems: FilterItem[]) => {
+        // debugger
+        setFilterItems(filterItems)
+        closeAllProjects()
+        setCurrentPage(0)
+    }
+
+    const handleClickRemoveFilterItem = (filterItem: FilterItem) => {
+        const newFilterItems = filterItems.filter((item) => item.key !== filterItem.key)
+        setFilterItems(newFilterItems)
+        closeAllProjects()
+        setCurrentPage(0)
     }
 
     return (
@@ -201,7 +271,8 @@ export default function ProjectListings({
                         sx={{
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: '8px',
+                            columnGap: '8px',
+                            rowGap: '16px',
                             [theme.breakpoints.up('tablet')]: {
 
                             },
@@ -211,7 +282,8 @@ export default function ProjectListings({
                             sx={{
                                 display: 'flex',
                                 flexDirection: 'row',
-                                gap: '8px',
+                                columnGap: '8px',
+                                rowGap: '16px',
                                 height: '52px',
                             }}
                         >
@@ -224,18 +296,22 @@ export default function ProjectListings({
                             />
 
                             <Autocomplete
+                                multiple
+                                filterSelectedOptions
                                 icon={searchDarkIcon}
                                 placeholder='Search e.g. "Fibrosis"'
-                                options={searchOptions}
-                                multiple
+                                options={[...searchOptions].sort((a, b) => a.type.localeCompare(b.type))}
                                 showResultsOnEmpty={false}
-                                onChange={(_, value) => setSearchOptionValue((value as SearchOption[] | null))}
-                                value={searchOptionValue ?? []}
-                                getOptionLabel={getOptionLabel}
+                                // @ts-ignore
+                                onChange={(_, value: FilterItem[]) => handleChangeAutocomplete(value)}
+                                value={filterItems}
+                                // @ts-ignore
+                                getOptionKey={(option: FilterItem) => option.key}
+                                isOptionEqualToValue={(option, value) => option.key === value.key}
                                 renderOption={(params) => (
                                     <SearchOption
+                                        key={params.option.key}
                                         option={params.option}
-                                        index={params.index}
                                     />
                                 )}
                                 groupBy={option => option.type}
@@ -286,6 +362,25 @@ export default function ProjectListings({
                             />
                         </Box>
 
+                        {filterItems.length > 0 && <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                flexWrap: 'wrap',
+                                columnGap: '10px',
+                                rowGap: '16px',
+                            }}
+                        >
+                            {filterItems.map((item => (
+                                <FilterPill
+                                    key={item.key}
+                                    label={item.label}
+                                    removeable
+                                    onClickRemove={() => handleClickRemoveFilterItem(item)}
+                                />
+                            )))}
+                        </Box>}
+
                         <Box
                             sx={{
                                 display: 'none',
@@ -305,7 +400,7 @@ export default function ProjectListings({
                     <Pagination
                         currentPage={currentPage}
                         pageSize={pageSize}
-                        listSize={projectData.length}
+                        listSize={filteredProjectData.length}
                         onClickPrev={() => handleSetCurrentPage(currentPage - 1)}
                         onClickNext={() => handleSetCurrentPage(currentPage + 1)}
                         listItemLabel='projects'
@@ -321,7 +416,7 @@ export default function ProjectListings({
                         overflow: 'hidden',
                     }}
                 >
-                    {filteredProjectData.map((project, i) => (
+                    {paginatedFilteredProjectData.map((project, i) => (
                         <Box
                             key={project.fullName}
                             role='listitem'
@@ -343,10 +438,8 @@ export default function ProjectListings({
 
 function SearchOption({
     option,
-    index,
 }: {
-    option: SearchOption,
-    index: number,
+    option: FilterItem,
 }) {
 
     return (
@@ -368,26 +461,20 @@ function SearchOption({
     )
 }
 
-function getOptionLabel(option: SearchOption | string): string {
-    if (typeof option === 'string') {
-        return option
-    } else {
-        let label: string
-
-        switch (option.type) {
-            case 'fullName':
-            case 'type':
-            case 'status':
-            case 'dataType':
-            case 'theme':
-                // @ts-ignore
-                label = option.value
-                break
-            case 'principalInvestigator':
-                label = (option.value as PrincipalInvestigator).name
-                break
-        }
-
-        return `${option.type}_${label}`
+function getFilterItemLabel(value: FilterItem['value'], type: FilterItem['type']): string {
+    switch (type) {
+        case 'name':
+        case 'type':
+        case 'status':
+        case 'dataType':
+        case 'theme':
+            // @ts-ignore
+            return value
+        case 'principalInvestigator':
+            return (value as PrincipalInvestigator).name
     }
+}
+
+function getFilterItemKey(value: FilterItem['value'], type: FilterItem['type']): string {
+    return `${type}_${getFilterItemLabel(value, type)}`
 }
