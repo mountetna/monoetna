@@ -10,16 +10,16 @@ import _ from 'lodash'
 import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project } from './models';
 import ProjectListing from './project-listing';
 import Pagination from '@/components/searchable-list/controls/pagination'
-import DrawerButton from '@/components/searchable-list/controls/drawer-button';
+import DrawerButton from '@/components/searchable-list/controls/drawer/button';
+import Drawer from '@/components/searchable-list/controls/drawer/drawer';
 import Autocomplete from '@/components/searchable-list/controls/autocomplete';
 import Tabs from '../inputs/tabs';
 import { ThemeData } from '../themes/models';
-import { ValueOf } from '@/lib/utils/types';
-
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
 import ProjectPI from './project-pi';
 import FilterPill from '../searchable-list/filter-pill';
+import { ValueOf } from '@/lib/utils/types';
 
 
 const collapsedInfoSets = [
@@ -42,6 +42,8 @@ interface FilterItem {
     key: string;
     projectKey: keyof SearchableProjectData;
 }
+
+const drawerFilterItemTypes: FilterItem['type'][] = ['theme', 'status', 'dataType']
 
 
 // TODO: use separate list component in searchable-list module
@@ -83,7 +85,10 @@ export default function ProjectListings({
 
                 switch (projectKey) {
                     case 'type':
+                        type = projectKey
+                        break
                     case 'status':
+                        value = getExternalProjectStatus(project)
                         type = projectKey
                         break
                     case 'theme':
@@ -118,9 +123,17 @@ export default function ProjectListings({
                 }
             }
         }
-        // Must sort by type in order for grouping to work
-        return _searchOptions
+        return [..._searchOptions]
     })
+
+    const [drawerItems] = React.useState(() => {
+        return searchOptions
+            .filter((option) => {
+                return drawerFilterItemTypes.includes(option.type)
+            })
+    })
+
+    const [drawerOpen, setDrawerOpen] = React.useState(false)
 
     const [filterItems, setFilterItems] = React.useState<FilterItem[]>([])
 
@@ -213,8 +226,7 @@ export default function ProjectListings({
         })
     }
 
-    const handleChangeAutocomplete = (filterItems: FilterItem[]) => {
-        // debugger
+    const handleChangeFilterItems = (filterItems: FilterItem[]) => {
         setFilterItems(filterItems)
         closeAllProjects()
         setCurrentPage(0)
@@ -290,9 +302,9 @@ export default function ProjectListings({
                             <DrawerButton
                                 label='Filters'
                                 icon={filterDarkIcon}
-                                onClick={() => null}
-                                activated={false}
-                                open={false}
+                                onClick={() => setDrawerOpen(!drawerOpen)}
+                                activated={filterItems.find(item => drawerFilterItemTypes.includes(item.type)) !== undefined}
+                                open={drawerOpen}
                             />
 
                             <Autocomplete
@@ -303,7 +315,7 @@ export default function ProjectListings({
                                 options={[...searchOptions].sort((a, b) => a.type.localeCompare(b.type))}
                                 showResultsOnEmpty={false}
                                 // @ts-ignore
-                                onChange={(_, value: FilterItem[]) => handleChangeAutocomplete(value)}
+                                onChange={(_, value: FilterItem[]) => handleChangeFilterItems(value)}
                                 value={filterItems}
                                 // @ts-ignore
                                 getOptionKey={(option: FilterItem) => option.key}
@@ -361,6 +373,16 @@ export default function ProjectListings({
                                 }}
                             />
                         </Box>
+
+                        <Drawer
+                            items={drawerItems}
+                            getItemLabel={item => item.label}
+                            getItemKey={item => item.key}
+                            getItemType={item => item.type}
+                            activeItems={filterItems}
+                            onChange={handleChangeFilterItems}
+                            open={drawerOpen}
+                        />
 
                         {filterItems.length > 0 && <Box
                             sx={{
