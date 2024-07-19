@@ -16,23 +16,22 @@ class VulcanV2Controller < Vulcan::Controller
   def create_repo
     repo_name = File.basename(@escaped_params[:repo_url])
     repo_local_path = Vulcan::Path.repo_local_path(@escaped_params[:project_name], repo_name)
-    if @remote_manager.dir_exists?("#{repo_local_path}")
-      msg = "Repo: #{repo_local_path} for project: #{@params[:project_name]} already exists."
-      Vulcan.instance.logger.info(msg)
-      response = {'Warning': msg}
-    else
-      begin
-        # Make project directory if it doesnt exist
-        @remote_manager.mkdir(Vulcan::Path.project_dir(@escaped_params[:project_name]))
-        # Create repo directory
-        @remote_manager.clone(@escaped_params[:repo_url], @escaped_params[:branch], repo_local_path)
-        response = {repo_local_path: repo_local_path, repo_name: repo_name}
-      rescue => e
-        Vulcan.instance.logger.log_error(e)
-        raise Etna::BadRequest.new(e.message)
+    begin
+      if @remote_manager.dir_exists?("#{repo_local_path}")
+        msg = "Repo: #{repo_local_path} for project: #{@params[:project_name]} already exists."
+        Vulcan.instance.logger.info(msg)
+        return success_json({'Warning': msg})
       end
+      # Make project directory if it doesnt exist
+      @remote_manager.mkdir(Vulcan::Path.project_dir(@escaped_params[:project_name]))
+      # Create repo directory
+      @remote_manager.clone(@escaped_params[:repo_url], @escaped_params[:branch], repo_local_path)
+      response = {repo_local_path: repo_local_path, repo_name: repo_name}
+      success_json(response)
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
     end
-    success_json(response)
   end
 
   # Admin command

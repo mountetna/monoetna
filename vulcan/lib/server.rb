@@ -13,14 +13,11 @@ class Vulcan
       erb_view(:no_auth)
     end
 
-    get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
-
-    # vulcan v2
-    # TODO add auth
+    # Vulcan V2 endpoints
 
     # CRUD Repo
-    post 'api/v2/repo/create', action: 'vulcan_v2#create_repo'
-    get 'api/v2/:project_name/repo/', action: 'vulcan_v2#list_repos'
+    post 'api/v2/repo/create', action: 'vulcan_v2#create_repo', auth: { user: { is_admin?: :project_name }}
+    get 'api/v2/:project_name/repo/', action: 'vulcan_v2#list_repos', auth: { user: { is_admin?: :project_name }}
 
     # CRUD Workflow
     post 'api/v2/workflow/publish', action: 'vulcan_v2#publish_workflow'
@@ -38,6 +35,10 @@ class Vulcan
     # File API
     post 'api/v2/:project_name/workspace/:workspace_id/file/write', action: 'vulcan_v2#write_files'
     post 'api/v2/:project_name/workspace/:workspace_id/file/read', action: 'vulcan_v2#read_files'
+
+
+    # Vulcan V1 endpoints - to remove
+    get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
 
     with auth: { user: { can_view?: :project_name } } do
       get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true

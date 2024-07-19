@@ -50,7 +50,7 @@ describe VulcanV2Controller do
 
   context 'create repo' do
     it 'should clone a repo to the project directory' do
-      auth_header(:guest)
+      auth_header(:admin)
       post("/api/v2/repo/create", create_repo_request)
       expect(last_response.status).to eq(200)
       # Proper dirs are created
@@ -58,12 +58,26 @@ describe VulcanV2Controller do
       expect(remote_manager.dir_exists?(project_dir)).to be_truthy
       expect(remote_manager.dir_exists?("#{project_dir}/test-repo")).to be_truthy
     end
+
+    it 'should inform the user if the repo already exists' do
+      auth_header(:admin)
+      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/create", create_repo_request)
+      expect(last_response.status).to eq(200)
+      expect(json_body[:Warning].include?('exists'))
+    end
+
+    it 'auth should fail if you are not an admin' do
+      auth_header(:editor)
+      post("/api/v2/repo/create", create_repo_request)
+      expect(last_response.status).to eq(403)
+    end
   end
 
   context 'list repos' do
 
     before do
-      auth_header(:guest)
+      auth_header(:admin)
       post("/api/v2/repo/create", create_repo_request)
     end
 
