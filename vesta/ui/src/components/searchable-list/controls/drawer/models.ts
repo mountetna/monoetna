@@ -4,7 +4,7 @@ export interface DrawerItem {
     type: string
 }
 
-export type DisplayStyle = 'default' | 'collapsible'
+export type DisplayStyle = 'default' | 'expandable'
 
 export interface DrawerSectionProps {
     name: string;

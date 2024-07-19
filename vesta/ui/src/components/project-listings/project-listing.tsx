@@ -8,7 +8,7 @@ import ButtonBase from '@mui/material/ButtonBase';
 import MUILink from '@mui/material/Link';
 import Link from 'next/link'
 import Image from 'next/image';
-import { useSpring, animated } from '@react-spring/web';
+import { useSpring, animated, useIsomorphicLayoutEffect } from '@react-spring/web';
 import { Group } from '@visx/group';
 import { Pack, hierarchy } from '@visx/hierarchy';
 import { useParentSize } from '@visx/responsive'
@@ -82,7 +82,7 @@ export default function ProjectListing({
         },
     }), [open])
 
-    React.useEffect(() => {
+    useIsomorphicLayoutEffect(() => {
         animateMainContentApi.start(
             {
                 height: `${open ? mainContentRef.current?.offsetHeight : 0}px`,

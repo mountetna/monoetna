@@ -30,20 +30,17 @@ export default function ThemeShelf({
     const tabletDesktopThemeBookListRef = React.createRef<HTMLDivElement>()
 
     // handle book open state to coordinate only having one open at a time
-    const bookOpens = themeData.map((_, i) => React.useState(i === 0))
+    const [bookOpens, setBookOpens] = React.useState(themeData.map((_, i) => i === 0))
     const [openBookIdx, setOpenBookIdx] = React.useState<number | null>(0)
 
     const handleSetBookOpen = (newOpenState: boolean, bookIdx: number) => {
-        for (const [idx, [open, setOpen]] of bookOpens.entries()) {
+        setBookOpens(opens => opens.map((_, idx) => {
             if (idx === bookIdx) {
-                setOpen(newOpenState)
                 setOpenBookIdx(newOpenState === true ? idx : null)
-                continue
+                return newOpenState
             }
-            if (open) {
-                setOpen(false)
-            }
-        }
+            return false
+        }))
     }
 
     const tabletDesktopThemeBookGapPx = 10
@@ -134,7 +131,7 @@ export default function ThemeShelf({
                         key={theme.name}
                         data={theme}
                         onClickSeeProjects={handleClickSeeProjects}
-                        open={bookOpens[i][0]}
+                        open={bookOpens[i]}
                         onSetOpen={open => handleSetBookOpen(open, i)}
                         onFinishOpen={() => scrollToBook(i)}
                     />

@@ -33,22 +33,22 @@ export default function DrawerSectionDefault({
                 {_.startCase(name)}
             </Typography>
 
-            {items.map(item => (
-                <Typography
-                    key={item.key}
-                    className={`drawer-item${activeKeys.has(item.key) ? ` ${activeClass}` : ''}`}
-                    variant='pMedium'
-                >
+            <Box>
+                {items.map(item => (
                     <ButtonBase
+                        key={item.key}
+                        className={`drawer-item${activeKeys.has(item.key) ? ` ${activeClass}` : ''}`}
                         onClick={() => onClickItem(item)}
                         sx={{
 
                         }}
                     >
-                        {item.label}
+                        <Typography variant='pMedium'>
+                            {item.label}
+                        </Typography>
                     </ButtonBase>
-                </Typography>
-            ))}
+                ))}
+            </Box>
         </Box>
     )
 }

@@ -4,7 +4,7 @@ import * as React from 'react'
 import Container from '@mui/system/Container'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material';
+import { useMediaQuery, useTheme } from '@mui/material';
 import _ from 'lodash'
 
 import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project } from './models';
@@ -53,6 +53,10 @@ export default function ProjectListings({
     projectData: Project[],
 }) {
     const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.between(
+        theme.breakpoints.values.mobile,
+        theme.breakpoints.values.tablet,
+    ))
 
     const [currentPage, setCurrentPage] = React.useState(0)
     const pageSize = 12
@@ -188,25 +192,20 @@ export default function ProjectListings({
     const [infoSetsIdx, setInfoSetsIdx] = React.useState<string | number | null>(0)
 
     // handle book open state to coordinate only having one open at a time
-    // eslint-disable-next-line
-    const projectOpens = projectData.map(_ => React.useState(false))
+    const [projectOpens, setProjectOpens] = React.useState(projectData.map(_ => false))
 
     const handleSetProjectOpen = (newOpenState: boolean, projectIdx: number) => {
-        for (const [idx, [open, setOpen]] of projectOpens.entries()) {
+        setProjectOpens(opens => opens.map((_, idx) => {
             if (idx === projectIdx) {
-                setOpen(newOpenState)
-                continue
+                return newOpenState
             }
-            if (open) {
-                setOpen(false)
-            }
-        }
+            return false
+        }))
+
     }
 
     const closeAllProjects = () => {
-        for (const [_, setOpen] of projectOpens) {
-            setOpen(false)
-        }
+        setProjectOpens(opens => opens.map(_ => false))
     }
 
     const handleSetCurrentPage = (page: number) => {
@@ -382,6 +381,7 @@ export default function ProjectListings({
                             activeItems={filterItems}
                             onChange={handleChangeFilterItems}
                             open={drawerOpen}
+                            displayStyle={isMobile ? 'expandable' : 'default'}
                         />
 
                         {filterItems.length > 0 && <Box
@@ -445,7 +445,7 @@ export default function ProjectListings({
                         >
                             <ProjectListing
                                 data={project}
-                                open={projectOpens[i][0]}
+                                open={projectOpens[i]}
                                 onSetOpen={open => handleSetProjectOpen(open, i)}
                                 onFinishOpen={() => scrollToProject(i)}
                             />

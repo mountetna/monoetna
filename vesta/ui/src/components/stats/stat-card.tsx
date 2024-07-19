@@ -2,11 +2,12 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import Image from 'next/image';
-
-import carrotDarkUp from '/public/images/icons/indicator-arrow-dark.svg'
-import carrotLightUp from '/public/images/icons/indicator-arrow-light.svg'
 import { useTheme } from '@mui/material';
+
 import { useWindowDimensions } from '@/lib/utils/responsive';
+
+import triangleDarkUp from '/public/images/icons/indicator-arrow-dark.svg'
+import triangleLightUp from '/public/images/icons/indicator-arrow-light.svg'
 
 
 interface Stat {
@@ -136,8 +137,8 @@ export default function StatCard({
                             }}
                         >
                             <Image
-                                src={deltaColor === 'light' ? carrotLightUp : carrotDarkUp}
-                                alt={`Carrot icon pointing ${deltaSign === '+' ? 'up' : 'down'}`}
+                                src={deltaColor === 'light' ? triangleLightUp : triangleDarkUp}
+                                alt={`Triangle icon pointing ${deltaSign === '+' ? 'up' : 'down'}`}
                             />
                         </Box>}
                 </Box>

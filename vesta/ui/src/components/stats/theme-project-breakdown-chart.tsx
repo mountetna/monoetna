@@ -5,7 +5,7 @@ import { useParentSize } from '@visx/responsive'
 import Pie, { ProvidedProps, PieArcDatum } from '@visx/shape/lib/shapes/Pie';
 import { Group } from '@visx/group';
 import { scaleOrdinal } from '@visx/scale';
-import { animated, useTransition, to, useSpring, UseTransitionProps } from '@react-spring/web';
+import { animated, useTransition, to, useSpring, UseTransitionProps } from 'react-spring';
 import { alpha, useTheme } from '@mui/material';
 import Image from 'next/image';
 

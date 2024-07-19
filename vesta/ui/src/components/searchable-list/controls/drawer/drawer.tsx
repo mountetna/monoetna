@@ -3,12 +3,12 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import { useTheme } from '@mui/material';
-import { useSpring, animated } from '@react-spring/web';
+import { useSpring, animated, useIsomorphicLayoutEffect } from '@react-spring/web';
 
 import { useWindowDimensions } from '@/lib/utils/responsive';
 import { DrawerItem, DisplayStyle, DrawerSectionProps } from './models';
 import DrawerSectionDefault from './section-default';
-import DrawerSectionCollapsible from './section-collapsible';
+import DrawerSectionExpandable from './section-expandable';
 
 
 // TODO: make item a generic and
@@ -33,9 +33,12 @@ export default function Drawer<Item>({
     displayStyle?: DisplayStyle,
 }) {
     const theme = useTheme()
+    const [finishedMountAnimation, setFinishedMountAnimation] = React.useState(false)
 
     const itemsByKey: Record<string, Item> = {}
     const drawerItemsByKey: Record<string, DrawerItem> = {}
+    const drawerItemsByType: Record<string, DrawerItem[]> = {}
+
     items.forEach(item => {
         const drawerItem = {
             label: getItemLabel(item),
@@ -46,42 +49,62 @@ export default function Drawer<Item>({
         itemsByKey[drawerItem.key] = item
         drawerItemsByKey[drawerItem.key] = drawerItem
 
-        return drawerItem
+        if (!(drawerItem.type in drawerItemsByType)) {
+            drawerItemsByType[drawerItem.type] = [drawerItem]
+            return
+        }
+        drawerItemsByType[drawerItem.type].push(drawerItem)
     })
 
-    const { isResizing: isWindowResizing } = useWindowDimensions()
+    const activeKeys = new Set(activeItems.map(item => getItemKey(item)))
 
     // Manage open/close
+    const { isResizing: isWindowResizing } = useWindowDimensions()
+
+    const [sectionOpens, setSectionOpens] = React.useState(Object.keys(drawerItemsByType).map(_ => false))
+
+    const handleSetSectionOpen = (open: boolean, sectionIndex: number) => {
+        const newSectionOpens = [...sectionOpens]
+        newSectionOpens[sectionIndex] = open
+        setSectionOpens(newSectionOpens)
+    }
+
     const rootRef = React.useRef<HTMLElement>()
     const [rootStyle, rootApi] = useSpring(() => ({
         height: '0px',
         opacity: 0,
     }), [open])
 
-    React.useEffect(() => {
+    useIsomorphicLayoutEffect(() => {
+        if (!open && finishedMountAnimation) {
+            rootApi.set({ height: `${(rootRef.current?.offsetHeight || 0)}px`, })
+            rootApi.set({ height: `${(rootRef.current?.offsetHeight || 0)}px`, })
+        }
         rootApi.start(
             {
-                height: `${open ? rootRef.current?.offsetHeight : 0}px`,
+                height: `${open ? (rootRef.current?.offsetHeight || 0) : 0}px`,
                 opacity: open ? 1 : 0,
                 config: {
                     easing: theme.transitions.easing.quintFn,
                     duration: theme.transitions.duration.quint,
                 },
+                onStart: () => {
+                    const animatedEl = rootRef.current?.parentElement
+                    if (!open && animatedEl) {
+                        animatedEl.className = ''
+                    }
+                },
+                onRest: () => {
+                    const animatedEl = rootRef.current?.parentElement
+                    if (open && animatedEl) {
+                        animatedEl.className = 'full-height'
+                    }
+
+                    setFinishedMountAnimation(true)
+                }
             }
         )
     }, [open, isWindowResizing])
-
-    const itemsByType: Record<string, DrawerItem[]> = {}
-    for (const item of Object.values(drawerItemsByKey)) {
-        if (!(item.type in itemsByType)) {
-            itemsByType[item.type] = [item]
-            continue
-        }
-
-        itemsByType[item.type].push(item)
-    }
-
-    const activeKeys = new Set(activeItems.map(item => getItemKey(item)))
 
     const handleClickItem = (item: DrawerItem) => {
         let newActiveItems: Item[]
@@ -97,31 +120,61 @@ export default function Drawer<Item>({
     }
 
     return (
-        <animated.div
-            style={{
-                overflow: 'hidden',
-                ...rootStyle
+        <Box
+            sx={{
+                '& > *.full-height': {
+                    height: 'auto !important',
+                },
             }}
         >
-            <Box
-                ref={rootRef}
+            <animated.div
+                style={{
+                    overflow: 'hidden',
+                    ...rootStyle,
+                }}
             >
-                {Object.entries(itemsByType).map(([section, items]) => {
-                    const sectionProps: DrawerSectionProps = {
-                        name: section,
-                        items: items,
-                        activeKeys: activeKeys,
-                        onClickItem: (item) => handleClickItem(item),
-                    }
+                <Box
+                    ref={rootRef}
+                    sx={{
+                        p: '24px',
+                        borderRadius: '30px',
+                        bgcolor: 'utilityWhite.main',
+                    }}
+                >
+                    {/* TODO: make separate container components? */}
+                    {Object.entries(drawerItemsByType).map(([section, items], index) => {
+                        const sectionProps: DrawerSectionProps = {
+                            name: section,
+                            items: items,
+                            activeKeys: activeKeys,
+                            onClickItem: (item) => handleClickItem(item),
+                        }
 
-                    switch (displayStyle) {
-                        case 'default':
-                            return <DrawerSectionDefault key={section} {...sectionProps} />
-                        case 'collapsible':
-                            return <DrawerSectionCollapsible key={section} {...sectionProps} />
-                    }
-                })}
-            </Box>
-        </animated.div>
+                        switch (displayStyle) {
+                            case 'default':
+                                return (
+                                    <DrawerSectionDefault
+                                        key={section}
+                                        {...sectionProps}
+                                    />
+                                )
+                            case 'expandable':
+                                return (
+                                    <DrawerSectionExpandable
+                                        key={section}
+                                        open={sectionOpens[index]}
+                                        onSetOpen={(open) => handleSetSectionOpen(open, index)}
+                                        {...sectionProps}
+                                    />
+                                )
+                        }
+                    })}
+
+                    <Box>
+                        Export placeholder
+                    </Box>
+                </Box>
+            </animated.div>
+        </Box>
     )
 }
