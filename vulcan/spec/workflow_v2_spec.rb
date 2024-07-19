@@ -48,10 +48,15 @@ describe VulcanV2Controller do
     end
   end
 
-  context 'create repo' do
+  context 'clone repo' do
+
+    before do
+      remove_all_dirs
+    end
+
     it 'should clone a repo to the project directory' do
       auth_header(:admin)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       expect(last_response.status).to eq(200)
       # Proper dirs are created
       project_dir = "#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}"
@@ -61,30 +66,47 @@ describe VulcanV2Controller do
 
     it 'should inform the user if the repo already exists' do
       auth_header(:admin)
-      post("/api/v2/repo/create", create_repo_request)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       expect(last_response.status).to eq(200)
       expect(json_body[:Warning].include?('exists'))
     end
 
     it 'auth should fail if you are not an admin' do
       auth_header(:editor)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/#{PROJECT}/", create_repo_request)
+      get("/api/v2/#{PROJECT}/repo")
       expect(last_response.status).to eq(403)
     end
   end
 
-  context 'list repos' do
-
-    before do
-      auth_header(:admin)
-      post("/api/v2/repo/create", create_repo_request)
+  context 'delete repo' do
+    it 'auth should fail if you are not a super user' do
+      auth_header(:editor)
+      delete("/api/v2/#{PROJECT}/test-repo")
+      expect(last_response.status).to eq(403)
     end
+    it 'auth should delete a repo' do
+      auth_header(:superuser)
+      post("/api/v2/repo/clone", create_repo_request)
+      #delete("/api/v2/#{PROJECT}/test-repo")
+      #expect(last_response.status).to eq(200)
+    end
+  end
 
+  context 'list repos' do
     it 'should list repos in a project directory' do
+      auth_header(:admin)
+      post("/api/v2/repo/clone", create_repo_request)
       get("/api/v2/#{PROJECT}/repo")
       expect(last_response.status).to eq(200)
       expect(json_body[:dirs][0]).to eq("test-repo")
+    end
+
+    it 'should list no repos when no repos exist' do
+      auth_header(:admin)
+      post("/api/v2/repo/create", create_repo_request)
+      require 'pry'; binding.pry
     end
   end
 
@@ -92,7 +114,7 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
     end
 
     # TODO: this should just be for administrators
@@ -116,7 +138,7 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
     end
 
@@ -133,7 +155,7 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
     end
 
@@ -163,7 +185,7 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
         workflow_id: json_body[:workflow_id]
@@ -190,7 +212,7 @@ describe VulcanV2Controller do
   context 'get workspace' do
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
         workflow_id: json_body[:workflow_id]
@@ -211,7 +233,7 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
         workflow_id: json_body[:workflow_id]
@@ -241,7 +263,7 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
         workflow_id: json_body[:workflow_id]
@@ -272,7 +294,7 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
         workflow_id: json_body[:workflow_id]

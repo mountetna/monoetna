@@ -13,7 +13,7 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   # Admin command complete prior
-  def create_repo
+  def clone_repo
     repo_name = File.basename(@escaped_params[:repo_url])
     repo_local_path = Vulcan::Path.repo_local_path(@escaped_params[:project_name], repo_name)
     begin
@@ -22,19 +22,16 @@ class VulcanV2Controller < Vulcan::Controller
         Vulcan.instance.logger.info(msg)
         return success_json({'Warning': msg})
       end
-      # Make project directory if it doesnt exist
       @remote_manager.mkdir(Vulcan::Path.project_dir(@escaped_params[:project_name]))
-      # Create repo directory
       @remote_manager.clone(@escaped_params[:repo_url], @escaped_params[:branch], repo_local_path)
-      response = {repo_local_path: repo_local_path, repo_name: repo_name}
-      success_json(response)
+      success_json({repo_local_path: repo_local_path, repo_name: repo_name})
     rescue => e
       Vulcan.instance.logger.log_error(e)
       raise Etna::BadRequest.new(e.message)
     end
   end
 
-  # Admin command
+  # Admin
   def list_repos
     begin
       project_dir = Vulcan::Path.project_dir(@escaped_params[:project_name])
@@ -43,6 +40,10 @@ class VulcanV2Controller < Vulcan::Controller
       Vulcan.instance.logger.log_error(e)
       raise Etna::BadRequest.new(e.message)
     end
+  end
+
+  def delete_repo
+    require 'pry' ; binding.pry
   end
 
   # User
