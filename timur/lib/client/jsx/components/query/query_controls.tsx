@@ -12,15 +12,6 @@ import {QueryWhereContext} from '../../contexts/query/query_where_context';
 import useUriQueryParams from '../../contexts/query/use_uri_query_params';
 
 const useStyles = makeStyles((theme) => ({
-  container: {
-    flex: '1 1 30%',
-    fontFamily: 'Baskervville',
-    fontWeight: 100,
-    fontSize: '1.2em',
-    width: 'auto',
-    height: '100%',
-    overflowY: 'scroll'
-  },
   item: {
     width: '100%'
   }
@@ -45,18 +36,11 @@ const QueryControls = () => {
   });
 
   return (
-    <Grid
-      item
-      container
-      className={classes.container}
-      justify='flex-start'
-      alignItems='center'
-      direction='column'
-    >
+    <>
       <QueryFromPane />
       <QueryWherePane />
       <QuerySelectPane />
-    </Grid>
+    </>
   );
 };
 

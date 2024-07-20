@@ -18,27 +18,27 @@ export default class FilterOperator {
     },
     number: {
       'is in': '::in',
-      'is equal to': '::=',
+      'equals': '::=',
       'is greater than': '::>',
       'is greater than or equal to': '::>=',
       'is less than': '::<',
       'is less than or equal to': '::<=',
-      'is not equal to': '::!=',
+      'does not equal': '::!=',
       'is not in': '::notin'
     },
     date: {
-      'is equal to': '::=',
+      'equals': '::=',
       'is greater than': '::>',
       'is greater than or equal to': '::>=',
       'is less than': '::<',
       'is less than or equal to': '::<=',
-      'is not equal to': '::!='
+      'does not equal': '::!='
     },
     text: {
       'is in': '::in',
-      'is equal to': '::equals',
-      'is matching': '::matches',
-      'is not equal to': '::not',
+      'equals': '::equals',
+      'matches': '::matches',
+      'does not equal': '::not',
       'is not in': '::notin',
       'is greater than': '::>',
       'is greater than or equal to': '::>=',

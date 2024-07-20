@@ -1,11 +1,12 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 import {makeStyles} from '@material-ui/core/styles';
 import Tooltip from '@material-ui/core/Tooltip';
 import Checkbox from '@material-ui/core/Checkbox';
 import Typography from '@material-ui/core/Typography';
 import AddIcon from '@material-ui/icons/Add';
+import FileCopyIcon from '@material-ui/icons/FileCopy;
 
 import {QueryClause, QueryFilter} from '../../contexts/query/query_types';
 import {emptyQueryClauseStamp} from '../../selectors/query_selector';
@@ -14,8 +15,6 @@ import QueryFilterClause from './query_filter_clause';
 import QueryNumber from './query_number';
 import QueryAnyEverySelectorList from './query_any_every_selector_list';
 import RemoveIcon from './query_remove_icon';
-import CopyIcon from './query_copy_icon';
-import Selector from './query_selector';
 import MapSelector from './map_selector';
 
 const useStyles = makeStyles((theme) => ({
@@ -27,8 +26,11 @@ const useStyles = makeStyles((theme) => ({
   paddingLeft: {
     paddingLeft: 'calc(0.5rem - 4px)'
   },
+  and: {
+    padding: '10px 0px',
+    cursor: 'pointer'
+  },
   grid: {
-    paddingTop: '0.5rem',
     paddingLeft: '25px'
   }
 }));
@@ -118,25 +120,23 @@ const QueryFilterControl = ({
     return graph.childrenMap(filter.modelName);
   }, [filter.modelName, graph]);
 
+  const [ removeHint, setRemoveHint ] = useState(false);
+  const [ showAdd, setShowAdd ] = useState(false);
+
   return <Grid
+    style={{ textDecoration: removeHint ? 'line-through' : 'none' }}
     container
     alignItems='center'
     justifyContent='flex-start'
     className='query-where-selector'
+    onMouseEnter={ () => setShowAdd(true) }
+    onMouseLeave={ () => setShowAdd(false) }
   >
-    <CopyIcon canEdit={true} onClick={copyFilter} label='filter' />
-    <RemoveIcon
-      showRemoveIcon={true}
-      onClick={removeFilter}
-      label='filter'
-    />
-    <QueryNumber number={filterIndex} level={0}/>
-    <Checkbox
-      checked={or}
-      color='primary'
-      onChange={setOr}
-      inputProps={{'aria-label': 'secondary checkbox'}}
-    />
+    { filterIndex > 0 && <Grid className={classes.and} container>
+    <Typography color='purple' onClick={setOr}>{ or ? 'or' : 'and' }</Typography>
+    </Grid>
+    }
+    <QueryNumber setRemoveHint={ setRemoveHint } onClick={ removeFilter } number={filterIndex} level={0}/>
     <QueryAnyEverySelectorList
       filter={filter}
       index={filterIndex}
@@ -148,6 +148,19 @@ const QueryFilterControl = ({
       setModel={handleModelSelect}
       options={modelNames}
     />
+    { showAdd && <>
+        <Tooltip title='Add clause' aria-label='Add clause'>
+          <IconButton size='small' onClick={handleAddClause} color='primary'>
+            <AddIcon fontSize='small'/>
+          </IconButton>
+        </Tooltip>
+        <Tooltip title='Copy filter' aria-label='Copy filter'>
+          <IconButton size='small' onClick={copyFilter} color='primary'>
+            <FileCopyIcon fontSize='small'/>
+          </IconButton>
+        </Tooltip>
+      </>
+      }
     <Grid item container direction='column'>
       <Grid container direction='column' className={classes.grid} alignItems='flex-start'>
         {filter.clauses.map((clause: QueryClause, index: number) => {
@@ -163,6 +176,9 @@ const QueryFilterControl = ({
                 patchClause={(updatedClause: QueryClause) =>
                   handlePatchClause(updatedClause, index)
                 }
+                selectClause={ (val: string) =>
+                  handleClauseAnySelect(val, clause, index)
+                }
                 removeClause={() => handleRemoveClause(index)}
                 showRemoveIcon={
                   !(0 === index && 1 === filter.clauses.length)
@@ -171,17 +187,6 @@ const QueryFilterControl = ({
               />
           );
         })}
-        <Tooltip title='Add and clause' aria-label='Add and clause'>
-          <Button
-            variant='text'
-            className={classes.paddingLeft}
-            startIcon={<AddIcon />}
-            onClick={handleAddClause}
-          >
-            <QueryNumber number={filter.clauses.length} level={1}/>
-            Add clause
-          </Button>
-        </Tooltip>
       </Grid>
     </Grid>
   </Grid>;

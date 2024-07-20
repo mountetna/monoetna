@@ -28,15 +28,6 @@ const useStyles = makeStyles((theme) => ({
     border: '1px solid #0f0',
     borderRadius: 2,
     backgroundColor: 'rgba(0,255,0,0.1)'
-  },
-  config: {
-    padding: 5,
-    paddingTop: 0,
-    alignSelf: 'flex-end'
-  },
-  resultsPane: {
-    overflowX: 'auto',
-    flex: '1 1 70%'
   }
 }));
 
@@ -107,29 +98,14 @@ const QueryResults = () => {
   if (!rootModel) return null;
 
   return (
-    <Grid container className={classes.resultsPane}>
-      <Grid item className={classes.result}>
-        <ErrorBoundary>
-          <CodeMirror extensions={extensions} value={codeMirrorText} />
-        </ErrorBoundary>
-      </Grid>
-      <Grid xs={12} item container direction='column'>
-        <Grid className={classes.config} item container justify='flex-end'>
-          <AntSwitch
-            checked={expandMatrices}
-            onChange={() => setExpandMatrices(!expandMatrices)}
-            name='expand-matrices-query'
-            leftOption='Nest matrices'
-            rightOption='Expand matrices'
-          />
-          <AntSwitch
-            checked={flattenQuery}
-            onChange={() => setFlattenQuery(!flattenQuery)}
-            name='flatten-query'
-            leftOption='Nested'
-            rightOption='Flattened'
-          />
+    <>
+      { false && <Grid item className={classes.result}>
+          <ErrorBoundary>
+            <CodeMirror extensions={extensions} value={codeMirrorText} />
+          </ErrorBoundary>
         </Grid>
+      }
+      <Grid xs={12} item container direction='column'>
         <QueryTable
           maxColumns={maxColumns}
           columns={formattedColumns}
@@ -139,11 +115,14 @@ const QueryResults = () => {
           page={page}
           graph={graph}
           expandMatrices={expandMatrices}
+          flattenQuery={flattenQuery}
+          setExpandMatrices={setExpandMatrices}
+          setFlattenQuery={setFlattenQuery}
           handlePageChange={handlePageChange}
           handlePageSizeChange={handlePageSizeChange}
         />
       </Grid>
-    </Grid>
+    </>
   );
 };
 

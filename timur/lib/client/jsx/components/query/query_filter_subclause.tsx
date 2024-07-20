@@ -26,6 +26,9 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     width: 'max-content'
   },
+  filter_operand: {
+    flex: '1'
+  },
   operand: {
     paddingTop: '3px'
   }
@@ -179,24 +182,21 @@ const QueryFilterSubclause = ({
   let uniqId = (idType: string): string =>
     `${idType}-Select-${Math.random().toString()}`;
 
-  return <Grid item container alignItems='center'>
-    {
-      showRemoveIcon &&
-        <RemoveIcon
-          showRemoveIcon={showRemoveIcon}
-          onClick={removeSubclause}
-          label='subclause'
-        />
-    }
-    <QueryNumber level={2} number={subclauseIndex}/>
+  const [ removeHint, setRemoveHint ] = useState(false);
+
+  return <Grid item container alignItems='center' style={{ textDecoration: removeHint ? 'line-through' : 'none' }} >
+    <QueryNumber setRemoveHint={ showRemoveIcon ? setRemoveHint : null } onClick={ showRemoveIcon ? removeSubclause : null} number={subclauseIndex} level={2}/>
     {
       modelAttributes.length > 0 &&
         <Selector
           label={`operator-${subclauseIndex}`}
           canEdit={true}
-          name={filterOperator.prettify() || ''}
-          choiceSet={Object.keys(filterOperator.options())}
-          onSelect={handleOperatorSelect}
+          label='attribute'
+          placeholder='attribute'
+          color='secondary'
+          name={subclause.attributeName}
+          onSelect={handleAttributeSelect}
+          choiceSet={modelAttributes.map((a) => a.attribute_name)}
         />
     }
     <Selector
@@ -209,7 +209,7 @@ const QueryFilterSubclause = ({
     />
     {
       filterOperator.hasOperand() &&
-      <FormControl variant="standard">
+      <FormControl className={ classes.filter_operand } variant="standard">
         {filterOperator.hasPrepopulatedOperandOptions() &&
         distinctAttributeValues.length > 0 ? (
           <Autocomplete

@@ -1,7 +1,8 @@
 import React, {useMemo, useContext, useState, useCallback} from 'react';
 
 import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import AddIcon from '@material-ui/icons/Add';
 
@@ -128,7 +129,12 @@ const QueryWherePane = () => {
   return (
     <QueryClause title=''>
       Where:
-      {!recordFilters.length && <Typography onClick={addNewRecordFilter} color='gray'>no conditions</Typography>}
+      <Tooltip title='Add condition' aria-label='Add condition'>
+        <IconButton size='small' onClick={addNewRecordFilter} color='primary'>
+          <AddIcon fontSize='small'/>
+        </IconButton>
+      </Tooltip>
+      {recordFilters.length == 0 ? <Typography onClick={addNewRecordFilter} color='gray'>no conditions</Typography> : null}
       {recordFilters.map((filter: QueryFilter, index: number) => (
         <QueryFilterControl
           key={`${index}-${updateCounter}`}
@@ -150,10 +156,6 @@ const QueryWherePane = () => {
           copyFilter={() => handleCopyFilter(filter)}
         />
       ))}
-      {recordFilters.length && <Button onClick={addNewRecordFilter} startIcon={<AddIcon />}>
-        Filter
-      </Button>
-      }
     </QueryClause>
   );
 };

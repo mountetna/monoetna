@@ -209,13 +209,7 @@ const QueryControlButtons = () => {
   if (!rootModel) return null;
 
   return (
-    <Grid
-      item
-      container
-      direction='row'
-      justifyContent='flex-end'
-      alignItems='flex-end'
-    >
+    <>
       <Grid item>
         <Button
           className={classes.button}
@@ -260,7 +254,7 @@ const QueryControlButtons = () => {
           </Typography>
         ) : null}
       </Grid>
-    </Grid>
+    </>
   );
 };
 

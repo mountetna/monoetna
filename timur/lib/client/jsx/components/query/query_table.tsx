@@ -9,6 +9,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableBody from '@material-ui/core/TableBody';
 import TablePagination from '@material-ui/core/TablePagination';
+import AntSwitch from './ant_switch';
 
 import {QueryTableColumn} from '../../contexts/query/query_types';
 import QueryTableAttributeViewer from './query_table_attribute_viewer';
@@ -17,6 +18,9 @@ import {QueryGraph} from '../../utils/query_graph';
 const useStyles = makeStyles({
   table: {
     minWidth: 650
+  },
+  table_controls: {
+    padding: '0px 15px'
   }
 });
 
@@ -29,6 +33,9 @@ const QueryTable = ({
   maxColumns,
   graph,
   expandMatrices,
+  setExpandMatrices,
+  flattenQuery,
+  setFlattenQuery,
   handlePageChange,
   handlePageSizeChange
 }: {
@@ -40,6 +47,9 @@ const QueryTable = ({
   maxColumns: number;
   graph: QueryGraph;
   expandMatrices: boolean;
+  setExpandMatrices: Function;
+  flattenQuery: boolean;
+  setFlattenQuery: Function;
   handlePageChange: (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent> | null,
     newPage: number
@@ -52,21 +62,42 @@ const QueryTable = ({
 
   return (
     <React.Fragment>
-      <Grid
-        container
-        justify='flex-end'
-        direction='column'
-        alignItems='flex-end'
-      >
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 50, 200]}
-          component='div'
-          count={numRecords}
-          rowsPerPage={pageSize}
-          page={page}
-          onPageChange={handlePageChange}
-          onRowsPerPageChange={handlePageSizeChange}
-        />
+      <Grid className={classes.table_controls} container>
+        <Grid
+          item container style={{ width: 'auto', flex: '1 1 auto' }}
+          justifyContent='flex-start'
+          alignItems='center'
+        >
+          <AntSwitch
+            checked={expandMatrices}
+            onChange={() => setExpandMatrices(!expandMatrices)}
+            name='expand-matrices-query'
+            leftOption='Nest matrices'
+            rightOption='Expand matrices'
+          />
+          <AntSwitch
+            checked={flattenQuery}
+            onChange={() => setFlattenQuery(!flattenQuery)}
+            name='flatten-query'
+            leftOption='Nested'
+            rightOption='Flattened'
+          />
+        </Grid>
+        <Grid
+          item container style={{ width: 'auto', flex: '1 1 auto' }}
+          justifyContent='flex-end'
+          alignItems='center'
+        >
+          <TablePagination
+            rowsPerPageOptions={[10, 25, 50, 200]}
+            component='div'
+            count={numRecords}
+            rowsPerPage={pageSize}
+            page={page}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handlePageSizeChange}
+          />
+        </Grid>
       </Grid>
       <TableContainer>
         <Table className={classes.table} size='small' aria-label='result table'>

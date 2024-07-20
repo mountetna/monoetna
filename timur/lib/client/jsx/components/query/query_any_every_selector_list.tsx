@@ -1,6 +1,6 @@
 import React, {useState, useCallback} from 'react';
 
-import Select from '@material-ui/core/Select';
+import Selector from './query_selector';
 import MenuItem from '@material-ui/core/MenuItem';
 import Typography from '@material-ui/core/Typography';
 
@@ -54,15 +54,16 @@ const QueryAnyEverySelectorList = ({
       <Typography>{anyList.length ? 'For' : 'For the'}&nbsp;</Typography>
       {anyList.map(([modelName, value], index: number) => {
         return ( <>
-          <Select
+          <Selector
+            canEdit={true}
             key={index}
-            autoWidth
-            value={value.toString()}
-            onChange={() => handlePatchFilter(modelName)}
-            name={`any-every-filter-toggle-${index}`}>
-            <MenuItem value={'true'}>any { (index < anyList.length - 1) ? modelName : ''}</MenuItem>
-            <MenuItem value={'false'}>every { (index < anyList.length - 1) ? modelName : ''}</MenuItem>
-          </Select>
+            name={value.toString()}
+            onSelect={() => handlePatchFilter(modelName)}
+            choiceSet={ [
+              [ `any ${ (index < anyList.length - 1) ? modelName : ''}`, true ],
+              [ `every ${ (index < anyList.length - 1) ? modelName : ''}`, false ]
+            ]}
+          />
           {
             (index < anyList.length - 1) && <Typography>&nbsp;and&nbsp;</Typography>
           }

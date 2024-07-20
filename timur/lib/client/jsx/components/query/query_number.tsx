@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import { makeStyles } from '@mui/styles';
 
 const roman = (num) => {
   let roman = {
@@ -19,19 +20,38 @@ const roman = (num) => {
   }, '');
 }
 
-const QueryNumber = ({number, level}) => {
+const useStyles = makeStyles((theme) => ({
+  number: {
+    minWidth: '25px',
+    width: '25px',
+    padding: '3.5px'
+  }
+}));
+
+const QueryNumber = ({number, level, setRemoveHint, onClick}) => {
+  const classes = useStyles();
   const numType = [
     [ 'I', true ],
     [ 'A', false ],
     [ '1', false ],
     [ 'a', false ]
   ];
-  return <Typography>
+  return <Button
+    size='small'
+    color='black'
+    variant='variant'
+    onMouseEnter={() => setRemoveHint && setRemoveHint(true)}
+    onMouseLeave={() => setRemoveHint && setRemoveHint(false)}
+    className={classes.number}
+    style={{
+      cursor: setRemoveHint ? 'pointer' : 'default'
+    }}
+    onClick={onClick}>
   {
     numType[level][1] ? roman(number+1) :
     String.fromCharCode(number + numType[level][0].charCodeAt(0))
   }.&nbsp;
-</Typography>
+</Button>
   }
 
 export default QueryNumber;
