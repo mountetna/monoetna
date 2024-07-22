@@ -20,13 +20,8 @@ import searchDarkIcon from '/public/images/icons/search.svg'
 import ProjectPI from './project-pi';
 import FilterPill from '../searchable-list/filter-pill';
 import { ValueOf } from '@/lib/utils/types';
+import { FILE_EXPORT_STATUS, handleExportFile, MIME_FILE_FORMATS } from '@/lib/utils/file-export';
 
-
-const collapsedInfoSets = [
-    'Default',
-    'Data Types',
-    'Principal Investigators',
-]
 
 // TODO: clean this up
 const searchableProjectKeys: (keyof SearchableProjectData)[] = ['fullName', 'principalInvestigators', 'type', 'dataTypes', 'theme', 'status']
@@ -44,6 +39,19 @@ interface FilterItem {
 }
 
 const drawerFilterItemTypes: FilterItem['type'][] = ['theme', 'status', 'dataType']
+
+const viewSets: FilterItem[] = [
+    { key: 'default', label: 'Default' },
+    { key: 'dataTypes', label: 'Data Types' },
+    { key: 'pis', label: 'Principal Investigators' },
+].map(item => ({
+    label: item.label,
+    key: item.key,
+    // Placeholder data just to satifsy the shape
+    value: '',
+    projectKey: 'fullName',
+    type: 'name',
+}))
 
 
 // TODO: use separate list component in searchable-list module
@@ -189,7 +197,7 @@ export default function ProjectListings({
 
     const projectListRef = React.createRef<HTMLDivElement>()
 
-    const [infoSetsIdx, setInfoSetsIdx] = React.useState<string | number | null>(0)
+    const [viewSet, setViewSet] = React.useState<(typeof viewSets)[number]>(viewSets[0])
 
     // handle book open state to coordinate only having one open at a time
     const [projectOpens, setProjectOpens] = React.useState(projectData.map(_ => false))
@@ -236,6 +244,18 @@ export default function ProjectListings({
         setFilterItems(newFilterItems)
         closeAllProjects()
         setCurrentPage(0)
+    }
+
+    // Manage file export
+    const [fileExportStatus, setFileExportStatus] = React.useState(FILE_EXPORT_STATUS.idle)
+
+    const handleClickExportButton = async () => {
+        await handleExportFile(
+            projectData,
+            MIME_FILE_FORMATS.csv,
+            setFileExportStatus,
+            'ucsf-data-library-projects',
+        )
     }
 
     return (
@@ -375,12 +395,20 @@ export default function ProjectListings({
 
                         <Drawer
                             items={drawerItems}
+                            viewSetItems={viewSets}
                             getItemLabel={item => item.label}
                             getItemKey={item => item.key}
                             getItemType={item => item.type}
                             activeItems={filterItems}
                             onChange={handleChangeFilterItems}
+                            activeViewSetItem={viewSet}
+                            onChangeViewSet={setViewSet}
+                            showViewSets={isMobile}
                             open={drawerOpen}
+                            showButton={isMobile}
+                            buttonLabel='Export to CSV'
+                            onClickButton={handleClickExportButton}
+                            buttonDisabled={fileExportStatus === FILE_EXPORT_STATUS.inProgress}
                             displayStyle={isMobile ? 'expandable' : 'default'}
                         />
 
@@ -406,15 +434,15 @@ export default function ProjectListings({
                         <Box
                             sx={{
                                 display: 'none',
-                                [theme.breakpoints.up('desktop')]: {
+                                [theme.breakpoints.up('tablet')]: {
                                     display: 'block',
                                 },
                             }}
                         >
                             <Tabs
-                                valueIdx={infoSetsIdx}
-                                values={collapsedInfoSets}
-                                onChange={setInfoSetsIdx}
+                                valueIdx={viewSets.indexOf(viewSet)}
+                                values={viewSets.map(val => val.label)}
+                                onChange={(idx) => setViewSet(viewSets[idx])}
                             />
                         </Box>
                     </Box>

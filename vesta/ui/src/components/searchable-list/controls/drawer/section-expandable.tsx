@@ -58,7 +58,7 @@ export default function DrawerSectionExpandable({
     return (
         <Box
             sx={{
-
+                p: '2px',
             }}
         >
             <ButtonBase
@@ -72,6 +72,9 @@ export default function DrawerSectionExpandable({
                 <Typography
                     className='drawer-section'
                     variant='pMediumBoldWt'
+                    sx={{
+                        color: 'ground.grade10',
+                    }}
                 >
                     {_.startCase(name)}
                 </Typography>
@@ -100,6 +103,13 @@ export default function DrawerSectionExpandable({
             >
                 <Box
                     ref={itemsContainerRef}
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        flexWrap: 'wrap',
+                        gap: '10px',
+                        pt: '16px',
+                    }}
                 >
                     {items.map(item => (
                         <ButtonBase
@@ -107,7 +117,22 @@ export default function DrawerSectionExpandable({
                             className={`drawer-item${activeKeys.has(item.key) ? ` ${activeClass}` : ''}`}
                             onClick={() => onClickItem(item)}
                             sx={{
-
+                                px: '12px',
+                                py: '2px',
+                                color: 'ground.grade10',
+                                bgcolor: 'utilityHighlight.main',
+                                borderRadius: '40px',
+                                border: '1px solid transparent',
+                                '&.active': {
+                                    border: `1px solid ${theme.palette.ground.grade10}`,
+                                },
+                                transition: theme.transitions.create(
+                                    'all',
+                                    {
+                                        easing: theme.transitions.easing.ease,
+                                        duration: theme.transitions.duration.ease,
+                                    },
+                                ),
                             }}
                         >
                             <Typography variant='pMedium'>

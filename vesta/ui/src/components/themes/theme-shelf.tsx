@@ -221,7 +221,7 @@ export default function ThemeShelf({
                                 key={theme.name}
                                 data={theme}
                                 onClickSeeProjects={handleClickSeeProjects}
-                                open={bookOpens[i][0]}
+                                open={bookOpens[i]}
                                 onSetOpen={(open: boolean) => handleSetBookOpen(open, i)}
                                 onFinishOpen={() => scrollToBook(i)}
                             />

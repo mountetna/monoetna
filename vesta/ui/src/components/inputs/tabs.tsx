@@ -7,22 +7,20 @@ import { buttonClasses } from '@mui/base/Button';
 import { Tab as BaseTab, tabClasses } from '@mui/base/Tab';
 
 
-type Value = string | number | null
-
-
 export default function Tabs({
     valueIdx,
     values,
     onChange,
 }: {
-    valueIdx: Value,
+    valueIdx: number,
     values: string[],
-    onChange: (newValIdx: Value) => void,
+    onChange: (newValIdx: number) => void,
 }) {
     return (
         <BaseTabs
             value={valueIdx}
-            onChange={(_, newIdx) => onChange(newIdx)}
+            // @ts-ignore
+            onChange={(_, newIdx: number) => onChange(newIdx)}
         >
             <TabsList>
                 {values.map(val => (

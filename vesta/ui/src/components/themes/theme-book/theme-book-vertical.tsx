@@ -4,7 +4,7 @@ import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import MUILink from '@mui/material/Link';
 import Link from 'next/link'
-import { useSpring, animated } from 'react-spring';
+import { useSpring, animated, useIsomorphicLayoutEffect } from 'react-spring';
 import ButtonBase from '@mui/material/ButtonBase';
 import { useTheme } from '@mui/material';
 
@@ -31,7 +31,8 @@ export default function ThemeBookVertical({
 
     const { isResizing: isWindowResizing } = useWindowDimensions()
     const theme = useTheme()
-    React.useEffect(() => {
+
+    useIsomorphicLayoutEffect(() => {
         animateMainContentApi.start({
             height: `${open ? mainContentRef.current?.offsetHeight : 0}px`,
             opacity: open ? 1 : 0,
@@ -61,11 +62,11 @@ export default function ThemeBookVertical({
                 }}
             >
                 <Box
-                    sx={(theme) => ({
+                    sx={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         flexGrow: '1',
-                    })}
+                    }}
                 >
                     <Typography
                         variant='pSubtitleMonoCaps'
@@ -99,7 +100,7 @@ export default function ThemeBookVertical({
                     }}
                 >
                     <Box
-                        sx={(theme) => ({
+                        sx={{
                             display: 'flex',
                             justifyContent: 'space-between',
                             gap: '16px',
@@ -107,7 +108,7 @@ export default function ThemeBookVertical({
                             borderRadius: '20px',
                             bgcolor: data.color,
                             objectFit: 'contain',
-                        })}
+                        }}
                     >
                         <Typography
                             variant='pMediumMonoCaps'

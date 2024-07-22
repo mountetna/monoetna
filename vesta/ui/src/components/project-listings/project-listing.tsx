@@ -19,6 +19,8 @@ import { useWindowDimensions } from '@/lib/utils/responsive';
 import ProjectStatus from './project-status';
 import ProjectPI from './project-pi';
 
+import projectListingBackshape from '/public/images/project-listing-backshape.svg'
+
 
 interface ProjectAspect {
     title: string
@@ -167,9 +169,37 @@ export default function ProjectListing({
                         easing: theme.transitions.easing.ease,
                         duration: theme.transitions.duration.ease,
                     },
-                )
+                ),
+                position: 'relative',
+                overflow: 'hidden',
             }}
         >
+            <Box
+                sx={{
+                    position: 'absolute',
+                    left: '0px',
+                    top: '0px',
+                    zIndex: 0,
+                    opacity: isMainContentVisible ? 1 : 0,
+                    [theme.breakpoints.up('tablet')]: {
+                        left: '196px',
+                        top: '15px',
+                    },
+                    transition: theme.transitions.create(
+                        ['opacity'],
+                        {
+                            easing: theme.transitions.easing.ease,
+                            duration: theme.transitions.duration.ease,
+                        },
+                    ),
+                }}
+            >
+                <Image
+                    src={projectListingBackshape}
+                    alt='Abstract plant'
+                />
+            </Box>
+
             {/* HEADING */}
             <ButtonBase
                 onClick={() => onSetOpen(!open)}
@@ -178,6 +208,8 @@ export default function ProjectListing({
                     display: 'block',
                     textAlign: 'left',
                     width: '100%',
+                    zIndex: 1,
+                    position: 'relative',
                 }}
             >
                 <Box
@@ -273,6 +305,8 @@ export default function ProjectListing({
                 style={{
                     overflow: 'hidden',
                     ...mainContentStyle,
+                    position: 'relative',
+                    zIndex: 1,
                 }}
             >
                 <Box
@@ -283,6 +317,7 @@ export default function ProjectListing({
                         gap: '18px',
                         p: '16px',
                         pt: '0px',
+                        zIndex: 1,
                     }}
                 >
                     <Typography
@@ -704,7 +739,6 @@ export default function ProjectListing({
                             </Typography>
                         </Box>
                     </Box>
-
                 </Box>
             </animated.div>
         </Box>

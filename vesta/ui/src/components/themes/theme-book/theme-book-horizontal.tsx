@@ -4,7 +4,7 @@ import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import MUILink from '@mui/material/Link';
 import Link from 'next/link'
-import { useSpring, animated } from '@react-spring/web';
+import { useSpring, animated, useIsomorphicLayoutEffect } from '@react-spring/web';
 import ButtonBase from '@mui/material/ButtonBase';
 
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
@@ -29,15 +29,24 @@ export default function ThemeBookHorizontal({
         width: '0px',
         opacity: 0,
     }
-    const [mainContentStyle, animateMainContentApi] = useSpring(() => ({ ...springParams, onRest: () => open && onFinishOpen(), }), [open])
-    const [coverStyle, animateCoverApi] = useSpring(() => ({ ...springParams }), [open])
+    const [mainContentStyle, animateMainContentApi] = useSpring(
+        () => ({
+            ...springParams,
+            onRest: () => open && onFinishOpen(),
+        }),
+        [open],
+    )
+    const [coverStyle, animateCoverApi] = useSpring(
+        () => ({ ...springParams }),
+        [open],
+    )
 
     const { isResizing: isWindowResizing } = useWindowDimensions()
 
-    const getSpringApiParams = (ref: React.RefObject<HTMLElement | undefined>) => {
+    const getSpringApiParams = (ref: React.RefObject<HTMLElement | undefined>, isOpen: boolean) => {
         return {
-            width: `${open ? ref.current?.offsetWidth : 0}px`,
-            opacity: open ? 1 : 0,
+            width: `${isOpen ? ref.current?.offsetWidth : 0}px`,
+            opacity: isOpen ? 1 : 0,
             config: {
                 easing: theme.transitions.easing.quintFn,
                 duration: theme.transitions.duration.quint,
@@ -45,9 +54,9 @@ export default function ThemeBookHorizontal({
         }
     }
 
-    React.useEffect(() => {
-        animateMainContentApi.start(getSpringApiParams(mainContentRef))
-        animateCoverApi.start(getSpringApiParams(coverRef))
+    useIsomorphicLayoutEffect(() => {
+        animateMainContentApi.start(getSpringApiParams(mainContentRef, open))
+        animateCoverApi.start(getSpringApiParams(coverRef, open))
     }, [open, isWindowResizing])
 
     const headingTextColor = data.textColor === 'light' ?
