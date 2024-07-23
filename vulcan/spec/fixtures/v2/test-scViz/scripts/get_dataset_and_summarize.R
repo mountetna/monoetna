@@ -145,6 +145,7 @@ dataset_record_raw <- retrieve(
     magma,
     project_name(),
     "sc_seq_dataset",
+    # ToDo: input_param implementation?
     recordNames = input_str('dataset_name'),
     attributeNames = "all"
 )

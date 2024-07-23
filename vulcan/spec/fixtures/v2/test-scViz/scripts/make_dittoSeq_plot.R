@@ -193,11 +193,11 @@ if (identical(plot_setup$do.hover, TRUE)) {
     }
     fig <- do.call(viz_fxn, plot_setup)
     fig_json <- plotly::plotly_json(fig, jsonedit = FALSE, pretty = FALSE)
-    output_var(fig_json, 'plot.out')
+    output_var(fig_json, 'plot_out')
     # Thumbnail
     plot_setup$do.hover <- FALSE
     ggsave(
-        filename = output_path('plot.png'),
+        filename = output_path('thumbnail'),
         plot = do.call(viz_fxn, plot_setup) + 
             theme_void() + theme(legend.position = "none"),
         units = "px",
@@ -207,7 +207,7 @@ if (identical(plot_setup$do.hover, TRUE)) {
 } else {
     fig <- do.call(viz_fxn, plot_setup)
     ggsave(
-        filename = output_path('plot.png'),
+        filename = output_path('thumbnail'),
         plot = fig + 
             theme_void() + theme(legend.position = "none") + ggtitle(NULL, NULL),
         units = "px",
@@ -216,7 +216,7 @@ if (identical(plot_setup$do.hover, TRUE)) {
         height = 200
     )
     ggsave(
-        filename = output_path('plot.out'),
+        filename = output_path('plot_out'),
         # plot = dittoSeq:::.remove_legend(fig),
         plot = fig,
         device = "png",
@@ -230,4 +230,4 @@ if (identical(plot_setup$do.hover, TRUE)) {
 }
 
 # Output the plot as file for editing
-saveRDS(fig, file = output_path('plot.Rds'))
+saveRDS(fig, file = output_path('plot_Rds'))

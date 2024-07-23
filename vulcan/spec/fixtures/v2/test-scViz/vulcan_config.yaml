@@ -5,22 +5,22 @@ params:
   output:
     params: [ "dataset_name" ]
 - display: "Set plot options"
-  ui_component: "AnyDittoSeq"
+  ui_component: "any-dittoseq"
   doc: "Options here determine both what type of plot to make, and how to set that plot up. For addtional details on individual inputs, see the 'Inputs of the Plot Configuration Interface' section of Vulcan's 'Help'-page documentation OR dittoSeq's own documentation. Any inputs without an exact label match within that Vulcan 'Help'-page table will map directly to some dittoSeq input for the function with the same name as your chosen plot type. You can find dittoSeq's documentation from either within R itself, run `?dittoSeq::<visualization-name>`, or from the RDRR.io page that pops up when you google the package."
   input:
     files:
-      data_frame: "dataset/discrete_metadata_summary"
-      continuous_cols: "dataset/continuous_opts"
-      discrete_cols: "dataset/discrete_opts"
-      all_cols: "dataset/all_opts"
-      reduction_opts: "dataset/reduction_opts"
+      data_frame: "dataset/discrete_metadata_summary.json"
+      continuous_cols: "dataset/continuous_opts.json"
+      discrete_cols: "dataset/discrete_opts.json"
+      all_cols: "dataset/all_opts.json"
+      reduction_opts: "dataset/reduction_opts.json"
   output:
-    files: [ temps/plot_setup ] # I've noticed most outputs currently go to an "outputs/" folder, but this is not a file that a user needs in the output directory.
+    files: [ temps/plot_setup.json ] # I've noticed most outputs currently go to an "outputs/" folder, but this is not a file that a user needs in the output directory.
 - display: 'Download plot as R object (.Rds)'
-  ui_component: "file_link"
+  ui_component: "link"
     input:
       a: "outputs/plot.Rds"
 - display: "Display Plot"
-  ui_component: "show_plot"
+  ui_component: "plot"
     input:
       a: "make_plot/plot.out"

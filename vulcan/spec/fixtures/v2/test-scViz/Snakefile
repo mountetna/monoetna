@@ -2,14 +2,14 @@ configfile: "config.yaml"
 
 rule all:
     input:
-        "output/plot.png"
+        thumbnail="output/thumbnail.png"
 
 rule get_dataset_and_summarize:
     input:
         dataset_name=config["dataset_name"]
     output:
-        plotting_options="dataset/plotting_options.json",
         scdata="dataset/scdata.Rds",
+        plotting_options="dataset/plotting_options.json",
         discrete_metadata_summary="dataset/discrete_metadata_summary.json",
         all_opts="dataset/all_opts.json",
         continuous_opts="dataset/continuous_opts.json",
@@ -18,15 +18,23 @@ rule get_dataset_and_summarize:
     script:
         "scripts/get_dataset_and_summarize.R"
 
+# Uncertain if this rule is required.
+# "JS job" with a file ouput.
+# I think the primary goal is letting snakemake understand where the "temps/plot_setup.json" file comes from.
+rule plot_setup:
+  input:
+    plotting_options="dataset/plotting_options.json"
+  output:
+    plot_settings="temps/plot_setup.json"
+
 rule make_plot:
     input:
         scdata="dataset/scdata.Rds",
-        plot_setup="temps/plot_setup",
+        plot_setup="temps/plot_setup.json",
         plotting_options="dataset/plotting_options.json"
     output:
         plot_out="output/plot.out",
-        legend_png="output/legend.png",
-        thumb="output/plot.png",
+        thumbnail="output/thumbnail.png",
         plot_Rds="output/plot.Rds"
     script:
         "scripts/make_dittoSeq_plot.R"
