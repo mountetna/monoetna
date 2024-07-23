@@ -131,16 +131,30 @@ class Vulcan
       result[:stdout].split("\n").map { |path| File.basename(path) }
     end
 
+    def list_repos_with_tags(dir)
+      repos = list_dirs(dir)
+      repo_tag_map = {}
+      repos.each do |repo|
+        path = "#{dir}/#{repo}"
+        command = "cd #{Shellwords.escape(path)} && git tag"
+        out = invoke_ssh_command(command)
+        repo_tag_map[repo] = out[:stdout].split("\n")
+      end
+      repo_tag_map
+    end
 
-    def rmdir(dir, allowed_directories)
-      # Check if the dir is in the allowed_directories
-      if allowed_directories.any? { |allowed_dir| dir.start_with?(allowed_dir) }
+    def rmdir(dir)
+      #TODO: handle cases: dir = /app/vulcan/workflows/ipi/
+      allowed_directory = Vulcan::Path::ALLOWED_DIRECTORIES.find { |allowed_dir| dir.start_with?(allowed_dir) }
+      if allowed_directory.nil?
+        raise ArgumentError, "Directory #{dir} cannot be deleted because it is not in the list of allowed directories."
+      elsif allowed_directory == dir
+        raise ArgumentError, "Cannot delete top level vulcan directory"
+      else
         command = Shellwords.join(["rm", "-r", "-f", dir])
         invoke_ssh_command(command)
-      else
-        raise ArgumentError, "Directory #{dir} is not in the list of allowed directories."
-      end
     end
+  end
 
     def dir_exists?(dir)
       command = "[ -d #{dir} ] && echo 'Directory exists.' || echo 'Directory does not exist.'"
@@ -150,6 +164,11 @@ class Vulcan
 
     def clone(repo, branch, target_dir)
       command = Shellwords.join(['git', 'clone', '-b', branch, repo, target_dir])
+      invoke_ssh_command(command)
+    end
+
+    def fetch_tags(dir)
+      command = "cd #{Shellwords.escape(dir)} && git fetch --tags"
       invoke_ssh_command(command)
     end
 

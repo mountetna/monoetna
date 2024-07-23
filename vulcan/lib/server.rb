@@ -18,8 +18,8 @@ class Vulcan
     # CRUD Repo
     post 'api/v2/repo/clone', action: 'vulcan_v2#clone_repo', auth: { user: { is_admin?: :project_name }}
     get 'api/v2/:project_name/repo/', action: 'vulcan_v2#list_repos', auth: { user: { is_admin?: :project_name }}
-    post 'api/v2/:project_name/:repo_name/pull', action: 'vulcan_v2#pull_repo',  auth: { user: { is_admin?: true } }
-    delete 'api/v2/:project_name/:repo_name', action: 'vulcan_v2#delete_repo',  auth: { user: { is_superuser?: true } }
+    post 'api/v2/:project_name/:repo_name/pull', action: 'vulcan_v2#pull_repo',  auth: { user: { is_admin?: :project_name}}
+    delete 'api/v2/:project_name/:repo_name', action: 'vulcan_v2#delete_repo',  auth: { user: { is_superuser?: true }}
 
     # CRUD Workflow
     post 'api/v2/workflow/publish', action: 'vulcan_v2#publish_workflow'

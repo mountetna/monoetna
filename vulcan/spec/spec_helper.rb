@@ -15,6 +15,7 @@ require 'rack/test'
 
 require_relative '../lib/server'
 require_relative '../lib/vulcan'
+require_relative '../lib/server/controllers/vulcan_v2_controller'
 require 'etna/spec/vcr'
 
 Vulcan.instance.configure(YAML.load(File.read('config.yml')))
@@ -28,7 +29,33 @@ OUTER_APP = Rack::Builder.new do
   run Vulcan::Server.new
 end
 
+class TestRemoteServerManager < Vulcan::RemoteServerManager
+  # Auxiliary functions to help with testing
+  def initialize(ssh_pool)
+    super(ssh_pool)
+  end
+
+  def rmdir(dir)
+    # Exclude all the safety checks for testing purposes
+    command = Shellwords.join(["rm", "-r", "-f", dir])
+    invoke_ssh_command(command)
+  end
+
+  def tag_repo(repo, tag)
+    command = "cd #{Shellwords.escape(repo)} && git tag #{tag}"
+    invoke_ssh_command(command)
+  end
+
+  def delete_tag(repo, tag)
+    command = "cd #{Shellwords.escape(repo)} && git tag -d #{tag}"
+    invoke_ssh_command(command)
+  end
+end
+
 AUTH_USERS = {
+  superuser: {
+    email: 'zeus@twelve-labors.org', name: 'Zeus', perm: 'a:administration'
+  },
   admin: {
     email: 'hera@olympus.org', name: 'Hera', perm: 'a:labors', exp: Time.now.to_i + 6000, flags: 'vulcan'
   },

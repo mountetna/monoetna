@@ -1,4 +1,3 @@
-require_relative '../lib/server/controllers/vulcan_v2_controller'
 require_relative '../lib/path'
 
 require 'net/ssh'
@@ -10,7 +9,7 @@ describe VulcanV2Controller do
     OUTER_APP
   end
 
-  let(:remote_manager) {Vulcan::RemoteServerManager.new(Vulcan.instance.ssh_pool)}
+  let(:remote_manager) {TestRemoteServerManager.new(Vulcan.instance.ssh_pool)}
   let(:create_repo_request) {{
     project_name: PROJECT,
     repo_url: "/test-utils/available-workflows/test-repo",
@@ -18,7 +17,7 @@ describe VulcanV2Controller do
   }}
   let(:publish_workflow_request) {{
     project_name: PROJECT,
-    repo_local_path: "#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}/test-repo",
+    repo_path: "#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}/test-repo",
     workflow_name: "test-workflow",
     branch: "main",
     tag: "v1",
@@ -38,9 +37,9 @@ describe VulcanV2Controller do
   end
 
   def remove_all_dirs
-    remote_manager.rmdir(Vulcan::Path::WORKFLOW_BASE_DIR, Vulcan::Path::ALLOWED_DIRECTORIES)
-    remote_manager.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR, Vulcan::Path::ALLOWED_DIRECTORIES)
-    remote_manager.rmdir(Vulcan::Path::TMPDIR, Vulcan::Path::ALLOWED_DIRECTORIES)
+    remote_manager.rmdir(Vulcan::Path::WORKFLOW_BASE_DIR)
+    remote_manager.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR)
+    remote_manager.rmdir(Vulcan::Path::TMPDIR)
   end
 
   context 'ssh' do
@@ -69,10 +68,10 @@ describe VulcanV2Controller do
       post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/repo/clone", create_repo_request)
       expect(last_response.status).to eq(200)
-      expect(json_body[:Warning].include?('exists'))
+      expect(json_body[:msg].include?('exists'))
     end
 
-    it 'auth should fail if you are not an admin' do
+    it 'should fail auth if you are not an admin' do
       auth_header(:editor)
       post("/api/v2/#{PROJECT}/", create_repo_request)
       get("/api/v2/#{PROJECT}/repo")
@@ -81,7 +80,7 @@ describe VulcanV2Controller do
   end
 
   context 'delete repo' do
-    it 'auth should fail if you are not a super user' do
+    it 'should fail auth if you are not a super user' do
       auth_header(:editor)
       delete("/api/v2/#{PROJECT}/test-repo")
       expect(last_response.status).to eq(403)
@@ -89,24 +88,45 @@ describe VulcanV2Controller do
     it 'auth should delete a repo' do
       auth_header(:superuser)
       post("/api/v2/repo/clone", create_repo_request)
-      #delete("/api/v2/#{PROJECT}/test-repo")
-      #expect(last_response.status).to eq(200)
+      delete("/api/v2/#{PROJECT}/test-repo")
+      expect(last_response.status).to eq(200)
+      project_dir = Vulcan::Path.repo_path(PROJECT, "test-repo")
+      expect(remote_manager.dir_exists?(project_dir)).to_not be_truthy
+    end
+
+    it 'should warn the user if a repo does not exist' do
+      delete("/api/v2/#{PROJECT}/test-repo")
+      expect(last_response.status).to eq(404)
     end
   end
 
   context 'list repos' do
-    it 'should list repos in a project directory' do
+    it 'should list repos and tags in a project directory' do
       auth_header(:admin)
       post("/api/v2/repo/clone", create_repo_request)
       get("/api/v2/#{PROJECT}/repo")
       expect(last_response.status).to eq(200)
-      expect(json_body[:dirs][0]).to eq("test-repo")
+      expect(json_body["test-repo"].to eq("v1"))
     end
 
     it 'should list no repos when no repos exist' do
       auth_header(:admin)
       post("/api/v2/repo/create", create_repo_request)
-      require 'pry'; binding.pry
+    end
+  end
+
+  context 'pull repo' do
+    before do
+      remote_manager.delete_tag("/test-utils/available-workflows/test-repo", "v2")
+    end
+
+    it 'fetches the latest tags from the upstream repo' do
+      auth_header(:admin)
+      post("/api/v2/repo/clone", create_repo_request)
+      remote_manager.tag_repo("/test-utils/available-workflows/test-repo", "v2")
+      post("/api/v2/#{PROJECT}/test-repo/pull")
+      get("/api/v2/#{PROJECT}/repo")
+      expect(json_body[:"test-repo"]).to eq(["v1","v2"])
     end
   end
 

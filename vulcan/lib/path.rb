@@ -19,7 +19,7 @@ class Vulcan
       "#{WORKFLOW_BASE_DIR}/#{project_name}"
     end
 
-    def self.repo_local_path(project_name, repository_name)
+    def self.repo_path(project_name, repository_name)
       "#{project_dir(project_name)}/#{repository_name}"
     end
 
