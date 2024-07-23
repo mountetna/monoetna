@@ -7,19 +7,20 @@ import { useMediaQuery, useTheme } from '@mui/material';
 import ButtonBase from '@mui/material/ButtonBase';
 import MUILink from '@mui/material/Link';
 import Link from 'next/link'
-import Image from 'next/image';
 import { useSpring, animated, useIsomorphicLayoutEffect } from '@react-spring/web';
 import { Group } from '@visx/group';
 import { Pack, hierarchy } from '@visx/hierarchy';
 import { useParentSize } from '@visx/responsive'
 import _ from 'lodash';
 
-import { ExternalProjectStatus, getExternalProjectStatus, Project } from "./models";
+import { ExternalProjectStatus, getExternalProjectStatus, Project, ProjectHeadingInfoSet } from './models';
 import { useWindowDimensions } from '@/lib/utils/responsive';
 import ProjectStatus from './project-status';
 import ProjectPI from './project-pi';
 
 import projectListingBackshape from '/public/images/project-listing-backshape.svg'
+import ProjectHeadingInfo from './project-heading-info';
+import Image from '../image/image';
 
 
 interface ProjectAspect {
@@ -43,11 +44,13 @@ interface UserCountItem {
 export default function ProjectListing({
     data,
     open,
+    headingInfoSet,
     onSetOpen,
     onFinishOpen,
 }: {
     data: Project,
     open: boolean,
+    headingInfoSet: ProjectHeadingInfoSet,
     onSetOpen: (newState: boolean) => void,
     onFinishOpen: () => void,
 }) {
@@ -56,6 +59,7 @@ export default function ProjectListing({
         theme.breakpoints.values.mobile,
         theme.breakpoints.values.tablet,
     ))
+    const isDesktop = useMediaQuery(theme.breakpoints.up('desktop'))
 
     // TODO
     const userHasAccess = false
@@ -177,14 +181,10 @@ export default function ProjectListing({
             <Box
                 sx={{
                     position: 'absolute',
-                    left: '0px',
-                    top: '0px',
+                    left: '216px',
+                    top: '35px',
                     zIndex: 0,
                     opacity: isMainContentVisible ? 1 : 0,
-                    [theme.breakpoints.up('tablet')]: {
-                        left: '196px',
-                        top: '15px',
-                    },
                     transition: theme.transitions.create(
                         ['opacity'],
                         {
@@ -255,6 +255,7 @@ export default function ProjectListing({
                                 style={{
                                     backgroundColor: data.theme.color,
                                 }}
+                                hideBeforeLoad={false}
                             />
                         </Box>
 
@@ -262,11 +263,6 @@ export default function ProjectListing({
                             variant={isMobile ? 'h6' : open ? 'h3' : 'h6'}
                             component='span'
                             sx={{
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
                                 opacity: isMobile && open ? 0 : 1,
                                 transition: theme.transitions.create(
                                     ['opacity', 'font-weight', 'font-size'],
@@ -281,22 +277,11 @@ export default function ProjectListing({
                         </Typography>
                     </Box>
 
-                    <Typography
-                        variant='h6'
-                        sx={{
-                            borderRadius: '40px',
-                            bgcolor: data.theme.color,
-                            color: data.theme.textColor === 'light' ? 'utilityHighlight.main' : 'ground.grade10',
-                            px: '14px',
-                            py: '3px',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            textAlign: 'center',
-                            textWrap: 'nowrap',
-                        }}
-                    >
-                        {data.theme.name}
-                    </Typography>
+                    <ProjectHeadingInfo
+                        projectData={data}
+                        infoSet={headingInfoSet}
+                        variant={isDesktop ? 'default' : 'small'}
+                    />
                 </Box>
             </ButtonBase>
 

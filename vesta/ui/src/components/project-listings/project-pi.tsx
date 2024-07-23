@@ -16,9 +16,11 @@ import Image from 'next/image';
 export default function ProjectPI({
     data,
     showAvatar = true,
+    showNameAndTitle = true,
 }: {
     data: PrincipalInvestigator,
     showAvatar?: boolean,
+    showNameAndTitle?: boolean,
 }) {
     const theme = useTheme()
 
@@ -57,7 +59,12 @@ export default function ProjectPI({
                         bgcolor: data.color,
                     }}
                 >
-                    <Typography variant='pBodyBoldWt'>
+                    <Typography
+                        variant='pBodyBoldWt'
+                        sx={{
+                            color: data.altColor,
+                        }}
+                    >
                         {data.name[0].toUpperCase()}
                     </Typography>
                 </Box>
@@ -86,7 +93,7 @@ export default function ProjectPI({
                 }
             </Box>
 
-            <Box
+            {showNameAndTitle && <Box
                 sx={{
                     overflow: 'hidden',
                     // justifyContent: 'space-around',
@@ -111,7 +118,7 @@ export default function ProjectPI({
                         {data.title}
                     </Typography>
                 }
-            </Box>
+            </Box>}
         </Box>
     )
 }

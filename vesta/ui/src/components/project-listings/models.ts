@@ -25,6 +25,17 @@ export enum DataType {
     cytof = 'CyTOF',
     bulkRnaSeq = 'Bulk RNA-Seq',
     citeSeq = 'CITE-Seq',
+    tcrBcrRepertoire = 'TCR-BCR Repertoire',
+    zeNith = 'ZeNITH',
+    hlaSequencing = 'HLA Sequencing',
+    phIpSeq = 'PhIP-Seq',
+    wholeExomeSeq = 'Whole-exome seq',
+    atacSeq = 'ATAC-seq',
+    visiumSpatialTranscriptomics = 'Visium Spatial Transcriptomics',
+    organoidExpansion = 'Organoid expansion',
+    vdjSeq = 'V(D)Jseq',
+    microbiome = 'Microbiome',
+    tcrSeq = 'TCR-seq',
 }
 
 export interface PrincipalInvestigator {
@@ -32,6 +43,7 @@ export interface PrincipalInvestigator {
     title?: string
     imageUrl?: string
     color: string
+    altColor: string
 }
 
 export interface Project {
@@ -65,4 +77,10 @@ export function getExternalProjectStatus(proj: Project): ExternalProjectStatus {
     } else {
         return ExternalProjectStatus.init
     }
+}
+
+export enum ProjectHeadingInfoSet {
+    default = 'Default',
+    dataTypes = 'Data Types',
+    pis = 'Principal Investigators',
 }

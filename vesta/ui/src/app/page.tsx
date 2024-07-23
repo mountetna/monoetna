@@ -326,15 +326,24 @@ THEMES.forEach(theme => {
       heading: randomBool() ? faker.lorem.sentence() : undefined,
       description: faker.lorem.paragraphs({ min: 1, max: 3 }),
       fundingSource: faker.commerce.department(),
-      principalInvestigators: createRandomArray(1, 5, () => ({
-        name: faker.person.fullName(),
-        title: randomBool() ? faker.person.jobTitle() : undefined,
-        imageUrl: randomBool() ? faker.image.avatar(): undefined,
-        color: faker.helpers.arrayElement(THEMES).color,
-      })),
+      principalInvestigators: createRandomArray(1, 10, () => {
+        const theme = faker.helpers.arrayElement(THEMES)
+
+        return {
+          name: faker.person.fullName(),
+          title: randomBool() ? faker.person.jobTitle() : undefined,
+          imageUrl: randomBool() ? faker.image.avatar() : undefined,
+          color: theme.color,
+          altColor: theme.textColor === 'light' ? 'utilityHighlight.main' : 'ground.grade10',
+        }
+      }),
       status: faker.helpers.arrayElement(Object.values(ProjectStatus)),
       type: faker.helpers.arrayElement(Object.values(ProjectType)),
-      dataTypes: createRandomArray(1, 5, () => faker.helpers.arrayElement(Object.values(DataType))),
+      // Dedupe
+      dataTypes: Array.from(new Set(
+        createRandomArray(1, 10, () => faker.helpers.arrayElement(Object.values(DataType)))
+      ))
+      ,
       species: faker.lorem.word(),
       startDate: faker.date.between({ from: '2018-01-01T00:00:00.000Z', to: '2024-01-01T00:00:00.000Z' }),
       dataCollectionComplete: randomBool(),

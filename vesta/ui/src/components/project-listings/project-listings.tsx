@@ -7,13 +7,13 @@ import Typography from '@mui/material/Typography';
 import { useMediaQuery, useTheme } from '@mui/material';
 import _ from 'lodash'
 
-import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project } from './models';
+import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project, ProjectHeadingInfoSet } from './models';
 import ProjectListing from './project-listing';
 import Pagination from '@/components/searchable-list/controls/pagination'
 import DrawerButton from '@/components/searchable-list/controls/drawer/button';
 import Drawer from '@/components/searchable-list/controls/drawer/drawer';
 import Autocomplete from '@/components/searchable-list/controls/autocomplete';
-import Tabs from '../inputs/tabs';
+import ToggleGroup from '../inputs/toggle-group';
 import { ThemeData } from '../themes/models';
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
@@ -40,13 +40,9 @@ interface FilterItem {
 
 const drawerFilterItemTypes: FilterItem['type'][] = ['theme', 'status', 'dataType']
 
-const viewSets: FilterItem[] = [
-    { key: 'default', label: 'Default' },
-    { key: 'dataTypes', label: 'Data Types' },
-    { key: 'pis', label: 'Principal Investigators' },
-].map(item => ({
-    label: item.label,
-    key: item.key,
+const viewSets: FilterItem[] = Object.entries(ProjectHeadingInfoSet).map(([key, label]) => ({
+    label: label,
+    key: key,
     // Placeholder data just to satifsy the shape
     value: '',
     projectKey: 'fullName',
@@ -439,7 +435,7 @@ export default function ProjectListings({
                                 },
                             }}
                         >
-                            <Tabs
+                            <ToggleGroup
                                 valueIdx={viewSets.indexOf(viewSet)}
                                 values={viewSets.map(val => val.label)}
                                 onChange={(idx) => setViewSet(viewSets[idx])}
@@ -474,6 +470,7 @@ export default function ProjectListings({
                             <ProjectListing
                                 data={project}
                                 open={projectOpens[i]}
+                                headingInfoSet={(viewSet.label as ProjectHeadingInfoSet)}
                                 onSetOpen={open => handleSetProjectOpen(open, i)}
                                 onFinishOpen={() => scrollToProject(i)}
                             />
