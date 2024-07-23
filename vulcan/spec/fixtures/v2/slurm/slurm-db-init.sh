@@ -1,4 +1,8 @@
 #!/bin/bash
+while ! mysqladmin ping --silent; do
+  sleep 1
+done
+
 mysql -e "CREATE DATABASE IF NOT EXISTS slurm_acct_db;"
 
 # Create the user if it doesn't exist and grant privileges

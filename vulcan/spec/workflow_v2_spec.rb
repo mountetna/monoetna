@@ -1,4 +1,6 @@
 require_relative '../lib/server/controllers/vulcan_v2_controller'
+require_relative '../lib/path'
+
 require 'net/ssh'
 
 describe VulcanV2Controller do
@@ -8,7 +10,7 @@ describe VulcanV2Controller do
     OUTER_APP
   end
 
-  let(:ssh) {Vulcan::SSH.new(Vulcan.instance.ssh)}
+  let(:remote_manager) {Vulcan::RemoteServerManager.new(Vulcan.instance.ssh_pool)}
   let(:create_repo_request) {{
     project_name: PROJECT,
     repo_url: "/test-utils/available-workflows/test-repo",
@@ -16,7 +18,7 @@ describe VulcanV2Controller do
   }}
   let(:publish_workflow_request) {{
     project_name: PROJECT,
-    repo_local_path: "#{WORKFLOW_BASE_DIR}/#{PROJECT}/test-repo",
+    repo_local_path: "#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}/test-repo",
     workflow_name: "test-workflow",
     branch: "main",
     tag: "v1",
@@ -28,10 +30,17 @@ describe VulcanV2Controller do
     remove_all_dirs
   end
 
+  def create_temp_file
+    file1 = Tempfile.new(['test_file1', '.txt'])
+    file1.write("This is a test file, with content 1")
+    file1.rewind
+    Rack::Test::UploadedFile.new(file1.path, 'text/plain')
+  end
+
   def remove_all_dirs
-    ssh.rmdir(WORKFLOW_BASE_DIR, ALLOWED_DIRECTORIES)
-    ssh.rmdir(WORKSPACE_BASE_DIR, ALLOWED_DIRECTORIES)
-    ssh.rmdir(TMPDIR, ALLOWED_DIRECTORIES)
+    remote_manager.rmdir(Vulcan::Path::WORKFLOW_BASE_DIR, Vulcan::Path::ALLOWED_DIRECTORIES)
+    remote_manager.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR, Vulcan::Path::ALLOWED_DIRECTORIES)
+    remote_manager.rmdir(Vulcan::Path::TMPDIR, Vulcan::Path::ALLOWED_DIRECTORIES)
   end
 
   context 'ssh' do
@@ -39,29 +48,65 @@ describe VulcanV2Controller do
     end
   end
 
-  context 'create repo' do
+  context 'clone repo' do
+
+    before do
+      remove_all_dirs
+    end
+
     it 'should clone a repo to the project directory' do
-      auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      auth_header(:admin)
+      post("/api/v2/repo/clone", create_repo_request)
       expect(last_response.status).to eq(200)
       # Proper dirs are created
-      project_dir = "#{WORKFLOW_BASE_DIR}/#{PROJECT}"
-      expect(ssh.dir_exists?(project_dir)).to be_truthy
-      expect(ssh.dir_exists?("#{project_dir}/test-repo")).to be_truthy
+      project_dir = "#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}"
+      expect(remote_manager.dir_exists?(project_dir)).to be_truthy
+      expect(remote_manager.dir_exists?("#{project_dir}/test-repo")).to be_truthy
+    end
+
+    it 'should inform the user if the repo already exists' do
+      auth_header(:admin)
+      post("/api/v2/repo/clone", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
+      expect(last_response.status).to eq(200)
+      expect(json_body[:Warning].include?('exists'))
+    end
+
+    it 'auth should fail if you are not an admin' do
+      auth_header(:editor)
+      post("/api/v2/#{PROJECT}/", create_repo_request)
+      get("/api/v2/#{PROJECT}/repo")
+      expect(last_response.status).to eq(403)
+    end
+  end
+
+  context 'delete repo' do
+    it 'auth should fail if you are not a super user' do
+      auth_header(:editor)
+      delete("/api/v2/#{PROJECT}/test-repo")
+      expect(last_response.status).to eq(403)
+    end
+    it 'auth should delete a repo' do
+      auth_header(:superuser)
+      post("/api/v2/repo/clone", create_repo_request)
+      #delete("/api/v2/#{PROJECT}/test-repo")
+      #expect(last_response.status).to eq(200)
     end
   end
 
   context 'list repos' do
-
-    before do
-      auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
-    end
-
     it 'should list repos in a project directory' do
+      auth_header(:admin)
+      post("/api/v2/repo/clone", create_repo_request)
       get("/api/v2/#{PROJECT}/repo")
       expect(last_response.status).to eq(200)
       expect(json_body[:dirs][0]).to eq("test-repo")
+    end
+
+    it 'should list no repos when no repos exist' do
+      auth_header(:admin)
+      post("/api/v2/repo/create", create_repo_request)
+      require 'pry'; binding.pry
     end
   end
 
@@ -69,7 +114,7 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
     end
 
     # TODO: this should just be for administrators
@@ -93,7 +138,7 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
     end
 
@@ -110,7 +155,7 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
     end
 
@@ -128,9 +173,9 @@ describe VulcanV2Controller do
       expect(obj).to_not be_nil
 
       # Proper dirs are created
-      workspace_project_dir = "#{WORKSPACE_BASE_DIR}/#{PROJECT}"
-      expect(ssh.dir_exists?(workspace_project_dir)).to be_truthy
-      expect(ssh.dir_exists?(obj.path)).to be_truthy
+      workspace_project_dir = "#{Vulcan::Path::WORKSPACE_BASE_DIR}/#{PROJECT}"
+      expect(remote_manager.dir_exists?(workspace_project_dir)).to be_truthy
+      expect(remote_manager.dir_exists?(obj.path)).to be_truthy
 
     end
 
@@ -140,7 +185,7 @@ describe VulcanV2Controller do
 
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
         workflow_id: json_body[:workflow_id]
@@ -167,7 +212,7 @@ describe VulcanV2Controller do
   context 'get workspace' do
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
         workflow_id: json_body[:workflow_id]
@@ -184,11 +229,72 @@ describe VulcanV2Controller do
 
   end
 
+  context 'write files' do
+
+    before do
+      auth_header(:guest)
+      post("/api/v2/repo/clone", create_repo_request)
+      post("/api/v2/workflow/publish", publish_workflow_request)
+      request = {
+        workflow_id: json_body[:workflow_id]
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+    end
+
+    it 'writes a file to the workspace' do
+      file_to_upload = create_temp_file
+      auth_header(:guest)
+      workspace_id = Vulcan::Workspace.all[0].id
+      request = {
+        files: [file_to_upload]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+      expect(last_response.status).to eq(200)
+      # Assert file exists
+    end
+
+    it 'writes multiple files' do
+    end
+
+  end
+
+
+  context 'read files' do
+
+    before do
+      auth_header(:guest)
+      post("/api/v2/repo/clone", create_repo_request)
+      post("/api/v2/workflow/publish", publish_workflow_request)
+      request = {
+        workflow_id: json_body[:workflow_id]
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+    end
+
+    it 'requests a file from the workspace' do
+      # Write a file to the workspace
+      temp_file = create_temp_file
+      workspace_id = Vulcan::Workspace.all[0].id
+      request = {
+        files: [temp_file]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+
+      # Read that file
+      request = {
+        file_names: [temp_file.original_filename]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/read", request)
+      expect(last_response.status).to eq(200)
+    end
+
+  end
+
   context 'running workflows' do
 
     before do
       auth_header(:guest)
-      post("/api/v2/repo/create", create_repo_request)
+      post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
         workflow_id: json_body[:workflow_id]
@@ -261,11 +367,8 @@ describe VulcanV2Controller do
           }
         }
       }
-
-      workflow_name = "test_workflow"
-
-      post("/api/#{PROJECT}/#{workspace_id}/run", request)
-
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run", request)
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{json_body[:run_id]}")
       # This should return:
       # - A list of output for each job that has run
       # - Whether the job was successful
@@ -299,5 +402,6 @@ describe VulcanV2Controller do
     end
 
   end
+
 
 end

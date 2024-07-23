@@ -13,14 +13,13 @@ class Vulcan
       erb_view(:no_auth)
     end
 
-    get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
-
-    # vulcan v2
-    # TODO add auth
+    # Vulcan V2 endpoints
 
     # CRUD Repo
-    post 'api/v2/repo/create', action: 'vulcan_v2#create_repo'
-    get 'api/v2/:project_name/repo/', action: 'vulcan_v2#list_repos'
+    post 'api/v2/repo/clone', action: 'vulcan_v2#clone_repo', auth: { user: { is_admin?: :project_name }}
+    get 'api/v2/:project_name/repo/', action: 'vulcan_v2#list_repos', auth: { user: { is_admin?: :project_name }}
+    post 'api/v2/:project_name/:repo_name/pull', action: 'vulcan_v2#pull_repo',  auth: { user: { is_admin?: true } }
+    delete 'api/v2/:project_name/:repo_name', action: 'vulcan_v2#delete_repo',  auth: { user: { is_superuser?: true } }
 
     # CRUD Workflow
     post 'api/v2/workflow/publish', action: 'vulcan_v2#publish_workflow'
@@ -34,6 +33,14 @@ class Vulcan
     # Run API
     post 'api/v2/:project_name/workspace/:workspace_id/run', action: 'vulcan_v2#run_workflow'
     get'api/v2/:project_name/workspace/:workspace_id/run/:run_id', action: 'vulcan_v2#get_workflow_status'
+
+    # File API
+    post 'api/v2/:project_name/workspace/:workspace_id/file/write', action: 'vulcan_v2#write_files'
+    post 'api/v2/:project_name/workspace/:workspace_id/file/read', action: 'vulcan_v2#read_files'
+
+
+    # Vulcan V1 endpoints - to eventually remove
+    get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
 
     with auth: { user: { can_view?: :project_name } } do
       get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true
@@ -51,9 +58,6 @@ class Vulcan
       # remaining view routes are parsed by the client and must be set there
       get '/:project_name', as: :project_root do erb_view(:client) end
       get '/:project_name/*client_path', as: :client_view do erb_view(:client) end
-
-
-
     end
 
     # root path

@@ -1,89 +1,49 @@
 require 'etna'
 require 'digest'
 require_relative "./vulcan_controller"
-require_relative './../../ssh'
+require_relative "./../../path"
+require_relative './../../remote_server_manager'
 require_relative './../../snakemake'
-
-
-# TODO: sort out disk location
-# Potentially move these to .env
-WORKFLOW_BASE_DIR = "/app/vulcan/workflows"
-WORKSPACE_BASE_DIR = "/app/vulcan/workspace"
-SNAKEMAKE_UTILS_DIR = "/app/snakemake_utils" # This is local
-TMPDIR = "/tmp/vulcan"
-ALLOWED_DIRECTORIES = [WORKSPACE_BASE_DIR, WORKFLOW_BASE_DIR, TMPDIR]
 
 class VulcanV2Controller < Vulcan::Controller
 
   def initialize(request, action = nil)
     super
-    @ssh = Vulcan::SSH.new(Vulcan.instance.ssh)
-  end
-
-  def project_dir(project_name)
-    "#{WORKFLOW_BASE_DIR}/#{project_name}"
-  end
-
-  def repo_local_path(project_name, repository_name)
-    "#{project_dir(project_name)}/#{repository_name}"
-  end
-
-  def workspace_dir(project_name, hash)
-    "#{WORKSPACE_BASE_DIR}/#{project_name}/#{hash}"
-  end
-
-  def workspace_hash(workflow_id, user_email)
-    Digest::MD5.hexdigest(workflow_id + Time.now.to_s + user_email)
-  end
-
-  def tmp_hash(workflow_name, user_email)
-    Digest::MD5.hexdigest(workflow_name + Time.now.to_s + user_email)
-  end
-
-  def tmp_dir(tmp_hash)
-    "#{TMPDIR}/#{tmp_hash}"
-  end
-
-  def metis_mirror_path(workspace_dir)
-    "#{workspace_dir}/metis_output/"
-  end
-
-  def workspace_config_path(workspace_path)
-    "#{workspace_path}/run_config/#{Time.now.to_i}.json"
+    @remote_manager = Vulcan::RemoteServerManager.new(Vulcan.instance.ssh_pool)
   end
 
   # Admin command complete prior
-  def create_repo
+  def clone_repo
     repo_name = File.basename(@escaped_params[:repo_url])
-    repo_local_path = repo_local_path(@escaped_params[:project_name], repo_name)
-    if @ssh.dir_exists?("#{repo_local_path}")
-      msg = "Repo: #{repo_local_path} for project: #{@params[:project_name]} already exists."
-      Vulcan.instance.logger.info(msg)
-      response = {'Warning': msg}
-    else
-      begin
-        # Make project directory if it doesnt exist
-        mkdir_output = @ssh.mkdir(project_dir(@escaped_params[:project_name]))
-        # Create repo directory
-        @ssh.clone(@escaped_params[:repo_url], @escaped_params[:branch], repo_local_path)
-        response = {repo_local_path: repo_local_path, repo_name: repo_name}
-      rescue => e
-        Vulcan.instance.logger.log_error(e)
-        raise Etna::BadRequest.new(e.message)
-      end
-    end
-    success_json(response)
-  end
-
-  # Admin command
-  def list_repos
+    repo_local_path = Vulcan::Path.repo_local_path(@escaped_params[:project_name], repo_name)
     begin
-      project_dir = project_dir(@escaped_params[:project_name])
-      success_json({dirs: @ssh.list_dirs(project_dir)})
+      if @remote_manager.dir_exists?("#{repo_local_path}")
+        msg = "Repo: #{repo_local_path} for project: #{@params[:project_name]} already exists."
+        Vulcan.instance.logger.info(msg)
+        return success_json({'Warning': msg})
+      end
+      @remote_manager.mkdir(Vulcan::Path.project_dir(@escaped_params[:project_name]))
+      @remote_manager.clone(@escaped_params[:repo_url], @escaped_params[:branch], repo_local_path)
+      success_json({repo_local_path: repo_local_path, repo_name: repo_name})
     rescue => e
       Vulcan.instance.logger.log_error(e)
       raise Etna::BadRequest.new(e.message)
     end
+  end
+
+  # Admin
+  def list_repos
+    begin
+      project_dir = Vulcan::Path.project_dir(@escaped_params[:project_name])
+      success_json({dirs: @remote_manager.list_dirs(project_dir)})
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
+  end
+
+  def delete_repo
+    require 'pry' ; binding.pry
   end
 
   # User
@@ -100,27 +60,27 @@ class VulcanV2Controller < Vulcan::Controller
       begin
         repo_name = File.basename(@escaped_params[:repo_local_path])
         # Create a temporary directory to do work inside
-        tmp_dir = tmp_dir(tmp_hash(@escaped_params[:workflow_name], @user.email))
-        @ssh.mkdir(tmp_dir)
-        @ssh.clone(@escaped_params[:repo_local_path], @escaped_params[:branch], tmp_dir)
-        @ssh.checkout_tag(tmp_dir, @escaped_params[:tag])
-        config = @ssh.read_yaml_file("#{tmp_dir}/vulcan_config.yaml")
+        tmp_dir = Vulcan::Path.tmp_dir(Vulcan::Path.tmp_hash(@escaped_params[:workflow_name], @user.email))
+        @remote_manager.mkdir(tmp_dir)
+        @remote_manager.clone(@escaped_params[:repo_local_path], @escaped_params[:branch], tmp_dir)
+        @remote_manager.checkout_tag(tmp_dir, @escaped_params[:tag])
+        config = @remote_manager.read_yaml_file("#{tmp_dir}/vulcan_config.yaml")
         # TODO: run a validation on the snakefile, config and the vulcan_config
         obj = Vulcan::WorkflowV2.create(
           project: @escaped_params[:project_name],
           workflow_name: @escaped_params[:workflow_name],
           author: @escaped_params[:author], #TODO: remove author
-          repo_remote_url: @ssh.get_repo_remote_url(@escaped_params[:repo_local_path]),
+          repo_remote_url: @remote_manager.get_repo_remote_url(@escaped_params[:repo_local_path]),
           repo_local_path: @escaped_params[:repo_local_path],
           repo_tag: @escaped_params[:tag],
           config: config.to_json,
           created_at: Time.now,
           updated_at: Time.now
         )
-        @ssh.rmdir(tmp_dir, ALLOWED_DIRECTORIES)
+        @remote_manager.rmdir(tmp_dir, Vulcan::Path::ALLOWED_DIRECTORIES)
         response = {'workflow_id': obj.id, 'workflow_name': obj.workflow_name}
       rescue => e
-        @ssh.rmdir(tmp_dir, ALLOWED_DIRECTORIES)
+        @remote_manager.rmdir(tmp_dir, Vulcan::Path::ALLOWED_DIRECTORIES)
         Vulcan.instance.logger.log_error(e)
         raise Etna::BadRequest.new(e.message)
       end
@@ -146,16 +106,16 @@ class VulcanV2Controller < Vulcan::Controller
     workflow = Vulcan::WorkflowV2.first(id: @params[:workflow_id])
     response = {}
     if workflow
-      workspace_hash = workspace_hash(workflow.id.to_s, @user.email)
-      workspace_dir = workspace_dir(@escaped_params[:project_name], workspace_hash)
+      workspace_hash = Vulcan::Path.workspace_hash(workflow.id.to_s, @user.email)
+      workspace_dir = Vulcan::Path.workspace_dir(@escaped_params[:project_name], workspace_hash)
       begin
-        @ssh.mkdir(workspace_dir)
+        @remote_manager.mkdir(workspace_dir)
         # TODO: we probably want to store the name of the "master" branch
-        @ssh.clone(workflow.repo_local_path, "main", workspace_dir)
-        @ssh.checkout_tag(workspace_dir, workflow.repo_tag)
-        @ssh.mkdir("#{workspace_dir}/tmp/") # create a tmp directory
-        #@ssh.mkdir(metis_mirror_path(workspace_dir)) # location of output files that will get mirrored back to metis
-        @ssh.upload_dir(SNAKEMAKE_UTILS_DIR, workspace_dir, true)
+        @remote_manager.clone(workflow.repo_local_path, "main", workspace_dir)
+        @remote_manager.checkout_tag(workspace_dir, workflow.repo_tag)
+        @remote_manager.mkdir("#{workspace_dir}/tmp/") # create a tmp directory
+        #@remote_manager.mkdir(metis_mirror_path(workspace_dir)) # location of output files that will get mirrored back to metis
+        @remote_manager.upload_dir(Vulcan::Path::SNAKEMAKE_UTILS_DIR, workspace_dir, true)
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
           path: workspace_dir,
@@ -169,7 +129,7 @@ class VulcanV2Controller < Vulcan::Controller
           workflow_config: workflow.config
         }
       rescue => e
-        @ssh.rmdir(workspace_dir, ALLOWED_DIRECTORIES)
+        @remote_manager.rmdir(workspace_dir, Vulcan::Path::ALLOWED_DIRECTORIES)
         Vulcan.instance.logger.log_error(e)
         raise Etna::BadRequest.new(e.message)
       end
@@ -206,28 +166,27 @@ class VulcanV2Controller < Vulcan::Controller
       begin
         run_config = @params[:run]
         if workspace.workflow_v2.valid_run_config?(run_config)
-          config_path = workspace_config_path(workspace.path)
-          @ssh.write_file(config_path, run_config.to_json) # we must write the params of snakemake to a file to read them
+          config_path = Vulcan::Path.workspace_config_path(workspace.path)
+          @remote_manager.write_file(config_path, run_config.to_json) # we must write the params of snakemake to a file to read them
           command = Vulcan::SnakemakeCommandBuilder.new
           command.options = {
             run_until: run_config.keys.last,
             config_path: config_path,
-            profile_path: "#{workspace.path}/snakemake_utils/profiles/test/",
+            profile_path: Vulcan::Path.profile_dir(workspace.path),
           }
-          slurm_run_uuid = @ssh.run_snakemake(workspace.path, command.build)
-          #TODO: make absolute
-          log = @ssh.get_snakemake_log(workspace.path, slurm_run_uuid)
+          slurm_run_uuid = @remote_manager.run_snakemake(workspace.path, command.build)
+          log = @remote_manager.get_snakemake_log(workspace.path, slurm_run_uuid)
           obj = Vulcan::Run.create(
             workspace_id: workspace.id,
             slurm_run_uuid: slurm_run_uuid,
-            config_path: config_path,
+            config_path: config_path[config_path.index('run_config')..-1],
             log_path: log,
             created_at: Time.now,
             updated_at: Time.now
           )
           response = {run_id: obj.id}
         else
-          msg = "Workflow params are not valid"
+          msg = "Workflow run config is not valid"
           response = {'Error': msg}
         end
       rescue => e
@@ -235,7 +194,7 @@ class VulcanV2Controller < Vulcan::Controller
         raise Etna::BadRequest.new(e.message)
       end
     else
-      msg = "Workspace: for project: #{@params[:project_name]} does not exist."
+      msg = "Workspace for project: #{@params[:project_name]} does not exist."
       response = {'Warning': msg}
     end
     success_json(response)
@@ -243,8 +202,57 @@ class VulcanV2Controller < Vulcan::Controller
 
   def get_workflow_status
     workflow_run = Vulcan::Run.first(id: @params[:run_id], workspace_id: @params[:workspace_id])
-    # @ssh.parse_log_for_slurm_ids()
-    # @ssh.query_sacct()
+    if workflow_run
+      response = {}
+      begin
+        config = @remote_manager.read_json_file(workflow_run.run_config_path)
+        job_id_hash = @remote_manager.parse_log_for_slurm_ids(config.keys, workflow_run.snakemake_log_path)
+        response = @remote_manager.query_sacct(workflow_run.slurm_run_uuid, job_id_hash)
+      rescue => e
+        Vulcan.instance.logger.log_error(e)
+        raise Etna::BadRequest.new(e.message)
+      end
+    else
+      msg = "Workflow for project: #{@params[:project_name]} does not exist."
+      response = {'Warning': msg}
+    end
+    success_json(response)
+  end
+
+
+  def write_files
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    raise Etna::BadRequest.new("Workspace not found") unless workspace
+    raise Etna::BadRequest.new("Unsupported Content-Type: #{request.content_type}")  unless @request.content_type.start_with?('multipart/form-data')
+    files = @params[:files] || []
+    raise Etna:BadRequest.new("No files provided" ) if files.empty?
+    begin
+      files.each do |file|
+        content = file[:tempfile].read()
+        output_path = Vulcan::Path.workspace_output_path(workspace.path)
+        @remote_manager.write_file("#{output_path}#{file[:filename]}", content)
+      end
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
+    success_json({'status': "success"})
+  end
+
+  def read_files
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    raise Etna::BadRequest.new("Workspace not found") unless workspace
+    file_names = @params[:file_names] || []
+    raise Etna:BadRequest.new("No files provided" ) if file_names.empty?
+    file_contents = file_names.map do |file_name|
+      output_path = Vulcan::Path.workspace_output_path(workspace.path)
+      content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
+      {
+        filename: file_name,
+        content: Base64.encode64(content)
+      }
+    end
+    success_json({files: file_contents})
   end
 
 end
