@@ -5,56 +5,28 @@ rule all:
         "output/plot.png"
 
 rule get_dataset_and_summarize:
+    input:
+        dataset_name=config["dataset_name"]
     output:
-        plotting_options="output/plotting_options.json",
-        scdata="output/scdata.Rds",
-        discrete_metadata_summary="output/discrete_metadata_summary.json",
-        all_opts="output/all_opts.json",
-        continuous_opts="output/continuous_opts.json",
-        discrete_opts="output/discrete_opts.json",
-        reduction_opts="output/reduction_opts.json"
-    params:
-        dataset_name=config["get_dataset_and_summarize"]["dataset_name"]
+        plotting_options="dataset/plotting_options.json",
+        scdata="dataset/scdata.Rds",
+        discrete_metadata_summary="dataset/discrete_metadata_summary.json",
+        all_opts="dataset/all_opts.json",
+        continuous_opts="dataset/continuous_opts.json",
+        discrete_opts="dataset/discrete_opts.json",
+        reduction_opts="dataset/reduction_opts.json"
     script:
         "scripts/get_dataset_and_summarize.R"
 
-rule plot_setup:
-    input:
-        data_frame="output/discrete_metadata_summary.json",
-        continuous_cols="output/continuous_opts.json",
-        discrete_cols="output/discrete_opts.json",
-        all_cols="output/all_opts.json",
-        reduction_opts="output/reduction_opts.json"
-    output:
-        plot_setup="output/plot_setup.json"
-    script:
-        "ui-queries/any-dittoseq.tsx" # How do we connect stepUIs?
-
 rule make_plot:
     input:
-        plot_setup="output/plot_setup.json",
-        scdata="output/scdata.Rds",
-        plotting_options="output/plotting_options.json"
+        scdata="dataset/scdata.Rds",
+        plot_setup="temps/plot_setup",
+        plotting_options="dataset/plotting_options.json"
     output:
         plot_out="output/plot.out",
         legend_png="output/legend.png",
-        plot_png="output/plot.png",
+        thumb="output/plot.png",
         plot_Rds="output/plot.Rds"
     script:
         "scripts/make_dittoSeq_plot.R"
-
-rule download_plot:
-    input:
-        plot_Rds="output/plot.Rds"
-    output:
-        # No output file specified in the CWL for download_plot
-    script:
-        "ui-outputs/link.cwl" # How do we connect stepOutputs?
-
-rule show_plot:
-    input:
-        plot_out="output/plot.out"
-    output:
-        # No output file specified in the CWL for show_plot
-    script:
-        "ui-outputs/plot.cwl" # How do we connect stepOutputs?
