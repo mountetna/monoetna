@@ -31,18 +31,17 @@ const QuerySliceControl = ({
   );
 
   return <Grid item container alignItems='center'>
-    <QueryNumber number={sliceIndex} level={2}/>
     <QueryFilterClause
+      index={sliceIndex}
       clause={slice.clause}
       graph={graph}
       modelNames={modelNames}
       isColumnFilter={true}
       patchClause={handlePatchClause}
-      removeClause={() => {}}
-      showRemoveIcon={false}
+      removeClause={removeSlice}
+      showRemoveIcon={true}
       canAddSubclause={false}
     />
-    <RemoveIcon showRemoveIcon={true} onClick={removeSlice} label='slice' />
   </Grid>;
 };
 export default QuerySliceControl;

@@ -59,20 +59,24 @@ const MapSelector = ({setModel, options, modelName, setAttribute, attributeName}
 
   let disabled = model_names.filter( model_name => options.length && !options.includes(model_name) );
 
+  const readOnly = !setModel && !setAttribute;
+
+  const openDialog = () => (!readOnly && setOpen(true));
+
   const classes = useStyles();
 
   return <Grid>
-    <Grid className={ classes.selection } onClick={ () => setOpen(true) }>
+    <Grid className={ !readOnly ? classes.selection : null } onClick={ openDialog }>
     {
       modelName
-        ? <Typography component='span' color='secondary'>{modelName}</Typography>
+        ? <Typography component='span' color={ setModel ? 'secondary' : '#444' }>{modelName}</Typography>
         : <Typography component='span' color='red'>model_name</Typography>
     }{
-      setAttribute && <>
+      attributeName && <>
       <Typography component='span'>.</Typography>
       { 
         attributeName
-          ? <Typography component='span' color='secondary'>{attributeName}</Typography>
+          ? <Typography component='span' color={ setAttribute ? 'secondary' : '#444' }>{attributeName}</Typography>
           : <Typography component='span' color='red'>attribute_name</Typography>
       }
       </>

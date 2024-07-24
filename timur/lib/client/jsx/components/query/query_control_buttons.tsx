@@ -34,7 +34,6 @@ import {QueryBuilder} from '../../utils/query_builder';
 import useTableEffects from './query_use_table_effects';
 import useResultsActions from './query_use_results_actions';
 import QueryTsvOptionsModal from './query_tsv_options_modal';
-import QueryPlotMenu from './query_plot_menu';
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -242,7 +241,6 @@ const QueryControlButtons = () => {
         >
           Copy Link
         </Button>
-        <QueryPlotMenu />
       </Grid>
       <Grid item>
         {formattedColumns.length > maxColumns ? (

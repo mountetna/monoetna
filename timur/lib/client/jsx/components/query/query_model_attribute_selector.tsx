@@ -4,6 +4,10 @@ import FormControl from '@material-ui/core/FormControl';
 import {makeStyles} from '@material-ui/core/styles';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
+import Tooltip from '@material-ui/core/Tooltip';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import FileCopyIcon from '@material-ui/icons/FileCopyOutlined';
 import Paper from '@material-ui/core/Paper';
 
 import {Attribute} from '../../models/model_types';
@@ -14,13 +18,14 @@ import {
   selectAllowedModelAttributes,
   attributeIsFile
 } from '../../selectors/query_selector';
-import QuerySlicePane from './query_slice_pane';
+import QuerySliceModelAttributePane from './query_slice_model_attribute_pane';
 
 import {visibleSortedAttributesWithUpdatedAt} from '../../utils/attributes';
 import {QueryGraph} from '../../utils/query_graph';
 import RemoveIcon from './query_remove_icon';
-import CopyIcon from './query_copy_icon';
 import Selector from './query_selector';
+import MapSelector from './map_selector';
+import QueryNumber from './query_number';
 
 const useStyles = makeStyles((theme) => ({
   fullWidth: {
@@ -176,19 +181,28 @@ const QueryModelAttributeSelector = React.memo(
       );
     }, [column, graph]);
 
+    const [ removeHint, setRemoveHint ] = useState(false);
+    const [ showControls, setShowControls ] = useState(false);
+
     return (
-      <Grid container direction='column'>
+      <Grid 
+        style={{ textDecoration: removeHint ? 'line-through' : 'none' }}
+        onMouseEnter={ () => setShowControls(true) }
+        onMouseLeave={ () => setShowControls(false) }
+        container direction='column'>
         <Grid
           item
           container
           alignItems='center'
           justifyContent='flex-start'
-          className='query-column-selector'
         >
-          { columnIndex }.&nbsp;
+          <QueryNumber
+            setRemoveHint={ canEdit ? setRemoveHint : null }
+            onClick={ canEdit ? onRemoveColumn : null }
+            number={columnIndex} level={0}/>
           <MapSelector
-            setModel={onSelectModel}
-            setAttribute={onSelectAttribute}
+            setModel={ canEdit? onSelectModel : null }
+            setAttribute={ canEdit ? onSelectAttribute : null}
             options={modelChoiceSet}
             modelName={column.model_name}
             attributeName={column.attribute_name}
@@ -203,21 +217,27 @@ const QueryModelAttributeSelector = React.memo(
               />
           }
           <Typography>&nbsp;as column&nbsp;</Typography>
-          <TextField
-            variant='standard'
-            value={column.display_label}
-            onChange={(e) => onChangeLabel(e.target.value)}
-          />
-          <Grid item container justifyContent='flex-end' style={{ width: 'auto' }}>
-            <CopyIcon canEdit={canEdit} onClick={onCopyColumn} label='column' />
-            <RemoveIcon
-              showRemoveIcon={canEdit}
-              onClick={onRemoveColumn}
-              label='column'
+            <TextField
+              variant='standard'
+              size='small'
+              style={{ flex: '1' }}
+              value={column.display_label}
+              onChange={(e) => onChangeLabel(e.target.value)}
             />
-          </Grid>
+          { showControls && canEdit && <Tooltip title='Copy column' aria-label='Copy column'>
+            <IconButton size='small' onClick={onCopyColumn} color='primary'>
+              <FileCopyIcon fontSize='small'/>
+            </IconButton>
+          </Tooltip>}
         </Grid>
-      </Paper>
+        {
+          column.model_name && 
+            selectableModelAttributes.length > 0 &&
+            isSliceable &&
+            canEdit &&
+            <QuerySliceModelAttributePane showControls={ showControls } column={column} columnIndex={columnIndex} />
+        }
+      </Grid>
     );
   }
 );

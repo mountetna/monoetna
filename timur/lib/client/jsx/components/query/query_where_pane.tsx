@@ -128,7 +128,7 @@ const QueryWherePane = () => {
 
   return (
     <QueryClause title=''>
-      Where:
+      Show {rootModel} records where:
       <Tooltip title='Add condition' aria-label='Add condition'>
         <IconButton size='small' onClick={addNewRecordFilter} color='primary'>
           <AddIcon fontSize='small'/>

@@ -1,9 +1,9 @@
 import React, {useContext, useState, useMemo} from 'react';
 import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
-import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
 
 import {makeStyles} from '@material-ui/core/styles';
 
@@ -13,21 +13,19 @@ import {QuerySlice, QueryColumn} from '../../contexts/query/query_types';
 import useSliceMethods from './query_use_slice_methods';
 
 const useStyles = makeStyles((theme) => ({
-  paper: {
-    padding: '0 0.5rem',
-    marginBottom: '0.5rem'
-  },
-  grid: {
-    paddingTop: '0.5rem'
+  slices: {
+    paddingLeft: '25px'
   }
 }));
 
 const QuerySliceModelAttributePane = ({
   column,
-  columnIndex
+  columnIndex,
+  showControls
 }: {
   column: QueryColumn;
   columnIndex: number;
+  showControls: boolean;
 }) => {
   // All the slices related to a given model / attribute,
   //   with the model / attribute as a "label".
@@ -58,10 +56,18 @@ const QuerySliceModelAttributePane = ({
 
   return (
     <Grid container className={classes.slices}>
-      <Typography>Where:</Typography>
+      <Grid item container alignItems='center'>
+        Where:
+        { true && <Tooltip title='Add slice' aria-label='Add slice'>
+            <IconButton size='small' onClick={addNewSlice} color='primary'>
+              <AddIcon fontSize='small'/>
+            </IconButton>
+          </Tooltip>
+        }
+      </Grid>
       {
       (column && column.slices.length) ?
-      <Grid container direction='column' className={classes.grid}>
+      <Grid container direction='column'>
         {column?.slices.map((slice: QuerySlice, index: number) => (
             <QuerySliceControl
               key={`model-${column.model_name}-${index}-${updateCounter}`}
@@ -75,6 +81,7 @@ const QuerySliceModelAttributePane = ({
               removeSlice={() => handleRemoveSlice(index)}
             />
         ))}
+<<<<<<< HEAD
       </Grid>
       <Tooltip title='Add slice' aria-label='Add slice'>
         <Button
@@ -86,6 +93,11 @@ const QuerySliceModelAttributePane = ({
         </Button>
       </Tooltip>
     </React.Fragment>
+=======
+      </Grid> : <Typography component='div' color='gray'>no conditions</Typography>
+      }
+    </Grid>
+>>>>>>> ec64dc12d (fix select columns)
   );
 };
 

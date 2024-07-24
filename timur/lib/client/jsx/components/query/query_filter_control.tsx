@@ -121,7 +121,7 @@ const QueryFilterControl = ({
   }, [filter.modelName, graph]);
 
   const [ removeHint, setRemoveHint ] = useState(false);
-  const [ showAdd, setShowAdd ] = useState(false);
+  const [ showControls, setShowControls ] = useState(false);
 
   return <Grid
     style={{ textDecoration: removeHint ? 'line-through' : 'none' }}
@@ -129,8 +129,8 @@ const QueryFilterControl = ({
     alignItems='center'
     justifyContent='flex-start'
     className='query-where-selector'
-    onMouseEnter={ () => setShowAdd(true) }
-    onMouseLeave={ () => setShowAdd(false) }
+    onMouseEnter={ () => setShowControls(true) }
+    onMouseLeave={ () => setShowControls(false) }
   >
     { filterIndex > 0 && <Grid className={classes.and} container>
     <Typography color='purple' onClick={setOr}>{ or ? 'or' : 'and' }</Typography>
@@ -148,7 +148,7 @@ const QueryFilterControl = ({
       setModel={handleModelSelect}
       options={modelNames}
     />
-    { showAdd && <>
+    { showControls && <>
         <Tooltip title='Add clause' aria-label='Add clause'>
           <IconButton size='small' onClick={handleAddClause} color='primary'>
             <AddIcon fontSize='small'/>

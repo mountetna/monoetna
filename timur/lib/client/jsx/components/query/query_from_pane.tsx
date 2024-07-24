@@ -36,13 +36,13 @@ const QueryFromPane = () => {
   return (
     <QueryClause title='From'>
       <Grid item container>
-        <Grid item xs={8}>
-          <QueryModelSelector
-            label='Root Model'
-            modelValue={rootModel || ''}
-            modelChoiceSet={[...graph.allowedModels]}
-            onSelectModel={(modelName) => onRootModelSelect(modelName)}
-          />
+        <Grid item container xs={8} alignItems='center'>
+          Select records from model&nbsp;
+          <MapSelector
+            setModel={onRootModelSelect}
+            options={[...graph.allowedModels]}
+            modelName={rootModel || ''}
+          />&nbsp;as rows
         </Grid>
         <Grid item container alignItems='center' justify='flex-end' xs={4}>
           {rootModel ? <QueryControlButtons /> : null}

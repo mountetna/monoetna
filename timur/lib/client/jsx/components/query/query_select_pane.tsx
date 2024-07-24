@@ -1,7 +1,8 @@
 import React, {useMemo, useContext, useCallback} from 'react';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
 import AddIcon from '@material-ui/icons/Add';
 
 import {makeStyles} from '@material-ui/core/styles';
@@ -154,49 +155,23 @@ const QuerySelectPane = () => {
 
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
-      <QueryClause title='Columns'>
-        <Grid className={classes.displayLabel} container>
-          <Grid item xs={2}>
-            <Typography>Display Label</Typography>
-          </Grid>
-          <Grid item xs={2}>
-            <Typography>Model</Typography>
-          </Grid>
-          <Grid item xs={2}>
-            <Typography>Attribute</Typography>
-          </Grid>
-          <Grid item xs={5} className={classes.sliceHeading}>
-            <Typography>Slices</Typography>
-            <Grid item container>
-              <Grid
-                xs={11}
-                item
-                container
-                spacing={1}
-                alignItems='center'
-                className={classes.sliceSubheading}
-              >
-                <Grid item xs={3}>
-                  Model
-                </Grid>
-                <Grid item xs={8} container>
-                  <Grid item xs={5}>
-                    Attribute
-                  </Grid>
-                  <Grid item xs={3} className={classes.shimLeft}>
-                    Operator
-                  </Grid>
-                  <Grid item xs={4} className={classes.shimLeft2}>
-                    Operand
-                  </Grid>
-                  <Grid item xs={1} />
-                </Grid>
-              </Grid>
-              <Grid item xs={1} />
-            </Grid>
-          </Grid>
-          <Grid item xs={1} />
-        </Grid>
+      <QueryClause title=''>
+        Select attributes as columns:
+        <Tooltip title='Add column' aria-label='Add column'>
+          <IconButton
+            size='small'
+            onClick={
+              () => addQueryColumn({
+                slices: [],
+                model_name: '',
+                attribute_name: '',
+                display_label: ''
+              })
+            }
+            color='primary'>
+            <AddIcon fontSize='small'/>
+          </IconButton>
+        </Tooltip>
         <Droppable droppableId='columns'>
           {(provided: any) => (
             <div ref={provided.innerRef} {...provided.droppableProps}>
@@ -217,8 +192,8 @@ const QuerySelectPane = () => {
                     onSelectModel={(modelName: string) =>
                       handleOnSelectModel(index, modelName, '')
                     }
-                    onSelectAttribute={(attributeName: string) =>
-                      handleOnSelectAttribute(index, column, attributeName)
+                    onSelectAttribute={(modelName:string, attributeName: string) =>
+                      handleOnSelectAttribute(index, column, modelName, attributeName)
                     }
                     onSelectPredicate={(predicate: string) => {
                       handleOnSelectPredicate(index, column, predicate);
@@ -234,20 +209,6 @@ const QuerySelectPane = () => {
             </div>
           )}
         </Droppable>
-        <Button
-          onClick={() =>
-            addQueryColumn({
-              slices: [],
-              model_name: '',
-              attribute_name: '',
-              display_label: ''
-            })
-          }
-          startIcon={<AddIcon />}
-          className='query-add-column-btn'
-        >
-          Column
-        </Button>
       </QueryClause>
     </DragDropContext>
   );

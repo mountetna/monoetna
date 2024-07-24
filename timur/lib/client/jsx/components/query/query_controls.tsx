@@ -38,8 +38,8 @@ const QueryControls = () => {
   return (
     <>
       <QueryFromPane />
-      <QueryWherePane />
       <QuerySelectPane />
+      <QueryWherePane />
     </>
   );
 };

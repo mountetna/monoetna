@@ -116,13 +116,13 @@ const QueryFilterClause = ({
   }, [clause, patchClause]);
 
   const [ removeHint, setRemoveHint ] = useState(false);
-  const [ showAdd, setShowAdd ] = useState(false);
+  const [ showControls, setShowControls ] = useState(false);
 
   return (
     <Grid
       style={{ textDecoration: removeHint ? 'line-through' : 'none' }}
-      onMouseEnter={ () => setShowAdd(true) }
-      onMouseLeave={ () => setShowAdd(false) }
+      onMouseEnter={ () => setShowControls(true) }
+      onMouseLeave={ () => setShowControls(false) }
       item container alignItems='center'>
       <QueryNumber
         setRemoveHint={ showRemoveIcon ? setRemoveHint : null }
@@ -144,7 +144,7 @@ const QueryFilterClause = ({
           choiceSet={modelNames}
           label='model'
         />
-          {canAddSubclause && showAdd && (
+          {canAddSubclause && showControls && (
             <Tooltip title='Add subclause' aria-label='Add subclause'>
               <IconButton size='small' onClick={handleAddSubclause} color='primary'>
                 <AddIcon fontSize='small'/>
