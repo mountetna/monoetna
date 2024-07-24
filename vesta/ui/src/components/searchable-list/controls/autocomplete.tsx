@@ -111,7 +111,6 @@ function Autocomplete<Value>(
       <Root
         {...getRootProps()}
         ref={rootRef}
-        className={focused ? 'Mui-focused' : ''}
         sx={{
           display: 'flex',
           width: '100%',
@@ -120,7 +119,7 @@ function Autocomplete<Value>(
         <Box
           className={focused ? 'Mui-focused' : ''}
           sx={{
-            width: '100%',
+            // width: '100%',
             height: '100%',
             display: 'flex',
             gap: '10px',

@@ -45,6 +45,10 @@ export default function ToggleGroup({
 
 const Tab = styled(BaseTab)(
   ({ theme }) => `
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-wrap: nowrap;
   padding: 5px 12px;
   outline: none;
   border: none;

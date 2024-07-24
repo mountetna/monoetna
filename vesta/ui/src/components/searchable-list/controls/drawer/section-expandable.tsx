@@ -13,6 +13,7 @@ import { useWindowDimensions } from '@/lib/utils/responsive';
 import { DrawerSectionProps } from './models';
 
 import indicatorArrowDark from '/public/images/icons/indicator-arrow-dark.svg'
+import DrawerPill from './pill';
 
 
 const activeClass = 'active'
@@ -70,7 +71,7 @@ export default function DrawerSectionExpandable({
                 }}
             >
                 <Typography
-                    className='drawer-section'
+                    className='drawer-section-name'
                     variant='pMediumBoldWt'
                     sx={{
                         color: 'ground.grade10',
@@ -78,7 +79,7 @@ export default function DrawerSectionExpandable({
                 >
                     {_.startCase(name)}
                 </Typography>
-                
+
                 <Image
                     src={indicatorArrowDark}
                     alt={`Triangle icon pointing ${open ? 'up' : 'down'}`}
@@ -112,33 +113,12 @@ export default function DrawerSectionExpandable({
                     }}
                 >
                     {items.map(item => (
-                        <ButtonBase
+                        <DrawerPill
                             key={item.key}
-                            className={`drawer-item${activeKeys.has(item.key) ? ` ${activeClass}` : ''}`}
+                            label={item.label}
+                            active={activeKeys.has(item.key)}
                             onClick={() => onClickItem(item)}
-                            sx={{
-                                px: '12px',
-                                py: '2px',
-                                color: 'ground.grade10',
-                                bgcolor: 'utilityHighlight.main',
-                                borderRadius: '40px',
-                                border: '1px solid transparent',
-                                '&.active': {
-                                    border: `1px solid ${theme.palette.ground.grade10}`,
-                                },
-                                transition: theme.transitions.create(
-                                    'all',
-                                    {
-                                        easing: theme.transitions.easing.ease,
-                                        duration: theme.transitions.duration.ease,
-                                    },
-                                ),
-                            }}
-                        >
-                            <Typography variant='pMedium'>
-                                {item.label}
-                            </Typography>
-                        </ButtonBase>
+                        />
                     ))}
                 </Box>
             </animated.div >

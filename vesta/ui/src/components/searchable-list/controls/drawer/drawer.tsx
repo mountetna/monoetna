@@ -6,20 +6,16 @@ import { useTheme } from '@mui/material';
 import { useSpring, animated, useIsomorphicLayoutEffect } from '@react-spring/web';
 
 import { useWindowDimensions } from '@/lib/utils/responsive';
-import { DrawerItem, DisplayStyle, DrawerSectionProps } from './models';
+import { DrawerItem, DisplayStyle, DrawerSectionProps, DrawerSectionClass, DrawerMainContentClass } from './models';
 import DrawerSectionDefault from './section-default';
 import DrawerSectionExpandable from './section-expandable';
 import Button from '@/components/inputs/button';
 
 
-const baseDrawerSectionClass = 'drawer-section'
-const viewSetsSectionClass = 'drawer-section-view-sets'
-const defaultSectionClass = 'drawer-section-default'
-
 
 // TODO: make item a generic and
 // add getters like getItemKey
-export default function Drawer<Item, ViewSetItem>({
+export default function Drawer<Item>({
     items,
     viewSetItems,
     getItemLabel,
@@ -108,11 +104,7 @@ export default function Drawer<Item, ViewSetItem>({
         opacity: 0,
     }), [open])
 
-    useIsomorphicLayoutEffect(() => {
-        if (!open && finishedMountAnimation) {
-            rootApi.set({ height: `${(rootRef.current?.offsetHeight || 0)}px`, })
-            rootApi.set({ height: `${(rootRef.current?.offsetHeight || 0)}px`, })
-        }
+    const animateRoot = () => {
         rootApi.start(
             {
                 height: `${open ? (rootRef.current?.offsetHeight || 0) : 0}px`,
@@ -137,7 +129,18 @@ export default function Drawer<Item, ViewSetItem>({
                 }
             }
         )
-    }, [open, isWindowResizing])
+    }
+
+    useIsomorphicLayoutEffect(() => {
+        if (!open && finishedMountAnimation) {
+            rootApi.set({ height: `${(rootRef.current?.offsetHeight || 0)}px`, })
+        }
+        animateRoot()
+    }, [open])
+
+    useIsomorphicLayoutEffect(() => {
+        animateRoot()
+    }, [isWindowResizing])
 
     const handleClickItem = (item: DrawerItem) => {
         let newActiveItems: Item[]
@@ -178,6 +181,7 @@ export default function Drawer<Item, ViewSetItem>({
                         {...sectionProps}
                     />
                 )
+                break
             case 'expandable':
                 drawerSection = (
                     <DrawerSectionExpandable
@@ -187,12 +191,13 @@ export default function Drawer<Item, ViewSetItem>({
                         {...sectionProps}
                     />
                 )
+                break
         }
 
         viewSets = (
             <Box
                 key={sectionName}
-                className={[baseDrawerSectionClass, viewSetsSectionClass].join(' ')}
+                className={[DrawerSectionClass.base, DrawerSectionClass.viewSets].join(' ')}
             >
                 {drawerSection}
             </Box>
@@ -215,68 +220,94 @@ export default function Drawer<Item, ViewSetItem>({
             >
                 <Box
                     ref={rootRef}
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '16px',
-                        p: '24px',
-                        borderRadius: '30px',
-                        bgcolor: 'utilityWhite.main',
-                        [`& .${baseDrawerSectionClass}`]: {
-                        },
-                        [`& .${viewSetsSectionClass}`]: {
-                            pb: '10px',
-                        },
-                        [`& .${defaultSectionClass}`]: {
-                            pb: '16px',
-                            borderBottom: `1px solid ${theme.palette.ground.grade75}`,
-                            '&:last-of-type': {
-                                mb: '8px',
-                            },
-                        },
-                    }}
+                    className='drawer-main-content-container'
                 >
-                    {viewSets}
+                    <Box
+                        className={[DrawerMainContentClass.base, displayStyle === 'default' ? DrawerMainContentClass.default : DrawerMainContentClass.expandable].join(' ')}
+                        sx={{
+                            display: 'flex',
+                            borderRadius: '30px',
+                            bgcolor: 'utilityWhite.main',
+                            [`& .${DrawerSectionClass.base}`]: {
+                            },
+                            [`&.${DrawerMainContentClass.default}`]: {
+                                flexDirection: 'row',
+                                gap: '16px',
+                                p: '24px',
+                                minWidth: 'fit-content',
+                                width: 'fit-content',
+                                '& > *:not(:last-child)': {
+                                    borderRight: `1px solid ${theme.palette.ground.grade75}`,
+                                },
+                                [`& .${DrawerSectionClass.viewSets}`]: {
+                                },
+                            },
+                            [`& .${DrawerSectionClass.default}`]: {
+                                minWidth: '25%',
+                                width: '20em',
+                            },
+                            [`&.${DrawerMainContentClass.expandable}`]: {
+                                flexDirection: 'column',
+                                gap: '16px',
+                                p: '24px',
+                                [`& .${DrawerSectionClass.viewSets}`]: {
+                                    pb: '10px',
+                                },
+                            },
+                            [`& .${DrawerSectionClass.expandable}`]: {
+                                pb: '16px',
+                                borderBottom: `1px solid ${theme.palette.ground.grade75}`,
+                                '&:last-of-type': {
+                                    mb: '8px',
+                                },
+                            },
+                        }}
+                    >
+                        {viewSets}
 
-                    {/* TODO: make separate container components? */}
-                    {Object.entries(drawerItemsByType).map(([section, items], index) => {
-                        const sectionProps: DrawerSectionProps = {
-                            name: section,
-                            items: items,
-                            activeKeys,
-                            onClickItem: (item) => handleClickItem(item),
-                        }
+                        {/* TODO: make separate container components? */}
+                        {Object.entries(drawerItemsByType).map(([section, items], index) => {
+                            const sectionProps: DrawerSectionProps = {
+                                name: section,
+                                items: items,
+                                activeKeys,
+                                onClickItem: (item) => handleClickItem(item),
+                            }
 
-                        let drawerSection
-                        switch (displayStyle) {
-                            case 'default':
-                                drawerSection = (
-                                    <DrawerSectionDefault
-                                        {...sectionProps}
-                                    />
-                                )
-                            case 'expandable':
-                                drawerSection = (
-                                    <DrawerSectionExpandable
-                                        open={sectionOpens[index]}
-                                        onSetOpen={(open) => handleSetSectionOpen(open, index)}
-                                        {...sectionProps}
-                                    />
-                                )
-                        }
+                            let drawerSection
+                            let drawerSectionClass
+                            switch (displayStyle) {
+                                case 'default':
+                                    drawerSection = (
+                                        <DrawerSectionDefault
+                                            {...sectionProps}
+                                        />
+                                    )
+                                    drawerSectionClass = DrawerSectionClass.default
+                                    break
+                                case 'expandable':
+                                    drawerSection = (
+                                        <DrawerSectionExpandable
+                                            open={sectionOpens[index]}
+                                            onSetOpen={(open) => handleSetSectionOpen(open, index)}
+                                            {...sectionProps}
+                                        />
+                                    )
+                                    drawerSectionClass = DrawerSectionClass.expandable
+                                    break
+                            }
 
-                        return (
-                            <Box
-                                key={section}
-                                className={[baseDrawerSectionClass, defaultSectionClass].join(' ')}
-                            >
-                                {drawerSection}
-                            </Box>
-                        )
-                    })}
+                            return (
+                                <Box
+                                    key={section}
+                                    className={[DrawerSectionClass.base, drawerSectionClass].join(' ')}
+                                >
+                                    {drawerSection}
+                                </Box>
+                            )
+                        })}
 
-                    {showButton &&
-                        <Button
+                        {showButton && <Button
                             label={buttonLabel}
                             onClick={onClickButton}
                             variant='large'
@@ -289,8 +320,8 @@ export default function Drawer<Item, ViewSetItem>({
                                 borderRadius: '10px',
                             }}
                             disabled={buttonDisabled}
-                        />
-                    }
+                        />}
+                    </Box>
                 </Box>
             </animated.div>
         </Box>

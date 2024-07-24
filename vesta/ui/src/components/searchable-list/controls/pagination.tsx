@@ -2,6 +2,14 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import PaginationArrows from '@/components/inputs/pagination-arrows';
+import { SxProps } from '@mui/material';
+
+
+export enum PaginationClasses {
+    pageInfo = 'autocomplete-page-info',
+    arrows = 'autocomplete-arrows',
+}
+
 
 
 export default function Pagination({
@@ -12,6 +20,7 @@ export default function Pagination({
     onClickNext,
     listItemLabel,
     showArrows = true,
+    sx,
 }: {
     currentPage: number,
     pageSize: number,
@@ -20,6 +29,7 @@ export default function Pagination({
     onClickNext: () => void,
     listItemLabel: string,
     showArrows?: boolean
+    sx?: SxProps,
 }) {
     const infoElements = [
         { text: 'Showing', type: 'basic' },
@@ -33,19 +43,23 @@ export default function Pagination({
 
     return (
         <Box
-        sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            gap: '10px',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-        }}
+            sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: '10px',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                ...(sx || {})
+            }}
         >
             {/* Page info */}
             <Box
+                className='autocomplete autocomplete-page-info'
                 sx={{
                     display: 'flex',
                     flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
                     gap: '3px',
                     p: '7px 21px',
                     bgcolor: 'utilityWhite.main',
@@ -71,6 +85,7 @@ export default function Pagination({
             </Box>
 
             {showArrows && <PaginationArrows
+                className='autocomplete autocomplete-arrows'
                 onClickPrev={onClickPrev}
                 onClickNext={onClickNext}
                 prevDisabled={currentPage === 0}

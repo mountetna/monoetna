@@ -3,11 +3,11 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import ButtonBase from '@mui/material/ButtonBase';
 import { useTheme } from '@mui/material';
 import _ from 'lodash'
 
 import { DrawerSectionProps } from './models';
+import DrawerPill from './pill';
 
 
 const activeClass = 'active'
@@ -23,30 +23,34 @@ export default function DrawerSectionDefault({
     return (
         <Box
             sx={{
-
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                pr: '10px',
             }}
         >
             <Typography
-                className='drawer-section'
+                className='drawer-section-name'
                 variant='pMediumBoldWt'
             >
                 {_.startCase(name)}
             </Typography>
 
-            <Box>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    gap: '10px',
+                }}
+            >
                 {items.map(item => (
-                    <ButtonBase
+                    <DrawerPill
                         key={item.key}
-                        className={`drawer-item${activeKeys.has(item.key) ? ` ${activeClass}` : ''}`}
+                        label={item.label}
+                        active={activeKeys.has(item.key)}
                         onClick={() => onClickItem(item)}
-                        sx={{
-
-                        }}
-                    >
-                        <Typography variant='pMedium'>
-                            {item.label}
-                        </Typography>
-                    </ButtonBase>
+                    />
                 ))}
             </Box>
         </Box>

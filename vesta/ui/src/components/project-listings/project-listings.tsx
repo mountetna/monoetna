@@ -9,18 +9,21 @@ import _ from 'lodash'
 
 import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project, ProjectHeadingInfoSet } from './models';
 import ProjectListing from './project-listing';
-import Pagination from '@/components/searchable-list/controls/pagination'
+import Pagination, { PaginationClasses } from '@/components/searchable-list/controls/pagination'
 import DrawerButton from '@/components/searchable-list/controls/drawer/button';
 import Drawer from '@/components/searchable-list/controls/drawer/drawer';
 import Autocomplete from '@/components/searchable-list/controls/autocomplete';
 import ToggleGroup from '../inputs/toggle-group';
 import { ThemeData } from '../themes/models';
-import filterDarkIcon from '/public/images/icons/filter-dark.svg'
-import searchDarkIcon from '/public/images/icons/search.svg'
 import ProjectPI from './project-pi';
 import FilterPill from '../searchable-list/filter-pill';
 import { ValueOf } from '@/lib/utils/types';
 import { FILE_EXPORT_STATUS, handleExportFile, MIME_FILE_FORMATS } from '@/lib/utils/file-export';
+import { DrawerSectionClass } from '../searchable-list/controls/drawer/models';
+
+import filterLightIcon from '/public/images/icons/filter-light.svg'
+import filterDarkIcon from '/public/images/icons/filter-dark.svg'
+import searchDarkIcon from '/public/images/icons/search.svg'
 
 
 // TODO: clean this up
@@ -61,6 +64,7 @@ export default function ProjectListings({
         theme.breakpoints.values.mobile,
         theme.breakpoints.values.tablet,
     ))
+    const isDesktop = useMediaQuery(theme.breakpoints.up('desktop'))
 
     const [currentPage, setCurrentPage] = React.useState(0)
     const pageSize = 12
@@ -133,6 +137,8 @@ export default function ProjectListings({
         }
         return [..._searchOptions]
     })
+
+    const searchPlaceholder = 'Search e.g. "Fibrosis"'
 
     const [drawerItems] = React.useState(() => {
         return searchOptions
@@ -245,6 +251,8 @@ export default function ProjectListings({
     // Manage file export
     const [fileExportStatus, setFileExportStatus] = React.useState(FILE_EXPORT_STATUS.idle)
 
+    const exportButtonLabel = 'Export to CSV'
+
     const handleClickExportButton = async () => {
         await handleExportFile(
             projectData,
@@ -253,6 +261,25 @@ export default function ProjectListings({
             'ucsf-data-library-projects',
         )
     }
+
+    const paginationEl = (
+        <Pagination
+            currentPage={currentPage}
+            pageSize={pageSize}
+            listSize={filteredProjectData.length}
+            onClickPrev={() => handleSetCurrentPage(currentPage - 1)}
+            onClickNext={() => handleSetCurrentPage(currentPage + 1)}
+            listItemLabel='projects'
+            sx={{
+                [theme.breakpoints.up('tablet')]: {
+                    height: '100%',
+                    [`& .${PaginationClasses.pageInfo}`]: {
+                        height: '100%',
+                    },
+                },
+            }}
+        />
+    )
 
     return (
         <Container
@@ -285,12 +312,12 @@ export default function ProjectListings({
                     sx={{
                         display: 'flex',
                         flexDirection: 'column',
-                        rowGap: '16px',
                         [theme.breakpoints.up('tablet')]: {
                             display: 'flex',
                             flexDirection: 'row',
                             justifyContent: 'space-between',
-                            rowGap: '38px',
+                            width: '100%',
+                            // overflow: 'hidden',
                         }
                     }}
                 >
@@ -299,9 +326,12 @@ export default function ProjectListings({
                             display: 'flex',
                             flexDirection: 'column',
                             columnGap: '8px',
-                            rowGap: '16px',
+                            pb: '16px',
                             [theme.breakpoints.up('tablet')]: {
-
+                                width: '100%',
+                                overflow: 'visible',
+                                pb: '0',
+                                rowGap: '0',
                             },
                         }}
                     >
@@ -310,103 +340,182 @@ export default function ProjectListings({
                                 display: 'flex',
                                 flexDirection: 'row',
                                 columnGap: '8px',
-                                rowGap: '16px',
                                 height: '52px',
+                                [theme.breakpoints.up('tablet')]: {
+                                    rowGap: '0',
+                                    columnGap: '10px',
+                                    justifyContent: 'space-between',
+                                    width: '100%',
+                                }
                             }}
                         >
-                            <DrawerButton
-                                label='Filters'
-                                icon={filterDarkIcon}
-                                onClick={() => setDrawerOpen(!drawerOpen)}
-                                activated={filterItems.find(item => drawerFilterItemTypes.includes(item.type)) !== undefined}
-                                open={drawerOpen}
-                            />
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    columnGap: '8px',
+                                    flexGrow: 1,
+                                    [theme.breakpoints.up('tablet')]: {
+                                        flexGrow: 'unset',
+                                        columnGap: '10px',
+                                    },
+                                }}
+                            >
+                                <DrawerButton
+                                    label='Filters'
+                                    iconLight={filterLightIcon}
+                                    iconDark={filterDarkIcon}
+                                    onClick={() => setDrawerOpen(!drawerOpen)}
+                                    activated={filterItems.find(item => drawerFilterItemTypes.includes(item.type)) !== undefined}
+                                    open={drawerOpen}
+                                />
 
-                            <Autocomplete
-                                multiple
-                                filterSelectedOptions
-                                icon={searchDarkIcon}
-                                placeholder='Search e.g. "Fibrosis"'
-                                options={[...searchOptions].sort((a, b) => a.type.localeCompare(b.type))}
-                                showResultsOnEmpty={false}
-                                // @ts-ignore
-                                onChange={(_, value: FilterItem[]) => handleChangeFilterItems(value)}
-                                value={filterItems}
-                                // @ts-ignore
-                                getOptionKey={(option: FilterItem) => option.key}
-                                isOptionEqualToValue={(option, value) => option.key === value.key}
-                                renderOption={(params) => (
-                                    <SearchOption
-                                        key={params.option.key}
-                                        option={params.option}
+                                <Autocomplete
+                                    multiple
+                                    filterSelectedOptions
+                                    icon={searchDarkIcon}
+                                    placeholder={searchPlaceholder}
+                                    options={[...searchOptions].sort((a, b) => a.type.localeCompare(b.type))}
+                                    showResultsOnEmpty={false}
+                                    // @ts-ignore
+                                    onChange={(_, value: FilterItem[]) => handleChangeFilterItems(value)}
+                                    value={filterItems}
+                                    // @ts-ignore
+                                    getOptionKey={(option: FilterItem) => option.key}
+                                    isOptionEqualToValue={(option, value) => option.key === value.key}
+                                    renderOption={(params) => (
+                                        <SearchOption
+                                            key={params.option.key}
+                                            option={params.option}
+                                        />
+                                    )}
+                                    groupBy={option => option.type}
+                                    renderGroup={(params) => (
+                                        <Box
+                                            key={params.key}
+                                            role='listitem'
+                                            sx={{
+                                                '&:not(:last-child)': {
+                                                    mb: '10px',
+                                                },
+                                            }}
+                                        >
+                                            <Typography
+                                                variant='pMediumMediumWt'
+                                                component='div'
+                                                sx={{
+                                                    color: 'ground.grade10',
+                                                    opacity: 0.4,
+                                                    p: '4.11px',
+                                                    pl: '0px',
+                                                    mb: '8px',
+                                                }}
+                                            >
+                                                {_.startCase(params.group)}
+                                            </Typography>
+                                            <Box
+                                                role='list'
+                                                sx={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '8px',
+                                                }}
+                                            >
+                                                {params.options}
+                                            </Box>
+                                        </Box>
+                                    )}
+                                    renderNoResults={() => (
+                                        <Typography variant='pMedium'>
+                                            No results
+                                        </Typography>
+                                    )}
+                                    sx={{
+                                        flexGrow: 1,
+                                        maxHeight: '100%',
+                                        [theme.breakpoints.up('tablet')]: {
+                                            flexGrow: 'unset',
+                                        },
+                                        '& .MuiBox-root': {
+                                            width: '100%',
+                                            [theme.breakpoints.up('tablet')]: {
+                                                width: 'auto',
+                                                '& input': {
+                                                    flexGrow: 'unset',
+                                                    width: `${searchPlaceholder.length * 0.45}em`,
+                                                },
+                                            },
+                                        },
+                                    }}
+                                />
+
+                                {isDesktop && (
+                                    <ToggleGroup
+                                        valueIdx={viewSets.indexOf(viewSet)}
+                                        values={viewSets.map(val => val.label)}
+                                        onChange={(idx) => setViewSet(viewSets[idx])}
                                     />
                                 )}
-                                groupBy={option => option.type}
-                                renderGroup={(params) => (
-                                    <Box
-                                        key={params.key}
-                                        role='listitem'
+
+                                {/* {isDesktop && (
+                                    <Button
+                                        label={exportButtonLabel}
+                                        onClick={handleClickExportButton}
+                                        variant='large'
+                                        typographyVariant='pBodyMediumWt'
                                         sx={{
-                                            '&:not(:last-child)': {
-                                                mb: '10px',
-                                            },
+                                            width: 'auto',
+                                            height: 'auto',
+                                            px: '16px',
+                                            py: '8px',
+                                            borderRadius: '10px',
                                         }}
-                                    >
-                                        <Typography
-                                            variant='pMediumMediumWt'
-                                            component='div'
-                                            sx={{
-                                                color: 'ground.grade10',
-                                                opacity: 0.4,
-                                                p: '4.11px',
-                                                pl: '0px',
-                                                mb: '8px',
-                                            }}
-                                        >
-                                            {_.startCase(params.group)}
-                                        </Typography>
-                                        <Box
-                                            role='list'
-                                            sx={{
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: '8px',
-                                            }}
-                                        >
-                                            {params.options}
-                                        </Box>
-                                    </Box>
-                                )}
-                                renderNoResults={() => (
-                                    <Typography variant='pMedium'>
-                                        No results
-                                    </Typography>
-                                )}
-                                sx={{
-                                    flexGrow: 1,
-                                    maxHeight: '100%',
-                                }}
-                            />
+                                        disabled={fileExportStatus === FILE_EXPORT_STATUS.inProgress}
+                                    />
+                                )} */}
+                            </Box>
+
+                            {!isMobile && paginationEl}
                         </Box>
 
-                        <Drawer
-                            items={drawerItems}
-                            viewSetItems={viewSets}
-                            getItemLabel={item => item.label}
-                            getItemKey={item => item.key}
-                            getItemType={item => item.type}
-                            activeItems={filterItems}
-                            onChange={handleChangeFilterItems}
-                            activeViewSetItem={viewSet}
-                            onChangeViewSet={setViewSet}
-                            showViewSets={isMobile}
-                            open={drawerOpen}
-                            showButton={isMobile}
-                            buttonLabel='Export to CSV'
-                            onClickButton={handleClickExportButton}
-                            buttonDisabled={fileExportStatus === FILE_EXPORT_STATUS.inProgress}
-                            displayStyle={isMobile ? 'expandable' : 'default'}
-                        />
+                        <Box
+                            sx={{
+                                '& .drawer-main-content-container': {
+                                    pt: '16px',
+                                    [theme.breakpoints.up('tablet')]: {
+                                        overflow: 'scroll',
+                                    },
+                                    [theme.breakpoints.up('desktop')]: {
+                                        overflow: 'unset',
+                                    },
+                                },
+                                [`& .${DrawerSectionClass.base}`]: {
+                                    [theme.breakpoints.up('desktop')]: {
+                                        minWidth: 'unset',
+                                        width: '33%',
+                                    },
+                                },
+                            }}
+                        >
+                            <Drawer
+                                items={drawerItems}
+                                viewSetItems={viewSets}
+                                getItemLabel={item => item.label}
+                                getItemKey={item => item.key}
+                                getItemType={item => item.type}
+                                activeItems={filterItems}
+                                onChange={handleChangeFilterItems}
+                                activeViewSetItem={viewSet}
+                                onChangeViewSet={setViewSet}
+                                showViewSets={!isDesktop}
+                                open={drawerOpen}
+                                showButton={isMobile}
+                                buttonLabel={exportButtonLabel}
+                                onClickButton={handleClickExportButton}
+                                buttonDisabled={fileExportStatus === FILE_EXPORT_STATUS.inProgress}
+                                displayStyle={isMobile ? 'expandable' : 'default'}
+                            />
+                        </Box>
 
                         {filterItems.length > 0 && <Box
                             sx={{
@@ -415,6 +524,9 @@ export default function ProjectListings({
                                 flexWrap: 'wrap',
                                 columnGap: '10px',
                                 rowGap: '16px',
+                                pt: '16px',
+                                [theme.breakpoints.up('tablet')]: {
+                                },
                             }}
                         >
                             {filterItems.map((item => (
@@ -426,31 +538,9 @@ export default function ProjectListings({
                                 />
                             )))}
                         </Box>}
-
-                        <Box
-                            sx={{
-                                display: 'none',
-                                [theme.breakpoints.up('tablet')]: {
-                                    display: 'block',
-                                },
-                            }}
-                        >
-                            <ToggleGroup
-                                valueIdx={viewSets.indexOf(viewSet)}
-                                values={viewSets.map(val => val.label)}
-                                onChange={(idx) => setViewSet(viewSets[idx])}
-                            />
-                        </Box>
                     </Box>
 
-                    <Pagination
-                        currentPage={currentPage}
-                        pageSize={pageSize}
-                        listSize={filteredProjectData.length}
-                        onClickPrev={() => handleSetCurrentPage(currentPage - 1)}
-                        onClickNext={() => handleSetCurrentPage(currentPage + 1)}
-                        listItemLabel='projects'
-                    />
+                    {isMobile && paginationEl}
                 </Box>
 
                 <Box

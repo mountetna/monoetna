@@ -12,11 +12,13 @@ export default function PaginationArrows({
     onClickNext,
     prevDisabled = false,
     nextDisabled = false,
+    className,
 }: {
     onClickPrev: () => void,
     onClickNext: () => void,
     prevDisabled?: boolean,
     nextDisabled?: boolean,
+    className?: string,
 }) {
     const theme = useTheme()
     const buttonStyles = (disabled: boolean): SxProps => ({
@@ -39,10 +41,11 @@ export default function PaginationArrows({
 
     return (
         <Box
-        sx={{
-            display: 'flex',
-            gap: '8px',
-        }}
+            className={className}
+            sx={{
+                display: 'flex',
+                gap: '8px',
+            }}
         >
             <ButtonBase
                 onClick={onClickPrev}
