@@ -1,11 +1,11 @@
 import * as React from 'react'
 import MUILink from '@mui/material/Link';
 import Link from 'next/link'
+import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
 
 import LibraryCardButton from '../library-card/library-card-button';
 import LibraryCardTray from '../library-card/library-card-tray';
-import { useRouter } from 'next/navigation';
 
 
 function NavLink({ text, href, isStuck, onClick }: {
@@ -101,12 +101,12 @@ export default function DLNav({ isStuck }: { isStuck: boolean }) {
                     isStuck={isStuck}
                     onClick={handleClickNavLink}
                 />
-                <NavLink
+                {/* <NavLink
                     text='Contibute'
                     href='#'
                     isStuck={isStuck}
                     onClick={handleClickNavLink}
-                />
+                /> */}
             </Box>
             <Box
                 component='li'

@@ -2,10 +2,9 @@
 
 import * as React from 'react'
 import Box from '@mui/system/Box'
-import { useTheme } from '@mui/material';
+import { Collapse, useTheme } from '@mui/material';
 import { useSpring, animated, useIsomorphicLayoutEffect } from '@react-spring/web';
 
-import { useWindowDimensions } from '@/lib/utils/responsive';
 import { DrawerItem, DisplayStyle, DrawerSectionProps, DrawerSectionClass, DrawerMainContentClass } from './models';
 import DrawerSectionDefault from './section-default';
 import DrawerSectionExpandable from './section-expandable';
@@ -87,8 +86,6 @@ export default function Drawer<Item>({
     const activeKeys = new Set(activeItems.map(item => getItemKey(item)))
 
     // Manage open/close
-    const { isResizing: isWindowResizing } = useWindowDimensions()
-
     // Section open for each item type + View Set section
     const [sectionOpens, setSectionOpens] = React.useState(Object.keys(drawerItemsByType).map(_ => false).concat(false))
 
@@ -104,10 +101,33 @@ export default function Drawer<Item>({
         opacity: 0,
     }), [open])
 
-    const animateRoot = () => {
+    const getRootAnimationState = () => {
+        let targetHeight = 0
+        let currentHeight = 0
+        const rootEl = rootRef.current
+
+        if (rootEl !== undefined) {
+            targetHeight = rootEl.offsetHeight
+            currentHeight = parseInt(rootApi.current[0].get().height.replace('px', ''))
+        }
+
+        return {
+            currentHeight,
+            targetHeight,
+            isAnimating: currentHeight > 0 && currentHeight != targetHeight,
+        }
+    }
+
+    useIsomorphicLayoutEffect(() => {
+        const animationState = getRootAnimationState()
+
+        if (!open && finishedMountAnimation) {
+            rootApi.set({ height: `${animationState.targetHeight}px`, })
+        }
+
         rootApi.start(
             {
-                height: `${open ? (rootRef.current?.offsetHeight || 0) : 0}px`,
+                height: `${open ? animationState.targetHeight : 0}px`,
                 opacity: open ? 1 : 0,
                 config: {
                     easing: theme.transitions.easing.quintFn,
@@ -120,8 +140,9 @@ export default function Drawer<Item>({
                     }
                 },
                 onRest: () => {
+                    const animationState = getRootAnimationState()
                     const animatedEl = rootRef.current?.parentElement
-                    if (open && animatedEl) {
+                    if (open && animatedEl && animationState.currentHeight === animationState.targetHeight) {
                         animatedEl.className = 'full-height'
                     }
 
@@ -129,18 +150,7 @@ export default function Drawer<Item>({
                 }
             }
         )
-    }
-
-    useIsomorphicLayoutEffect(() => {
-        if (!open && finishedMountAnimation) {
-            rootApi.set({ height: `${(rootRef.current?.offsetHeight || 0)}px`, })
-        }
-        animateRoot()
     }, [open])
-
-    useIsomorphicLayoutEffect(() => {
-        animateRoot()
-    }, [isWindowResizing])
 
     const handleClickItem = (item: DrawerItem) => {
         let newActiveItems: Item[]
@@ -235,7 +245,6 @@ export default function Drawer<Item>({
                                 gap: '16px',
                                 p: '24px',
                                 minWidth: 'fit-content',
-                                width: 'fit-content',
                                 '& > *:not(:last-child)': {
                                     borderRight: `1px solid ${theme.palette.ground.grade75}`,
                                 },
@@ -243,8 +252,6 @@ export default function Drawer<Item>({
                                 },
                             },
                             [`& .${DrawerSectionClass.default}`]: {
-                                minWidth: '25%',
-                                width: '20em',
                             },
                             [`&.${DrawerMainContentClass.expandable}`]: {
                                 flexDirection: 'column',

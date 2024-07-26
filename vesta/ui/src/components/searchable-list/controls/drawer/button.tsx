@@ -179,6 +179,7 @@ export default function DrawerButton({
                 variant='pBody'
                 sx={{
                     color: 'ground.grade10',
+                    transition,
                 }}
             >
                 {label}

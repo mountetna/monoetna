@@ -12,6 +12,7 @@ import { ThemeData } from './models';
 import PaginationArrows from '../inputs/pagination-arrows';
 import { useWindowDimensions } from '@/lib/utils/responsive';
 import { containerPadding } from '@/theme';
+import { useRouter } from 'next/navigation';
 
 
 export default function ThemeShelf({
@@ -84,6 +85,20 @@ export default function ThemeShelf({
             : 0
         )
     }, [windowDimensions])
+
+
+    const router = useRouter()
+
+    const handleClickSeeProjects = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+        event.preventDefault()
+        const el = document.getElementById('projects')
+
+        router.push(href, { scroll: false })
+        window.scrollTo({
+            top: el?.offsetTop,
+            behavior: 'smooth',
+        })
+    }
 
     return (
         <Box>
@@ -266,10 +281,4 @@ export default function ThemeShelf({
             </Box>
         </Box>
     )
-}
-
-const handleClickSeeProjects = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    event.preventDefault()
-    console.log(href)
-    // TODO: scroll to filtered projects
 }

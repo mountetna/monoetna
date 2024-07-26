@@ -6,13 +6,6 @@ export enum ProjectStatus {
     community = 'Community',
 }
 
-export enum ExternalProjectStatus {
-    init = 'Initial Launch',
-    sampling = 'Sampling',
-    analysis = 'Analysis',
-    public = 'Public',
-}
-
 export enum ProjectType {
     coproject = 'CoProject',
     consortium = 'Consortium',
@@ -66,6 +59,12 @@ export interface Project {
     theme: ThemeData
 }
 
+export enum ExternalProjectStatus {
+    init = 'Initial Launch',
+    sampling = 'Sampling',
+    analysis = 'Analysis',
+    public = 'Public',
+}
 
 export function getExternalProjectStatus(proj: Project): ExternalProjectStatus {
     if (proj.status === ProjectStatus.community) {
@@ -83,4 +82,14 @@ export enum ProjectHeadingInfoSet {
     default = 'Default',
     dataTypes = 'Data Types',
     pis = 'Principal Investigators',
+}
+
+export interface ProjectsSearchParamsControls {
+    viewSet?: string
+    page?: number
+}
+
+export interface ProjectsSearchParamsState {
+    filters?: Record<string, string[]>
+    controls?: ProjectsSearchParamsControls
 }

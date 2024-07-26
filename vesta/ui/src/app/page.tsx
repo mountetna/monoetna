@@ -14,7 +14,8 @@ import { sectionMargins } from '@/theme';
 import ThemeShelf from '@/components/themes/theme-shelf';
 import { ThemeData } from '@/components/themes/models';
 import ProjectListings from '@/components/project-listings/project-listings';
-import { Project, ProjectStatus, ProjectType, DataType } from '@/components/project-listings/models';
+import { Project, ProjectStatus, ProjectType, DataType, ProjectsSearchParamsState } from '@/components/project-listings/models';
+import { toSearchParamsString } from '@/lib/utils/uri';
 
 import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
 import xeniumFallback from '/public/images/hero/xenium-fallback.png'
@@ -355,6 +356,13 @@ THEMES.forEach(theme => {
 
     PROJECTS.push(project)
   }
+
+  // Manage projects link
+  const projectsSearchParamsState: ProjectsSearchParamsState = {
+    filters: { theme: [theme.name] }
+  }
+  const search = toSearchParamsString({ projects: projectsSearchParamsState })
+  theme.projectsLink = '/?' + search + '#projects'
 })
 
 
@@ -415,7 +423,7 @@ export default async function Home() {
           />
         </Box>
 
-        <Box id="projects">
+        <Box id='projects'>
           <ProjectListings
             projectData={_.sortBy(data.projects, (p) => p.fullName)}
           />

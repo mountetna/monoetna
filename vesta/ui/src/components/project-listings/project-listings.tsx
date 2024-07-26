@@ -6,8 +6,9 @@ import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import { useMediaQuery, useTheme } from '@mui/material';
 import _ from 'lodash'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project, ProjectHeadingInfoSet } from './models';
+import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project, ProjectHeadingInfoSet, ProjectsSearchParamsControls, ProjectsSearchParamsState } from './models';
 import ProjectListing from './project-listing';
 import Pagination, { PaginationClasses } from '@/components/searchable-list/controls/pagination'
 import DrawerButton from '@/components/searchable-list/controls/drawer/button';
@@ -20,6 +21,7 @@ import FilterPill from '../searchable-list/filter-pill';
 import { ValueOf } from '@/lib/utils/types';
 import { FILE_EXPORT_STATUS, handleExportFile, MIME_FILE_FORMATS } from '@/lib/utils/file-export';
 import { DrawerSectionClass } from '../searchable-list/controls/drawer/models';
+import { parseSearchParams, toSearchParamsString } from '@/lib/utils/uri';
 
 import filterLightIcon from '/public/images/icons/filter-light.svg'
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
@@ -44,10 +46,10 @@ interface FilterItem {
 const drawerFilterItemTypes: FilterItem['type'][] = ['theme', 'status', 'dataType']
 
 const viewSets: FilterItem[] = Object.entries(ProjectHeadingInfoSet).map(([key, label]) => ({
-    label: label,
-    key: key,
+    label,
+    key,
     // Placeholder data just to satifsy the shape
-    value: '',
+    value: key,
     projectKey: 'fullName',
     type: 'name',
 }))
@@ -59,6 +61,25 @@ export default function ProjectListings({
 }: {
     projectData: Project[],
 }) {
+    const router = useRouter()
+    const pathname = usePathname()
+
+    const searchParams = useSearchParams()
+    React.useEffect(() => {
+        const parsedSearchParams = parseSearchParams(searchParams)
+        if ('projects' in parsedSearchParams) {
+            const state = parsedSearchParams['projects']
+
+            const stateFilterItems = parseSearchOptionsFromState(state, searchOptions)
+            if (stateFilterItems !== undefined) setFilterItems(stateFilterItems)
+
+            const stateViewSet = parseViewSetFromState(state, viewSets)
+            if (stateViewSet !== undefined) setViewSet(stateViewSet)
+
+            setCurrentPage(parseCurrentPageFromState(state))
+        }
+    }, [searchParams])
+
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.between(
         theme.breakpoints.values.mobile,
@@ -201,7 +222,48 @@ export default function ProjectListings({
 
     const [viewSet, setViewSet] = React.useState<(typeof viewSets)[number]>(viewSets[0])
 
-    // handle book open state to coordinate only having one open at a time
+
+    // Sync url with filter+control states
+    const updateUrl = (filterItems: FilterItem[], viewSet: FilterItem, currentPage: number) => {
+        // get filter states
+        const filters: Record<string, string[]> = {}
+        filterItems.forEach(item => {
+            let val: string
+            switch (item.type) {
+                case 'theme':
+                case 'type':
+                case 'status':
+                case 'dataType':
+                case 'name':
+                    val = (item.value as string)
+                    break
+                case 'principalInvestigator':
+                    val = (item.value as PrincipalInvestigator).name
+                    break
+            }
+            if (!(item.type in filters)) {
+                filters[item.type] = []
+            }
+            filters[item.type].push(val)
+        })
+
+        // get control states
+        const controls: ProjectsSearchParamsControls = {
+            viewSet: viewSet.key,
+            page: currentPage,
+        }
+
+        const projectsState: ProjectsSearchParamsState = {
+            filters,
+            controls,
+        }
+
+        // push to router
+        router.push(pathname + '?' + toSearchParamsString({ projects: projectsState }) + window.location.hash, { scroll: false })
+    }
+
+
+    // Handle book open state to coordinate only having one open at a time
     const [projectOpens, setProjectOpens] = React.useState(projectData.map(_ => false))
 
     const handleSetProjectOpen = (newOpenState: boolean, projectIdx: number) => {
@@ -221,6 +283,7 @@ export default function ProjectListings({
     const handleSetCurrentPage = (page: number) => {
         closeAllProjects()
         setCurrentPage(page)
+        updateUrl(filterItems, viewSet, page)
     }
 
     const scrollToProject = (bookIdx: number) => {
@@ -239,6 +302,7 @@ export default function ProjectListings({
         setFilterItems(filterItems)
         closeAllProjects()
         setCurrentPage(0)
+        updateUrl(filterItems, viewSet, 0)
     }
 
     const handleClickRemoveFilterItem = (filterItem: FilterItem) => {
@@ -246,6 +310,12 @@ export default function ProjectListings({
         setFilterItems(newFilterItems)
         closeAllProjects()
         setCurrentPage(0)
+        updateUrl(newFilterItems, viewSet, 0)
+    }
+
+    const handleChangeViewSet = (viewSet: FilterItem) => {
+        setViewSet(viewSet)
+        updateUrl(filterItems, viewSet, currentPage)
     }
 
     // Manage file export
@@ -453,7 +523,7 @@ export default function ProjectListings({
                                     <ToggleGroup
                                         valueIdx={viewSets.indexOf(viewSet)}
                                         values={viewSets.map(val => val.label)}
-                                        onChange={(idx) => setViewSet(viewSets[idx])}
+                                        onChange={(idx) => handleChangeViewSet(viewSets[idx])}
                                     />
                                 )}
 
@@ -490,6 +560,10 @@ export default function ProjectListings({
                                     },
                                 },
                                 [`& .${DrawerSectionClass.base}`]: {
+                                    [theme.breakpoints.up('tablet')]: {
+                                        minWidth: '18em',
+                                        width: '25%',
+                                    },
                                     [theme.breakpoints.up('desktop')]: {
                                         minWidth: 'unset',
                                         width: '33%',
@@ -506,7 +580,7 @@ export default function ProjectListings({
                                 activeItems={filterItems}
                                 onChange={handleChangeFilterItems}
                                 activeViewSetItem={viewSet}
-                                onChangeViewSet={setViewSet}
+                                onChangeViewSet={handleChangeViewSet}
                                 showViewSets={!isDesktop}
                                 open={drawerOpen}
                                 showButton={isMobile}
@@ -578,7 +652,6 @@ function SearchOption({
 }: {
     option: FilterItem,
 }) {
-
     return (
         <Box
             sx={{
@@ -614,4 +687,47 @@ function getFilterItemLabel(value: FilterItem['value'], type: FilterItem['type']
 
 function getFilterItemKey(value: FilterItem['value'], type: FilterItem['type']): string {
     return `${type}_${getFilterItemLabel(value, type)}`
+}
+
+function parseSearchOptionsFromState(state: ProjectsSearchParamsState, searchOptions: FilterItem[]): FilterItem[] | undefined {
+    if (!(state.filters)) {
+        return undefined
+    }
+    return searchOptions.filter(searchOption => {
+        if (state.filters && searchOption.type in state.filters) {
+            // @ts-ignore
+            const vals: string[] = state.filters[searchOption.type]
+
+            for (const val of vals) {
+                let optionVal: string
+                switch (searchOption.type) {
+                    case 'theme':
+                    case 'type':
+                    case 'status':
+                    case 'dataType':
+                    case 'name':
+                        // @ts-ignore
+                        optionVal = searchOption.value
+                        break
+                    case 'principalInvestigator':
+                        optionVal = (searchOption.value as PrincipalInvestigator).name
+                }
+                return val === optionVal
+            }
+            return false
+        }
+        return false
+    })
+}
+
+function parseViewSetFromState(state: ProjectsSearchParamsState, viewSets: FilterItem[]): FilterItem | undefined {
+    const viewSetValue = state.controls?.viewSet
+    if (viewSetValue !== undefined) {
+        return viewSets.find(item => item.key === viewSetValue)
+    }
+}
+
+function parseCurrentPageFromState(state: ProjectsSearchParamsState): number {
+    const paramsPage = state.controls?.page
+    return paramsPage !== undefined ? paramsPage : 0
 }
