@@ -28,7 +28,6 @@ import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
 
 
-// TODO: clean this up
 const searchableProjectKeys: (keyof SearchableProjectData)[] = ['fullName', 'principalInvestigators', 'type', 'dataTypes', 'theme', 'status']
 
 interface SearchableProjectData extends Pick<Project, 'fullName' | 'principalInvestigators' | 'type' | 'dataTypes' | 'theme'> {
@@ -71,7 +70,17 @@ export default function ProjectListings({
             const state = parsedSearchParams['projects']
 
             const stateFilterItems = parseSearchOptionsFromState(state, searchOptions)
-            if (stateFilterItems !== undefined) setFilterItems(stateFilterItems)
+
+            if (
+                stateFilterItems !== undefined &&
+                // Prevent item shuffling if params match state but different order
+                !_.isEqual(
+                    [...stateFilterItems].sort((a,b) => a.key.localeCompare(b.key)),
+                    [...filterItems].sort((a,b) => a.key.localeCompare(b.key)),
+                )
+            ) {
+                setFilterItems(stateFilterItems)
+            }
 
             const stateViewSet = parseViewSetFromState(state, viewSets)
             if (stateViewSet !== undefined) setViewSet(stateViewSet)
@@ -258,7 +267,7 @@ export default function ProjectListings({
             controls,
         }
 
-        // push to router
+        // // push to router
         router.push(pathname + '?' + toSearchParamsString({ projects: projectsState }) + window.location.hash, { scroll: false })
     }
 
@@ -387,7 +396,6 @@ export default function ProjectListings({
                             flexDirection: 'row',
                             justifyContent: 'space-between',
                             width: '100%',
-                            // overflow: 'hidden',
                         }
                     }}
                 >
@@ -712,7 +720,9 @@ function parseSearchOptionsFromState(state: ProjectsSearchParamsState, searchOpt
                     case 'principalInvestigator':
                         optionVal = (searchOption.value as PrincipalInvestigator).name
                 }
-                return val === optionVal
+                if (val === optionVal) {
+                    return true
+                }
             }
             return false
         }
