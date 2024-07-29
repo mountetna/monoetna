@@ -8,7 +8,7 @@ import { useMediaQuery, useTheme } from '@mui/material';
 import _ from 'lodash'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project, ProjectHeadingInfoSet, ProjectsSearchParamsControls, ProjectsSearchParamsState } from './models';
+import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project, ProjectHeadingInfoSet, PROJECTS_SEARCH_PARAMS_KEY, ProjectsSearchParamsControls, ProjectsSearchParamsState } from './models';
 import ProjectListing from './project-listing';
 import Pagination, { PaginationClasses } from '@/components/searchable-list/controls/pagination'
 import DrawerButton from '@/components/searchable-list/controls/drawer/button';
@@ -60,14 +60,15 @@ export default function ProjectListings({
 }: {
     projectData: Project[],
 }) {
+    // Manage search params sync
     const router = useRouter()
     const pathname = usePathname()
-
     const searchParams = useSearchParams()
+
     React.useEffect(() => {
         const parsedSearchParams = parseSearchParams(searchParams)
-        if ('projects' in parsedSearchParams) {
-            const state = parsedSearchParams['projects']
+        if (PROJECTS_SEARCH_PARAMS_KEY in parsedSearchParams) {
+            const state = parsedSearchParams[PROJECTS_SEARCH_PARAMS_KEY]
 
             const stateFilterItems = parseSearchOptionsFromState(state, searchOptions)
 
@@ -75,8 +76,8 @@ export default function ProjectListings({
                 stateFilterItems !== undefined &&
                 // Prevent item shuffling if params match state but different order
                 !_.isEqual(
-                    [...stateFilterItems].sort((a,b) => a.key.localeCompare(b.key)),
-                    [...filterItems].sort((a,b) => a.key.localeCompare(b.key)),
+                    [...stateFilterItems].sort((a, b) => a.key.localeCompare(b.key)),
+                    [...filterItems].sort((a, b) => a.key.localeCompare(b.key)),
                 )
             ) {
                 setFilterItems(stateFilterItems)
@@ -268,7 +269,7 @@ export default function ProjectListings({
         }
 
         // // push to router
-        router.push(pathname + '?' + toSearchParamsString({ projects: projectsState }) + window.location.hash, { scroll: false })
+        router.push(pathname + '?' + toSearchParamsString({ [PROJECTS_SEARCH_PARAMS_KEY]: projectsState }) + window.location.hash, { scroll: false })
     }
 
 

@@ -2,8 +2,9 @@
 
 import * as React from 'react'
 import Box from '@mui/system/Box'
-import { Collapse, useTheme } from '@mui/material';
-import { useSpring, animated, useIsomorphicLayoutEffect } from '@react-spring/web';
+import Collapse from '@mui/material/Collapse'
+import Fade from '@mui/material/Fade'
+import { useTheme } from '@mui/material';
 
 import { DrawerItem, DisplayStyle, DrawerSectionProps, DrawerSectionClass, DrawerMainContentClass } from './models';
 import DrawerSectionDefault from './section-default';
@@ -11,9 +12,6 @@ import DrawerSectionExpandable from './section-expandable';
 import Button from '@/components/inputs/button';
 
 
-
-// TODO: make item a generic and
-// add getters like getItemKey
 export default function Drawer<Item>({
     items,
     viewSetItems,
@@ -50,7 +48,6 @@ export default function Drawer<Item>({
     displayStyle?: DisplayStyle,
 }) {
     const theme = useTheme()
-    const [finishedMountAnimation, setFinishedMountAnimation] = React.useState(false)
 
     const itemsByKey: Record<string, Item> = {}
     const drawerItemsByType: Record<string, DrawerItem[]> = {}
@@ -94,63 +91,6 @@ export default function Drawer<Item>({
         newSectionOpens[sectionIndex] = open
         setSectionOpens(newSectionOpens)
     }
-
-    const rootRef = React.useRef<HTMLElement>()
-    const [rootStyle, rootApi] = useSpring(() => ({
-        height: '0px',
-        opacity: 0,
-    }), [open])
-
-    const getRootAnimationState = () => {
-        let targetHeight = 0
-        let currentHeight = 0
-        const rootEl = rootRef.current
-
-        if (rootEl !== undefined) {
-            targetHeight = rootEl.offsetHeight
-            currentHeight = parseInt(rootApi.current[0].get().height.replace('px', ''))
-        }
-
-        return {
-            currentHeight,
-            targetHeight,
-            isAnimating: currentHeight > 0 && currentHeight != targetHeight,
-        }
-    }
-
-    useIsomorphicLayoutEffect(() => {
-        const animationState = getRootAnimationState()
-
-        if (!open && finishedMountAnimation) {
-            rootApi.set({ height: `${animationState.targetHeight}px`, })
-        }
-
-        rootApi.start(
-            {
-                height: `${open ? animationState.targetHeight : 0}px`,
-                opacity: open ? 1 : 0,
-                config: {
-                    easing: theme.transitions.easing.quintFn,
-                    duration: theme.transitions.duration.quint,
-                },
-                onStart: () => {
-                    const animatedEl = rootRef.current?.parentElement
-                    if (!open && animatedEl) {
-                        animatedEl.className = ''
-                    }
-                },
-                onRest: () => {
-                    const animationState = getRootAnimationState()
-                    const animatedEl = rootRef.current?.parentElement
-                    if (open && animatedEl && animationState.currentHeight === animationState.targetHeight) {
-                        animatedEl.className = 'full-height'
-                    }
-
-                    setFinishedMountAnimation(true)
-                }
-            }
-        )
-    }, [open])
 
     const handleClickItem = (item: DrawerItem) => {
         let newActiveItems: Item[]
@@ -215,21 +155,18 @@ export default function Drawer<Item>({
     }
 
     return (
-        <Box
-            sx={{
-                '& > *.full-height': {
-                    height: 'auto !important',
-                },
-            }}
+        <Collapse
+            in={open}
+            easing={theme.transitions.easing.quint}
+            timeout={theme.transitions.duration.quint}
         >
-            <animated.div
-                style={{
-                    overflow: 'hidden',
-                    ...rootStyle,
-                }}
+            <Fade
+                in={open}
+                easing={theme.transitions.easing.quint}
+                timeout={theme.transitions.duration.quint}
             >
                 <Box
-                    ref={rootRef}
+                    // ref={rootRef}
                     className='drawer-main-content-container'
                 >
                     <Box
@@ -330,7 +267,7 @@ export default function Drawer<Item>({
                         />}
                     </Box>
                 </Box>
-            </animated.div>
-        </Box>
+            </Fade>
+        </Collapse>
     )
 }

@@ -84,6 +84,8 @@ export enum ProjectHeadingInfoSet {
     pis = 'Principal Investigators',
 }
 
+export const PROJECTS_SEARCH_PARAMS_KEY = 'projects'
+
 export interface ProjectsSearchParamsControls {
     viewSet?: string
     page?: number

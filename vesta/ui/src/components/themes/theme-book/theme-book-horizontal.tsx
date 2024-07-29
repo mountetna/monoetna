@@ -3,13 +3,13 @@ import Image from "next/image"
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import MUILink from '@mui/material/Link';
+import Collapse from '@mui/material/Collapse'
+import Fade from '@mui/material/Fade'
 import Link from 'next/link'
-import { useSpring, animated, useIsomorphicLayoutEffect } from '@react-spring/web';
 import ButtonBase from '@mui/material/ButtonBase';
 
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
 import { ProjectCount, ThemeBookProps } from './shared';
-import { useWindowDimensions } from '@/lib/utils/responsive';
 import { useTheme } from '@mui/material';
 
 
@@ -22,45 +22,14 @@ export default function ThemeBookHorizontal({
 }: ThemeBookProps) {
     const theme = useTheme()
 
-    const mainContentRef = React.useRef<HTMLElement>()
-    const coverRef = React.useRef<HTMLElement>()
-
-    const springParams = {
-        width: '0px',
-        opacity: 0,
-    }
-    const [mainContentStyle, animateMainContentApi] = useSpring(
-        () => ({
-            ...springParams,
-            onRest: () => open && onFinishOpen(),
-        }),
-        [open],
-    )
-    const [coverStyle, animateCoverApi] = useSpring(
-        () => ({ ...springParams }),
-        [open],
-    )
-
-    const { isResizing: isWindowResizing } = useWindowDimensions()
-
-    const getSpringApiParams = (ref: React.RefObject<HTMLElement | undefined>, isOpen: boolean) => {
-        return {
-            width: `${isOpen ? ref.current?.offsetWidth : 0}px`,
-            opacity: isOpen ? 1 : 0,
-            config: {
-                easing: theme.transitions.easing.quintFn,
-                duration: theme.transitions.duration.quint,
-            },
-        }
-    }
-
-    useIsomorphicLayoutEffect(() => {
-        animateMainContentApi.start(getSpringApiParams(mainContentRef, open))
-        animateCoverApi.start(getSpringApiParams(coverRef, open))
-    }, [open, isWindowResizing])
-
     const headingTextColor = data.textColor === 'light' ?
         theme.palette.utilityHighlight.main : theme.palette.ground.grade10
+
+    const animationProps = {
+        in: open,
+        easing: theme.transitions.easing.quint,
+        timeout: theme.transitions.duration.quint,
+    }
 
     return (
         <Box
@@ -76,6 +45,8 @@ export default function ThemeBookHorizontal({
                             easing: theme.transitions.easing.quint,
                         }
                     ),
+                    // TODO: figure out why this is neccessary for proper animation
+                    transform: 'translateY(0px)',
                 }
 
                 return open ? styles : {
@@ -87,98 +58,102 @@ export default function ThemeBookHorizontal({
             }}
         >
             {/* MAIN CONTENT */}
-            <animated.div
-                style={{
-                    display: 'flex',
-                    overflow: 'hidden',
-                    ...mainContentStyle,
-                }}
+            <Collapse
+                {...animationProps}
+                onEntered={() => onFinishOpen()}
+                orientation='horizontal'
             >
-                <Box
-                    ref={mainContentRef}
-                    sx={{
+                <Fade
+                    {...animationProps}
+                    style={{
                         display: 'flex',
-                        flexDirection: 'column',
-                        p: '16px',
                     }}
                 >
                     <Box
                         sx={{
                             display: 'flex',
                             flexDirection: 'column',
-                            flexGrow: '1',
-                            justifyContent: 'space-between',
-                            gap: '24px',
+                            p: '16px',
                         }}
                     >
                         <Box
                             sx={{
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: '16px',
-                                textAlign: 'left',
-                                minWidth: '280px',
-                                [theme.breakpoints.up('desktop')]: {
-                                    minWidth: '362px',
-                                },
+                                flexGrow: '1',
+                                justifyContent: 'space-between',
+                                gap: '24px',
                             }}
                         >
-                            <Typography variant='h5'>
-                                {data.name}
-                            </Typography>
-                            <Typography variant='pLarge' component='div'>
-                                {data.description}
-                            </Typography>
-                        </Box>
-
-                        {/* SEE PROJECTS BUTTON */}
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                justifyContent: 'flex-end',
-                            }}
-                        >
-                            <MUILink
-                                href={data.projectsLink}
-                                tabIndex={0}
-                                component={Link}
-                                underline='none'
-                                onClick={e => onClickSeeProjects(e, data.projectsLink)}
+                            <Box
                                 sx={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    borderRadius: '60px',
-                                    color: 'utilityHighlight.main',
-                                    bgcolor: 'ground.grade10',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '16px',
+                                    textAlign: 'left',
+                                    minWidth: '280px',
+                                    [theme.breakpoints.up('desktop')]: {
+                                        minWidth: '362px',
+                                    },
                                 }}
                             >
-                                <Typography
-                                    variant='pLarge'
+                                <Typography variant='h5'>
+                                    {data.name}
+                                </Typography>
+                                <Typography variant='pLarge' component='div'>
+                                    {data.description}
+                                </Typography>
+                            </Box>
+
+                            {/* SEE PROJECTS BUTTON */}
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    justifyContent: 'flex-end',
+                                }}
+                            >
+                                <MUILink
+                                    href={data.projectsLink}
+                                    tabIndex={0}
+                                    component={Link}
+                                    underline='none'
+                                    onClick={e => onClickSeeProjects(e, data.projectsLink)}
                                     sx={{
                                         display: 'inline-flex',
-                                        p: '10px 10px 10px 24px',
+                                        alignItems: 'center',
+                                        borderRadius: '60px',
+                                        color: 'utilityHighlight.main',
+                                        bgcolor: 'ground.grade10',
                                     }}
                                 >
-                                    See projects
-                                </Typography>
-                                <Box
-                                    sx={{
-                                        display: 'flex',
-                                        p: '12px',
-                                    }}
-                                >
-                                    <Image
-                                        src={arrowUpRightLight}
-                                        alt='Arrow pointing up-right'
-                                        width={40}
-                                        height={40}
-                                    />
-                                </Box>
-                            </MUILink>
+                                    <Typography
+                                        variant='pLarge'
+                                        sx={{
+                                            display: 'inline-flex',
+                                            p: '10px 10px 10px 24px',
+                                        }}
+                                    >
+                                        See projects
+                                    </Typography>
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            p: '12px',
+                                        }}
+                                    >
+                                        <Image
+                                            src={arrowUpRightLight}
+                                            alt='Arrow pointing up-right'
+                                            width={40}
+                                            height={40}
+                                        />
+                                    </Box>
+                                </MUILink>
+                            </Box>
                         </Box>
                     </Box>
-                </Box>
-            </animated.div>
+                </Fade>
+            </Collapse>
 
             <Box
                 sx={{
@@ -280,48 +255,51 @@ export default function ThemeBookHorizontal({
                 </ButtonBase>
 
                 {/* COVER */}
-                <animated.div
-                    style={{
-                        display: 'flex',
-                        borderRadius: '20px',
-                        borderTopLeftRadius: '0px',
-                        borderBottomLeftRadius: '0px',
-                        backgroundColor: data.color,
-                        overflow: 'hidden',
-                        ...coverStyle,
-                    }}
+                <Collapse
+                    {...animationProps}
+                    orientation='horizontal'
+
                 >
-                    <Box
-                        ref={coverRef}
+                    <Fade
+                        {...animationProps}
+                        style={{
+                            display: 'flex',
+                            borderRadius: '20px',
+                            borderTopLeftRadius: '0px',
+                            borderBottomLeftRadius: '0px',
+                            backgroundColor: data.color,
+                        }}
                     >
-                        <Box
-                            sx={(theme) => ({
-                                display: 'flex',
-                                overflow: 'hidden',
-                                p: '16px',
-                                width: '399px',
-                                height: '570px',
-                                [theme.breakpoints.up('desktop')]: {
-                                    width: '516px',
-                                    height: '671px',
-                                },
-                            })}
-                        >
-                            <Image
-                                src={data.coverImage}
-                                alt={`${data.name} theme abstract image`}
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover',
-                                    objectPosition: 'center center',
-                                    borderRadius: '16px',
-                                }}
-                            />
+                        <Box>
+                            <Box
+                                sx={(theme) => ({
+                                    display: 'flex',
+                                    overflow: 'hidden',
+                                    p: '16px',
+                                    width: '399px',
+                                    height: '570px',
+                                    [theme.breakpoints.up('desktop')]: {
+                                        width: '516px',
+                                        height: '671px',
+                                    },
+                                })}
+                            >
+                                <Image
+                                    src={data.coverImage}
+                                    alt={`${data.name} theme abstract image`}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover',
+                                        objectPosition: 'center center',
+                                        borderRadius: '16px',
+                                    }}
+                                />
+                            </Box>
                         </Box>
-                    </Box>
-                </animated.div>
+                    </Fade>
+                </Collapse>
             </Box>
-        </Box>
+        </Box >
     )
 }

@@ -4,12 +4,13 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
+import Collapse from '@mui/material/Collapse';
+import Fade from '@mui/material/Fade';
 import { useTheme } from '@mui/material';
-import { useSpring, animated, useIsomorphicLayoutEffect } from '@react-spring/web';
+import { TransitionProps } from '@mui/material/transitions';
 import _ from 'lodash'
 import Image from 'next/image';
 
-import { useWindowDimensions } from '@/lib/utils/responsive';
 import { DrawerSectionProps } from './models';
 
 import indicatorArrowDark from '/public/images/icons/indicator-arrow-dark.svg'
@@ -34,27 +35,11 @@ export default function DrawerSectionExpandable({
 }: Props) {
     const theme = useTheme()
 
-    const { isResizing: isWindowResizing } = useWindowDimensions()
-
-    // Manage open/close
-    const itemsContainerRef = React.useRef<HTMLElement>()
-    const [itemsContainerStyle, itemsContainerApi] = useSpring(() => ({
-        height: '0px',
-        opacity: 0,
-    }), [])
-
-    useIsomorphicLayoutEffect(() => {
-        itemsContainerApi.start(
-            {
-                height: `${open ? itemsContainerRef.current?.offsetHeight : 0}px`,
-                opacity: open ? 1 : 0,
-                config: {
-                    easing: theme.transitions.easing.quintFn,
-                    duration: theme.transitions.duration.quint,
-                },
-            }
-        )
-    }, [open, isWindowResizing])
+    const animationProps: TransitionProps = {
+        in: open,
+        easing: theme.transitions.easing.quint,
+        timeout: theme.transitions.duration.quint,
+    }
 
     return (
         <Box
@@ -96,32 +81,32 @@ export default function DrawerSectionExpandable({
                 />
             </ButtonBase>
 
-            <animated.div
-                style={{
-                    overflow: 'hidden',
-                    ...itemsContainerStyle,
-                }}
+            <Collapse
+                {...animationProps}
             >
-                <Box
-                    ref={itemsContainerRef}
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        flexWrap: 'wrap',
-                        gap: '10px',
-                        pt: '16px',
-                    }}
+                <Fade
+                    {...animationProps}
                 >
-                    {items.map(item => (
-                        <DrawerPill
-                            key={item.key}
-                            label={item.label}
-                            active={activeKeys.has(item.key)}
-                            onClick={() => onClickItem(item)}
-                        />
-                    ))}
-                </Box>
-            </animated.div >
-        </Box >
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            flexWrap: 'wrap',
+                            gap: '10px',
+                            pt: '16px',
+                        }}
+                    >
+                        {items.map(item => (
+                            <DrawerPill
+                                key={item.key}
+                                label={item.label}
+                                active={activeKeys.has(item.key)}
+                                onClick={() => onClickItem(item)}
+                            />
+                        ))}
+                    </Box>
+                </Fade>
+            </Collapse>
+        </Box>
     )
 }

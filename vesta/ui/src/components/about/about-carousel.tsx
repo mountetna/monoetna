@@ -222,7 +222,7 @@ export default function AboutCarousel({ items }: { items: AboutItemProps[] }) {
                             display: 'block',
                         },
                         [theme.breakpoints.up(theme.breakpoints.values.desktopLg + 300)]: {
-                            width: '220px'
+                            width: '170px'
                         },
                     },
                 }}

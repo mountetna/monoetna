@@ -14,7 +14,7 @@ import { sectionMargins } from '@/theme';
 import ThemeShelf from '@/components/themes/theme-shelf';
 import { ThemeData } from '@/components/themes/models';
 import ProjectListings from '@/components/project-listings/project-listings';
-import { Project, ProjectStatus, ProjectType, DataType, ProjectsSearchParamsState } from '@/components/project-listings/models';
+import { Project, ProjectStatus, ProjectType, DataType, ProjectsSearchParamsState, PROJECTS_SEARCH_PARAMS_KEY } from '@/components/project-listings/models';
 import { toSearchParamsString } from '@/lib/utils/uri';
 
 import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
@@ -361,7 +361,7 @@ THEMES.forEach(theme => {
   const projectsSearchParamsState: ProjectsSearchParamsState = {
     filters: { theme: [theme.name] }
   }
-  const search = toSearchParamsString({ projects: projectsSearchParamsState })
+  const search = toSearchParamsString({ [PROJECTS_SEARCH_PARAMS_KEY]: projectsSearchParamsState })
   theme.projectsLink = '/?' + search + '#projects'
 })
 

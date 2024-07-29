@@ -46,7 +46,7 @@ export default function ThemeShelf({
 
     const tabletDesktopThemeBookGapPx = 10
     const tabletThemeBookFadeMaskWidthPx = 47
-    const desktopThemeBookFadeMaskWidthPx = 220
+    const desktopThemeBookFadeMaskWidthPx = 170
 
     const scrollToBook = (bookIdx: number) => {
         const containerEl = isMobile ? mobileThemeBookContainerRef.current : tabletDesktopThemeBookListRef.current
@@ -58,12 +58,12 @@ export default function ThemeShelf({
 
         if (isMobile) {
             window.scroll({
+                // TODO: include navbar offset
                 top: bookEl.offsetTop,
                 behavior: 'smooth',
             })
         } else {
             containerEl.scroll({
-                // TODO: include navbar offset
                 left: bookEl.offsetLeft,
                 behavior: 'smooth',
             })

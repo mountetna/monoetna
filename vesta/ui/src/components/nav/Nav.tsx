@@ -19,9 +19,12 @@ import hamburgerIconDarkSrc from '/public/images/icons/hamburger-menu-icon-dark.
 import logoLightSrc from '/public/images/logo/logo-light.svg'
 import logoDarkSrc from '/public/images/logo/logo-dark.svg'
 import logoWordmarkBottomLightSrc from '/public/images/logo/logo-wordmark-bottom-light.svg'
+import MobileNav from './mobile-nav';
 
 
 export default function Nav() {
+    const [mobileNavOpen, setMobileNavOpen] = React.useState(false)
+
     const mainNavRef = React.createRef<HTMLElement>()
     // TODO: fix glitchiness
     // const isStuck = useIsStuck(mainNavRef)
@@ -200,6 +203,7 @@ export default function Nav() {
 
                         <ButtonBase
                             tabIndex={0}
+                            onClick={() => setMobileNavOpen(!mobileNavOpen)}
                             sx={(theme) => ({
                                 color: 'utilityHighlight.main',
                                 width: '48px',
@@ -235,6 +239,10 @@ export default function Nav() {
                         </ButtonBase>
                     </Box>
                 </Container>
+
+                <MobileNav
+                    open={mobileNavOpen}
+                />
             </Box>
         </React.Fragment>
     )

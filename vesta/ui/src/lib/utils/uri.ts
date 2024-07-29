@@ -1,4 +1,5 @@
-import { flattenObject, unflattenObject } from "./object"
+import { flattenObject, unflattenObject } from './object'
+
 
 const flattenDelimiter = '.'
 

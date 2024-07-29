@@ -1,6 +1,9 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
+import Collapse from '@mui/material/Collapse'
+import Fade from '@mui/material/Fade'
+import { TransitionProps } from '@mui/material/transitions';
 import { useParentSize } from '@visx/responsive'
 import Pie, { ProvidedProps, PieArcDatum } from '@visx/shape/lib/shapes/Pie';
 import { Group } from '@visx/group';
@@ -29,27 +32,16 @@ export default function ThemeProjectBreakdownChart({
 }: {
     data: ThemeProjectBreakdownData[],
 }) {
-    const [selectedTheme, setSelectedTheme] = React.useState<string | null>(null)
-
-    const [breakdownOpen, setBreakdownOpen] = React.useState(false)
-    const breakdownContainerRef = React.useRef<HTMLElement>()
-    const [breakdownStyle, animateBreakdownApi] = useSpring(
-        () => ({ height: '0px', opacity: 0 }), []
-    )
-
     const theme = useTheme()
 
-    const toggleBreakdown = () => {
-        setBreakdownOpen(!breakdownOpen)
-        animateBreakdownApi.start({
-            height: `${breakdownOpen ? 0 : breakdownContainerRef.current?.offsetHeight}px`,
-            opacity: breakdownOpen ? 0 : 1,
-            config: {
-                easing: theme.transitions.easing.quintFn,
-                duration: theme.transitions.duration.quint,
-            },
-        })
+    const [breakdownOpen, setBreakdownOpen] = React.useState(false)
+    const breakdownAnimationProps: TransitionProps = {
+        in: breakdownOpen,
+        easing: theme.transitions.easing.quint,
+        timeout: theme.transitions.duration.quint,
     }
+
+    const [selectedTheme, setSelectedTheme] = React.useState<string | null>(null)
 
     const {
         parentRef: chartContainerRef,
@@ -173,6 +165,7 @@ export default function ThemeProjectBreakdownChart({
                                 padAngle={0.025}
                             >
                                 {(pie) => (
+                                    // @ts-ignore
                                     <AnimatedPie<ThemeData>
                                         {...pie}
                                         animate={true}
@@ -331,7 +324,7 @@ export default function ThemeProjectBreakdownChart({
                         py: '6px',
                         cursor: 'pointer',
                     }}
-                    onClick={toggleBreakdown}
+                    onClick={() => setBreakdownOpen(!breakdownOpen)}
                 >
                     <span>{breakdownOpen ? 'Close' : 'Open'} breakdown</span>
                     <Box
@@ -350,34 +343,34 @@ export default function ThemeProjectBreakdownChart({
                         />
                     </Box>
                 </Typography>
-                <animated.div
-                    style={{
-                        overflow: 'hidden',
-                        ...breakdownStyle,
-                    }}
+                <Collapse
+                    {...breakdownAnimationProps}
                 >
-                    <Box
-                        ref={breakdownContainerRef}
-                        sx={{
-                            overflow: 'hidden',
-                            pt: '16px',
-                            '& > *:not(:last-child)': {
-                                mb: '16px',
-                            },
-                        }}
+                    <Fade
+                        {...breakdownAnimationProps}
                     >
-                        {data.map(d => (
-                            <ThemeItem
-                                key={d.name}
-                                name={d.name}
-                                color={d.color}
-                                count={d.projectCount}
-                                selected={selectedTheme === d.name}
-                                onClick={handleClickThemeItem}
-                            />
-                        ))}
-                    </Box>
-                </animated.div>
+                        <Box
+                            sx={{
+                                overflow: 'hidden',
+                                pt: '16px',
+                                '& > *:not(:last-child)': {
+                                    mb: '16px',
+                                },
+                            }}
+                        >
+                            {data.map(d => (
+                                <ThemeItem
+                                    key={d.name}
+                                    name={d.name}
+                                    color={d.color}
+                                    count={d.projectCount}
+                                    selected={selectedTheme === d.name}
+                                    onClick={handleClickThemeItem}
+                                />
+                            ))}
+                        </Box>
+                    </Fade>
+                </Collapse>
             </Box>
         </Box>
     )
