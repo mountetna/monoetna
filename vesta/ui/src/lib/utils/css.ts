@@ -8,28 +8,29 @@ export default function useIsStuck(
     ref: React.RefObject<HTMLElement>,
     observerSettings: IntersectionObserverInit = {
         root: null,
-        threshold: [1],
+        threshold: [0],
     }
 ) {
     const [isStuck, setIsStuck] = React.useState(false)
 
     React.useEffect(() => {
         const refEl = ref.current
-        
-        if (document == undefined || refEl == null) {
+        const parentEl = ref.current?.parentNode
+
+        if (document == undefined || refEl == null || parentEl == null) {
             return
         }
 
         const detectorEl = document.createElement('div')
         detectorEl.style.cssText = 'visibility: hidden'
 
-        document.body.insertBefore(detectorEl, refEl)
-        
+        parentEl.insertBefore(detectorEl, refEl)
+
         const observer = new IntersectionObserver(
-            ([e]) => setIsStuck(e.intersectionRatio < 1),
+            ([e]) => setIsStuck(!e.isIntersecting),
             observerSettings,
         )
-        
+
         observer.observe(detectorEl)
 
         return () => {

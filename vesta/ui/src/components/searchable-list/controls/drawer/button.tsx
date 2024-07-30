@@ -7,7 +7,7 @@ import ButtonBase from '@mui/material/ButtonBase';
 import Image, { StaticImageData } from 'next/image';
 
 
-export enum Class {
+export enum Classes {
     buttonBase = 'drawer-button-base',
     buttonActivated = 'drawer-button-activated',
     buttonOpen = 'drawer-button-apen',
@@ -42,12 +42,12 @@ export default function DrawerButton({
         }
     )
 
-    const classes = [Class.buttonBase]
+    const classes = [Classes.buttonBase]
     if (activated) {
-        classes.push(Class.buttonActivated)
+        classes.push(Classes.buttonActivated)
     }
     if (open) {
-        classes.push(Class.buttonOpen)
+        classes.push(Classes.buttonOpen)
     }
 
     // TODO: make this a theme var?
@@ -70,28 +70,28 @@ export default function DrawerButton({
                 bgcolor: 'utilityWhite.main',
                 borderRadius: '30px',
                 transition,
-                [`&.${Class.buttonActivated}`]: {
-                    [`& .${Class.iconContainer}`]: {
+                [`&.${Classes.buttonActivated}`]: {
+                    [`& .${Classes.iconContainer}`]: {
                         bgcolor: 'utilityHighlight.main',
                     },
-                    [`& .${Class.activationIndicator}`]: {
+                    [`& .${Classes.activationIndicator}`]: {
                         opacity: 1,
                     },
                 },
                 '&:hover, &:focus': {
-                    [`&:not(.${Class.buttonOpen})`]: {
+                    [`&:not(.${Classes.buttonOpen})`]: {
                         bgcolor: 'ground.grade100',
-                        [`& .${Class.iconContainer}`]: {
+                        [`& .${Classes.iconContainer}`]: {
                             bgcolor: 'utilityWhiteTransparent25.main',
                         },
                     },
                 },
-                [`&.${Class.buttonOpen}`]: {
+                [`&.${Classes.buttonOpen}`]: {
                     bgcolor: 'ground.grade10',
-                    [`& .${Class.iconContainer}`]: {
+                    [`& .${Classes.iconContainer}`]: {
                         bgcolor: 'ground.grade25',
                     },
-                    [`& .${Class.activationIndicatorBorder}`]: {
+                    [`& .${Classes.activationIndicatorBorder}`]: {
                         bgcolor: 'ground.grade10',
                     },
                     '& *': {
@@ -101,7 +101,7 @@ export default function DrawerButton({
             }}
         >
             <Box
-                className={Class.iconContainer}
+                className={Classes.iconContainer}
                 sx={{
                     position: 'relative',
                     display: 'flex',
@@ -141,7 +141,7 @@ export default function DrawerButton({
                     </Box>
                 </Box>
                 <Box
-                    className={Class.activationIndicator}
+                    className={Classes.activationIndicator}
                     sx={{
                         position: 'absolute',
                         bottom: '1px',
@@ -151,7 +151,7 @@ export default function DrawerButton({
                     }}
                 >
                     <Box
-                        className={Class.activationIndicatorBorder}
+                        className={Classes.activationIndicatorBorder}
                         sx={{
                             width: '10px',
                             height: '10px',

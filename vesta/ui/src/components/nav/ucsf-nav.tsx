@@ -2,57 +2,90 @@ import * as React from 'react'
 import MUILink from '@mui/material/Link';
 import Link from 'next/link'
 import Box from '@mui/material/Box';
+import { SxProps, Typography } from '@mui/material';
+
+import { TypographyVariant } from '@/lib/utils/types';
 
 
-function NavLink({ text, href }: { text: string, href: string }) {
+export enum Classes {
+    root = 'ucsf-nav',
+    linkContainer = 'link-container',
+    link = 'link',
+    donateLinkContainer = 'donate-link-container',
+}
+
+
+function NavLink({
+    text,
+    href,
+    typography,
+}: {
+    text: string,
+    href: string,
+    typography: TypographyVariant,
+}) {
     return (
         <Box
+            className={Classes.linkContainer}
             component='li'
-            sx={{ display: 'inline-block' }}
+            sx={{
+
+            }}
         >
             <MUILink
                 href={href}
                 tabIndex={0}
                 component={Link}
                 underline='none'
-                color='utilityUCSFLightNavy.main'
             >
-                {text}
+                <Typography variant={typography}>
+                    {text}
+                </Typography>
             </MUILink>
         </Box>
     )
 }
 
 
-export default function UCSFNav() {
+export default function UCSFNav({
+    sx = {},
+    typography = 'pBody',
+    buttonTypography = 'pBodyMediumWt',
+}: {
+    sx?: SxProps,
+    typography?: TypographyVariant
+    buttonTypography?: TypographyVariant
+}) {
     return (
         <Box
+            className={Classes.root}
             component='ol'
             sx={{
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
                 p: 0,
                 m: 0,
                 listStyle: 'none',
-                typography: 'pBody',
-                '& > *:not(:last-child)': {
-                    mr: '29px',
-                },
+                ...sx,
             }}
         >
             <NavLink
                 text='About UCSF'
                 href='https://www.ucsf.edu/about'
+                typography={typography}
             />
             <NavLink
                 text='Search UCSF'
                 href='https://www.ucsf.edu/search'
+                typography={typography}
             />
             <NavLink
                 text='UCSF Health'
                 href='https://www.ucsfhealth.org/'
+                typography={typography}
             />
             <Box
+                className={Classes.donateLinkContainer}
                 component='li'
                 sx={{
                     display: 'inline-block'
@@ -72,7 +105,9 @@ export default function UCSFNav() {
                         backgroundColor: 'utilityUCSFLightNavy.main',
                     }}
                 >
-                    Donate
+                    <Typography variant={buttonTypography}>
+                        Donate
+                    </Typography>
                 </MUILink>
             </Box>
         </Box>

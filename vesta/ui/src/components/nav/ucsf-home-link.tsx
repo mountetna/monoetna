@@ -19,7 +19,9 @@ export default function UCSFHomeLink() {
         >
             <Box
                 component='li'
-                sx={{ display: 'inline-block' }}
+                sx={{
+
+                }}
             >
                 <MUILink
                     href="https://www.ucsf.edu/"

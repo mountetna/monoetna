@@ -3,42 +3,66 @@ import MUILink from '@mui/material/Link';
 import Link from 'next/link'
 import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
+import { SxProps, Typography } from '@mui/material';
 
-import LibraryCardButton from '../library-card/library-card-button';
-import LibraryCardTray from '../library-card/library-card-tray';
+import LibraryCardButton, { Classes as LibraryCardButtonClasses } from '../library-card/library-card-button';
+import LibraryCardTray, { Classes as LibraryCardTrayClasses } from '../library-card/library-card-tray';
+import { TypographyVariant } from '@/lib/utils/types'
 
 
-function NavLink({ text, href, isStuck, onClick }: {
+export enum Classes {
+    root = 'data-library-nav',
+    linkContainer = 'link-container',
+    link = 'link',
+    libraryCardListItemContainer = 'library-card-list-item-container',
+    libraryCardButton = LibraryCardButtonClasses.root,
+    LibraryCardTray = LibraryCardTrayClasses.root,
+}
+
+
+function NavLink({
+    text,
+    href,
+    onClick,
+    typography,
+}: {
     text: string,
     href: string,
-    isStuck: boolean,
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void,
+    typography: TypographyVariant,
 }) {
     return (
         <Box
+            className={Classes.linkContainer}
             component='li'
             sx={{
-                display: 'inline-block',
-                py: '8px',
+
             }}
         >
             <MUILink
+                className={Classes.link}
                 href={href}
                 tabIndex={0}
                 component={Link}
                 underline='none'
-                color={isStuck ? 'utilityLowlight.main' : 'utilityHighlight.main'}
-                typography='pBodyMediumWt'
                 onClick={onClick}
             >
-                {text}
+                <Typography variant={typography}>
+                    {text}
+                </Typography>
             </MUILink>
         </Box>
     )
 }
 
 
-export default function DLNav({ isStuck }: { isStuck: boolean }) {
+export default function DLNav({
+    sx = {},
+    typography = 'pBody',
+}: {
+    sx?: SxProps,
+    typography?: TypographyVariant
+}) {
     const router = useRouter()
 
     const handleClickNavLink = (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -49,98 +73,64 @@ export default function DLNav({ isStuck }: { isStuck: boolean }) {
         const el = document.getElementById(elId)
 
         router.push(href, { scroll: false })
-        window.scrollTo({
-            top: el?.offsetTop,
-            behavior: 'smooth',
-        })
+
+        if (el) {
+            window.scrollTo({
+                top: el.offsetTop,
+                behavior: 'smooth',
+            })
+        }
     }
 
     return (
         <Box
+            className={Classes.root}
             component='ol'
             sx={{
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
                 p: 0,
                 m: 0,
                 listStyle: 'none',
-                typography: 'pBody',
+                ...sx,
             }}
         >
             <Box
-                sx={(theme) => ({
-                    display: 'none',
-                    '& > *': {
-                        mr: '29px',
-                        [theme.breakpoints.up('desktop')]: {
-                            mr: '54px',
-                        },
-                    },
-                    [theme.breakpoints.up('desktop')]: {
-                        display: 'inline-block',
-                        pl: '30px',
-                        py: '18px'
-                    },
-                })}
+                sx={{
+
+                }}
             >
                 <NavLink
                     text='About the Library'
                     href='#about'
-                    isStuck={isStuck}
                     onClick={handleClickNavLink}
+                    typography={typography}
                 />
                 <NavLink
                     text='Themes'
                     href='#themes'
-                    isStuck={isStuck}
                     onClick={handleClickNavLink}
+                    typography={typography}
                 />
                 <NavLink
                     text='Projects'
                     href='#projects'
-                    isStuck={isStuck}
                     onClick={handleClickNavLink}
+                    typography={typography}
                 />
                 {/* <NavLink
                     text='Contibute'
                     href='#'
-                    isStuck={isStuck}
                     onClick={handleClickNavLink}
+                    typography={typography}
                 /> */}
             </Box>
             <Box
+                className={Classes.libraryCardListItemContainer}
                 component='li'
-                sx={(theme) => ({
-                    display: 'none',
-                    [theme.breakpoints.up('tablet')]: {
-                        display: 'inline-block',
-                    },
-                })}
             >
-                <Box
-                    sx={(theme) => ({
-                        display: 'none',
-                        [theme.breakpoints.up('tablet')]: {
-                            display: 'inline-block',
-                        },
-                        [theme.breakpoints.up('desktop')]: {
-                            display: 'none',
-                        },
-                    })}
-                >
-                    <LibraryCardButton />
-                </Box>
-                <Box
-                    sx={(theme) => ({
-                        display: 'none',
-                        [theme.breakpoints.up('desktop')]: {
-                            display: 'inline-block',
-                            mr: '16px',
-                        },
-                    })}
-                >
-                    <LibraryCardTray />
-                </Box>
+                <LibraryCardButton />
+                <LibraryCardTray />
             </Box>
         </Box>
     )

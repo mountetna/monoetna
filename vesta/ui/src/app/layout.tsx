@@ -6,7 +6,7 @@ import 'swiper/css';
 import 'swiper/css/bundle';
 
 import theme from '@/theme';
-import Nav from '@/components/nav/nav';
+import MainNav from '@/components/nav/main-nav';
 import Footer from '@/components/footer';
 
 export default function RootLayout(props: { children: React.ReactNode }) {
@@ -19,7 +19,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
           <ThemeProvider theme={theme}>
             <CssBaseline enableColorScheme={true} />
 
-            <Nav />
+            <MainNav />
             <main>{props.children}</main>
             <Footer />
 

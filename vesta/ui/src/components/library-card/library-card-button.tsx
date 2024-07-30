@@ -3,19 +3,15 @@ import Box from '@mui/system/Box'
 import ButtonBase from '@mui/material/ButtonBase';
 
 
-// sx={{
-//     display: 'inline-block',
-//     px: '16px',
-//     py: '8px',
-//     borderRadius: '40px',
-//     color: 'utilityUCSFNavy.main',
-//     backgroundColor: 'utilityUCSFLightNavy.main',
-// }}
+export enum Classes {
+    root = 'library-card-button'
+}
 
 
 export default function LibraryCardButton() {
     return (
         <ButtonBase
+            className={Classes.root}
             sx={{
                 px: '16px',
                 py: '8px',

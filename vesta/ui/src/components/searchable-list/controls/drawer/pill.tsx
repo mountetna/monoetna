@@ -6,7 +6,7 @@ import ButtonBase from '@mui/material/ButtonBase';
 import { useTheme } from '@mui/material';
 
 
-export enum Class {
+export enum Classes {
     base = 'drawer-pill',
     active = 'drawer-pill-active',
 }
@@ -23,9 +23,9 @@ export default function DrawerPill({
 }) {
     const theme = useTheme()
 
-    const classes = [Class.base]
+    const classes = [Classes.base]
     if (active) {
-        classes.push(Class.active)
+        classes.push(Classes.active)
     }
 
     return (
@@ -39,7 +39,7 @@ export default function DrawerPill({
                 bgcolor: 'utilityHighlight.main',
                 borderRadius: '40px',
                 border: '1px solid transparent',
-                [`&.${Class.active}`]: {
+                [`&.${Classes.active}`]: {
                     bgcolor: 'yellow.grade50',
                 },
                 transition: theme.transitions.create(
