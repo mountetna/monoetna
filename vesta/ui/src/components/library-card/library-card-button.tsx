@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Box from '@mui/system/Box'
 import ButtonBase from '@mui/material/ButtonBase';
 
 
@@ -8,10 +7,15 @@ export enum Classes {
 }
 
 
-export default function LibraryCardButton() {
+export default function LibraryCardButton({
+    onClick,
+}: {
+    onClick: () => void,
+}) {
     return (
         <ButtonBase
             className={Classes.root}
+            onClick={onClick}
             sx={{
                 px: '16px',
                 py: '8px',

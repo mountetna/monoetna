@@ -131,7 +131,7 @@ export default function MainNav() {
                         sx={{
                             pt: `${NavBarHeights.default}px`,
                             height: `calc(100vh - ${scrollDistanceToMainNav}px)`,
-                            '& > *': {
+                            '& > *:first-child': {
                                 pt: isStuck ? '0px' : '36px',
                                 transition: theme.transitions.create(
                                     'padding-top',

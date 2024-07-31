@@ -13,6 +13,7 @@ import { Heights as NavBarHeights } from './nav-bar';
 
 export enum Classes {
     root = 'data-library-nav',
+    linksContainer = 'links-container',
     linkContainer = 'link-container',
     link = 'link',
     libraryCardListItemContainer = 'library-card-list-item-container',
@@ -97,9 +98,7 @@ export default function DLNav({
             }}
         >
             <Box
-                sx={{
-
-                }}
+                className={Classes.linksContainer}
             >
                 <NavLink
                     text='About the Library'

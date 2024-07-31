@@ -8,6 +8,7 @@ import Link from 'next/link'
 import Image from 'next/image';
 
 import logoWordmarkRightLightSrc from '/public/images/logo/logo-wordmark-right-light.svg'
+import Copyright from './legal/copyright';
 
 
 function NavLink({ text, href }: { text: string, href: string }) {
@@ -148,11 +149,8 @@ export default function Footer() {
                         </Box>
                     </Box>
                 </Box>
-                <Box typography='pXS'>
-                    © {new Date().getFullYear()} The Regents of the University of California
-                    <br />
-                    All rights reserved.
-                </Box>
+                
+                <Copyright />
             </Box>
         </Container>
     )

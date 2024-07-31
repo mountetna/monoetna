@@ -77,9 +77,10 @@ export default function ThemeShelf({
         const windowWidth = windowDimensions[0]
         const containerMaxWidth = theme.breakpoints.values.desktopLg
 
-        setSpacerWidthPx(windowWidth > containerMaxWidth ?
-            (windowWidth - containerMaxWidth) / 2 - tabletDesktopThemeBookGapPx
-            : 0
+        setSpacerWidthPx(
+            windowWidth > containerMaxWidth ?
+                (windowWidth - containerMaxWidth) / 2 - tabletDesktopThemeBookGapPx
+                : 0
         )
     }, [windowDimensions])
 
@@ -92,7 +93,7 @@ export default function ThemeShelf({
 
         router.push(href, { scroll: false })
         if (el) {
-            scrollTo({top: el.offsetTop})
+            scrollTo({ top: el.offsetTop })
         }
     }
 

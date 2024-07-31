@@ -5,6 +5,7 @@ import Box from '@mui/material/Box';
 import { SxProps, Typography } from '@mui/material';
 
 import { TypographyVariant } from '@/lib/utils/types';
+import Copyright from '../legal/copyright';
 
 
 export enum Classes {
@@ -33,6 +34,7 @@ function NavLink({
             }}
         >
             <MUILink
+                className={Classes.link}
                 href={href}
                 tabIndex={0}
                 component={Link}
@@ -53,8 +55,8 @@ export default function UCSFNav({
     buttonTypography = 'pBodyMediumWt',
 }: {
     sx?: SxProps,
-    typography?: TypographyVariant
-    buttonTypography?: TypographyVariant
+    typography?: TypographyVariant,
+    buttonTypography?: TypographyVariant,
 }) {
     return (
         <Box
