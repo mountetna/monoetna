@@ -5,7 +5,7 @@ import Container from '@mui/system/Container'
 import ButtonBase from '@mui/material/ButtonBase';
 import Box from '@mui/system/Box'
 import MUILink from '@mui/material/Link';
-import { SxProps, useMediaQuery, useTheme } from '@mui/material';
+import { SxProps, useTheme } from '@mui/material';
 import Link from 'next/link'
 import Image from 'next/image';
 

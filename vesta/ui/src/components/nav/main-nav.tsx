@@ -14,10 +14,20 @@ import MobileNav from './mobile-nav';
 import NavBar, { Heights as NavBarHeights, Classes as NavBarClasses } from './nav-bar';
 
 
+export function getMainNavHeight(): number {
+    return NavBarHeights.condensed
+}
+
+
 export default function MainNav() {
     const theme = useTheme()
 
     const [mobileNavOpen, setMobileNavOpen] = React.useState(false)
+
+    React.useEffect(() => {
+        document.body.style.overflow = mobileNavOpen ? 'hidden' : 'visible'
+    }, [mobileNavOpen])
+
     const isDesktop = useMediaQuery(theme.breakpoints.up(theme.breakpoints.values.desktop))
 
     React.useEffect(() => {
@@ -119,8 +129,18 @@ export default function MainNav() {
                     <MobileNav
                         open={mobileNavOpen}
                         sx={{
-                            pt: isStuck ? `${NavBarHeights.default}px` : `${36 + NavBarHeights.default}px`,
+                            pt: `${NavBarHeights.default}px`,
                             height: `calc(100vh - ${scrollDistanceToMainNav}px)`,
+                            '& > *': {
+                                pt: isStuck ? '0px' : '36px',
+                                transition: theme.transitions.create(
+                                    'padding-top',
+                                    {
+                                        duration: theme.transitions.duration.ease,
+                                        easing: theme.transitions.easing.ease,
+                                    }
+                                ),
+                            },
                         }}
                     />
                 )}

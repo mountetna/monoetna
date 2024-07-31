@@ -42,40 +42,45 @@ export default function MobileNav({
                 <Box
                     sx={{
                         bgcolor: 'utilityLowlight.main',
-                        px: '8px',
-                        py: '8px',
+                        px: '16px',
+                        py: '16px',
                         ...sx,
                     }}
                 >
                     <Box>
-                        <DLNav
-                            sx={{
-                                [`& .${DLNavClasses.link}`]: {
-                                    position: 'relative',
-                                    color: 'utilityHighlight.main',
-                                    left: 0,
-                                    '&:hover, &:focus': {
-                                        color: 'blue.grade50',
-                                        left: '16px',
-                                    },
-                                    transition: theme.transitions.create(
-                                        ['color', 'left'],
-                                        {
-                                            easing: theme.transitions.easing.quint,
-                                            duration: theme.transitions.duration.quint,
+
+                        <Box>
+                            <DLNav
+                                sx={{
+                                    [`& .${DLNavClasses.link}`]: {
+                                        position: 'relative',
+                                        color: 'utilityHighlight.main',
+                                        left: 0,
+                                        '&:hover, &:focus': {
+                                            color: 'blue.grade50',
+                                            left: '16px',
                                         },
-                                    ),
-                                },
-                                [`& .${DLNavClasses.libraryCardListItemContainer}`]: {
-                                    display: 'none',
-                                }
-                            }}
-                            typography='h2'
-                        />
-                        <LibraryCardButton />
+                                        transition: theme.transitions.create(
+                                            ['color', 'left'],
+                                            {
+                                                easing: theme.transitions.easing.quint,
+                                                duration: theme.transitions.duration.quint,
+                                            },
+                                        ),
+                                    },
+                                    [`& .${DLNavClasses.libraryCardListItemContainer}`]: {
+                                        display: 'none',
+                                    }
+                                }}
+                                typography='h2'
+                            />
+                            <LibraryCardButton />
+                        </Box>
+
+                        <UCSFNav />
+
                     </Box>
 
-                    <UCSFNav />
                 </Box>
 
             </Fade>

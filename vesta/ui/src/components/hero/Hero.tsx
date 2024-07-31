@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 
 import StatsCarousel, { Stats } from '@/components/stats/stats-carousel';
 import arrowUpRightLightSrc from '/public/images/icons/arrow-up-right-light.svg'
+import { scrollTo } from '@/lib/utils/scroll';
 
 
 export interface Video {
@@ -22,13 +23,12 @@ export interface Video {
 export default function Hero({ video, stats, scrollTargetId }: { video: Video, stats: Stats, scrollTargetId: string }) {
     const router = useRouter()
 
-    const handleClickScrollToExplore = (event: React.MouseEvent<HTMLElement>) => {
+    const handleClickScrollToExplore = () => {
         const el = document.getElementById(scrollTargetId)
 
-        window.scrollTo({
-            top: el?.offsetTop,
-            behavior: 'smooth',
-        })
+        if (el) {
+            scrollTo({ top: el.offsetTop })
+        }
     }
 
     return (

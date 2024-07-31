@@ -8,6 +8,7 @@ import { SxProps, Typography } from '@mui/material';
 import LibraryCardButton, { Classes as LibraryCardButtonClasses } from '../library-card/library-card-button';
 import LibraryCardTray, { Classes as LibraryCardTrayClasses } from '../library-card/library-card-tray';
 import { TypographyVariant } from '@/lib/utils/types'
+import { Heights as NavBarHeights } from './nav-bar';
 
 
 export enum Classes {
@@ -76,7 +77,7 @@ export default function DLNav({
 
         if (el) {
             window.scrollTo({
-                top: el.offsetTop,
+                top: el.offsetTop - NavBarHeights.condensed,
                 behavior: 'smooth',
             })
         }

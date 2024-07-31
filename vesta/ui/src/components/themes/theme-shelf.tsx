@@ -5,6 +5,7 @@ import Container from '@mui/system/Container'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import { useMediaQuery, useTheme } from '@mui/system';
+import { useRouter } from 'next/navigation';
 
 import ThemeBookVertical from './theme-book/theme-book-vertical'
 import ThemeBookHorizontal from './theme-book/theme-book-horizontal'
@@ -12,7 +13,7 @@ import { ThemeData } from './models';
 import PaginationArrows from '../inputs/pagination-arrows';
 import { useWindowDimensions } from '@/lib/utils/responsive';
 import { containerPadding } from '@/theme';
-import { useRouter } from 'next/navigation';
+import { scrollTo } from '@/lib/utils/scroll';
 
 
 export default function ThemeShelf({
@@ -57,11 +58,7 @@ export default function ThemeShelf({
         const bookEl = containerEl.children[bookIdx] as HTMLElement
 
         if (isMobile) {
-            window.scroll({
-                // TODO: include navbar offset
-                top: bookEl.offsetTop,
-                behavior: 'smooth',
-            })
+            scrollTo({ top: bookEl.offsetTop })
         } else {
             containerEl.scroll({
                 left: bookEl.offsetLeft,
@@ -94,10 +91,9 @@ export default function ThemeShelf({
         const el = document.getElementById('projects')
 
         router.push(href, { scroll: false })
-        window.scrollTo({
-            top: el?.offsetTop,
-            behavior: 'smooth',
-        })
+        if (el) {
+            scrollTo({top: el.offsetTop})
+        }
     }
 
     return (

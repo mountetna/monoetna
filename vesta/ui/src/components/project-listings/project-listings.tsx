@@ -26,6 +26,7 @@ import { parseSearchParams, toSearchParamsString } from '@/lib/utils/uri';
 import filterLightIcon from '/public/images/icons/filter-light.svg'
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
+import { scrollTo } from '@/lib/utils/scroll';
 
 
 const searchableProjectKeys: (keyof SearchableProjectData)[] = ['fullName', 'principalInvestigators', 'type', 'dataTypes', 'theme', 'status']
@@ -302,10 +303,7 @@ export default function ProjectListings({
             return
         }
 
-        window.scroll({
-            top: projectEl.offsetTop,
-            behavior: 'smooth',
-        })
+        scrollTo({ top: projectEl.offsetTop })
     }
 
     const handleChangeFilterItems = (filterItems: FilterItem[]) => {
