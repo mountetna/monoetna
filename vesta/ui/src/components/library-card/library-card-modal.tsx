@@ -6,11 +6,12 @@ import ButtonBase from '@mui/material/ButtonBase';
 import { useTheme } from '@mui/material/styles';
 import Modal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 
 import LibraryCard, { Classes as LibraryCardClasses } from './library-card';
 import { TypographyVariant } from '@/lib/utils/types';
 import { User } from '../user/models';
+import { FILE_EXPORT_STATUS } from '@/lib/utils/file-export';
 
 
 export function LibraryCardModal({
@@ -25,17 +26,18 @@ export function LibraryCardModal({
     const theme = useTheme()
 
     const libraryCardRef = React.useRef<HTMLElement>()
+    const [saveImageState, setSaveImageState] = React.useState(FILE_EXPORT_STATUS.idle)
 
     const textTypography: TypographyVariant = 'pBodyMediumWt'
 
     const handleClickSave = async () => {
-        const el = libraryCardRef.current
-        if (el) {
-            const canvasEl = await html2canvas(el)
-            const imageUrl = canvasEl
-                .toDataURL('image/png')
-                .replace("image/png", "image/octet-stream")
+        setSaveImageState(FILE_EXPORT_STATUS.inProgress)
 
+        const el = libraryCardRef.current
+        if (!el) return
+
+        try {
+            const imageUrl = await toPng(el)
             const filename = `ucsf_data_library_card-${user.name}.png`;
 
             const a = document.createElement('a');
@@ -43,6 +45,11 @@ export function LibraryCardModal({
             a.setAttribute('download', filename);
             a.click();
             a.remove();
+
+            setSaveImageState(FILE_EXPORT_STATUS.success)
+        } catch (error) {
+            setSaveImageState(FILE_EXPORT_STATUS.error)
+            console.error('Error saving image', error)
         }
     }
 
@@ -98,6 +105,7 @@ export function LibraryCardModal({
                 >
                     <ButtonBase
                         onClick={handleClickSave}
+                        disabled={saveImageState === FILE_EXPORT_STATUS.inProgress}
                         sx={{
                             width: 'fit-content',
                             px: '10px',

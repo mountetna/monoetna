@@ -27,7 +27,7 @@ interface Props {
     user: User,
 }
 
-function LibraryCard(props: Props, ref?: React.ForwardedRef<HTMLElement>) {
+function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
     const theme = useTheme()
     const user = props.user
 
@@ -199,7 +199,9 @@ function LibraryCard(props: Props, ref?: React.ForwardedRef<HTMLElement>) {
                         }}
                     >
                         {STATS.map(stat => (
-                            <Box>
+                            <Box
+                                key={stat.key}
+                            >
                                 <Typography
                                     variant='h6SmallCaps'
                                     component='div'
