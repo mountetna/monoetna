@@ -10,7 +10,7 @@ class Vulcan
           workflow_name: workflow_name,
           author: author,
           repo_remote_url: repo_remote_url,
-          repo_local_path: repo_local_path,
+          repo_path: repo_path,
           repo_tag: repo_tag,
           config: config,
           created_at: created_at,

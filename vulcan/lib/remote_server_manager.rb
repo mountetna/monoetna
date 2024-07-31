@@ -126,6 +126,14 @@ class Vulcan
     end
 
     def list_dirs(dir)
+      escaped_dir = Shellwords.escape(dir)
+      # If there are no directories, return an empty array
+      # "ls -d #{Shellwords.escape(dir)}/*/" throws an error if the dir is empty
+      check_dirs_command = "find #{escaped_dir} -maxdepth 1 -mindepth 1 -type d | wc -l"
+      check_result = invoke_ssh_command(check_dirs_command)
+      if check_result[:stdout].strip.to_i == 0
+        return []
+      end
       command = "ls -d #{Shellwords.escape(dir)}/*/"
       result = invoke_ssh_command(command)
       result[:stdout].split("\n").map { |path| File.basename(path) }

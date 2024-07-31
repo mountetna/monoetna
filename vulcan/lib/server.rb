@@ -22,8 +22,8 @@ class Vulcan
     delete 'api/v2/:project_name/:repo_name', action: 'vulcan_v2#delete_repo',  auth: { user: { is_superuser?: true }}
 
     # CRUD Workflow
-    post 'api/v2/workflow/publish', action: 'vulcan_v2#publish_workflow'
-    get 'api/v2/:project_name/workflows/', action: 'vulcan_v2#list_workflows'
+    post 'api/v2/workflow/publish', action: 'vulcan_v2#publish_workflow', auth: { user: { is_admin?: :project_name }}
+    get 'api/v2/:project_name/workflows/', action: 'vulcan_v2#list_workflows', auth: { user: { can_edit?: :project_name }}
 
     # CRUD Workspace
     post 'api/v2/:project_name/workspace/create', action: 'vulcan_v2#create_workspace'

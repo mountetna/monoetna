@@ -80,11 +80,13 @@ describe VulcanV2Controller do
   end
 
   context 'delete repo' do
+
     it 'should fail auth if you are not a super user' do
       auth_header(:editor)
       delete("/api/v2/#{PROJECT}/test-repo")
       expect(last_response.status).to eq(403)
     end
+
     it 'auth should delete a repo' do
       auth_header(:superuser)
       post("/api/v2/repo/clone", create_repo_request)
@@ -133,22 +135,50 @@ describe VulcanV2Controller do
   context 'publish workflows' do
 
     before do
-      auth_header(:guest)
+      auth_header(:admin)
       post("/api/v2/repo/clone", create_repo_request)
     end
 
-    # TODO: this should just be for administrators
-    it 'should create a workflow if config is valid' do
-      auth_header(:guest)
+    it 'should fail auth if you are not an admin' do
+      auth_header(:editor)
+      post("/api/v2/workflow/publish", publish_workflow_request)
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'should create a workflow object if the vulcan_config is valid' do
+      auth_header(:admin)
       post("/api/v2/workflow/publish", publish_workflow_request)
       expect(last_response.status).to eq(200)
 
       # DB object exists
       obj = Vulcan::WorkflowV2.first(project: PROJECT, workflow_name: "test-workflow")
       expect(obj).to_not be_nil
+      expect(obj.project).to eq(PROJECT)
+      expect(obj.workflow_name).to eq("test-workflow")
+      expect(obj.author.gsub('\\', '')).to eq("Jane Doe")
+      expect(obj.repo_remote_url).to eq("/test-utils/available-workflows/test-repo")
+      expect(obj.repo_path).to eq("#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}/test-repo")
+      expect(obj.config).to_not be nil
     end
 
     it 'should not create a workflow if config is not valid' do
+      # TODO: eventually implement this
+    end
+
+    it 'should delete the tmp directory after doing work' do
+      auth_header(:admin)
+      post("/api/v2/workflow/publish", publish_workflow_request)
+      expect(last_response.status).to eq(200)
+      dirs = remote_manager.list_dirs(Vulcan::Path::TMPDIR)
+      expect(dirs).to be_empty
+    end
+
+    it 'should inform the user if a workflow has been published' do
+      auth_header(:admin)
+      post("/api/v2/workflow/publish", publish_workflow_request)
+      expect(last_response.status).to eq(200)
+      post("/api/v2/workflow/publish", publish_workflow_request)
+      expect(json_body[:msg].include?('exists'))
     end
 
 
@@ -156,20 +186,25 @@ describe VulcanV2Controller do
 
   context 'list workflows' do
 
-    before do
-      auth_header(:guest)
+    it 'list workflows available for a project' do
+      auth_header(:admin)
       post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
-    end
-
-    it 'list workflows available for a project' do
+      auth_header(:editor)
       get("/api/v2/#{PROJECT}/workflows/")
       expect(last_response.status).to eq(200)
+      expect(json_body[:workflows][0][:workflow_name]).to eq("test-workflow")
     end
 
-    it 'list workflows available for all projects' do
+    it 'should return an empty list when no workflows exist' do
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/workflows/")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:workflows]).to be_empty
     end
+
   end
+
 
   context 'creates workspaces' do
 
@@ -320,9 +355,6 @@ describe VulcanV2Controller do
         workflow_id: json_body[:workflow_id]
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
-    end
-
-    it 'makes sure the run_config is valid' do
     end
 
     it 'invokes 1 step of the workflow' do

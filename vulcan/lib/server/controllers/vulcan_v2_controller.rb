@@ -73,38 +73,36 @@ class VulcanV2Controller < Vulcan::Controller
       repo_tag: @params[:tag]
     )
     if workflow
-      msg = "Workflow: #{@params[:workflow_name]} for project: #{@params[:project_name]} already exists."
-      response = {'Warning': msg}
-    else
-      begin
-        repo_name = File.basename(@escaped_params[:repo_path])
-        # Create a temporary directory to do work inside
-        tmp_dir = Vulcan::Path.tmp_dir(Vulcan::Path.tmp_hash(@escaped_params[:workflow_name], @user.email))
-        @remote_manager.mkdir(tmp_dir)
-        @remote_manager.clone(@escaped_params[:repo_path], @escaped_params[:branch], tmp_dir)
-        @remote_manager.checkout_tag(tmp_dir, @escaped_params[:tag])
-        config = @remote_manager.read_yaml_file("#{tmp_dir}/vulcan_config.yaml")
-        # TODO: run a validation on the snakefile, config and the vulcan_config
-        obj = Vulcan::WorkflowV2.create(
-          project: @escaped_params[:project_name],
-          workflow_name: @escaped_params[:workflow_name],
-          author: @escaped_params[:author], #TODO: remove author
-          repo_remote_url: @remote_manager.get_repo_remote_url(@escaped_params[:repo_path]),
-          repo_path: @escaped_params[:repo_path],
-          repo_tag: @escaped_params[:tag],
-          config: config.to_json,
-          created_at: Time.now,
-          updated_at: Time.now
-        )
-        @remote_manager.rmdir(tmp_dir)
-        response = {'workflow_id': obj.id, 'workflow_name': obj.workflow_name}
-      rescue => e
-        @remote_manager.rmdir(tmp_dir)
-        Vulcan.instance.logger.log_error(e)
-        raise Etna::BadRequest.new(e.message)
-      end
+      return success_json({'msg': "Workflow: #{@params[:workflow_name]} for project: #{@params[:project_name]} already exists."})
     end
-    success_json(response)
+    repo_name = File.basename(@escaped_params[:repo_path])
+    tmp_dir = Vulcan::Path.tmp_dir(Vulcan::Path.tmp_hash(@escaped_params[:workflow_name], @user.email))
+    begin
+      # Create a temporary directory to do work inside
+      @remote_manager.mkdir(tmp_dir)
+      @remote_manager.clone(@escaped_params[:repo_path], @escaped_params[:branch], tmp_dir)
+      @remote_manager.checkout_tag(tmp_dir, @escaped_params[:tag])
+      config = @remote_manager.read_yaml_file("#{tmp_dir}/vulcan_config.yaml")
+      # TODO: maybe run a validation on the snakefile, config and the vulcan_config
+      obj = Vulcan::WorkflowV2.create(
+        project: @escaped_params[:project_name],
+        workflow_name: @escaped_params[:workflow_name],
+        author: @escaped_params[:author],
+        repo_remote_url: @remote_manager.get_repo_remote_url(@escaped_params[:repo_path]),
+        repo_path: @escaped_params[:repo_path],
+        repo_tag: @escaped_params[:tag],
+        config: config.to_json, #TODO: do we want to store this?
+        created_at: Time.now,
+        updated_at: Time.now
+      )
+      @remote_manager.rmdir(tmp_dir)
+      response = {'workflow_id': obj.id, 'workflow_name': obj.workflow_name}
+      success_json(response)
+    rescue => e
+      @remote_manager.rmdir(tmp_dir)
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
   end
 
   def list_workflows
