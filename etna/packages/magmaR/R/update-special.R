@@ -240,11 +240,13 @@ updateFromDF <- function(
     projectName,
     modelName,
     df,
+    table.method = NULL,
     autolink = FALSE,
     dryRun = FALSE,
     separator = ",",
     auto.proceed = FALSE,
     revisions.only = FALSE,
+    template = NULL,
     ...) {
     
     ### Read in df if passed as a string (file-location)
@@ -255,44 +257,58 @@ updateFromDF <- function(
             stop("Parsing error. Is 'separator' correct?")
         }
     }
-    # Validate that 1st column, which should be IDs, is all unique values
-    if (any(duplicated(df[,1]))) {
-        stop("Values of 1st column (record identifiers) must be unique.")
-    }
-    if (ncol(df) < 2) {
-        stop("df has one column, but at least 2 are required.")
-    }
-    
     cat("Data recieved:\n")
     print(df)
     
-    # Transform into the nested list format
-    # Note: Do not supply recordNames directly to vapply as any "-" will be
-    #   converted to "."
-    df_to_revs <- function(DF) {
-        
-        DF_noID <- DF[, seq_len(ncol(DF))[-1], drop = FALSE]
-        # For each row of the DataFrame...
-        recs <- lapply(
-            seq_len(nrow(DF_noID)),
-            function(x) {
-                # Make the contents of cols 2:end a list of attribute values, and for each
-                # attribute value slot, make it a list if length is >1.
-                atts <- lapply(
-                    seq_len(ncol(DF_noID)),
-                    function(y) {
-                            DF_noID[x,y]
-                        })
-                names(atts) <- colnames(DF_noID)
-                atts
-            })
-        names(recs) <- DF[,1, drop = TRUE]
-        recs
+    if (identical(template, NULL)) {
+        template <- retrieveTemplate(target, projectName)
     }
+    isTable <- .is_table_model(target, projectName, modelName, template)
     
-    revs <- list(df_to_revs(df))
-    # Because list(modelName = ...) would not substitute the value of modelName
-    names(revs) <- modelName
+    ### Validation & convert revisions
+    if (isTable) {
+        ### Targeting table models, no identifiers and special replace case
+        if (identical(table.method, NULL)) {
+            stop("'", modelName, "' model of '", projectName, "' project is a table-type model, but 'table.method' input is not set. Set it to \"append\" or \"replace\".")
+        }
+        if (!table.method %in% c("append", "replace")) {
+            stop("'table.method' must be \"append\" or \"replace\", but is: \"", table.method, "\".")
+        }
+        parentModelName <- template$models[[modelName]]$template$parent
+        if (!parentModelName %in% names(df)) {
+            stop("Parent attribute, ", parentModelName, ", must be given when updating records of table-type models.")
+        }
+
+        # Prep revisions
+        tempIDs <- paste0("::temp-id-", seq_len(nrow(df)))
+        df <- cbind('__IDS__' = tempIDs, df)
+        revs <- .df_to_revisions(df, modelName = modelName)
+
+        # Add to revisions for 'replace' method
+        if (table.method=="replace") {
+            parents <- unique(df[[parentModelName]])
+            parent_revs <- lapply(
+                parents,
+                function(this) {
+                    setNames(list(tempIDs[df[[parentModelName]]==this]), modelName)
+                }
+            )
+            names(parent_revs) <- parents
+            revs[[parentModelName]] <- parent_revs
+        }
+    } else {
+        ### Targeting "standard" models, with identifiers
+        # Validate that 1st column, which should be IDs, is all unique values
+        if (any(duplicated(df[,1]))) {
+            stop("Values of 1st column (record identifiers) must be unique.")
+        }
+        if (ncol(df) < 2) {
+            stop("df has one column, but at least 2 are required.")
+        }
+
+        # Prep revisions
+        revs <- .df_to_revisions(df, modelName = modelName)
+    }
     
     if (revisions.only) {
         return(revs)
@@ -308,5 +324,6 @@ updateFromDF <- function(
         autolink = autolink,
         dryRun = dryRun,
         auto.proceed = auto.proceed,
+        template = template,
         ...)
 }

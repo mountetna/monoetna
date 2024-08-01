@@ -11,6 +11,7 @@ updateValues(
   auto.proceed = FALSE,
   autolink = FALSE,
   dryRun = FALSE,
+  template = NULL,
   ...
 )
 }

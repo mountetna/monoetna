@@ -9,11 +9,13 @@ updateFromDF(
   projectName,
   modelName,
   df,
+  table.method = NULL,
   autolink = FALSE,
   dryRun = FALSE,
   separator = ",",
   auto.proceed = FALSE,
   revisions.only = FALSE,
+  template = NULL,
   ...
 )
 }

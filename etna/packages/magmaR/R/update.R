@@ -79,16 +79,16 @@ updateValues <- function(
     auto.proceed = FALSE,
     autolink = FALSE,
     dryRun = FALSE,
+    template = NULL,
     ...
 ) {
     
     ### Summarize per model
+    if (identical(template, NULL)) {
+        template <- retrieveTemplate(target, projectName)
+    }
     lapply(names(revisions), function(model) {
-        
-        current_ids <- retrieveIds(
-            target, projectName, model)
-        
-        .summarize_model_values(revisions[[model]], model, current_ids)
+        .summarize_model_values(revisions[[model]], target, projectName, model, template)
     })
     
     ### Check if should move forward
@@ -106,9 +106,29 @@ updateValues <- function(
         ...)
 }
 
-.summarize_model_values <- function(model_revs, modelName, model_ids) {
+.summarize_model_values <- function(model_revs, target, projectName, modelName, template) {
+
+    ### Table models
+    # Report number of observations per parent record
+    if (.is_table_model(target, projectName, modelName, template)) {
+        parentModelName <- template$models[[modelName]]$template$parent
+        parents <- unlist(lapply(
+            model_revs,
+            function(rev) {
+                rev[[parentModelName]]
+            }
+        ))
+        parent_counts <- table(parents)
+        cat("For table-type model \"", modelName, "\", this update will attach (# observations) to these \"", parentModelName, "\" parent records:\n    ",
+            paste0(paste0("(", parent_counts, ") "), names(parent_counts), collapse = "\n    "),
+            "\n",
+            sep="")
+        return()
+    }
     
-    ### Report how many records will be updated
+    ### 'Standard' models
+    # Report how many records will be updated
+    model_ids <- retrieveIds(target, projectName, modelName)
     num_recs <- num_current_recs <- length(model_revs)
     rec_names <- rec_names_current <- names(model_revs)
     
@@ -121,7 +141,7 @@ updateValues <- function(
         num_new <- length(rec_names_new)
         
         ### Summarize for NEW records
-        cat("For model \"", modelName, "\", this update() will create (or update) ", num_new, " NEW (or orphan) records:\n    ",
+        cat("For model \"", modelName, "\", this update will create (or update) ", num_new, " NEW (or orphan) records:\n    ",
             paste0(rec_names_new, collapse = "\n    "),
             "\nWARNING: Check the above carefully. Once created, there is no easy way to remove records from magma.\n",
             sep="")
