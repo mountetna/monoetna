@@ -117,12 +117,6 @@ export default function MainNav() {
                     bgcolor: 'utilityLowlight.main',
                     height: `${NavBarHeights.condensed}px`,
                     overflow: 'visible',
-                    [`& .${NavBarClasses.root}`]: {
-                        transition: opacityTransition,
-                        position: 'absolute',
-                        top: 0,
-                        width: '100%',
-                    },
                 }}
             >
                 {!isDesktop && (
@@ -146,23 +140,14 @@ export default function MainNav() {
                 )}
 
                 <NavBar
-                    variant='default'
+                    variant={isStuck ? 'condensed' : 'default'}
                     sx={{
-                        opacity: isStuck ? 0 : 1,
-
+                        position: 'absolute',
+                        top: 0,
+                        width: '100%',
                     }}
                     onClickNavButton={handleClickNavButton}
                 />
-
-                <NavBar
-                    variant='condensed'
-                    sx={{
-                        opacity: isStuck ? 1 : 0,
-                    }}
-                    onClickNavButton={handleClickNavButton}
-                />
-
-
             </Box>
         </React.Fragment>
     )

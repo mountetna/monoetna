@@ -5,7 +5,7 @@ import Container from '@mui/system/Container'
 import ButtonBase from '@mui/material/ButtonBase';
 import Box from '@mui/system/Box'
 import MUILink from '@mui/material/Link';
-import { SxProps, useTheme } from '@mui/material';
+import { Collapse, SxProps, useTheme } from '@mui/material';
 import Link from 'next/link'
 import Image from 'next/image';
 
@@ -43,14 +43,26 @@ export default function NavBar({
     sx?: SxProps
 }) {
     const theme = useTheme()
+    const transition = theme.transitions.create(
+        'all',
+        {
+            duration: theme.transitions.duration.ease,
+            easing: theme.transitions.easing.ease,
+        },
+    )
 
     return (
-        <Box
+        <Collapse
+            in={variant === 'default'}
+            collapsedSize={Heights.condensed}
+            easing={theme.transitions.easing.ease}
+            timeout={theme.transitions.duration.ease}
             className={Classes.root}
             sx={{
                 px: '8px',
                 bgcolor: variant === 'condensed' ? 'utilityHighlight.main' : 'transparent',
-                height: variant === 'condensed' ? Heights.condensed : Heights.default,
+                overflow: 'visible',
+                transition,
                 ...sx,
             }}
         >
@@ -59,7 +71,6 @@ export default function NavBar({
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    height: '100%',
                     [theme.breakpoints.up('tablet')]: {
                         // alignItems: 'flex-start',
                         // pl: '32px',
@@ -85,11 +96,11 @@ export default function NavBar({
                                 height: '100%',
                             },
                         },
-                        [theme.breakpoints.up('tablet')]: {
-                            mt: '24px',
-                            width: '101px',
-                            height: '154px',
-                        }
+                        // [theme.breakpoints.up('tablet')]: {
+                        //     mt: '24px',
+                        //     width: '101px',
+                        //     height: '154px',
+                        // }
                     })}
                 >
                     <Box
@@ -99,6 +110,7 @@ export default function NavBar({
                             position: 'relative',
                             width: variant === 'condensed' ? '53.1px' : '74.09px',
                             height: variant === 'condensed' ? '53.1px' : '74.09px',
+                            transition,
                             '& > *': {
                                 display: 'flex',
                             },
@@ -111,6 +123,7 @@ export default function NavBar({
                             className={[Classes.logoBase, Classes.logoNoWordmarkLight].join(' ')}
                             sx={{
                                 opacity: variant === 'condensed' ? 0 : 1,
+                                transition,
                             }}
                         >
                             <Image
@@ -126,6 +139,7 @@ export default function NavBar({
                                 top: 0,
                                 left: 0,
                                 opacity: variant === 'condensed' ? 1 : 0,
+                                transition,
                             }}
                         >
                             <Image
@@ -168,11 +182,13 @@ export default function NavBar({
                             mx: '9px',
                             my: '8px',
                             position: 'relative',
+                            transition,
                             '& img': {
                                 position: 'absolute',
                             },
                             '& .icon-dark': {
                                 opacity: variant === 'condensed' ? 1 : 0,
+                                transition,
                             },
                             [theme.breakpoints.up('tablet')]: {
                                 m: '16px',
@@ -195,6 +211,6 @@ export default function NavBar({
                     </ButtonBase>
                 </Box>
             </Container>
-        </Box>
+        </Collapse>
     )
 }
