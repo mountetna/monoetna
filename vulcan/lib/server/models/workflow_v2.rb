@@ -22,6 +22,10 @@ class Vulcan
       config.keys
     end
 
+    def repo_name
+      File.basename(repo_path)
+    end
+
     def valid_run_config?(run_config)
       #TODO: fix string and hash comparison
       true

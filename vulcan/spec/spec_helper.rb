@@ -30,7 +30,7 @@ OUTER_APP = Rack::Builder.new do
 end
 
 class TestRemoteServerManager < Vulcan::RemoteServerManager
-  # Auxiliary functions to help with testing
+  # Auxiliary functions to help with testing but not needed for prod
   def initialize(ssh_pool)
     super(ssh_pool)
   end
@@ -49,6 +49,12 @@ class TestRemoteServerManager < Vulcan::RemoteServerManager
   def delete_tag(repo, tag)
     command = "cd #{Shellwords.escape(repo)} && git tag -d #{tag}"
     invoke_ssh_command(command)
+  end
+
+  def tag_exists?(repo, tag)
+    command = "cd #{Shellwords.escape(repo)} && git describe --tags"
+    out = invoke_ssh_command(command)
+    out[:stdout].chomp == tag
   end
 end
 

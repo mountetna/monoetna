@@ -209,16 +209,63 @@ describe VulcanV2Controller do
   context 'creates workspaces' do
 
     before do
-      auth_header(:guest)
+      auth_header(:admin)
       post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
     end
 
-    it 'when the workflow exists' do
-      auth_header(:guest)
+    it 'successfully creates the workspace directory' do
+      auth_header(:editor)
       get("/api/v2/#{PROJECT}/workflows/")
       request = {
-          workflow_id: json_body[:workflows][0][:id]
+        workflow_id: json_body[:workflows][0][:id]
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
+      expect(remote_manager.dir_exists?("#{obj.path}")).to be_truthy
+    end
+
+    it 'successfully git clones the workflow' do
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/workflows/")
+      request = {
+        workflow_id: json_body[:workflows][0][:id]
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
+      require 'pry'; binding.pry
+      expect(remote_manager.file_exists?("#{obj.path}/.git")).to be_truthy
+    end
+
+
+    it 'successfully git checkouts the proper tag' do
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/workflows/")
+      request = {
+        workflow_id: json_body[:workflows][0][:id]
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
+      expect(remote_manager.tag_exists?(obj.path, "v1")).to be_truthy
+    end
+
+    it 'successfully uploads the snakemake utils directory' do
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/workflows/")
+      request = {
+        workflow_id: json_body[:workflows][0][:id]
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
+      expect(remote_manager.dir_exists?("#{obj.path}/snakemake_utils")).to be_truthy
+    end
+
+    it 'successfully creates the workspace object' do
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/workflows/")
+      workflow_id = json_body[:workflows][0][:id]
+      request = {
+          workflow_id: workflow_id
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       expect(last_response.status).to eq(200)
@@ -226,13 +273,15 @@ describe VulcanV2Controller do
       # DB object exists
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
       expect(obj).to_not be_nil
-
-      # Proper dirs are created
-      workspace_project_dir = "#{Vulcan::Path::WORKSPACE_BASE_DIR}/#{PROJECT}"
-      expect(remote_manager.dir_exists?(workspace_project_dir)).to be_truthy
-      expect(remote_manager.dir_exists?(obj.path)).to be_truthy
-
+      expect(File.basename(obj.path).match?(/\A[a-f0-9]{32}\z/)).to be_truthy
     end
+
+    it 'removes the workspace directory if an error occurs' do
+    end
+
+    it 'errors if the requested workflow is not created' do
+    end
+
 
   end
 

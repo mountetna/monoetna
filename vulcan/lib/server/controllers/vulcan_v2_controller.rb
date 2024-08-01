@@ -75,7 +75,6 @@ class VulcanV2Controller < Vulcan::Controller
     if workflow
       return success_json({'msg': "Workflow: #{@params[:workflow_name]} for project: #{@params[:project_name]} already exists."})
     end
-    repo_name = File.basename(@escaped_params[:repo_path])
     tmp_dir = Vulcan::Path.tmp_dir(Vulcan::Path.tmp_hash(@escaped_params[:workflow_name], @user.email))
     begin
       # Create a temporary directory to do work inside
@@ -117,11 +116,13 @@ class VulcanV2Controller < Vulcan::Controller
 
   def create_workspace
     workflow = Vulcan::WorkflowV2.first(id: @params[:workflow_id])
-    response = {}
-    if workflow
+    unless workflow
+      msg = "Workflow: #{@params[:workflow_name]} for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
       workspace_hash = Vulcan::Path.workspace_hash(workflow.id.to_s, @user.email)
       workspace_dir = Vulcan::Path.workspace_dir(@escaped_params[:project_name], workspace_hash)
-      begin
+    begin
         @remote_manager.mkdir(workspace_dir)
         # TODO: we probably want to store the name of the "master" branch
         @remote_manager.clone(workflow.repo_path, "main", workspace_dir)
@@ -141,16 +142,12 @@ class VulcanV2Controller < Vulcan::Controller
           workflow_id: obj.workflow_id,
           workflow_config: workflow.config
         }
+        success_json(response)
       rescue => e
         @remote_manager.rmdir(workspace_dir)
         Vulcan.instance.logger.log_error(e)
         raise Etna::BadRequest.new(e.message)
       end
-    else
-      msg = "Workflow: #{@params[:workflow_name]} for project: #{@params[:project_name]} does not exist."
-      response = {'Warning': msg}
-    end
-    success_json(response)
   end
 
   def list_workspaces

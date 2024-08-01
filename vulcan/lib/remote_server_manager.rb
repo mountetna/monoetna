@@ -22,7 +22,7 @@ class Vulcan
 
       command = "cd #{Shellwords.escape(dir)} && #{snakemake_command} > #{Vulcan::Path::WORKSPACE_BOOT_LOG}"
       invoke_background_ssh_command(command)
-      if file_exists(boot_log, true)
+      if file_exists?(boot_log, true)
         begin
           regex = /SLURM run ID: ([a-f0-9\-]+)/
           matched = find_string(boot_log, regex)
@@ -191,7 +191,7 @@ class Vulcan
       result[:stdout].chomp
     end
 
-    def file_exists(file_path, wait = False)
+    def file_exists?(file_path, wait = false)
       def remote_file_exists?(file_path)
         begin
           command = "test -f #{file_path} && echo 'exists' || echo 'not exists'"
