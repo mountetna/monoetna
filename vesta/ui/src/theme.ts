@@ -647,7 +647,7 @@ theme = createTheme(theme, {
       fontWeight: 700,
       lineHeight: '140%',
       letterSpacing: DEFAULT_LETTER_SPACING,
-      fontVariant: 'all-small-caps', // TODO: verify this is accurate
+      fontVariant: 'small-caps', // TODO: verify this is accurate
     },
     h3Digits: {
       fontFamily: theFuture.style.fontFamily,
@@ -685,7 +685,7 @@ theme = createTheme(theme, {
       fontWeight: 700,
       lineHeight: '135%',
       letterSpacing: '0.04em',
-      fontVariant: 'all-small-caps', // TODO: verify this is accurate
+      fontVariant: 'small-caps', // TODO: verify this is accurate
     },
     h5: {
       fontFamily: theFuture.style.fontFamily,
@@ -753,7 +753,7 @@ theme = createTheme(theme, {
       fontWeight: 700,
       lineHeight: '153%',
       letterSpacing: '0.05em',
-      fontVariant: 'all-small-caps', // TODO: verify this is accurate
+      fontVariant: 'small-caps',
     },
     pLarge: {
       fontFamily: theFuture.style.fontFamily,

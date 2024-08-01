@@ -48,14 +48,15 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
                 color: 'white',
             }}
         >
-            <Box
-                sx={{
-                    border: '1px solid white',
-                    height: '200px',
+            <Image
+                src={user.imageUrl}
+                alt={`Data Library image for ${user.name}`}
+                style={{
+                    width: '100%',
+                    height: '250px',
+                    objectFit: 'cover',
                 }}
-            >
-                image placeholder
-            </Box>
+            />
 
             <Typography
                 variant='h6SmallCaps'
@@ -70,7 +71,7 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
                     bgcolor: 'ground.grade10',
                 }}
             >
-                {user.role}
+                {user.role.toUpperCase()}
 
                 <Box
                     sx={{
@@ -162,9 +163,9 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
                                 </Typography>
                             </Box>
 
-                            {user.imageUrl &&
+                            {user.avatarUrl &&
                                 <Image
-                                    src={user.imageUrl}
+                                    src={user.avatarUrl}
                                     alt={`Profile image for ${user.name}`}
                                     width={avatarSideLengthPx}
                                     height={avatarSideLengthPx}
@@ -270,7 +271,11 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
                                     py: '3px',
                                 }}
                             >
-                                {user.joinDate.toLocaleDateString()}
+                                {user.joinDate.toLocaleDateString(undefined, {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                })}
                             </Box>
                         </Typography>
 

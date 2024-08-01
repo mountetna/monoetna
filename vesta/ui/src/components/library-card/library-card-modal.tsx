@@ -38,7 +38,7 @@ export function LibraryCardModal({
 
         try {
             const imageUrl = await toPng(el)
-            const filename = `ucsf_data_library_card-${user.name}.png`;
+            const filename = `ucsf-data-library-card-${user.name}.png`;
 
             const a = document.createElement('a');
             a.setAttribute('href', imageUrl);
