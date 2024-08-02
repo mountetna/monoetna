@@ -33,6 +33,13 @@ Alternatively, a String specifying the file path of a file containing such data.
 
 See below for additional formatting details.}
 
+\item{table.method}{"replace" or "append".
+Sets the methodology used for building the \code{revisions} to request for table-type model updates:
+\itemize{
+\item "append": Add the currently defined records, attaching them to parents defined in the \code{df}.
+\item "replace": Add the currently defined records, attaching them to parents defined in the \code{df}, AND unlink / remove all current records, of \code{modelName}, attached to parent records defined in the \code{df}.
+}}
+
 \item{autolink}{Logical. FALSE by default for safety, but often you will want to set it to TRUE. Passed through to magma, this parameter controls whether the system will attempt to connect all targeted records up with the project's root.
 Specifically, this means the system will 
 1) determine parent records of all targeted records if it can, based on the project's gnomon grammar, 
@@ -50,6 +57,8 @@ Use \code{"\t"} for tsvs.}
 
 \item{revisions.only}{Logical. For troubleshooting purposes, when set to \code{TRUE}, no data will be sent to magma.
 Instead, the list structure that would have been passed to the \code{revisions} input of \code{\link{updateValues}} is returned as output.}
+
+\item{template}{For internal use in minimizing excess http requests to magma, NULL or the return of \code{retrieveTemplate(target, projectName)}.}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
@@ -70,12 +79,25 @@ This function provides a simple method for updating multiple attributes of multi
 It utilizes the magma/query function, documented here \url{https://mountetna.github.io/magma.html#update},
 to upload data after converting to the format required by that function.
 
-Upload targets the \code{df}'s row-indicated records and column-indicated attributes of the \code{modelName} model of \code{projectName} project.
+The user-indicated \code{df} is read in, presented to the user for inspection, then transformed to the necessary format and passed along to \code{\link{updateValues}}.
 
-\code{df} data are provided either as a dataframe, or file path which points toward such data.
+The \code{updateValues()} function will then summarize records to be updated and allow the user to double-check this information before proceeding.
+
+This user-prompt step can be bypassed (useful when running in a non-interactive way) by setting \code{auto.proceed = TRUE}, but NOTE:
+It is a good idea to always check carefully before proceeding, if possible.
+Data can be overwritten with NAs or zeros or the like, or disconnected from parent records, but improperly named records cannot be easily removed.
+
+For "standard" models with explicit identifiers, the function targets the \code{df}'s row-indicated records and column-indicated attributes of the \code{modelName} model of \code{projectName} project.
+In such cases, the first column of \code{df} must contain the identifiers of the records your wish to update.
+
+For table-type models which do not have explicit identifiers, the function creates records per each row of the given \code{df} with the requested values filled in for column-indicated attributes of the \code{modelName} model of \code{projectName} project, and attaches these records to the indicated parent records.
+In such cases, a column named as the parent model must exist in \code{df} to provide the parent identifiers of all requested new data.
+In such cases, \code{table.method} must also be given as either \code{"append"} or \code{"replace"}.
+
+\code{df} can be provided either as a data.frame directly, or as a file path pointing to a file containing such data.
 If given as a file path, the \code{separator} input can be used to adjust for whether the file is a csv (the default, \code{separator = ","}), or tsv, \code{separator = "\t"}, or other format.
 
-The data structure:
+The \code{df} data structure when targeting 'standard' models:
 \itemize{
 \item Rows = records, with the first column indicating the record identifiers.
 \item Columns = represent the data desired to be given for each attribute.
@@ -83,13 +105,13 @@ The data structure:
 Except for the first column (ignored as this column's data are used as identifiers), all column names must be valid attribute names of the target \code{modelName}.
 }
 
-This data is read in, presented to the user for inspection, then transformed to the necessary format and passed along to \code{\link{updateValues}}.
-
-The \code{updateValues()} function will then summarize records to be updated and allow the user to double-check this information before proceeding.
-
-This user-prompt step can be bypassed (useful when running in a non-interactive way) by setting \code{auto.proceed = TRUE}, but NOTE:
-It is a good idea to always check carefully before proceeding, if possible.
-Data can be overwritten with NAs or zeros or the like, but improperly named records cannot be easily removed.
+The \code{df} data structure when targeting table-type models:
+\itemize{
+\item Rows = records, but no identifiers are needed.
+\item Columns = represent the data desired to be given for each attribute.
+\item Column Names (or the top row when providing a file) = attribute names.
+At least one column must be named after the parent model and must represent parent model identifiers.
+}
 }
 \section{Use Case. Using this function to change records' identifiers}{
 

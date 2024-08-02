@@ -21,6 +21,7 @@
 #' and finally 4) creates all the assumed parent-child linkages
 #' @param dryRun Logical. FALSE by default. Passed through to magma, this parameter controls whether the system will only test whether the update is valid without making changes to the database.
 #' @param auto.proceed Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.
+#' @param template For internal use in minimizing excess http requests to magma, NULL or the return of \code{retrieveTemplate(target, projectName)}.
 #' @return None directly.
 #' 
 #' The function sends data to magma, and the only outputs are information reported via the console.
@@ -150,7 +151,7 @@ updateValues <- function(
     }
     
     ### Summarize for current records.
-    cat("For model \"", modelName, "\", this update() will update ", num_current_recs, " records",
+    cat("For model \"", modelName, "\", this update will update ", num_current_recs, " records",
         if (num_current_recs==0) {
                 ".\n"
             } else {

@@ -6,7 +6,7 @@ http_interactions:
       encoding: ''
       string: ''
     headers:
-      User-Agent: libcurl/7.64.1 r-curl/4.3 crul/1.1.0
+      User-Agent: libcurl/7.81.0 r-curl/5.2.1 crul/1.4.2
       Accept-Encoding: gzip, deflate
       Accept: application/json, text/xml, application/xml, */*
       Content-Type: application/json
@@ -19,15 +19,15 @@ http_interactions:
         semantic errors (WebDAV; RFC 4918)
     headers:
       status: HTTP/1.1 422 Unprocessable Entity
-      date: Thu, 08 Apr 2021 00:11:16 GMT
+      date: Fri, 02 Aug 2024 15:47:06 GMT
       server: Apache
       strict-transport-security: max-age=31536000; includeSubDomains
       content-type: application/json
       content-length: '72'
       service-worker-allowed: /
     body:
-      encoding: UTF-8
+      encoding: ''
       file: no
       string: '{"errors":["subject is not a valid argument to Magma::RecordPredicate"]}'
-  recorded_at: 2021-04-08 00:11:16 GMT
-  recorded_with: vcr/0.6.0, webmockr/0.8.0
+  recorded_at: 2024-08-02 15:47:06 GMT
+  recorded_with: vcr/1.6.0, webmockr/1.0.0

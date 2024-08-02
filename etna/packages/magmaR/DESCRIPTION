@@ -1,7 +1,7 @@
 Package: magmaR
 Type: Package
 Title: R-Client for Interacting with the 'UCSF Data Library'
-Version: 1.0.3
+Version: 1.0.4
 Authors@R: c(person("Daniel", "Bunis", email = "daniel.bunis@ucsf.edu", role=c("aut", "cre")))
 Description: A client for interacting with 'magma', the data warehouse of the
     'UCSF Data Library'. 'magmaR' includes functions for querying and

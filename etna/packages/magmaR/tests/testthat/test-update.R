@@ -117,7 +117,7 @@ vcr::use_cassette("update_2", {
                 modelName = "rna_seq",
                 df = df,
                 auto.proceed = TRUE),
-            "For model \"rna_seq\", this update() will update 12 records",
+            "For model \"rna_seq\", this update will update 12 records",
             fixed = TRUE
         )
         df_after <- retrieve(targ, "example", "rna_seq", "all",
@@ -207,7 +207,7 @@ vcr::use_cassette("update_5", {
             suppressWarnings(
                 updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                     matrix = mat)),
-"For model \"rna_seq\", this update() will update 12 records:
+"For model \"rna_seq\", this update will update 12 records:
     EXAMPLE-HS10-WB1-RSQ1
     EXAMPLE-HS11-WB1-RSQ1
     EXAMPLE-HS12-WB1-RSQ1
@@ -230,7 +230,7 @@ vcr::use_cassette("update_5", {
             suppressWarnings(
                 updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                     matrix = mat_halfIDs_wrong)),
-"For model \"rna_seq\", this update() will create (or update) 6 NEW (or orphan) records:
+"For model \"rna_seq\", this update will create (or update) 6 NEW (or orphan) records:
     WRONG1
     WRONG2
     WRONG3
@@ -238,7 +238,7 @@ vcr::use_cassette("update_5", {
     WRONG5
     WRONG6
 WARNING: Check the above carefully. Once created, there is no easy way to remove records from magma.
-For model \"rna_seq\", this update() will update 6 records:
+For model \"rna_seq\", this update will update 6 records:
     EXAMPLE-HS4-WB1-RSQ1
     EXAMPLE-HS5-WB1-RSQ1
     EXAMPLE-HS6-WB1-RSQ1
@@ -254,7 +254,7 @@ For model \"rna_seq\", this update() will update 6 records:
             suppressWarnings(
                 updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                     matrix = mat_allIDs_wrong)),
-"For model \"rna_seq\", this update() will create (or update) 12 NEW (or orphan) records:
+"For model \"rna_seq\", this update will create (or update) 12 NEW (or orphan) records:
     WRONG1
     WRONG2
     WRONG3
@@ -268,7 +268,7 @@ For model \"rna_seq\", this update() will update 6 records:
     WRONG11
     WRONG12
 WARNING: Check the above carefully. Once created, there is no easy way to remove records from magma.
-For model \"rna_seq\", this update() will update 0 records.", fixed = TRUE
+For model \"rna_seq\", this update will update 0 records.", fixed = TRUE
         )
         
         # When user-cancels the upload (or in non-interactive mode).

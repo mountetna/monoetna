@@ -1,3 +1,7 @@
+# magmaR 1.0.4
+
+* Added 'updateValues()' and 'updateFromDF()' compatibility for table-type models.
+
 # magmaR 1.0.3
 
 * Added 'showDisconnected' input to retrieve functions.

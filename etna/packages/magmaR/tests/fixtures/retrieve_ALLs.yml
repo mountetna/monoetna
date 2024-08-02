@@ -6,7 +6,7 @@ http_interactions:
       encoding: ''
       string: ''
     headers:
-      User-Agent: libcurl/7.64.1 r-curl/4.3 crul/1.1.0
+      User-Agent: libcurl/7.81.0 r-curl/5.2.1 crul/1.4.2
       Accept-Encoding: gzip, deflate
       Accept: application/json, text/xml, application/xml, */*
       Content-Type: application/json
@@ -18,20 +18,32 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 08 Apr 2021 00:11:16 GMT
+      date: Fri, 02 Aug 2024 15:47:07 GMT
       server: Apache
       strict-transport-security: max-age=31536000; includeSubDomains
       content-type: application/json
-      content-length: '3015'
+      content-length: '3198'
       service-worker-allowed: /
     body:
-      encoding: UTF-8
+      encoding: ''
       file: no
-      string: '{"models":{"subject":{"documents":{"EXAMPLE-HS1":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS1","project":"example","biospecimen":["EXAMPLE-HS1-WB1"],"group":"g1"},"EXAMPLE-HS10":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS10","project":"example","biospecimen":["EXAMPLE-HS10-WB1"],"group":"g3"},"EXAMPLE-HS11":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS11","project":"example","biospecimen":["EXAMPLE-HS11-WB1"],"group":"g3"},"EXAMPLE-HS12":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS12","project":"example","biospecimen":["EXAMPLE-HS12-WB1"],"group":"g3"},"EXAMPLE-HS2":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS2","project":"example","biospecimen":["EXAMPLE-HS2-WB1"],"group":"g1"},"EXAMPLE-HS3":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS3","project":"example","biospecimen":["EXAMPLE-HS3-WB1"],"group":"g1"},"EXAMPLE-HS4":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS4","project":"example","biospecimen":["EXAMPLE-HS4-WB1"],"group":"g1"},"EXAMPLE-HS5":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS5","project":"example","biospecimen":["EXAMPLE-HS5-WB1"],"group":"g2"},"EXAMPLE-HS6":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS6","project":"example","biospecimen":["EXAMPLE-HS6-WB1"],"group":"g2"},"EXAMPLE-HS7":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS7","project":"example","biospecimen":["EXAMPLE-HS7-WB1"],"group":"g2"},"EXAMPLE-HS8":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS8","project":"example","biospecimen":["EXAMPLE-HS8-WB1"],"group":"g2"},"EXAMPLE-HS9":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS9","project":"example","biospecimen":["EXAMPLE-HS9-WB1"],"group":"g3"}},"template":{"name":"subject","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
+      string: '{"models":{"subject":{"documents":{"EXAMPLE-HS1":{"created_at":null,"updated_at":"2023-11-21T20:38:52+00:00","name":"EXAMPLE-HS1","group":"g1","project":"Example
+        project","biospecimen":["EXAMPLE-HS1-WB1"]},"EXAMPLE-HS10":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS10","group":"g3","project":"Example
+        project","biospecimen":["EXAMPLE-HS10-WB1"]},"EXAMPLE-HS11":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS11","group":"g3","project":"Example
+        project","biospecimen":["EXAMPLE-HS11-WB1"]},"EXAMPLE-HS12":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS12","group":"g3","project":"Example
+        project","biospecimen":["EXAMPLE-HS12-WB1"]},"EXAMPLE-HS2":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS2","group":"g1","project":"Example
+        project","biospecimen":["EXAMPLE-HS2-WB1"]},"EXAMPLE-HS3":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS3","group":"g1","project":"Example
+        project","biospecimen":["EXAMPLE-HS3-WB1"]},"EXAMPLE-HS4":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS4","group":"g1","project":"Example
+        project","biospecimen":["EXAMPLE-HS4-WB1"]},"EXAMPLE-HS5":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS5","group":"g2","project":"Example
+        project","biospecimen":["EXAMPLE-HS5-WB1"]},"EXAMPLE-HS6":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS6","group":"g2","project":"Example
+        project","biospecimen":["EXAMPLE-HS6-WB1"]},"EXAMPLE-HS7":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS7","group":"g2","project":"Example
+        project","biospecimen":["EXAMPLE-HS7-WB1"]},"EXAMPLE-HS8":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS8","group":"g2","project":"Example
+        project","biospecimen":["EXAMPLE-HS8-WB1"]},"EXAMPLE-HS9":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS9","group":"g3","project":"Example
+        project","biospecimen":["EXAMPLE-HS9-WB1"]}},"template":{"name":"subject","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
         At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","display_name":"Updated
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"name":{"name":"name","attribute_name":"name","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"project":{"name":"project","attribute_name":"project","model_name":"project","link_model_name":"project","display_name":"Project","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"},"group":{"name":"group","attribute_name":"group","display_name":"Group","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"}},"identifier":"name","parent":"project"}}}}'
-  recorded_at: 2021-04-08 00:11:16 GMT
-  recorded_with: vcr/0.6.0, webmockr/0.8.0
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"name":{"name":"name","attribute_name":"name","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"group":{"name":"group","attribute_name":"group","display_name":"Group","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"project":{"name":"project","attribute_name":"project","model_name":"project","link_model_name":"project","link_attribute_name":"subject","display_name":"Project","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","link_attribute_name":"subject","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"}},"identifier":"name","parent":"project"}}}}'
+  recorded_at: 2024-08-02 15:47:07 GMT
+  recorded_with: vcr/1.6.0, webmockr/1.0.0
 - request:
     method: get
     uri: https://magma.ucsf.edu/retrieve
@@ -39,7 +51,7 @@ http_interactions:
       encoding: ''
       string: ''
     headers:
-      User-Agent: libcurl/7.64.1 r-curl/4.3 crul/1.1.0
+      User-Agent: libcurl/7.81.0 r-curl/5.2.1 crul/1.4.2
       Accept-Encoding: gzip, deflate
       Accept: application/json, text/xml, application/xml, */*
       Content-Type: application/json
@@ -51,16 +63,22 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 08 Apr 2021 00:11:16 GMT
+      date: Fri, 02 Aug 2024 15:47:07 GMT
       server: Apache
       strict-transport-security: max-age=31536000; includeSubDomains
       content-type: text/tsv
-      content-disposition: inline; filename="results.tsv
+      content-disposition: inline; filename="example_subject_results_2024_08_02_15_47_07.tsv"
       service-worker-allowed: /
       transfer-encoding: chunked
     body:
-      encoding: UTF-8
+      encoding: ''
       file: no
-      string: "name\tproject\tbiospecimen\tgroup\nEXAMPLE-HS1\texample\tEXAMPLE-HS1-WB1\tg1\nEXAMPLE-HS10\texample\tEXAMPLE-HS10-WB1\tg3\nEXAMPLE-HS11\texample\tEXAMPLE-HS11-WB1\tg3\nEXAMPLE-HS12\texample\tEXAMPLE-HS12-WB1\tg3\nEXAMPLE-HS2\texample\tEXAMPLE-HS2-WB1\tg1\nEXAMPLE-HS3\texample\tEXAMPLE-HS3-WB1\tg1\nEXAMPLE-HS4\texample\tEXAMPLE-HS4-WB1\tg1\nEXAMPLE-HS5\texample\tEXAMPLE-HS5-WB1\tg2\nEXAMPLE-HS6\texample\tEXAMPLE-HS6-WB1\tg2\nEXAMPLE-HS7\texample\tEXAMPLE-HS7-WB1\tg2\nEXAMPLE-HS8\texample\tEXAMPLE-HS8-WB1\tg2\nEXAMPLE-HS9\texample\tEXAMPLE-HS9-WB1\tg3\n"
-  recorded_at: 2021-04-08 00:11:16 GMT
-  recorded_with: vcr/0.6.0, webmockr/0.8.0
+      string: "name\tgroup\tproject\tbiospecimen\nEXAMPLE-HS1\tg1\tExample project\tEXAMPLE-HS1-WB1\nEXAMPLE-HS10\tg3\tExample
+        project\tEXAMPLE-HS10-WB1\nEXAMPLE-HS11\tg3\tExample project\tEXAMPLE-HS11-WB1\nEXAMPLE-HS12\tg3\tExample
+        project\tEXAMPLE-HS12-WB1\nEXAMPLE-HS2\tg1\tExample project\tEXAMPLE-HS2-WB1\nEXAMPLE-HS3\tg1\tExample
+        project\tEXAMPLE-HS3-WB1\nEXAMPLE-HS4\tg1\tExample project\tEXAMPLE-HS4-WB1\nEXAMPLE-HS5\tg2\tExample
+        project\tEXAMPLE-HS5-WB1\nEXAMPLE-HS6\tg2\tExample project\tEXAMPLE-HS6-WB1\nEXAMPLE-HS7\tg2\tExample
+        project\tEXAMPLE-HS7-WB1\nEXAMPLE-HS8\tg2\tExample project\tEXAMPLE-HS8-WB1\nEXAMPLE-HS9\tg3\tExample
+        project\tEXAMPLE-HS9-WB1\n"
+  recorded_at: 2024-08-02 15:47:07 GMT
+  recorded_with: vcr/1.6.0, webmockr/1.0.0
