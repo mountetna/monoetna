@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { User } from '../user/models';
 
 import logoDarkSrc from '/public/images/logo/logo-dark.svg'
-import { useMousePosition } from '@/lib/utils/position';
+import { useDeviceOrientation, usePointerPosition } from '@/lib/utils/position';
 
 
 export enum Classes {
@@ -42,15 +42,43 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
 
     // Manage effects
     // - Orientation
-    const mouseCoords = useMousePosition('fraction')
-    const rotX = (mouseCoords.y - 0.5) / 0.5
-    const rotY = -(mouseCoords.x - 0.5) / 0.5
-    const rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
-    const rotDeg = Math.round(rotationIntensity * rotMagnitude)
-    // - Shine
-    const shineLeft = `calc(${100 - mouseCoords.x * 100}% - ${shineSize / 2}px)`
-    const shineTop = `calc(${100 - mouseCoords.y * 100}% - ${shineSize / 2}px)`
+    const pointerCoords = usePointerPosition('fraction')
+    const deviceOrientationCoords = useDeviceOrientation()
+    let shineX = 0
+    let shineY = 0
+    let transform = 'unset'
 
+    if (deviceOrientationCoords !== null) {
+        const xCoord = deviceOrientationCoords.x
+        const yCoord = deviceOrientationCoords.y
+        const zCoord = deviceOrientationCoords.z
+        // const rotX = (yCoord - 0.5) / 0.5
+        // const rotY = -(xCoord - 0.5) / 0.5
+        // const rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
+        const rotDeg = Math.round(rotationIntensity)
+        // const rotDeg = Math.round(rotationIntensity * rotMagnitude)
+        transform = `rotateZ(${zCoord}deg) rotateX(${xCoord}deg) rotateY(${yCoord}deg)`
+
+        shineX = xCoord
+        shineY = yCoord
+    } else if (pointerCoords !== null) {
+        const xCoord = pointerCoords.x
+        const yCoord = pointerCoords.y
+        const rotX = (yCoord - 0.5) / 0.5
+        const rotY = -(xCoord - 0.5) / 0.5
+        const rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
+        const rotDeg = Math.round(rotationIntensity * rotMagnitude)
+        transform = `perspective(1000px) rotate3d(${rotX}, ${rotY}, 0, ${rotDeg}deg)`
+
+        shineX = xCoord
+        shineY = yCoord
+    }
+
+    // - Shine
+    const shineLeft = `calc(${100 - shineX * 100}% - ${shineSize / 2}px)`
+    const shineTop = `calc(${100 - shineY * 100}% - ${shineSize / 2}px)`
+
+    // - Thickness
     const layers = []
     for (let i = 0; i < depth; i++) {
         layers.push(
@@ -66,7 +94,7 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
         <Box
             className={Classes.root}
             style={{
-                transform: `perspective(1000px) rotate3d(${rotX}, ${rotY}, 0, ${rotDeg}deg)`,
+                transform,
             }}
             sx={{
                 position: 'relative',
@@ -109,7 +137,7 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
                         position: 'absolute',
                         width: `${shineSize}px`,
                         height: `${shineSize}px`,
-                        background: 'radial-gradient(closest-side circle at center, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0) 50%)',
+                        background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0) 50%)',
                         filter: 'blur(10px)',
                         borderRadius: '50%',
                         transition: theme.transitions.create(

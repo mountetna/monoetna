@@ -2,15 +2,15 @@ import * as React from 'react'
 import _ from 'lodash'
 
 
-interface Coords {
+interface TwoDCoords {
     x: number
     y: number
 }
 
-export function useMousePosition(mode: 'pixels' | 'fraction' = 'fraction', throttleIntervalMs: number = 100): Coords {
-    const [coords, setCoords] = React.useState<Coords>({ x: 0, y: 0 })
+export function usePointerPosition(mode: 'pixels' | 'fraction' = 'fraction', throttleIntervalMs: number = 100): TwoDCoords | null {
+    const [coords, setCoords] = React.useState<TwoDCoords | null>(null)
 
-    let handleMouseMove = (event: MouseEvent) => {
+    let handlePointerMove = (event: PointerEvent) => {
         const viewportX = event.clientX
         const viewportY = event.clientY
         const viewportWidth = window.innerWidth
@@ -22,8 +22,8 @@ export function useMousePosition(mode: 'pixels' | 'fraction' = 'fraction', throt
         })
     }
 
-    handleMouseMove = _.throttle(
-        handleMouseMove,
+    handlePointerMove = _.throttle(
+        handlePointerMove,
         throttleIntervalMs,
         {
             leading: true,
@@ -32,8 +32,46 @@ export function useMousePosition(mode: 'pixels' | 'fraction' = 'fraction', throt
     )
 
     React.useEffect(() => {
-        document.addEventListener('mousemove', handleMouseMove)
-        return () => document.removeEventListener('mousemove', handleMouseMove)
+        document.addEventListener('pointermove', handlePointerMove)
+        return () => document.removeEventListener('pointermove', handlePointerMove)
+    }, [])
+
+    return coords
+}
+
+interface ThreeDCoords {
+    x: number
+    y: number
+    z: number
+}
+
+export function useDeviceOrientation(throttleIntervalMs: number = 100): ThreeDCoords | null {
+    const [coords, setCoords] = React.useState<ThreeDCoords | null>(null)
+
+    let handleDeviceOrientation = (event: DeviceOrientationEvent) => {
+        if (event.alpha == null || event.beta == null || event.gamma == null) {
+            return
+        }
+
+        setCoords({
+            x: -event.beta,
+            y: event.gamma,
+            z: -event.alpha,
+        })
+    }
+
+    handleDeviceOrientation = _.throttle(
+        handleDeviceOrientation,
+        throttleIntervalMs,
+        {
+            leading: true,
+            trailing: true,
+        },
+    )
+
+    React.useEffect(() => {
+        window.addEventListener('deviceorientation', handleDeviceOrientation)
+        return () => window.removeEventListener('deviceorientation', handleDeviceOrientation)
     }, [])
 
     return coords
