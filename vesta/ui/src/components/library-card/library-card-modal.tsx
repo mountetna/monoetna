@@ -75,15 +75,15 @@ export function LibraryCardModal({
                     alignItems: 'center',
                     gap: '11px',
                     [`& .${LibraryCardClasses.root}`]: {
-                        position: 'relative',
-                        top: open ? '0px' : '100%',
-                        transition: theme.transitions.create(
-                            'top',
-                            {
-                                easing: theme.transitions.easing.quint,
-                                duration: theme.transitions.duration.quint,
-                            },
-                        ),
+                        // position: 'relative',
+                        // top: open ? '0px' : '100%',
+                        // transition: theme.transitions.create(
+                        //     'top',
+                        //     {
+                        //         easing: theme.transitions.easing.quint,
+                        //         duration: theme.transitions.duration.quint,
+                        //     },
+                        // ),
                     },
                 }}
             >

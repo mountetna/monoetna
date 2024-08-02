@@ -1,15 +1,18 @@
 import * as React from 'react';
 import Box from '@mui/system/Box'
-import { Typography, useTheme } from '@mui/material';
+import { SxProps, Typography, useTheme } from '@mui/material';
 import Image from 'next/image';
 
 import { User } from '../user/models';
 
 import logoDarkSrc from '/public/images/logo/logo-dark.svg'
+import { useMousePosition } from '@/lib/utils/position';
 
 
 export enum Classes {
-    root = 'library-card'
+    root = 'library-card',
+    side = 'library-card-side',
+    depthLayer = 'library-card-depth-layer'
 }
 
 
@@ -19,7 +22,7 @@ interface Stat {
 }
 
 const STATS: Stat[] = [
-    { key: 'contributions', label: 'Contributions', },
+    // { key: 'contributions', label: 'Contributions', },
     { key: 'projectMemberships', label: 'Projects', },
 ]
 
@@ -27,9 +30,114 @@ interface Props {
     user: User,
 }
 
+
 function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
     const theme = useTheme()
     const user = props.user
+
+    const depth = 5
+    const outlineSize = 0.5
+    const rotationIntensity = 15
+    const shineSize = 1500
+
+    // Manage effects
+    // - Orientation
+    const mouseCoords = useMousePosition('fraction')
+    const rotX = (mouseCoords.y - 0.5) / 0.5
+    const rotY = -(mouseCoords.x - 0.5) / 0.5
+    const rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
+    const rotDeg = Math.round(rotationIntensity * rotMagnitude)
+    // - Shine
+    const shineLeft = `calc(${100 - mouseCoords.x * 100}% - ${shineSize / 2}px)`
+    const shineTop = `calc(${100 - mouseCoords.y * 100}% - ${shineSize / 2}px)`
+
+    const layers = []
+    for (let i = 0; i < depth; i++) {
+        layers.push(
+            <Box
+                key={i}
+                className={Classes.depthLayer}
+                sx={{ transform: `translateZ(${i}px)` }}
+            />
+        );
+    }
+
+    return (
+        <Box
+            className={Classes.root}
+            style={{
+                transform: `perspective(1000px) rotate3d(${rotX}, ${rotY}, 0, ${rotDeg}deg)`,
+            }}
+            sx={{
+                position: 'relative',
+                transition: theme.transitions.create(
+                    ['transform'],
+                    {
+                        duration: theme.transitions.duration.ease,
+                    }
+                ),
+                '&, & > *': {
+                    transformStyle: 'preserve-3d',
+                },
+                [`& > *, .${Classes.side}`]: {
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                },
+                [`.${Classes.depthLayer}`]: {
+                    position: 'absolute',
+                    top: -outlineSize,
+                    left: -outlineSize,
+                    right: -outlineSize,
+                    bottom: -outlineSize,
+                    backfaceVisibility: 'hidden',
+                    bgcolor: '#FFFDEC',
+                },
+            }}
+        >
+            <Box
+                sx={{
+                    transform: `translateZ(${depth}px)`,
+                    position: 'relative',
+                }}
+            >
+                <Box
+                    style={{
+                        left: shineLeft,
+                        top: shineTop,
+                    }}
+                    sx={{
+                        position: 'absolute',
+                        width: `${shineSize}px`,
+                        height: `${shineSize}px`,
+                        background: 'radial-gradient(closest-side circle at center, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0) 50%)',
+                        filter: 'blur(10px)',
+                        borderRadius: '50%',
+                        transition: theme.transitions.create(
+                            ['top', 'left'],
+                            {
+                                duration: theme.transitions.duration.ease,
+                            }
+                        ),
+                    }}
+                />
+
+                <Box ref={ref}>
+                    <LibraryCardFront
+                        user={user}
+                    />
+                </Box>
+            </Box>
+            {layers}
+        </Box>
+    )
+}
+
+function LibraryCardFront({
+    user,
+}: {
+    user: User,
+}) {
+    const theme = useTheme()
 
     const [avatarLoaded, setAvatarLoaded] = React.useState(false)
     const avatarSideLengthPx = 24
@@ -37,15 +145,13 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
 
     return (
         <Box
-            ref={ref}
-            className={Classes.root}
+            className={Classes.side}
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
                 width: '298px',
-                borderRadius: '20px',
-                overflow: 'hidden',
                 color: 'white',
+                borderRadius: '20px',
             }}
         >
             <Image
@@ -211,7 +317,7 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
                                         color: 'ground.grade10',
                                     }}
                                 >
-                                    {stat.label}
+                                    {stat.label.toUpperCase()}
                                 </Typography>
 
                                 <Typography

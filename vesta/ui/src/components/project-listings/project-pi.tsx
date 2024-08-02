@@ -97,6 +97,9 @@ export default function ProjectPI({
                 sx={{
                     overflow: 'hidden',
                     // justifyContent: 'space-around',
+                    display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
                     '& *': {
                         display: 'block',
                         overflow: 'hidden',

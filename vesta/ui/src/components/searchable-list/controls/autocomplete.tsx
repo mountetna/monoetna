@@ -185,6 +185,8 @@ function Autocomplete<Value>(
               borderRadius: '16px',
               m: '10px 0',
               p: '16px',
+              // boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 22px 0px',
+              border: `1px solid ${theme.palette.ground.grade75}`
             }}
           >
             <Listbox
