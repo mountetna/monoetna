@@ -42,7 +42,7 @@ const QueryFromPane = () => {
             setModel={onRootModelSelect}
             options={[...graph.allowedModels]}
             modelName={rootModel || ''}
-          />&nbsp;as rows
+          />&nbsp;as&nbsp;<b>rows</b>
         </Grid>
         <Grid item container alignItems='center' justify='flex-end' xs={4}>
           {rootModel ? <QueryControlButtons /> : null}

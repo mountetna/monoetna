@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useMemo} from 'react';
 import Grid from '@material-ui/core/Grid';
 import {makeStyles} from '@material-ui/core/styles';
 
@@ -34,6 +34,7 @@ const QueryControls = () => {
     whereState,
     setWhereState
   });
+
 
   return (
     <>

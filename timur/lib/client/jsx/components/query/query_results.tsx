@@ -8,14 +8,6 @@ import {QueryResultsContext} from '../../contexts/query/query_results_context';
 import {userColumns} from '../../selectors/query_selector';
 import QueryTable from './query_table';
 import useTableEffects from './query_use_table_effects';
-import AntSwitch from './ant_switch';
-import ErrorBoundary from 'etna-js/components/error_boundary';
-
-import {json} from '@codemirror/lang-json';
-import {defaultHighlightStyle, syntaxHighlighting} from '@codemirror/language';
-import {EditorView} from 'codemirror';
-import {EditorState} from '@codemirror/state';
-import CodeMirror from 'rodemirror';
 
 const useStyles = makeStyles((theme) => ({
   checkbox: {
@@ -46,13 +38,10 @@ const QueryResults = () => {
       queryString,
       data,
       expandMatrices,
-      flattenQuery,
       maxColumns
     },
     setPageSize,
-    setPage,
-    setExpandMatrices,
-    setFlattenQuery
+    setPage
   } = useContext(QueryResultsContext);
 
   const classes = useStyles();
@@ -82,29 +71,10 @@ const QueryResults = () => {
     return JSON.stringify(userColumns(columns));
   }, [columns]);
 
-  const codeMirrorText = `query: ${queryString}\nuser_columns: ${userColumnsStr}`;
-
-  const extensions = useMemo(
-    () => [
-      syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
-      json(),
-      EditorView.editable.of(false),
-      EditorState.readOnly.of(true),
-      EditorView.lineWrapping
-    ],
-    []
-  );
-
   if (!rootModel) return null;
 
   return (
     <>
-      { false && <Grid item className={classes.result}>
-          <ErrorBoundary>
-            <CodeMirror extensions={extensions} value={codeMirrorText} />
-          </ErrorBoundary>
-        </Grid>
-      }
       <Grid xs={12} item container direction='column'>
         <QueryTable
           maxColumns={maxColumns}
@@ -115,9 +85,6 @@ const QueryResults = () => {
           page={page}
           graph={graph}
           expandMatrices={expandMatrices}
-          flattenQuery={flattenQuery}
-          setExpandMatrices={setExpandMatrices}
-          setFlattenQuery={setFlattenQuery}
           handlePageChange={handlePageChange}
           handlePageSizeChange={handlePageSizeChange}
         />

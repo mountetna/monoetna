@@ -32,8 +32,11 @@ const useStyles = makeStyles((theme) => ({
     width: '80%',
     minWidth: 120
   },
-  topMargin: {
-    marginTop: '3px'
+  column_input: {
+    flex: '1',
+    '& input': {
+      padding: '4px'
+    }
   }
 }));
 
@@ -220,7 +223,7 @@ const QueryModelAttributeSelector = React.memo(
             <TextField
               variant='standard'
               size='small'
-              style={{ flex: '1' }}
+              className={classes.column_input}
               value={column.display_label}
               onChange={(e) => onChangeLabel(e.target.value)}
             />

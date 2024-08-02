@@ -156,7 +156,7 @@ const QuerySelectPane = () => {
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
       <QueryClause title=''>
-        Select attributes as columns:
+        Select attributes as&nbsp;<b>columns</b>:
         <Tooltip title='Add column' aria-label='Add column'>
           <IconButton
             size='small'

@@ -9,6 +9,7 @@ const useStyles = makeStyles((theme) => ({
   select: {
     alignItems: 'center',
     '&&& .MuiSelect-select': {
+      padding: '0px',
       paddingRight: '5px'
     }
   }

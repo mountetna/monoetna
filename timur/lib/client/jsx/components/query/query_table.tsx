@@ -33,9 +33,6 @@ const QueryTable = ({
   maxColumns,
   graph,
   expandMatrices,
-  setExpandMatrices,
-  flattenQuery,
-  setFlattenQuery,
   handlePageChange,
   handlePageSizeChange
 }: {
@@ -46,10 +43,6 @@ const QueryTable = ({
   pageSize: number;
   maxColumns: number;
   graph: QueryGraph;
-  expandMatrices: boolean;
-  setExpandMatrices: Function;
-  flattenQuery: boolean;
-  setFlattenQuery: Function;
   handlePageChange: (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent> | null,
     newPage: number
@@ -63,26 +56,6 @@ const QueryTable = ({
   return (
     <React.Fragment>
       <Grid className={classes.table_controls} container>
-        <Grid
-          item container style={{ width: 'auto', flex: '1 1 auto' }}
-          justifyContent='flex-start'
-          alignItems='center'
-        >
-          <AntSwitch
-            checked={expandMatrices}
-            onChange={() => setExpandMatrices(!expandMatrices)}
-            name='expand-matrices-query'
-            leftOption='Nest matrices'
-            rightOption='Expand matrices'
-          />
-          <AntSwitch
-            checked={flattenQuery}
-            onChange={() => setFlattenQuery(!flattenQuery)}
-            name='flatten-query'
-            leftOption='Nested'
-            rightOption='Flattened'
-          />
-        </Grid>
         <Grid
           item container style={{ width: 'auto', flex: '1 1 auto' }}
           justifyContent='flex-end'
