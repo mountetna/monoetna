@@ -36,17 +36,20 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
     const user = props.user
 
     const depth = 5
-    const outlineSize = 0.5
+    const outlineSize = 1
     const rotationIntensity = 15
     const shineSize = 1500
+    const blurIntensity = 0.3
+    const transparencyIntensity = 0.2
 
     // Manage effects
     // - Orientation
     const pointerCoords = usePointerPosition('fraction')
     const deviceOrientationCoords = useDeviceOrientation()
+    let transform = 'unset'
     let shineX = 0
     let shineY = 0
-    let transform = 'unset'
+    let rotMagnitude = 0
 
     if (deviceOrientationCoords !== null) {
         const xCoord = deviceOrientationCoords.x
@@ -54,8 +57,7 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
         const zCoord = deviceOrientationCoords.z
         // const rotX = (yCoord - 0.5) / 0.5
         // const rotY = -(xCoord - 0.5) / 0.5
-        // const rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
-        const rotDeg = Math.round(rotationIntensity)
+        // rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
         // const rotDeg = Math.round(rotationIntensity * rotMagnitude)
         transform = `rotateZ(${zCoord}deg) rotateX(${xCoord}deg) rotateY(${yCoord}deg)`
 
@@ -66,7 +68,7 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
         const yCoord = pointerCoords.y
         const rotX = (yCoord - 0.5) / 0.5
         const rotY = -(xCoord - 0.5) / 0.5
-        const rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
+        rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
         const rotDeg = Math.round(rotationIntensity * rotMagnitude)
         transform = `perspective(1000px) rotate3d(${rotX}, ${rotY}, 0, ${rotDeg}deg)`
 
@@ -77,6 +79,10 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
     // - Shine
     const shineLeft = `calc(${100 - shineX * 100}% - ${shineSize / 2}px)`
     const shineTop = `calc(${100 - shineY * 100}% - ${shineSize / 2}px)`
+
+    // - Blur and transparency
+    const blurValue = blurIntensity * rotMagnitude
+    const transparencyValue = transparencyIntensity * rotMagnitude
 
     // - Thickness
     const layers = []
@@ -142,6 +148,29 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
                         borderRadius: '50%',
                         transition: theme.transitions.create(
                             ['top', 'left'],
+                            {
+                                duration: theme.transitions.duration.ease,
+                            }
+                        ),
+                    }}
+                />
+
+                <Box
+                    style={{
+                        background: `rgba(255, 255, 255, ${transparencyValue})`,
+                        backdropFilter: `blur(${blurValue}px)`,
+                    }}
+                    sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        borderRadius: '16px',
+                        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        transition: theme.transitions.create(
+                            ['backdrop-filter', 'background', 'border', 'box-shadow'],
                             {
                                 duration: theme.transitions.duration.ease,
                             }
