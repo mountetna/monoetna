@@ -74,22 +74,23 @@ export function LibraryCardModal({
                     justifyContent: 'center',
                     alignItems: 'center',
                     gap: '11px',
-                    [`.${LibraryCardClasses.rootContainer}`]: {
-                        position: 'relative',
-                        top: open ? '0px' : '100%',
-                        transition: theme.transitions.create(
-                            'top',
-                            {
-                                easing: theme.transitions.easing.quint,
-                                duration: theme.transitions.duration.quint,
-                            },
-                        ),
+                    [`.${LibraryCardClasses.root}`]: {
+                        // position: 'relative',
+                        // top: open ? '0px' : '100%',
+                        // transition: theme.transitions.create(
+                        //     'top',
+                        //     {
+                        //         easing: theme.transitions.easing.quint,
+                        //         duration: theme.transitions.duration.quint,
+                        //     },
+                        // ),
                     },
                 }}
             >
                 <LibraryCard
                     ref={libraryCardRef}
                     user={user}
+                    variant='3d'
                 />
 
                 <Box

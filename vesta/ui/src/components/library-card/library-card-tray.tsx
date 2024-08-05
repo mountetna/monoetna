@@ -73,6 +73,7 @@ export default function LibraryCardTray({
 
                                     <LibraryCard
                                         user={user}
+                                        variant='2d'
                                     />
                                 </Box>
                             </Fade>
