@@ -38,6 +38,8 @@ export default function ThemeBookHorizontal({
                 const styles = {
                     display: 'flex',
                     flexDirection: 'row',
+                    // TODO: figure out why this is neccessary for proper animation
+                    transform: 'translateY(0px)',
                     transition: theme.transitions.create(
                         ['transform'],
                         {
@@ -45,8 +47,6 @@ export default function ThemeBookHorizontal({
                             easing: theme.transitions.easing.quint,
                         }
                     ),
-                    // TODO: figure out why this is neccessary for proper animation
-                    transform: 'translateY(0px)',
                 }
 
                 return open ? styles : {
@@ -73,6 +73,7 @@ export default function ThemeBookHorizontal({
                         sx={{
                             display: 'flex',
                             flexDirection: 'column',
+                            height: '100%',
                             p: '16px',
                         }}
                     >

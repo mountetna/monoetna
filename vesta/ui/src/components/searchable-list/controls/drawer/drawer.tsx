@@ -10,6 +10,7 @@ import { DrawerItem, DisplayStyle, DrawerSectionProps, DrawerSectionClass, Drawe
 import DrawerSectionDefault from './section-default';
 import DrawerSectionExpandable from './section-expandable';
 import Button from '@/components/inputs/button';
+import { TransitionProps } from '@mui/material/transitions'
 
 
 export default function Drawer<Item>({
@@ -154,16 +155,18 @@ export default function Drawer<Item>({
         )
     }
 
+    const animationProps: TransitionProps = {
+        in: open,
+        easing: theme.transitions.easing.quint,
+        timeout: theme.transitions.duration.quint,
+    }
+
     return (
         <Collapse
-            in={open}
-            easing={theme.transitions.easing.quint}
-            timeout={theme.transitions.duration.quint}
+            {...animationProps}
         >
             <Fade
-                in={open}
-                easing={theme.transitions.easing.quint}
-                timeout={theme.transitions.duration.quint}
+                {...animationProps}
             >
                 <Box
                     // ref={rootRef}

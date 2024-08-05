@@ -8,8 +8,12 @@ export enum Classes {
 
 
 export default function LibraryCardButton({
+    isLoggedIn,
+    textOverride,
     onClick,
 }: {
+    isLoggedIn: boolean,
+    textOverride?: string,
     onClick: () => void,
 }) {
     return (
@@ -17,6 +21,7 @@ export default function LibraryCardButton({
             className={Classes.root}
             onClick={onClick}
             sx={{
+                width: 'fit-content',
                 px: '16px',
                 py: '8px',
                 color: 'utilityHighlight.main',
@@ -25,7 +30,7 @@ export default function LibraryCardButton({
                 typography: 'pBodyMediumWt',
             }}
         >
-            LIB CARD / GET ACCESS
+            {textOverride !== undefined ? textOverride : isLoggedIn ? 'View your Library Card' : 'Get Access'}
         </ButtonBase>
     )
 }

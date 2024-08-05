@@ -194,7 +194,7 @@ function Autocomplete<Value>(
               ref={listBoxRef}
               sx={{
                 listStyle: 'none',
-                maxHeight: '50vh',
+                maxHeight: '40rem',
                 overflow: 'scroll',
                 m: '0',
                 p: '0',
@@ -284,6 +284,8 @@ const Option = styled('li')(
   list-style: none;
   cursor: default;
   outline: 1px solid transparent;
+  padding: 8px;
+  border-radius: 8px;
   transition: ${theme.transitions.create('all', { easing: theme.transitions.easing.ease, duration: theme.transitions.duration.ease })};
 
   &:last-of-type {
@@ -291,7 +293,7 @@ const Option = styled('li')(
 
   &:hover {
     cursor: pointer;
-    outline: 1px solid black;
+    background-color: ${theme.palette.utilityHighlight.main};
   }
 
   &[aria-selected=true] {

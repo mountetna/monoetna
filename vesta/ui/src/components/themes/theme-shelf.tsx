@@ -11,7 +11,7 @@ import ThemeBookVertical from './theme-book/theme-book-vertical'
 import ThemeBookHorizontal from './theme-book/theme-book-horizontal'
 import { ThemeData } from './models';
 import PaginationArrows from '../inputs/pagination-arrows';
-import { useWindowDimensions } from '@/lib/utils/responsive';
+import { useBreakpoint, useWindowDimensions } from '@/lib/utils/responsive';
 import { containerPadding } from '@/theme';
 import { scrollTo } from '@/lib/utils/scroll';
 
@@ -22,10 +22,8 @@ export default function ThemeShelf({
     themeData: ThemeData[],
 }) {
     const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.between(
-        theme.breakpoints.values.mobile,
-        theme.breakpoints.values.tablet,
-    ))
+    const breakpoint = useBreakpoint()
+    const isMobile = breakpoint === 'mobile'
 
     const mobileThemeBookContainerRef = React.createRef<HTMLDivElement>()
     const tabletDesktopThemeBookContainerRef = React.createRef<HTMLDivElement>()
@@ -58,7 +56,7 @@ export default function ThemeShelf({
         const bookEl = containerEl.children[bookIdx] as HTMLElement
 
         if (isMobile) {
-            scrollTo({ top: bookEl.offsetTop })
+            scrollTo({ top: bookEl.offsetTop }, breakpoint)
         } else {
             containerEl.scroll({
                 left: bookEl.offsetLeft,
@@ -93,7 +91,7 @@ export default function ThemeShelf({
 
         router.push(href, { scroll: false })
         if (el) {
-            scrollTo({ top: el.offsetTop })
+            scrollTo({ top: el.offsetTop }, breakpoint)
         }
     }
 

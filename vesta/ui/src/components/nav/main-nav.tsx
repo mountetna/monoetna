@@ -3,60 +3,53 @@
 import * as React from 'react'
 import Container from '@mui/system/Container'
 import Box from '@mui/system/Box'
-import { useMediaQuery } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { Breakpoint, useTheme } from '@mui/material/styles';
 import _ from 'lodash'
 
-import UCSFNav from './ucsf-nav'
+import UCSFNav, { Classes as UCSFNavClasses } from './ucsf-nav'
 import UCSFHomeLink from './ucsf-home-link';
 import useIsStuck from '@/lib/utils/css';
-import MobileNav from './mobile-nav';
+import OverlayNav from './overlay-nav';
 import NavBar, { Heights as NavBarHeights, Classes as NavBarClasses } from './nav-bar';
+import { useBreakpoint } from '@/lib/utils/responsive';
 
 
-export function getMainNavHeight(): number {
-    return NavBarHeights.condensed
+export function getMainNavHeight(breakpoint: Breakpoint): number {
+    return NavBarHeights[breakpoint].condensed
 }
 
 
 export default function MainNav() {
     const theme = useTheme()
 
-    const [mobileNavOpen, setMobileNavOpen] = React.useState(false)
+    const [overlayNavOpen, setOverlayNavOpen] = React.useState(false)
 
     React.useEffect(() => {
-        document.body.style.overflow = mobileNavOpen ? 'hidden' : 'visible'
-    }, [mobileNavOpen])
+        document.body.style.overflow = overlayNavOpen ? 'hidden' : 'visible'
+    }, [overlayNavOpen])
 
-    const isDesktop = useMediaQuery(theme.breakpoints.up(theme.breakpoints.values.desktop))
+    const breakpoint = useBreakpoint()
+    const isDesktop = ['desktop', 'desktopLg'].includes(breakpoint)
 
     React.useEffect(() => {
-        if (isDesktop && mobileNavOpen) {
-            setMobileNavOpen(false)
+        if (isDesktop && overlayNavOpen) {
+            setOverlayNavOpen(false)
         }
     }, [isDesktop])
 
     const mainNavRef = React.createRef<HTMLElement>()
     const isStuck = useIsStuck(mainNavRef)
 
-    const opacityTransition = theme.transitions.create(
-        'opacity',
-        {
-            duration: theme.transitions.duration.ease,
-            easing: theme.transitions.easing.ease,
-        }
-    )
-
     const handleClickNavButton = () => {
-        setMobileNavOpen(val => !val)
+        setOverlayNavOpen(val => !val)
     }
 
+    // Compensate for anything above nav bar (i.e. UCSF nav)
     const [scrollDistanceToMainNav, setScrollDistanceToMainNav] = React.useState(0)
 
     React.useEffect(() => {
         const mainNavEl = mainNavRef.current
-
-        if (mainNavEl && !isStuck && mobileNavOpen) {
+        if (mainNavEl && !isStuck && overlayNavOpen) {
             const setDistanceToMainNav = _.throttle(() => {
                 setScrollDistanceToMainNav(
                     Math.max(
@@ -66,13 +59,15 @@ export default function MainNav() {
                 )
             }, 10)
 
+            // Run once for initial page load
+            setDistanceToMainNav()
             document.addEventListener('scroll', setDistanceToMainNav)
 
             return () => {
                 document.removeEventListener('scroll', setDistanceToMainNav)
             }
         }
-    }, [isStuck, mobileNavOpen])
+    }, [isStuck, overlayNavOpen])
 
     return (
         <React.Fragment>
@@ -80,8 +75,10 @@ export default function MainNav() {
             <Box
                 component='nav'
                 aria-label='UCSF Main'
-                py='10px'
-                bgcolor='utilityUCSFNavy.main'
+                sx={{
+                    py: '10px',
+                    bgcolor: 'utilityUCSFNavy.main',
+                }}
             >
                 <Container
                     sx={{
@@ -90,18 +87,20 @@ export default function MainNav() {
                     }}
                 >
                     <UCSFHomeLink />
-                    <Box
-                        component='span'
-                        sx={(theme) => ({
+
+                    <UCSFNav
+                        sx={{
                             display: 'none',
                             [theme.breakpoints.up('desktop')]: {
-                                display: 'inline-block',
+                                display: 'flex',
                                 ml: '29px',
-                            }
-                        })}
-                    >
-                        <UCSFNav />
-                    </Box>
+                                gap: '29px',
+                            },
+                            [`.${UCSFNavClasses.link}`]: {
+                                color: 'utilityHighlight.main',
+                            },
+                        }}
+                    />
                 </Container>
             </Box>
 
@@ -115,25 +114,35 @@ export default function MainNav() {
                     position: 'sticky',
                     top: 0,
                     bgcolor: 'utilityLowlight.main',
-                    height: `${NavBarHeights.condensed}px`,
+                    height: `${NavBarHeights[breakpoint].condensed}px`,
                     overflow: 'visible',
+                    boxShadow: isStuck ? 'rgba(0, 0, 0, 0.15) 0px 0px 22px 0px' : 'rgba(0, 0, 0, 0) 0px 0px 22px 0px',
+                    transition: theme.transitions.create(
+                        'box-shadow',
+                        {
+                            duration: theme.transitions.duration.ease,
+                            easing: theme.transitions.easing.ease,
+                        },
+                    ),
                 }}
             >
                 {!isDesktop && (
-                    <MobileNav
-                        open={mobileNavOpen}
+                    <OverlayNav
+                        open={overlayNavOpen}
+                        onClickNavLink={() => setOverlayNavOpen(false)}
                         sx={{
-                            pt: `${NavBarHeights.default}px`,
+                            // Compensate for navbar height
+                            pt: `${NavBarHeights[breakpoint][isStuck ? 'condensed' : 'default']}px`,
                             height: `calc(100vh - ${scrollDistanceToMainNav}px)`,
+                            transition: theme.transitions.create(
+                                'padding-top',
+                                {
+                                    duration: theme.transitions.duration.ease,
+                                    easing: theme.transitions.easing.ease,
+                                },
+                            ),
                             '& > *:first-child': {
-                                pt: isStuck ? '0px' : '36px',
-                                transition: theme.transitions.create(
-                                    'padding-top',
-                                    {
-                                        duration: theme.transitions.duration.ease,
-                                        easing: theme.transitions.easing.ease,
-                                    }
-                                ),
+                                pt: '36px',
                             },
                         }}
                     />

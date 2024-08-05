@@ -27,6 +27,7 @@ import filterLightIcon from '/public/images/icons/filter-light.svg'
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
 import { scrollTo } from '@/lib/utils/scroll';
+import { useBreakpoint } from '@/lib/utils/responsive';
 
 
 const searchableProjectKeys: (keyof SearchableProjectData)[] = ['fullName', 'principalInvestigators', 'type', 'dataTypes', 'theme', 'status']
@@ -92,11 +93,9 @@ export default function ProjectListings({
     }, [searchParams])
 
     const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.between(
-        theme.breakpoints.values.mobile,
-        theme.breakpoints.values.tablet,
-    ))
-    const isDesktop = useMediaQuery(theme.breakpoints.up('desktop'))
+    const breakpoint = useBreakpoint()
+    const isMobile = breakpoint === 'mobile'
+    const isDesktop = ['desktop', 'desktopLg'].includes(breakpoint)
 
     const [currentPage, setCurrentPage] = React.useState(0)
     const pageSize = 12
@@ -303,7 +302,7 @@ export default function ProjectListings({
             return
         }
 
-        scrollTo({ top: projectEl.offsetTop })
+        scrollTo({ top: projectEl.offsetTop }, breakpoint)
     }
 
     const handleChangeFilterItems = (filterItems: FilterItem[]) => {

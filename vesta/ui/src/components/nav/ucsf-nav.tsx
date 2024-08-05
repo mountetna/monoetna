@@ -51,11 +51,11 @@ function NavLink({
 
 export default function UCSFNav({
     sx = {},
-    typography = 'pBody',
+    linkTypography = 'pBody',
     buttonTypography = 'pBodyMediumWt',
 }: {
     sx?: SxProps,
-    typography?: TypographyVariant,
+    linkTypography?: TypographyVariant,
     buttonTypography?: TypographyVariant,
 }) {
     return (
@@ -74,17 +74,17 @@ export default function UCSFNav({
             <NavLink
                 text='About UCSF'
                 href='https://www.ucsf.edu/about'
-                typography={typography}
+                typography={linkTypography}
             />
             <NavLink
                 text='Search UCSF'
                 href='https://www.ucsf.edu/search'
-                typography={typography}
+                typography={linkTypography}
             />
             <NavLink
                 text='UCSF Health'
                 href='https://www.ucsfhealth.org/'
-                typography={typography}
+                typography={linkTypography}
             />
             <Box
                 className={Classes.donateLinkContainer}

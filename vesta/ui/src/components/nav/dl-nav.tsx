@@ -3,22 +3,17 @@ import MUILink from '@mui/material/Link';
 import Link from 'next/link'
 import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
-import { SxProps, Typography } from '@mui/material';
+import { SxProps, Typography, useTheme } from '@mui/material';
 
-import LibraryCardButton, { Classes as LibraryCardButtonClasses } from '../library-card/library-card-button';
-import LibraryCardTray, { Classes as LibraryCardTrayClasses } from '../library-card/library-card-tray';
 import { TypographyVariant } from '@/lib/utils/types'
 import { Heights as NavBarHeights } from './nav-bar';
+import { useBreakpoint } from '@/lib/utils/responsive';
 
 
 export enum Classes {
     root = 'data-library-nav',
-    linksContainer = 'links-container',
     linkContainer = 'link-container',
     link = 'link',
-    libraryCardListItemContainer = 'library-card-list-item-container',
-    libraryCardButton = LibraryCardButtonClasses.root,
-    LibraryCardTray = LibraryCardTrayClasses.root,
 }
 
 
@@ -33,13 +28,12 @@ function NavLink({
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void,
     typography: TypographyVariant,
 }) {
+    const theme = useTheme()
+
     return (
         <Box
             className={Classes.linkContainer}
             component='li'
-            sx={{
-
-            }}
         >
             <MUILink
                 className={Classes.link}
@@ -48,6 +42,18 @@ function NavLink({
                 component={Link}
                 underline='none'
                 onClick={onClick}
+                sx={{
+                    '&:hover, &:focus': {
+                        color: 'blue.grade50',
+                    },
+                    transition: theme.transitions.create(
+                        ['color'],
+                        {
+                            easing: theme.transitions.easing.ease,
+                            duration: theme.transitions.duration.ease,
+                        },
+                    ),
+                }}
             >
                 <Typography variant={typography}>
                     {text}
@@ -60,12 +66,16 @@ function NavLink({
 
 export default function DLNav({
     sx = {},
-    typography = 'pBody',
+    linkTypography = 'pBody',
+    onClickNavLink,
 }: {
     sx?: SxProps,
-    typography?: TypographyVariant
+    linkTypography?: TypographyVariant
+    onClickNavLink?: () => void,
 }) {
     const router = useRouter()
+
+    const breakpoint = useBreakpoint()
 
     const handleClickNavLink = (event: React.MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault()
@@ -78,10 +88,12 @@ export default function DLNav({
 
         if (el) {
             window.scrollTo({
-                top: el.offsetTop - NavBarHeights.condensed,
+                top: el.offsetTop - NavBarHeights[breakpoint].condensed,
                 behavior: 'smooth',
             })
         }
+
+        onClickNavLink && onClickNavLink()
     }
 
     return (
@@ -97,41 +109,30 @@ export default function DLNav({
                 ...sx,
             }}
         >
-            <Box
-                className={Classes.linksContainer}
-            >
-                <NavLink
-                    text='About the Library'
-                    href='#about'
-                    onClick={handleClickNavLink}
-                    typography={typography}
-                />
-                <NavLink
-                    text='Themes'
-                    href='#themes'
-                    onClick={handleClickNavLink}
-                    typography={typography}
-                />
-                <NavLink
-                    text='Projects'
-                    href='#projects'
-                    onClick={handleClickNavLink}
-                    typography={typography}
-                />
-                {/* <NavLink
-                    text='Contibute'
-                    href='#'
-                    onClick={handleClickNavLink}
-                    typography={typography}
-                /> */}
-            </Box>
-            <Box
-                className={Classes.libraryCardListItemContainer}
-                component='li'
-            >
-                <LibraryCardButton />
-                <LibraryCardTray />
-            </Box>
+            <NavLink
+                text='About the Library'
+                href='#about'
+                onClick={handleClickNavLink}
+                typography={linkTypography}
+            />
+            <NavLink
+                text='Themes'
+                href='#themes'
+                onClick={handleClickNavLink}
+                typography={linkTypography}
+            />
+            <NavLink
+                text='Projects'
+                href='#projects'
+                onClick={handleClickNavLink}
+                typography={linkTypography}
+            />
+            {/* <NavLink
+                text='Contibute'
+                href='#'
+                onClick={handleClickNavLink}
+                typography={typography}
+            /> */}
         </Box>
     )
 }

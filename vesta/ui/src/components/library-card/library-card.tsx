@@ -10,6 +10,7 @@ import { useDeviceOrientation, usePointerPosition } from '@/lib/utils/position';
 
 
 export enum Classes {
+    rootContainer = 'library-card-container',
     root = 'library-card',
     side = 'library-card-side',
     depthLayer = 'library-card-depth-layer'
@@ -59,7 +60,7 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
         // const rotY = -(xCoord - 0.5) / 0.5
         // rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
         // const rotDeg = Math.round(rotationIntensity * rotMagnitude)
-        transform = `rotateZ(${zCoord}deg) rotateX(${xCoord}deg) rotateY(${yCoord}deg)`
+        transform = `rotateX(${xCoord}deg) rotateY(${yCoord}deg) rotateZ(${zCoord}deg)`
 
         shineX = xCoord
         shineY = yCoord
@@ -98,93 +99,97 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
 
     return (
         <Box
-            className={Classes.root}
-            style={{
-                transform,
-            }}
-            sx={{
-                position: 'relative',
-                transition: theme.transitions.create(
-                    ['transform'],
-                    {
-                        duration: theme.transitions.duration.ease,
-                    }
-                ),
-                '&, & > *': {
-                    transformStyle: 'preserve-3d',
-                },
-                [`& > *, .${Classes.side}`]: {
-                    borderRadius: '20px',
-                    overflow: 'hidden',
-                },
-                [`.${Classes.depthLayer}`]: {
-                    position: 'absolute',
-                    top: -outlineSize,
-                    left: -outlineSize,
-                    right: -outlineSize,
-                    bottom: -outlineSize,
-                    backfaceVisibility: 'hidden',
-                    bgcolor: '#FFFDEC',
-                },
-            }}
+            className={Classes.rootContainer}
         >
             <Box
+                className={Classes.root}
+                style={{
+                    transform,
+                }}
                 sx={{
-                    transform: `translateZ(${depth}px)`,
                     position: 'relative',
+                    transition: theme.transitions.create(
+                        ['transform'],
+                        {
+                            duration: theme.transitions.duration.ease,
+                        }
+                    ),
+                    '&, & > *': {
+                        transformStyle: 'preserve-3d',
+                    },
+                    [`& > *, .${Classes.side}`]: {
+                        borderRadius: '20px',
+                        overflow: 'hidden',
+                    },
+                    [`.${Classes.depthLayer}`]: {
+                        position: 'absolute',
+                        top: -outlineSize,
+                        left: -outlineSize,
+                        right: -outlineSize,
+                        bottom: -outlineSize,
+                        backfaceVisibility: 'hidden',
+                        bgcolor: '#FFFDEC',
+                    },
                 }}
             >
                 <Box
-                    style={{
-                        left: shineLeft,
-                        top: shineTop,
-                    }}
                     sx={{
-                        position: 'absolute',
-                        width: `${shineSize}px`,
-                        height: `${shineSize}px`,
-                        background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0) 50%)',
-                        filter: 'blur(10px)',
-                        borderRadius: '50%',
-                        transition: theme.transitions.create(
-                            ['top', 'left'],
-                            {
-                                duration: theme.transitions.duration.ease,
-                            }
-                        ),
+                        transform: `translateZ(${depth}px)`,
+                        position: 'relative',
                     }}
-                />
-
-                <Box
-                    style={{
-                        background: `rgba(255, 255, 255, ${transparencyValue})`,
-                        backdropFilter: `blur(${blurValue}px)`,
-                    }}
-                    sx={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        transition: theme.transitions.create(
-                            ['backdrop-filter', 'background', 'border', 'box-shadow'],
-                            {
-                                duration: theme.transitions.duration.ease,
-                            }
-                        ),
-                    }}
-                />
-
-                <Box ref={ref}>
-                    <LibraryCardFront
-                        user={user}
+                >
+                    <Box
+                        style={{
+                            left: shineLeft,
+                            top: shineTop,
+                        }}
+                        sx={{
+                            position: 'absolute',
+                            width: `${shineSize}px`,
+                            height: `${shineSize}px`,
+                            background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0) 50%)',
+                            filter: 'blur(10px)',
+                            borderRadius: '50%',
+                            transition: theme.transitions.create(
+                                ['top', 'left'],
+                                {
+                                    duration: theme.transitions.duration.ease,
+                                }
+                            ),
+                        }}
                     />
+
+                    <Box
+                        style={{
+                            background: `rgba(255, 255, 255, ${transparencyValue})`,
+                            backdropFilter: `blur(${blurValue}px)`,
+                        }}
+                        sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            borderRadius: '16px',
+                            boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            transition: theme.transitions.create(
+                                ['backdrop-filter', 'background', 'border', 'box-shadow'],
+                                {
+                                    duration: theme.transitions.duration.ease,
+                                }
+                            ),
+                        }}
+                    />
+
+                    <Box ref={ref}>
+                        <LibraryCardFront
+                            user={user}
+                        />
+                    </Box>
                 </Box>
+                {layers}
             </Box>
-            {layers}
         </Box>
     )
 }

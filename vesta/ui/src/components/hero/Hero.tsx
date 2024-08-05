@@ -8,11 +8,11 @@ import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import MUILink from '@mui/material/Link';
 import Link from 'next/link'
-import { useRouter } from 'next/navigation';
 
 import StatsCarousel, { Stats } from '@/components/stats/stats-carousel';
 import arrowUpRightLightSrc from '/public/images/icons/arrow-up-right-light.svg'
 import { scrollTo } from '@/lib/utils/scroll';
+import { useBreakpoint } from '@/lib/utils/responsive';
 
 
 export interface Video {
@@ -21,13 +21,13 @@ export interface Video {
 }
 
 export default function Hero({ video, stats, scrollTargetId }: { video: Video, stats: Stats, scrollTargetId: string }) {
-    const router = useRouter()
+    const breakpoint = useBreakpoint()
 
     const handleClickScrollToExplore = () => {
         const el = document.getElementById(scrollTargetId)
 
         if (el) {
-            scrollTo({ top: el.offsetTop })
+            scrollTo({ top: el.offsetTop }, breakpoint)
         }
     }
 

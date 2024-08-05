@@ -1,4 +1,5 @@
 import { getMainNavHeight } from '@/components/nav/main-nav';
+import { Breakpoint } from '@mui/material';
 
 
 export interface ScrollToProps {
@@ -8,9 +9,9 @@ export interface ScrollToProps {
     behavior?: ScrollBehavior
 }
 
-export function scrollTo(props: ScrollToProps) {
+export function scrollTo(props: ScrollToProps, breakpoint: Breakpoint) {
     const ignoreMainNav = props.ignoreMainNav === undefined ? false : props.ignoreMainNav
-    const topCompensation = ignoreMainNav ? 0 : getMainNavHeight()
+    const topCompensation = ignoreMainNav ? 0 : getMainNavHeight(breakpoint)
 
     window.scrollTo({
         top: props.top !== undefined ? props.top - topCompensation : props.top,

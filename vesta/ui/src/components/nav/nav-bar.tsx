@@ -5,31 +5,41 @@ import Container from '@mui/system/Container'
 import ButtonBase from '@mui/material/ButtonBase';
 import Box from '@mui/system/Box'
 import MUILink from '@mui/material/Link';
-import { Collapse, SxProps, useTheme } from '@mui/material';
+import { Breakpoint, Collapse, SxProps, useTheme } from '@mui/material';
 import Link from 'next/link'
 import Image from 'next/image';
 
-import DLNav from './dl-nav'
+import DLNav, { Classes as DLNavClasses } from './dl-nav'
+import { useBreakpoint } from '@/lib/utils/responsive';
+import LibraryCardButton, { Classes as LibraryCardButtonClasses } from '../library-card/library-card-button';
+import { LibraryCardModal } from '../library-card/library-card-modal';
+import { useUser } from '../user/context';
 
 import hamburgerIconLightSrc from '/public/images/icons/hamburger-menu-icon-light.svg'
 import hamburgerIconDarkSrc from '/public/images/icons/hamburger-menu-icon-dark.svg'
 import logoLightSrc from '/public/images/logo/logo-light.svg'
 import logoDarkSrc from '/public/images/logo/logo-dark.svg'
-import logoWordmarkBottomLightSrc from '/public/images/logo/logo-wordmark-bottom-light.svg'
+import wordmarkBottomLightSrc from '/public/images/logo/wordmark-bottom-light.svg'
+import LibraryCardTray from '../library-card/library-card-tray';
 
 
 export enum Classes {
     root = 'dl-navbar',
-    mobileLogoContainer = 'logo-container-mobile',
-    logoBase = 'logo',
-    logoNoWordmarkDark = 'logo-no-wordmark-dark',
-    logoNoWordmarkLight = 'logo-no-wordmark-light',
-    logoWordmarkBottomLight = 'logo-wordmark-bottom-light',
+    logoContainer = 'logo-container',
+    logo = 'logo',
+    logoWordmark = 'logo-wordmark',
 }
 
-export enum Heights {
-    default = 84.9,
-    condensed = 64,
+interface BreakpointHeights {
+    default: number
+    condensed: number
+}
+
+export const Heights: Record<Breakpoint, BreakpointHeights> = {
+    mobile: { default: 84.9, condensed: 64 },
+    tablet: { default: 174, condensed: 95 },
+    desktop: { default: 173.77, condensed: 92.95 },
+    desktopLg: { default: 173.77, condensed: 92.95 },
 }
 
 
@@ -51,17 +61,25 @@ export default function NavBar({
         },
     )
 
+    const breakpoint = useBreakpoint()
+    const isTablet = breakpoint === 'tablet'
+    const isDesktop = ['desktop', 'desktopLg'].includes(breakpoint)
+
+    const user = useUser()
+
+    const [libraryCardModalOpen, setLibraryCardModalOpen] = React.useState(false)
+
     return (
         <Collapse
             in={variant === 'default'}
-            collapsedSize={Heights.condensed}
+            collapsedSize={Heights[breakpoint].condensed}
             easing={theme.transitions.easing.ease}
             timeout={theme.transitions.duration.ease}
             className={Classes.root}
             sx={{
-                px: '8px',
                 bgcolor: variant === 'condensed' ? 'utilityHighlight.main' : 'transparent',
                 overflow: 'visible',
+                display: 'flex',
                 transition,
                 ...sx,
             }}
@@ -71,12 +89,14 @@ export default function NavBar({
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
+                    transition,
                     [theme.breakpoints.up('tablet')]: {
-                        // alignItems: 'flex-start',
-                        // pl: '32px',
-                        // pr: '16px',
+                        pl: '32px',
+                        pr: '16px',
+                        py: variant === 'condensed' ? '10px' : '0px',
                     },
                     [theme.breakpoints.up('desktop')]: {
+                        py: variant === 'condensed' ? '16px' : '0px',
                     },
                 }}
             >
@@ -86,25 +106,21 @@ export default function NavBar({
                     component={Link}
                     underline='none'
                     className='home-link'
-                    sx={(theme) => ({
-                        mt: variant === 'condensed' ? 'unset' : '16px',
-                        [`& .${Classes.logoBase}`]: {
+                    sx={{
+                        mt: variant === 'condensed' ? '0px' : '16px',
+                        [`& .${Classes.logo}`]: {
                             width: 'auto',
                             height: '100%',
-                            '& img': {
+                            '& > img': {
                                 width: 'auto',
                                 height: '100%',
                             },
                         },
-                        // [theme.breakpoints.up('tablet')]: {
-                        //     mt: '24px',
-                        //     width: '101px',
-                        //     height: '154px',
-                        // }
-                    })}
+                        transition,
+                    }}
                 >
                     <Box
-                        className={Classes.mobileLogoContainer}
+                        className={Classes.logoContainer}
                         sx={{
                             display: 'flex',
                             position: 'relative',
@@ -115,25 +131,54 @@ export default function NavBar({
                                 display: 'flex',
                             },
                             [theme.breakpoints.up('tablet')]: {
-                                display: 'none',
-                            }
+                                width: variant === 'condensed' ? '75px' : '99px',
+                                height: variant === 'condensed' ? '75px' : '99px',
+                            },
+                            [theme.breakpoints.up('desktop')]: {
+                                width: variant === 'condensed' ? '60.95px' : '99px',
+                                height: variant === 'condensed' ? '60.95px' : '99px',
+                            },
                         }}
                     >
                         <Box
-                            className={[Classes.logoBase, Classes.logoNoWordmarkLight].join(' ')}
+                            className={Classes.logo}
                             sx={{
                                 opacity: variant === 'condensed' ? 0 : 1,
                                 transition,
+                                position: 'relative',
                             }}
                         >
                             <Image
                                 src={logoLightSrc}
                                 alt='Data Library Logo'
                             />
+
+                            <Box
+                                sx={{
+                                    display: 'none',
+                                    [theme.breakpoints.up('tablet')]: {
+                                        position: 'absolute',
+                                        top: '100%',
+                                        display: 'flex',
+                                        width: '100%',
+                                        pt: '13px',
+                                        '& > img': {
+                                            width: '100%',
+                                            height: 'auto',
+                                        }
+                                    },
+                                }}
+                            >
+                                <Image
+                                    className={Classes.logoWordmark}
+                                    src={wordmarkBottomLightSrc}
+                                    alt='Data Library Logo Wordmark'
+                                />
+                            </Box>
                         </Box>
 
                         <Box
-                            className={[Classes.logoBase, Classes.logoNoWordmarkDark].join(' ')}
+                            className={Classes.logo}
                             sx={{
                                 position: 'absolute',
                                 top: 0,
@@ -148,29 +193,58 @@ export default function NavBar({
                             />
                         </Box>
                     </Box>
-
-                    {/* <Box
-                            className='logo logo-wordmark'
-                            sx={{
-                                opacity: '0',
-                                [theme.breakpoints.up('tablet')]: {
-                                    opacity: '1',
-                                }
-                            }}
-                        >
-                            <Image
-                                src={logoWordmarkBottomLightSrc}
-                                alt='Data Library Logo with wordmark'
-                            />
-                        </Box> */}
                 </MUILink>
 
-                <Box>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        px: '9px',
+                        py: '8px',
+                        gap: variant === 'condensed' ? '16px' : '34px',
+                        alignItems: 'center',
+                        transition,
+                        [theme.breakpoints.up('desktop')]: {
+                            pl: '30px',
+                            pr: '16px',
+                            py: '0px',
+                            gap: '54px',
+                        },
+                    }}
+                >
                     <DLNav
                         sx={{
                             display: 'none',
+                            [theme.breakpoints.up('desktop')]: {
+                                display: 'flex',
+                                gap: '54px',
+                                [`.${DLNavClasses.link}`]: {
+                                    color: variant === 'condensed' ? 'ground.grade10' : 'utilityHighlight.main',
+                                    '&:hover, &:focus': {
+                                        color: 'blue.grade50',
+                                    },
+                                },
+                            },
                         }}
                     />
+
+                    {isTablet && <LibraryCardButton
+                        isLoggedIn={user !== null}
+                        onClick={() => setLibraryCardModalOpen(val => !val)}
+                    />}
+
+                    {isTablet && user && (
+                        <LibraryCardModal
+                            open={libraryCardModalOpen}
+                            handleSetOpen={setLibraryCardModalOpen}
+                            user={user}
+                        />
+                    )}
+
+                    {isDesktop && (
+                        <LibraryCardTray
+                            user={user}
+                        />
+                    )}
 
                     <ButtonBase
                         tabIndex={0}
@@ -179,8 +253,6 @@ export default function NavBar({
                             color: 'utilityHighlight.main',
                             width: '48px',
                             height: '48px',
-                            mx: '9px',
-                            my: '8px',
                             position: 'relative',
                             transition,
                             '& img': {
@@ -191,7 +263,6 @@ export default function NavBar({
                                 transition,
                             },
                             [theme.breakpoints.up('tablet')]: {
-                                m: '16px',
                             },
                             [theme.breakpoints.up('desktop')]: {
                                 display: 'none',
@@ -211,6 +282,6 @@ export default function NavBar({
                     </ButtonBase>
                 </Box>
             </Container>
-        </Collapse>
+        </Collapse >
     )
 }

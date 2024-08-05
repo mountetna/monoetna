@@ -15,12 +15,14 @@ import { LibraryCardModal } from '../library-card/library-card-modal';
 import { useUser } from '../user/context';
 
 
-export default function MobileNav({
+export default function OverlayNav({
     open,
     sx = {},
+    onClickNavLink,
 }: {
     open: boolean,
     sx?: SxProps,
+    onClickNavLink?: () => void,
 }) {
     const theme = useTheme()
     const user = useUser()
@@ -52,6 +54,9 @@ export default function MobileNav({
                         justifyContent: 'space-between',
                         gap: '32px',
                         pb: '106px',
+                        [theme.breakpoints.up('tablet')]: {
+                            pb: '16px',
+                        },
                         ...sx,
                     }}
                 >
@@ -61,19 +66,20 @@ export default function MobileNav({
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '24px',
+                            px: '16px',
                             [`& .${LibraryCardButtonClasses.root}`]: {
                                 width: 'fit-content',
                             },
                         }}
                     >
                         <DLNav
+                            linkTypography='h2'
+                            onClickNavLink={onClickNavLink}
                             sx={{
-                                [`.${DLNavClasses.linksContainer}`]: {
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'start',
-                                    gap: '16px',
-                                },
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'start',
+                                gap: '16px',
                                 [`.${DLNavClasses.link}`]: {
                                     position: 'relative',
                                     color: 'utilityHighlight.main',
@@ -90,24 +96,29 @@ export default function MobileNav({
                                         },
                                     ),
                                 },
-                                [`.${DLNavClasses.libraryCardListItemContainer}`]: {
-                                    display: 'none',
-                                }
                             }}
-                            typography='h2'
                         />
 
-                        <LibraryCardButton
-                            onClick={() => setLibraryCardModalOpen(val => !val)}
-                        />
-
-                        {user && (
-                            <LibraryCardModal
-                                open={libraryCardModalOpen}
-                                handleSetOpen={setLibraryCardModalOpen}
-                                user={user}
+                        <Box
+                            sx={{
+                                [theme.breakpoints.up('tablet')]: {
+                                    display: 'none',
+                                },
+                            }}
+                        >
+                            <LibraryCardButton
+                                isLoggedIn={user !== null}
+                                onClick={() => setLibraryCardModalOpen(val => !val)}
                             />
-                        )}
+
+                            {user && (
+                                <LibraryCardModal
+                                    open={libraryCardModalOpen}
+                                    handleSetOpen={setLibraryCardModalOpen}
+                                    user={user}
+                                />
+                            )}
+                        </Box>
                     </Box>
 
                     <Box
@@ -115,6 +126,10 @@ export default function MobileNav({
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '16px',
+                            px: '16px',
+                            [theme.breakpoints.up('tablet')]: {
+                                px: '0px'
+                            },
                             color: 'utilityHighlight.main',
                         }}
                     >

@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import * as React from 'react'
 import _ from 'lodash'
+import { Breakpoint, useMediaQuery, useTheme } from '@mui/material'
 
 
 export function useWindowDimensions(triggerDelayMs: number = 100) {
-    const [dimensions, setDimensions] = useState<number[] | null>(null)
-    const [isResizing, setIsResizing] = useState<boolean>(false)
+    const [dimensions, setDimensions] = React.useState<number[] | null>(null)
+    const [isResizing, setIsResizing] = React.useState<boolean>(false)
 
-    useEffect(() => {
+    React.useEffect(() => {
         const dimensionsHandler = _.throttle(() => {
             setDimensions([window.innerWidth, window.innerHeight])
         }, triggerDelayMs)
@@ -42,4 +43,27 @@ export function useWindowDimensions(triggerDelayMs: number = 100) {
     }, [triggerDelayMs])
 
     return { dimensions, isResizing }
+}
+
+export function useBreakpoint(): Breakpoint {
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('tablet'))
+    const isTablet = useMediaQuery(theme.breakpoints.between('tablet', 'desktop'))
+    const isDesktop = useMediaQuery(theme.breakpoints.between('desktop', 'desktopLg'))
+    const isDesktopLg = useMediaQuery(theme.breakpoints.up('desktopLg'))
+
+    function getBreakpoint(): Breakpoint {
+        if (isMobile) return 'mobile'
+        else if (isTablet) return 'tablet'
+        else if (isDesktop) return 'desktop'
+        else return 'desktopLg'
+    }
+
+    const [breakpoint, setBreakpoint] = React.useState(getBreakpoint())
+
+    React.useEffect(() => {
+        setBreakpoint(getBreakpoint())
+    }, [isMobile, isTablet, isDesktop, isDesktopLg])
+
+    return breakpoint
 }
