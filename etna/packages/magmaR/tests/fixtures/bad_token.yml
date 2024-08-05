@@ -18,7 +18,7 @@ http_interactions:
       explanation: Object moved temporarily -- see URI list
     headers:
       status: HTTP/1.1 302 Found
-      date: Fri, 02 Aug 2024 15:47:09 GMT
+      date: Mon, 05 Aug 2024 14:06:15 GMT
       server: Apache
       strict-transport-security: max-age=31536000; includeSubDomains
       location: https://janus.ucsf.edu/login?refer=http%3A%2F%2Fjanus.ucsf.edu%2Fprojects
@@ -28,5 +28,5 @@ http_interactions:
       encoding: ''
       file: no
       string: ''
-  recorded_at: 2024-08-02 15:47:09 GMT
+  recorded_at: 2024-08-05 14:06:15 GMT
   recorded_with: vcr/1.6.0, webmockr/1.0.0

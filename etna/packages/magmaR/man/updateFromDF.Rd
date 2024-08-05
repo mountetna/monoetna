@@ -13,6 +13,7 @@ updateFromDF(
   autolink = FALSE,
   dryRun = FALSE,
   separator = ",",
+  show.df = TRUE,
   auto.proceed = FALSE,
   revisions.only = FALSE,
   template = NULL,
@@ -52,6 +53,8 @@ and finally 4) creates all the assumed parent-child linkages}
 \item{separator}{String indicating the field separator to use if providing \code{df} as a file path.
 Default = \code{","}.
 Use \code{"\t"} for tsvs.}
+
+\item{show.df}{Logical which sets whether the \code{df}-data should be printed out.}
 
 \item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.}
 

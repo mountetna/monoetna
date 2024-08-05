@@ -89,7 +89,12 @@ updateValues <- function(
         template <- retrieveTemplate(target, projectName)
     }
     lapply(names(revisions), function(model) {
-        .summarize_model_values(revisions[[model]], target, projectName, model, template)
+        .summarize_model_values(
+            model_revs = revisions[[model]],
+            target = target,
+            projectName = projectName,
+            modelName = model,
+            template = template)
     })
     
     ### Check if should move forward
@@ -120,7 +125,9 @@ updateValues <- function(
             }
         ))
         parent_counts <- table(parents)
-        cat("For table-type model \"", modelName, "\", this update will attach (# observations) to these \"", parentModelName, "\" parent records:\n    ",
+        cat("For table-type model \"", modelName, "\", this update will attach this number of observations to these \"", parentModelName, "\" parent records:",
+            "\n    (# observations) ", parentModelName,
+            "\n    ",
             paste0(paste0("(", parent_counts, ") "), names(parent_counts), collapse = "\n    "),
             "\n",
             sep="")

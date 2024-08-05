@@ -18,31 +18,40 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Fri, 02 Aug 2024 15:47:07 GMT
+      date: Mon, 05 Aug 2024 14:06:13 GMT
       server: Apache
       strict-transport-security: max-age=31536000; includeSubDomains
       content-type: application/json
-      content-length: '3198'
+      content-length: '6199'
       service-worker-allowed: /
     body:
       encoding: ''
       file: no
-      string: '{"models":{"subject":{"documents":{"EXAMPLE-HS1":{"created_at":null,"updated_at":"2023-11-21T20:38:52+00:00","name":"EXAMPLE-HS1","group":"g1","project":"Example
-        project","biospecimen":["EXAMPLE-HS1-WB1"]},"EXAMPLE-HS10":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS10","group":"g3","project":"Example
-        project","biospecimen":["EXAMPLE-HS10-WB1"]},"EXAMPLE-HS11":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS11","group":"g3","project":"Example
-        project","biospecimen":["EXAMPLE-HS11-WB1"]},"EXAMPLE-HS12":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS12","group":"g3","project":"Example
-        project","biospecimen":["EXAMPLE-HS12-WB1"]},"EXAMPLE-HS2":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS2","group":"g1","project":"Example
-        project","biospecimen":["EXAMPLE-HS2-WB1"]},"EXAMPLE-HS3":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS3","group":"g1","project":"Example
-        project","biospecimen":["EXAMPLE-HS3-WB1"]},"EXAMPLE-HS4":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS4","group":"g1","project":"Example
-        project","biospecimen":["EXAMPLE-HS4-WB1"]},"EXAMPLE-HS5":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS5","group":"g2","project":"Example
-        project","biospecimen":["EXAMPLE-HS5-WB1"]},"EXAMPLE-HS6":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS6","group":"g2","project":"Example
-        project","biospecimen":["EXAMPLE-HS6-WB1"]},"EXAMPLE-HS7":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS7","group":"g2","project":"Example
-        project","biospecimen":["EXAMPLE-HS7-WB1"]},"EXAMPLE-HS8":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS8","group":"g2","project":"Example
-        project","biospecimen":["EXAMPLE-HS8-WB1"]},"EXAMPLE-HS9":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS9","group":"g3","project":"Example
-        project","biospecimen":["EXAMPLE-HS9-WB1"]}},"template":{"name":"subject","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
+      string: '{"models":{"subject":{"documents":{"EXAMPLE-HS1":{"created_at":null,"updated_at":"2024-08-05T13:55:35+00:00","name":"EXAMPLE-HS1","group":"g1","project":"Example
+        project","biospecimen":["EXAMPLE-HS1-WB1"],"demographic":[133,136]},"EXAMPLE-HS10":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS10","group":"g3","project":"Example
+        project","biospecimen":["EXAMPLE-HS10-WB1"],"demographic":[]},"EXAMPLE-HS11":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS11","group":"g3","project":"Example
+        project","biospecimen":["EXAMPLE-HS11-WB1"],"demographic":[]},"EXAMPLE-HS12":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS12","group":"g3","project":"Example
+        project","biospecimen":["EXAMPLE-HS12-WB1"],"demographic":[]},"EXAMPLE-HS2":{"created_at":null,"updated_at":"2024-08-05T13:55:35+00:00","name":"EXAMPLE-HS2","group":"g1","project":"Example
+        project","biospecimen":["EXAMPLE-HS2-WB1"],"demographic":[134,137]},"EXAMPLE-HS3":{"created_at":null,"updated_at":"2024-08-05T13:55:35+00:00","name":"EXAMPLE-HS3","group":"g1","project":"Example
+        project","biospecimen":["EXAMPLE-HS3-WB1"],"demographic":[135,138]},"EXAMPLE-HS4":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS4","group":"g1","project":"Example
+        project","biospecimen":["EXAMPLE-HS4-WB1"],"demographic":[]},"EXAMPLE-HS5":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS5","group":"g2","project":"Example
+        project","biospecimen":["EXAMPLE-HS5-WB1"],"demographic":[]},"EXAMPLE-HS6":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS6","group":"g2","project":"Example
+        project","biospecimen":["EXAMPLE-HS6-WB1"],"demographic":[]},"EXAMPLE-HS7":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS7","group":"g2","project":"Example
+        project","biospecimen":["EXAMPLE-HS7-WB1"],"demographic":[]},"EXAMPLE-HS8":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS8","group":"g2","project":"Example
+        project","biospecimen":["EXAMPLE-HS8-WB1"],"demographic":[]},"EXAMPLE-HS9":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS9","group":"g3","project":"Example
+        project","biospecimen":["EXAMPLE-HS9-WB1"],"demographic":[]}},"template":{"name":"subject","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
         At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","display_name":"Updated
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"name":{"name":"name","attribute_name":"name","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"group":{"name":"group","attribute_name":"group","display_name":"Group","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"project":{"name":"project","attribute_name":"project","model_name":"project","link_model_name":"project","link_attribute_name":"subject","display_name":"Project","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","link_attribute_name":"subject","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"}},"identifier":"name","parent":"project"}}}}'
-  recorded_at: 2024-08-02 15:47:07 GMT
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"name":{"name":"name","attribute_name":"name","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"group":{"name":"group","attribute_name":"group","display_name":"Group","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"project":{"name":"project","attribute_name":"project","model_name":"project","link_model_name":"project","link_attribute_name":"subject","display_name":"Project","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","link_attribute_name":"subject","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"},"demographic":{"name":"demographic","attribute_name":"demographic","model_name":"demographic","link_model_name":"demographic","link_attribute_name":"subject","display_name":"Demographic","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"table"}},"identifier":"name","parent":"project"}},"demographic":{"documents":{"133":{"created_at":"2024-08-05T13:55:35+00:00","updated_at":"2024-08-05T13:55:35+00:00","subject":"EXAMPLE-HS1","name":"Sex
+        at Birth","notes":null,"value":"Male","id":133},"134":{"created_at":"2024-08-05T13:55:35+00:00","updated_at":"2024-08-05T13:55:35+00:00","subject":"EXAMPLE-HS2","name":"Sex
+        at Birth","notes":null,"value":"Male","id":134},"135":{"created_at":"2024-08-05T13:55:35+00:00","updated_at":"2024-08-05T13:55:35+00:00","subject":"EXAMPLE-HS3","name":"Sex
+        at Birth","notes":null,"value":"Female","id":135},"136":{"created_at":"2024-08-05T13:55:35+00:00","updated_at":"2024-08-05T13:55:35+00:00","subject":"EXAMPLE-HS1","name":"Age
+        at Diagnosis","notes":null,"value":"34","id":136},"137":{"created_at":"2024-08-05T13:55:35+00:00","updated_at":"2024-08-05T13:55:35+00:00","subject":"EXAMPLE-HS2","name":"Age
+        at Diagnosis","notes":null,"value":"42","id":137},"138":{"created_at":"2024-08-05T13:55:35+00:00","updated_at":"2024-08-05T13:55:35+00:00","subject":"EXAMPLE-HS3","name":"Age
+        at Diagnosis","notes":null,"value":"30","id":138}},"template":{"name":"demographic","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
+        At","hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","display_name":"Updated
+        At","hidden":true,"validation":null,"attribute_type":"date_time"},"subject":{"name":"subject","attribute_name":"subject","model_name":"subject","link_model_name":"subject","link_attribute_name":"demographic","display_name":"Subject","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"name":{"name":"name","attribute_name":"name","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"notes":{"name":"notes","attribute_name":"notes","description":"General
+        notes about this value","desc":"General notes about this value","display_name":"Notes","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"value":{"name":"value","attribute_name":"value","display_name":"Value","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"id":{"name":"id","attribute_name":"id","display_name":"Id","hidden":true,"validation":null,"attribute_type":"identifier"}},"identifier":"id","parent":"subject"}}}}'
+  recorded_at: 2024-08-05 14:06:13 GMT
   recorded_with: vcr/1.6.0, webmockr/1.0.0
 - request:
     method: get
@@ -63,11 +72,11 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Fri, 02 Aug 2024 15:47:07 GMT
+      date: Mon, 05 Aug 2024 14:06:13 GMT
       server: Apache
       strict-transport-security: max-age=31536000; includeSubDomains
       content-type: text/tsv
-      content-disposition: inline; filename="example_subject_results_2024_08_02_15_47_07.tsv"
+      content-disposition: inline; filename="example_subject_results_2024_08_05_14_06_13.tsv"
       service-worker-allowed: /
       transfer-encoding: chunked
     body:
@@ -80,5 +89,5 @@ http_interactions:
         project\tEXAMPLE-HS5-WB1\nEXAMPLE-HS6\tg2\tExample project\tEXAMPLE-HS6-WB1\nEXAMPLE-HS7\tg2\tExample
         project\tEXAMPLE-HS7-WB1\nEXAMPLE-HS8\tg2\tExample project\tEXAMPLE-HS8-WB1\nEXAMPLE-HS9\tg3\tExample
         project\tEXAMPLE-HS9-WB1\n"
-  recorded_at: 2024-08-02 15:47:07 GMT
+  recorded_at: 2024-08-05 14:06:13 GMT
   recorded_with: vcr/1.6.0, webmockr/1.0.0

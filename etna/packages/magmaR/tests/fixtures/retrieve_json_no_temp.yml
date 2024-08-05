@@ -18,7 +18,7 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Fri, 02 Aug 2024 15:47:07 GMT
+      date: Mon, 05 Aug 2024 14:06:14 GMT
       server: Apache
       strict-transport-security: max-age=31536000; includeSubDomains
       content-type: application/json
@@ -28,5 +28,5 @@ http_interactions:
       encoding: ''
       file: no
       string: '{"models":{"subject":{"documents":{"EXAMPLE-HS1":{"name":"EXAMPLE-HS1","biospecimen":["EXAMPLE-HS1-WB1"]}}}}}'
-  recorded_at: 2024-08-02 15:47:07 GMT
+  recorded_at: 2024-08-05 14:06:14 GMT
   recorded_with: vcr/1.6.0, webmockr/1.0.0

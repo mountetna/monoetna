@@ -165,6 +165,7 @@ updateMatrix <- function(
 #' @param separator String indicating the field separator to use if providing \code{df} as a file path.
 #' Default = \code{","}.
 #' Use \code{"\t"} for tsvs.
+#' @param show.df Logical which sets whether the \code{df}-data should be printed out.
 #' @param table.method "replace" or "append".
 #' Sets the methodology used for building the \code{revisions} to request for table-type model updates:
 #' \itemize{
@@ -267,6 +268,7 @@ updateFromDF <- function(
     autolink = FALSE,
     dryRun = FALSE,
     separator = ",",
+    show.df = TRUE,
     auto.proceed = FALSE,
     revisions.only = FALSE,
     template = NULL,
@@ -280,8 +282,10 @@ updateFromDF <- function(
             stop("Parsing error. Is 'separator' correct?")
         }
     }
-    cat("Data recieved:\n")
-    print(df)
+    if (show.df) {
+        cat("Data recieved:\n")
+        print(df)
+    }
     
     if (identical(template, NULL)) {
         template <- retrieveTemplate(target, projectName)

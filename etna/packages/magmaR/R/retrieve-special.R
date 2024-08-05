@@ -1,6 +1,7 @@
 #' Helper functions that utilize special cases of magma /retrieve
 #' @name retrieve_SpecialCases
 #' @inheritParams retrieve
+#' @param template For internal use in minimizing excess http requests to magma, NULL or the return of \code{retrieveTemplate(target, projectName)}.
 #' @details
 #' These functions aim to help users determine acceptable inputs to other magmaR functions without needing to leave R.
 #' 
@@ -71,9 +72,13 @@ retrieveTemplate <- function(
 retrieveModels <- function(
     target,
     projectName,
+    template = NULL,
     ...
 ) {
-    names(retrieveTemplate(target, projectName, ...)$models)
+    if (identical(template, NULL)) {
+        template <- retrieveTemplate(target, projectName)
+    }
+    names(template$models)
 }
 
 #' @describeIn retrieve_SpecialCases Retrieve all the identifiers/recordNames for a given project-model pair.
@@ -112,4 +117,27 @@ retrieveAttributes <- function(
         target, projectName, modelName, recordNames = rec,
         attributeNames = "all", format = "tsv",
         names.only = TRUE, ...)
+}
+
+#' @describeIn retrieve_SpecialCases Retrieve the parent modelName / attributeName for a given project-model pair.
+#' @export
+retrieveParentName <- function(
+        target,
+        projectName,
+        modelName,
+        template = NULL,
+        ...
+        ) {
+    if (modelName=="project") {
+        return(NA)
+    }
+
+    if (identical(template, NULL)) {
+        template <- retrieveTemplate(target, projectName)
+    }
+
+    if (!modelName %in% names(template$models)) {
+        stop("'", modelName, "' is not a model of the '", projectName, "' project.")
+    }
+    template$models[[modelName]]$template$parent
 }
