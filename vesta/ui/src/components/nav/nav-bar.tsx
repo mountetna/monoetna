@@ -14,13 +14,13 @@ import { useBreakpoint } from '@/lib/utils/responsive';
 import LibraryCardButton, { Classes as LibraryCardButtonClasses } from '../library-card/library-card-button';
 import { LibraryCardModal } from '../library-card/library-card-modal';
 import { useUser } from '../user/context';
+import LibraryCardTray, { Classes as LibraryCardTrayClasses } from '../library-card/library-card-tray';
 
 import hamburgerIconLightSrc from '/public/images/icons/hamburger-menu-icon-light.svg'
 import hamburgerIconDarkSrc from '/public/images/icons/hamburger-menu-icon-dark.svg'
 import logoLightSrc from '/public/images/logo/logo-light.svg'
 import logoDarkSrc from '/public/images/logo/logo-dark.svg'
 import wordmarkBottomLightSrc from '/public/images/logo/wordmark-bottom-light.svg'
-import LibraryCardTray from '../library-card/library-card-tray';
 
 
 export enum Classes {
@@ -69,6 +69,17 @@ export default function NavBar({
 
     const [libraryCardModalOpen, setLibraryCardModalOpen] = React.useState(false)
 
+    const [libraryCardTrayOpen, setLibraryCardTrayOpen] = React.useState(false)
+    const libraryCardTrayRef = React.useRef<HTMLElement>()
+    const libraryCardTrayWidth = libraryCardTrayRef.current?.offsetWidth
+
+    // Close Library Card Tray when scroll all the way up
+    React.useEffect(() => {
+        if (variant === 'default') {
+            setLibraryCardTrayOpen(false)
+        }
+    }, [variant])
+
     return (
         <Collapse
             in={variant === 'default'}
@@ -89,6 +100,7 @@ export default function NavBar({
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
+                    position: 'relative',
                     transition,
                     [theme.breakpoints.up('tablet')]: {
                         pl: '32px',
@@ -241,9 +253,25 @@ export default function NavBar({
                     )}
 
                     {isDesktop && (
-                        <LibraryCardTray
-                            user={user}
-                        />
+                        <Box
+                            sx={{
+                                width: `${libraryCardTrayWidth}px`,
+                                height: '1px',
+                                '& > *': {
+                                    position: 'absolute',
+                                    top: '0px',
+                                    opacity: libraryCardTrayWidth === undefined ? 0 : 1,
+                                    gap: variant === 'condensed' ? '15px' : '26px',
+                                },
+                            }}
+                        >
+                            <LibraryCardTray
+                                ref={libraryCardTrayRef}
+                                open={libraryCardTrayOpen}
+                                onSetOpen={setLibraryCardTrayOpen}
+                                user={user}
+                            />
+                        </Box>
                     )}
 
                     <ButtonBase

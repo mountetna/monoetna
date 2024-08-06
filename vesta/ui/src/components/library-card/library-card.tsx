@@ -206,6 +206,10 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
     }
 }
 
+
+export default React.forwardRef(LibraryCard)
+
+
 function LibraryCardFront({
     user,
 }: {
@@ -368,7 +372,13 @@ function LibraryCardFront({
                             }
                         </Box>
 
-                        <Typography variant='pBody'>
+                        <Typography
+                            variant='pBody'
+                            sx={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                            }}
+                        >
                             {user.email}
                         </Typography>
                     </Box>
@@ -472,5 +482,3 @@ function LibraryCardFront({
         </Box>
     )
 }
-
-export default React.forwardRef(LibraryCard)

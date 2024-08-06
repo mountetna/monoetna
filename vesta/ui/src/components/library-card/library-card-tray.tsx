@@ -14,54 +14,67 @@ export enum Classes {
 }
 
 
-export default function LibraryCardTray({
-    user,
-}: {
+interface Props {
+    open: boolean
+    onSetOpen: (open: boolean) => void
     user: User | null
-}) {
-    const [open, setOpen] = React.useState(false)
+}
 
+
+function LibraryCardTray(props: Props, ref: React.ForwardedRef<unknown>) {
+    const { open, onSetOpen, user } = props
     const theme = useTheme()
+
     const animationProps: TransitionProps = {
         in: open,
         easing: theme.transitions.easing.quint,
         timeout: theme.transitions.duration.quint,
     }
 
-    const transition = theme.transitions.create(
+    const mvmtTransition = theme.transitions.create(
         ['background-color', 'color'],
         {
             easing: theme.transitions.easing.quint,
             duration: theme.transitions.duration.quint,
         },
     )
+    const gapTransition = theme.transitions.create(
+        ['gap'],
+        {
+            easing: theme.transitions.easing.ease,
+            duration: theme.transitions.duration.ease,
+        },
+    )
+
 
     return (
         <ClickAwayListener
-            onClickAway={() => setOpen(false)}
+            onClickAway={() => onSetOpen(false)}
         >
             <Box
+                ref={ref}
                 className={Classes.root}
+                onClick={() => !open && onSetOpen(true)}
                 sx={{
-                    position: 'relative',
                     display: 'flex',
                     flexDirection: 'column',
+                    gap: '13px',
+                    pt: '8px',
                     bgcolor: open ? '#EFEFEF' : 'blue.grade50',
-                    transition,
+                    transition: `${mvmtTransition}, ${gapTransition}`,
                     borderRadius: '0px 0px 20px 20px',
+                    cursor: open ? 'unset' : 'pointer',
                     [`.${LibraryCardButtonClasses.root}`]: {
                         bgcolor: open ? '#EFEFEF' : 'blue.grade50',
                         color: open ? 'ground.grade10' : 'utilityHighlight.main',
-                        transition,
+                        p: '10px',
+                        width: '100%',
+                        justifyContent: 'flex-start',
+                        transition: mvmtTransition,
                     },
                 }}
             >
-                <Box
-                    sx={{
-                        // overflow: 'visible',
-                        p: '8px',
-                    }}
-                >
+                <Box>
                     {user && (
                         <Collapse
                             {...animationProps}
@@ -69,8 +82,12 @@ export default function LibraryCardTray({
                             <Fade
                                 {...animationProps}
                             >
-                                <Box>
-
+                                <Box
+                                    sx={{
+                                        px: '20px',
+                                        py: '10px',
+                                    }}
+                                >
                                     <LibraryCard
                                         user={user}
                                         variant='2d'
@@ -83,10 +100,13 @@ export default function LibraryCardTray({
 
                 <LibraryCardButton
                     isLoggedIn={user !== null}
-                    onClick={() => setOpen(!open)}
-                    textOverride={open ? 'Close' : undefined}
+                    onClick={() => onSetOpen(!open)}
+                    textOverride={open ? 'Hide your Library Card' : undefined}
                 />
             </Box>
         </ClickAwayListener>
     )
 }
+
+
+export default React.forwardRef(LibraryCardTray)

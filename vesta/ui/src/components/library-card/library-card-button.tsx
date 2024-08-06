@@ -18,6 +18,7 @@ export default function LibraryCardButton({
 }) {
     return (
         <ButtonBase
+            tabIndex={0}
             className={Classes.root}
             onClick={onClick}
             sx={{
