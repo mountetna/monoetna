@@ -5,6 +5,7 @@ import {QueryResponse} from './query_types';
 export const defaultQueryResultsParams = {
   expandMatrices: true,
   flattenQuery: true,
+  showDisconnected: false,
   page: 0,
   pageSize: 10,
   data: {} as QueryResponse,
@@ -23,6 +24,7 @@ export const defaultQueryResultsContext = {
   state: defaultQueryResultsState as QueryResultsState,
   setExpandMatrices: (expandMatrices: boolean) => {},
   setFlattenQuery: (flattenQuery: boolean) => {},
+  setShowDisconnected: (showDisconnected: boolean) => {},
   setPage: (page: number) => {},
   setPageSize: (pageSize: number) => {},
   setDataAndNumRecords: (data: QueryResponse, numRecords: number) => {},
@@ -58,6 +60,16 @@ export const QueryResultsProvider = (
       setState({
         ...state,
         flattenQuery
+      });
+    },
+    [state]
+  );
+
+  const setShowDisconnected = useCallback(
+    (showDisconnected: boolean) => {
+      setState({
+        ...state,
+        showDisconnected
       });
     },
     [state]
@@ -116,6 +128,7 @@ export const QueryResultsProvider = (
         state,
         setExpandMatrices,
         setFlattenQuery,
+        setShowDisconnected,
         setPage,
         setPageSize,
         setDataAndNumRecords,

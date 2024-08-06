@@ -1,4 +1,4 @@
-import React, {useMemo, useContext, useCallback} from 'react';
+import React, {useState, useMemo, useContext, useCallback} from 'react';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
@@ -15,24 +15,18 @@ import {QueryColumnContext} from '../../contexts/query/query_column_context';
 import QueryModelAttributeSelector from './query_model_attribute_selector';
 import DraggableQueryModelAttributeSelector from './draggable_query_model_attribute_selector';
 import QueryClause from './query_clause';
+import QueryClauseSummaryControls from './query_clause_summary_controls';
+import QueryChevron from './query_chevron';
 
 const useStyles = makeStyles((theme) => ({
-  displayLabel: {
-    marginBottom: 10,
-    paddingLeft: 10
+  folded: {
+    fontStyle: 'italic',
+    paddingLeft: '10px',
+    cursor: 'pointer'
   },
-  sliceHeading: {
-    paddingRight: '20px'
-  },
-  sliceSubheading: {
-    color: 'gray',
-    fontSize: '0.9rem'
-  },
-  shimLeft: {
-    paddingLeft: '1px'
-  },
-  shimLeft2: {
-    paddingLeft: '2px'
+  columns: {
+    width: '100%',
+    paddingLeft: '30px'
   }
 }));
 
@@ -45,6 +39,7 @@ const QuerySelectPane = () => {
     addQueryColumn,
     patchQueryColumn,
     removeQueryColumn,
+    removeAllQueryColumns,
     setQueryColumns
   } = useContext(QueryColumnContext);
   const classes = useStyles();
@@ -151,16 +146,20 @@ const QuerySelectPane = () => {
     [columns, setQueryColumns]
   );
 
+  const [ fold, setFold ] = useState(true);
+
   if (!rootModel) return null;
 
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
       <QueryClause title=''>
-        Select attributes as&nbsp;<b>columns</b>:
-        <Tooltip title='Add column' aria-label='Add column'>
-          <IconButton
-            size='small'
-            onClick={
+        <Grid container alignItems='center'>
+          <QueryChevron fold={fold} setFold={setFold}/>
+          Select attributes as&nbsp;<b>columns</b>:
+          <QueryClauseSummaryControls
+            fold={fold}
+            setFold={setFold}
+            addHandler={
               () => addQueryColumn({
                 slices: [],
                 model_name: '',
@@ -168,47 +167,50 @@ const QuerySelectPane = () => {
                 display_label: ''
               })
             }
-            color='primary'>
-            <AddIcon fontSize='small'/>
-          </IconButton>
-        </Tooltip>
-        <Droppable droppableId='columns'>
-          {(provided: any) => (
-            <div ref={provided.innerRef} {...provided.droppableProps}>
-              {columns.map((column: QueryColumn, index: number) => {
-                const ColumnComponent =
-                  0 === index
-                    ? QueryModelAttributeSelector
-                    : DraggableQueryModelAttributeSelector;
-                return (
-                  <ColumnComponent
-                    key={index}
-                    label='Join Model'
-                    column={column}
-                    modelChoiceSet={modelChoiceSet}
-                    columnIndex={index}
-                    canEdit={0 !== index}
-                    graph={graph}
-                    onSelectModel={(modelName: string) =>
-                      handleOnSelectModel(index, modelName, '')
-                    }
-                    onSelectAttribute={(modelName:string, attributeName: string) =>
-                      handleOnSelectAttribute(index, column, modelName, attributeName)
-                    }
-                    onSelectPredicate={(predicate: string) => {
-                      handleOnSelectPredicate(index, column, predicate);
-                    }}
-                    onChangeLabel={(label: string) =>
-                      handleOnChangeLabel(index, column, label)
-                    }
-                    onRemoveColumn={() => handleOnRemoveColumn(index)}
-                    onCopyColumn={() => addQueryColumn({...column})}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </Droppable>
+            removeHandler={removeAllQueryColumns}
+            itemName='column'
+            numItems={columns.length}/>
+        </Grid>
+        { !fold && <Grid container direction='column' className={classes.columns}>
+            <Droppable droppableId='columns'>
+              {(provided: any) => (
+                <div ref={provided.innerRef} {...provided.droppableProps}>
+                  {columns.map((column: QueryColumn, index: number) => {
+                    const ColumnComponent =
+                      0 === index
+                        ? QueryModelAttributeSelector
+                        : DraggableQueryModelAttributeSelector;
+                    return (
+                      <ColumnComponent
+                        key={index}
+                        label='Join Model'
+                        column={column}
+                        modelChoiceSet={modelChoiceSet}
+                        columnIndex={index}
+                        canEdit={0 !== index}
+                        graph={graph}
+                        onSelectModel={(modelName: string) =>
+                          handleOnSelectModel(index, modelName, '')
+                        }
+                        onSelectAttribute={(modelName:string, attributeName: string) =>
+                          handleOnSelectAttribute(index, column, modelName, attributeName)
+                        }
+                        onSelectPredicate={(predicate: string) => {
+                          handleOnSelectPredicate(index, column, predicate);
+                        }}
+                        onChangeLabel={(label: string) =>
+                          handleOnChangeLabel(index, column, label)
+                        }
+                        onRemoveColumn={() => handleOnRemoveColumn(index)}
+                        onCopyColumn={() => addQueryColumn({...column})}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </Droppable>
+          </Grid>
+        }
       </QueryClause>
     </DragDropContext>
   );

@@ -61,6 +61,7 @@ const QueryControlButtons = () => {
       data,
       expandMatrices,
       flattenQuery,
+      showDisconnected,
       queryString,
       maxColumns
     },
@@ -79,6 +80,7 @@ const QueryControlButtons = () => {
     defaultQueryWhereParams.orRecordFilterIndices
   );
   const [lastExpandMatrices, setLastExpandMatrices] = useState(expandMatrices);
+  const [lastShowDisconnected, setLastShowDisconnected] = useState(showDisconnected);
   const [lastFlattenQuery, setLastFlattenQuery] = useState(flattenQuery);
   const [lastPage, setLastPage] = useState(page);
   const [lastPageSize, setLastPageSize] = useState(pageSize);
@@ -137,6 +139,7 @@ const QueryControlButtons = () => {
     pageSize,
     columns,
     expandMatrices,
+    showDisconnected,
     setDataAndNumRecords
   });
 
@@ -147,12 +150,14 @@ const QueryControlButtons = () => {
       lastPage !== page ||
       lastPageSize !== pageSize ||
       lastExpandMatrices !== expandMatrices ||
+      lastShowDisconnected !== showDisconnected ||
       lastFlattenQuery !== flattenQuery
     ) {
       runQuery();
       setLastPage(page);
       setLastPageSize(pageSize);
       setLastExpandMatrices(expandMatrices);
+      setLastShowDisconnected(showDisconnected);
       setLastFlattenQuery(flattenQuery);
     }
   }, [
@@ -164,6 +169,7 @@ const QueryControlButtons = () => {
     expandMatrices,
     flattenQuery,
     lastExpandMatrices,
+    lastShowDisconnected,
     lastFlattenQuery
   ]);
 
@@ -187,7 +193,8 @@ const QueryControlButtons = () => {
     return (
       _.isEqual(columns, lastColumns) &&
       _.isEqual(recordFilters, lastFilters) &&
-      _.isEqual(orRecordFilterIndices, lastOrFilterIndices)
+      _.isEqual(orRecordFilterIndices, lastOrFilterIndices) &&
+      lastShowDisconnected !== showDisconnected
     );
   }, [
     columns,
@@ -195,7 +202,8 @@ const QueryControlButtons = () => {
     recordFilters,
     lastFilters,
     orRecordFilterIndices,
-    lastOrFilterIndices
+    lastOrFilterIndices,
+    lastShowDisconnected
   ]);
 
   const handleRunQuery = useCallback(() => {

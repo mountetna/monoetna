@@ -56,6 +56,16 @@ export const QueryColumnProvider = (
     [state]
   );
 
+  const removeAllQueryColumns = useCallback(
+    (index: number) => {
+      setState({
+        ...state,
+        columns: [ state.columns[0] ]
+      });
+    },
+    [state]
+  );
+
   const patchQueryColumn = useCallback(
     (index: number, column: QueryColumn) => {
       let updatedQueryColumns = [...state.columns];
@@ -94,6 +104,7 @@ export const QueryColumnProvider = (
         state,
         addQueryColumn,
         removeQueryColumn,
+        removeAllQueryColumns,
         patchQueryColumn,
         setRootIdentifierColumn,
         setQueryColumns

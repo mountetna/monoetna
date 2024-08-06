@@ -64,6 +64,17 @@ export const QueryWhereProvider = (
     [state]
   );
 
+  const removeAllRecordFilters = useCallback(
+    () => {
+      setState({
+        ...state,
+        recordFilters: [],
+        orRecordFilterIndices: []
+      });
+    },
+    [state]
+  );
+
   const patchRecordFilter = useCallback(
     (index: number, recordFilter: QueryFilter) => {
       let updatedRecordFilters = [...state.recordFilters];
@@ -98,6 +109,7 @@ export const QueryWhereProvider = (
         state,
         addRecordFilter,
         removeRecordFilter,
+        removeAllRecordFilters,
         patchRecordFilter,
         setOrRecordFilterIndices,
         setWhereState

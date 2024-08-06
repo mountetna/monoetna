@@ -21,6 +21,7 @@ const useResultsActions = ({
   pageSize,
   columns,
   expandMatrices,
+  showDisconnected,
   setDataAndNumRecords
 }: {
   countQuery: string | any[];
@@ -29,6 +30,7 @@ const useResultsActions = ({
   pageSize: number;
   columns: QueryColumn[];
   expandMatrices: boolean;
+  showDisconnected: boolean;
   setDataAndNumRecords: (data: QueryResponse, count: number) => void;
 }) => {
   const invoke = useActionInvoker();
@@ -40,11 +42,11 @@ const useResultsActions = ({
     let numRecords = 0;
 
     setDataAndNumRecords(EmptyQueryResponse, 0);
-    invoke(requestAnswer({query: countQuery}))
+    invoke(requestAnswer({query: countQuery, show_disconnected: showDisconnected}))
       .then((countData: {answer: number}) => {
         numRecords = countData.answer;
         return invoke(
-          requestAnswer({query, page_size: pageSize, page: page + 1})
+          requestAnswer({query, page_size: pageSize, page: page + 1, show_disconnected: showDisconnected})
         );
       })
       .then((answerData: QueryResponse) => {
@@ -69,7 +71,7 @@ const useResultsActions = ({
         .race(
           invoke(
             requestAnswer({
-              ...queryPayload({query, columns, expandMatrices}),
+              ...queryPayload({query, columns, expandMatrices}), show_disconnected: showDisconnected,
               transpose
             })
           )

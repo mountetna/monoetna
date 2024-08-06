@@ -1,6 +1,7 @@
 import React, {useCallback, useContext} from 'react';
 
 import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
 
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import {QueryColumnContext} from '../../contexts/query/query_column_context';
@@ -8,6 +9,7 @@ import {QueryResultsContext} from '../../contexts/query/query_results_context';
 import {EmptyQueryResponse} from '../../contexts/query/query_types';
 import QueryModelSelector from './query_model_selector';
 import QueryClause from './query_clause';
+import QueryChevron from './query_chevron';
 import QueryControlButtons from './query_control_buttons';
 
 const QueryFromPane = () => {
@@ -37,6 +39,7 @@ const QueryFromPane = () => {
     <QueryClause title='From'>
       <Grid item container>
         <Grid item container xs={8} alignItems='center'>
+          <QueryChevron disabled/>
           Select records from model&nbsp;
           <MapSelector
             setModel={onRootModelSelect}

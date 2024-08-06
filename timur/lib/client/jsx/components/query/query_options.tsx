@@ -1,9 +1,11 @@
 import React, { useContext } from 'react';
 import { makeStyles } from '@mui/styles';
 
-import AntSwitch from './ant_switch';
 import {QueryResultsContext} from '../../contexts/query/query_results_context';
 import Grid from '@mui/material/Grid';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormGroup from '@mui/material/FormGroup';
+import Checkbox from '@mui/material/Checkbox';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -30,10 +32,12 @@ const QueryOptions = ({
   const {
     state: {
       expandMatrices,
-      flattenQuery
+      flattenQuery,
+      showDisconnected
     },
     setExpandMatrices,
-    setFlattenQuery
+    setFlattenQuery,
+    setShowDisconnected
   } = useContext(QueryResultsContext);
 
   return (
@@ -47,20 +51,35 @@ const QueryOptions = ({
           Query Options
         </DialogTitle>
         <DialogContent>
-          <AntSwitch
-            checked={expandMatrices}
-            onChange={() => setExpandMatrices(!expandMatrices)}
-            name='expand-matrices-query'
-            leftOption='Nest matrices'
-            rightOption='Expand matrices'
-          />
-          <AntSwitch
-            checked={flattenQuery}
-            onChange={() => setFlattenQuery(!flattenQuery)}
-            name='flatten-query'
-            leftOption='Nested'
-            rightOption='Flattened'
-          />
+          <FormGroup>
+            <FormControlLabel
+              label="Expand matrix attributes to columns"
+              control={
+                <Checkbox
+                  checked={expandMatrices}
+                  onChange={() => setExpandMatrices(!expandMatrices)}
+                />
+              }
+            />
+            <FormControlLabel
+              label="Flatten nested attributes"
+              control={
+                <Checkbox
+                  checked={flattenQuery}
+                  onChange={() => setFlattenQuery(!flattenQuery)}
+                />
+              }
+            />
+            <FormControlLabel
+              label="Show only rows from disconnected records"
+              control={
+                <Checkbox
+                  checked={showDisconnected}
+                  onChange={() => setShowDisconnected(!showDisconnected)}
+                />
+              }
+            />
+          </FormGroup>
         </DialogContent>
       </Dialog>
   );

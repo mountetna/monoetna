@@ -5,6 +5,7 @@ import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import AddIcon from '@material-ui/icons/Add';
+import RestartAltIcon from '@material-ui/icons/RestartAlt';
 
 import {makeStyles} from '@material-ui/core/styles';
 
@@ -16,23 +17,22 @@ import {
   EmptyQueryClause
 } from '../../contexts/query/query_types';
 import QueryClause from './query_clause';
+import QueryClauseSummaryControls from './query_clause_summary_controls';
+import QueryChevron from './query_chevron';
 import QueryFilterControl from './query_filter_control';
 
 const useStyles = makeStyles((theme) => ({
-  header: {
-    marginBottom: 10,
-    paddingLeft: '1rem',
-    paddingRight: '1rem'
+  folded: {
+    fontStyle: 'italic',
+    paddingLeft: '10px',
+    cursor: 'pointer'
   },
-  clauseHeading: {
-    paddingLeft: '0.25rem'
+  conditions: {
+    width: '100%',
+    paddingLeft: '30px'
   },
-  clauseSubheading: {
-    color: 'gray',
-    fontSize: '0.9rem'
-  },
-  shimLeft: {
-    marginLeft: '-3px'
+  empty: {
+    paddingLeft: '5px'
   }
 }));
 
@@ -50,6 +50,7 @@ const QueryWherePane = () => {
     state: {orRecordFilterIndices, recordFilters},
     addRecordFilter,
     removeRecordFilter,
+    removeAllRecordFilters,
     patchRecordFilter,
     setOrRecordFilterIndices
   } = useContext(QueryWhereContext);
@@ -124,38 +125,49 @@ const QueryWherePane = () => {
     [graph, rootModel]
   );
 
+  const [ fold, setFold ] = useState(true);
+
   if (!rootModel) return null;
 
   return (
     <QueryClause title=''>
-      Show {rootModel} records where:
-      <Tooltip title='Add condition' aria-label='Add condition'>
-        <IconButton size='small' onClick={addNewRecordFilter} color='primary'>
-          <AddIcon fontSize='small'/>
-        </IconButton>
-      </Tooltip>
-      {recordFilters.length == 0 ? <Typography onClick={addNewRecordFilter} color='gray'>no conditions</Typography> : null}
-      {recordFilters.map((filter: QueryFilter, index: number) => (
-        <QueryFilterControl
-          key={`${index}-${updateCounter}`}
-          or={orRecordFilterIndices.includes(index)}
-          setOr={(e, checked) => handleChangeOrFilters(index)}
-          filterIndex={index}
-          filter={filter}
-          patchRecordFilter={patchRecordFilter}
-          modelNames={modelNames}
-          graph={graph}
-          patchFilter={(updatedFilter: QueryFilter | QuerySlice) =>
-            handlePatchFilter(
-              index,
-              updatedFilter as QueryFilter,
-              filter
-            )
-          }
-          removeFilter={() => handleRemoveFilter(index)}
-          copyFilter={() => handleCopyFilter(filter)}
-        />
-      ))}
+      <Grid container alignItems='center'>
+        <QueryChevron fold={fold} setFold={setFold}/>
+        Show {rootModel} records&nbsp;<b>where</b>:
+        <QueryClauseSummaryControls
+          fold={fold}
+          setFold={setFold}
+          addHandler={addNewRecordFilter}
+          removeHandler={removeAllRecordFilters}
+          itemName='condition'
+          numItems={recordFilters.length}/>
+      </Grid>
+      {
+        !fold && <Grid container direction='column' className={classes.conditions}>
+          {!recordFilters.length && <Typography className={classes.empty} onClick={addNewRecordFilter} color='gray'>no conditions</Typography> }
+          {recordFilters.map((filter: QueryFilter, index: number) => (
+            <QueryFilterControl
+              key={`${index}-${updateCounter}`}
+              or={orRecordFilterIndices.includes(index)}
+              setOr={(e, checked) => handleChangeOrFilters(index)}
+              filterIndex={index}
+              filter={filter}
+              patchRecordFilter={patchRecordFilter}
+              modelNames={modelNames}
+              graph={graph}
+              patchFilter={(updatedFilter: QueryFilter | QuerySlice) =>
+                handlePatchFilter(
+                  index,
+                  updatedFilter as QueryFilter,
+                  filter
+                )
+              }
+              removeFilter={() => handleRemoveFilter(index)}
+              copyFilter={() => handleCopyFilter(filter)}
+            />
+          ))}
+        </Grid>
+      }
     </QueryClause>
   );
 };

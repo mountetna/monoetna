@@ -8,8 +8,8 @@ const useStyles = makeStyles((theme) => ({
   },
   queryClause: {
     padding: '15px',
-    paddingLeft: '15px',
-    borderBottom: '1px solid #eee'
+    paddingLeft: '5px',
+    borderBottom: '1px solid #ccc'
   }
 }));
 
