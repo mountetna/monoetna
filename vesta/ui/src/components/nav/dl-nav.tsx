@@ -127,12 +127,12 @@ export default function DLNav({
                 onClick={handleClickNavLink}
                 typography={linkTypography}
             />
-            {/* <NavLink
-                text='Contibute'
-                href='#'
+            <NavLink
+                text='Contribute'
+                href='#contribute'
                 onClick={handleClickNavLink}
-                typography={typography}
-            /> */}
+                typography={linkTypography}
+            />
         </Box>
     )
 }

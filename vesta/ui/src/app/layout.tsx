@@ -5,11 +5,10 @@ import CssBaseline from '@mui/material/CssBaseline';
 import 'swiper/css';
 import 'swiper/css/bundle';
 import { faker } from '@faker-js/faker';
-import { StaticImageData } from 'next/image';
 
 import theme from '@/theme';
 import MainNav from '@/components/nav/main-nav';
-import Footer from '@/components/footer';
+import Footer from '@/components/footer/footer';
 import { User } from '@/components/user/models';
 import { UserContextProvider } from '@/components/user/context';
 
