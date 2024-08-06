@@ -10,8 +10,9 @@ import Link from 'next/link'
 import ButtonBase from '@mui/material/ButtonBase';
 import { useTheme } from '@mui/material';
 
-import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
 import { ProjectCount, ThemeBookProps } from './shared';
+
+import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
 
 
 export default function ThemeBookVertical({
@@ -171,11 +172,11 @@ export default function ThemeBookVertical({
                                     color='utilityHighlight.main'
                                     bgcolor='ground.grade10'
                                     onClick={e => onClickSeeProjects(e, data.projectsLink)}
-                                    sx={(theme) => ({
+                                    sx={{
                                         display: 'inline-flex',
                                         alignItems: 'center',
                                         borderRadius: '60px',
-                                    })}
+                                    }}
                                 >
                                     <Typography
                                         variant='pLarge'

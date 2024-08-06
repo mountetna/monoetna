@@ -7,13 +7,14 @@ import Image from 'next/image';
 
 import contributeImage from '/public/images/footer/contribute.png'
 import TextInput from '../inputs/text-input';
+import ArrowLinkButton from '../inputs/arrow-link-button';
 
 
 export default function Contribute({ }: {}) {
     const [inputVal, setInputVal] = React.useState<string>('')
 
-    const handleSubmitForm = (event: React.FormEvent) => {
-        event.preventDefault()
+    const handleSubmitForm = (event?: React.FormEvent) => {
+        event && event.preventDefault()
 
         console.log('here', inputVal)
     }
@@ -25,9 +26,7 @@ export default function Contribute({ }: {}) {
                 flexDirection: 'column',
                 gap: '12px',
                 '& > *': {
-                    // width: '100%',
-                    // height: '237.75px',
-                    aspectRatio: '377 / 237.75',
+                    height: '237.75px',
                     borderRadius: '30px',
                     overflow: 'hidden',
                 },
@@ -47,6 +46,9 @@ export default function Contribute({ }: {}) {
 
             <Box
                 sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '30px',
                     p: '16px',
                     bgcolor: '#3A7FA3',
                 }}
@@ -64,11 +66,35 @@ export default function Contribute({ }: {}) {
                 <Box
                     component='form'
                     onSubmit={handleSubmitForm}
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        gap: '10px',
+                        '& > *:first-child': {
+                            flexGrow: '1',
+                            '& input': {
+                                width: '100%',
+                            },
+                        },
+                        '& > *:last-child': {
+                            aspectRatio: '1',
+                            height: '100%',
+                            '& img': {
+                                width: '20px',
+                                height: '20px',
+                            },
+                        },
+                    }}
                 >
                     <TextInput
                         value={inputVal}
                         onChange={(event) => setInputVal(event.currentTarget.value)}
                         placeholder='name@email.com'
+                        gradeVariant='light'
+                    />
+
+                    <ArrowLinkButton
+                        onClick={handleSubmitForm}
                     />
                 </Box>
             </Box>

@@ -2,67 +2,88 @@
 
 import * as React from 'react';
 import { Input as BaseInput, InputProps } from '@mui/base/Input';
-import { styled } from '@mui/system';
 import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material';
+import _ from 'lodash'
 
-const Input = React.forwardRef(function CustomInput(
-  props: InputProps,
-  ref: React.ForwardedRef<HTMLDivElement>,
-) {
-  return <BaseInput slots={{ input: InputElement }} {...props} ref={ref} />;
-});
+// import { styled } from '@/lib/utils/types';
 
-export default function TextInput(props: InputProps) {
-  return <Input {...props} />;
+
+type GradeVariant = 'light' | 'mid'
+
+const BgColorDefault: Record<GradeVariant, string> = {
+    light: 'utilityWhite.main',
+    mid: 'utilityHighlight.main',
 }
 
-const blue = {
-  100: '#DAECFF',
-  200: '#80BFFF',
-  400: '#3399FF',
-  500: '#007FFF',
-  600: '#0072E5',
-};
+const BgColorHover: Record<GradeVariant, string> = {
+    light: 'ground.grade100',
+    mid: 'ground.grade100',
+}
 
-const grey = {
-  50: '#F3F6F9',
-  100: '#E5EAF2',
-  200: '#DAE2ED',
-  300: '#C7D0DD',
-  400: '#B0B8C4',
-  500: '#9DA8B7',
-  600: '#6B7A90',
-  700: '#434D5B',
-  800: '#303740',
-  900: '#1C2025',
-};
+const BgColorFocus: Record<GradeVariant, string> = {
+    light: 'utilityWhite.main',
+    mid: 'utilityHighlight.main',
+}
 
-const InputElement = styled('input')(
-  ({ theme }) => `
-  width: 320px;
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 400;
-  line-height: 1.5;
-  padding: 8px 12px;
-  border-radius: 8px;
-  color: ${theme.palette.mode === 'dark' ? grey[300] : grey[900]};
-  background: ${theme.palette.mode === 'dark' ? grey[900] : '#fff'};
-  border: 1px solid ${theme.palette.mode === 'dark' ? grey[700] : grey[200]};
-  box-shadow: 0px 2px 2px ${theme.palette.mode === 'dark' ? grey[900] : grey[50]};
+interface _Props {
+    gradeVariant: GradeVariant
+}
 
-  &:hover {
-    border-color: ${blue[400]};
-  }
+type Props = InputProps & _Props
 
-  &:focus {
-    border-color: ${blue[400]};
-    box-shadow: 0 0 0 3px ${theme.palette.mode === 'dark' ? blue[600] : blue[200]};
-  }
+const Input = React.forwardRef(function CustomInput(
+    props: Props,
+    ref: React.ForwardedRef<HTMLDivElement>,
+) {
+    const gradeVariant = props.gradeVariant
+    const inputProps = _.omit(props, ['gradeVariant'])
 
-  // firefox
-  &:focus-visible {
-    outline: 0;
-  }
-`,
-);
+    const InputElement = React.useMemo(() => styled('input')(
+        ({ theme }) => theme.unstable_sx({
+            px: '16px',
+            py: '8px',
+            border: '1px solid transparent',
+            borderRadius: '30px',
+            color: 'ground.grade10',
+            bg: BgColorDefault[gradeVariant],
+            ...theme.typography.pBody,
+            transition: theme.transitions.create(
+                'all',
+                {
+                    easing: theme.transitions.easing.ease,
+                    duration: theme.transitions.duration.ease,
+                }
+            ),
+
+            '&::placeholder': {
+                color: '#777777',
+            },
+
+            '&:hover': {
+                bgcolor: BgColorHover[gradeVariant],
+            },
+
+            '&:focus': {
+                borderColor: 'ground.grade50',
+                bgcolor: BgColorFocus[gradeVariant],
+            },
+
+            // firefox
+            '&:focus-visible': {
+                outline: 0,
+            },
+        })
+    ), [gradeVariant])
+
+    return (
+        // @ts-ignore
+        <BaseInput slots={{ input: InputElement }} {...inputProps} ref={ref} />
+    )
+});
+
+export default function TextInput(props: Props) {
+    return (
+        <Input {...props} />
+    )
+}
