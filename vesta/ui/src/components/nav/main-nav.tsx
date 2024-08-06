@@ -49,7 +49,7 @@ export default function MainNav() {
 
     React.useEffect(() => {
         const mainNavEl = mainNavRef.current
-        if (mainNavEl && !isStuck && overlayNavOpen) {
+        if (!isDesktop && mainNavEl && !isStuck) {
             const setDistanceToMainNav = _.throttle(() => {
                 setScrollDistanceToMainNav(
                     Math.max(
@@ -65,9 +65,10 @@ export default function MainNav() {
 
             return () => {
                 document.removeEventListener('scroll', setDistanceToMainNav)
+                setScrollDistanceToMainNav(0)
             }
         }
-    }, [isStuck, overlayNavOpen])
+    }, [isDesktop, isStuck])
 
     return (
         <React.Fragment>
