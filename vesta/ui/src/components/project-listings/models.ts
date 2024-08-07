@@ -62,7 +62,7 @@ export interface Project {
 export enum ExternalProjectStatus {
     init = 'Initial Launch',
     sampling = 'Sampling',
-    analysis = 'Analysis',
+    analysis = 'Data Analysis',
     public = 'Public',
 }
 

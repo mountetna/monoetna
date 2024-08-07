@@ -685,10 +685,10 @@ export default function ProjectListing({
                                     }}
                                 >
                                     <Box>
-                                        {`${data.theme.name.slice(0, 2)}.${data.name}`}
+                                        {`${data.theme.name.slice(0, 4)}.${data.name}`}
                                     </Box>
                                     <Box>
-                                        {`${data.type.slice(0, 4)}.${data.status.slice(0, 4)}`}
+                                        {`${data.type.slice(0, 4)}.${getExternalProjectStatus(data).slice(0, 4)}`}
                                     </Box>
                                     <Box>
                                         {data.startDate.getFullYear()}

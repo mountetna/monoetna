@@ -13,6 +13,7 @@ import UCSFNav, { Classes as UCSFNavClasses } from './ucsf-nav';
 import Copyright from '../legal/copyright';
 import { LibraryCardModal } from '../library-card/library-card-modal';
 import { useUser } from '../user/context';
+import { FocusTrap } from '@mui/base';
 
 
 export default function OverlayNav({
@@ -36,119 +37,123 @@ export default function OverlayNav({
     }
 
     return (
-        <Collapse
-            component='nav'
-            aria-label='Main'
-            {...animationProps}
+        <FocusTrap
+            open={open}
         >
-            <Fade
+            <Collapse
+                component='nav'
+                aria-label='Main'
                 {...animationProps}
             >
-                <Box
-                    sx={{
-                        bgcolor: 'utilityLowlight.main',
-                        px: '16px',
-                        py: '16px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        gap: '32px',
-                        pb: '106px',
-                        [theme.breakpoints.up('tablet')]: {
-                            pb: '16px',
-                        },
-                        ...sx,
-                    }}
+                <Fade
+                    {...animationProps}
                 >
-
                     <Box
                         sx={{
+                            bgcolor: 'utilityLowlight.main',
+                            px: '16px',
+                            py: '16px',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: '24px',
-                            px: '16px',
-                            [`& .${LibraryCardButtonClasses.root}`]: {
-                                width: 'fit-content',
+                            justifyContent: 'space-between',
+                            gap: '32px',
+                            pb: '106px',
+                            [theme.breakpoints.up('tablet')]: {
+                                pb: '16px',
                             },
+                            ...sx,
                         }}
                     >
-                        <DLNav
-                            linkTypography='h2'
-                            onClickNavLink={onClickNavLink}
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'start',
-                                gap: '16px',
-                                [`.${DLNavClasses.link}`]: {
-                                    position: 'relative',
-                                    color: 'utilityHighlight.main',
-                                    left: 0,
-                                    '&:hover, &:focus': {
-                                        color: 'blue.grade50',
-                                        left: '16px',
-                                    },
-                                    transition: theme.transitions.create(
-                                        ['color', 'left'],
-                                        {
-                                            easing: theme.transitions.easing.quint,
-                                            duration: theme.transitions.duration.quint,
-                                        },
-                                    ),
-                                },
-                            }}
-                        />
 
                         <Box
                             sx={{
-                                [theme.breakpoints.up('tablet')]: {
-                                    display: 'none',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '24px',
+                                px: '16px',
+                                [`& .${LibraryCardButtonClasses.root}`]: {
+                                    width: 'fit-content',
                                 },
                             }}
                         >
-                            <LibraryCardButton
-                                isLoggedIn={user !== null}
-                                onClick={() => setLibraryCardModalOpen(val => !val)}
+                            <DLNav
+                                linkTypography='h2'
+                                onClickNavLink={onClickNavLink}
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'start',
+                                    gap: '16px',
+                                    [`.${DLNavClasses.link}`]: {
+                                        position: 'relative',
+                                        color: 'utilityHighlight.main',
+                                        left: 0,
+                                        '&:hover, &:focus': {
+                                            color: 'blue.grade50',
+                                            left: '16px',
+                                        },
+                                        transition: theme.transitions.create(
+                                            ['color', 'left'],
+                                            {
+                                                easing: theme.transitions.easing.quint,
+                                                duration: theme.transitions.duration.quint,
+                                            },
+                                        ),
+                                    },
+                                }}
                             />
 
-                            {user && (
-                                <LibraryCardModal
-                                    open={libraryCardModalOpen}
-                                    handleSetOpen={setLibraryCardModalOpen}
-                                    user={user}
+                            <Box
+                                sx={{
+                                    [theme.breakpoints.up('tablet')]: {
+                                        display: 'none',
+                                    },
+                                }}
+                            >
+                                <LibraryCardButton
+                                    isLoggedIn={user !== null}
+                                    onClick={() => setLibraryCardModalOpen(val => !val)}
                                 />
-                            )}
-                        </Box>
-                    </Box>
 
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '16px',
-                            px: '16px',
-                            [theme.breakpoints.up('tablet')]: {
-                                px: '0px'
-                            },
-                            color: 'utilityHighlight.main',
-                        }}
-                    >
-                        <UCSFNav
+                                {user && (
+                                    <LibraryCardModal
+                                        open={libraryCardModalOpen}
+                                        handleSetOpen={setLibraryCardModalOpen}
+                                        user={user}
+                                    />
+                                )}
+                            </Box>
+                        </Box>
+
+                        <Box
                             sx={{
                                 display: 'flex',
                                 flexDirection: 'column',
-                                alignItems: 'start',
                                 gap: '16px',
-                                [`.${UCSFNavClasses.link}`]: {
-                                    color: 'utilityHighlight.main',
+                                px: '16px',
+                                [theme.breakpoints.up('tablet')]: {
+                                    px: '0px'
                                 },
+                                color: 'utilityHighlight.main',
                             }}
-                        />
+                        >
+                            <UCSFNav
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'start',
+                                    gap: '16px',
+                                    [`.${UCSFNavClasses.link}`]: {
+                                        color: 'utilityHighlight.main',
+                                    },
+                                }}
+                            />
 
-                        <Copyright />
+                            <Copyright />
+                        </Box>
                     </Box>
-                </Box>
-            </Fade>
-        </Collapse>
+                </Fade>
+            </Collapse>
+        </FocusTrap>
     )
 }

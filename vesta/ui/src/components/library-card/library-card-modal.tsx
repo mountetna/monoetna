@@ -61,15 +61,7 @@ export function LibraryCardModal({
             aria-labelledby="Data Library Card Display"
             aria-describedby="Shows your Data Library Card and with the ability to save an image"
             open={open}
-            onClose={(_, reason) => {
-                switch (reason) {
-                    case 'backdropClick':
-                        return
-                    case 'escapeKeyDown':
-                        handleSetOpen(false)
-                        return
-                }
-            }}
+            onClose={() => handleSetOpen(false)}
             closeAfterTransition
             slots={{ backdrop: StyledBackdrop }}
         >
