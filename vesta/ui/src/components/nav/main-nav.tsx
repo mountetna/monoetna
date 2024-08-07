@@ -134,6 +134,7 @@ export default function MainNav() {
                         sx={{
                             // Compensate for navbar height
                             pt: `${NavBarHeights[breakpoint][isStuck ? 'condensed' : 'default']}px`,
+                            // Compensate for UCSF navbar visibile height
                             height: `calc(100vh - ${scrollDistanceToMainNav}px)`,
                             transition: theme.transitions.create(
                                 'padding-top',

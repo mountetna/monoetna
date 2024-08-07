@@ -4,9 +4,11 @@ import * as React from 'react'
 import Container from '@mui/system/Container'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import { useMediaQuery, useTheme } from '@mui/material';
+import { useTheme } from '@mui/material';
+import Fade from '@mui/material/Fade';
 import _ from 'lodash'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project, ProjectHeadingInfoSet, PROJECTS_SEARCH_PARAMS_KEY, ProjectsSearchParamsControls, ProjectsSearchParamsState } from './models';
 import ProjectListing from './project-listing';
@@ -227,6 +229,7 @@ export default function ProjectListings({
 
     const paginatedFilteredProjectData = filteredProjectData
         .slice(currentPage * pageSize, currentPage * pageSize + pageSize)
+    // .map(proj => ({ project: proj, nodeRef: React.createRef<HTMLElement>() }))
 
     const projectListRef = React.createRef<HTMLDivElement>()
 
@@ -638,18 +641,29 @@ export default function ProjectListings({
                     }}
                 >
                     {paginatedFilteredProjectData.map((project, i) => (
-                        <Box
+                        <Fade
                             key={project.fullName}
-                            role='listitem'
+                            in={true}
+                            easing={theme.transitions.easing.ease}
+                            timeout={theme.transitions.duration.ease}
+                            exit={false}
                         >
-                            <ProjectListing
-                                data={project}
-                                open={projectOpens[i]}
-                                headingInfoSet={(viewSet.label as ProjectHeadingInfoSet)}
-                                onSetOpen={open => handleSetProjectOpen(open, i)}
-                                onFinishOpen={() => scrollToProject(i)}
-                            />
-                        </Box>
+                            <Box
+                                key={project.fullName}
+                                role='listitem'
+                                sx={{
+                                    transitionDelay: `${i * 20}ms !important`,
+                                }}
+                            >
+                                <ProjectListing
+                                    data={project}
+                                    open={projectOpens[i]}
+                                    headingInfoSet={(viewSet.label as ProjectHeadingInfoSet)}
+                                    onSetOpen={open => handleSetProjectOpen(open, i)}
+                                    onFinishOpen={() => scrollToProject(i)}
+                                />
+                            </Box>
+                        </Fade>
                     ))}
                 </Box>
             </Box>

@@ -317,9 +317,16 @@ function randomBool(): boolean {
 }
 
 const PROJECTS: Project[] = []
+const projectNames = new Set<string>()
+
 THEMES.forEach(theme => {
   for (let i = 0; i < theme.projectCount; i++) {
-    const name = faker.company.name().replace(' -', '')
+    
+    let name = ''
+    do {
+      name = faker.company.name().replace(' -', '')
+    } while (projectNames.has(name))
+    projectNames.add(name)
 
     const project: Project = {
       name: name.toLowerCase().slice(0, 4),
