@@ -16,7 +16,7 @@ export default function Image(props: Props) {
 
     const theme = useTheme()
 
-    const [loaded, setLoaded] = React.useState(hideBeforeLoad === undefined ? true : hideBeforeLoad)
+    const [loaded, setLoaded] = React.useState(hideBeforeLoad === undefined ? true : !hideBeforeLoad)
 
     return (
         <BaseImage

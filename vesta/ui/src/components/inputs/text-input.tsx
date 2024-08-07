@@ -46,8 +46,8 @@ const Input = React.forwardRef(function CustomInput(
             border: '1px solid transparent',
             borderRadius: '30px',
             color: 'ground.grade10',
-            bg: BgColorDefault[gradeVariant],
-            ...theme.typography.pBody,
+            bgcolor: BgColorDefault[gradeVariant],
+            ...theme.typography.pLarge,
             transition: theme.transitions.create(
                 'all',
                 {
@@ -55,6 +55,11 @@ const Input = React.forwardRef(function CustomInput(
                     duration: theme.transitions.duration.ease,
                 }
             ),
+
+            [theme.breakpoints.up('tablet')]: {
+                px: '16px',
+                py: '14px',
+            },
 
             '&::placeholder': {
                 color: '#777777',

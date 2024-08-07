@@ -56,9 +56,10 @@ export default function Pagination({
             <Box
                 className='autocomplete autocomplete-page-info'
                 sx={{
+                    overflow: 'scroll',
                     display: 'flex',
                     flexDirection: 'row',
-                    justifyContent: 'center',
+                    justifyContent: 'flex-start',
                     alignItems: 'center',
                     gap: '3px',
                     p: '7px 21px',

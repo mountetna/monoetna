@@ -4,6 +4,7 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import Image from 'next/image';
+import { useTheme } from '@mui/material';
 
 import contributeImage from '/public/images/footer/contribute.png'
 import TextInput from '../inputs/text-input';
@@ -11,6 +12,8 @@ import ArrowLinkButton from '../inputs/arrow-link-button';
 
 
 export default function Contribute({ }: {}) {
+    const theme = useTheme()
+    
     const [inputVal, setInputVal] = React.useState<string>('')
 
     const handleSubmitForm = (event?: React.FormEvent) => {
@@ -25,10 +28,21 @@ export default function Contribute({ }: {}) {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px',
+                [theme.breakpoints.up('tablet')]: {
+                    flexDirection: 'row',
+                    gap: '16px',
+                },
                 '& > *': {
                     height: '237.75px',
                     borderRadius: '30px',
                     overflow: 'hidden',
+                    [theme.breakpoints.up('tablet')]: {
+                        width: '50%',
+                        height: '487.5px',
+                    },
+                    [theme.breakpoints.up('desktop')]: {
+                        height: '485.5px',
+                    },
                 },
             }}
         >
@@ -80,8 +94,8 @@ export default function Contribute({ }: {}) {
                             aspectRatio: '1',
                             height: '100%',
                             '& img': {
-                                width: '20px',
-                                height: '20px',
+                                width: '30px',
+                                height: '30px',
                             },
                         },
                     }}

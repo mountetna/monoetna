@@ -11,10 +11,11 @@ import Image from 'next/image';
 
 import DLNav, { Classes as DLNavClasses } from './dl-nav'
 import { useBreakpoint } from '@/lib/utils/responsive';
-import LibraryCardButton, { Classes as LibraryCardButtonClasses } from '../library-card/library-card-button';
+import LibraryCardButton from '../library-card/library-card-button';
 import { LibraryCardModal } from '../library-card/library-card-modal';
 import { useUser } from '../user/context';
-import LibraryCardTray, { Classes as LibraryCardTrayClasses } from '../library-card/library-card-tray';
+import LibraryCardTray from '../library-card/library-card-tray';
+import { usePathname, useRouter } from 'next/navigation';
 
 import hamburgerIconLightSrc from '/public/images/icons/hamburger-menu-icon-light.svg'
 import hamburgerIconDarkSrc from '/public/images/icons/hamburger-menu-icon-dark.svg'
@@ -62,8 +63,6 @@ export default function NavBar({
     )
 
     const breakpoint = useBreakpoint()
-    const isTablet = breakpoint === 'tablet'
-    const isDesktop = ['desktop', 'desktopLg'].includes(breakpoint)
 
     const user = useUser()
 
@@ -79,6 +78,24 @@ export default function NavBar({
             setLibraryCardTrayOpen(false)
         }
     }, [variant])
+
+    const router = useRouter()
+    const pathname = usePathname()
+
+    const handleClickHome = (event?: React.MouseEvent<HTMLAnchorElement>) => {
+        if (!event) return
+        
+        if (pathname === (new URL(event.currentTarget.href)).pathname) {
+            event.preventDefault()
+    
+            router.push(event.currentTarget.href, { scroll: false })
+    
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth',
+            })
+        }
+    }
 
     return (
         <Collapse
@@ -113,6 +130,7 @@ export default function NavBar({
                 }}
             >
                 <MUILink
+                    onClick={handleClickHome}
                     href="/"
                     tabIndex={0}
                     component={Link}
@@ -239,40 +257,54 @@ export default function NavBar({
                         }}
                     />
 
-                    {isTablet && <LibraryCardButton
-                        isLoggedIn={user !== null}
-                        onClick={() => setLibraryCardModalOpen(val => !val)}
-                    />}
-
-                    {isTablet && user && (
-                        <LibraryCardModal
-                            open={libraryCardModalOpen}
-                            handleSetOpen={setLibraryCardModalOpen}
-                            user={user}
+                    <Box
+                        sx={{
+                            display: 'none',
+                            [theme.breakpoints.up('tablet')]: {
+                                display: 'block',
+                            },
+                            [theme.breakpoints.up('desktop')]: {
+                                display: 'none',
+                            },
+                        }}
+                    >
+                        <LibraryCardButton
+                            isLoggedIn={user !== null}
+                            onClick={() => setLibraryCardModalOpen(val => !val)}
                         />
-                    )}
 
-                    {isDesktop && (
-                        <Box
-                            sx={{
-                                width: `${libraryCardTrayWidth}px`,
-                                height: '1px',
-                                '& > *': {
-                                    position: 'absolute',
-                                    top: '0px',
-                                    opacity: libraryCardTrayWidth === undefined ? 0 : 1,
-                                    gap: variant === 'condensed' ? '15px' : '26px',
-                                },
-                            }}
-                        >
-                            <LibraryCardTray
-                                ref={libraryCardTrayRef}
-                                open={libraryCardTrayOpen}
-                                onSetOpen={setLibraryCardTrayOpen}
+                        {user && (
+                            <LibraryCardModal
+                                open={libraryCardModalOpen}
+                                handleSetOpen={setLibraryCardModalOpen}
                                 user={user}
                             />
-                        </Box>
-                    )}
+                        )}
+                    </Box>
+
+                    <Box
+                        sx={{
+                            display: 'none',
+                            width: `${libraryCardTrayWidth}px`,
+                            height: '1px',
+                            [theme.breakpoints.up('desktop')]: {
+                                display: 'block',
+                            },
+                            '& > *': {
+                                position: 'absolute',
+                                top: '0px',
+                                opacity: libraryCardTrayWidth === undefined ? 0 : 1,
+                                gap: variant === 'condensed' ? '15px' : '26px',
+                            },
+                        }}
+                    >
+                        <LibraryCardTray
+                            ref={libraryCardTrayRef}
+                            open={libraryCardTrayOpen}
+                            onSetOpen={setLibraryCardTrayOpen}
+                            user={user}
+                        />
+                    </Box>
 
                     <ButtonBase
                         tabIndex={0}

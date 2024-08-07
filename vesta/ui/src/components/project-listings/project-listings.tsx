@@ -14,7 +14,7 @@ import Pagination, { PaginationClasses } from '@/components/searchable-list/cont
 import DrawerButton from '@/components/searchable-list/controls/drawer/button';
 import Drawer from '@/components/searchable-list/controls/drawer/drawer';
 import Autocomplete from '@/components/searchable-list/controls/autocomplete';
-import ToggleGroup from '../inputs/toggle-group';
+import ToggleGroup, { Classes as ToggleGroupClasses } from '../inputs/toggle-group';
 import { ThemeData } from '../themes/models';
 import ProjectPI from './project-pi';
 import FilterPill from '../searchable-list/filter-pill';
@@ -22,12 +22,12 @@ import { ValueOf } from '@/lib/utils/types';
 import { FILE_EXPORT_STATUS, handleExportFile, MIME_FILE_FORMATS } from '@/lib/utils/file-export';
 import { DrawerSectionClass } from '../searchable-list/controls/drawer/models';
 import { parseSearchParams, toSearchParamsString } from '@/lib/utils/uri';
+import { scrollTo } from '@/lib/utils/scroll';
+import { useBreakpoint } from '@/lib/utils/responsive';
 
 import filterLightIcon from '/public/images/icons/filter-light.svg'
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
-import { scrollTo } from '@/lib/utils/scroll';
-import { useBreakpoint } from '@/lib/utils/responsive';
 
 
 const searchableProjectKeys: (keyof SearchableProjectData)[] = ['fullName', 'principalInvestigators', 'type', 'dataTypes', 'theme', 'status']
@@ -422,7 +422,13 @@ export default function ProjectListings({
                                     columnGap: '10px',
                                     justifyContent: 'space-between',
                                     width: '100%',
-                                }
+                                },
+                                [`& .${ToggleGroupClasses.root}`]: {
+                                    display: 'none',
+                                    [theme.breakpoints.up('desktop')]: {
+                                        display: 'block',
+                                    },
+                                },
                             }}
                         >
                             <Box
@@ -431,6 +437,7 @@ export default function ProjectListings({
                                     flexDirection: 'row',
                                     columnGap: '8px',
                                     flexGrow: 1,
+                                    width: '100%',
                                     [theme.breakpoints.up('tablet')]: {
                                         flexGrow: 'unset',
                                         columnGap: '10px',
@@ -525,13 +532,11 @@ export default function ProjectListings({
                                     }}
                                 />
 
-                                {isDesktop && (
-                                    <ToggleGroup
-                                        valueIdx={viewSets.indexOf(viewSet)}
-                                        values={viewSets.map(val => val.label)}
-                                        onChange={(idx) => handleChangeViewSet(viewSets[idx])}
-                                    />
-                                )}
+                                <ToggleGroup
+                                    valueIdx={viewSets.indexOf(viewSet)}
+                                    values={viewSets.map(val => val.label)}
+                                    onChange={(idx) => handleChangeViewSet(viewSets[idx])}
+                                />
 
                                 {/* {isDesktop && (
                                     <Button

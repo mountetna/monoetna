@@ -199,14 +199,6 @@ export default function ProjectListing({
                         justifyContent: 'space-between',
                         gap: '10px',
                         p: '16px',
-                        // pb: open ? '12px' : '16px',
-                        // transition: theme.transitions.create(
-                        //     ['padding-bottom'],
-                        //     {
-                        //         easing: theme.transitions.easing.quint,
-                        //         duration: theme.transitions.duration.quint,
-                        //     },
-                        // )
                     }}
                 >
                     <Box

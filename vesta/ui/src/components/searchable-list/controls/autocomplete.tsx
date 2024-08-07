@@ -10,9 +10,8 @@ import {
   AutocompleteGroupedOption,
 } from '@mui/base/useAutocomplete';
 import { Popper } from '@mui/base/Popper';
-import { styled } from '@mui/system';
+import { styled } from '@mui/material';
 import useForkRef from '@mui/utils/useForkRef';
-import Typography from '@mui/material/Typography';
 import { useTheme, SxProps } from '@mui/material';
 import Image, { StaticImageData } from 'next/image';
 import _ from 'lodash'
@@ -105,6 +104,7 @@ function Autocomplete<Value>(
     <Box
       sx={{
         display: 'flex',
+        overflow: 'hidden',
         ...(props.sx || {})
       }}
     >
@@ -114,22 +114,25 @@ function Autocomplete<Value>(
         sx={{
           display: 'flex',
           width: '100%',
+          overflow: 'hidden',
         }}
       >
         <Box
           className={focused ? 'Mui-focused' : ''}
           sx={{
-            // width: '100%',
+            width: '100%',
             height: '100%',
+            overflowX: 'scroll',
+            overflowY: 'clip',
             display: 'flex',
             gap: '10px',
             alignItems: 'center',
             bgcolor: 'utilityWhite.main',
             borderRadius: '30px',
             p: '14px 16px',
-            outline: '1px solid transparent',
+            border: '1px solid transparent',
             '&:focus-visible, &.Mui-focused': {
-              outline: `1px solid ${theme.palette.ground.grade75}`,
+              border: `1px solid ${theme.palette.ground.grade75}`,
             },
             '&:hover, &:focus-visible, &.Mui-focused': {
               bgcolor: 'ground.grade100',
@@ -151,10 +154,9 @@ function Autocomplete<Value>(
           <StyledInput
             {...getInputProps()}
             placeholder={props.placeholder}
-            // onChangeCapture={() => _.throttle(() => listBoxRef.current?.scrollTo({ top: 0 }), 100)}
             sx={{
-              display: 'flex',
-              flexGrow: 1,
+              // display: 'flex',
+              // flexGrow: 1,
               border: 'none',
               outline: 'none',
               p: '0',
