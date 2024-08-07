@@ -73,6 +73,7 @@ export default function ProjectListings({
         const parsedSearchParams = parseSearchParams(searchParams)
         if (PROJECTS_SEARCH_PARAMS_KEY in parsedSearchParams) {
             const state = parsedSearchParams[PROJECTS_SEARCH_PARAMS_KEY]
+            let updatedState = false
 
             const stateFilterItems = parseSearchOptionsFromState(state, searchOptions)
 
@@ -85,12 +86,24 @@ export default function ProjectListings({
                 )
             ) {
                 setFilterItems(stateFilterItems)
+                updatedState = true
             }
 
             const stateViewSet = parseViewSetFromState(state, viewSets)
-            if (stateViewSet !== undefined) setViewSet(stateViewSet)
+            if (stateViewSet !== undefined && viewSet.key !== stateViewSet.key) {
+                setViewSet(stateViewSet)
+                updatedState = true
+            }
 
-            setCurrentPage(parseCurrentPageFromState(state))
+            const stateCurrentPage = parseCurrentPageFromState(state)
+            if (currentPage !== stateCurrentPage) {
+                setCurrentPage(stateCurrentPage)
+                updatedState = true
+            }
+
+            if (updatedState) {
+                closeAllProjects()
+            }
         }
     }, [searchParams])
 
@@ -229,7 +242,6 @@ export default function ProjectListings({
 
     const paginatedFilteredProjectData = filteredProjectData
         .slice(currentPage * pageSize, currentPage * pageSize + pageSize)
-    // .map(proj => ({ project: proj, nodeRef: React.createRef<HTMLElement>() }))
 
     const projectListRef = React.createRef<HTMLDivElement>()
 
