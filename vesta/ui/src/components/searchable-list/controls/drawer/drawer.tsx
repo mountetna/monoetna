@@ -139,6 +139,7 @@ export default function Drawer<Item>({
                         key={sectionName}
                         open={sectionOpens[sectionOpenIdx]}
                         onSetOpen={(open) => handleSetSectionOpen(open, sectionOpenIdx)}
+                        variant='withBackground'
                         {...sectionProps}
                     />
                 )
@@ -198,12 +199,9 @@ export default function Drawer<Item>({
                                 gap: '16px',
                                 p: '24px',
                                 [`& .${DrawerSectionClass.viewSets}`]: {
-                                    pb: '10px',
                                 },
                             },
                             [`& .${DrawerSectionClass.expandable}`]: {
-                                pb: '16px',
-                                borderBottom: `1px solid ${theme.palette.ground.grade75}`,
                                 '&:last-of-type': {
                                     mb: '8px',
                                 },
@@ -237,6 +235,7 @@ export default function Drawer<Item>({
                                         <DrawerSectionExpandable
                                             open={sectionOpens[index]}
                                             onSetOpen={(open) => handleSetSectionOpen(open, index)}
+                                            variant='default'
                                             {...sectionProps}
                                         />
                                     )
@@ -257,7 +256,8 @@ export default function Drawer<Item>({
                         {showButton && <Button
                             label={buttonLabel}
                             onClick={onClickButton}
-                            variant='large'
+                            strokeVariant='stroked'
+                            sizeVariant='large'
                             typographyVariant='pBodyMediumWt'
                             sx={{
                                 width: 'auto',

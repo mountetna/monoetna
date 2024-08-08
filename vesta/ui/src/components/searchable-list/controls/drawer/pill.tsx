@@ -16,10 +16,12 @@ export default function DrawerPill({
     label,
     active = false,
     onClick,
+    variant,
 }: {
     label: string,
     active?: boolean,
     onClick?: () => void,
+    variant: 'yellow' | 'teal',
 }) {
     const theme = useTheme()
 
@@ -40,7 +42,7 @@ export default function DrawerPill({
                 borderRadius: '40px',
                 border: '1px solid transparent',
                 [`&.${Classes.active}`]: {
-                    bgcolor: 'yellow.grade50',
+                    bgcolor: variant === 'yellow' ? 'yellow.grade50' : 'teal.grade100',
                 },
                 transition: theme.transitions.create(
                     'all',

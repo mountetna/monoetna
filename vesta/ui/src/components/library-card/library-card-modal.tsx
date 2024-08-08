@@ -91,7 +91,7 @@ export function LibraryCardModal({
                             <LibraryCard
                                 ref={libraryCardRef}
                                 user={user}
-                                variant='2d'
+                                variant='3d'
                             />
                         </Box>
                     </Slide>

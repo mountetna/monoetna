@@ -44,7 +44,7 @@ export default function OverlayNav({
     return (
         <Collapse
             component='nav'
-            aria-label='Main'
+            aria-label='Mobile'
             {...animationProps}
         >
             <Fade

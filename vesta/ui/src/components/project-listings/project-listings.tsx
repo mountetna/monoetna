@@ -242,8 +242,11 @@ export default function ProjectListings({
 
     const paginatedFilteredProjectData = filteredProjectData
         .slice(currentPage * pageSize, currentPage * pageSize + pageSize)
+        .map(proj => ({
+            project: proj,
+            nodeRef: React.createRef<HTMLElement>(),
+        }))
 
-    const projectListRef = React.createRef<HTMLDivElement>()
 
     const [viewSet, setViewSet] = React.useState<(typeof viewSets)[number]>(viewSets[0])
 
@@ -311,8 +314,8 @@ export default function ProjectListings({
         updateUrl(filterItems, viewSet, page)
     }
 
-    const scrollToProject = (bookIdx: number) => {
-        const projectEl = projectListRef.current?.children[bookIdx] as HTMLElement | null
+    const scrollToProject = (nodeRef: React.RefObject<HTMLElement>) => {
+        const projectEl = nodeRef.current
         if (projectEl === null) {
             return
         }
@@ -643,43 +646,40 @@ export default function ProjectListings({
                     {isMobile && paginationEl}
                 </Box>
 
-                <Box
-                    ref={projectListRef}
-                    role='list'
-                    sx={{
-                        bgcolor: 'utilityWhite.main',
-                        borderRadius: '20px',
-                        overflow: 'hidden',
-                    }}
+                <Fade
+                    key={paginatedFilteredProjectData.reduce((prev, curr) => prev + curr.project.fullName, '')}
+                    in={true}
+                    easing={theme.transitions.easing.ease}
+                    timeout={theme.transitions.duration.ease}
+                    exit={false}
                 >
-                    {paginatedFilteredProjectData.map((project, i) => (
-                        <Fade
-                            key={project.fullName}
-                            in={true}
-                            easing={theme.transitions.easing.ease}
-                            timeout={theme.transitions.duration.ease}
-                            exit={false}
-                        >
+                    <Box
+                        role='list'
+                        sx={{
+                            bgcolor: 'utilityWhite.main',
+                            borderRadius: '20px',
+                            overflow: 'hidden',
+                        }}
+                    >
+                        {paginatedFilteredProjectData.map(({ project, nodeRef }, i) => (
                             <Box
                                 key={project.fullName}
+                                ref={nodeRef}
                                 role='listitem'
-                                sx={{
-                                    transitionDelay: `${i * 20}ms !important`,
-                                }}
                             >
                                 <ProjectListing
                                     data={project}
                                     open={projectOpens[i]}
                                     headingInfoSet={(viewSet.label as ProjectHeadingInfoSet)}
                                     onSetOpen={open => handleSetProjectOpen(open, i)}
-                                    onFinishOpen={() => scrollToProject(i)}
+                                    onFinishOpen={() => scrollToProject(nodeRef)}
                                 />
                             </Box>
-                        </Fade>
-                    ))}
-                </Box>
+                        ))}
+                    </Box>
+                </Fade>
             </Box>
-        </Container>
+        </Container >
     )
 }
 

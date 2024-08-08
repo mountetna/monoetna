@@ -22,6 +22,7 @@ const activeClass = 'active'
 interface Props extends DrawerSectionProps {
     open: boolean;
     onSetOpen: (open: boolean) => void;
+    variant: 'default' | 'withBackground'
 }
 
 
@@ -32,6 +33,7 @@ export default function DrawerSectionExpandable({
     onClickItem,
     open,
     onSetOpen,
+    variant,
 }: Props) {
     const theme = useTheme()
 
@@ -44,7 +46,10 @@ export default function DrawerSectionExpandable({
     return (
         <Box
             sx={{
-                p: '2px',
+                px: variant === 'default' ? '8px' : '4px',
+                py: variant === 'default' ? '0px' : '8px',
+                borderRadius: '11px',
+                bgcolor: variant === 'default' ? 'transparent' : 'utilityHighlight.main',
             }}
         >
             <ButtonBase
@@ -53,6 +58,8 @@ export default function DrawerSectionExpandable({
                     display: 'flex',
                     justifyContent: 'space-between',
                     width: '100%',
+                    px: variant === 'default' ? '2px' : '6px',
+                    py: '2px',
                 }}
             >
                 <Typography
@@ -81,32 +88,40 @@ export default function DrawerSectionExpandable({
                 />
             </ButtonBase>
 
-            <Collapse
-                {...animationProps}
+            <Box
+            sx={{
+                borderBottom: variant === 'default' ? `1px solid ${theme.palette.ground.grade75}` : 'none',
+                pb: variant === 'default' ? '16px' : '0px',
+            }}
             >
-                <Fade
+                <Collapse
                     {...animationProps}
                 >
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            flexWrap: 'wrap',
-                            gap: '10px',
-                            pt: '16px',
-                        }}
+                    <Fade
+                        {...animationProps}
                     >
-                        {items.map(item => (
-                            <DrawerPill
-                                key={item.key}
-                                label={item.label}
-                                active={activeKeys.has(item.key)}
-                                onClick={() => onClickItem(item)}
-                            />
-                        ))}
-                    </Box>
-                </Fade>
-            </Collapse>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                flexWrap: 'wrap',
+                                gap: '10px',
+                                pt: '16px',
+                            }}
+                        >
+                            {items.map(item => (
+                                <DrawerPill
+                                    key={item.key}
+                                    label={item.label}
+                                    active={activeKeys.has(item.key)}
+                                    onClick={() => onClickItem(item)}
+                                    variant={variant === 'default' ? 'yellow' : 'teal'}
+                                />
+                            ))}
+                        </Box>
+                    </Fade>
+                </Collapse>
+            </Box>
         </Box>
     )
 }

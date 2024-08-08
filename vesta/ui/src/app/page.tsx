@@ -285,7 +285,7 @@ const THEMES: ThemeData[] = [
   },
   {
     name: 'Healthy Reference',
-    color: '#DFDED6',
+    color: '#DDDAD0',
     altColor: '#F9F8F6',
     textColor: 'dark',
     projectCount: 4,

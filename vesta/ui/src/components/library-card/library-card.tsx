@@ -47,34 +47,37 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
     // - Orientation
     const pointerCoords = usePointerPosition('fraction')
     const deviceOrientationCoords = useDeviceOrientation()
+    const shouldUseDeviceOrientation = false
     let transform = 'unset'
     let shineX = 0
     let shineY = 0
     let rotMagnitude = 0
 
-    if (deviceOrientationCoords !== null) {
-        const xCoord = deviceOrientationCoords.x
-        const yCoord = deviceOrientationCoords.y
-        const zCoord = deviceOrientationCoords.z
-        // const rotX = (yCoord - 0.5) / 0.5
-        // const rotY = -(xCoord - 0.5) / 0.5
-        // rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
-        // const rotDeg = Math.round(rotationIntensity * rotMagnitude)
-        transform = `rotateX(${xCoord}deg) rotateY(${yCoord}deg) rotateZ(${zCoord}deg)`
+    if (props.variant === '3d') {
+        if (shouldUseDeviceOrientation && deviceOrientationCoords !== null) {
+            const xCoord = deviceOrientationCoords.x
+            const yCoord = deviceOrientationCoords.y
+            const zCoord = deviceOrientationCoords.z
+            // const rotX = (yCoord - 0.5) / 0.5
+            // const rotY = -(xCoord - 0.5) / 0.5
+            // rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
+            // const rotDeg = Math.round(rotationIntensity * rotMagnitude)
+            transform = `rotateX(${xCoord}deg) rotateY(${yCoord}deg rotateZ(${zCoord}deg)`
 
-        shineX = xCoord
-        shineY = yCoord
-    } else if (pointerCoords !== null) {
-        const xCoord = pointerCoords.x
-        const yCoord = pointerCoords.y
-        const rotX = (yCoord - 0.5) / 0.5
-        const rotY = -(xCoord - 0.5) / 0.5
-        rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
-        const rotDeg = Math.round(rotationIntensity * rotMagnitude)
-        transform = `perspective(1000px) rotate3d(${rotX}, ${rotY}, 0, ${rotDeg}deg)`
+            shineX = xCoord
+            shineY = yCoord
+        } else if (pointerCoords !== null) {
+            const xCoord = pointerCoords.x
+            const yCoord = pointerCoords.y
+            const rotX = (yCoord - 0.5) / 0.5
+            const rotY = -(xCoord - 0.5) / 0.5
+            rotMagnitude = Math.max(Math.abs(rotX), Math.abs(rotY))
+            const rotDeg = Math.round(rotationIntensity * rotMagnitude)
+            transform = `perspective(1000px) rotate3d(${rotX}, ${rotY}, 0, ${rotDeg}deg)`
 
-        shineX = xCoord
-        shineY = yCoord
+            shineX = xCoord
+            shineY = yCoord
+        }
     }
 
     // - Shine
