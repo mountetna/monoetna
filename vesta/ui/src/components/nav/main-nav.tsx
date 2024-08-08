@@ -5,6 +5,7 @@ import Container from '@mui/system/Container'
 import Box from '@mui/system/Box'
 import { Breakpoint, useTheme } from '@mui/material/styles';
 import _ from 'lodash'
+import { FocusTrap } from '@mui/base';
 
 import UCSFNav, { Classes as UCSFNavClasses } from './ucsf-nav'
 import UCSFHomeLink from './ucsf-home-link';
@@ -23,6 +24,7 @@ export default function MainNav() {
     const theme = useTheme()
 
     const [overlayNavOpen, setOverlayNavOpen] = React.useState(false)
+    const [dlNavFocus, setDlNavFocus] = React.useState(false)
 
     React.useEffect(() => {
         document.body.style.overflow = overlayNavOpen ? 'hidden' : 'visible'
@@ -40,8 +42,9 @@ export default function MainNav() {
     const mainNavRef = React.createRef<HTMLElement>()
     const isStuck = useIsStuck(mainNavRef)
 
-    const handleClickNavButton = () => {
-        setOverlayNavOpen(val => !val)
+    const handleClickOverlayNavButton = () => {
+        setOverlayNavOpen(!overlayNavOpen)
+        setDlNavFocus(!overlayNavOpen)
     }
 
     // Compensate for anything above nav bar (i.e. UCSF nav)
@@ -105,29 +108,36 @@ export default function MainNav() {
                 </Container>
             </Box>
 
-            {/* DL Nav */}
-            <Box
-                ref={mainNavRef}
-                component='nav'
-                aria-label='Main'
-                zIndex='appBar'
-                sx={{
-                    position: 'sticky',
-                    top: 0,
-                    bgcolor: 'utilityLowlight.main',
-                    height: `${NavBarHeights[breakpoint].condensed}px`,
-                    overflow: 'visible',
-                    boxShadow: isStuck ? 'rgba(0, 0, 0, 0.15) 0px 0px 22px 0px' : 'rgba(0, 0, 0, 0) 0px 0px 22px 0px',
-                    transition: theme.transitions.create(
-                        'box-shadow',
-                        {
-                            duration: theme.transitions.duration.ease,
-                            easing: theme.transitions.easing.ease,
-                        },
-                    ),
-                }}
+            <FocusTrap
+                open={dlNavFocus}
             >
-                {!isDesktop && (
+                {/* DL Nav */}
+                <Box
+                    ref={mainNavRef}
+                    component='nav'
+                    aria-label='Main'
+                    zIndex='appBar'
+                    sx={{
+                        position: 'sticky',
+                        top: 0,
+                        bgcolor: 'utilityLowlight.main',
+                        height: `${NavBarHeights[breakpoint].condensed}px`,
+                        overflow: 'visible',
+                        boxShadow: isStuck ? 'rgba(0, 0, 0, 0.15) 0px 0px 22px 0px' : 'rgba(0, 0, 0, 0) 0px 0px 22px 0px',
+                        transition: theme.transitions.create(
+                            'box-shadow',
+                            {
+                                duration: theme.transitions.duration.ease,
+                                easing: theme.transitions.easing.ease,
+                            },
+                        ),
+                        '& > *:first-child': {
+                            [theme.breakpoints.up('desktop')]: {
+                                display: 'none',
+                            },
+                        }
+                    }}
+                >
                     <OverlayNav
                         open={overlayNavOpen}
                         onClickNavLink={() => setOverlayNavOpen(false)}
@@ -148,18 +158,18 @@ export default function MainNav() {
                             },
                         }}
                     />
-                )}
 
-                <NavBar
-                    variant={isStuck ? 'condensed' : 'default'}
-                    sx={{
-                        position: 'absolute',
-                        top: 0,
-                        width: '100%',
-                    }}
-                    onClickNavButton={handleClickNavButton}
-                />
-            </Box>
-        </React.Fragment>
+                    <NavBar
+                        variant={isStuck ? 'condensed' : 'default'}
+                        sx={{
+                            position: 'absolute',
+                            top: 0,
+                            width: '100%',
+                        }}
+                        onClickOverlayNavButton={handleClickOverlayNavButton}
+                    />
+                </Box>
+            </FocusTrap>
+        </React.Fragment >
     )
 }

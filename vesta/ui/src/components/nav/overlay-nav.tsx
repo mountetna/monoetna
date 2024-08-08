@@ -13,22 +13,27 @@ import UCSFNav, { Classes as UCSFNavClasses } from './ucsf-nav';
 import Copyright from '../legal/copyright';
 import { LibraryCardModal } from '../library-card/library-card-modal';
 import { useUser } from '../user/context';
-import { FocusTrap } from '@mui/base';
 
 
 export default function OverlayNav({
     open,
     sx = {},
     onClickNavLink,
+    onSetLibraryCardModalOpen,
 }: {
     open: boolean,
     sx?: SxProps,
     onClickNavLink?: () => void,
+    onSetLibraryCardModalOpen?: (open: boolean) => void,
 }) {
     const theme = useTheme()
     const user = useUser()
 
     const [libraryCardModalOpen, setLibraryCardModalOpen] = React.useState(false)
+    const handleSetLibraryCardModalOpen = (open: boolean) => {
+        setLibraryCardModalOpen(open)
+        onSetLibraryCardModalOpen && onSetLibraryCardModalOpen(open)
+    }
 
     const animationProps: TransitionProps = {
         in: open,
@@ -37,123 +42,118 @@ export default function OverlayNav({
     }
 
     return (
-        <FocusTrap
-            open={open}
+        <Collapse
+            component='nav'
+            aria-label='Main'
+            {...animationProps}
         >
-            <Collapse
-                component='nav'
-                aria-label='Main'
+            <Fade
                 {...animationProps}
             >
-                <Fade
-                    {...animationProps}
+                <Box
+                    sx={{
+                        bgcolor: 'utilityLowlight.main',
+                        px: '16px',
+                        py: '16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '32px',
+                        pb: '106px',
+                        [theme.breakpoints.up('tablet')]: {
+                            pb: '16px',
+                        },
+                        ...sx,
+                    }}
                 >
                     <Box
                         sx={{
-                            bgcolor: 'utilityLowlight.main',
-                            px: '16px',
-                            py: '16px',
                             display: 'flex',
                             flexDirection: 'column',
-                            justifyContent: 'space-between',
-                            gap: '32px',
-                            pb: '106px',
-                            [theme.breakpoints.up('tablet')]: {
-                                pb: '16px',
+                            gap: '24px',
+                            px: '16px',
+                            [`& .${LibraryCardButtonClasses.root}`]: {
+                                width: 'fit-content',
                             },
-                            ...sx,
                         }}
                     >
-
-                        <Box
+                        <DLNav
+                            linkTypography='h2'
+                            onClickNavLink={onClickNavLink}
                             sx={{
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: '24px',
-                                px: '16px',
-                                [`& .${LibraryCardButtonClasses.root}`]: {
-                                    width: 'fit-content',
-                                },
-                            }}
-                        >
-                            <DLNav
-                                linkTypography='h2'
-                                onClickNavLink={onClickNavLink}
-                                sx={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'start',
-                                    gap: '16px',
-                                    [`.${DLNavClasses.link}`]: {
-                                        position: 'relative',
-                                        color: 'utilityHighlight.main',
-                                        left: 0,
-                                        '&:hover, &:focus': {
-                                            color: 'blue.grade50',
-                                            left: '16px',
-                                        },
-                                        transition: theme.transitions.create(
-                                            ['color', 'left'],
-                                            {
-                                                easing: theme.transitions.easing.quint,
-                                                duration: theme.transitions.duration.quint,
-                                            },
-                                        ),
-                                    },
-                                }}
-                            />
-
-                            <Box
-                                sx={{
-                                    [theme.breakpoints.up('tablet')]: {
-                                        display: 'none',
-                                    },
-                                }}
-                            >
-                                <LibraryCardButton
-                                    isLoggedIn={user !== null}
-                                    onClick={() => setLibraryCardModalOpen(val => !val)}
-                                />
-
-                                {user && (
-                                    <LibraryCardModal
-                                        open={libraryCardModalOpen}
-                                        handleSetOpen={setLibraryCardModalOpen}
-                                        user={user}
-                                    />
-                                )}
-                            </Box>
-                        </Box>
-
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
+                                alignItems: 'start',
                                 gap: '16px',
-                                px: '16px',
-                                [theme.breakpoints.up('tablet')]: {
-                                    px: '0px'
+                                [`.${DLNavClasses.link}`]: {
+                                    position: 'relative',
+                                    color: 'utilityHighlight.main',
+                                    left: 0,
+                                    '&:hover, &:focus': {
+                                        color: 'blue.grade50',
+                                        left: '16px',
+                                    },
+                                    transition: theme.transitions.create(
+                                        ['color', 'left'],
+                                        {
+                                            easing: theme.transitions.easing.quint,
+                                            duration: theme.transitions.duration.quint,
+                                        },
+                                    ),
                                 },
-                                color: 'utilityHighlight.main',
+                            }}
+                        />
+
+                        <Box
+                            sx={{
+                                [theme.breakpoints.up('tablet')]: {
+                                    display: 'none',
+                                },
                             }}
                         >
-                            <UCSFNav
-                                sx={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'start',
-                                    gap: '16px',
-                                    [`.${UCSFNavClasses.link}`]: {
-                                        color: 'utilityHighlight.main',
-                                    },
-                                }}
+                            <LibraryCardButton
+                                isLoggedIn={user !== null}
+                                onClick={() => handleSetLibraryCardModalOpen(!libraryCardModalOpen)}
                             />
 
-                            <Copyright />
+                            {user && (
+                                <LibraryCardModal
+                                    open={libraryCardModalOpen}
+                                    handleSetOpen={handleSetLibraryCardModalOpen}
+                                    user={user}
+                                />
+                            )}
                         </Box>
                     </Box>
-                </Fade>
-            </Collapse>
-        </FocusTrap>
+
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '16px',
+                            px: '16px',
+                            [theme.breakpoints.up('tablet')]: {
+                                px: '0px'
+                            },
+                            color: 'utilityHighlight.main',
+                        }}
+                    >
+                        <UCSFNav
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'start',
+                                gap: '16px',
+                                [`.${UCSFNavClasses.link}`]: {
+                                    color: 'utilityHighlight.main',
+                                },
+                            }}
+                        />
+
+                        <Copyright />
+                    </Box>
+                </Box>
+            </Fade>
+        </Collapse>
     )
 }

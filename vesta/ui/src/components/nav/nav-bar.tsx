@@ -46,11 +46,11 @@ export const Heights: Record<Breakpoint, BreakpointHeights> = {
 
 export default function NavBar({
     variant,
-    onClickNavButton,
+    onClickOverlayNavButton,
     sx = {},
 }: {
     variant: 'default' | 'condensed',
-    onClickNavButton: () => void,
+    onClickOverlayNavButton: () => void,
     sx?: SxProps
 }) {
     const theme = useTheme()
@@ -95,6 +95,14 @@ export default function NavBar({
                 behavior: 'smooth',
             })
         }
+    }
+
+    const handleSetLibraryCardModalOpen = (open: boolean) => {
+        setLibraryCardModalOpen(open)
+    }
+
+    const handleSetLibraryCardTrayOpen = (open: boolean) => {
+        setLibraryCardTrayOpen(open)
     }
 
     return (
@@ -270,13 +278,13 @@ export default function NavBar({
                     >
                         <LibraryCardButton
                             isLoggedIn={user !== null}
-                            onClick={() => setLibraryCardModalOpen(val => !val)}
+                            onClick={() => handleSetLibraryCardModalOpen(!libraryCardModalOpen)}
                         />
 
                         {user && (
                             <LibraryCardModal
                                 open={libraryCardModalOpen}
-                                handleSetOpen={setLibraryCardModalOpen}
+                                handleSetOpen={handleSetLibraryCardModalOpen}
                                 user={user}
                             />
                         )}
@@ -301,14 +309,14 @@ export default function NavBar({
                         <LibraryCardTray
                             ref={libraryCardTrayRef}
                             open={libraryCardTrayOpen}
-                            onSetOpen={setLibraryCardTrayOpen}
+                            onSetOpen={handleSetLibraryCardTrayOpen}
                             user={user}
                         />
                     </Box>
 
                     <ButtonBase
                         tabIndex={0}
-                        onClick={() => onClickNavButton()}
+                        onClick={onClickOverlayNavButton}
                         sx={(theme) => ({
                             color: 'utilityHighlight.main',
                             width: '48px',
