@@ -1,19 +1,15 @@
 configfile: "config.yaml"
 
-rule all:
-    input:
-        "output/summary.txt"
-
 rule count:
     input:
-        poem1="/test-utils/test-input/poem.txt",
-        poem2="/test-utils/test-input/poem_2.txt"
+        poem1=config["poem"],
+        poem2=config["poem_2"]
     output:
         poem_count="output/count_poem.txt",
         poem_count_2="output/count_poem_2.txt"
     params:
-        count_bytes=True,
-        count_chars=False
+        count_bytes=config["count_bytes"],
+        count_chars=config["count_chars"]
     shell:
         """
         if {params.count_bytes}; then
@@ -34,8 +30,8 @@ rule arithmetic:
     output:
         "output/arithmetic.txt"
     params:
-        add=config["arithmetic"]["add"],
-        add_and_multiply_by=config["arithmetic"]["add_and_multiply_by"]
+        add=config["add"],
+        add_and_multiply_by=config["add_and_multiply_by"]
     run:
         with open(input.poem_count, "r") as f:
             count1 = int(f.read().strip())
@@ -61,21 +57,3 @@ rule checker:
                 raise ValueError("No value found in arithmetic.txt")
         with open(output[0], "w") as f:
             f.write("Value exists in arithmetic.txt\n")
-
-rule summary:
-    input:
-        poem_count="output/count_poem.txt",
-        poem_count_2="output/count_poem_2.txt",
-        arithmetic="output/arithmetic.txt",
-        checker="output/check.txt"
-    output:
-        "output/summary.txt"
-    params:
-        final_message=config["summary"]["final_message"]
-    run:
-        with open(output[0], "w") as f:
-            f.write(f"Count of poem.txt: {open(input.poem_count).read().strip()}\n")
-            f.write(f"Count of poem_2.txt: {open(input.poem_count_2).read().strip()}\n")
-            f.write(f"Result of arithmetic operation: {open(input.arithmetic).read().strip()}\n")
-            f.write(f"\n{params.final_message}\n")
-

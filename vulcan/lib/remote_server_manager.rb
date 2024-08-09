@@ -94,6 +94,74 @@ class Vulcan
       out[:stdout].gsub("\n", "")
     end
 
+    def get_dag(dir)
+      # Snakemake REQUIRES a pipeline to have all input files EXIST, before running any of the meta commands.
+      # Therefore, we adopt a convention in the config.yaml - such that all input files
+      # be defined starting with the string "output/". We can then create dummy files and run
+      # our meta commands.
+
+      config_path = "#{Shellwords.escape(dir)}/config.yaml"
+      config = read_yaml_file(config_path)
+
+      # Identify input files and create them with "DUMMY FILE" content
+      dummy_files = []
+      config.each do |key, value|
+        if value.is_a?(String)
+          if value.start_with?('output/')
+          remote_file_path = "#{Shellwords.escape(dir)}/#{Shellwords.escape(value)}"
+          dummy_files.append(remote_file_path)
+          create_dummy_file(remote_file_path)
+          end
+        end
+      end
+
+      # Run snakemake --d3dag
+      dag_command = "cd #{Shellwords.escape(dir)} && snakemake --d3dag > rulegraph.json"
+      dag_output = invoke_ssh_command(dag_command)
+      if dag_output[:exit_status] != 0
+        raise "Failed to generate DAG: #{dag_output[:stderr_or_info]}"
+      end
+
+      # Parse the dag and created a flattened graph
+      json = read_json_file("#{dir}/rulegraph.json")
+      flattened_dag = d3dag_to_list(json)
+
+      # Remove dummy files
+      dummy_files.each do |value|
+        rm_file(value)
+      end
+      flattened_dag
+    end
+
+    def d3dag_to_list(json)
+      # Map job IDs to rule labels
+      id_to_label = json['nodes'].map { |node| [node['id'], node['value']['label']] }.to_h
+
+      # Create dependencies hash
+      dependencies = Hash.new { |hash, key| hash[key] = [] }
+      json['links'].each do |link|
+        dependencies[id_to_label[link['v']]] << id_to_label[link['u']]
+      end
+
+      # Topological sort
+      sorted_rules, visited = [], {}
+      visit = lambda do |rule|
+        next if visited[rule]
+        visited[rule] = true
+        dependencies[rule].each { |dep| visit.call(dep) }
+        sorted_rules << rule
+      end
+
+      id_to_label.values.each { |rule| visit.call(rule) unless visited[rule] }
+      sorted_rules.reject { |rule| rule == "all" }
+    end
+
+    def create_dummy_file(file_path)
+      # Create a test file with the content "TEST FILE"
+      command = "mkdir -p $(dirname #{file_path}) && echo 'DUMMY FILE' > #{file_path}"
+      invoke_ssh_command(command)
+    end
+
     def write_file(remote_file_path, content)
       command = "mkdir -p $(dirname #{remote_file_path}) && echo #{Shellwords.escape(content)} > #{remote_file_path}"
       invoke_ssh_command(command)
@@ -152,6 +220,7 @@ class Vulcan
     end
 
     def rmdir(dir)
+      # We can solve alot of these problems by just making sure the etna-user only has permission to operate under /vulcan/app
       #TODO: handle cases: dir = /app/vulcan/workflows/ipi/
       allowed_directory = Vulcan::Path::ALLOWED_DIRECTORIES.find { |allowed_dir| dir.start_with?(allowed_dir) }
       if allowed_directory.nil?
@@ -161,8 +230,14 @@ class Vulcan
       else
         command = Shellwords.join(["rm", "-r", "-f", dir])
         invoke_ssh_command(command)
+      end
     end
-  end
+
+    def rm_file(file)
+      # TODO: revisit
+      command = Shellwords.join(["rm","-f", file])
+      invoke_ssh_command(command)
+    end
 
     def dir_exists?(dir)
       command = "[ -d #{dir} ] && echo 'Directory exists.' || echo 'Directory does not exist.'"

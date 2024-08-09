@@ -12,12 +12,12 @@ describe VulcanV2Controller do
   let(:remote_manager) {TestRemoteServerManager.new(Vulcan.instance.ssh_pool)}
   let(:create_repo_request) {{
     project_name: PROJECT,
-    repo_url: "/test-utils/available-workflows/test-repo",
+    repo_url: "/test-utils/available-workflows/snakemake-repo",
     branch: "main",
   }}
   let(:publish_workflow_request) {{
     project_name: PROJECT,
-    repo_path: "#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}/test-repo",
+    repo_path: "#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}/snakemake-repo",
     workflow_name: "test-workflow",
     branch: "main",
     tag: "v1",
@@ -30,10 +30,37 @@ describe VulcanV2Controller do
   end
 
   def create_temp_file
-    file1 = Tempfile.new(['test_file1', '.txt'])
-    file1.write("This is a test file, with content 1")
-    file1.rewind
-    Rack::Test::UploadedFile.new(file1.path, 'text/plain')
+    file = Tempfile.new(['test_file1', '.txt'])
+    file.write("This is a test file, with content 1")
+    file.rewind
+    Rack::Test::UploadedFile.new(file.path, 'text/plain')
+  end
+
+  #TODO: fix this - use the real file api, so that we can get concrete file names
+  def poem_1
+    file = Tempfile.new(['poem1', '.txt'])
+    text = <<~TEXT
+      In the realm of the midnight sky,
+      Where stars whisper and comets fly,
+      A moonlit dance, a celestial show,
+      Unfolding secrets we yearn to know.
+    TEXT
+    file.write(text)
+    file.rewind
+    Rack::Test::UploadedFile.new(file.path, 'text/plain')
+  end
+
+  def poem_2
+    file = Tempfile.new(['poem1', '.txt'])
+    text = <<~TEXT
+      A brook babbles secrets to the stones,
+      Tales of ancient earth, of forgotten bones.
+      Sunbeams filter through the emerald canopy,
+      Painting dappled dreams, a verdant tapestry.
+    TEXT
+    file.write(text)
+    file.rewind
+    Rack::Test::UploadedFile.new(file.path, 'text/plain')
   end
 
   def remove_all_dirs
@@ -60,7 +87,7 @@ describe VulcanV2Controller do
       # Proper dirs are created
       project_dir = "#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}"
       expect(remote_manager.dir_exists?(project_dir)).to be_truthy
-      expect(remote_manager.dir_exists?("#{project_dir}/test-repo")).to be_truthy
+      expect(remote_manager.dir_exists?("#{project_dir}/snakemake-repo")).to be_truthy
     end
 
     it 'should inform the user if the repo already exists' do
@@ -83,21 +110,21 @@ describe VulcanV2Controller do
 
     it 'should fail auth if you are not a super user' do
       auth_header(:editor)
-      delete("/api/v2/#{PROJECT}/test-repo")
+      delete("/api/v2/#{PROJECT}/snakemake-repo")
       expect(last_response.status).to eq(403)
     end
 
     it 'auth should delete a repo' do
       auth_header(:superuser)
       post("/api/v2/repo/clone", create_repo_request)
-      delete("/api/v2/#{PROJECT}/test-repo")
+      delete("/api/v2/#{PROJECT}/snakemake-repo")
       expect(last_response.status).to eq(200)
-      project_dir = Vulcan::Path.repo_path(PROJECT, "test-repo")
+      project_dir = Vulcan::Path.repo_path(PROJECT, "snakemake-repo")
       expect(remote_manager.dir_exists?(project_dir)).to_not be_truthy
     end
 
     it 'should warn the user if a repo does not exist' do
-      delete("/api/v2/#{PROJECT}/test-repo")
+      delete("/api/v2/#{PROJECT}/snakemake-repo")
       expect(last_response.status).to eq(404)
     end
   end
@@ -108,7 +135,7 @@ describe VulcanV2Controller do
       post("/api/v2/repo/clone", create_repo_request)
       get("/api/v2/#{PROJECT}/repo")
       expect(last_response.status).to eq(200)
-      expect(json_body["test-repo"].to eq("v1"))
+      expect(json_body["snakemake-repo"].to eq("v1"))
     end
 
     it 'should list no repos when no repos exist' do
@@ -119,16 +146,16 @@ describe VulcanV2Controller do
 
   context 'pull repo' do
     before do
-      remote_manager.delete_tag("/test-utils/available-workflows/test-repo", "v2")
+      remote_manager.delete_tag("/test-utils/available-workflows/snakemake-repo", "v2")
     end
 
     it 'fetches the latest tags from the upstream repo' do
       auth_header(:admin)
       post("/api/v2/repo/clone", create_repo_request)
-      remote_manager.tag_repo("/test-utils/available-workflows/test-repo", "v2")
-      post("/api/v2/#{PROJECT}/test-repo/pull")
+      remote_manager.tag_repo("/test-utils/available-workflows/snakemake-repo", "v2")
+      post("/api/v2/#{PROJECT}/snakemake-repo/pull")
       get("/api/v2/#{PROJECT}/repo")
-      expect(json_body[:"test-repo"]).to eq(["v1","v2"])
+      expect(json_body[:"snakemake-repo"]).to eq(["v1","v2"])
     end
   end
 
@@ -156,8 +183,8 @@ describe VulcanV2Controller do
       expect(obj.project).to eq(PROJECT)
       expect(obj.workflow_name).to eq("test-workflow")
       expect(obj.author.gsub('\\', '')).to eq("Jane Doe")
-      expect(obj.repo_remote_url).to eq("/test-utils/available-workflows/test-repo")
-      expect(obj.repo_path).to eq("#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}/test-repo")
+      expect(obj.repo_remote_url).to eq("/test-utils/available-workflows/snakemake-repo")
+      expect(obj.repo_path).to eq("#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}/snakemake-repo")
       expect(obj.config).to_not be nil
     end
 
@@ -335,6 +362,8 @@ describe VulcanV2Controller do
 
   context 'write files' do
 
+    # TODO: add a file exists endpoint here, we don't want to re-run if the files exist
+
     before do
       auth_header(:guest)
       post("/api/v2/repo/clone", create_repo_request)
@@ -394,10 +423,10 @@ describe VulcanV2Controller do
 
   end
 
-  context 'running workflows' do
+  context 'retrieve dag' do
 
     before do
-      auth_header(:guest)
+      auth_header(:admin)
       post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
@@ -406,20 +435,64 @@ describe VulcanV2Controller do
       post("/api/v2/#{PROJECT}/workspace/create", request)
     end
 
-    it 'invokes 1 step of the workflow' do
+    it 'fetches the dag when no input files need to be generated' do
+    end
+
+    it 'generates input files and then fetches the dag' do
+      auth_header(:editor)
+      workspace_id = Vulcan::Workspace.all[0].id
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/dag")
+      require 'pry'; binding.pry
+      expect(json_body[:dag]).to eq(["count", "arithmetic", "checker", "checker_ui", "summary"])
+      # Make sure dummy files are removed
+    end
+
+  end
+
+  context 'running workflows' do
+
+    # Refer to /spec/fixtures/snakemake-repo/ as the workflow that is being run
+
+    before do
+      auth_header(:admin)
+      post("/api/v2/repo/clone", create_repo_request)
+      post("/api/v2/workflow/publish", publish_workflow_request)
+      request = {
+        workflow_id: json_body[:workflow_id]
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+    end
+
+    def write_files_to_workspace(workspace_id)
+      # The first step in the test workflow involves the ui writing files to the workspace
+      auth_header(:editor)
+      request = {
+        files: [poem_1, poem_2]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+      expect(last_response.status).to eq(200)
+    end
+
+
+    it 'invokes the first step of a workflow' do
       auth_header(:guest)
       workspace_id = Vulcan::Workspace.all[0].id
+      # First step in the workflow requires files to be written to the workspace
+      write_files_to_workspace(workspace_id)
+      # Now once these files exist we want specify their paths and the other params
       request = {
         #workflow_run_id: None,
           run: {
-            count: {
-                poem: "/test-utils/test-input/poem.txt",
-                poem_2: "/test-utils/test-input/poem_2.txt",
+            jobs: ["count"],
+            params: {
+                poem: "/output/poem.txt",
+                poem_2: "/output/poem_2.txt",
                 count_bytes: true,
                 count_chars: false
               }
           }
         }
+      require 'pry'; binding.pry
       # TODO: add a meta key that can switch profiles
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run", request)
 
