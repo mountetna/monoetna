@@ -10,8 +10,6 @@ import { DrawerSectionProps } from './models';
 import DrawerPill from './pill';
 
 
-const activeClass = 'active'
-
 export default function DrawerSectionDefault({
     name,
     items,
@@ -46,6 +44,7 @@ export default function DrawerSectionDefault({
             >
                 {items.map(item => (
                     <DrawerPill
+                        variant='yellow'
                         key={item.key}
                         label={item.label}
                         active={activeKeys.has(item.key)}

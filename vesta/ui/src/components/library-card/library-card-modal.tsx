@@ -169,6 +169,7 @@ const Backdrop = React.forwardRef<HTMLDivElement, { open?: boolean }>(
         );
     },
 );
+Backdrop.displayName = 'Backdrop';
 
 const Modal = styled(BaseModal)`
   position: fixed;

@@ -59,7 +59,7 @@ const viewSets: FilterItem[] = Object.entries(ProjectHeadingInfoSet).map(([key, 
 
 
 // TODO: use separate list component in searchable-list module
-export default function ProjectListings({
+function _ProjectListings({
     projectData,
 }: {
     projectData: Project[],
@@ -646,40 +646,58 @@ export default function ProjectListings({
                     {isMobile && paginationEl}
                 </Box>
 
-                <Fade
-                    key={paginatedFilteredProjectData.reduce((prev, curr) => prev + curr.project.fullName, '')}
-                    in={true}
-                    easing={theme.transitions.easing.ease}
-                    timeout={theme.transitions.duration.ease}
-                    exit={false}
+
+                <Box
+                    role='list'
+                    sx={{
+                        bgcolor: 'utilityWhite.main',
+                        borderRadius: '20px',
+                        overflow: 'hidden',
+                    }}
                 >
-                    <Box
-                        role='list'
-                        sx={{
-                            bgcolor: 'utilityWhite.main',
-                            borderRadius: '20px',
-                            overflow: 'hidden',
-                        }}
+                    <Fade
+                        key={paginatedFilteredProjectData.reduce((prev, curr) => prev + curr.project.fullName, '')}
+                        in={true}
+                        easing={theme.transitions.easing.ease}
+                        timeout={theme.transitions.duration.ease}
+                        exit={false}
                     >
-                        {paginatedFilteredProjectData.map(({ project, nodeRef }, i) => (
-                            <Box
-                                key={project.fullName}
-                                ref={nodeRef}
-                                role='listitem'
-                            >
-                                <ProjectListing
-                                    data={project}
-                                    open={projectOpens[i]}
-                                    headingInfoSet={(viewSet.label as ProjectHeadingInfoSet)}
-                                    onSetOpen={open => handleSetProjectOpen(open, i)}
-                                    onFinishOpen={() => scrollToProject(nodeRef)}
-                                />
-                            </Box>
-                        ))}
-                    </Box>
-                </Fade>
+                        <Box>
+                            {paginatedFilteredProjectData.map(({ project, nodeRef }, i) => (
+                                <Box
+                                    key={project.fullName}
+                                    ref={nodeRef}
+                                    role='listitem'
+                                >
+                                    <ProjectListing
+                                        data={project}
+                                        open={projectOpens[i]}
+                                        headingInfoSet={(viewSet.label as ProjectHeadingInfoSet)}
+                                        onSetOpen={open => handleSetProjectOpen(open, i)}
+                                        onFinishOpen={() => scrollToProject(nodeRef)}
+                                    />
+                                </Box>
+                            ))}
+                        </Box>
+                    </Fade>
+                </Box>
             </Box>
         </Container >
+    )
+}
+
+// Needed for https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+export default function ProjectListings({
+    projectData,
+}: {
+    projectData: Project[],
+}) {
+    return (
+        <React.Suspense fallback={null}>
+            <_ProjectListings
+                projectData={projectData}
+            />
+        </React.Suspense>
     )
 }
 

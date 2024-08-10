@@ -8,7 +8,7 @@ import { useParentSize } from '@visx/responsive'
 import Pie, { ProvidedProps, PieArcDatum } from '@visx/shape/lib/shapes/Pie';
 import { Group } from '@visx/group';
 import { scaleOrdinal } from '@visx/scale';
-import { animated, useTransition, to, useSpring, UseTransitionProps } from 'react-spring';
+import { animated, useTransition, to, useSpring, UseTransitionProps, SpringValue } from 'react-spring';
 import { alpha, useTheme } from '@mui/material';
 import Image from 'next/image';
 
@@ -483,26 +483,60 @@ function AnimatedPie<Datum>({
     });
 
     return transitions((props, arc, { key }) => {
-        const animatedFill = useSpring({
-            fill: getColor(arc)
-        })
-
         return (
-            <g key={key} style={{ cursor: 'pointer' }}>
-                <animated.path
-                    // compute interpolated path d attribute from intermediate angle values
-                    d={to([props.startAngle, props.endAngle], (startAngle, endAngle) =>
-                        path({
-                            ...arc,
-                            startAngle,
-                            endAngle,
-                        }),
-                    )}
-                    style={animatedFill}
-                    onClick={() => onClickDatum(arc)}
-                    onTouchStart={() => onClickDatum(arc)}
-                />
-            </g>
+            <AnimatedPieSlice<Datum>
+                key={key}
+                arc={arc}
+                path={path}
+                props={props}
+                getColor={getColor}
+                onClickDatum={onClickDatum}
+            />
         );
     });
+}
+
+interface AnimatedPieSliceStyles {
+    startAngle: SpringValue<number>;
+    endAngle: SpringValue<number>;
+    opacity: SpringValue<number>;
+}
+
+interface AnimatedPieSliceProps<Datum> {
+    key: string;
+    arc: PieArcDatum<Datum>
+    path: AnimatedPieProps<Datum>['path']
+    props: AnimatedPieSliceStyles
+    getColor: AnimatedPieProps<Datum>['getColor']
+    onClickDatum: AnimatedPieProps<Datum>['onClickDatum']
+}
+
+function AnimatedPieSlice<Datum>({
+    arc,
+    path,
+    props,
+    getColor,
+    onClickDatum,
+}: AnimatedPieSliceProps<Datum>) {
+    const animatedFill = useSpring({
+        fill: getColor(arc)
+    })
+
+    return (
+        <g style={{ cursor: 'pointer' }}>
+            <animated.path
+                // compute interpolated path d attribute from intermediate angle values
+                d={to([props.startAngle, props.endAngle], (startAngle, endAngle) =>
+                    path({
+                        ...arc,
+                        startAngle,
+                        endAngle,
+                    }),
+                )}
+                style={animatedFill}
+                onClick={() => onClickDatum(arc)}
+                onTouchStart={() => onClickDatum(arc)}
+            />
+        </g>
+    );
 }

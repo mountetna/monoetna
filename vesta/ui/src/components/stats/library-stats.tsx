@@ -11,7 +11,7 @@ import StatTimeseriesLineChart from './stat-timeseries-line-chart'
 import { Instance } from './types';
 import theme, { headerMargins } from '@/theme';
 import { SIValue, roundValueToNearestSIPrefix } from '@/lib/utils/units';
-import ThemeProjectBreakdownChart, { ThemeData } from './theme-project-breakdown-chart';
+import ThemeProjectBreakdownChart, { ThemeProjectBreakdownData } from './theme-project-breakdown-chart';
 
 
 export type StatsTimeseries = Record<keyof StatsProp, Instance<number>[]>
@@ -21,7 +21,7 @@ export default function LibraryStats({
     themeProjectBreakdown,
 }: {
     stats: StatsTimeseries,
-    themeProjectBreakdown: ThemeData[],
+    themeProjectBreakdown: ThemeProjectBreakdownData[],
 }) {
     const darkText = theme.palette.ground.grade10
     const lightText = theme.palette.utilityHighlight.main
