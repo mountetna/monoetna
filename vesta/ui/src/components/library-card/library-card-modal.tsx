@@ -87,7 +87,6 @@ export function LibraryCardModal({
                         timeout={theme.transitions.duration.quint}
                     >
                         <Box>
-
                             <LibraryCard
                                 ref={libraryCardRef}
                                 user={user}

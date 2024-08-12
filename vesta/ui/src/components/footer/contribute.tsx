@@ -9,14 +9,25 @@ import { useTheme } from '@mui/material';
 import contributeImage from '/public/images/footer/contribute.png'
 import TextInput from '../inputs/text-input';
 import ArrowLinkButton from '../inputs/arrow-link-button';
+import { FormControl } from '@mui/base';
 
 
 export default function Contribute({ }: {}) {
     const theme = useTheme()
-    
+
     const [inputVal, setInputVal] = React.useState<string>('')
 
+    const formRef = React.useRef<HTMLFormElement>()
     const handleSubmitForm = (event?: React.FormEvent) => {
+        const formEl = formRef.current
+
+        if (!formEl) return
+        if (!formEl.reportValidity()) {
+            if (!event) {
+                return
+            }
+        }
+
         event && event.preventDefault()
 
         console.log('here', inputVal)
@@ -78,6 +89,7 @@ export default function Contribute({ }: {}) {
                 </Typography>
 
                 <Box
+                    ref={formRef}
                     component='form'
                     onSubmit={handleSubmitForm}
                     sx={{
@@ -85,7 +97,15 @@ export default function Contribute({ }: {}) {
                         flexDirection: 'row',
                         gap: '10px',
                         '& > *:first-child': {
+                            display: 'flex',
                             flexGrow: '1',
+                            [theme.breakpoints.up('desktop')]: {
+                                minWidth: '393px',
+                                flexGrow: 'unset',
+                            },
+                            '& > *': {
+                                flexGrow: '1',
+                            },
                             '& input': {
                                 width: '100%',
                             },
@@ -100,15 +120,19 @@ export default function Contribute({ }: {}) {
                         },
                     }}
                 >
-                    <TextInput
-                        value={inputVal}
-                        onChange={(event) => setInputVal(event.currentTarget.value)}
-                        placeholder='name@email.com'
-                        gradeVariant='light'
-                    />
+                    <FormControl>
+                        <TextInput
+                            value={inputVal}
+                            onChange={(event) => setInputVal(event.currentTarget.value)}
+                            placeholder='name@email.com'
+                            gradeVariant='light'
+                            required={true}
+                            type='email'
+                        />
+                    </FormControl>
 
                     <ArrowLinkButton
-                        onClick={handleSubmitForm}
+                        onClick={() => handleSubmitForm()}
                     />
                 </Box>
             </Box>

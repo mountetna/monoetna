@@ -3,10 +3,10 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material';
-
-import { PrincipalInvestigator } from "./models";
+import { SxProps, useTheme } from '@mui/material';
 import Image from 'next/image';
+
+import { PrincipalInvestigator } from './models';
 
 
 // Maybe make this a generic member component
@@ -26,12 +26,24 @@ export default function ProjectPI({
 
     const [imageLoaded, setImageLoaded] = React.useState(false)
 
+    let rootStyles: SxProps = {}
+    if (showNameAndTitle) {
+        rootStyles = {
+            p: '4px',
+            pr: '18px',
+            bgcolor: 'utilityWhite.main',
+            border: `1px solid ${theme.palette.ground.grade75}`,
+        }
+    }
+
     return (
         <Box
             sx={{
                 display: 'flex',
                 flexDirection: 'row',
                 gap: '5.13px',
+                borderRadius: '70px',
+                ...rootStyles,
             }}
         >
             <Box
@@ -98,8 +110,8 @@ export default function ProjectPI({
                     overflow: 'hidden',
                     // justifyContent: 'space-around',
                     display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
                     '& *': {
                         display: 'block',
                         overflow: 'hidden',

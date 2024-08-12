@@ -64,8 +64,8 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
             // const rotDeg = Math.round(rotationIntensity * rotMagnitude)
             transform = `rotateX(${xCoord}deg) rotateY(${yCoord}deg rotateZ(${zCoord}deg)`
 
-            shineX = xCoord
-            shineY = yCoord
+            // shineX = xCoord
+            // shineY = yCoord
         } else if (pointerCoords !== null) {
             const xCoord = pointerCoords.x
             const yCoord = pointerCoords.y
@@ -75,8 +75,8 @@ function LibraryCard(props: Props, ref: React.ForwardedRef<unknown>) {
             const rotDeg = Math.round(rotationIntensity * rotMagnitude)
             transform = `perspective(1000px) rotate3d(${rotX}, ${rotY}, 0, ${rotDeg}deg)`
 
-            shineX = xCoord
-            shineY = yCoord
+            // shineX = xCoord
+            // shineY = yCoord
         }
     }
 

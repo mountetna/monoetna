@@ -1,8 +1,7 @@
 'use client'
 
 import * as React from 'react';
-import { Input as BaseInput, InputProps } from '@mui/base/Input';
-import Typography from '@mui/material/Typography';
+import BaseInput, { InputBaseProps } from '@mui/material/InputBase'
 import { styled } from '@mui/material';
 import _ from 'lodash'
 
@@ -30,14 +29,14 @@ interface _Props {
     gradeVariant: GradeVariant
 }
 
-type Props = InputProps & _Props
+type Props = InputBaseProps & _Props
 
 const Input = React.forwardRef(function CustomInput(
     props: Props,
-    ref: React.ForwardedRef<HTMLDivElement>,
+    ref: React.ForwardedRef<unknown>,
 ) {
     const gradeVariant = props.gradeVariant
-    const inputProps = _.omit(props, ['gradeVariant'])
+    const inputProps: InputBaseProps = _.omit(props, ['gradeVariant'])
 
     const InputElement = React.useMemo(() => styled('input')(
         ({ theme }) => theme.unstable_sx({
