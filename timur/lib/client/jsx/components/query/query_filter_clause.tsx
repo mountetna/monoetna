@@ -21,6 +21,7 @@ import {QueryGraph} from '../../utils/query_graph';
 import RemoveIcon from './query_remove_icon';
 import QueryNumber from './query_number';
 import Selector from './query_selector';
+import QueryModelSelector from './query_model_selector';
 import QueryFilterSubclause from './query_filter_subclause';
 
 const useStyles = makeStyles((theme) => ({
@@ -137,12 +138,10 @@ const QueryFilterClause = ({
             label='model'
           />
         }
-        <MapSelector
-          canEdit={true}
-          name={clause.modelName}
-          onSelect={handleModelSelect}
-          choiceSet={modelNames}
-          label='model'
+        <QueryModelSelector
+          modelName={clause.modelName}
+          setModel={handleModelSelect}
+          options={modelNames}
         />
           {canAddSubclause && showControls && (
             <Tooltip title='Add subclause' aria-label='Add subclause'>

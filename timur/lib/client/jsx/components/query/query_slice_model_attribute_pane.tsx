@@ -15,6 +15,12 @@ import useSliceMethods from './query_use_slice_methods';
 const useStyles = makeStyles((theme) => ({
   slices: {
     paddingLeft: '25px'
+  },
+  controls: {
+    height: '32px'
+  },
+  empty: {
+    height: '32px'
   }
 }));
 
@@ -56,9 +62,9 @@ const QuerySliceModelAttributePane = ({
 
   return (
     <Grid container className={classes.slices}>
-      <Grid item container alignItems='center'>
+      <Grid className={classes.controls} item container alignItems='center'>
         Where:
-        { true && <Tooltip title='Add slice' aria-label='Add slice'>
+        { showControls && <Tooltip title='Add slice' aria-label='Add slice'>
             <IconButton size='small' onClick={addNewSlice} color='primary'>
               <AddIcon fontSize='small'/>
             </IconButton>
@@ -81,23 +87,9 @@ const QuerySliceModelAttributePane = ({
               removeSlice={() => handleRemoveSlice(index)}
             />
         ))}
-<<<<<<< HEAD
-      </Grid>
-      <Tooltip title='Add slice' aria-label='Add slice'>
-        <Button
-          aria-label='Add slice'
-          onClick={() => addNewSlice()}
-          startIcon={<AddIcon />}
-        >
-          Add slice
-        </Button>
-      </Tooltip>
-    </React.Fragment>
-=======
-      </Grid> : <Typography component='div' color='gray'>no conditions</Typography>
+      </Grid> : <Typography className={classes.empty} component='div' color='gray'>no conditions</Typography>
       }
     </Grid>
->>>>>>> ec64dc12d (fix select columns)
   );
 };
 

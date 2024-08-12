@@ -6,6 +6,7 @@ import DialogContent from '@mui/material/DialogContent';
 import { makeStyles } from '@mui/styles';
 
 import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
 import List from '@mui/material/List';
@@ -14,11 +15,14 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItem from '@mui/material/ListItem';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectModelNames, selectTemplate} from 'etna-js/selectors/magma';
+import ModelAttributesTable from '../model_map/model_attributes_table';
 
 const useStyles = makeStyles((theme) => ({
   attributes: {
-    maxHeight: '580px',
-    overflow: 'scroll'
+    maxHeight: '600px',
+    width: '480px',
+    overflow: 'hidden',
+    padding: '0 25px 25px 0'
   },
   selection: {
     cursor: 'pointer',
@@ -28,23 +32,9 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const MapSelector = ({setModel, options, modelName, setAttribute, attributeName}) => {
+const MapSelector = ({setModel, open, onClose, modelNames=[], modelName, setAttribute, setAttributes, filterAttributes, attributeName}) => {
   const [ width, height ] = [ 600, 600 ];
-  const [ internalModelName, setInternalModel ] = useState(modelName);
-  console.log({internalModelName, modelName, attributeName});
-  const updateModel = (modelName) => {
-    if (setAttribute) {
-      setInternalModel(modelName);
-      return;
-    }
-    setModel(modelName);
-    setOpen(false);
-  };
-  const updateAttribute = (modelName, attributeName) => {
-    setAttribute(modelName, attributeName);
-    setOpen(false);
-  };
-  const [ open, setOpen ] = useState(false);
+
   let {model_names, templates} = useReduxState((state) => {
     let model_names = selectModelNames(state);
     return {
@@ -57,61 +47,75 @@ const MapSelector = ({setModel, options, modelName, setAttribute, attributeName}
     };
   });
 
-  let disabled = model_names.filter( model_name => options.length && !options.includes(model_name) );
+  const updateModel = modelName => {
+    if (setModel) setModel(modelName);
+    if (setAttributes) setSelected({});
+  };
 
-  const readOnly = !setModel && !setAttribute;
-
-  const openDialog = () => (!readOnly && setOpen(true));
+  let disabled = model_names.filter( model_name => modelNames.length && !modelNames.includes(model_name) );
 
   const classes = useStyles();
 
-  return <Grid>
-    <Grid className={ !readOnly ? classes.selection : null } onClick={ openDialog }>
-    {
-      modelName
-        ? <Typography component='span' color={ setModel ? 'secondary' : '#444' }>{modelName}</Typography>
-        : <Typography component='span' color='red'>model_name</Typography>
-    }{
-      attributeName && <>
-      <Typography component='span'>.</Typography>
-      { 
-        attributeName
-          ? <Typography component='span' color={ setAttribute ? 'secondary' : '#444' }>{attributeName}</Typography>
-          : <Typography component='span' color='red'>attribute_name</Typography>
-      }
-      </>
-    }
-    </Grid>
-    <Dialog open={open} onClose={() => setOpen(false)} maxWidth='lg'>
-      <DialogTitle>Select model { setAttribute ? 'and attribute' : ''}</DialogTitle>
-        <Grid container>
-          <ModelMapGraphic
-            width={width}
-            height={height}
-            selected_models={[ internalModelName || modelName ].filter(_ => _)}
-            disabled_models={disabled}
-            handler={updateModel}
+  const filteredTemplate = useMemo( () => {
+    if (!templates || !templates[modelName]) return null;
+
+    const currentTemplate = templates[modelName];
+    return {
+      ...currentTemplate,
+      attributes: Object.fromEntries(
+        Object.keys( currentTemplate.attributes).filter(
+          att_name => filterAttributes ? filterAttributes(currentTemplate.attributes[att_name]) : true
+        ).map( att_name => [ att_name, currentTemplate.attributes[ att_name ] ])
+      )
+    };
+  }, [ modelName, templates ] );
+
+  const canSetAttribute = (setAttribute || setAttributes) && modelName && filteredTemplate
+
+  const [ selected, setSelected ] = useState({});
+
+  const handleSetAttributes = useCallback(
+    () => {
+      setAttributes(Object.keys(selected));
+      handleClose();
+    }, [ selected, handleClose ]
+  );
+
+  const handleClose = useCallback(
+    () => {
+      setSelected({});
+      onClose();
+    }, [ onClose ]
+  );
+
+  const attributesSelected = Object.keys(selected).length > 0;
+
+  return <Dialog open={open} onClose={handleClose} maxWidth='lg'>
+    <DialogTitle><Grid container justifyContent='space-between'>
+        <span>Select model { setAttribute ? 'and attribute' : setAttributes ? 'and attributes' : ''}</span>
+        { setAttributes && <Button onClick={ handleSetAttributes } disabled={ !attributesSelected }>Select Attributes</Button> }
+    </Grid></DialogTitle>
+      <Grid container>
+        <ModelMapGraphic
+          width={width}
+          height={height}
+          selected_models={[ modelName ].filter(_ => _)}
+          disabled_models={disabled}
+          handler={updateModel}
+        />
+        {
+          canSetAttribute && <ModelAttributesTable
+            className={classes.attributes}
+            template={filteredTemplate}
+            showHiddenAttributes={false}
+            columns={ { type: true, attribute: true } }
+            setAttribute={ setAttribute ? attName => setAttribute(modelName, attName) : null }
+            selected={ setAttributes ? selected : {} }
+            setSelected={ setAttributes ? setSelected : null }
           />
-          <Grid item maxHeight={600}>
-          {
-            internalModelName && templates[ internalModelName ] &&
-            <List className={classes.attributes}>
-              {
-                Object.keys(templates[ internalModelName ].attributes).map(
-                 attName =>
-                   <ListItem disablePadding>
-                     <ListItemButton onClick={ () => updateAttribute(internalModelName, attName) } selected={ attributeName == attName }>
-                       <ListItemText primary={ attName }/>
-                     </ListItemButton>
-                   </ListItem>
-                 )
-               }
-            </List>
-          }
-          </Grid>
-        </Grid>
-    </Dialog>
-  </Grid>
+        }
+      </Grid>
+  </Dialog>
 }
 
 export default MapSelector;

@@ -13,11 +13,21 @@ const roman = (num) => {
     v: 5, iv: 4, i: 1
   };
 
+  num = num + 1;
+
   return Object.keys(roman).reduce( (str, i) => {
     let q = Math.floor(num / roman[i]);
     num -= q * roman[i];
     return str + i.repeat(q);
   }, '');
+}
+
+const letter = (num) => {
+  return String.fromCharCode((num % 26) + 'A'.charCodeAt(0)).repeat( Math.floor(num / 26) + 1 );
+}
+
+const numeric = (num) => {
+  return String(num + 1);
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -28,14 +38,20 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+const numType = [
+  { type: numeric },
+  { type: letter, caps: true },
+  { type: roman, caps: false },
+  { type: letter, caps: false }
+];
+
 const QueryNumber = ({number, level, setRemoveHint, onClick}) => {
   const classes = useStyles();
-  const numType = [
-    [ '1', false ],
-    [ 'A', false ],
-    [ 'i', true ],
-    [ 'a', false ]
-  ];
+
+  let formattedNumber = numType[level].type(number);
+
+  formattedNumber = numType[level].caps ? formattedNumber.toUpperCase() : formattedNumber;
+
   return <Button
     size='small'
     color='black'
@@ -47,11 +63,8 @@ const QueryNumber = ({number, level, setRemoveHint, onClick}) => {
       cursor: setRemoveHint ? 'pointer' : 'default'
     }}
     onClick={onClick}>
-  {
-    numType[level][1] ? roman(number+1) :
-    String.fromCharCode(number + numType[level][0].charCodeAt(0))
-  }.&nbsp;
-</Button>
-  }
+    { formattedNumber }.&nbsp;
+  </Button>
+}
 
 export default QueryNumber;

@@ -32,7 +32,10 @@ const attributeStyles = makeStyles((theme) => ({
   },
   value: {
     color: 'darkgoldenrod',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    textOverflow: 'ellipsis',
+    overflowX: 'clip',
+    wordWrap: 'nowrap'
   },
   missing: {},
   indicator: {
@@ -83,9 +86,12 @@ const attributeStyles = makeStyles((theme) => ({
     display: 'flex',
     justifyContent: 'right'
   },
-  table: {
+  table_container: {
     boxSizing: 'border-box',
     height: 'auto'
+  },
+  table: {
+    tableLayout: 'fixed'
   },
   hiddenTypeWrapper: {
     display: 'flex',
@@ -117,6 +123,7 @@ const ModelAttribute = ({
   modelCount,
   selectAttribute,
   selected,
+  columns,
   isHidden
 }:{
   attribute_name: string;
@@ -128,6 +135,7 @@ const ModelAttribute = ({
   selectAttribute?: Function;
   selected: boolean;
   isHidden: boolean;
+  columns: { [key: string]: boolean };
 }) => {
   if (!template) return null;
 
@@ -149,6 +157,8 @@ const ModelAttribute = ({
 
   const {attribute_type, attribute_group, description} = displayAttribute;
 
+  const hasColumn = column => columns ? columns[column] : true;
+
   return (
     <TableRow className={`${classes.attribute_row} ${classes[diffType]}`}>
       {selectAttribute &&
@@ -168,7 +178,7 @@ const ModelAttribute = ({
           {diffTypes[diffType].ind}
         </TableCell>
       )}
-      <TableCell className={classes.type} align='right'>
+      { hasColumn('type') && <TableCell className={classes.type} align='right'>
         <div
           className={isHidden ? classes.hiddenTypeWrapper : classes.typeWrapper}
         >
@@ -179,21 +189,21 @@ const ModelAttribute = ({
           ) : null}
           {attribute_type}
         </div>
-      </TableCell>
-      <TableCell
+      </TableCell>}
+      {hasColumn('attribute') && <TableCell
         className={attribute ? classes.value : classes.missing}
         align='left'
         onClick={(attribute && setAttribute) ? () => setAttribute(attribute_name) : undefined}
       >
-        {attribute_name}{' '}
-      </TableCell>
-      <TableCell align='left'>{attribute_group}</TableCell>
-      <TableCell className={classes.description} align='left'>
+        <Tooltip title={`${attribute_name}${ !hasColumn('description') ? `- ${description}` : ''}`}>{attribute_name}{' '}</Tooltip>
+      </TableCell>}
+      {hasColumn('group') && <TableCell align='left'>{attribute_group}</TableCell>}
+      {hasColumn('description') && <TableCell className={classes.description} align='left'>
         <Tooltip title={description || ''} aria-label='Description'>
           <div className={classes.descbox}>{description}</div>
         </Tooltip>
-      </TableCell>
-      {count != undefined && (
+      </TableCell>}
+      {hasColumn('count') && count != undefined && (
         <TableCell className={classes.counts} align='left'>
           <Grid container alignItems='center'>
             {count}
@@ -214,7 +224,8 @@ const ModelAttribute = ({
 
 const ModelAttributesTable = ({
   template, diffTemplate, attributeCounts, showHiddenAttributes,
-  setAttribute, modelCount, selected={}, setSelected, className
+  setAttribute, modelCount, selected={}, setSelected, className,
+  columns
 }:{
   template: Template|null;
   diffTemplate?: Template;
@@ -226,6 +237,7 @@ const ModelAttributesTable = ({
   selected: { [key: string]: boolean };
   setSelected?: Function;
   className?: string;
+  columns?: { [key: string]: boolean };
 }) => {
   const classes = attributeStyles();
   const [order, setOrder] = useState<'asc'|'desc'>('asc');
@@ -305,7 +317,7 @@ const ModelAttributesTable = ({
     (setSelected as Function)(newSelected);
   }
 
-  return <Grid className={className}>
+  return <Grid container direction='column' sx={{ flexWrap: 'nowrap', width: 'auto' }} className={className}>
     <TextField
       fullWidth
       placeholder='Filter attributes, e.g. "rna type:file"'
@@ -322,8 +334,8 @@ const ModelAttributesTable = ({
       }}
       onChange={(e) => setFilterString(e.target.value)}
     />
-    <TableContainer component={Paper} className={classes.table}>
-      <Table stickyHeader size='small'>
+    <TableContainer component={Paper} className={classes.table_container}>
+      <Table stickyHeader size='small' className={classes.table}>
         <TableHead>
           <TableRow>
             {setSelected &&
@@ -337,7 +349,9 @@ const ModelAttributesTable = ({
               </TableCell>
             }
             {diffTemplate && <TableCell className={classes.indicator} />}
-            {['type', 'attribute', 'group', 'description', 'counts'].map(
+            {['type', 'attribute', 'group', 'description', 'counts'].filter(
+              column_name => columns ? columns[column_name] : true
+            ).map(
               (column_name) =>
                 (column_name !== 'counts' || attributeCounts) && (
                   <TableCell
@@ -374,6 +388,7 @@ const ModelAttributesTable = ({
                   attributeCounts && attributeCounts[attribute.attribute_name]
                 }
                 modelCount={modelCount}
+                columns={columns}
                 template={template}
                 diffTemplate={diffTemplate}
                 isHidden={!!attribute.hidden}

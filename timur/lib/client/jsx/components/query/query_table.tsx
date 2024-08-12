@@ -2,6 +2,7 @@ import React from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 
 import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
@@ -21,6 +22,9 @@ const useStyles = makeStyles({
   },
   table_controls: {
     padding: '0px 15px'
+  },
+  hidden_columns: {
+    flex: '1 1'
   }
 });
 
@@ -61,6 +65,15 @@ const QueryTable = ({
           justifyContent='flex-end'
           alignItems='center'
         >
+        <Grid className={ classes.hidden_columns } item>
+          {columns.length > maxColumns ? (
+            <Typography variant='caption' align='right' color='error'>
+              {(columns.length - maxColumns).toLocaleString()} columns
+              not shown. Add slices to matrix columns or download TSV
+              to see entire data frame.
+            </Typography>
+          ) : null}
+        </Grid>
           <TablePagination
             rowsPerPageOptions={[10, 25, 50, 200]}
             component='div'

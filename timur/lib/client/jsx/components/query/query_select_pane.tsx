@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useContext, useCallback} from 'react';
+import React, {useEffect, useState, useMemo, useContext, useCallback} from 'react';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
@@ -12,11 +12,13 @@ import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import {QueryColumn} from '../../contexts/query/query_types';
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import {QueryColumnContext} from '../../contexts/query/query_column_context';
-import QueryModelAttributeSelector from './query_model_attribute_selector';
-import DraggableQueryModelAttributeSelector from './draggable_query_model_attribute_selector';
+import QueryColumnSelector from './query_column_selector';
+import DraggableQueryColumnSelector from './draggable_query_column_selector';
 import QueryClause from './query_clause';
 import QueryClauseSummaryControls from './query_clause_summary_controls';
 import QueryChevron from './query_chevron';
+import MapSelector from './map_selector';
+import {isLink} from '../../utils/attributes';
 
 const useStyles = makeStyles((theme) => ({
   folded: {
@@ -146,7 +148,30 @@ const QuerySelectPane = () => {
     [columns, setQueryColumns]
   );
 
+  const [ columnsModel, setColumnsModel ] = useState(rootModel);
+
+  useEffect(() => {
+    setColumnsModel(rootModel);
+  }, [ rootModel ]);
+
+  const handleOnSelectAttributes = useCallback(
+    (attribute_names: string[]) => {
+      const newColumns = [ ...columns, ...attribute_names.map(
+        attribute_name => ({
+          slices: [],
+          model_name: columnsModel,
+          attribute_name,
+          display_label: attribute_name
+        })
+      ) ];
+      setQueryColumns(newColumns);
+    },
+    [columns, setQueryColumns, columnsModel]
+  );
+    
   const [ fold, setFold ] = useState(true);
+
+  const [ showAttributesModal, setShowAttributesModal ] = useState(false);
 
   if (!rootModel) return null;
 
@@ -159,17 +184,20 @@ const QuerySelectPane = () => {
           <QueryClauseSummaryControls
             fold={fold}
             setFold={setFold}
-            addHandler={
-              () => addQueryColumn({
-                slices: [],
-                model_name: '',
-                attribute_name: '',
-                display_label: ''
-              })
-            }
+            addHandler={ () => setShowAttributesModal(true) }
             removeHandler={removeAllQueryColumns}
             itemName='column'
             numItems={columns.length}/>
+          <MapSelector
+            open={showAttributesModal}
+            onClose={() => setShowAttributesModal(false)}
+            setAttributes={handleOnSelectAttributes}
+            modelName={columnsModel}
+            filterAttributes={
+              attribute => !(isLink(attribute) || attribute.hidden)
+            }
+            setModel={setColumnsModel}
+          />
         </Grid>
         { !fold && <Grid container direction='column' className={classes.columns}>
             <Droppable droppableId='columns'>
@@ -178,8 +206,8 @@ const QuerySelectPane = () => {
                   {columns.map((column: QueryColumn, index: number) => {
                     const ColumnComponent =
                       0 === index
-                        ? QueryModelAttributeSelector
-                        : DraggableQueryModelAttributeSelector;
+                        ? QueryColumnSelector
+                        : DraggableQueryColumnSelector;
                     return (
                       <ColumnComponent
                         key={index}

@@ -23,7 +23,7 @@ export default function useUriQueryParams({
   search?: string;
   pathname?: string;
 }) {
-  if (!search) search = window.location.search;
+  if (!search) search = window.location.hash;
   if (!pathname) pathname = window.location.pathname;
 
   function serializeState(state: {[key: string]: any}, isJson: boolean = true) {
@@ -38,7 +38,7 @@ export default function useUriQueryParams({
 
   // Update the search params to reflect current state
   useEffect(() => {
-    let searchParams = new URLSearchParams(search);
+    let searchParams = new URLSearchParams(search.slice(1));
     searchParams.set('rootModel', rootModel);
     Object.entries(whereState).forEach(([key, value]: [string, any]) => {
       searchParams.set(key, JSON.stringify(value));
@@ -48,7 +48,7 @@ export default function useUriQueryParams({
     });
 
     if (search !== searchParams.toString()) {
-      history.pushState({}, '', `${pathname}?${searchParams.toString()}`);
+      history.pushState({}, '', `${pathname}#${searchParams.toString()}`);
     }
   }, [rootModel, search, whereState, columnState, pathname]);
 
@@ -56,10 +56,10 @@ export default function useUriQueryParams({
   useEffect(() => {
     if (search === '') return;
 
-    let searchParams = new URLSearchParams(search);
+    let searchParams = new URLSearchParams(search.slice(1));
 
     let serializedState =
-      '?' +
+      '#' +
       serializeState({rootModel}, false) +
       serializeState(whereState) +
       serializeState(columnState);

@@ -250,16 +250,6 @@ const QueryControlButtons = () => {
           Copy Link
         </Button>
       </Grid>
-      <Grid item>
-        {formattedColumns.length > maxColumns ? (
-          <Typography align='right' color='error'>
-            *** NOTE ***{' '}
-            {(formattedColumns.length - maxColumns).toLocaleString()} columns
-            not rendered. Add slices to your matrix columns or download the TSV
-            to see the whole data frame.
-          </Typography>
-        ) : null}
-      </Grid>
     </>
   );
 };

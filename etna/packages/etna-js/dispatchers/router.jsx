@@ -33,13 +33,13 @@ const routePath = (template, params) => {
 
 const matchRoute = ({ path, hash }, route) => (
   // match the route part
-  path.match(route.path_regexp) && (!hash || (route.hash_regexp && hash.match(route.hash_regexp)))
+  path.match(route.path_regexp) && !(hash && route.hash_regexp && hash.match(route.hash_regexp))
 );
 
 const routeParams = ({path,hash}, route) => {
   let [ _, ...values ] = decodeURIComponent(path).match(route.path_regexp);
 
-  if (hash) {
+  if (hash && route.hash_regexp) {
     let [ _, ...hash_values ] = hash.match(route.hash_regexp);
     values = values.concat(hash_values);
   }

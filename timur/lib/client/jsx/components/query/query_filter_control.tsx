@@ -15,7 +15,7 @@ import QueryFilterClause from './query_filter_clause';
 import QueryNumber from './query_number';
 import QueryAnyEverySelectorList from './query_any_every_selector_list';
 import RemoveIcon from './query_remove_icon';
-import MapSelector from './map_selector';
+import QueryModelSelector from './query_model_selector';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -142,8 +142,7 @@ const QueryFilterControl = ({
       index={filterIndex}
       patchRecordFilter={patchRecordFilter}
     />
-    <MapSelector
-      canEdit={true}
+    <QueryModelSelector
       modelName={filter.modelName}
       setModel={handleModelSelect}
       options={modelNames}

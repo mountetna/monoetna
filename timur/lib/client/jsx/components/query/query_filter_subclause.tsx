@@ -185,9 +185,9 @@ const QueryFilterSubclause = ({
   const [ removeHint, setRemoveHint ] = useState(false);
 
   return <Grid item container alignItems='center' style={{ textDecoration: removeHint ? 'line-through' : 'none' }} >
-    <QueryNumber setRemoveHint={ showRemoveIcon ? setRemoveHint : null } onClick={ showRemoveIcon ? removeSubclause : null} number={subclauseIndex} level={2}/>
     {
-      modelAttributes.length > 0 &&
+      modelAttributes.length > 0 && <>
+        <QueryNumber setRemoveHint={ showRemoveIcon ? setRemoveHint : null } onClick={ showRemoveIcon ? removeSubclause : null} number={subclauseIndex} level={2}/>
         <Selector
           label={`operator-${subclauseIndex}`}
           canEdit={true}
@@ -198,6 +198,7 @@ const QueryFilterSubclause = ({
           onSelect={handleAttributeSelect}
           choiceSet={modelAttributes.map((a) => a.attribute_name)}
         />
+      </>
     }
     <Selector
       label={`operator-${subclauseIndex}`}
