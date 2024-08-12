@@ -9,7 +9,9 @@ import { useTheme } from '@mui/material';
 
 
 export enum Classes {
-  root = 'toggle-group'
+  root = 'toggle-group',
+  toggleRoot = tabClasses.root,
+  toggleSelected = tabClasses.selected,
 }
 
 

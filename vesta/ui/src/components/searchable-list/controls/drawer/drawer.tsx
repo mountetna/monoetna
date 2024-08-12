@@ -6,11 +6,13 @@ import Collapse from '@mui/material/Collapse'
 import Fade from '@mui/material/Fade'
 import { useTheme } from '@mui/material';
 
-import { DrawerItem, DisplayStyle, DrawerSectionProps, DrawerSectionClass, DrawerMainContentClass } from './models';
+import { DrawerItem, DisplayStyle, DrawerSectionProps, DrawerSectionClasses, DrawerSectionsContainerClasses, DrawerClasses } from './models';
 import DrawerSectionDefault from './section-default';
 import DrawerSectionExpandable from './section-expandable';
 import Button from '@/components/inputs/button';
 import { TransitionProps } from '@mui/material/transitions'
+import ToggleGroup, { Classes as ToggleGroupClasses } from '@/components/inputs/toggle-group'
+import { useBreakpoint } from '@/lib/utils/responsive'
 
 
 export default function Drawer<Item>({
@@ -50,6 +52,8 @@ export default function Drawer<Item>({
 }) {
     const theme = useTheme()
 
+    const breakpoint = useBreakpoint()
+
     const itemsByKey: Record<string, Item> = {}
     const drawerItemsByType: Record<string, DrawerItem[]> = {}
     const viewSetItemsByKey: Record<string, Item> = {}
@@ -85,7 +89,7 @@ export default function Drawer<Item>({
 
     // Manage open/close
     // Section open for each item type + View Set section
-    const [sectionOpens, setSectionOpens] = React.useState(Object.keys(drawerItemsByType).map(_ => false).concat(false))
+    const [sectionOpens, setSectionOpens] = React.useState(Object.keys(drawerItemsByType).map(_ => false).concat([false]))
 
     const handleSetSectionOpen = (open: boolean, sectionIndex: number) => {
         const newSectionOpens = [...sectionOpens]
@@ -111,7 +115,8 @@ export default function Drawer<Item>({
     }
 
     // Manage view sets
-    let viewSets
+    let mobileViewSets
+    let tabletDesktopViewSets
     if (showViewSets) {
         const sectionName = 'view'
         const sectionOpenIdx = sectionOpens.length - 1
@@ -146,14 +151,74 @@ export default function Drawer<Item>({
                 break
         }
 
-        viewSets = (
+        mobileViewSets = (
             <Box
                 key={sectionName}
-                className={[DrawerSectionClass.base, DrawerSectionClass.viewSets].join(' ')}
+                className={[DrawerSectionClasses.base, DrawerSectionClasses.viewSets].join(' ')}
+                sx={{
+                    [theme.breakpoints.up('tablet')]: {
+                        display: 'none',
+                    },
+                }}
             >
                 {drawerSection}
             </Box>
         )
+
+        let activeViewSetItemIndex = 0
+        const activeViewSetItemKey = getItemKey(activeViewSetItem)
+        for (const [idx, item] of viewSetDrawerItems.entries()) {
+            if (activeViewSetItemKey === item.key) {
+                activeViewSetItemIndex = idx
+                break
+            }
+        }
+
+        tabletDesktopViewSets = (
+            <Box
+                sx={{
+                    [`& .${ToggleGroupClasses.root}`]: {
+                        bgcolor: 'utilityHighlight.main',
+                        borderRadius: '40px',
+                        [`& .${ToggleGroupClasses.toggleRoot}:not(.${ToggleGroupClasses.toggleSelected})`]: {
+                            bgcolor: 'utilityWhite.main',
+                        },
+                    },
+                }}
+            >
+                <ToggleGroup
+                    valueIdx={activeViewSetItemIndex}
+                    values={viewSetDrawerItems.map(val => val.label)}
+                    onChange={(idx) => onChangeViewSet(viewSetItems[idx])}
+                />
+            </Box>
+        )
+    }
+
+    let button
+    let mobileButton
+    let tabletDesktopButton
+    if (showButton) {
+        button = (
+            <Button
+                label={buttonLabel}
+                onClick={onClickButton}
+                strokeVariant='stroked'
+                sizeVariant='large'
+                typographyVariant='pBodyMediumWt'
+                sx={{
+                    width: 'auto',
+                    height: 'auto',
+                }}
+                disabled={buttonDisabled}
+            />
+        )
+
+        if (breakpoint === 'mobile') {
+            mobileButton = button
+        } else {
+            tabletDesktopButton = button
+        }
     }
 
     const animationProps: TransitionProps = {
@@ -170,104 +235,122 @@ export default function Drawer<Item>({
                 {...animationProps}
             >
                 <Box
-                    // ref={rootRef}
-                    className='drawer-main-content-container'
+                    className={DrawerClasses.root}
                 >
                     <Box
-                        className={[DrawerMainContentClass.base, displayStyle === 'default' ? DrawerMainContentClass.default : DrawerMainContentClass.expandable].join(' ')}
+                        className={DrawerClasses.mainContent}
                         sx={{
-                            display: 'flex',
                             borderRadius: '30px',
                             bgcolor: 'utilityWhite.main',
-                            [`& .${DrawerSectionClass.base}`]: {
-                            },
-                            [`&.${DrawerMainContentClass.default}`]: {
-                                flexDirection: 'row',
-                                gap: '16px',
-                                p: '24px',
-                                minWidth: 'fit-content',
-                                '& > *:not(:last-child)': {
-                                    borderRight: `1px solid ${theme.palette.ground.grade75}`,
-                                },
-                                [`& .${DrawerSectionClass.viewSets}`]: {
-                                },
-                            },
-                            [`& .${DrawerSectionClass.default}`]: {
-                            },
-                            [`&.${DrawerMainContentClass.expandable}`]: {
+                            [theme.breakpoints.up('tablet')]: {
+                                display: 'flex',
                                 flexDirection: 'column',
-                                gap: '16px',
-                                p: '24px',
-                                [`& .${DrawerSectionClass.viewSets}`]: {
-                                },
-                            },
-                            [`& .${DrawerSectionClass.expandable}`]: {
-                                '&:last-of-type': {
-                                    mb: '8px',
-                                },
+                                gap: '24px',
+                                p: '16px',
+                                pb: '24px',
                             },
                         }}
                     >
-                        {viewSets}
-
-                        {/* TODO: make separate container components? */}
-                        {Object.entries(drawerItemsByType).map(([section, items], index) => {
-                            const sectionProps: DrawerSectionProps = {
-                                name: section,
-                                items: items,
-                                activeKeys,
-                                onClickItem: (item) => handleClickItem(item),
-                            }
-
-                            let drawerSection
-                            let drawerSectionClass
-                            switch (displayStyle) {
-                                case 'default':
-                                    drawerSection = (
-                                        <DrawerSectionDefault
-                                            {...sectionProps}
-                                        />
-                                    )
-                                    drawerSectionClass = DrawerSectionClass.default
-                                    break
-                                case 'expandable':
-                                    drawerSection = (
-                                        <DrawerSectionExpandable
-                                            open={sectionOpens[index]}
-                                            onSetOpen={(open) => handleSetSectionOpen(open, index)}
-                                            variant='default'
-                                            {...sectionProps}
-                                        />
-                                    )
-                                    drawerSectionClass = DrawerSectionClass.expandable
-                                    break
-                            }
-
-                            return (
-                                <Box
-                                    key={section}
-                                    className={[DrawerSectionClass.base, drawerSectionClass].join(' ')}
-                                >
-                                    {drawerSection}
-                                </Box>
-                            )
-                        })}
-
-                        {showButton && <Button
-                            label={buttonLabel}
-                            onClick={onClickButton}
-                            strokeVariant='stroked'
-                            sizeVariant='large'
-                            typographyVariant='pBodyMediumWt'
+                        <Box
+                            className={DrawerClasses.extraControls}
                             sx={{
-                                width: 'auto',
-                                height: 'auto',
-                                px: '16px',
-                                py: '8px',
-                                borderRadius: '10px',
+                                display: 'none',
+                                [theme.breakpoints.up('tablet')]: {
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                },
                             }}
-                            disabled={buttonDisabled}
-                        />}
+                        >
+                            {tabletDesktopViewSets}
+
+                            {tabletDesktopButton}
+                        </Box>
+
+                        <Box
+                            className={[DrawerSectionsContainerClasses.base, displayStyle === 'default' ? DrawerSectionsContainerClasses.default : DrawerSectionsContainerClasses.expandable].join(' ')}
+                            sx={{
+                                display: 'flex',
+                                [`&.${DrawerSectionsContainerClasses.base}`]: {
+                                    gap: '16px',
+                                    p: '24px',
+                                    [theme.breakpoints.up('tablet')]: {
+                                        p: '0px',
+                                    },
+                                },
+                                [`& .${DrawerSectionClasses.base}`]: {
+                                },
+                                [`&.${DrawerSectionsContainerClasses.default}`]: {
+                                    flexDirection: 'row',
+                                    minWidth: 'fit-content',
+                                    '& > *:not(:last-child)': {
+                                        borderRight: `1px solid ${theme.palette.ground.grade75}`,
+                                    },
+                                    [`& .${DrawerSectionClasses.viewSets}`]: {
+                                    },
+                                },
+                                [`& .${DrawerSectionClasses.default}`]: {
+                                },
+                                [`&.${DrawerSectionsContainerClasses.expandable}`]: {
+                                    flexDirection: 'column',
+                                    [`& .${DrawerSectionClasses.viewSets}`]: {
+                                    },
+                                },
+                                [`& .${DrawerSectionClasses.expandable}`]: {
+                                    '&:last-of-type': {
+                                        mb: '8px',
+                                    },
+                                },
+                            }}
+                        >
+                            {mobileViewSets}
+
+                            {/* TODO: make separate container components? */}
+                            {Object.entries(drawerItemsByType).map(([section, items], index) => {
+                                const sectionProps: DrawerSectionProps = {
+                                    name: section,
+                                    items: items,
+                                    activeKeys,
+                                    onClickItem: (item) => handleClickItem(item),
+                                }
+
+                                let drawerSection
+                                let drawerSectionClass
+                                switch (displayStyle) {
+                                    case 'default':
+                                        drawerSection = (
+                                            <DrawerSectionDefault
+                                                {...sectionProps}
+                                            />
+                                        )
+                                        drawerSectionClass = DrawerSectionClasses.default
+                                        break
+                                    case 'expandable':
+                                        drawerSection = (
+                                            <DrawerSectionExpandable
+                                                open={sectionOpens[index]}
+                                                onSetOpen={(open) => handleSetSectionOpen(open, index)}
+                                                variant='default'
+                                                {...sectionProps}
+                                            />
+                                        )
+                                        drawerSectionClass = DrawerSectionClasses.expandable
+                                        break
+                                }
+
+                                return (
+                                    <Box
+                                        key={section}
+                                        className={[DrawerSectionClasses.base, drawerSectionClass].join(' ')}
+                                    >
+                                        {drawerSection}
+                                    </Box>
+                                )
+                            })}
+
+                            {mobileButton}
+                        </Box>
                     </Box>
                 </Box>
             </Fade>

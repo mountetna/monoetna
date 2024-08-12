@@ -16,13 +16,12 @@ import Pagination, { PaginationClasses } from '@/components/searchable-list/cont
 import DrawerButton from '@/components/searchable-list/controls/drawer/button';
 import Drawer from '@/components/searchable-list/controls/drawer/drawer';
 import Autocomplete from '@/components/searchable-list/controls/autocomplete';
-import ToggleGroup, { Classes as ToggleGroupClasses } from '../inputs/toggle-group';
 import { ThemeData } from '../themes/models';
 import ProjectPI from './project-pi';
 import FilterPill from '../searchable-list/filter-pill';
 import { ValueOf } from '@/lib/utils/types';
 import { FILE_EXPORT_STATUS, handleExportFile, MIME_FILE_FORMATS } from '@/lib/utils/file-export';
-import { DrawerSectionClass } from '../searchable-list/controls/drawer/models';
+import { DrawerSectionClasses, DrawerClasses } from '../searchable-list/controls/drawer/models';
 import { parseSearchParams, toSearchParamsString } from '@/lib/utils/uri';
 import { scrollTo } from '@/lib/utils/scroll';
 import { useBreakpoint } from '@/lib/utils/responsive';
@@ -346,8 +345,6 @@ function _ProjectListings({
     // Manage file export
     const [fileExportStatus, setFileExportStatus] = React.useState(FILE_EXPORT_STATUS.idle)
 
-    const exportButtonLabel = 'Export to CSV'
-
     const handleClickExportButton = async () => {
         await handleExportFile(
             projectData,
@@ -440,12 +437,6 @@ function _ProjectListings({
                                     columnGap: '10px',
                                     justifyContent: 'space-between',
                                     width: '100%',
-                                },
-                                [`& .${ToggleGroupClasses.root}`]: {
-                                    display: 'none',
-                                    [theme.breakpoints.up('desktop')]: {
-                                        display: 'block',
-                                    },
                                 },
                             }}
                         >
@@ -550,28 +541,6 @@ function _ProjectListings({
                                     }}
                                 />
 
-                                <ToggleGroup
-                                    valueIdx={viewSets.indexOf(viewSet)}
-                                    values={viewSets.map(val => val.label)}
-                                    onChange={(idx) => handleChangeViewSet(viewSets[idx])}
-                                />
-
-                                {/* {isDesktop && (
-                                    <Button
-                                        label={exportButtonLabel}
-                                        onClick={handleClickExportButton}
-                                        variant='large'
-                                        typographyVariant='pBodyMediumWt'
-                                        sx={{
-                                            width: 'auto',
-                                            height: 'auto',
-                                            px: '16px',
-                                            py: '8px',
-                                            borderRadius: '10px',
-                                        }}
-                                        disabled={fileExportStatus === FILE_EXPORT_STATUS.inProgress}
-                                    />
-                                )} */}
                             </Box>
 
                             {!isMobile && paginationEl}
@@ -579,19 +548,17 @@ function _ProjectListings({
 
                         <Box
                             sx={{
-                                '& .drawer-main-content-container': {
+                                [`& .${DrawerClasses.root}`]: {
                                     pt: '16px',
                                     [theme.breakpoints.up('tablet')]: {
-                                        overflow: 'scroll',
+                                        pt: '13px',
                                     },
                                     [theme.breakpoints.up('desktop')]: {
-                                        overflow: 'unset',
                                     },
                                 },
-                                [`& .${DrawerSectionClass.base}`]: {
+                                [`& .${DrawerSectionClasses.base}`]: {
                                     [theme.breakpoints.up('tablet')]: {
-                                        minWidth: '18em',
-                                        width: '25%',
+                                        width: '33%',
                                     },
                                     [theme.breakpoints.up('desktop')]: {
                                         minWidth: 'unset',
@@ -610,10 +577,10 @@ function _ProjectListings({
                                 onChange={handleChangeFilterItems}
                                 activeViewSetItem={viewSet}
                                 onChangeViewSet={handleChangeViewSet}
-                                showViewSets={!isDesktop}
+                                showViewSets={true}
                                 open={drawerOpen}
-                                showButton={isMobile}
-                                buttonLabel={exportButtonLabel}
+                                showButton={true}
+                                buttonLabel={'Export to CSV'}
                                 onClickButton={handleClickExportButton}
                                 buttonDisabled={fileExportStatus === FILE_EXPORT_STATUS.inProgress}
                                 displayStyle={isMobile ? 'expandable' : 'default'}
