@@ -681,14 +681,19 @@ function SearchOption({
             }}
         >
             {option.type === 'principalInvestigator' ?
-                <ProjectPI
-                    data={option.value as PrincipalInvestigator}
-                /> :
-                <Typography variant='pMedium'>
-                    {/* @ts-ignore */}
-                    {option.value}
-                </Typography>
+                (
+                    <ProjectPI
+                        data={option.value as PrincipalInvestigator}
+                        variant='filled'
+                    />
+                ) : (
+                    <Typography variant='pMedium'>
+                        {/* @ts-ignore */}
+                        {option.value}
+                    </Typography>
+                )
             }
+
         </Box>
     )
 }

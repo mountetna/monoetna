@@ -70,6 +70,8 @@ export default function ProjectListing({
     // TODO
     const userHasAccess = false
 
+    const [blah, setBlah] = React.useState(false)
+
     const animationProps: TransitionProps = {
         in: open,
         easing: theme.transitions.easing.quint,
@@ -430,26 +432,29 @@ export default function ProjectListing({
                                                                         const circles = packData.descendants().slice(2)
 
                                                                         return (
-                                                                            <Group>
+                                                                            <Group
+                                                                                style={{
+                                                                                    position: 'relative',
+                                                                                }}
+                                                                            >
                                                                                 {circles.map((circle, i) => (
-                                                                                    <circle
-                                                                                        key={`circle-${i}`}
-                                                                                        r={circle.r}
-                                                                                        cx={circle.x}
-                                                                                        cy={circle.y}
-                                                                                        fill={data.theme.altColor}
-                                                                                        // onPointerEnter={e => e.currentTarget.style.fill = data.theme.color}
-                                                                                        // onPointerLeave={e => e.currentTarget.style.fill = data.theme.altColor}
+                                                                                    <Fade
+                                                                                        key={`fade-${i}`}
+                                                                                        in={open}
+                                                                                        easing={theme.transitions.easing.ease}
+                                                                                        timeout={theme.transitions.duration.ease}
                                                                                         style={{
-                                                                                            transition: theme.transitions.create(
-                                                                                                ['fill'],
-                                                                                                {
-                                                                                                    easing: theme.transitions.easing.ease,
-                                                                                                    duration: theme.transitions.duration.ease,
-                                                                                                }
-                                                                                            ),
+                                                                                            transitionDelay: `${theme.transitions.duration.ease / circles.length * i + theme.transitions.duration.ease / 2}ms`,
                                                                                         }}
-                                                                                    />
+                                                                                    >
+                                                                                        <circle
+                                                                                            key={`circle-${i}`}
+                                                                                            r={circle.r}
+                                                                                            cx={circle.x}
+                                                                                            cy={circle.y}
+                                                                                            fill={data.theme.altColor}
+                                                                                        />
+                                                                                    </Fade>
                                                                                 ))}
                                                                             </Group>
                                                                         )
@@ -466,6 +471,7 @@ export default function ProjectListing({
                                     <MUILink
                                         // TODO: href
                                         href={'#'}
+                                        onClick={e => { e.preventDefault(); setBlah(!blah) }}
                                         tabIndex={0}
                                         component={Link}
                                         underline='none'
@@ -583,6 +589,7 @@ export default function ProjectListing({
                                                                     } else {
                                                                         return (
                                                                             <Pill
+                                                                                key={key}
                                                                                 // @ts-ignore
                                                                                 label={d}
                                                                                 typographyVariant='pMediumMono'
@@ -598,6 +605,7 @@ export default function ProjectListing({
                                                                 : (
                                                                     aspect.itemType === 'basic' ? (
                                                                         <Typography
+                                                                            key={aspect.propName}
                                                                             variant='pMedium'
                                                                             sx={{
                                                                                 gap: '0px',
@@ -608,6 +616,7 @@ export default function ProjectListing({
                                                                         </Typography>
                                                                     ) : (
                                                                         <Pill
+                                                                            key={aspect.propName}
                                                                             // @ts-ignore
                                                                             label={aspect.propName === 'theme' ? data.theme.name : data[aspect.propName]?.toString()}
                                                                             typographyVariant='pMediumMono'

@@ -17,10 +17,12 @@ export default function ProjectPI({
     data,
     showAvatar = true,
     showNameAndTitle = true,
+    variant = 'stroked',
 }: {
     data: PrincipalInvestigator,
     showAvatar?: boolean,
     showNameAndTitle?: boolean,
+    variant?: 'stroked' | 'filled',
 }) {
     const theme = useTheme()
 
@@ -31,8 +33,10 @@ export default function ProjectPI({
         rootStyles = {
             p: '4px',
             pr: '18px',
-            bgcolor: 'utilityWhite.main',
-            border: `1px solid ${theme.palette.ground.grade75}`,
+            ...(variant === 'filled' ? {} : {
+                bgcolor: 'utilityWhite.main',
+                border: `1px solid ${theme.palette.ground.grade75}`,
+            })
         }
     }
 
