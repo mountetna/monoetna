@@ -331,7 +331,7 @@ THEMES.forEach(theme => {
     const project: Project = {
       name: name.toLowerCase().slice(0, 4),
       fullName: name,
-      heading: randomBool() ? faker.lorem.sentence() : undefined,
+      heading: faker.helpers.maybe(faker.lorem.sentence),
       description: faker.lorem.paragraphs({ min: 1, max: 3 }),
       fundingSource: faker.commerce.department(),
       principalInvestigators: createRandomArray(1, 10, () => {
@@ -339,8 +339,8 @@ THEMES.forEach(theme => {
 
         return {
           name: faker.person.fullName(),
-          title: randomBool() ? faker.person.jobTitle() : undefined,
-          imageUrl: randomBool() ? faker.image.avatar() : undefined,
+          title: faker.helpers.maybe(faker.person.jobTitle),
+          imageUrl: faker.helpers.maybe(faker.image.avatar),
           color: theme.color,
           altColor: theme.textColor === 'light' ? 'utilityHighlight.main' : 'ground.grade10',
         }
@@ -350,8 +350,8 @@ THEMES.forEach(theme => {
       // Dedupe
       dataTypes: Array.from(new Set(
         createRandomArray(1, 10, () => faker.helpers.arrayElement(Object.values(DataType)))
-      ))
-      ,
+      )),
+      hasClinicalData: randomBool() ? 'Yes' : 'No',
       species: faker.lorem.word(),
       startDate: faker.date.between({ from: '2018-01-01T00:00:00.000Z', to: '2024-01-01T00:00:00.000Z' }),
       dataCollectionComplete: randomBool(),

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Box from '@mui/system/Box'
-import { SxProps, Typography, useTheme } from '@mui/material';
+import { Typography, useTheme } from '@mui/material';
 import Image from 'next/image';
 
 import { User } from '../user/models';

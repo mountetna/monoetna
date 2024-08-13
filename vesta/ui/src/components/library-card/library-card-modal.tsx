@@ -9,7 +9,7 @@ import Slide from '@mui/material/Slide';
 import { useTheme } from '@mui/material/styles';
 import { Modal as BaseModal } from '@mui/base/Modal';
 import Typography from '@mui/material/Typography';
-import { toPng } from 'html-to-image';
+import { toSvg } from 'html-to-image';
 
 import LibraryCard from './library-card';
 import { TypographyVariant } from '@/lib/utils/types';
@@ -40,8 +40,8 @@ export function LibraryCardModal({
         if (!el) return
 
         try {
-            const imageUrl = await toPng(el)
-            const filename = `ucsf-data-library-card-${user.name}.png`;
+            const imageUrl = await toSvg(el)
+            const filename = `UCSF Data Library Card - ${user.name}.svg`;
 
             const a = document.createElement('a');
             a.setAttribute('href', imageUrl);

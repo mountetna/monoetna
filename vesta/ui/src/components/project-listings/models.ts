@@ -51,6 +51,7 @@ export interface Project {
     dataTypes: DataType[]
     hasSamples: boolean
     hasAssays: boolean
+    hasClinicalData: string,
     species: string
     startDate: Date
     dataCollectionComplete: boolean

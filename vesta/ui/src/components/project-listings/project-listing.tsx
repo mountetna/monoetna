@@ -37,6 +37,7 @@ interface ProjectAspect {
 const projectAspects: ProjectAspect[] = [
     { title: 'Project Type', propName: 'type', itemType: 'basic', },
     { title: 'Data Types', propName: 'dataTypes', itemType: 'pill', },
+    { title: 'Clinical Data', propName: 'hasClinicalData', itemType: 'basic', },
     { title: 'Theme', propName: 'theme', itemType: 'pill', },
     { title: 'Principal Investigators', propName: 'principalInvestigators', itemType: 'pi', },
 ]
@@ -587,6 +588,7 @@ export default function ProjectListing({
                                             currentStatus={extStatus}
                                             allStatuses={allExtStatuses}
                                             variant={isMobile ? 'compact' : 'default'}
+                                            visible={open}
                                         />
                                     </Box>
                                 </Box>
@@ -608,6 +610,7 @@ export default function ProjectListing({
                                         currentStatus={extStatus}
                                         allStatuses={allExtStatuses}
                                         variant='default'
+                                        visible={open}
                                     />
                                 </Box>
                             </Box>

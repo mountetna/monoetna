@@ -3,17 +3,19 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material';
+import { Collapse, Fade, useTheme } from '@mui/material';
 
 
 export default function ProjectStatus({
     currentStatus,
     allStatuses,
     variant,
+    visible,
 }: {
     currentStatus: string,
     allStatuses: string[],
     variant: 'default' | 'compact'
+    visible: boolean,
 }) {
     const theme = useTheme()
 
@@ -32,9 +34,6 @@ export default function ProjectStatus({
                             flexDirection: 'column',
                             gap: '13.35px',
                             gridColumn: 'span 3',
-                            // '&:last-child': {
-                            //     gridColumn: 'span 2',
-                            // },
                         },
                         '& .bubble-container': {
                             position: 'relative',
@@ -56,8 +55,8 @@ export default function ProjectStatus({
                         '& .bubble, & .bubble-overlay': {
                             borderRadius: '40px',
                         },
-                        '& .stage.passed .bubble, & .stage.current:last-child .bubble': {
-                            bgcolor: 'ground.grade10',
+                        '& .stage.passed .bubble-overlay, & .stage.current:last-child .bubble-overlay': {
+                            width: '100%',
                         },
                         '& .stage.current:first-child .bubble-overlay': {
                             width: '10%',
@@ -96,7 +95,16 @@ export default function ProjectStatus({
                         >
                             <Box className='bubble-container'>
                                 <Box className='bubble'></Box>
-                                <Box className='bubble-overlay'></Box>
+                                <Fade
+                                    in={visible}
+                                    easing={theme.transitions.easing.ease}
+                                    timeout={theme.transitions.duration.ease}
+                                    style={{
+                                        transitionDelay: `${theme.transitions.duration.ease / allStatuses.length * i + theme.transitions.duration.ease / 1.1}ms`,
+                                    }}
+                                >
+                                    <Box className='bubble-overlay'></Box>
+                                </Fade>
                             </Box>
 
                             <Box className='tick-text-container'>
