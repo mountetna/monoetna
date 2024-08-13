@@ -2,18 +2,14 @@
 
 import * as React from 'react'
 import Box from '@mui/system/Box'
-import Typography, { TypographyOwnProps } from '@mui/material/Typography';
+import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material';
 import ButtonBase from '@mui/material/ButtonBase';
 import MUILink from '@mui/material/Link';
 import Collapse from '@mui/material/Collapse'
 import Fade from '@mui/material/Fade'
 import { TransitionProps } from '@mui/material/transitions';
-
 import Link from 'next/link'
-import { Group } from '@visx/group';
-import { Pack, hierarchy } from '@visx/hierarchy';
-import { useParentSize } from '@visx/responsive'
 import _ from 'lodash';
 
 import { ExternalProjectStatus, getExternalProjectStatus, Project, ProjectHeadingInfoSet } from './models';
@@ -25,6 +21,7 @@ import ProjectHeadingInfo from './project-heading-info';
 import Image from '../image/image';
 import { useBreakpoint } from '@/lib/utils/responsive';
 import Pill from '../pill/pill';
+import ProjectUserCountPack from './project-user-count-pack';
 
 
 export enum Classes {
@@ -43,10 +40,6 @@ const projectAspects: ProjectAspect[] = [
     { title: 'Theme', propName: 'theme', itemType: 'pill', },
     { title: 'Principal Investigators', propName: 'principalInvestigators', itemType: 'pi', },
 ]
-
-interface UserCountItem {
-    radius: number
-}
 
 
 export default function ProjectListing({
@@ -70,54 +63,19 @@ export default function ProjectListing({
     // TODO
     const userHasAccess = false
 
-    const [blah, setBlah] = React.useState(false)
-
     const animationProps: TransitionProps = {
         in: open,
         easing: theme.transitions.easing.quint,
         timeout: theme.transitions.duration.quint,
     }
 
-    // Manage lazy loading PI images
-    const [isMainContentVisible, setIsMainContentVisible] = React.useState(false)
+    // Manage lazy loading
+    const [hasOpened, setHasOpened] = React.useState(false)
     React.useEffect(() => {
         if (open) {
-            setIsMainContentVisible(true)
+            setHasOpened(true)
         }
     }, [open])
-
-    // Manage user count pack
-    let {
-        parentRef: userCountPackContainerRef,
-        width: userCountPackContainerWidth,
-        height: userCountPackContainerHeight,
-    } = useParentSize({ debounceTime: 500, })
-    // Add some variability to similar-looking packs
-    const packMarginPx = React.useMemo(() => _.random(3, 15, false), [])
-    const rotationDeg = React.useMemo(() => _.random(0, 360, false), [])
-
-    userCountPackContainerWidth -= packMarginPx * 2
-    userCountPackContainerHeight -= packMarginPx * 2
-
-    // Make pack item size dependent on container width
-    // so we can consistently size the center gap as a portion of container width
-    const packItemAreaPx = Math.PI * ((userCountPackContainerWidth / 2) ** 2) / data.userCount
-    const packItemRadiusPx = Math.sqrt(packItemAreaPx) / Math.PI
-    const gapItemRadius = 0.33 * userCountPackContainerWidth / 2
-
-    const packItems: UserCountItem[] = Array(data.userCount).fill({ radius: packItemRadiusPx })
-    packItems.unshift({ radius: gapItemRadius })
-
-    const pack = {
-        children: packItems,
-        name: 'root',
-        radius: 0,
-        distance: 0,
-    }
-
-    const packRoot = hierarchy<UserCountItem>(pack)
-        .sum(d => d.radius ** 2)
-
 
     const allExtStatuses = Object.values(ExternalProjectStatus)
     const extStatus = getExternalProjectStatus(data)
@@ -149,7 +107,7 @@ export default function ProjectListing({
                     left: '216px',
                     top: '35px',
                     zIndex: 0,
-                    opacity: isMainContentVisible ? 1 : 0,
+                    opacity: open ? 1 : 0,
                     transition: theme.transitions.create(
                         ['opacity'],
                         {
@@ -266,6 +224,10 @@ export default function ProjectListing({
                             p: '16px',
                             pt: '0px',
                             zIndex: 1,
+                            [theme.breakpoints.up('tablet')]: {
+                                gap: '0px',
+                                pt: '36px',
+                            },
                         }}
                     >
                         <Typography
@@ -284,8 +246,11 @@ export default function ProjectListing({
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '8px',
+                                pt: '20px',
                                 [theme.breakpoints.up('tablet')]: {
                                     flexDirection: 'row',
+                                    gap: '16px',
+                                    pb: '60px',
                                 },
                             }}
                         >
@@ -298,9 +263,12 @@ export default function ProjectListing({
                                     [theme.breakpoints.up('tablet')]: {
                                         display: 'grid',
                                         gridTemplateColumns: 'repeat(6, 1fr)',
+                                        columnGap: '30px',
+                                        rowGap: '16px',
                                     },
                                     [theme.breakpoints.up('desktop')]: {
                                         gridTemplateColumns: 'repeat(11, 1fr)',
+                                        columnGap: '32px',
                                     },
                                 }}
                             >
@@ -327,7 +295,7 @@ export default function ProjectListing({
                                             overflow: 'hidden',
                                         }}
                                     >
-                                        {isMainContentVisible && <Image
+                                        {hasOpened && <Image
                                             src={data.theme.imageComponents.projectBackground}
                                             alt={`Abstract background for ${data.theme.name} theme`}
                                             style={{
@@ -369,7 +337,6 @@ export default function ProjectListing({
                                                         alignItems: 'flex-end',
                                                         justifyContent: 'flex-end',
                                                         color: data.theme.textColor === 'light' ? 'utilityHighlight.main' : 'ground.grade10',
-                                                        // color: data.theme.altColor,
                                                         px: '8px',
                                                         py: '5px',
                                                     }}
@@ -390,79 +357,25 @@ export default function ProjectListing({
                                                         position: 'relative',
                                                     }}
                                                 >
-                                                    {isMainContentVisible && <Image
-                                                        src={data.theme.imageComponents.filtered}
-                                                        alt={`Abstract foreground for ${data.theme.name} theme`}
-                                                        style={{
-                                                            width: '100%',
-                                                            height: '100%',
-                                                            objectFit: 'cover',
-                                                        }}
-                                                    />}
-                                                    <Box
-                                                        ref={userCountPackContainerRef}
-                                                        sx={{
-                                                            position: 'absolute',
-                                                            width: '100%',
-                                                            height: '100%',
-                                                            left: 0,
-                                                            top: 0,
-                                                            display: 'flex',
-                                                            justifyContent: 'center',
-                                                            alignItems: 'center',
-                                                        }}
-                                                    >
-                                                        {isMainContentVisible && userCountPackContainerWidth > 10 &&
-                                                            <svg
-                                                                width={userCountPackContainerWidth}
-                                                                height={userCountPackContainerHeight}
-                                                                rx={userCountPackContainerWidth}
-                                                                ry={userCountPackContainerHeight}
-                                                                style={{
-                                                                    rotate: `${rotationDeg}deg`,
-                                                                }}
-                                                            >
-                                                                <Pack<UserCountItem>
-                                                                    root={packRoot}
-                                                                    size={[userCountPackContainerWidth, userCountPackContainerHeight]}
-                                                                    padding={2}
-                                                                >
-                                                                    {(packData) => {
-                                                                        // skip root and center gap
-                                                                        const circles = packData.descendants().slice(2)
+                                                    {hasOpened && (
+                                                        <Image
+                                                            src={data.theme.imageComponents.filtered}
+                                                            alt={`Abstract foreground for ${data.theme.name} theme`}
+                                                            style={{
+                                                                width: '100%',
+                                                                height: '100%',
+                                                                objectFit: 'cover',
+                                                            }}
+                                                        />
+                                                    )}
 
-                                                                        return (
-                                                                            <Group
-                                                                                style={{
-                                                                                    position: 'relative',
-                                                                                }}
-                                                                            >
-                                                                                {circles.map((circle, i) => (
-                                                                                    <Fade
-                                                                                        key={`fade-${i}`}
-                                                                                        in={open}
-                                                                                        easing={theme.transitions.easing.ease}
-                                                                                        timeout={theme.transitions.duration.ease}
-                                                                                        style={{
-                                                                                            transitionDelay: `${theme.transitions.duration.ease / circles.length * i + theme.transitions.duration.ease / 2}ms`,
-                                                                                        }}
-                                                                                    >
-                                                                                        <circle
-                                                                                            key={`circle-${i}`}
-                                                                                            r={circle.r}
-                                                                                            cx={circle.x}
-                                                                                            cy={circle.y}
-                                                                                            fill={data.theme.altColor}
-                                                                                        />
-                                                                                    </Fade>
-                                                                                ))}
-                                                                            </Group>
-                                                                        )
-                                                                    }}
-                                                                </Pack>
-                                                            </svg>
-                                                        }
-                                                    </Box>
+                                                    {hasOpened && (
+                                                        <ProjectUserCountPack
+                                                            userCount={data.userCount}
+                                                            color={data.theme.altColor}
+                                                            visible={open}
+                                                        />
+                                                    )}
                                                 </Box>
                                             </Typography>
                                         </Box>
@@ -471,7 +384,6 @@ export default function ProjectListing({
                                     <MUILink
                                         // TODO: href
                                         href={'#'}
-                                        onClick={e => { e.preventDefault(); setBlah(!blah) }}
                                         tabIndex={0}
                                         component={Link}
                                         underline='none'
@@ -540,15 +452,17 @@ export default function ProjectListing({
                                                 <Box
                                                     key={aspect.propName}
                                                     sx={{
+                                                        [theme.breakpoints.up('desktop')]: {
+                                                            display: 'grid',
+                                                            gridTemplateColumns: 'repeat(3, 1fr)',
+                                                            columnGap: '53.39px',
+                                                        },
                                                         '& .pill-container, & .pi-container': {
                                                             display: 'flex',
                                                             flexWrap: 'wrap',
                                                             columnGap: '12.32px',
                                                             rowGap: '8px',
                                                             p: '4.11px',
-                                                        },
-                                                        '& .pi-container > *': {
-                                                            // maxWidth: 'calc(100% / 4)',
                                                         },
                                                     }}
                                                 >
@@ -560,12 +474,22 @@ export default function ProjectListing({
                                                             opacity: 0.4,
                                                             p: '4.11px',
                                                             pl: '0px',
+                                                            [theme.breakpoints.up('desktop')]: {
+                                                                gridColumn: 'span 1',
+                                                            },
                                                         }}
                                                     >
                                                         {aspect.title}
                                                     </Typography>
 
-                                                    <Box className={`${aspect.itemType}-container`}>
+                                                    <Box
+                                                        className={`${aspect.itemType}-container`}
+                                                        sx={{
+                                                            [theme.breakpoints.up('desktop')]: {
+                                                                gridColumn: 'span 2',
+                                                            },
+                                                        }}
+                                                    >
                                                         {['basic', 'pill'].includes(aspect.itemType) ? (
 
                                                             Array.isArray(data[aspect.propName]) ?
@@ -635,7 +559,7 @@ export default function ProjectListing({
                                                                 <ProjectPI
                                                                     key={`${aspect.propName}_${i}`}
                                                                     data={piData}
-                                                                    showAvatar={isMainContentVisible}
+                                                                    showAvatar={hasOpened}
                                                                 />
                                                             ))
 
@@ -662,6 +586,7 @@ export default function ProjectListing({
                                         <ProjectStatus
                                             currentStatus={extStatus}
                                             allStatuses={allExtStatuses}
+                                            variant={isMobile ? 'compact' : 'default'}
                                         />
                                     </Box>
                                 </Box>
@@ -682,6 +607,7 @@ export default function ProjectListing({
                                     <ProjectStatus
                                         currentStatus={extStatus}
                                         allStatuses={allExtStatuses}
+                                        variant='default'
                                     />
                                 </Box>
                             </Box>
@@ -696,8 +622,15 @@ export default function ProjectListing({
                                     [theme.breakpoints.up('tablet')]: {
                                         flexDirection: 'column',
                                         alignItems: 'center',
-                                        '& img': {
+                                    },
+                                    '& img': {
+                                        [theme.breakpoints.up('tablet')]: {
                                             rotate: '90deg',
+                                            position: 'relative',
+                                            left: '0.6px',
+                                        },
+                                        [theme.breakpoints.up('desktop')]: {
+                                            left: '0.1px',
                                         },
                                     },
                                 }}
@@ -705,12 +638,12 @@ export default function ProjectListing({
                                 <Image
                                     src={data.theme.icon}
                                     alt={`Abstract icon for "${data.theme.name}" theme`}
-                                    width={22.6}
-                                    height={22.6}
+                                    width={isDesktop ? 28 : 22.6}
+                                    height={isDesktop ? 28 : 22.6}
                                 />
 
                                 <Typography
-                                    variant='pBodyMono'
+                                    variant={isDesktop ? 'pTitleMono' : 'pBodyMono'}
                                     sx={{
                                         display: 'flex',
                                         flexDirection: 'row',

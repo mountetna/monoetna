@@ -9,65 +9,22 @@ import { useTheme } from '@mui/material';
 export default function ProjectStatus({
     currentStatus,
     allStatuses,
+    variant,
 }: {
     currentStatus: string,
     allStatuses: string[],
+    variant: 'default' | 'compact'
 }) {
     const theme = useTheme()
 
     const currentStatusIdx = allStatuses.indexOf(currentStatus)
 
-    return (
-        <Box
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                pb: '24px',
-            }}
-        >
-            <Typography
-                variant='pMediumBoldWt'
-                component='div'
-            >
-                Project Status
-            </Typography>
-
-            {/* Mobile Status */}
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: '10px',
-                    [theme.breakpoints.up('tablet')]: {
-                        display: 'none',
-                    },
-                }}
-            >
-                <Typography
-                    variant='pLarge'
+    let mainContent
+    switch (variant) {
+        case 'default':
+            mainContent = (
+                <Box
                     sx={{
-                        color: 'ground.grade100',
-                        bgcolor: 'ground.grade25',
-                        borderRadius: '30px',
-                        px: '9px',
-                    }}
-                >
-                    {`${currentStatusIdx + 1} of ${allStatuses.length}`}
-                </Typography>
-
-                <Typography
-                    variant='pMediumMediumWt'
-                >
-                    {currentStatus}
-                </Typography>
-            </Box>
-
-            {/* Tablet/Desktop */}
-            <Box
-                sx={{
-                    display: 'none',
-                    [theme.breakpoints.up('tablet')]: {
                         display: 'grid',
                         gridTemplateColumns: 'repeat(12, 1fr)',
                         '& .stage': {
@@ -130,32 +87,88 @@ export default function ProjectStatus({
                                 opacity: 1,
                             },
                         },
-                    },
-                }}
-            >
-                {allStatuses.map((currentStatus, i) => (
-                    <Box
-                        key={i}
-                        className={`stage${currentStatusIdx > i ? ' passed' : currentStatusIdx === i ? ' current' : ''}`}
+                    }}
+                >
+                    {allStatuses.map((currentStatus, i) => (
+                        <Box
+                            key={i}
+                            className={`stage${currentStatusIdx > i ? ' passed' : currentStatusIdx === i ? ' current' : ''}`}
+                        >
+                            <Box className='bubble-container'>
+                                <Box className='bubble'></Box>
+                                <Box className='bubble-overlay'></Box>
+                            </Box>
+
+                            <Box className='tick-text-container'>
+                                <Box className='tick'></Box>
+
+                                <Typography
+                                    variant='pMediumBoldWt'
+                                    className='text'
+                                >
+                                    {currentStatus}
+                                </Typography>
+                            </Box>
+                        </Box>
+                    ))}
+                </Box>
+            )
+            break
+
+        case 'compact':
+            mainContent = (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        gap: '10px',
+                    }}
+                >
+                    <Typography
+                        variant='pLarge'
+                        sx={{
+                            color: 'ground.grade100',
+                            bgcolor: 'ground.grade25',
+                            borderRadius: '30px',
+                            px: '9px',
+                        }}
                     >
-                        <Box className='bubble-container'>
-                            <Box className='bubble'></Box>
-                            <Box className='bubble-overlay'></Box>
-                        </Box>
+                        {`${currentStatusIdx + 1} of ${allStatuses.length}`}
+                    </Typography>
 
-                        <Box className='tick-text-container'>
-                            <Box className='tick'></Box>
+                    <Typography
+                        variant='pMediumMediumWt'
+                    >
+                        {currentStatus}
+                    </Typography>
+                </Box>
+            )
+            break
+    }
 
-                            <Typography
-                                variant='pMediumBoldWt'
-                                className='text'
-                            >
-                                {currentStatus}
-                            </Typography>
-                        </Box>
-                    </Box>
-                ))}
-            </Box>
+    return (
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                pb: '24px',
+                [theme.breakpoints.up('tablet')]: {
+                    gap: '16.43px',
+                },
+                [theme.breakpoints.up('desktop')]: {
+                    pb: '75px',
+                },
+            }}
+        >
+            <Typography
+                variant='pMediumBoldWt'
+                component='div'
+            >
+                Project Status
+            </Typography>
+
+            {mainContent}
         </Box>
     )
 }

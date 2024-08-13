@@ -36,26 +36,6 @@ export default function Pill({
 }) {
     const theme = useTheme()
 
-    // Manage width
-    const [isTextWrapped, setIsTextWrapped] = React.useState(false)
-    const testLabelRef = React.useRef<HTMLElement>()
-    const measureLineHeightRef = React.useRef<HTMLElement>()
-
-    // const {isResizing: isWindowResizing} = useWindowDimensions()
-
-    // React.useEffect(() => {
-    //     const testLabelEl = testLabelRef.current
-    //     const measureLineHeightEl = measureLineHeightRef.current
-
-    //     if (testLabelEl && measureLineHeightEl &&
-    //         testLabelEl.offsetHeight > measureLineHeightEl.offsetHeight
-    //     ) {
-    //         setIsTextWrapped(true)
-    //     } else {
-    //         setIsTextWrapped(false)
-    //     }
-    // }, [isWindowResizing])
-
     let iconEl
     if (icon) {
         iconEl = (
@@ -75,18 +55,6 @@ export default function Pill({
             classes.push(Classes.stroked)
             break
     }
-
-    const labelEl = (
-        <Typography
-            variant={typographyVariant}
-            sx={{
-                display: 'inline-flex',
-
-            }}
-        >
-            {label}
-        </Typography>
-    )
 
     return (
         <Box
@@ -113,42 +81,15 @@ export default function Pill({
         >
             {iconPosition === 'before' && iconEl}
 
-            <Box
+            <Typography
+                variant={typographyVariant}
                 sx={{
-                    '& > *': {
-                        width: isTextWrapped ? 'min-content' : 'unset',
-                    },
-                }}
-            >
-                {labelEl}
-            </Box>
+                    display: 'inline-flex',
 
-            <Box
-                ref={testLabelRef}
-                sx={{
-                    position: 'absolute',
-                    visibility: 'hidden',
                 }}
             >
-                {labelEl}
-            </Box>
-
-            <Box
-                ref={measureLineHeightRef}
-                sx={{
-                    position: 'absolute',
-                    visibility: 'hidden',
-                }}
-            >
-                <Typography
-                    variant={typographyVariant}
-                    sx={{
-                        display: 'inline-flex',
-                    }}
-                >
-                    <br />
-                </Typography>
-            </Box>
+                {label}
+            </Typography>
 
             {iconPosition === 'after' && iconEl}
         </Box>
