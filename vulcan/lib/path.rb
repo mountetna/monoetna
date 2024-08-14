@@ -5,12 +5,12 @@ class Vulcan
     # Potentially move these to .env
     WORKFLOW_BASE_DIR = "/app/vulcan/workflows"
     WORKSPACE_BASE_DIR = "/app/vulcan/workspace"
+    VULCAN_TMP_DIR = "/app/vulcan/tmp/"
     WORKSPACE_TMP_DIR = "tmp/"
     WORKSPACE_BOOT_LOG = "tmp/boot.log"
     WORKSPACE_SNAKEMAKE_LOG_DIR = ".snakemake/log/"
     WORKSPACE_PROFILE_DIR = "snakemake_utils/profiles/test/"
-    TMPDIR = "/tmp/vulcan"
-    ALLOWED_DIRECTORIES = [WORKSPACE_BASE_DIR, WORKFLOW_BASE_DIR, TMPDIR]
+    ALLOWED_DIRECTORIES = [WORKSPACE_BASE_DIR, WORKFLOW_BASE_DIR, VULCAN_TMP_DIR]
 
     # TODO: revisit
     SNAKEMAKE_UTILS_DIR = "/app/snakemake_utils" # This is local
@@ -40,11 +40,15 @@ class Vulcan
     end
 
     def self.tmp_dir(tmp_hash)
-      "#{TMPDIR}/#{tmp_hash}"
+      "#{VULCAN_TMP_DIR}/#{tmp_hash}"
     end
 
     def self.metis_mirror_path(workspace_dir)
       "#{workspace_dir}/metis_output/"
+    end
+
+    def self.vulcan_config(path)
+      "#{path}/vulcan_config.yaml"
     end
 
     def self.workspace_config_path(workspace_path)

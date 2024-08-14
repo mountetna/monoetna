@@ -45,7 +45,7 @@ class VulcanV2Controller < Vulcan::Controller
   def delete_repo
     begin
       repo_path = Vulcan::Path.repo_path(@params[:project_name], @params[:repo_name])
-      raise Etna::BadRequest.new("Repo #{@params[:repo_name]} does not exist") if @remote_manager.dir_exists?(repo_path)
+      raise Etna::BadRequest.new("Repo #{@params[:repo_name]} does not exist") unless @remote_manager.dir_exists?(repo_path)
       @remote_manager.rmdir(repo_path)
       success_json({'msg': "Repo has been deleted"})
     rescue => e
@@ -69,11 +69,11 @@ class VulcanV2Controller < Vulcan::Controller
   def publish_workflow
     workflow = Vulcan::WorkflowV2.first(
       project: @params[:project_name],
-      workflow_name: @params[:workflow_name],
+      name: @params[:workflow_name],
       repo_tag: @params[:tag]
     )
     if workflow
-      return success_json({'msg': "Workflow: #{@params[:workflow_name]} for project: #{@params[:project_name]} already exists."})
+      return success_json({'msg': "Workflow: #{@params[:name]} for project: #{@params[:project_name]} already exists."})
     end
     tmp_dir = Vulcan::Path.tmp_dir(Vulcan::Path.tmp_hash(@escaped_params[:workflow_name], @user.email))
     begin
@@ -81,21 +81,22 @@ class VulcanV2Controller < Vulcan::Controller
       @remote_manager.mkdir(tmp_dir)
       @remote_manager.clone(@escaped_params[:repo_path], @escaped_params[:branch], tmp_dir)
       @remote_manager.checkout_tag(tmp_dir, @escaped_params[:tag])
+      vulcan_config = @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(tmp_dir))
       # TODO: maybe run a validation on the snakefile, config and the vulcan_config
       obj = Vulcan::WorkflowV2.create(
         project: @escaped_params[:project_name],
-        workflow_name: @escaped_params[:workflow_name],
+        name: @escaped_params[:workflow_name],
         author: @escaped_params[:author],
         repo_remote_url: @remote_manager.get_repo_remote_url(@escaped_params[:repo_path]),
         repo_path: @escaped_params[:repo_path],
+        branch: @escaped_params[:branch],
+        vulcan_config: JSON.pretty_generate(vulcan_config),
         repo_tag: @escaped_params[:tag],
-        config: {}, #TODO: remove this
         created_at: Time.now,
         updated_at: Time.now
       )
       @remote_manager.rmdir(tmp_dir)
-      response = {'workflow_id': obj.id, 'workflow_name': obj.workflow_name}
-      success_json(response)
+      success_json({'workflow_id': obj.id, 'workflow_name': obj.name})
     rescue => e
       @remote_manager.rmdir(tmp_dir)
       Vulcan.instance.logger.log_error(e)
@@ -123,13 +124,13 @@ class VulcanV2Controller < Vulcan::Controller
       workspace_dir = Vulcan::Path.workspace_dir(@escaped_params[:project_name], workspace_hash)
     begin
         @remote_manager.mkdir(workspace_dir)
-        # TODO: we probably want to store the name of the "master" branch
-        @remote_manager.clone(workflow.repo_path, "main", workspace_dir)
+        @remote_manager.clone(workflow.repo_path, workflow.branch, workspace_dir)
         @remote_manager.checkout_tag(workspace_dir, workflow.repo_tag)
-        @remote_manager.mkdir("#{workspace_dir}/tmp/") # create a tmp directory
+        @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
         @remote_manager.upload_dir(Vulcan::Path::SNAKEMAKE_UTILS_DIR, workspace_dir, true)
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
+          name: @params[:workspace_name],
           path: workspace_dir,
           user_email: @user.email,
           created_at: Time.now,
@@ -138,7 +139,7 @@ class VulcanV2Controller < Vulcan::Controller
         response = {
           workspace_id: obj.id,
           workflow_id: obj.workflow_id,
-          workflow_config: workflow.config # TODO: return the vulcan config NOT the regular config
+          vulcan_config: workflow.vulcan_config
         }
         success_json(response)
       rescue => e
@@ -159,12 +160,11 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   def get_workspace
-    # Include last run
     success_json(
       workspace: Vulcan::Workspace.first(
         id: @params[:workspace_id],
         user_email: @user.email
-      ).to_hash)
+      ).to_hash_with_vulcan_config)
   end
 
   def get_dag
@@ -188,12 +188,11 @@ class VulcanV2Controller < Vulcan::Controller
       raise Etna::BadRequest.new(msg)
     end
     begin
-      require 'pry'; binding.pry
       config_path = Vulcan::Path.workspace_config_path(workspace.path)
-      @remote_manager.write_file(config_path, run_config.to_json) # we must write the params of snakemake to a file to read them
+      @remote_manager.write_file(config_path, @params[:run][:params].to_json) # we must write the params of snakemake to a file to read them
       command = Vulcan::SnakemakeCommandBuilder.new
       command.options = {
-        run_until: run_config.keys.last,
+        run_until: @params[:run][:jobs].last,
         config_path: config_path,
         profile_path: Vulcan::Path.profile_dir(workspace.path),
       }
@@ -202,13 +201,12 @@ class VulcanV2Controller < Vulcan::Controller
       obj = Vulcan::Run.create(
         workspace_id: workspace.id,
         slurm_run_uuid: slurm_run_uuid,
-        config_path: config_path[config_path.index('run_config')..-1],
+        config_path: config_path,
         log_path: log,
         created_at: Time.now,
         updated_at: Time.now
       )
-      response = {run_id: obj.id}
-      success_json(response)
+      success_json({run_id: obj.id})
     rescue => e
       Vulcan.instance.logger.log_error(e)
       raise Etna::BadRequest.new(e.message)
@@ -220,7 +218,7 @@ class VulcanV2Controller < Vulcan::Controller
     if workflow_run
       response = {}
       begin
-        config = @remote_manager.read_json_file(workflow_run.run_config_path)
+        config = @remote_manager.read_json_file(workflow_run.config_path)
         job_id_hash = @remote_manager.parse_log_for_slurm_ids(config.keys, workflow_run.snakemake_log_path)
         response = @remote_manager.query_sacct(workflow_run.slurm_run_uuid, job_id_hash)
       rescue => e

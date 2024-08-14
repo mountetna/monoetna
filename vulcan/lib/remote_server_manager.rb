@@ -91,7 +91,8 @@ class Vulcan
     def get_snakemake_log(dir, slurm_run_uuid)
       command = "cd #{Shellwords.escape(dir)} && grep -rl #{slurm_run_uuid} #{Vulcan::Path::WORKSPACE_SNAKEMAKE_LOG_DIR}"
       out = invoke_ssh_command(command)
-      out[:stdout].gsub("\n", "")
+      log = out[:stdout].gsub("\n", "")
+      "#{dir}/#{log}"
     end
 
     def get_dag(dir)

@@ -6,6 +6,7 @@ Sequel.migration do
       Integer :workflow_id, null: false
       foreign_key [:workflow_id], :workflows
 
+      String :name, null: false
       String :user_email, null: false
       String :path, null: false
 

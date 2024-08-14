@@ -6,20 +6,15 @@ class Vulcan
         {
           id: id,
           project: project,
-          # TODO: change to name
-          workflow_name: workflow_name,
+          name: name,
           author: author,
+          branch: branch,
           repo_remote_url: repo_remote_url,
           repo_path: repo_path,
           repo_tag: repo_tag,
-          config: config,
           created_at: created_at,
           updated_at: updated_at
         }
-    end
-
-    def jobs
-      config.keys
     end
 
     def repo_name

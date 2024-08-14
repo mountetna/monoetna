@@ -66,7 +66,7 @@ describe VulcanV2Controller do
   def remove_all_dirs
     remote_manager.rmdir(Vulcan::Path::WORKFLOW_BASE_DIR)
     remote_manager.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR)
-    remote_manager.rmdir(Vulcan::Path::TMPDIR)
+    remote_manager.rmdir(Vulcan::Path::VULCAN_TMP_DIR)
   end
 
   context 'ssh' do
@@ -114,7 +114,7 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(403)
     end
 
-    it 'auth should delete a repo' do
+    it 'should delete a repo if auth passes' do
       auth_header(:superuser)
       post("/api/v2/repo/clone", create_repo_request)
       delete("/api/v2/#{PROJECT}/snakemake-repo")
@@ -124,8 +124,9 @@ describe VulcanV2Controller do
     end
 
     it 'should warn the user if a repo does not exist' do
+      auth_header(:superuser)
       delete("/api/v2/#{PROJECT}/snakemake-repo")
-      expect(last_response.status).to eq(404)
+      expect(last_response.status).to eq(422)
     end
   end
 
@@ -135,7 +136,7 @@ describe VulcanV2Controller do
       post("/api/v2/repo/clone", create_repo_request)
       get("/api/v2/#{PROJECT}/repo")
       expect(last_response.status).to eq(200)
-      expect(json_body["snakemake-repo"].to eq("v1"))
+      expect(json_body[:"snakemake-repo"][0]).to eq("v1")
     end
 
     it 'should list no repos when no repos exist' do
@@ -145,7 +146,7 @@ describe VulcanV2Controller do
   end
 
   context 'pull repo' do
-    before do
+    after do
       remote_manager.delete_tag("/test-utils/available-workflows/snakemake-repo", "v2")
     end
 
@@ -178,14 +179,14 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
 
       # DB object exists
-      obj = Vulcan::WorkflowV2.first(project: PROJECT, workflow_name: "test-workflow")
+      obj = Vulcan::WorkflowV2.first(project: PROJECT, name: "test-workflow")
       expect(obj).to_not be_nil
       expect(obj.project).to eq(PROJECT)
-      expect(obj.workflow_name).to eq("test-workflow")
+      expect(obj.name).to eq("test-workflow")
       expect(obj.author.gsub('\\', '')).to eq("Jane Doe")
       expect(obj.repo_remote_url).to eq("/test-utils/available-workflows/snakemake-repo")
       expect(obj.repo_path).to eq("#{Vulcan::Path::WORKFLOW_BASE_DIR}/#{PROJECT}/snakemake-repo")
-      expect(obj.config).to_not be nil
+      expect(obj.vulcan_config).to_not be nil
     end
 
     it 'should not create a workflow if config is not valid' do
@@ -196,7 +197,7 @@ describe VulcanV2Controller do
       auth_header(:admin)
       post("/api/v2/workflow/publish", publish_workflow_request)
       expect(last_response.status).to eq(200)
-      dirs = remote_manager.list_dirs(Vulcan::Path::TMPDIR)
+      dirs = remote_manager.list_dirs(Vulcan::Path::VULCAN_TMP_DIR)
       expect(dirs).to be_empty
     end
 
@@ -220,7 +221,7 @@ describe VulcanV2Controller do
       auth_header(:editor)
       get("/api/v2/#{PROJECT}/workflows/")
       expect(last_response.status).to eq(200)
-      expect(json_body[:workflows][0][:workflow_name]).to eq("test-workflow")
+      expect(json_body[:workflows][0][:name]).to eq("test-workflow")
     end
 
     it 'should return an empty list when no workflows exist' do
@@ -245,7 +246,8 @@ describe VulcanV2Controller do
       auth_header(:editor)
       get("/api/v2/#{PROJECT}/workflows/")
       request = {
-        workflow_id: json_body[:workflows][0][:id]
+        workflow_id: json_body[:workflows][0][:id],
+        workspace_name: "running-tiger"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
@@ -256,12 +258,12 @@ describe VulcanV2Controller do
       auth_header(:editor)
       get("/api/v2/#{PROJECT}/workflows/")
       request = {
-        workflow_id: json_body[:workflows][0][:id]
+        workflow_id: json_body[:workflows][0][:id],
+        workspace_name: "running-tiger"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
-      require 'pry'; binding.pry
-      expect(remote_manager.file_exists?("#{obj.path}/.git")).to be_truthy
+      expect(remote_manager.dir_exists?("#{obj.path}/.git")).to be_truthy
     end
 
 
@@ -269,7 +271,8 @@ describe VulcanV2Controller do
       auth_header(:editor)
       get("/api/v2/#{PROJECT}/workflows/")
       request = {
-        workflow_id: json_body[:workflows][0][:id]
+        workflow_id: json_body[:workflows][0][:id],
+        workspace_name: "running-tiger"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
@@ -280,7 +283,8 @@ describe VulcanV2Controller do
       auth_header(:editor)
       get("/api/v2/#{PROJECT}/workflows/")
       request = {
-        workflow_id: json_body[:workflows][0][:id]
+        workflow_id: json_body[:workflows][0][:id],
+        workspace_name: "running-tiger"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
@@ -292,7 +296,8 @@ describe VulcanV2Controller do
       get("/api/v2/#{PROJECT}/workflows/")
       workflow_id = json_body[:workflows][0][:id]
       request = {
-          workflow_id: workflow_id
+          workflow_id: workflow_id,
+          workspace_name: "running-tiger"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       expect(last_response.status).to eq(200)
@@ -312,21 +317,21 @@ describe VulcanV2Controller do
 
   end
 
-  context 'list workspaces' do
+  context 'list all workspaces' do
 
     before do
-      auth_header(:guest)
+      auth_header(:admin)
       post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
-      request = {
-        workflow_id: json_body[:workflow_id]
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
     end
 
-
     it 'for a user if it exists' do
-      auth_header(:guest)
+      auth_header(:editor)
+      request = {
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger"
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
       get("/api/v2/#{PROJECT}/workspace/")
       expect(last_response.status).to eq(200)
     end
@@ -340,19 +345,21 @@ describe VulcanV2Controller do
   end
 
 
-  context 'get workspace' do
+  context 'list a specific workspace' do
     before do
-      auth_header(:guest)
+      auth_header(:admin)
       post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
-      request = {
-        workflow_id: json_body[:workflow_id]
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
+
     end
 
     it 'for a user if it exists' do
-      auth_header(:guest)
+      auth_header(:editor)
+      request = {
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger"
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
       workspace_id = json_body[:workspace_id]
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
       expect(last_response.status).to eq(200)
@@ -365,18 +372,19 @@ describe VulcanV2Controller do
     # TODO: add a file exists endpoint here, we don't want to re-run if the files exist
 
     before do
-      auth_header(:guest)
+      auth_header(:editor)
       post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
-        workflow_id: json_body[:workflow_id]
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
     end
 
     it 'writes a file to the workspace' do
       file_to_upload = create_temp_file
-      auth_header(:guest)
+      auth_header(:editor)
       workspace_id = Vulcan::Workspace.all[0].id
       request = {
         files: [file_to_upload]
@@ -395,11 +403,12 @@ describe VulcanV2Controller do
   context 'read files' do
 
     before do
-      auth_header(:guest)
+      auth_header(:editor)
       post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
-        workflow_id: json_body[:workflow_id]
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
     end
@@ -430,7 +439,8 @@ describe VulcanV2Controller do
       post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
-        workflow_id: json_body[:workflow_id]
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
     end
@@ -458,7 +468,8 @@ describe VulcanV2Controller do
       post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
-        workflow_id: json_body[:workflow_id]
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
     end
@@ -492,7 +503,6 @@ describe VulcanV2Controller do
               }
           }
         }
-      require 'pry'; binding.pry
       # TODO: add a meta key that can switch profiles
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run", request)
 

@@ -4,15 +4,23 @@ class Vulcan
     one_to_many :runs
   end
 
+
   def to_hash
     {
-      id: id,
+      workspace_id: id,
+      workspace_name: name,
       workflow_id: workflow_id,
       workflow_name: workflow.name,
       user_email: user_email,
-      path: path,
+      workspace_path: path,
       created_at: created_at,
       updated_at: updated_at
     }
   end
+
+  def to_hash_with_vulcan_config
+    # Use the basic hash and add vulcan_config
+    to_hash.merge(vulcan_config: workflow.vulcan_config)
+  end
+
 end
