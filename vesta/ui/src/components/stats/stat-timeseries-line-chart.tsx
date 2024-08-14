@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import { alpha, useMediaQuery, useTheme } from '@mui/material';
+import { alpha, Fade, useMediaQuery, useTheme } from '@mui/material';
 import ButtonBase from '@mui/material/ButtonBase';
 import { useParentSize } from '@visx/responsive'
 import {
@@ -18,6 +18,7 @@ import Image from 'next/image';
 import { Instance as StatInstance } from './types';
 import Dropdown from '../inputs/dropdown';
 import indicatorArrowDark from '/public/images/icons/indicator-arrow-dark.svg'
+import TooltipContent from '../tooltip/tooltip-content';
 
 
 const dateToLocaleString = (date: Date, includeDay: boolean = true): string => {
@@ -172,13 +173,13 @@ export default function StatTimeseriesLineChart({
     return (
         <Box
             className='stat-graph'
-            sx={(theme) => ({
+            sx={{
                 display: 'flex',
                 flexDirection: 'column',
                 bgcolor: 'magenta.grade50',
                 borderRadius: '30px',
                 overflow: 'hidden',
-            })}
+            }}
         >
             <Box
                 sx={{
@@ -226,12 +227,6 @@ export default function StatTimeseriesLineChart({
                                     },
                                     borderRadius: '40px',
                                     transition: transition,
-                                    // '&.active, &:hover': {
-                                    //     color: 'blue.grade50',
-                                    // },
-                                    // '&.active': {
-                                    //     borderColor: 'blue.grade50',
-                                    // },
                                     '&.selected': {
                                         bgcolor: 'utilityWhite.main',
                                     },
@@ -256,6 +251,9 @@ export default function StatTimeseriesLineChart({
                 sx={{
                     flexGrow: 1,
                     overflow: 'hidden',
+                    '& .visx-tooltip': {
+                        position: 'absolute',
+                    },
                 }}
             >
                 {chartContainerWidth > 0 && chartContainerHeight > 0 &&
@@ -274,24 +272,38 @@ export default function StatTimeseriesLineChart({
                             {...accessors}
                         />
                         <Tooltip<StatInstance<number>>
+                            unstyled
+                            applyPositionStyle
+                            offsetTop={-55}
                             renderTooltip={({ tooltipData }) => {
                                 if (tooltipData?.nearestDatum?.datum === undefined) return <div></div>
                                 const xVal = accessors.xAccessor(tooltipData.nearestDatum.datum)
                                 const yVal = accessors.yAccessor(tooltipData.nearestDatum.datum)
 
+                                // TODO: figure out how to fade out
                                 return (
-                                    <Box>
-                                        {yVal} {yVal === 1 ? dataLabelSingular : dataLabelPlural}
-                                        {', '}
-                                        {xVal.toLocaleDateString()}
-                                    </Box>
+                                    <Fade
+                                        in={true}
+                                        easing={theme.transitions.easing.ease}
+                                        timeout={theme.transitions.duration.ease}
+                                    >
+                                        <Box>
+                                            <TooltipContent>
+                                                <Box>
+                                                    {yVal} {yVal === 1 ? dataLabelSingular : dataLabelPlural}
+                                                    {', '}
+                                                    {xVal.toLocaleDateString()}
+                                                </Box>
+                                            </TooltipContent>
+                                        </Box>
+                                    </Fade>
                                 )
                             }}
                             showDatumGlyph={true}
                         />
                     </XYChart>}
             </Box>
-            {/* TODO?: replace with visx or d3 axis */}
+            {/* TODO: replace with visx or d3 axis? */}
             <Box
                 sx={{
                     borderTop: `1px solid ${alpha('#000', 0.15)}`,

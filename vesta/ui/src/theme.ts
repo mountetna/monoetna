@@ -88,6 +88,7 @@ declare module '@mui/material/styles' {
     pXS: React.CSSProperties;
     p2XS: React.CSSProperties;
     p2XSBoldWt: React.CSSProperties;
+    p2XSMono: React.CSSProperties;
     p3XS: React.CSSProperties;
     p3XSMediumWt: React.CSSProperties;
     p3XSBoldWt: React.CSSProperties;
@@ -128,6 +129,7 @@ declare module '@mui/material/styles' {
     pXS?: React.CSSProperties;
     p2XS?: React.CSSProperties;
     p2XSBoldWt?: React.CSSProperties;
+    p2XSMono?: React.CSSProperties;
     p3XS?: React.CSSProperties;
     p3XSMediumWt?: React.CSSProperties;
     p3XSBoldWt?: React.CSSProperties;
@@ -201,6 +203,7 @@ declare module '@mui/material/Typography' {
     pXS: true;
     p2XS: true;
     p2XSBoldWt: true;
+    p2XSMono: true;
     p3XS: true;
     p3XSMediumWt: true;
     p3XSBoldWt: true;
@@ -377,6 +380,12 @@ let theme = createTheme({
       fontFamily: theFuture.style.fontFamily,
       fontSize: 14,
       fontWeight: 700,
+      lineHeight: '153%',
+      letterSpacing: DEFAULT_LETTER_SPACING,
+    },
+    p2XSMono: {
+      fontFamily: relativeMonoPro10Pitch.style.fontFamily,
+      fontSize: 14,
       lineHeight: '153%',
       letterSpacing: DEFAULT_LETTER_SPACING,
     },

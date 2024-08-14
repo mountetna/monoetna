@@ -2,17 +2,16 @@ import * as React from 'react'
 import Image from "next/image"
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import MUILink from '@mui/material/Link';
 import Collapse from '@mui/material/Collapse'
 import Fade from '@mui/material/Fade'
 import { TransitionProps } from '@mui/material/transitions';
-import Link from 'next/link'
 import ButtonBase from '@mui/material/ButtonBase';
 import { useTheme } from '@mui/material';
 
 import { ProjectCount, ThemeBookProps } from './shared';
 
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
+import Link from '@/components/link/link';
 
 
 export default function ThemeBookVertical({
@@ -136,19 +135,19 @@ export default function ThemeBookVertical({
                         </Box>
 
                         <Box
-                            sx={(theme) => ({
+                            sx={{
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '24px',
-                            })}
+                            }}
                         >
                             <Box
-                                sx={(theme) => ({
+                                sx={{
                                     display: 'flex',
                                     flexDirection: 'column',
                                     gap: '16px',
                                     textAlign: 'left',
-                                })}
+                                }}
                             >
                                 <Typography variant='h5'>
                                     {data.name}
@@ -164,18 +163,16 @@ export default function ThemeBookVertical({
                                     justifyContent: 'flex-end',
                                 }}
                             >
-                                <MUILink
+                                <Link
                                     href={data.projectsLink}
                                     tabIndex={0}
-                                    component={Link}
-                                    underline='none'
-                                    color='utilityHighlight.main'
-                                    bgcolor='ground.grade10'
                                     onClick={e => onClickSeeProjects(e, data.projectsLink)}
                                     sx={{
                                         display: 'inline-flex',
                                         alignItems: 'center',
                                         borderRadius: '60px',
+                                        color: 'utilityHighlight.main',
+                                        bgcolor: 'ground.grade10',
                                     }}
                                 >
                                     <Typography
@@ -187,6 +184,7 @@ export default function ThemeBookVertical({
                                     >
                                         See projects
                                     </Typography>
+                                    
                                     <Box
                                         sx={{
                                             display: 'flex',
@@ -200,7 +198,7 @@ export default function ThemeBookVertical({
                                             height={40}
                                         />
                                     </Box>
-                                </MUILink>
+                                </Link>
                             </Box>
                         </Box>
                     </Box>

@@ -3,36 +3,38 @@
 import * as React from 'react';
 import Container from '@mui/system/Container'
 import Box from '@mui/system/Box'
-import MUILink from '@mui/material/Link';
-import Link from 'next/link'
 import Image from 'next/image';
 
 import logoWordmarkRightLightSrc from '/public/images/logo/logo-wordmark-right-light.svg'
 import Copyright from '../legal/copyright';
 import Contribute from './contribute';
+import { useTheme } from '@mui/material';
+import Link from '../link/link';
 
 
 function NavLink({ text, href }: { text: string, href: string }) {
+    const theme = useTheme()
+    
     return (
         <Box
             component='li'
             sx={{ display: 'block' }}
         >
-            <MUILink
+            <Link
                 href={href}
                 tabIndex={0}
-                component={Link}
-                underline='none'
+                // component={Link}
+                // underline='none'
                 color='ground.grade100'
-                sx={(theme) => ({
+                sx={{
                     typography: 'pBody',
                     [theme.breakpoints.up('tablet')]: {
                         typography: 'pMedium',
                     }
-                })}
+                }}
             >
                 {text}
-            </MUILink>
+            </Link>
         </Box>
     )
 }

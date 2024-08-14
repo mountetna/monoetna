@@ -5,23 +5,21 @@ import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material';
 import ButtonBase from '@mui/material/ButtonBase';
-import MUILink from '@mui/material/Link';
 import Collapse from '@mui/material/Collapse'
 import Fade from '@mui/material/Fade'
 import { TransitionProps } from '@mui/material/transitions';
-import Link from 'next/link'
 import _ from 'lodash';
 
 import { ExternalProjectStatus, getExternalProjectStatus, Project, ProjectHeadingInfoSet } from './models';
 import ProjectStatus from './project-status';
 import ProjectPI from './project-pi';
-
 import projectListingBackshape from '/public/images/project-listing-backshape.svg'
 import ProjectHeadingInfo from './project-heading-info';
 import Image from '../image/image';
 import { useBreakpoint } from '@/lib/utils/responsive';
 import Pill from '../pill/pill';
 import ProjectUserCountPack from './project-user-count-pack';
+import Link from '../link/link';
 
 
 export enum Classes {
@@ -382,12 +380,10 @@ export default function ProjectListing({
                                         </Box>
                                     </Box>
 
-                                    <MUILink
+                                    <Link
                                         // TODO: href
                                         href={'#'}
                                         tabIndex={0}
-                                        component={Link}
-                                        underline='none'
                                         sx={{
                                             display: 'flex',
                                             minWidth: '100%',
@@ -416,7 +412,7 @@ export default function ProjectListing({
                                         >
                                             {userHasAccess ? 'Visit Project' : 'Get Access'}
                                         </Typography>
-                                    </MUILink>
+                                    </Link>
                                 </Box>
 
                                 {/* Description + Properties + Mobile/Desktop Status */}

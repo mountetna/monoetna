@@ -1,7 +1,7 @@
 import * as React from 'react'
-import MUILink from '@mui/material/Link';
-import Link from 'next/link'
 import Box from '@mui/system/Box';
+
+import Link from '../link/link';
 
 
 export default function UCSFHomeLink() {
@@ -23,15 +23,13 @@ export default function UCSFHomeLink() {
 
                 }}
             >
-                <MUILink
+                <Link
                     href="https://www.ucsf.edu/"
                     tabIndex={0}
-                    component={Link}
-                    underline='none'
                     color='utilityUCSFLightNavy.main'
                 >
                     University of California San Francisco
-                </MUILink>
+                </Link>
             </Box>
         </Box>
     )

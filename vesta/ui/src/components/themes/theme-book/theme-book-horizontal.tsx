@@ -2,15 +2,14 @@ import * as React from 'react'
 import Image from "next/image"
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import MUILink from '@mui/material/Link';
 import Collapse from '@mui/material/Collapse'
 import Fade from '@mui/material/Fade'
-import Link from 'next/link'
 import ButtonBase from '@mui/material/ButtonBase';
 
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
 import { ProjectCount, ThemeBookProps } from './shared';
 import { useTheme } from '@mui/material';
+import Link from '@/components/link/link';
 
 
 export default function ThemeBookHorizontal({
@@ -113,11 +112,9 @@ export default function ThemeBookHorizontal({
                                     justifyContent: 'flex-end',
                                 }}
                             >
-                                <MUILink
+                                <Link
                                     href={data.projectsLink}
                                     tabIndex={0}
-                                    component={Link}
-                                    underline='none'
                                     onClick={e => onClickSeeProjects(e, data.projectsLink)}
                                     sx={{
                                         display: 'inline-flex',
@@ -149,7 +146,7 @@ export default function ThemeBookHorizontal({
                                             height={40}
                                         />
                                     </Box>
-                                </MUILink>
+                                </Link>
                             </Box>
                         </Box>
                     </Box>

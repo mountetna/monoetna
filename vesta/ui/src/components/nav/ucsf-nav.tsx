@@ -1,11 +1,9 @@
 import * as React from 'react'
-import MUILink from '@mui/material/Link';
-import Link from 'next/link'
 import Box from '@mui/material/Box';
 import { SxProps, Typography } from '@mui/material';
 
 import { TypographyVariant } from '@/lib/utils/types';
-import Copyright from '../legal/copyright';
+import Link from '../link/link';
 
 
 export enum Classes {
@@ -33,17 +31,15 @@ function NavLink({
 
             }}
         >
-            <MUILink
+            <Link
                 className={Classes.link}
                 href={href}
                 tabIndex={0}
-                component={Link}
-                underline='none'
             >
                 <Typography variant={typography}>
                     {text}
                 </Typography>
-            </MUILink>
+            </Link>
         </Box>
     )
 }
@@ -93,11 +89,9 @@ export default function UCSFNav({
                     display: 'inline-block'
                 }}
             >
-                <MUILink
+                <Link
                     href='https://giving.ucsf.edu/'
                     tabIndex={0}
-                    component={Link}
-                    underline='none'
                     sx={{
                         display: 'inline-block',
                         px: '16px',
@@ -110,7 +104,7 @@ export default function UCSFNav({
                     <Typography variant={buttonTypography}>
                         Donate
                     </Typography>
-                </MUILink>
+                </Link>
             </Box>
         </Box>
     )
