@@ -1,6 +1,4 @@
 import * as React from 'react'
-import MUILink from '@mui/material/Link';
-import Link from 'next/link'
 import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
 import { SxProps, Typography, useTheme } from '@mui/material';
@@ -8,6 +6,7 @@ import { SxProps, Typography, useTheme } from '@mui/material';
 import { TypographyVariant } from '@/lib/utils/types'
 import { Heights as NavBarHeights } from './nav-bar';
 import { useBreakpoint } from '@/lib/utils/responsive';
+import Link from '../link/link';
 
 
 export enum Classes {
@@ -35,12 +34,10 @@ function NavLink({
             className={Classes.linkContainer}
             component='li'
         >
-            <MUILink
+            <Link
                 className={Classes.link}
                 href={href}
                 tabIndex={0}
-                component={Link}
-                underline='none'
                 onClick={onClick}
                 sx={{
                     '&:hover, &:focus': {
@@ -58,7 +55,7 @@ function NavLink({
                 <Typography variant={typography}>
                     {text}
                 </Typography>
-            </MUILink>
+            </Link>
         </Box>
     )
 }

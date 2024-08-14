@@ -4,9 +4,7 @@ import * as React from 'react'
 import Container from '@mui/system/Container'
 import ButtonBase from '@mui/material/ButtonBase';
 import Box from '@mui/system/Box'
-import MUILink from '@mui/material/Link';
 import { Breakpoint, Collapse, SxProps, useTheme } from '@mui/material';
-import Link from 'next/link'
 import Image from 'next/image';
 
 import DLNav, { Classes as DLNavClasses } from './dl-nav'
@@ -22,6 +20,7 @@ import hamburgerIconDarkSrc from '/public/images/icons/hamburger-menu-icon-dark.
 import logoLightSrc from '/public/images/logo/logo-light.svg'
 import logoDarkSrc from '/public/images/logo/logo-dark.svg'
 import wordmarkBottomLightSrc from '/public/images/logo/wordmark-bottom-light.svg'
+import Link from '../link/link';
 
 
 export enum Classes {
@@ -137,12 +136,10 @@ export default function NavBar({
                     },
                 }}
             >
-                <MUILink
+                <Link
                     onClick={handleClickHome}
                     href="/"
                     tabIndex={0}
-                    component={Link}
-                    underline='none'
                     className='home-link'
                     sx={{
                         mt: variant === 'condensed' ? '0px' : '16px',
@@ -231,7 +228,7 @@ export default function NavBar({
                             />
                         </Box>
                     </Box>
-                </MUILink>
+                </Link>
 
                 <Box
                     sx={{

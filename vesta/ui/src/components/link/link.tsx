@@ -4,7 +4,6 @@ import * as React from 'react';
 import MUILink, { LinkProps } from '@mui/material/Link';
 import NextLink from 'next/link'
 import Tooltip from '../tooltip/tooltip';
-import { useTheme } from '@mui/material';
 import TooltipContent from '../tooltip/tooltip-content';
 
 
@@ -24,15 +23,29 @@ export default function Link({
         href,
         tooltip,
         tooltipContent,
+        id,
     } = props
 
-    const theme = useTheme()
+    // Manage getting full href
+    // (using `id` since MUILink doesn't support `ref`)
+    let elID = React.useId()
+    elID = id !== undefined ? id : elID
+
+    const [fullHref, setFullHref] = React.useState(href)
+
+    React.useEffect(() => {
+        const anchorEl = document.getElementById(elID) as HTMLAnchorElement | null
+        if (!anchorEl) return
+
+        setFullHref(anchorEl.href)
+    }, [])
 
     const link = (
         <MUILink
+            {...props}
+            id={elID}
             component={NextLink}
             underline='none'
-            {...props}
         >
             {children}
         </MUILink>
@@ -43,7 +56,7 @@ export default function Link({
             <Tooltip
                 title={tooltipContent ? tooltipContent : (
                     <TooltipContent>
-                        {href}
+                        {fullHref}
                     </TooltipContent>
                 )}
                 followCursor
