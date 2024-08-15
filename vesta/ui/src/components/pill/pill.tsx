@@ -7,7 +7,6 @@ import { SxProps, useTheme } from '@mui/material';
 import Image, { StaticImageData } from 'next/image';
 
 import { TypographyVariant } from '@/lib/utils/types';
-import { useWindowDimensions } from '@/lib/utils/responsive';
 
 
 export enum Classes {
@@ -85,7 +84,7 @@ export default function Pill({
                 variant={typographyVariant}
                 sx={{
                     display: 'inline-flex',
-
+                    color: 'ground.grade10',
                 }}
             >
                 {label}

@@ -1,11 +1,11 @@
 'use client'
 
 import * as React from 'react';
-import { SxProps, Typography, useTheme } from '@mui/material'
+import { Box, SxProps, Typography, BoxProps } from '@mui/material'
 
 
-interface Props {
-    sx?: SxProps
+interface Props extends BoxProps {
+    variant: 'simple' | 'expanded'
 }
 
 
@@ -16,25 +16,66 @@ export default function TooltipContent({
 
     const {
         sx,
+        variant,
     } = props
 
-    const theme = useTheme()
+    switch (variant) {
+        case 'simple':
 
-    return (
-        <Typography
-            component='div'
-            variant='p2XSMono'
-            sx={{
-                m: '0.5em',
-                px: '7px',
-                py: '2px',
-                borderRadius: '8px',
-                bgcolor: 'blue.grade50',
-                color: 'utilityWhite.main',
-                ...(sx ? sx : {}),
-            }}
-        >
-            {children}
-        </Typography>
-    )
+            return (
+                <Box
+                    {...props}
+                    sx={{
+                        p: '0.5em',
+                        ...(sx ? sx : {}),
+                    }}
+                >
+                    <Box
+                        sx={{
+                            px: '7px',
+                            py: '2px',
+                            borderRadius: '8px',
+                            bgcolor: 'blue.grade50',
+                            color: 'utilityWhite.main',
+                        }}
+                    >
+                        <Typography
+                            variant='p2XSMono'
+                            sx={{
+                                color: 'inherit',
+                            }}
+                        >
+                            {children}
+                        </Typography>
+                    </Box>
+                </Box>
+            )
+
+        case 'expanded':
+
+            return (
+                <Box
+                    {...props}
+                    sx={{
+                        p: '10px',
+                        ...(sx ? sx : {}),
+                    }}
+                >
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            p: '10px',
+                            gap: '10px',
+                            borderRadius: '16px',
+                            border: '1px solid',
+                            borderColor: 'utilityHighlight.main',
+                            bgcolor: 'utilityWhite.main',
+                        }}
+                    >
+                        {children}
+                    </Box>
+                </Box>
+            )
+    }
 }

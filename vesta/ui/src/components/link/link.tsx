@@ -55,7 +55,9 @@ export default function Link({
         tooltip || tooltip === undefined ? (
             <Tooltip
                 title={tooltipContent ? tooltipContent : (
-                    <TooltipContent>
+                    <TooltipContent
+                        variant='simple'
+                    >
                         {fullHref}
                     </TooltipContent>
                 )}

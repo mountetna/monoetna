@@ -17,10 +17,10 @@ export default styled(({ className, ...props }: TooltipProps) => (
     />
 ))(() => ({
     [`& .${tooltipClasses.tooltip}`]: {
-        m: '0px',
-        p: '0px',
+        margin: '0px',
+        padding: '0px',
         backgroundColor: 'transparent',
-        // maxWidth: 'none,
+        // maxWidth: 'none',
         border: 'none',
     },
 }));

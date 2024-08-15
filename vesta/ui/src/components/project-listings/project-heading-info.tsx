@@ -8,14 +8,18 @@ import { useMediaQuery, useTheme } from '@mui/material';
 import { ProjectHeadingInfoSet, Project } from './models'
 import Pill from '../pill/pill';
 import ProjectPI from './project-pi';
+import Tooltip from '../tooltip/tooltip';
+import TooltipContent from '../tooltip/tooltip-content';
 
 
 export default function ProjectHeadingInfo({
     projectData,
+    projectOpen,
     infoSet,
     variant = 'default',
 }: {
     projectData: Project,
+    projectOpen: boolean,
     infoSet: ProjectHeadingInfoSet,
     variant: 'default' | 'small',
 }) {
@@ -24,6 +28,11 @@ export default function ProjectHeadingInfo({
         theme.breakpoints.values.mobile,
         theme.breakpoints.values.tablet,
     ))
+
+    const [tooltipOpen, setTooltipOpen] = React.useState(false)
+    const handleSetTooltipOpen = (open: boolean) => {
+        setTooltipOpen(open && !projectOpen)
+    }
 
     switch (infoSet) {
         case ProjectHeadingInfoSet.default:
@@ -98,44 +107,80 @@ export default function ProjectHeadingInfo({
             const typesOverflowCount = Math.max(projectData.dataTypes.length - maxTypesShown, 0)
 
             return (
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        gap: '12.32px',
-                        overflow: 'hidden',
-                        '& *': {
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            textWrap: 'nowrap',
-                        },
-                    }}
-                >
-                    {projectData.dataTypes.slice(0, maxTypesShown).map(dt => (
-                        <Pill
-                            key={dt}
-                            label={dt}
-                            typographyVariant='pMediumMono'
-                            variant='stroked'
-                        />
-                    ))}
-
-                    {typesOverflowCount > 0 && (
-                        <Box
-                            key={`+${typesOverflowCount}dt`}
+                <Tooltip
+                    open={tooltipOpen}
+                    onOpen={() => handleSetTooltipOpen(projectData.dataTypes.length > maxTypesShown || isMobile)}
+                    onClose={() => handleSetTooltipOpen(false)}
+                    title={
+                        <TooltipContent
+                            role='list'
+                            variant='expanded'
                             sx={{
-                                overflow: 'visible',
+                                flexWrap: 'wrap',
                             }}
                         >
-                            <Pill
-                                key={`+${typesOverflowCount}`}
-                                label={`+${typesOverflowCount}`}
-                                typographyVariant='pMediumMono'
-                                variant='stroked'
-                            />
-                        </Box>
-                    )}
-                </Box>
+                            {projectData.dataTypes.map(dt => (
+                                <Box
+                                    key={dt}
+                                    role='listitem'
+                                    sx={{
+                                        display: 'inline-flex',
+                                    }}
+                                >
+                                    <Pill
+                                        label={dt}
+                                        typographyVariant='pMediumMono'
+                                        variant='stroked'
+                                    />
+                                </Box>
+                            ))}
+                        </TooltipContent>
+                    }
+                    followCursor
+                >
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            gap: '12.32px',
+                            overflow: 'hidden',
+                            '& *': {
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                textWrap: 'nowrap',
+                            },
+                        }}
+                    >
+                        {projectData.dataTypes.slice(0, maxTypesShown).map(dt => (
+                            <Box
+                                key={dt}
+                                role='listitem'
+                            >
+                                <Pill
+                                    label={dt}
+                                    typographyVariant='pMediumMono'
+                                    variant='stroked'
+                                />
+                            </Box>
+                        ))}
+
+                        {typesOverflowCount > 0 && (
+                            <Box
+                                key={`+${typesOverflowCount}dt`}
+                                sx={{
+                                    overflow: 'visible',
+                                }}
+                            >
+                                <Pill
+                                    key={`+${typesOverflowCount}`}
+                                    label={`+${typesOverflowCount}`}
+                                    typographyVariant='pMediumMono'
+                                    variant='stroked'
+                                />
+                            </Box>
+                        )}
+                    </Box>
+                </Tooltip>
             )
 
         case ProjectHeadingInfoSet.pis:
@@ -144,53 +189,87 @@ export default function ProjectHeadingInfo({
             const piItemOverlap = '16px'
 
             return (
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        ml: piItemOverlap,
-                        '& > *': {
-                            ml: `-${piItemOverlap} !important`,
-                            zIndex: 1,
-                        },
-                    }}
-                >
-                    {projectData.principalInvestigators.slice(0, maxPIsShown).map(pi => (
-                        <ProjectPI
-                            key={pi.name}
-                            data={pi}
-                            showAvatar={true}
-                            showNameAndTitle={!isMobile && projectData.principalInvestigators.length === 1}
-                        />
-                    ))}
-
-                    {pisOverflowCount > 0 && (
-                        <Typography
-                            key={`+${pisOverflowCount}pi`}
-                            variant='p2XSBoldWt'
-                            component='div'
-                            sx={{
-                                width: '41px',
-                                height: '41px',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                bgcolor: 'magenta.grade50',
-                                color: 'utilityWhite.main',
-                                border: `1px solid ${theme.palette.utilityWhite.main}`,
-                                borderRadius: '50%',
-                            }}
+                <Tooltip
+                    open={tooltipOpen}
+                    onOpen={() => handleSetTooltipOpen(projectData.principalInvestigators.length > 1 || isMobile)}
+                    onClose={() => handleSetTooltipOpen(false)}
+                    title={
+                        <TooltipContent
+                            role='list'
+                            variant='expanded'
                         >
+                            {projectData.principalInvestigators.map(pi => (
+                                <Box
+                                    key={pi.name}
+                                    role='listitem'
+                                >
+                                    <ProjectPI
+                                        data={pi}
+                                        showAvatar
+                                        showNameAndTitle
+                                        variant='filled'
+                                    />
+                                </Box>
+                            ))}
+                        </TooltipContent>
+                    }
+                    followCursor
+                >
+                    <Box
+                        role='list'
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            ml: piItemOverlap,
+                            '& > *': {
+                                ml: `-${piItemOverlap} !important`,
+                                zIndex: 1,
+                            },
+                        }}
+                    >
+                        {projectData.principalInvestigators.slice(0, maxPIsShown).map(pi => (
                             <Box
+                                key={pi.name}
+                                role='listitem'
+                            >
+                                <ProjectPI
+                                    data={pi}
+                                    showAvatar={true}
+                                    showNameAndTitle={!isMobile && projectData.principalInvestigators.length === 1}
+                                />
+                            </Box>
+                        ))}
+
+                        {pisOverflowCount > 0 && (
+                            <Typography
+                                key={`+${pisOverflowCount}pi`}
+                                role='listitem'
+                                variant='p2XSBoldWt'
+                                component='div'
                                 sx={{
-                                    marginLeft: '-2px',
+                                    width: '41px',
+                                    height: '41px',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    bgcolor: 'magenta.grade50',
+                                    color: 'utilityWhite.main',
+                                    border: `1px solid ${theme.palette.utilityWhite.main}`,
+                                    borderRadius: '50%',
                                 }}
                             >
-                                +{pisOverflowCount}
-                            </Box>
-                        </Typography>
-                    )}
-                </Box>
+                                <Box
+                                    sx={{
+                                        marginLeft: '-2px',
+                                    }}
+                                >
+                                    +{pisOverflowCount}
+                                </Box>
+                            </Typography>
+                        )}
+                    </Box>
+                </Tooltip>
             )
     }
 }
+

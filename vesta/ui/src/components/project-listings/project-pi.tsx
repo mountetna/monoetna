@@ -125,15 +125,20 @@ export default function ProjectPI({
                         // '&:hover, &:focus': {
                         //     textWrap: 'nowrap',
                         // },
+                        color: 'ground.grade10',
                     },
                 }}
             >
-                <Typography variant='pBodyBoldWt'>
+                <Typography
+                    variant='pBodyBoldWt'
+                >
                     {data.name}
                 </Typography>
 
                 {data.title &&
-                    <Typography variant='p3XS'>
+                    <Typography
+                        variant='p3XS'
+                    >
                         {data.title}
                     </Typography>
                 }

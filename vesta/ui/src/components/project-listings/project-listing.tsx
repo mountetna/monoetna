@@ -197,6 +197,7 @@ export default function ProjectListing({
 
                     <ProjectHeadingInfo
                         projectData={data}
+                        projectOpen={open}
                         infoSet={headingInfoSet}
                         variant={isDesktop ? 'default' : 'small'}
                     />

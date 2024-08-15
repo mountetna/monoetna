@@ -288,7 +288,9 @@ export default function StatTimeseriesLineChart({
                                         timeout={theme.transitions.duration.ease}
                                     >
                                         <Box>
-                                            <TooltipContent>
+                                            <TooltipContent
+                                                variant='simple'
+                                            >
                                                 <Box>
                                                     {yVal} {yVal === 1 ? dataLabelSingular : dataLabelPlural}
                                                     {', '}
