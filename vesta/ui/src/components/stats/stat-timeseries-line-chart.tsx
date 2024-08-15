@@ -6,11 +6,7 @@ import Typography from '@mui/material/Typography';
 import { alpha, Fade, useMediaQuery, useTheme } from '@mui/material';
 import ButtonBase from '@mui/material/ButtonBase';
 import { useParentSize } from '@visx/responsive'
-import {
-    AnimatedLineSeries,
-    XYChart,
-    Tooltip,
-} from '@visx/xychart';
+import { AnimatedLineSeries, XYChart, Tooltip, TooltipProvider } from '@visx/xychart';
 import { scaleTime } from '@visx/scale'
 import { ScaleTime } from '@visx/vendor/d3-scale'
 import Image from 'next/image';
@@ -102,20 +98,22 @@ function TimeAxis({
 }
 
 
-export default function StatTimeseriesLineChart({
+interface StatTimeseriesLineChartProps {
+    data: StatInstance<number>[];
+    dataLabelSingular: string;
+    dataLabelPlural: string;
+    headingLabel: string;
+    headingValue: number;
+}
+
+
+function StatTimeseriesLineChart({
     data,
     dataLabelSingular,
     dataLabelPlural,
     headingLabel,
     headingValue,
-}: {
-    data: StatInstance<number>[]
-    dataLabelSingular: string,
-    dataLabelPlural: string,
-    headingLabel: string,
-    headingValue: number,
-
-}) {
+}: StatTimeseriesLineChartProps) {
     const [timeWindowVal, setTimeWindowVal] = React.useState<keyof typeof timeWindowOptions>('all')
 
     const theme = useTheme()
@@ -275,6 +273,7 @@ export default function StatTimeseriesLineChart({
                             unstyled
                             applyPositionStyle
                             offsetTop={-55}
+                            showDatumGlyph
                             renderTooltip={({ tooltipData }) => {
                                 if (tooltipData?.nearestDatum?.datum === undefined) return <div></div>
                                 const xVal = accessors.xAccessor(tooltipData.nearestDatum.datum)
@@ -301,7 +300,7 @@ export default function StatTimeseriesLineChart({
                                     </Fade>
                                 )
                             }}
-                            showDatumGlyph={true}
+                          
                         />
                     </XYChart>}
             </Box>
@@ -352,5 +351,13 @@ export default function StatTimeseriesLineChart({
                 />
             </Box>
         </Box>
+    )
+}
+
+export default function (props: StatTimeseriesLineChartProps) {
+    return (
+        <TooltipProvider hideTooltipDebounceMs={0}>
+            <StatTimeseriesLineChart {...props} />
+        </TooltipProvider>
     )
 }
