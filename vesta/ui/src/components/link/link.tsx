@@ -52,7 +52,7 @@ export default function Link({
     )
 
     return (
-        tooltip || tooltip === undefined ? (
+        tooltip ? (
             <Tooltip
                 title={tooltipContent ? tooltipContent : (
                     <TooltipContent

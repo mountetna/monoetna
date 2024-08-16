@@ -8,10 +8,10 @@ import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material';
 
 
-export enum Classes {
-  root = 'toggle-group',
-  toggleRoot = tabClasses.root,
-  toggleSelected = tabClasses.selected,
+export const Classes = {
+  root: 'toggle-group',
+  toggleRoot: tabClasses.root,
+  toggleSelected: tabClasses.selected,
 }
 
 

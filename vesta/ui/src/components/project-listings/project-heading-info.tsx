@@ -136,7 +136,6 @@ export default function ProjectHeadingInfo({
                             ))}
                         </TooltipContent>
                     }
-                    followCursor
                 >
                     <Box
                         sx={{
@@ -213,7 +212,6 @@ export default function ProjectHeadingInfo({
                             ))}
                         </TooltipContent>
                     }
-                    followCursor
                 >
                     <Box
                         role='list'

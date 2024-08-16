@@ -347,7 +347,7 @@ function _ProjectListings({
 
     const handleClickExportButton = async () => {
         await handleExportFile(
-            projectData,
+            filteredProjectData,
             MIME_FILE_FORMATS.csv,
             setFileExportStatus,
             'ucsf-data-library-projects',

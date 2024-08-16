@@ -107,7 +107,7 @@ interface StatTimeseriesLineChartProps {
 }
 
 
-function StatTimeseriesLineChart({
+function _StatTimeseriesLineChart({
     data,
     dataLabelSingular,
     dataLabelPlural,
@@ -354,10 +354,10 @@ function StatTimeseriesLineChart({
     )
 }
 
-export default function (props: StatTimeseriesLineChartProps) {
+export default function StatTimeseriesLineChart(props: StatTimeseriesLineChartProps) {
     return (
         <TooltipProvider hideTooltipDebounceMs={0}>
-            <StatTimeseriesLineChart {...props} />
+            <_StatTimeseriesLineChart {...props} />
         </TooltipProvider>
     )
 }
