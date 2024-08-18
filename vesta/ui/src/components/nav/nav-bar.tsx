@@ -287,13 +287,12 @@ export default function NavBar({
                     <Box
                         sx={{
                             display: 'none',
-                            // width: `${libraryCardTrayWidth}px`,
-                            // height: '1px',
                             [theme.breakpoints.up('desktop')]: {
                                 display: 'block',
                             },
                             '& > *:first-child': {
                                 opacity: 0,
+                                height: '0px',
                             },
                             '& > *:last-child': {
                                 position: 'absolute',
