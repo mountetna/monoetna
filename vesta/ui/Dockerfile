@@ -1,4 +1,4 @@
-# Needed if built on MacOS M-series
+# Needed if built on ARM CPU
 # FROM --platform=linux/amd64 node:18-alpine AS base
 FROM node:18-alpine AS base
 
@@ -42,7 +42,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 # Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
