@@ -66,10 +66,7 @@ export default function NavBar({
     const user = useUser()
 
     const [libraryCardModalOpen, setLibraryCardModalOpen] = React.useState(false)
-
     const [libraryCardTrayOpen, setLibraryCardTrayOpen] = React.useState(false)
-    const libraryCardTrayRef = React.useRef<HTMLElement>()
-    const libraryCardTrayWidth = libraryCardTrayRef.current?.offsetWidth
 
     // Close Library Card Tray when scroll all the way up
     React.useEffect(() => {
@@ -83,12 +80,12 @@ export default function NavBar({
 
     const handleClickHome = (event?: React.MouseEvent<HTMLAnchorElement>) => {
         if (!event) return
-        
+
         if (pathname === (new URL(event.currentTarget.href)).pathname) {
             event.preventDefault()
-    
+
             router.push(event.currentTarget.href, { scroll: false })
-    
+
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth',
@@ -290,21 +287,31 @@ export default function NavBar({
                     <Box
                         sx={{
                             display: 'none',
-                            width: `${libraryCardTrayWidth}px`,
-                            height: '1px',
+                            // width: `${libraryCardTrayWidth}px`,
+                            // height: '1px',
                             [theme.breakpoints.up('desktop')]: {
                                 display: 'block',
                             },
-                            '& > *': {
+                            '& > *:first-child': {
+                                opacity: 0,
+                            },
+                            '& > *:last-child': {
                                 position: 'absolute',
                                 top: '0px',
-                                opacity: libraryCardTrayWidth === undefined ? 0 : 1,
                                 gap: variant === 'condensed' ? '15px' : '26px',
                             },
                         }}
                     >
+                        {/* spacer */}
                         <LibraryCardTray
-                            ref={libraryCardTrayRef}
+                            aria-hidden={true}
+                            open={false}
+                            onSetOpen={() => { }}
+                            user={user}
+                        />
+
+                        {/* actually-interactive el */}
+                        <LibraryCardTray
                             open={libraryCardTrayOpen}
                             onSetOpen={handleSetLibraryCardTrayOpen}
                             user={user}

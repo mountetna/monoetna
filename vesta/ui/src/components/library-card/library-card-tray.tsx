@@ -14,7 +14,7 @@ export enum Classes {
 }
 
 
-interface Props {
+interface Props extends React.HTMLAttributes<HTMLDivElement> {
     open: boolean
     onSetOpen: (open: boolean) => void
     user: User | null
@@ -22,7 +22,7 @@ interface Props {
 
 
 function LibraryCardTray(props: Props, ref: React.ForwardedRef<unknown>) {
-    const { open, onSetOpen, user } = props
+    const { open, onSetOpen, user, ...htmlProps } = props
     const theme = useTheme()
 
     const animationProps: TransitionProps = {
@@ -52,6 +52,7 @@ function LibraryCardTray(props: Props, ref: React.ForwardedRef<unknown>) {
             onClickAway={() => onSetOpen(false)}
         >
             <Box
+                {...htmlProps}
                 ref={ref}
                 className={Classes.root}
                 onClick={() => !open && onSetOpen(true)}
