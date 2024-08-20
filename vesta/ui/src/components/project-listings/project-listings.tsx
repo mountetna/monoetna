@@ -31,15 +31,15 @@ import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
 
 
-const searchableProjectKeys: (keyof SearchableProjectData)[] = ['fullName', 'principalInvestigators', 'type', 'dataTypes', 'theme', 'status']
+const searchableProjectKeys: (keyof SearchableProjectData)[] = ['fullName', 'principalInvestigators', 'type', 'dataTypes', 'theme', 'status', 'hasClinicalData']
 
-interface SearchableProjectData extends Pick<Project, 'fullName' | 'principalInvestigators' | 'type' | 'dataTypes' | 'theme'> {
+interface SearchableProjectData extends Pick<Project, 'fullName' | 'principalInvestigators' | 'type' | 'dataTypes' | 'theme' | 'hasClinicalData'> {
     status: ExternalProjectStatus
 }
 
 interface FilterItem {
     value: (ValueOf<Omit<SearchableProjectData, 'principalInvestigators' | 'dataTypes' | 'theme'>>) | PrincipalInvestigator | DataType
-    type: (keyof Omit<SearchableProjectData, 'principalInvestigators' | 'dataTypes' | 'fullName'>) | 'principalInvestigator' | 'dataType' | 'name'
+    type: (keyof Omit<SearchableProjectData, 'principalInvestigators' | 'dataTypes' | 'fullName'>) | 'principalInvestigator' | 'dataType' | 'name' | 'hasClinicalData'
     label: string;
     key: string;
     projectKey: keyof SearchableProjectData;
@@ -142,6 +142,7 @@ function _ProjectListings({
 
                 switch (projectKey) {
                     case 'type':
+                    case 'hasClinicalData':
                         type = projectKey
                         break
                     case 'status':
@@ -207,6 +208,7 @@ function _ProjectListings({
                 switch (projectKey) {
                     case 'fullName':
                     case 'type':
+                    case 'hasClinicalData':
                         projectValue = project[projectKey]
                         break
                     case 'dataTypes':
@@ -262,6 +264,7 @@ function _ProjectListings({
                 case 'status':
                 case 'dataType':
                 case 'name':
+                case 'hasClinicalData':
                     val = (item.value as string)
                     break
                 case 'principalInvestigator':
@@ -705,6 +708,7 @@ function getFilterItemLabel(value: FilterItem['value'], type: FilterItem['type']
         case 'status':
         case 'dataType':
         case 'theme':
+        case 'hasClinicalData':
             // @ts-ignore
             return value
         case 'principalInvestigator':
@@ -733,6 +737,7 @@ function parseSearchOptionsFromState(state: ProjectsSearchParamsState, searchOpt
                     case 'status':
                     case 'dataType':
                     case 'name':
+                    case 'hasClinicalData':
                         // @ts-ignore
                         optionVal = searchOption.value
                         break

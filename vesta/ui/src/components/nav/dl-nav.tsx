@@ -108,19 +108,19 @@ export default function DLNav({
         >
             <NavLink
                 text='About the Library'
-                href='#about'
+                href='/#about'
                 onClick={handleClickNavLink}
                 typography={linkTypography}
             />
             <NavLink
                 text='Themes'
-                href='#themes'
+                href='/#themes'
                 onClick={handleClickNavLink}
                 typography={linkTypography}
             />
             <NavLink
                 text='Projects'
-                href='#projects'
+                href='/#projects'
                 onClick={handleClickNavLink}
                 typography={linkTypography}
             />

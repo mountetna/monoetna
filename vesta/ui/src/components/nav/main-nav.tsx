@@ -6,13 +6,17 @@ import Box from '@mui/system/Box'
 import { Breakpoint, useTheme } from '@mui/material/styles';
 import _ from 'lodash'
 import { FocusTrap } from '@mui/base';
+import { usePathname } from 'next/navigation';
 
 import UCSFNav, { Classes as UCSFNavClasses } from './ucsf-nav'
 import UCSFHomeLink from './ucsf-home-link';
 import useIsStuck from '@/lib/utils/css';
 import OverlayNav from './overlay-nav';
-import NavBar, { Heights as NavBarHeights, Classes as NavBarClasses } from './nav-bar';
+import NavBar, { Heights as NavBarHeights } from './nav-bar';
 import { useBreakpoint } from '@/lib/utils/responsive';
+
+
+const stickablePaths = ['/']
 
 
 export function getMainNavHeight(breakpoint: Breakpoint): number {
@@ -41,6 +45,9 @@ export default function MainNav() {
 
     const mainNavRef = React.createRef<HTMLElement>()
     const isStuck = useIsStuck(mainNavRef)
+    const pathname = usePathname()
+    const isStickablePath = stickablePaths.includes(pathname)
+    const shouldAndIsStuck = !isStickablePath || isStuck
 
     const handleClickOverlayNavButton = () => {
         setOverlayNavOpen(!overlayNavOpen)
@@ -123,7 +130,7 @@ export default function MainNav() {
                         bgcolor: 'utilityLowlight.main',
                         height: `${NavBarHeights[breakpoint].condensed}px`,
                         overflow: 'visible',
-                        boxShadow: isStuck ? 'rgba(0, 0, 0, 0.15) 0px 0px 22px 0px' : 'rgba(0, 0, 0, 0) 0px 0px 22px 0px',
+                        boxShadow: shouldAndIsStuck ? 'rgba(0, 0, 0, 0.15) 0px 0px 22px 0px' : 'rgba(0, 0, 0, 0) 0px 0px 22px 0px',
                         transition: theme.transitions.create(
                             'box-shadow',
                             {
@@ -143,7 +150,7 @@ export default function MainNav() {
                         onClickNavLink={() => setOverlayNavOpen(false)}
                         sx={{
                             // Compensate for navbar height
-                            pt: `${NavBarHeights[breakpoint][isStuck ? 'condensed' : 'default']}px`,
+                            pt: `${NavBarHeights[breakpoint][shouldAndIsStuck ? 'condensed' : 'default']}px`,
                             // Compensate for UCSF navbar visibile height
                             height: `calc(100vh - ${scrollDistanceToMainNav}px)`,
                             transition: theme.transitions.create(
@@ -160,7 +167,7 @@ export default function MainNav() {
                     />
 
                     <NavBar
-                        variant={isStuck ? 'condensed' : 'default'}
+                        variant={shouldAndIsStuck ? 'condensed' : 'default'}
                         sx={{
                             position: 'absolute',
                             top: 0,

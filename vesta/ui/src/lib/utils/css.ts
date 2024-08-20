@@ -22,7 +22,7 @@ export default function useIsStuck(
         }
 
         const detectorEl = document.createElement('div')
-        detectorEl.style.cssText = 'visibility: hidden'
+        detectorEl.style.visibility = 'hidden'
 
         parentEl.insertBefore(detectorEl, refEl)
 
