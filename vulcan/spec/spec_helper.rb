@@ -29,34 +29,6 @@ OUTER_APP = Rack::Builder.new do
   run Vulcan::Server.new
 end
 
-class TestRemoteServerManager < Vulcan::RemoteServerManager
-  # Auxiliary functions to help with testing but not needed for prod
-  def initialize(ssh_pool)
-    super(ssh_pool)
-  end
-
-  def rmdir(dir)
-    # Exclude all the safety checks for testing purposes
-    command = Shellwords.join(["rm", "-r", "-f", dir])
-    invoke_ssh_command(command)
-  end
-
-  def tag_repo(repo, tag)
-    command = "cd #{Shellwords.escape(repo)} && git tag #{tag}"
-    invoke_ssh_command(command)
-  end
-
-  def delete_tag(repo, tag)
-    command = "cd #{Shellwords.escape(repo)} && git tag -d #{tag}"
-    invoke_ssh_command(command)
-  end
-
-  def tag_exists?(repo, tag)
-    command = "cd #{Shellwords.escape(repo)} && git describe --tags"
-    out = invoke_ssh_command(command)
-    out[:stdout].chomp == tag
-  end
-end
 
 AUTH_USERS = {
   superuser: {
@@ -291,4 +263,103 @@ def configure_etna_yml_ignore_dependencies(value=true)
         ignore_dependencies: value
     })
   })
+end
+
+# For Vulcan V2
+#
+class TestRemoteServerManager < Vulcan::RemoteServerManager
+  # Auxiliary functions to help with testing but not needed for prod
+  def initialize(ssh_pool)
+    super(ssh_pool)
+  end
+
+  def rmdir(dir)
+    # Exclude all the safety checks for testing purposes
+    command = Shellwords.join(["rm", "-r", "-f", dir])
+    invoke_ssh_command(command)
+  end
+
+  def tag_repo(repo, tag)
+    command = "cd #{Shellwords.escape(repo)} && git tag #{tag}"
+    invoke_ssh_command(command)
+  end
+
+  def delete_tag(repo, tag)
+    command = "cd #{Shellwords.escape(repo)} && git tag -d #{tag}"
+    invoke_ssh_command(command)
+  end
+
+  def tag_exists?(repo, tag)
+    command = "cd #{Shellwords.escape(repo)} && git describe --tags"
+    out = invoke_ssh_command(command)
+    out[:stdout].chomp == tag
+  end
+
+  def list_files(dir)
+    command = "cd #{Shellwords.escape(dir)} && ls"
+    out = invoke_ssh_command(command)
+    out[:stdout].split("\n")
+  end
+end
+
+def create_temp_file
+  file = Tempfile.new(['test_file1', '.txt'])
+  file.write("This is a test file, with content 1")
+  file.rewind
+  Rack::Test::UploadedFile.new(file.path, 'text/plain')
+end
+
+#TODO: fix this - use the real file api, so that we can get concrete file names
+
+def create_poem_1
+  file = Tempfile.new(['poem', '.txt'])
+  file_name = 'poem.txt'
+  text = <<~TEXT
+    In the realm of the midnight sky,
+    Where stars whisper and comets fly,
+    A moonlit dance, a celestial show,
+    Unfolding secrets we yearn to know.
+  TEXT
+  file.write(text)
+  file.rewind
+  # Rename the temporary file to the desired filename
+  File.rename(file.path, File.join(File.dirname(file.path), file_name))
+  # Create the UploadedFile object using the renamed file path
+  Rack::Test::UploadedFile.new(File.join(File.dirname(file.path), file_name), 'text/plain')
+end
+
+def create_poem_2
+  file = Tempfile.new(['poem_2', '.txt'])
+  file_name = 'poem_2.txt'
+  text = <<~TEXT
+    A brook babbles secrets to the stones,
+    Tales of ancient earth, of forgotten bones.
+    Sunbeams filter through the emerald canopy,
+    Painting dappled dreams, a verdant tapestry.
+  TEXT
+  file.write(text)
+  file.rewind
+  # Rename the temporary file to the desired filename
+  File.rename(file.path, File.join(File.dirname(file.path), file_name))
+  # Create the UploadedFile object using the renamed file path
+  Rack::Test::UploadedFile.new(File.join(File.dirname(file.path), file_name), 'text/plain')
+end
+
+def write_files_to_workspace(workspace_id)
+  # The first step in the test workflow involves the UI writing files to the workspace
+  auth_header(:editor)
+  poem_1 = create_poem_1
+  poem_2 = create_poem_2
+  request = {
+    files: [poem_1, poem_2]
+  }
+  post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+  expect(last_response.status).to eq(200)
+  [File.basename(poem_1.path), File.basename(poem_2.path)]
+end
+
+def remove_all_dirs
+  remote_manager.rmdir(Vulcan::Path::WORKFLOW_BASE_DIR)
+  remote_manager.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR)
+  remote_manager.rmdir(Vulcan::Path::VULCAN_TMP_DIR)
 end

@@ -3,10 +3,6 @@ configfile: "config.yaml"
 rule checker_ui:
     output:
         "output/ui_check.txt"
-    run:
-        # Logic for generating the UI check output
-        with open(output[0], "w") as f:
-            f.write("UI check completed successfully.\n")
 
 rule summary:
     input:

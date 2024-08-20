@@ -1,5 +1,5 @@
-poem: "output/file.txt"
-poem_2: "output/file2.txt"
+poem: "output/poem.txt"
+poem_2: "output/poem_2.txt"
 count_bytes: True
 count_chars: False
 

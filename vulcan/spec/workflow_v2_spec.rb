@@ -29,46 +29,6 @@ describe VulcanV2Controller do
     remove_all_dirs
   end
 
-  def create_temp_file
-    file = Tempfile.new(['test_file1', '.txt'])
-    file.write("This is a test file, with content 1")
-    file.rewind
-    Rack::Test::UploadedFile.new(file.path, 'text/plain')
-  end
-
-  #TODO: fix this - use the real file api, so that we can get concrete file names
-  def poem_1
-    file = Tempfile.new(['poem1', '.txt'])
-    text = <<~TEXT
-      In the realm of the midnight sky,
-      Where stars whisper and comets fly,
-      A moonlit dance, a celestial show,
-      Unfolding secrets we yearn to know.
-    TEXT
-    file.write(text)
-    file.rewind
-    Rack::Test::UploadedFile.new(file.path, 'text/plain')
-  end
-
-  def poem_2
-    file = Tempfile.new(['poem1', '.txt'])
-    text = <<~TEXT
-      A brook babbles secrets to the stones,
-      Tales of ancient earth, of forgotten bones.
-      Sunbeams filter through the emerald canopy,
-      Painting dappled dreams, a verdant tapestry.
-    TEXT
-    file.write(text)
-    file.rewind
-    Rack::Test::UploadedFile.new(file.path, 'text/plain')
-  end
-
-  def remove_all_dirs
-    remote_manager.rmdir(Vulcan::Path::WORKFLOW_BASE_DIR)
-    remote_manager.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR)
-    remote_manager.rmdir(Vulcan::Path::VULCAN_TMP_DIR)
-  end
-
   context 'ssh' do
     it 'should warn the user and start the API if we cannot establish a ssh connection' do
     end
@@ -372,7 +332,7 @@ describe VulcanV2Controller do
     # TODO: add a file exists endpoint here, we don't want to re-run if the files exist
 
     before do
-      auth_header(:editor)
+      auth_header(:admin)
       post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
@@ -403,7 +363,7 @@ describe VulcanV2Controller do
   context 'read files' do
 
     before do
-      auth_header(:editor)
+      auth_header(:admin)
       post("/api/v2/repo/clone", create_repo_request)
       post("/api/v2/workflow/publish", publish_workflow_request)
       request = {
@@ -452,7 +412,6 @@ describe VulcanV2Controller do
       auth_header(:editor)
       workspace_id = Vulcan::Workspace.all[0].id
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/dag")
-      require 'pry'; binding.pry
       expect(json_body[:dag]).to eq(["count", "arithmetic", "checker", "checker_ui", "summary"])
       # Make sure dummy files are removed
     end
@@ -474,115 +433,140 @@ describe VulcanV2Controller do
       post("/api/v2/#{PROJECT}/workspace/create", request)
     end
 
-    def write_files_to_workspace(workspace_id)
-      # The first step in the test workflow involves the ui writing files to the workspace
-      auth_header(:editor)
-      request = {
-        files: [poem_1, poem_2]
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
-      expect(last_response.status).to eq(200)
-    end
-
-
     it 'invokes the first step of a workflow' do
-      auth_header(:guest)
-      workspace_id = Vulcan::Workspace.all[0].id
-      # First step in the workflow requires files to be written to the workspace
-      write_files_to_workspace(workspace_id)
-      # Now once these files exist we want specify their paths and the other params
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      # First step in the test workflow requires files to be written to the workspace
+      file_names = write_files_to_workspace(workspace.id)
       request = {
-        #workflow_run_id: None,
           run: {
             jobs: ["count"],
             params: {
-                poem: "/output/poem.txt",
-                poem_2: "/output/poem_2.txt",
                 count_bytes: true,
                 count_chars: false
               }
           }
         }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      expect(last_response.status).to eq(200)
+      expect(json_body[:run_id]).to_not be_nil
+      # Outputs are created
+      remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")
+      remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")
+      # Run objects exist
+      obj = Vulcan::Run.first(id: json_body[:run_id])
+      expect(obj).to_not be_nil
+    end
+
+    it 'invokes 3 steps of the workflow' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      # First step in the test workflow requires files to be written to the workspace
+      file_names = write_files_to_workspace(workspace.id)
+      request = {
+        run: {
+          jobs: ["count", "arithmetic", "checker"],
+          params: {
+            count_bytes: true,
+            count_chars: false,
+            add: 2
+          }
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      expect(last_response.status).to eq(200)
+      expect(json_body[:run_id]).to_not be_nil
+      # Outputs are created
+      remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")
+      remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")
+      remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")
+      remote_manager.file_exists?("#{workspace.path}/output/check.txt")
+      # Run objects exist
+      obj = Vulcan::Run.first(id: json_body[:run_id])
+      expect(obj).to_not be_nil
+    end
+
+
+    it 'runs 3 jobs and then the last step' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      # First step in the test workflow requires files to be written to the workspace
+      file_names = write_files_to_workspace(workspace.id)
+      request = {
+        run: {
+          jobs: ["count", "arithmetic", "checker"],
+          params: {
+            poem: "output/#{file_names[0]}",
+            poem_2: "output/#{file_names[1]}",
+            count_bytes: true,
+            count_chars: false,
+            add: 2
+          }
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      expect(last_response.status).to eq(200)
+      expect(json_body[:run_id]).to_not be_nil
+      remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")
+      remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")
+      remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")
+      remote_manager.file_exists?("#{workspace.path}/output/check.txt")
+      # Run objects exist
+      obj = Vulcan::Run.first(id: json_body[:run_id])
+      expect(obj).to_not be_nil
+      # Simulate UI writing a file
+      request = {
+        files: [create_temp_file]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+      expect(last_response.status).to eq(200)
+      # Run the last job
+      request = {
+        run: {
+          jobs: ["summary"]
+          #TODO: deal with case where there are no params
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      expect(last_response.status).to eq(200)
+    end
+
+
+  end
+
+  context 'status checking' do
+
+    before do
+      auth_header(:admin)
+      post("/api/v2/repo/clone", create_repo_request)
+      post("/api/v2/workflow/publish", publish_workflow_request)
+      request = {
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger"
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+    end
+
+    it 'invokes the first step of a workflow' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      # First step in the test workflow requires files to be written to the workspace
+      file_names = write_files_to_workspace(workspace.id)
+      request = {
+        run: {
+          jobs: ["count"],
+          params: {
+            poem: "output/#{file_names[0]}",
+            poem_2: "output/#{file_names[1]}",
+            count_bytes: true,
+            count_chars: false
+          }
+        }
+      }
       # TODO: add a meta key that can switch profiles
-      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run", request)
-
-      # This should return:
-      # - A list of output for each job that has run
-      # - Whether the job was successful
-    end
-
-    it 'invokes 1 step of the workflow and checks status' do
-      auth_header(:guest)
-      workspace_id = Vulcan::Workspace.all[0].id
-      request = {
-        run: {
-          count: {
-            poem: "/test-utils/test-input/poem.txt",
-            poem_2: "/test-utils/test-input/poem_2.txt",
-            count_bytes: true,
-            count_chars: false
-          }
-        }
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run", request)
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      expect(last_response.status).to eq(200)
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{json_body[:run_id]}")
-
-
-      # This should return:
-      # - A list of output for each job that has run
-      # - Whether the job was successful
-    end
-
-
-    it 'invokes 2 steps of the workflow' do
-      auth_header(:guest)
-      workspace_id = Vulcan::Workspace.all[0].id
-      request = {
-        run: {
-          count: {
-            poem: "/test-utils/test-input/poem.txt",
-            poem_2: "/test-utils/test-input/poem_2.txt",
-            count_bytes: true,
-            count_chars: false
-          },
-          arithmetic: {
-            add: true,
-            multiply_by: 10
-          }
-        }
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run", request)
-      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{json_body[:run_id]}")
-      # This should return:
-      # - A list of output for each job that has run
-      # - Whether the job was successful
-    end
-
-
-    it 'runs an entire workflow' do
-      # This should return:
-      # - A list of output for each job that has run
-      # - Whether the job was successful
-    end
-
-    it 'reruns a successful job with different workflow parameters' do
-      # This should:
-      # - Make sure we mirror the new intermediaries created by snakemake to metis or the Vulcan cache
-    end
-
-    it 'reruns a successful job with different snakemake parameters' do
-      # this should:
-      # - make sure we mirror the new intermediaries created by snakemake to metis or the vulcan cache
-    end
-
-    it 'reruns a failed job with different workflow parameters' do
-      # This should:
-      # - Make sure we mirror the new intermediaries created by snakemake to metis or the Vulcan cache
-    end
-
-    it 'reruns a failed job with different snakemake parameters' do
-      # this should:
-      # - make sure we mirror the new intermediaries created by snakemake to metis or the vulcan cache
     end
 
   end

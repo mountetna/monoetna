@@ -52,7 +52,7 @@ class Vulcan
     end
 
     def self.workspace_config_path(workspace_path)
-      "#{workspace_path}/run_config/#{Time.now.to_i}.json"
+      "#{workspace_path}/configs/#{Time.now.to_i}.json"
     end
 
     def self.workspace_output_path(workspace_path)
