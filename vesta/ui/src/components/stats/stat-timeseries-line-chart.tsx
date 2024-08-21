@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import { alpha, Fade, useMediaQuery, useTheme } from '@mui/material';
+import { alpha, Breakpoint, Fade, useMediaQuery, useTheme } from '@mui/material';
 import ButtonBase from '@mui/material/ButtonBase';
 import { useParentSize } from '@visx/responsive'
 import { AnimatedLineSeries, XYChart, Tooltip, TooltipProvider } from '@visx/xychart';
@@ -15,6 +15,7 @@ import { Instance as StatInstance } from './types';
 import Dropdown from '../inputs/dropdown';
 import indicatorArrowDark from '/public/images/icons/indicator-arrow-dark.svg'
 import TooltipContent from '../tooltip/tooltip-content';
+import { useBreakpoint } from '@/lib/utils/responsive';
 
 
 const dateToLocaleString = (date: Date, includeDay: boolean = true): string => {
@@ -300,7 +301,7 @@ function _StatTimeseriesLineChart({
                                     </Fade>
                                 )
                             }}
-                          
+
                         />
                     </XYChart>}
             </Box>
@@ -355,8 +356,11 @@ function _StatTimeseriesLineChart({
 }
 
 export default function StatTimeseriesLineChart(props: StatTimeseriesLineChartProps) {
+    const breakpoint = useBreakpoint()
+    const isDesktop = (['desktop', 'desktopLg'] as Breakpoint[]).includes(breakpoint)
+
     return (
-        <TooltipProvider hideTooltipDebounceMs={0}>
+        <TooltipProvider hideTooltipDebounceMs={isDesktop ? 0 : 2000}>
             <_StatTimeseriesLineChart {...props} />
         </TooltipProvider>
     )
