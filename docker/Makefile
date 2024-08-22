@@ -32,20 +32,20 @@ update-all: compose-ready ## Runs all projects' updates, running bundle and npm 
 .PHONY: up
 up: compose-ready ## Starts up all containers of this project in the background
 	@ set -e; for project in $(compose_projects); do make -C $$project compose-ready; done
-	@ docker-compose up -d
+	@ docker compose up -d
 
 .PHONY: down
 down: docker-compose.yml ## Ends all projects' processes
-	@ docker-compose down --remove-orphans
+	@ docker compose down --remove-orphans
 
 .PHONY: ps
 ps: ## Shows ps of all projects' containers
-	@ docker-compose ps
+	@ docker compose ps
 
 .PHONY: logs
 logs: ## Shows logs of all running projects' containers
-	@ docker-compose logs -f
+	@ docker compose logs -f
 
 .PHONY: logs-recent
 logs-recent: ## For CI
-	@ docker-compose logs
+	@ docker compose logs

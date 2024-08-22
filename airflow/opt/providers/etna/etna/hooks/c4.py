@@ -151,16 +151,14 @@ class C4(SSHBase):
 
             channel.exec_command(cmd)
 
-            while not channel.recv_exit_status():
-                if channel.recv_ready():
+            exit_status = channel.recv_exit_status()
+            if channel.recv_ready():
+                data = channel.recv(1024)
+                while data:
+                    print(data)
                     data = channel.recv(1024)
-                    while data:
-                        print(data)
-                        data = channel.recv(1024)
 
-                exit_status = channel.recv_exit_status()
-                if 0 == exit_status:
-                    print("LFTP GET completed.")
-                    break
-                else:
-                    raise AirflowException(f"Error reading from channel: {data}")
+            if 0 == exit_status:
+                print("LFTP GET completed.")
+            else:
+                raise AirflowException(f"Error reading from channel")

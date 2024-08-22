@@ -20,28 +20,28 @@ compose-ready:: docker-compose.yml images
 	@ true
 
 up:: compose-ready
-	@ docker-compose up -d
+	@ docker compose up -d
 
 down:: docker-compose.yml
-	@ docker-compose down
+	@ docker compose down
 
 ps:: compose-ready
-	@ docker-compose ps
+	@ docker compose ps
 
 restart:: compose-ready
-	@ docker-compose restart
+	@ docker compose restart
 
 bash:: compose-ready
-	@ docker-compose run --rm $(app_service_name) $(containerSh)
+	@ docker compose run --rm $(app_service_name) $(containerSh)
 
 logs:: compose-ready
-	@ docker-compose logs -f
+	@ docker compose logs -f
 
 run-image-test:: compose-ready
-	@ docker-compose up -d
+	@ docker compose up -d
 
 .dockerignore:
 	cp $(call find_project_file,docker,.dockerignore.template) .dockerignore
 
 update:: compose-ready
-	@ docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 ${app_service_name} echo 'Updated'
+	@ docker compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 ${app_service_name} echo 'Updated'
