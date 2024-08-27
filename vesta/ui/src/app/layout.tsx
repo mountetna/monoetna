@@ -49,6 +49,10 @@ import sample34 from '/public/images/library-card/image-samples/34.png'
 import sample35 from '/public/images/library-card/image-samples/35.png'
 import sample36 from '/public/images/library-card/image-samples/36.png'
 
+// Site-level cache configuration
+// https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#revalidate
+export const revalidate = 86400
+
 const IMAGES = [
   sample1,
   sample2,

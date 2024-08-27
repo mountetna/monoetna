@@ -70,10 +70,6 @@ export const metadata: Metadata = {
   title: 'UCSF Data Library',
 }
 
-// Page-level cache configuration
-// https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#revalidate
-export const revalidate = 86400
-
 const VIDEOS = [
   { videoSrc: '/videos/hero/oscc1.mp4', imageSrc: oscc1Fallback },
   { videoSrc: '/videos/hero/xenium.mp4', imageSrc: xeniumFallback },
