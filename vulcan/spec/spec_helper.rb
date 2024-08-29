@@ -91,18 +91,23 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     FactoryBot.find_definitions
-    # DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
 
-  config.around(:each) do |example|
+  # Note: I've had to comment out this code below to get long-ish running tests to work.
+  # This comes at the cost of auto_savepointing... which isn't a bottleneck for us (we don't have complicated nested
+  # transactions)
+  # I've also re-enabled  DatabaseCleaner.strategy = :transaction above
+
+  # config.around(:each) do |example|
     # Unfortunately, DatabaseCleaner + Sequel does not properly handle the auto_savepointing, which means that
     # exceptions handled in rescue blocks do not behave correctly in tests (where as they would be fine outside of
     # tests).  Thus, we are forced to manually handle the transaction wrapping of examples manually to set this option.
     # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
     #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
-    Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
-  end
+  # Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
+  # end
 
   if ENV['RUN_E2E']=='1'
     config.filter_run e2e: true
@@ -302,14 +307,14 @@ class TestRemoteServerManager < Vulcan::RemoteServerManager
   end
 end
 
-def create_temp_file
-  file = Tempfile.new(['test_file1', '.txt'])
+def create_temp_file(file_name)
+  file = Tempfile.new([file_name, '.txt'])
+  file_name_ext = "#{file_name}.txt"
   file.write("This is a test file, with content 1")
   file.rewind
-  Rack::Test::UploadedFile.new(file.path, 'text/plain')
+  File.rename(file.path, File.join(File.dirname(file.path), file_name_ext))
+  Rack::Test::UploadedFile.new(File.join(File.dirname(file.path), file_name_ext), 'text/plain')
 end
-
-#TODO: fix this - use the real file api, so that we can get concrete file names
 
 def create_poem_1
   file = Tempfile.new(['poem', '.txt'])
@@ -355,7 +360,6 @@ def write_files_to_workspace(workspace_id)
   }
   post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
   expect(last_response.status).to eq(200)
-  [File.basename(poem_1.path), File.basename(poem_2.path)]
 end
 
 def remove_all_dirs

@@ -188,11 +188,23 @@ class VulcanV2Controller < Vulcan::Controller
       raise Etna::BadRequest.new(msg)
     end
     begin
+      raise Etna::TooManyRequests.new("workflow is still running...") if @remote_manager.snakemake_is_running?(workspace.path)
       config_path = Vulcan::Path.workspace_config_path(workspace.path)
-      @remote_manager.write_file(config_path, @params[:run][:params].to_json) # we must write the params of snakemake to a file to read them
+      params = @params[:run] && @params[:run][:params] ? @params[:run][:params] : {} # Account for jobs with no params
+
+      # We must always keep an updated version of the params that were used on a workflow.
+      # Snakemake needs this to understand what inputs have changed. # Fetch the last params, and append new params.
+      last_run = Vulcan::Run.where(workspace_id: workspace.id).order(:created_at).last
+      if last_run
+        old_params = @remote_manager.read_json_file(last_run.config_path)
+        params = old_params.merge(params) # params take precedence over old_params
+      end
+      @remote_manager.write_file(config_path, params.to_json) # We must write the params of snakemake to a file to read them
+
+      # Build snakemake commmand
       command = Vulcan::SnakemakeCommandBuilder.new
       command.options = {
-        run_until: @params[:run][:jobs].last,
+        jobs: @params[:run][:jobs],
         config_path: config_path,
         profile_path: Vulcan::Path.profile_dir(workspace.path),
       }
@@ -200,6 +212,7 @@ class VulcanV2Controller < Vulcan::Controller
       log = @remote_manager.get_snakemake_log(workspace.path, slurm_run_uuid)
       obj = Vulcan::Run.create(
         workspace_id: workspace.id,
+        jobs: @params[:run][:jobs].join(','),
         slurm_run_uuid: slurm_run_uuid,
         config_path: config_path,
         log_path: log,
@@ -207,6 +220,9 @@ class VulcanV2Controller < Vulcan::Controller
         updated_at: Time.now
       )
       success_json({run_id: obj.id})
+    rescue Etna::TooManyRequests => e
+      # Re-raise the TooManyRequests exception to avoid handling it as a BadRequest
+      raise e
     rescue => e
       Vulcan.instance.logger.log_error(e)
       raise Etna::BadRequest.new(e.message)
@@ -215,21 +231,18 @@ class VulcanV2Controller < Vulcan::Controller
 
   def get_workflow_status
     workflow_run = Vulcan::Run.first(id: @params[:run_id], workspace_id: @params[:workspace_id])
-    if workflow_run
-      response = {}
-      begin
-        config = @remote_manager.read_json_file(workflow_run.config_path)
-        job_id_hash = @remote_manager.parse_log_for_slurm_ids(config.keys, workflow_run.snakemake_log_path)
-        response = @remote_manager.query_sacct(workflow_run.slurm_run_uuid, job_id_hash)
-      rescue => e
-        Vulcan.instance.logger.log_error(e)
-        raise Etna::BadRequest.new(e.message)
-      end
-    else
-      msg = "Workflow for project: #{@params[:project_name]} does not exist."
-      response = {'Warning': msg}
+    unless workflow_run
+      msg = "Run for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
     end
-    success_json(response)
+    begin
+      job_id_hash = @remote_manager.parse_log_for_slurm_ids(workflow_run.jobs.split(','), workflow_run.log_path)
+      response = @remote_manager.query_sacct(workflow_run.slurm_run_uuid, job_id_hash)
+      success_json(response)
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
   end
 
 

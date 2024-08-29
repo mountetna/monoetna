@@ -25,6 +25,32 @@ describe VulcanV2Controller do
     }
   }
 
+  def check_jobs_status(workspace_id, run_id, job_names, max_attempts = 10, base_delay = 10)
+    attempts = 0
+
+    loop do
+      attempts += 1
+      response = get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{run_id}")
+
+      # Check the status of each job in the response
+      all_jobs_completed = job_names.all? do |job_name|
+        json_response[job_name] == "COMPLETED"
+      end
+
+      # Break the loop if all jobs are completed
+      break if all_jobs_completed
+
+      # Break the loop if maximum attempts have been reached
+      if attempts >= max_attempts
+        raise "Timeout: Maximum attempts reached without all jobs being completed"
+      end
+
+      # Sleep with exponential backoff
+      sleep_duration = base_delay * (2 ** (attempts - 1))
+      sleep(sleep_duration)
+    end
+  end
+
   before do
     remove_all_dirs
   end
@@ -433,11 +459,13 @@ describe VulcanV2Controller do
       post("/api/v2/#{PROJECT}/workspace/create", request)
     end
 
-    it 'invokes the first step of a workflow' do
+    it 'can run the first step of a workflow' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
-      # First step in the test workflow requires files to be written to the workspace
-      file_names = write_files_to_workspace(workspace.id)
+      # First step in the test workflow is a UI step that writes files to the workspace
+      # These are the initial inputs to the workspace.
+      write_files_to_workspace(workspace.id)
+      # Next we run the first snakemake job
       request = {
           run: {
             jobs: ["count"],
@@ -448,21 +476,33 @@ describe VulcanV2Controller do
           }
         }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      run_id = json_body[:run_id]
       expect(last_response.status).to eq(200)
-      expect(json_body[:run_id]).to_not be_nil
+      expect(run_id).to_not be_nil
+
+      # Wait until jobs are completed
+      check_jobs_status(workspace.id, run_id, ["count"])
+
       # Outputs are created
-      remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")
-      remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")
+      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to  be_truthy
       # Run objects exist
-      obj = Vulcan::Run.first(id: json_body[:run_id])
+      obj = Vulcan::Run.first(id: run_id)
       expect(obj).to_not be_nil
+      # Correct config file exists
+      expect(remote_manager.file_exists?(obj.config_path)).to be_truthy
+      config = remote_manager.read_json_file(obj.config_path)
+      expect(config["count_bytes"]).to eq("true")
+      expect(config["count_chars"]).to eq("false")
+      # Log file exists
+      expect(remote_manager.file_exists?(obj.log_path)). to be_truthy
     end
 
-    it 'invokes 3 steps of the workflow' do
+    it 'can run 3 steps of the workflow' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
-      # First step in the test workflow requires files to be written to the workspace
-      file_names = write_files_to_workspace(workspace.id)
+      write_files_to_workspace(workspace.id)
+      # Run the first 3 jobs at once
       request = {
         run: {
           jobs: ["count", "arithmetic", "checker"],
@@ -476,28 +516,91 @@ describe VulcanV2Controller do
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
       expect(last_response.status).to eq(200)
       expect(json_body[:run_id]).to_not be_nil
+      run_id = json_body[:run_id]
+      check_jobs_status(workspace.id, run_id, ["count", "arithmetic", "checker"])
       # Outputs are created
-      remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")
-      remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")
-      remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")
-      remote_manager.file_exists?("#{workspace.path}/output/check.txt")
+      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/check.txt")).to be_truthy
       # Run objects exist
-      obj = Vulcan::Run.first(id: json_body[:run_id])
+      obj = Vulcan::Run.first(id: run_id)
       expect(obj).to_not be_nil
+      # Correct config file exists
+      expect(remote_manager.file_exists?(obj.config_path)).to be_truthy
+      config = remote_manager.read_json_file(obj.config_path)
+      expect(config["count_bytes"]).to eq("true")
+      expect(config["count_chars"]).to eq("false")
+      expect(config["add"]).to eq("2")
+      # Log file exists
+      expect(remote_manager.file_exists?(obj.log_path)).to be_truthy
     end
 
 
-    it 'runs 3 jobs and then the last step' do
+    it 'can run one step and then another' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
-      # First step in the test workflow requires files to be written to the workspace
-      file_names = write_files_to_workspace(workspace.id)
+      write_files_to_workspace(workspace.id)
+      request = {
+        run: {
+          jobs: ["count"],
+          params: {
+            count_bytes: true,
+            count_chars: false,
+          }
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      run_id = json_body[:run_id]
+      check_jobs_status(workspace.id, run_id, ["count"])
+      request = {
+        run: {
+          jobs: ["arithmetic"],
+          params: {
+            add: 2
+          }
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      run_id = json_body[:run_id]
+      check_jobs_status(workspace.id, run_id, ["arithmetic"])
+      # Make sure files exist
+      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")).to be_truthy
+
+      # Make sure two run objects exist
+      runs = Vulcan::Run.all
+      expect(runs.count).to eq(2)
+
+      # Correct config file exists for run 1
+      expect(remote_manager.file_exists?(runs[0].config_path)).to be_truthy
+      config = remote_manager.read_json_file(runs[0].config_path)
+      expect(config["count_bytes"]).to eq("true")
+      expect(config["count_chars"]).to eq("false")
+      expect(config["add"]).to be_nil
+
+      # Correct config file exists for run 2
+      expect(remote_manager.file_exists?(runs[1].config_path)).to be_truthy
+      config = remote_manager.read_json_file(runs[1].config_path)
+      expect(config["count_bytes"]).to eq("true")
+      expect(config["count_chars"]).to eq("false")
+      expect(config["add"]).to be(2)
+
+      # Log file exists
+      expect(remote_manager.file_exists?(runs[0].log_path)).to be_truthy
+      expect(remote_manager.file_exists?(runs[1].log_path)).to be_truthy
+      expect(runs[0].log_path).to_not eq(runs[1].log_path)
+    end
+
+    it 'runs the entire workflow' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
       request = {
         run: {
           jobs: ["count", "arithmetic", "checker"],
           params: {
-            poem: "output/#{file_names[0]}",
-            poem_2: "output/#{file_names[1]}",
             count_bytes: true,
             count_chars: false,
             add: 2
@@ -505,32 +608,54 @@ describe VulcanV2Controller do
         }
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
-      expect(last_response.status).to eq(200)
-      expect(json_body[:run_id]).to_not be_nil
-      remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")
-      remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")
-      remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")
-      remote_manager.file_exists?("#{workspace.path}/output/check.txt")
-      # Run objects exist
-      obj = Vulcan::Run.first(id: json_body[:run_id])
-      expect(obj).to_not be_nil
-      # Simulate UI writing a file
+      run_id = json_body[:run_id]
+      check_jobs_status(workspace.id, run_id, ["count", "arithmetic", "checker"])
+
+      # Next step involves writing another file to the workspace (checker-ui job)
       request = {
-        files: [create_temp_file]
+        files: [create_temp_file("ui_check")]
       }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
-      expect(last_response.status).to eq(200)
-      # Run the last job
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+
+      # Run the last job, there are no params here
       request = {
         run: {
-          jobs: ["summary"]
-          #TODO: deal with case where there are no params
+          jobs: ["summary"],
         }
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
-      expect(last_response.status).to eq(200)
+
+      # New run object is created
+      expect(json_body[:run_id]).to_not be_nil
+      obj = Vulcan::Run.first(id: json_body[:run_id])
+      expect(obj).to_not be_nil
+      # All outputs are created
+      remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")
+      remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")
+      remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")
+      remote_manager.file_exists?("#{workspace.path}/output/ui_check.txt")
+      remote_manager.file_exists?("#{workspace.path}/output/summary.txt")
     end
 
+    it 'alerts if snakemake is still running' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
+      request = {
+        run: {
+          jobs: ["count", "arithmetic", "checker"],
+          params: {
+            count_bytes: true,
+            count_chars: false,
+            add: 2
+          }
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      expect(last_response.status).to eq(429)
+      expect(json_body[:error]).to eq("workflow is still running...")
+    end
 
   end
 

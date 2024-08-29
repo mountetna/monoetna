@@ -3,6 +3,7 @@ configfile: "config.yaml"
 rule checker_ui:
     output:
         "output/ui_check.txt"
+        # Since this is a UI job, we just specify the output, so snakemake can infer the dag
 
 rule summary:
     input:

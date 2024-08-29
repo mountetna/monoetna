@@ -2,6 +2,8 @@ configfile: "config.yaml"
 
 rule count:
     input:
+        # Any jobs that use a config as input and are file paths, must make sure the config values
+        # match the vulcan_config.yaml
         poem1=config["poem"],
         poem2=config["poem_2"]
     output:

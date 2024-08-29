@@ -4,6 +4,7 @@ Sequel.migration do
       primary_key :id
       Integer :workspace_id, null: false
       foreign_key [:workspace_id], :workspaces
+      String :jobs, null: false
       String :slurm_run_uuid, null: false
       String :log_path, null: false
       String :config_path, null: false

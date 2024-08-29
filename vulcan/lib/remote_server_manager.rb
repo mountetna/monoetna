@@ -42,6 +42,31 @@ class Vulcan
       slurm_uuid
     end
 
+
+    def snakemake_is_running?(dir)
+      # Snakemake uses a lock file to ensure that only one instance of Snakemake is running in a particular working directory at a time.
+      # You will run into lock errors if you try to invoke snakemake before the last process has finished running.
+      # The function checks if there are any open files in the .snakemake/log directory.
+      # If any files are open, it assumes that a Snakemake process is running.
+      snakemake_log_dir = "#{Shellwords.escape(dir)}/.snakemake/log"
+      return false unless dir_exists?(snakemake_log_dir)
+      command = "lsof +D #{snakemake_log_dir}"
+      begin
+        result = invoke_ssh_command(command)
+        # Return true if files are open, false otherwise
+        result[:exit_status] == 0
+      rescue RuntimeError => e
+        # invoke_ssh_command raises an error for any return status != 0,
+        # and for some reason lsof seems to always return 1 even when there
+        # are open files. When there are files open lsof displays:
+        # COMMAND PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+        # so we just search for this string in stdout.
+        return true if e.message.include?("COMMAND")
+        return false if e.message.include?("Command exited with status 1")
+        raise "Error checking if Snakemake is running: #{e.message}"
+      end
+    end
+
     def find_string(file, regex, attempts = 3)
       found = nil
       attempts.times do
@@ -368,7 +393,7 @@ class Vulcan
         timeout_thread.kill
 
         if exit_status != 0
-          raise "Command exited with status #{exit_status}. \n Command: #{command} \n Msg: #{stderr_data}"
+          raise "Command exited with status #{exit_status}. \n Command: #{command} \n Msg: #{stderr_data} \n Stdout: #{stdout_data}"
         end
       end
       {command: command, stdout: stdout_data, stderr_or_info: stderr_data, exit_status: exit_status }
