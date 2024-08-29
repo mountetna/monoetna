@@ -1,0 +1,31 @@
+BootStrap: localimage
+From: /home/danb/py-base/py-base.sif
+
+%labels
+    Author Daniel Bunis
+    Maintainer Daniel Bunis
+    python_version 3.8
+    poetry_version 1.1.15
+
+%environment
+    export POETRY_CACHE_DIR="/app/.cache/pypoetry"
+
+%files
+    functions /app/archimedes/functions
+    poetry.lock /app/poetry.lock
+    pyproject.toml /app/pyproject.toml
+
+%post
+    # Singularity's equivalent of Docker's RUN command
+    # The environment variables like FULL_BUILD would be available here
+    cd /app
+    
+    # Install dependencies
+    export POETRY_CACHE_DIR="/app/.cache/pypoetry"
+    echo "export POETRY_CACHE_DIR=${PYTHON_VERSION}" >> $SINGULARITY_ENVIRONMENT
+    poetry config virtualenvs.create false
+    poetry install
+
+%runscript
+    cd /app
+    exec "${@}"
