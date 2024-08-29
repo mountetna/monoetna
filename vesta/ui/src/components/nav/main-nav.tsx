@@ -11,7 +11,7 @@ import { usePathname } from 'next/navigation';
 import UCSFNav, { Classes as UCSFNavClasses } from './ucsf-nav'
 import UCSFHomeLink from './ucsf-home-link';
 import useIsStuck from '@/lib/utils/css';
-import OverlayNav from './overlay-nav';
+import DrawerNav from './drawer-nav';
 import NavBar, { Heights as NavBarHeights } from './nav-bar';
 import { useBreakpoint } from '@/lib/utils/responsive';
 
@@ -31,7 +31,7 @@ export default function MainNav() {
     const [dlNavFocus, setDlNavFocus] = React.useState(false)
 
     React.useEffect(() => {
-        document.body.style.overflow = overlayNavOpen ? 'hidden' : 'visible'
+        // document.body.style.overflow = overlayNavOpen ? 'hidden' : 'visible'
     }, [overlayNavOpen])
 
     const breakpoint = useBreakpoint()
@@ -145,8 +145,9 @@ export default function MainNav() {
                         }
                     }}
                 >
-                    <OverlayNav
+                    <DrawerNav
                         open={overlayNavOpen}
+                        onClose={() => setOverlayNavOpen(false)}
                         onClickNavLink={() => setOverlayNavOpen(false)}
                         sx={{
                             // Compensate for navbar height

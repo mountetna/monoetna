@@ -15,13 +15,15 @@ import { LibraryCardModal } from '../library-card/library-card-modal';
 import { useUser } from '../user/context';
 
 
-export default function OverlayNav({
+export default function DrawerNav({
     open,
+    onClose,
     sx = {},
     onClickNavLink,
     onSetLibraryCardModalOpen,
 }: {
     open: boolean,
+    onClose: () => void,
     sx?: SxProps,
     onClickNavLink?: () => void,
     onSetLibraryCardModalOpen?: (open: boolean) => void,
@@ -45,6 +47,8 @@ export default function OverlayNav({
         <Collapse
             component='nav'
             aria-label='Mobile'
+            // open={open}
+            // onClose={onClose}
             {...animationProps}
         >
             <Fade

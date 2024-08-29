@@ -473,7 +473,12 @@ function _ProjectListings({
                                     options={[...searchOptions].sort((a, b) => a.type.localeCompare(b.type))}
                                     showResultsOnEmpty={false}
                                     // @ts-ignore
-                                    onChange={(_, value: FilterItem[]) => handleChangeFilterItems(value)}
+                                    onChange={(_, value: FilterItem[], reason) => {
+                                        // disable removing options with backspace
+                                        if (reason === 'removeOption') return
+
+                                        handleChangeFilterItems(value)
+                                    }}
                                     value={filterItems}
                                     // @ts-ignore
                                     getOptionKey={(option: FilterItem) => option.key}

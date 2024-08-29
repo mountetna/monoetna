@@ -52,7 +52,6 @@ function Autocomplete<Value>(
   } = useAutocomplete(props);
 
   const rootRef = useForkRef(ref, setAnchorEl);
-  const listBoxRef = React.useRef<HTMLUListElement>(null)
 
   const renderGroupedOptions = () => {
     if (groupedOptions.length === 0) {
@@ -187,13 +186,11 @@ function Autocomplete<Value>(
               borderRadius: '16px',
               m: '10px 0',
               p: '16px',
-              // boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 22px 0px',
               border: `1px solid ${theme.palette.ground.grade75}`
             }}
           >
             <Listbox
               {...getListboxProps()}
-              ref={listBoxRef}
               sx={{
                 listStyle: 'none',
                 maxHeight: '40rem',
@@ -303,9 +300,11 @@ const Option = styled('li')(
 
   &.Mui-focused,
   &.Mui-focusVisible {
+    background-color: ${theme.palette.utilityHighlight.main};
   }
 
   &.Mui-focusVisible {
+    background-color: ${theme.palette.utilityHighlight.main};
   }
 
   &[aria-selected=true].Mui-focused,
