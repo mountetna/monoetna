@@ -18,11 +18,12 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
     open: boolean
     onSetOpen: (open: boolean) => void
     user: User | null
+    disabled?: boolean,
 }
 
 
 function LibraryCardTray(props: Props, ref: React.ForwardedRef<unknown>) {
-    const { open, onSetOpen, user, ...htmlProps } = props
+    const { open, onSetOpen, user, disabled = false, ...htmlProps } = props
     const theme = useTheme()
 
     const animationProps: TransitionProps = {
@@ -103,6 +104,7 @@ function LibraryCardTray(props: Props, ref: React.ForwardedRef<unknown>) {
                     isLoggedIn={user !== null}
                     onClick={() => onSetOpen(!open)}
                     textOverride={open ? 'Hide your Library Card' : undefined}
+                    disabled={disabled}
                 />
             </Box>
         </ClickAwayListener>

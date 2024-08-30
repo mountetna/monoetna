@@ -26,18 +26,36 @@ export enum Classes {
     iconAndHeadingContainer = 'icon-heading-container'
 }
 
-interface ProjectAspect {
+interface ProjectAspectBase {
     title: string
-    propName: keyof Project
-    itemType: 'basic' | 'pill' | 'pi'
+    kind: string
 }
 
-const projectAspects: ProjectAspect[] = [
-    { title: 'Project Type', propName: 'type', itemType: 'basic', },
-    { title: 'Data Types', propName: 'dataTypes', itemType: 'pill', },
-    { title: 'Clinical Data', propName: 'hasClinicalData', itemType: 'basic', },
-    { title: 'Theme', propName: 'theme', itemType: 'pill', },
-    { title: 'Principal Investigators', propName: 'principalInvestigators', itemType: 'pi', },
+interface ProjectAspect extends ProjectAspectBase {
+    title: string
+    propName: keyof Project
+    itemType: 'basic' | 'pill' | 'pi' | 'counted'
+    kind: 'default'
+}
+
+interface CountedProp {
+    label: string
+    propName: keyof Project
+}
+
+interface CountedProjectAspect extends ProjectAspectBase {
+    title: string
+    props: CountedProp[]
+    kind: 'counted'
+}
+
+const projectAspects: (ProjectAspect | CountedProjectAspect)[] = [
+    { title: 'Project Type', propName: 'type', itemType: 'basic', kind: 'default' },
+    { title: 'Lab Metrics', props: [{ label: 'Samples', propName: 'sampleCount' }, { label: 'Assays', propName: 'assayCount' }], kind: 'counted' },
+    { title: 'Data Types', propName: 'dataTypes', itemType: 'pill', kind: 'default' },
+    { title: 'Clinical Data', propName: 'hasClinicalData', itemType: 'basic', kind: 'default' },
+    { title: 'Theme', propName: 'theme', itemType: 'pill', kind: 'default' },
+    { title: 'Principal Investigators', propName: 'principalInvestigators', itemType: 'pi', kind: 'default' },
 ]
 
 
@@ -342,7 +360,7 @@ export default function ProjectListing({
                                                     }}
                                                 >
                                                     <Box>
-                                                        {`${data.userCount} Contributor${data.userCount === 1 ? '' : 's'}`}
+                                                        {`${data.userCount} User${data.userCount === 1 ? '' : 's'}`}
                                                     </Box>
                                                 </Box>
 
@@ -448,7 +466,7 @@ export default function ProjectListing({
                                         {projectAspects.map(aspect => {
                                             return (
                                                 <Box
-                                                    key={aspect.propName}
+                                                    key={aspect.title}
                                                     sx={{
                                                         [theme.breakpoints.up('desktop')]: {
                                                             display: 'grid',
@@ -480,40 +498,68 @@ export default function ProjectListing({
                                                         {aspect.title}
                                                     </Typography>
 
-                                                    <Box
-                                                        className={`${aspect.itemType}-container`}
-                                                        sx={{
-                                                            [theme.breakpoints.up('desktop')]: {
-                                                                gridColumn: 'span 2',
-                                                            },
-                                                        }}
-                                                    >
-                                                        {['basic', 'pill'].includes(aspect.itemType) ? (
+                                                    {aspect.kind === 'default' ? (
+                                                        <Box
+                                                            className={`${aspect.itemType}-container`}
+                                                            sx={{
+                                                                [theme.breakpoints.up('desktop')]: {
+                                                                    gridColumn: 'span 2',
+                                                                },
+                                                            }}
+                                                        >
+                                                            {['basic', 'pill'].includes(aspect.itemType) ? (
 
-                                                            Array.isArray(data[aspect.propName]) ?
-                                                                // @ts-ignore
-                                                                data[aspect.propName].map((d, i) => {
-                                                                    const key = `${aspect.propName}_${i}`
+                                                                Array.isArray(data[aspect.propName]) ?
+                                                                    // @ts-ignore
+                                                                    data[aspect.propName].map((d, i) => {
+                                                                        const key = `${aspect.propName}_${i}`
 
-                                                                    if (aspect.itemType === 'basic') {
-                                                                        return (
+                                                                        if (aspect.itemType === 'basic') {
+                                                                            return (
+                                                                                <Typography
+                                                                                    key={key}
+                                                                                    variant='pMedium'
+                                                                                    sx={{
+                                                                                        gap: '0px',
+                                                                                        color: 'ground.grade10',
+                                                                                    }}
+                                                                                >
+                                                                                    {d}
+                                                                                </Typography>
+                                                                            )
+                                                                        } else {
+                                                                            return (
+                                                                                <Pill
+                                                                                    key={key}
+                                                                                    // @ts-ignore
+                                                                                    label={d}
+                                                                                    typographyVariant='pMediumMono'
+                                                                                    variant='stroked'
+                                                                                    sx={{
+                                                                                        textAlign: 'left'
+                                                                                    }}
+                                                                                />
+                                                                            )
+                                                                        }
+
+                                                                    })
+                                                                    : (
+                                                                        aspect.itemType === 'basic' ? (
                                                                             <Typography
-                                                                                key={key}
+                                                                                key={aspect.propName}
                                                                                 variant='pMedium'
                                                                                 sx={{
                                                                                     gap: '0px',
                                                                                     color: 'ground.grade10',
                                                                                 }}
                                                                             >
-                                                                                {d}
+                                                                                {aspect.propName === 'theme' ? data.theme.name : data[aspect.propName]?.toString()}
                                                                             </Typography>
-                                                                        )
-                                                                    } else {
-                                                                        return (
+                                                                        ) : (
                                                                             <Pill
-                                                                                key={key}
+                                                                                key={aspect.propName}
                                                                                 // @ts-ignore
-                                                                                label={d}
+                                                                                label={aspect.propName === 'theme' ? data.theme.name : data[aspect.propName]?.toString()}
                                                                                 typographyVariant='pMediumMono'
                                                                                 variant='stroked'
                                                                                 sx={{
@@ -521,49 +567,47 @@ export default function ProjectListing({
                                                                                 }}
                                                                             />
                                                                         )
-                                                                    }
-
-                                                                })
-                                                                : (
-                                                                    aspect.itemType === 'basic' ? (
-                                                                        <Typography
-                                                                            key={aspect.propName}
-                                                                            variant='pMedium'
-                                                                            sx={{
-                                                                                gap: '0px',
-                                                                                color: 'ground.grade10',
-                                                                            }}
-                                                                        >
-                                                                            {aspect.propName === 'theme' ? data.theme.name : data[aspect.propName]?.toString()}
-                                                                        </Typography>
-                                                                    ) : (
-                                                                        <Pill
-                                                                            key={aspect.propName}
-                                                                            // @ts-ignore
-                                                                            label={aspect.propName === 'theme' ? data.theme.name : data[aspect.propName]?.toString()}
-                                                                            typographyVariant='pMediumMono'
-                                                                            variant='stroked'
-                                                                            sx={{
-                                                                                textAlign: 'left'
-                                                                            }}
-                                                                        />
                                                                     )
-                                                                )
 
 
-                                                        ) : aspect.propName === 'principalInvestigators' ? (
+                                                            ) : aspect.propName === 'principalInvestigators' ? (
 
-                                                            data[aspect.propName].map((piData, i) => (
-                                                                <ProjectPI
-                                                                    key={`${aspect.propName}_${i}`}
-                                                                    data={piData}
-                                                                    showAvatar={hasOpened}
+                                                                data[aspect.propName].map((piData, i) => (
+                                                                    <ProjectPI
+                                                                        key={`${aspect.propName}_${i}`}
+                                                                        data={piData}
+                                                                        showAvatar={hasOpened}
+                                                                    />
+                                                                ))
+
+                                                            ) : null
+                                                            }
+                                                        </Box>
+                                                    ) : (aspect.kind === 'counted' ? (
+                                                        <Box
+                                                            className='pill-container'
+                                                            sx={{
+                                                                [theme.breakpoints.up('desktop')]: {
+                                                                    gridColumn: 'span 2',
+                                                                },
+                                                            }}
+                                                        >
+                                                            {aspect.props.map(prop => (
+                                                                <Pill
+                                                                    key={prop.label}
+                                                                    label={prop.label}
+                                                                    // @ts-ignore
+                                                                    count={data[prop.propName]}
+                                                                    typographyVariant='pMediumMono'
+                                                                    variant='counter'
+                                                                    sx={{
+                                                                        textAlign: 'left'
+                                                                    }}
                                                                 />
-                                                            ))
-
-                                                        ) : null
-                                                        }
-                                                    </Box>
+                                                            ))}
+                                                        </Box>
+                                                    ) : null
+                                                    )}
                                                 </Box>
                                             )
                                         })}

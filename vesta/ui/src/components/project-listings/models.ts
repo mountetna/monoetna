@@ -49,14 +49,14 @@ export interface Project {
     status: ProjectStatus
     type: ProjectType
     dataTypes: DataType[]
-    hasSamples: boolean
-    hasAssays: boolean
+    sampleCount: number
+    assayCount: number
+    contributorCount: number
     hasClinicalData: string,
     species: string
     startDate: Date
     dataCollectionComplete: boolean
     userCount: number
-
     theme: ThemeData
 }
 
@@ -70,9 +70,9 @@ export enum ExternalProjectStatus {
 export function getExternalProjectStatus(proj: Project): ExternalProjectStatus {
     if (proj.status === ProjectStatus.community) {
         return ExternalProjectStatus.public
-    } else if (proj.hasAssays) {
+    } else if (proj.assayCount) {
         return ExternalProjectStatus.analysis
-    } else if (proj.hasSamples) {
+    } else if (proj.sampleCount) {
         return ExternalProjectStatus.sampling
     } else {
         return ExternalProjectStatus.init

@@ -11,10 +11,12 @@ export default function LibraryCardButton({
     isLoggedIn,
     textOverride,
     onClick,
+    disabled = false,
 }: {
     isLoggedIn: boolean,
     textOverride?: string,
     onClick: () => void,
+    disabled?: boolean,
 }) {
     return (
         <ButtonBase
@@ -30,6 +32,7 @@ export default function LibraryCardButton({
                 borderRadius: '10px',
                 typography: 'pBodyMediumWt',
             }}
+            disabled={disabled}
         >
             {textOverride !== undefined ? textOverride : isLoggedIn ? 'View your Library Card' : 'Get Access'}
         </ButtonBase>

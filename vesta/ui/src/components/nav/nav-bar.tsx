@@ -293,6 +293,9 @@ export default function NavBar({
                             '& > *:first-child': {
                                 opacity: 0,
                                 height: '0px',
+                                '& button:hover': {
+
+                                }
                             },
                             '& > *:last-child': {
                                 position: 'absolute',
@@ -307,6 +310,7 @@ export default function NavBar({
                             open={false}
                             onSetOpen={() => { }}
                             user={user}
+                            disabled={true}
                         />
 
                         {/* actually-interactive el */}

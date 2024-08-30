@@ -13,6 +13,7 @@ export enum Classes {
     base = 'pill',
     filled = 'pill-filled',
     stroked = 'pill-stroked',
+    counter = 'pill-counter',
 }
 
 
@@ -22,6 +23,8 @@ export default function Pill({
     icon,
     iconAlt,
     iconPosition = 'before',
+    // TODO: make CounterPill its own class
+    count,
     variant,
     sx = {},
 }: {
@@ -30,7 +33,8 @@ export default function Pill({
     icon?: StaticImageData,
     iconAlt?: string,
     iconPosition?: 'before' | 'after',
-    variant: 'filled' | 'stroked',
+    count?: number,
+    variant: 'filled' | 'stroked' | 'counter',
     sx?: SxProps,
 }) {
     const theme = useTheme()
@@ -45,15 +49,7 @@ export default function Pill({
         )
     }
 
-    const classes = [Classes.base]
-    switch (variant) {
-        case 'filled':
-            classes.push(Classes.filled)
-            break
-        case 'stroked':
-            classes.push(Classes.stroked)
-            break
-    }
+    const classes = [Classes.base, Classes[variant]]
 
     return (
         <Box
@@ -75,9 +71,30 @@ export default function Pill({
                     border: `1px solid ${theme.palette.ground.grade10}`,
                     background: 'transparent',
                 },
+                [`&.${Classes.counter}`]: {
+                    border: `1px solid ${theme.palette.ground.grade10}`,
+                    background: 'transparent',
+                    py: '3px',
+                    pl: '3px',
+                },
                 ...sx,
             }}
         >
+            {variant === 'counter' && (
+                <Typography
+                    variant={typographyVariant}
+                    sx={{
+                        display: 'inline-flex',
+                        color: 'utilityWhite.main',
+                        bgcolor: 'utilityLowlight.main',
+                        borderRadius: '40px',
+                        px: '7px',
+                    }}
+                >
+                    {count}
+                </Typography>
+            )}
+
             {iconPosition === 'before' && iconEl}
 
             <Typography

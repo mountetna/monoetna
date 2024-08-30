@@ -357,8 +357,9 @@ THEMES.forEach(theme => {
       dataCollectionComplete: randomBool(),
       userCount: faker.helpers.rangeToNumber({ min: 5, max: 100, }),
       theme: theme,
-      hasSamples: randomBool(),
-      hasAssays: randomBool(),
+      sampleCount: randomBool() ? faker.helpers.rangeToNumber({ min: 1, max: 1000, }) : 0,
+      assayCount: randomBool() ? faker.helpers.rangeToNumber({ min: 1, max: 1000, }) : 0,
+      contributorCount: faker.helpers.rangeToNumber({ min: 5, max: 100, }),
     }
 
     PROJECTS.push(project)
