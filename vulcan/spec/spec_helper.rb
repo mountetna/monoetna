@@ -367,3 +367,50 @@ def remove_all_dirs
   remote_manager.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR)
   remote_manager.rmdir(Vulcan::Path::VULCAN_TMP_DIR)
 end
+
+
+def check_jobs_status(job_names, max_attempts = 10, base_delay = 10)
+  attempts = 0
+
+  loop do
+    attempts += 1
+    yield
+
+    # Check the status of each job in the response
+    all_jobs_completed = job_names.all? do |job_name|
+      json_body[job_name.to_sym] == "COMPLETED"
+    end
+
+    # Break the loop if all jobs are completed
+    break if all_jobs_completed
+
+    # Break the loop if maximum attempts have been reached
+    if attempts >= max_attempts
+      raise "Timeout: Maximum attempts reached without all jobs being completed"
+    end
+
+    # Sleep with exponential backoff
+    sleep_duration = base_delay * (2 ** (attempts - 1))
+    sleep(sleep_duration)
+  end
+end
+
+def run_workflow_with_retry(max_attempts = 3, base_delay = 15)
+  attempts = 0
+
+  loop do
+    attempts += 1
+    yield
+
+    if last_response.status == 429
+      if attempts < max_attempts
+        sleep_duration = base_delay * (2 ** (attempts - 1))
+        sleep(sleep_duration)
+      else
+        raise "Request failed after #{attempts} attempts due to 429 status."
+      end
+    else
+      break
+    end
+  end
+end

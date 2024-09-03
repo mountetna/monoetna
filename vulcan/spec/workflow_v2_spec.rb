@@ -25,31 +25,6 @@ describe VulcanV2Controller do
     }
   }
 
-  def check_jobs_status(workspace_id, run_id, job_names, max_attempts = 10, base_delay = 10)
-    attempts = 0
-
-    loop do
-      attempts += 1
-      response = get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{run_id}")
-
-      # Check the status of each job in the response
-      all_jobs_completed = job_names.all? do |job_name|
-        json_response[job_name] == "COMPLETED"
-      end
-
-      # Break the loop if all jobs are completed
-      break if all_jobs_completed
-
-      # Break the loop if maximum attempts have been reached
-      if attempts >= max_attempts
-        raise "Timeout: Maximum attempts reached without all jobs being completed"
-      end
-
-      # Sleep with exponential backoff
-      sleep_duration = base_delay * (2 ** (attempts - 1))
-      sleep(sleep_duration)
-    end
-  end
 
   before do
     remove_all_dirs
@@ -481,7 +456,9 @@ describe VulcanV2Controller do
       expect(run_id).to_not be_nil
 
       # Wait until jobs are completed
-      check_jobs_status(workspace.id, run_id, ["count"])
+      check_jobs_status(["count"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
 
       # Outputs are created
       expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
@@ -513,11 +490,17 @@ describe VulcanV2Controller do
           }
         }
       }
+
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
       expect(last_response.status).to eq(200)
       expect(json_body[:run_id]).to_not be_nil
       run_id = json_body[:run_id]
-      check_jobs_status(workspace.id, run_id, ["count", "arithmetic", "checker"])
+
+      # Make sure jobs are finished
+      check_jobs_status(["count", "arithmetic", "checker"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
+
       # Outputs are created
       expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
       expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
@@ -541,6 +524,7 @@ describe VulcanV2Controller do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
       write_files_to_workspace(workspace.id)
+      # Run the first job
       request = {
         run: {
           jobs: ["count"],
@@ -550,9 +534,15 @@ describe VulcanV2Controller do
           }
         }
       }
+
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      expect(last_response.status).to eq(200)
       run_id = json_body[:run_id]
-      check_jobs_status(workspace.id, run_id, ["count"])
+      check_jobs_status(["count"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
+
+      # Run the next job
       request = {
         run: {
           jobs: ["arithmetic"],
@@ -561,9 +551,18 @@ describe VulcanV2Controller do
           }
         }
       }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      # Sometimes snakemake still needs a minute to shut-down even though slurm reports the job as complete
+      run_workflow_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      end
+      expect(last_response.status).to eq(200)
       run_id = json_body[:run_id]
-      check_jobs_status(workspace.id, run_id, ["arithmetic"])
+
+      # Make sure jobs have finished
+      check_jobs_status(["arithmetic"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
+
       # Make sure files exist
       expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
       expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
@@ -585,7 +584,7 @@ describe VulcanV2Controller do
       config = remote_manager.read_json_file(runs[1].config_path)
       expect(config["count_bytes"]).to eq("true")
       expect(config["count_chars"]).to eq("false")
-      expect(config["add"]).to be(2)
+      expect(config["add"]).to eq("2")
 
       # Log file exists
       expect(remote_manager.file_exists?(runs[0].log_path)).to be_truthy
@@ -597,6 +596,8 @@ describe VulcanV2Controller do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
       write_files_to_workspace(workspace.id)
+
+      # Run the first 3 jobs
       request = {
         run: {
           jobs: ["count", "arithmetic", "checker"],
@@ -609,7 +610,9 @@ describe VulcanV2Controller do
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
       run_id = json_body[:run_id]
-      check_jobs_status(workspace.id, run_id, ["count", "arithmetic", "checker"])
+      check_jobs_status(["count", "arithmetic", "checker"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
 
       # Next step involves writing another file to the workspace (checker-ui job)
       request = {
@@ -623,18 +626,48 @@ describe VulcanV2Controller do
           jobs: ["summary"],
         }
       }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      run_workflow_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      end
 
-      # New run object is created
-      expect(json_body[:run_id]).to_not be_nil
-      obj = Vulcan::Run.first(id: json_body[:run_id])
-      expect(obj).to_not be_nil
-      # All outputs are created
-      remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")
-      remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")
-      remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")
-      remote_manager.file_exists?("#{workspace.path}/output/ui_check.txt")
-      remote_manager.file_exists?("#{workspace.path}/output/summary.txt")
+      run_id = json_body[:run_id]
+
+      # Make sure jobs have finished
+      check_jobs_status(["summary"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
+
+      # Make sure files exist
+      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/check.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_check.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/summary.txt")).to be_truthy
+
+      # Make sure two run objects exist
+      runs = Vulcan::Run.all
+      expect(runs.count).to eq(2)
+
+      # Correct config file exists for run 1
+      expect(remote_manager.file_exists?(runs[0].config_path)).to be_truthy
+      config = remote_manager.read_json_file(runs[0].config_path)
+      expect(config["count_bytes"]).to eq("true")
+      expect(config["count_chars"]).to eq("false")
+      expect(config["add"]).to eq("2")
+
+      # Correct config file exists for run 2
+      expect(remote_manager.file_exists?(runs[1].config_path)).to be_truthy
+      config = remote_manager.read_json_file(runs[1].config_path)
+      expect(config["count_bytes"]).to eq("true")
+      expect(config["count_chars"]).to eq("false")
+      expect(config["add"]).to eq("2")
+
+      # Log file exists
+      expect(remote_manager.file_exists?(runs[0].log_path)).to be_truthy
+      expect(remote_manager.file_exists?(runs[1].log_path)).to be_truthy
+      expect(runs[0].log_path).to_not eq(runs[1].log_path)
+
     end
 
     it 'alerts if snakemake is still running' do
@@ -681,8 +714,6 @@ describe VulcanV2Controller do
         run: {
           jobs: ["count"],
           params: {
-            poem: "output/#{file_names[0]}",
-            poem_2: "output/#{file_names[1]}",
             count_bytes: true,
             count_chars: false
           }
@@ -691,10 +722,10 @@ describe VulcanV2Controller do
       # TODO: add a meta key that can switch profiles
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
       expect(last_response.status).to eq(200)
-      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{json_body[:run_id]}")
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:run_id]}")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:count]).to eq("NOT STARTED")
     end
-
   end
-
 
 end
