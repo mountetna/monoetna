@@ -89,7 +89,6 @@ x-base-etna-services:
       - ./spec/fixtures/v2/git-init.sh:/test-utils/entrypoints/git-init.sh
       - ./spec/fixtures/v2/slurm/slurm-db-init.sh:/test-utils/entrypoints/slurm-db-init.sh
       - ./spec/fixtures/v2/slurm/slurm.conf:/usr/local/etc/slurm.conf
-      - ./spec/fixtures/v2/slurm/slurmdbd.conf:/usr/local/etc/slurmdbd.conf
       - ./spec/fixtures/v2/slurm/cgroup.conf:/usr/local/etc/cgroup.conf
     depends_on:
       - 'vulcan_app'

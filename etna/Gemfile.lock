@@ -209,6 +209,7 @@ DEPENDENCIES
   addressable (~> 2.8.1)
   aspera-cli (>= 4.1.0)
   concurrent-ruby
+  connection_pool (~> 2.2)
   curb
   database_cleaner (= 1.8.5)
   debase
@@ -253,4 +254,4 @@ RUBY VERSION
    ruby 2.7.6p219
 
 BUNDLED WITH
-   2.3.25
+   2.4.22

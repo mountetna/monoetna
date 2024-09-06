@@ -50,3 +50,5 @@ group :test do
   gem 'database_cleaner', '1.8.5'
   gem 'net-http-persistent'
 end
+
+gem "connection_pool", "~> 2.2"
