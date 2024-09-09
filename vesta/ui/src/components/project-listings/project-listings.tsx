@@ -29,6 +29,8 @@ import { useBreakpoint } from '@/lib/utils/responsive';
 import filterLightIcon from '/public/images/icons/filter-light.svg'
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
+import { flattenObject } from '@/lib/utils/object';
+import { FilterMethod } from '../searchable-list/models';
 
 
 const searchableProjectKeys: (keyof SearchableProjectData)[] = ['fullName', 'principalInvestigators', 'type', 'dataTypes', 'theme', 'status', 'hasClinicalData']
@@ -56,6 +58,18 @@ const viewSets: FilterItem[] = Object.entries(ProjectHeadingInfoSet).map(([key, 
     type: 'name',
 }))
 
+const filterMethods: FilterItem[] = Object.entries(FilterMethod).map(([key, label]) => ({
+    label,
+    key,
+    // Placeholder data just to satifsy the shape
+    value: key,
+    projectKey: 'fullName',
+    type: 'name',
+}))
+
+const PIExportAttrs: (keyof PrincipalInvestigator)[] = ['name', 'title']
+const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsLink']
+
 
 // TODO: use separate list component in searchable-list module
 function _ProjectListings({
@@ -63,13 +77,14 @@ function _ProjectListings({
 }: {
     projectData: Project[],
 }) {
-    // Manage search params sync
     const router = useRouter()
     const pathname = usePathname()
+    // Manage search params sync
     const searchParams = useSearchParams()
 
     React.useEffect(() => {
         const parsedSearchParams = parseSearchParams(searchParams)
+
         if (PROJECTS_SEARCH_PARAMS_KEY in parsedSearchParams) {
             const state = parsedSearchParams[PROJECTS_SEARCH_PARAMS_KEY]
             let updatedState = false
@@ -94,6 +109,12 @@ function _ProjectListings({
                 updatedState = true
             }
 
+            const stateFilterMethod = parseFilterMethodFromState(state, filterMethods)
+            if (stateFilterMethod !== undefined && viewSet.key !== stateFilterMethod.key) {
+                setFilterMethod(stateFilterMethod)
+                updatedState = true
+            }
+
             const stateCurrentPage = parseCurrentPageFromState(state)
             if (currentPage !== stateCurrentPage) {
                 setCurrentPage(stateCurrentPage)
@@ -109,7 +130,6 @@ function _ProjectListings({
     const theme = useTheme()
     const breakpoint = useBreakpoint()
     const isMobile = breakpoint === 'mobile'
-    const isDesktop = ['desktop', 'desktopLg'].includes(breakpoint)
 
     const [currentPage, setCurrentPage] = React.useState(0)
     const pageSize = 12
@@ -197,14 +217,16 @@ function _ProjectListings({
 
     const [filterItems, setFilterItems] = React.useState<FilterItem[]>([])
 
+    const [filterMethod, setFilterMethod] = React.useState<(typeof filterMethods)[number]>(filterMethods[0])
+
     const filteredProjectData = projectData
         .filter((project) => {
             if (filterItems.length === 0) return true;
 
-            for (const filterItem of filterItems) {
-
+            function doesFilterItemMatch(filterItem: FilterItem): boolean {
                 const projectKey = filterItem.projectKey
                 let projectValue
+
                 switch (projectKey) {
                     case 'fullName':
                     case 'type':
@@ -217,7 +239,7 @@ function _ProjectListings({
                                 return true
                             }
                         }
-                        continue
+                        return false
                     case 'theme':
                         projectValue = project.theme.name
                         break
@@ -230,15 +252,18 @@ function _ProjectListings({
                                 return true
                             }
                         }
-                        continue
+                        return false
                 }
 
-                if (projectValue === filterItem.value) {
-                    return true
-                }
+                return projectValue === filterItem.value
             }
 
-            return false
+            switch (filterMethod.label) {
+                case FilterMethod.all:
+                    return filterItems.every(item => doesFilterItemMatch(item))
+                case FilterMethod.any:
+                    return filterItems.some(item => doesFilterItemMatch(item))
+            }
         })
 
     const paginatedFilteredProjectData = filteredProjectData
@@ -253,7 +278,7 @@ function _ProjectListings({
 
 
     // Sync url with filter+control states
-    const updateUrl = (filterItems: FilterItem[], viewSet: FilterItem, currentPage: number) => {
+    const updateUrl = (filterItems: FilterItem[], viewSet: FilterItem, filterMethod: FilterItem, currentPage: number) => {
         // get filter states
         const filters: Record<string, string[]> = {}
         filterItems.forEach(item => {
@@ -280,6 +305,7 @@ function _ProjectListings({
         // get control states
         const controls: ProjectsSearchParamsControls = {
             viewSet: viewSet.key,
+            filterMethod: filterMethod.key,
             page: currentPage,
         }
 
@@ -313,7 +339,7 @@ function _ProjectListings({
     const handleSetCurrentPage = (page: number) => {
         closeAllProjects()
         setCurrentPage(page)
-        updateUrl(filterItems, viewSet, page)
+        updateUrl(filterItems, viewSet, filterMethod, page)
     }
 
     const scrollToProject = (nodeRef: React.RefObject<HTMLElement>) => {
@@ -329,7 +355,7 @@ function _ProjectListings({
         setFilterItems(filterItems)
         closeAllProjects()
         setCurrentPage(0)
-        updateUrl(filterItems, viewSet, 0)
+        updateUrl(filterItems, viewSet, filterMethod, 0)
     }
 
     const handleClickRemoveFilterItem = (filterItem: FilterItem) => {
@@ -337,12 +363,17 @@ function _ProjectListings({
         setFilterItems(newFilterItems)
         closeAllProjects()
         setCurrentPage(0)
-        updateUrl(newFilterItems, viewSet, 0)
+        updateUrl(newFilterItems, viewSet, filterMethod, 0)
     }
 
     const handleChangeViewSet = (viewSet: FilterItem) => {
         setViewSet(viewSet)
-        updateUrl(filterItems, viewSet, currentPage)
+        updateUrl(filterItems, viewSet, filterMethod, currentPage)
+    }
+
+    const handleChangeFilterMethod = (filterMethod: FilterItem) => {
+        setFilterMethod(filterMethod)
+        updateUrl(filterItems, viewSet, filterMethod, currentPage)
     }
 
     // Manage file export
@@ -350,7 +381,13 @@ function _ProjectListings({
 
     const handleClickExportButton = async () => {
         await handleExportFile(
-            filteredProjectData,
+            filteredProjectData.map(proj => {
+                const _proj = _.cloneDeep(proj)
+                _proj.theme = _.pick(_proj.theme, ThemeExportAttrs)
+                _proj.principalInvestigators = _proj.principalInvestigators.map(pi => _.pick(pi, PIExportAttrs))
+
+                return flattenObject(_proj, '.', '', true)
+            }),
             MIME_FILE_FORMATS.csv,
             setFileExportStatus,
             'ucsf-data-library-projects',
@@ -578,6 +615,7 @@ function _ProjectListings({
                             <Drawer
                                 items={drawerItems}
                                 viewSetItems={viewSets}
+                                filterMethodItems={filterMethods}
                                 getItemLabel={item => item.label}
                                 getItemKey={item => item.key}
                                 getItemType={item => item.type}
@@ -586,6 +624,22 @@ function _ProjectListings({
                                 activeViewSetItem={viewSet}
                                 onChangeViewSet={handleChangeViewSet}
                                 showViewSets={true}
+                                activeFilterMethodItem={filterMethod}
+                                onChangeFilterMethod={handleChangeFilterMethod}
+                                showFilterMethods={true}
+                                renderFilterMethod={(toggleEl) => (
+                                    <React.Fragment>
+                                        <Typography variant='pBody'>
+                                            Show projects that match
+                                        </Typography>
+
+                                        {toggleEl}
+
+                                        <Typography variant='pBody'>
+                                            filters
+                                        </Typography>
+                                    </React.Fragment>
+                                )}
                                 open={drawerOpen}
                                 showButton={true}
                                 buttonLabel={'Export to CSV'}
@@ -763,6 +817,13 @@ function parseViewSetFromState(state: ProjectsSearchParamsState, viewSets: Filte
     const viewSetValue = state.controls?.viewSet
     if (viewSetValue !== undefined) {
         return viewSets.find(item => item.key === viewSetValue)
+    }
+}
+
+function parseFilterMethodFromState(state: ProjectsSearchParamsState, filterMethods: FilterItem[]): FilterItem | undefined {
+    const filterMethodValue = state.controls?.filterMethod
+    if (filterMethodValue !== undefined) {
+        return filterMethods.find(item => item.key === filterMethodValue)
     }
 }
 

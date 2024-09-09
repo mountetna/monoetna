@@ -66,6 +66,10 @@ import neurodegenerationThemeProjectBg from '/public/images/themes/components/ne
 import womensHealthThemeProjectBg from '/public/images/themes/components/womens-health-projbg.png'
 
 
+// Cache configuration
+// https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#revalidate
+export const revalidate = 86400  // 1 day
+
 export const metadata: Metadata = {
   title: 'UCSF Data Library',
 }

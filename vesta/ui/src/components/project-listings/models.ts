@@ -89,6 +89,7 @@ export const PROJECTS_SEARCH_PARAMS_KEY = 'projects'
 
 export interface ProjectsSearchParamsControls {
     viewSet?: string
+    filterMethod?: string
     page?: number
 }
 

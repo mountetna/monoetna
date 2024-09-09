@@ -4,7 +4,7 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 import Collapse from '@mui/material/Collapse'
 import Fade from '@mui/material/Fade'
-import { useTheme } from '@mui/material';
+import { Typography, useTheme } from '@mui/material';
 
 import { DrawerItem, DisplayStyle, DrawerSectionProps, DrawerSectionClasses, DrawerSectionsContainerClasses, DrawerClasses } from './models';
 import DrawerSectionDefault from './section-default';
@@ -17,7 +17,8 @@ import { useBreakpoint } from '@/lib/utils/responsive'
 
 export default function Drawer<Item>({
     items,
-    viewSetItems,
+    viewSetItems = [],
+    filterMethodItems = [],
     getItemLabel,
     getItemKey,
     getItemType,
@@ -26,6 +27,10 @@ export default function Drawer<Item>({
     activeViewSetItem,
     onChangeViewSet,
     showViewSets,
+    activeFilterMethodItem,
+    onChangeFilterMethod,
+    showFilterMethods,
+    renderFilterMethod = (toggleEl) => toggleEl,
     showButton,
     buttonLabel,
     onClickButton,
@@ -34,7 +39,8 @@ export default function Drawer<Item>({
     displayStyle = 'default',
 }: {
     items: Item[],
-    viewSetItems: Item[],
+    viewSetItems?: Item[],
+    filterMethodItems?: Item[],
     getItemLabel: (item: Item) => string,
     getItemKey: (item: Item) => string,
     getItemType: (item: Item) => string,
@@ -43,6 +49,10 @@ export default function Drawer<Item>({
     activeViewSetItem: Item,
     onChangeViewSet: (activeViewSetItem: Item) => void,
     showViewSets: boolean,
+    activeFilterMethodItem: Item,
+    onChangeFilterMethod: (activeFilterMethodItem: Item) => void,
+    showFilterMethods: boolean,
+    renderFilterMethod?: (toggleEl: React.ReactNode) => React.ReactNode,
     showButton: boolean,
     buttonLabel: string,
     onClickButton: () => void,
@@ -58,6 +68,8 @@ export default function Drawer<Item>({
     const drawerItemsByType: Record<string, DrawerItem[]> = {}
     const viewSetItemsByKey: Record<string, Item> = {}
     const viewSetDrawerItems: DrawerItem[] = []
+    const filterMethodItemsByKey: Record<string, Item> = {}
+    const filterMethodDrawerItems: DrawerItem[] = []
 
     items.forEach(item => {
         const drawerItem: DrawerItem = {
@@ -84,12 +96,22 @@ export default function Drawer<Item>({
         viewSetItemsByKey[drawerItem.key] = item
         viewSetDrawerItems.push(drawerItem)
     })
+    filterMethodItems.forEach(item => {
+        const drawerItem: DrawerItem = {
+            label: getItemLabel(item),
+            key: getItemKey(item),
+            type: getItemType(item),
+        }
+
+        filterMethodItemsByKey[drawerItem.key] = item
+        filterMethodDrawerItems.push(drawerItem)
+    })
 
     const activeKeys = new Set(activeItems.map(item => getItemKey(item)))
 
     // Manage open/close
     // Section open for each item type + View Set section
-    const [sectionOpens, setSectionOpens] = React.useState(Object.keys(drawerItemsByType).map(_ => false).concat([false]))
+    const [sectionOpens, setSectionOpens] = React.useState(Object.keys(drawerItemsByType).map(_ => false).concat([false, false]))
 
     const handleSetSectionOpen = (open: boolean, sectionIndex: number) => {
         const newSectionOpens = [...sectionOpens]
@@ -110,16 +132,17 @@ export default function Drawer<Item>({
         return onChange(newActiveItems)
     }
 
+    // TODO: prepare view sets and filter Methods in helper func
+    // Manage view sets
     const handleClickViewSetItem = (item: DrawerItem) => {
         onChangeViewSet(viewSetItemsByKey[item.key])
     }
 
-    // Manage view sets
     let mobileViewSets
     let tabletDesktopViewSets
     if (showViewSets) {
         const sectionName = 'view'
-        const sectionOpenIdx = sectionOpens.length - 1
+        const sectionOpenIdx = sectionOpens.length - 2
 
         const sectionProps: DrawerSectionProps = {
             name: sectionName,
@@ -154,7 +177,7 @@ export default function Drawer<Item>({
         mobileViewSets = (
             <Box
                 key={sectionName}
-                className={[DrawerSectionClasses.base, DrawerSectionClasses.viewSets].join(' ')}
+                className={[DrawerSectionClasses.base, DrawerSectionClasses.meta].join(' ')}
                 sx={{
                     [theme.breakpoints.up('tablet')]: {
                         display: 'none',
@@ -191,6 +214,97 @@ export default function Drawer<Item>({
                     values={viewSetDrawerItems.map(val => val.label)}
                     onChange={(idx) => onChangeViewSet(viewSetItems[idx])}
                 />
+            </Box>
+        )
+    }
+
+    // Manage filter methods
+    const handleClickFilterMethodItem = (item: DrawerItem) => {
+        onChangeFilterMethod(filterMethodItemsByKey[item.key])
+    }
+
+    let mobileFilterMethods
+    let tabletDesktopFilterMethods
+    if (showFilterMethods) {
+        const sectionName = 'filter-method'
+        const sectionOpenIdx = sectionOpens.length - 1
+
+        const sectionProps: DrawerSectionProps = {
+            name: sectionName,
+            items: filterMethodDrawerItems,
+            activeKeys: new Set([getItemKey(activeFilterMethodItem)]),
+            onClickItem: handleClickFilterMethodItem
+        }
+
+        let drawerSection
+        switch (displayStyle) {
+            case 'default':
+                drawerSection = (
+                    <DrawerSectionDefault
+                        key={sectionName}
+                        {...sectionProps}
+                    />
+                )
+                break
+            case 'expandable':
+                drawerSection = (
+                    <DrawerSectionExpandable
+                        key={sectionName}
+                        open={sectionOpens[sectionOpenIdx]}
+                        onSetOpen={(open) => handleSetSectionOpen(open, sectionOpenIdx)}
+                        variant='withBackground'
+                        {...sectionProps}
+                    />
+                )
+                break
+        }
+
+        mobileFilterMethods = (
+            <Box
+                key={sectionName}
+                className={[DrawerSectionClasses.base, DrawerSectionClasses.meta].join(' ')}
+                sx={{
+                    [theme.breakpoints.up('tablet')]: {
+                        display: 'none',
+                    },
+                }}
+            >
+                {drawerSection}
+            </Box>
+        )
+
+        let activeFilterMethodItemIndex = 0
+        const activeFilterMethodItemKey = getItemKey(activeFilterMethodItem)
+        for (const [idx, item] of filterMethodDrawerItems.entries()) {
+            if (activeFilterMethodItemKey === item.key) {
+                activeFilterMethodItemIndex = idx
+                break
+            }
+        }
+
+        tabletDesktopFilterMethods = (
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: '10px',
+                    [`& .${ToggleGroupClasses.root}`]: {
+                        bgcolor: 'utilityHighlight.main',
+                        borderRadius: '40px',
+                        [`& .${ToggleGroupClasses.toggleRoot}:not(.${ToggleGroupClasses.toggleSelected})`]: {
+                            bgcolor: 'utilityWhite.main',
+                        },
+                    },
+                }}
+            >
+                {renderFilterMethod(
+                    <ToggleGroup
+                        valueIdx={activeFilterMethodItemIndex}
+                        values={filterMethodDrawerItems.map(val => val.label)}
+                        onChange={(idx) => onChangeFilterMethod(filterMethodItems[idx])}
+                    />
+                )}
             </Box>
         )
     }
@@ -257,15 +371,26 @@ export default function Drawer<Item>({
                                 display: 'none',
                                 [theme.breakpoints.up('tablet')]: {
                                     display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '12px',
+                                },
+                                '& > *': {
+                                    display: 'flex',
                                     flexDirection: 'row',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
-                                },
+                                }
                             }}
                         >
-                            {tabletDesktopViewSets}
+                            <Box>
+                                {tabletDesktopViewSets}
 
-                            {tabletDesktopButton}
+                                {tabletDesktopButton}
+                            </Box>
+
+                            <Box>
+                                {tabletDesktopFilterMethods}
+                            </Box>
                         </Box>
 
                         <Box
@@ -287,14 +412,14 @@ export default function Drawer<Item>({
                                     '& > *:not(:last-child)': {
                                         borderRight: `1px solid ${theme.palette.ground.grade75}`,
                                     },
-                                    [`& .${DrawerSectionClasses.viewSets}`]: {
+                                    [`& .${DrawerSectionClasses.meta}`]: {
                                     },
                                 },
                                 [`& .${DrawerSectionClasses.default}`]: {
                                 },
                                 [`&.${DrawerSectionsContainerClasses.expandable}`]: {
                                     flexDirection: 'column',
-                                    [`& .${DrawerSectionClasses.viewSets}`]: {
+                                    [`& .${DrawerSectionClasses.meta}`]: {
                                     },
                                 },
                                 [`& .${DrawerSectionClasses.expandable}`]: {
@@ -305,6 +430,8 @@ export default function Drawer<Item>({
                             }}
                         >
                             {mobileViewSets}
+
+                            {mobileFilterMethods}
 
                             {/* TODO: make separate container components? */}
                             {Object.entries(drawerItemsByType).map(([section, items], index) => {

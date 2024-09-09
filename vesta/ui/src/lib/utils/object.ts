@@ -1,12 +1,12 @@
 // From https://www.30secondsofcode.org/js/s/flatten-unflatten-object/
 // Flattening and unflattening objects might result in data loss--especially if the keys contain the delimiter.
 // Always be careful about handling and transforming data.
-export function flattenObject(obj: Record<string, any>, delimiter = '.', prefix = ''): Record<string, any> {
+export function flattenObject(obj: Record<string, any>, delimiter = '.', prefix = '', flattenArrays: boolean = false): Record<string, any> {
     return Object.keys(obj).reduce((acc: Record<string, any>, k) => {
         const pre = prefix.length ? `${prefix}${delimiter}` : '';
         if (
             typeof obj[k] === 'object' &&
-            !Array.isArray(obj[k]) &&
+            (!Array.isArray(obj[k]) || flattenArrays) &&
             obj[k] !== null &&
             Object.keys(obj[k]).length > 0
         )

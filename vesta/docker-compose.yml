@@ -89,8 +89,6 @@ x-base-etna-services:
     environment:
       APP_NAME: 'vesta_app_fe'
 
-version: '3.4'
-
 networks:
   edge_net:
     ipam:

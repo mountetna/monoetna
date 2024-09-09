@@ -27,7 +27,7 @@ export enum DrawerSectionsContainerClasses {
 
 export enum DrawerSectionClasses {
     base = 'drawer-section',
-    viewSets = 'drawer-section-view-sets',
+    meta = 'drawer-section-meta',
     default = 'drawer-section-default',
     expandable = 'drawer-section-expandable',
 }
