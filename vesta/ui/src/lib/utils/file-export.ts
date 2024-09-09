@@ -1,4 +1,5 @@
 import ExcelJS from 'exceljs';
+import { toSvg, toPng } from 'html-to-image';
 
 
 export enum MIME_FILE_FORMATS {
@@ -91,3 +92,38 @@ export async function handleExportFile<T extends Record<string, any>>(
         onChangeStatus(FILE_EXPORT_STATUS.error)
     }
 };
+
+export async function handleExportElementToImage(
+    element: HTMLElement,
+    fileFormat: 'svg' | 'png',
+    onChangeStatus: (status: FILE_EXPORT_STATUS) => void,
+    fileNamePrefix: string,
+) {
+    onChangeStatus(FILE_EXPORT_STATUS.inProgress)
+
+    try {
+        let converter
+        switch (fileFormat) {
+            case 'svg':
+                converter = toSvg
+                break
+            case 'png':
+                converter = toPng
+                break
+        }
+
+        const imageUrl = await converter(element)
+        const filename = `${fileNamePrefix}.${fileFormat}`;
+
+        const a = document.createElement('a');
+        a.setAttribute('href', imageUrl);
+        a.setAttribute('download', filename);
+        a.click();
+        a.remove();
+
+        onChangeStatus(FILE_EXPORT_STATUS.success)
+    } catch (error) {
+        onChangeStatus(FILE_EXPORT_STATUS.error)
+        console.error('Error saving image', error)
+    }
+}

@@ -97,7 +97,7 @@ const ABOUT_ITEMS = [
     link: {
       header: 'Working on something great?',
       blurb: 'We’re always looking for new data and projects to make more accessible.',
-      href: '#',
+      href: '/#contribute',
       label: 'Get in touch',
     },
     image: {

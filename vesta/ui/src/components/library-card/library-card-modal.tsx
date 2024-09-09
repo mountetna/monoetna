@@ -9,12 +9,11 @@ import Slide from '@mui/material/Slide';
 import { useTheme } from '@mui/material/styles';
 import { Modal as BaseModal } from '@mui/base/Modal';
 import Typography from '@mui/material/Typography';
-import { toSvg } from 'html-to-image';
 
 import LibraryCard from './library-card';
 import { TypographyVariant } from '@/lib/utils/types';
 import { User } from '../user/models';
-import { FILE_EXPORT_STATUS } from '@/lib/utils/file-export';
+import { FILE_EXPORT_STATUS, handleExportElementToImage } from '@/lib/utils/file-export';
 
 
 export function LibraryCardModal({
@@ -28,32 +27,21 @@ export function LibraryCardModal({
 }) {
     const theme = useTheme()
 
+    const textTypography: TypographyVariant = 'pBodyMediumWt'
+    
     const libraryCardRef = React.useRef<HTMLElement>()
     const [saveImageState, setSaveImageState] = React.useState(FILE_EXPORT_STATUS.idle)
 
-    const textTypography: TypographyVariant = 'pBodyMediumWt'
-
     const handleClickSave = async () => {
-        setSaveImageState(FILE_EXPORT_STATUS.inProgress)
-
         const el = libraryCardRef.current
         if (!el) return
 
-        try {
-            const imageUrl = await toSvg(el)
-            const filename = `UCSF Data Library Card - ${user.name}.svg`;
-
-            const a = document.createElement('a');
-            a.setAttribute('href', imageUrl);
-            a.setAttribute('download', filename);
-            a.click();
-            a.remove();
-
-            setSaveImageState(FILE_EXPORT_STATUS.success)
-        } catch (error) {
-            setSaveImageState(FILE_EXPORT_STATUS.error)
-            console.error('Error saving image', error)
-        }
+        await handleExportElementToImage(
+            el,
+            'svg',
+            (status) => setSaveImageState(status),
+            `UCSF Data Library Card - ${user.name}`,
+        )
     }
 
     return (

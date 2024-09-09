@@ -1,5 +1,6 @@
 import * as React from 'react';
 import ButtonBase from '@mui/material/ButtonBase';
+import { Typography } from '@mui/material';
 
 
 export enum Classes {
@@ -30,11 +31,12 @@ export default function LibraryCardButton({
                 color: 'utilityHighlight.main',
                 backgroundColor: 'blue.grade50',
                 borderRadius: '10px',
-                typography: 'pBodyMediumWt',
             }}
             disabled={disabled}
         >
-            {textOverride !== undefined ? textOverride : isLoggedIn ? 'View your Library Card' : 'Get Access'}
+            <Typography variant='pBodyMediumWt'>
+                {textOverride !== undefined ? textOverride : isLoggedIn ? 'View your Library Card' : 'Get Access'}
+            </Typography>
         </ButtonBase>
     )
 }
