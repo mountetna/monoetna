@@ -58,22 +58,19 @@ export default function AboutItem({
                         [theme.breakpoints.up('desktop')]: {
                             px: '30px',
                             py: '30px',
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(2, 1fr)',
+                            display: 'flex',
+                            flexDirection: 'row-reverse',
                             columnGap: '34px',
-                            // display: 'flex',
-                            // flexDirection: 'row-reverse',
                         },
                     })}
                 >
                     <Box
                         sx={(theme) => ({
-                            aspectRatio: '361 / 285',
+                            aspectRatio: '649 / 601',
                             mb: '16px',
                             [theme.breakpoints.up('desktop')]: {
                                 mb: '0',
-                                gridRow: '1',
-                                gridColumn: '2',
+                                width: '45%',
                             },
                             '& img': {
                                 borderRadius: '30px',
@@ -91,8 +88,7 @@ export default function AboutItem({
                     <Box
                         sx={(theme) => ({
                             [theme.breakpoints.up('desktop')]: {
-                                gridRow: '1',
-                                gridColumn: '1',
+                                width: '55%',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'space-between',

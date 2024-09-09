@@ -7,6 +7,8 @@ import { TypographyVariant } from '@/lib/utils/types'
 import { Heights as NavBarHeights } from './nav-bar';
 import { useBreakpoint } from '@/lib/utils/responsive';
 import Link from '../link/link';
+import { toSearchParamsString } from '@/lib/utils/uri';
+import { ABOUT_SERACH_PARAMS_KEY, AboutSearchParamsState } from '../about/models';
 
 
 export enum Classes {
@@ -93,6 +95,9 @@ export default function DLNav({
         onClickNavLink && onClickNavLink()
     }
 
+    const aboutSearchParams: AboutSearchParamsState = { index: 0 }
+    const aboutHref = '/?' + toSearchParamsString({ [ABOUT_SERACH_PARAMS_KEY]: aboutSearchParams }) + '#about'
+
     return (
         <Box
             className={Classes.root}
@@ -108,7 +113,7 @@ export default function DLNav({
         >
             <NavLink
                 text='About the Library'
-                href='/#about'
+                href={aboutHref}
                 onClick={handleClickNavLink}
                 typography={linkTypography}
             />

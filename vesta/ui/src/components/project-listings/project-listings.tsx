@@ -8,7 +8,6 @@ import { useTheme } from '@mui/material';
 import Fade from '@mui/material/Fade';
 import _ from 'lodash'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project, ProjectHeadingInfoSet, PROJECTS_SEARCH_PARAMS_KEY, ProjectsSearchParamsControls, ProjectsSearchParamsState } from './models';
 import ProjectListing from './project-listing';
@@ -77,9 +76,9 @@ function _ProjectListings({
 }: {
     projectData: Project[],
 }) {
+    // Manage search params sync
     const router = useRouter()
     const pathname = usePathname()
-    // Manage search params sync
     const searchParams = useSearchParams()
 
     React.useEffect(() => {
@@ -314,7 +313,7 @@ function _ProjectListings({
             controls,
         }
 
-        // // push to router
+        // push to router
         router.push(pathname + '?' + toSearchParamsString({ [PROJECTS_SEARCH_PARAMS_KEY]: projectsState }) + window.location.hash, { scroll: false })
     }
 

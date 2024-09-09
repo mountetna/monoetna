@@ -3,16 +3,19 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import { useTheme } from '@mui/material/styles';
-import useMediaQuery from '@mui/material/useMediaQuery';
 import ButtonBase from '@mui/material/ButtonBase';
 import { Swiper, SwiperSlide, SwiperClass } from 'swiper/react';
 import { A11y, EffectFade } from 'swiper/modules'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import Typography from '@mui/material/Typography';
+import { useBreakpoint } from '@/lib/utils/responsive';
 
 import AboutItem, { Link, ImageProps } from './about-item'
-import Typography from '@mui/material/Typography';
+import { parseSearchParams, toSearchParamsString } from '@/lib/utils/uri';
+import { ABOUT_SERACH_PARAMS_KEY, AboutSearchParamsState } from './models';
 
 
-interface AboutItemProps {
+interface AboutItems {
     title: string
     header: string
     body: string
@@ -20,13 +23,31 @@ interface AboutItemProps {
     image: ImageProps
 }
 
+interface Props {
+    items: AboutItems[]
+}
 
-export default function AboutCarousel({ items }: { items: AboutItemProps[] }) {
+
+export function _AboutCarousel({ items }: Props) {
+    // Manage search params sync
+    const router = useRouter()
+    const pathname = usePathname()
+    const searchParams = useSearchParams()
+
+    React.useEffect(() => {
+        const parsedSearchParams = parseSearchParams(searchParams)
+
+        if (ABOUT_SERACH_PARAMS_KEY in parsedSearchParams) {
+            const state: AboutSearchParamsState = parsedSearchParams[ABOUT_SERACH_PARAMS_KEY]
+
+            if (state.index !== undefined) {
+                handleClickCarouselIndexIndicator(state.index)
+            }
+        }
+    }, [searchParams])
+
     const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.between(
-        theme.breakpoints.values.mobile,
-        theme.breakpoints.values.tablet,
-    ))
+    const isMobile = useBreakpoint() === 'mobile'
 
     const indexIndicatorFadeMaskWidthPx = 36
 
@@ -46,6 +67,7 @@ export default function AboutCarousel({ items }: { items: AboutItemProps[] }) {
 
     const handleClickCarouselIndexIndicator = (index: number) => {
         setItemIndex(index)
+        updateUrl(index)
 
         swiperRefMobile?.slideTo(index, undefined, false)
         swiperRefTabletDesktop?.slideTo(index, undefined, false)
@@ -63,6 +85,15 @@ export default function AboutCarousel({ items }: { items: AboutItemProps[] }) {
                 behavior: 'smooth',
             })
         }
+    }
+
+    const updateUrl = (itemIndex: number) => {
+        const aboutState: AboutSearchParamsState = {
+            index: itemIndex,
+        }
+
+        // push to router
+        router.push(pathname + '?' + toSearchParamsString({ [ABOUT_SERACH_PARAMS_KEY]: aboutState }) + window.location.hash, { scroll: false })
     }
 
     return (
@@ -184,6 +215,7 @@ export default function AboutCarousel({ items }: { items: AboutItemProps[] }) {
                 />
             </Box>
             <Swiper
+                initialSlide={itemIndex}
                 className='swiper-mobile'
                 modules={[A11y, EffectFade]}
                 allowTouchMove={false}
@@ -235,6 +267,7 @@ export default function AboutCarousel({ items }: { items: AboutItemProps[] }) {
                     }}
                 />
                 <Swiper
+                    initialSlide={itemIndex}
                     className='swiper-tablet-desktop'
                     modules={[A11y]}
                     allowTouchMove={false}
@@ -275,5 +308,17 @@ export default function AboutCarousel({ items }: { items: AboutItemProps[] }) {
                 />
             </Box>
         </Box>
+    )
+}
+
+
+// Needed for https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+export default function AboutCarousel(props: Props) {
+    return (
+        <React.Suspense fallback={null}>
+            <_AboutCarousel
+                {...props}
+            />
+        </React.Suspense>
     )
 }
