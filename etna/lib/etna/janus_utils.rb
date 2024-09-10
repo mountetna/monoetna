@@ -15,13 +15,13 @@ module Etna
 
     def resource_projects(token)
       projects(token).select do |project|
-        !!project.resource && !project.requires_agreement
+        project.project_type == 'resource'
       end
     end
 
     def community_projects(token)
       projects(token).select do |project|
-        !!project.resource && !!project.requires_agreement
+        project_type == 'community'
       end
     end
 
