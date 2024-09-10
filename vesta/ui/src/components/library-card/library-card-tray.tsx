@@ -10,7 +10,7 @@ import LibraryCard from './library-card';
 import { ClickAwayListener } from '@mui/base';
 import { FILE_EXPORT_STATUS, handleExportElementToImage } from '@/lib/utils/file-export';
 
-import downloadSimpleIcon from '/public/images/icons/download-simple.svg'
+import downloadSimpleDarkIcon from '/public/images/icons/download-simple-dark.svg'
 import Image from 'next/image';
 
 
@@ -154,7 +154,7 @@ function LibraryCardTray(props: Props, ref: React.ForwardedRef<unknown>) {
                         }}
                     >
                         <Image
-                            src={downloadSimpleIcon}
+                            src={downloadSimpleDarkIcon}
                             alt='Download icon'
                             height={22}
                         />

@@ -7,12 +7,18 @@ import Image, { StaticImageData } from 'next/image';
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import MUILink from '@mui/material/Link';
+import { Fade, useTheme } from '@mui/material';
 import Link from 'next/link'
 
 import StatsCarousel, { Stats } from '@/components/stats/stats-carousel';
-import arrowUpRightLightSrc from '/public/images/icons/arrow-up-right-light.svg'
 import { scrollTo } from '@/lib/utils/scroll';
 import { useBreakpoint } from '@/lib/utils/responsive';
+
+import arrowUpRightLightIcon from '/public/images/icons/arrow-up-right-light.svg'
+import arrowRightLightIcon from '/public/images/icons/arrow-right-light.svg'
+import arrowCounterClockwiseLightIcon from '/public/images/icons/arrow-counter-clockwise-light.svg'
+import pauseLightIcon from '/public/images/icons/pause-light.svg'
+import playLightIcon from '/public/images/icons/play-light.svg'
 
 
 export interface Video {
@@ -20,7 +26,18 @@ export interface Video {
     imageSrc: StaticImageData
 }
 
-export default function Hero({ video, stats, scrollTargetId }: { video: Video, stats: Stats, scrollTargetId: string }) {
+export default function Hero({
+    videos,
+    initVideoIdx,
+    stats,
+    scrollTargetId,
+}: {
+    videos: Video[],
+    initVideoIdx: number,
+    stats: Stats,
+    scrollTargetId: string,
+}) {
+    const theme = useTheme()
     const breakpoint = useBreakpoint()
 
     const handleClickScrollToExplore = () => {
@@ -30,6 +47,50 @@ export default function Hero({ video, stats, scrollTargetId }: { video: Video, s
             scrollTo({ top: el.offsetTop }, breakpoint)
         }
     }
+
+    const [videoIdx, setVideoIdx] = React.useState(initVideoIdx)
+    const video = videos[videoIdx]
+    const videoRef = React.useRef<HTMLVideoElement>(null)
+
+    const [videoPaused, setVideoPaused] = React.useState(false)
+    const [videoEnded, setVideoEnded] = React.useState(false)
+
+    const handleClickPlayPauseReset = async () => {
+        const videoEl = videoRef.current
+        if (!videoEl) return
+
+        if (videoEnded) {
+            videoEl.currentTime = 0
+            await videoEl.play()
+        } else if (videoPaused) {
+            await videoEl.play()
+        } else {
+            videoEl.pause()
+        }
+    }
+
+    const handleClickNext = () => {
+        const videoEl = videoRef.current
+        if (!videoEl) return
+
+        setVideoIdx(idx => (idx + 1) % videos.length)
+        videoEl.load()
+    }
+
+    const videoControlsAnimationProps = {
+        easing: theme.transitions.easing.ease,
+        timeout: theme.transitions.duration.ease,
+    }
+
+    const videoControlButtonSizePx = 75
+
+    const opacityTransition = theme.transitions.create(
+        'opacity',
+        {
+            easing: theme.transitions.easing.ease,
+            duration: theme.transitions.duration.ease,
+        },
+    )
 
     return (
         <Box
@@ -57,12 +118,18 @@ export default function Hero({ video, stats, scrollTargetId }: { video: Video, s
                 >
                     <Box
                         sx={(theme) => ({
+                            position: 'relative',
                             '& img': {
                                 width: '100%',
                                 height: 'auto',
                             },
                             gridColumn: 'span 12',
                             px: '31px',
+                            '& video': {
+                                width: '100%',
+                                height: 'auto',
+                                aspectRatio: '1/1',
+                            },
                             [theme.breakpoints.up('tablet')]: {
                                 gridColumn: 'span 10',
                                 px: '0',
@@ -73,13 +140,17 @@ export default function Hero({ video, stats, scrollTargetId }: { video: Video, s
                         })}
                     >
                         <video
-                            // poster={video.imageSrc}
-                            width='100%'
-                            height='auto'
+                            ref={videoRef}
+                            // poster={video.imageSrc.src}
                             playsInline
                             autoPlay
-                            loop
                             muted
+                            onPlay={() => {
+                                setVideoPaused(false)
+                                setVideoEnded(false)
+                            }}
+                            onPause={() => setVideoPaused(true)}
+                            onEnded={() => setVideoEnded(true)}
                         >
                             <source
                                 src={video.videoSrc}
@@ -90,6 +161,113 @@ export default function Hero({ video, stats, scrollTargetId }: { video: Video, s
                                 alt='Picture of Spatial Transcriptomics'
                             />
                         </video>
+
+                        {/* controls */}
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                left: 0,
+                                top: 0,
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '50px',
+                                '& > button': {
+                                    opacity: videoPaused ? 0.7 : 0,
+                                    transition: opacityTransition,
+                                },
+                                '&:hover': {
+                                    '& > div': {
+                                        opacity: 0.7,
+                                    },
+                                    '& > button': {
+                                        opacity: 1,
+                                    },
+                                },
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    bgcolor: theme.palette.utilityLowlight.main,
+                                    opacity: videoPaused ? 0.5 : 0,
+                                    transition: opacityTransition,
+                                }}
+                            />
+
+
+                            {/* play, pause, restart */}
+                            <ButtonBase
+                                onClick={handleClickPlayPauseReset}
+                                sx={{
+                                    position: 'relative',
+                                    height: `${videoControlButtonSizePx}px`,
+                                    aspectRatio: '1/1',
+                                    '& > *': {
+                                        position: 'absolute'
+                                    },
+                                }}
+                            >
+                                <Fade
+                                    in={videoPaused && !videoEnded}
+                                    aria-label='Play'
+                                    {...videoControlsAnimationProps}
+                                >
+                                    <Image
+                                        src={playLightIcon}
+                                        alt='Play'
+                                        height={videoControlButtonSizePx}
+                                    />
+                                </Fade>
+
+                                <Fade
+                                    in={!videoPaused && !videoEnded}
+                                    aria-label='Pause'
+                                    {...videoControlsAnimationProps}
+                                >
+                                    <Image
+                                        src={pauseLightIcon}
+                                        alt='Pause'
+                                        height={videoControlButtonSizePx}
+                                    />
+                                </Fade>
+
+                                <Fade
+                                    in={videoEnded}
+                                    aria-label='Restart'
+                                    {...videoControlsAnimationProps}
+                                >
+                                    <Image
+                                        src={arrowCounterClockwiseLightIcon}
+                                        alt='Arrow counter clockwise'
+                                        height={videoControlButtonSizePx}
+                                    />
+                                </Fade>
+                            </ButtonBase>
+
+                            {/* next */}
+                            <ButtonBase
+                                onClick={handleClickNext}
+                                aria-label='Next video'
+                                sx={{
+                                    height: `${videoControlButtonSizePx}px`,
+                                    aspectRatio: '1/1',
+                                }}
+                            >
+                                <Image
+                                    src={arrowRightLightIcon}
+                                    alt='Arrow right'
+                                    height={videoControlButtonSizePx}
+                                />
+                            </ButtonBase>
+                        </Box>
                     </Box>
                     <Box
                         sx={(theme) => ({
@@ -138,7 +316,7 @@ export default function Hero({ video, stats, scrollTargetId }: { video: Video, s
                                     }}
                                 >
                                     <Image
-                                        src={arrowUpRightLightSrc}
+                                        src={arrowUpRightLightIcon}
                                         alt='Arrow pointing down'
                                     />
                                 </Box>
@@ -231,7 +409,7 @@ export default function Hero({ video, stats, scrollTargetId }: { video: Video, s
                                     }}
                                 >
                                     <Image
-                                        src={arrowUpRightLightSrc}
+                                        src={arrowUpRightLightIcon}
                                         alt='Arrow pointing up-right'
                                     />
                                 </Box>

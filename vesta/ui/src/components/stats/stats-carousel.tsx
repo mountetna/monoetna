@@ -3,12 +3,15 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import ButtonBase from '@mui/material/ButtonBase';
-import { alpha } from '@mui/material/styles'
-import { useTheme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
 import { Swiper, SwiperSlide, SwiperClass } from 'swiper/react';
 import { A11y, Autoplay } from 'swiper/modules'
+import Image from 'next/image';
+import { Fade } from '@mui/material';
 
 import StatCard from './stat-card'
+
+import arrowCounterClockwiseLightIcon from '/public/images/icons/arrow-counter-clockwise-light.svg'
 
 
 export type Stats = Record<'bytes' | 'assays' | 'subjects' | 'files' | 'samples' | 'users', number>
@@ -30,6 +33,13 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
         {
             duration: theme.transitions.duration.quint,
             easing: theme.transitions.easing.quint,
+        },
+    )
+    const opacityTransition = theme.transitions.create(
+        'opacity',
+        {
+            easing: theme.transitions.easing.ease,
+            duration: theme.transitions.duration.ease,
         },
     )
 
@@ -81,6 +91,10 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
         swiperRef?.slideTo(index, undefined, false)
     }
 
+    const handleClickRestart = () => {
+        handleClickCarouselIndexIndicator(0)
+    }
+
     const simpleStatPaddingPx = 16
 
     return (
@@ -93,13 +107,16 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
                 borderRadius: '30px',
                 backgroundColor: items[itemIndex].backgroundColor,
                 transition: bgTransition,
-                '& > *:first-child': {
+                position: 'relative',
+                overflow: 'hidden',
+                '& > *:nth-child(1)': {
                     flexGrow: 1,
                 },
             }}
         >
             <Box
                 sx={{
+                    position: 'relative',
                     '& .swiper, .swiper-wrapper, .swiper-slide': {
                         height: '100%',
                     },
@@ -117,31 +134,43 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
                     modules={[A11y, Autoplay]}
                     autoplay={{
                         delay: theme.transitions.duration.long,
+                        stopOnLastSlide: true,
                     }}
                     onInit={(swiper) => setSwiperRef(swiper)}
                     onSlideChange={(swiper) => setItemIndex(swiper.activeIndex)}
                 >
-                    {items.map((item) => {
+                    {items.map((item, idx) => {
                         return (
                             <SwiperSlide key={item.label}>
-                                <StatCard
-                                    primary={{
-                                        value: item.value,
-                                        label: item.label,
+                                <Box
+                                    sx={{
+                                        position: 'relative',
+                                        height: '100%',
                                     }}
-                                    textColor={item.textColor}
-                                />
+                                >
+                                    <StatCard
+                                        primary={{
+                                            value: item.value,
+                                            label: item.label,
+                                        }}
+                                        textColor={item.textColor}
+                                    />
+                                </Box>
                             </SwiperSlide>
                         )
                     })}
                 </Swiper>
             </Box>
+
             <Box
                 sx={{
+                    position: 'relative',
+                    zIndex: 3,
                     display: 'inline-flex',
                     width: '100%',
                     justifyContent: 'center',
                     pb: '8px',
+                    gap: '11px',
                     '& .carousel-index-indicator': {
                         display: 'inline-block',
                         width: '15px',
@@ -151,9 +180,6 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
                         bgcolor: alpha(theme.palette.ground.grade10, 0.4),
                         '&.active': {
                             bgcolor: theme.palette.ground.grade10,
-                        },
-                        '&:not(:last-child)': {
-                            mr: '11px',
                         },
                     },
                 }}
@@ -167,6 +193,68 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
                     />
                 })}
             </Box>
-        </Box >
+
+            {itemIndex === items.length - 1 && <Fade
+                in={true}
+                appear={true}
+                easing={theme.transitions.easing.quint}
+                timeout={theme.transitions.duration.quint}
+            >
+                <Box>
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            zIndex: 2,
+                            '&:hover': {
+                                '& > *:nth-child(1)': {
+                                    opacity: 0.5,
+                                },
+                                '& > *:nth-child(2)': {
+                                    opacity: 1,
+                                },
+                            },
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                bgcolor: theme.palette.utilityLowlight.main,
+                                opacity: 0.3,
+                                transition: opacityTransition,
+                            }}
+                        />
+
+                        <ButtonBase
+                            onClick={handleClickRestart}
+                            disabled={itemIndex !== items.length - 1}
+                            aria-label='Restart'
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                opacity: 0.7,
+                                transition: opacityTransition,
+                            }}
+                        >
+                            <Image
+                                src={arrowCounterClockwiseLightIcon}
+                                alt='Arrow counter clockwise'
+                                height={50}
+                            />
+                        </ButtonBase>
+                    </Box>
+                </Box>
+            </Fade>}
+        </Box>
     )
 }

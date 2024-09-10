@@ -325,7 +325,7 @@ const projectNames = new Set<string>()
 
 THEMES.forEach(theme => {
   for (let i = 0; i < theme.projectCount; i++) {
-    
+
     let name = ''
     do {
       name = faker.company.name().replace(' -', '')
@@ -380,7 +380,7 @@ THEMES.forEach(theme => {
 
 async function getData() {
   return {
-    heroVideo: getRandomItem(VIDEOS),
+    heroVideos: VIDEOS,
     // TODO: replace with real data
     stats: STATS,
     // TODO: replace with real data
@@ -410,7 +410,8 @@ export default async function Home() {
   return (
     <React.Fragment>
       <Hero
-        video={data.heroVideo}
+        videos={data.heroVideos}
+        initVideoIdx={faker.helpers.rangeToNumber({ min: 0, max: data.heroVideos.length - 1 })}
         stats={carouselStats}
         scrollTargetId='about'
       />
