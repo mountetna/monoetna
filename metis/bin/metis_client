@@ -1174,6 +1174,10 @@ EOT
         opts.on("-F", "--fix-filenames", "List file properties") do |n|
           options[:fix_filenames] = true
         end
+
+        opts.on("-f", "--force", "Overwrite existing files") do |n|
+          options[:force] = true
+        end
       end
     end
 
@@ -1243,7 +1247,7 @@ EOT
       new_file_path = ::File.join(*[new_folder_path, file_name].compact)
 
       # see if it exists
-      return if folder[:files].find do |f|
+      return if !options[:force] && folder[:files].find do |f|
         f[:file_name] == file_name && f[:size] == ::File.size(actual_path)
       end
 
