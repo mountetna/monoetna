@@ -1,5 +1,5 @@
-# Needed if built on ARM CPU
-# FROM --platform=linux/amd64 node:18-alpine AS base
+# Include the following flag if built on ARM: `--platform linux/amd64,linux/arm64`
+# ex: `docker build -t temp-vesta-ui --platform linux/amd64,linux/arm64 .`
 FROM node:18-alpine AS base
 
 # Install dependencies only when needed

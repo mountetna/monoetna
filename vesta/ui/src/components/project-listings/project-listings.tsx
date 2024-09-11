@@ -28,7 +28,7 @@ import { useBreakpoint } from '@/lib/utils/responsive';
 import filterLightIcon from '/public/images/icons/filter-light.svg'
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
-import { flattenObject } from '@/lib/utils/object';
+import { CountRecord, flattenObject } from '@/lib/utils/object';
 import { FilterMethod } from '../searchable-list/models';
 
 
@@ -132,6 +132,9 @@ function _ProjectListings({
 
     const [currentPage, setCurrentPage] = React.useState(0)
     const pageSize = 12
+
+    const countsByFilterItemType: Record<string, CountRecord> = {}
+
     const [searchOptions] = React.useState(() => {
 
         const _searchOptions: Set<FilterItem> = new Set()
@@ -140,6 +143,11 @@ function _ProjectListings({
 
         function addOption(value: FilterItem['value'], type: FilterItem['type'], projectKey: keyof SearchableProjectData) {
             const key = getFilterItemKey(value, type)
+
+            if (!(type in countsByFilterItemType)) {
+                countsByFilterItemType[type] = new CountRecord()
+            }
+            countsByFilterItemType[type].increment(key)
 
             if (!existingOptions.has(key)) {
                 existingOptions.add(key)
@@ -206,10 +214,26 @@ function _ProjectListings({
     const searchPlaceholder = 'Search e.g. "Fibrosis"'
 
     const [drawerItems] = React.useState(() => {
-        return searchOptions
+        const filtered = searchOptions
             .filter((option) => {
                 return drawerFilterItemTypes.includes(option.type)
             })
+
+        const itemsByType: Record<string, FilterItem[]> = {}
+        for (const item of filtered) {
+            if (!(item.type in itemsByType)) {
+                itemsByType[item.type] = []
+            }
+            itemsByType[item.type].push(item)
+        }
+
+        const sorted: FilterItem[] = []
+        for (const [type, items] of Object.entries(itemsByType)) {
+            const counts = countsByFilterItemType[type].record
+            items.sort((a, b) => counts[b.key] - counts[a.key])
+            sorted.push(...items)
+        }
+        return sorted
     })
 
     const [drawerOpen, setDrawerOpen] = React.useState(false)

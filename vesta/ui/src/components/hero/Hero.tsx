@@ -69,12 +69,13 @@ export default function Hero({
         }
     }
 
-    const handleClickNext = () => {
+    const handleClickNext = async () => {
         const videoEl = videoRef.current
         if (!videoEl) return
 
         setVideoIdx(idx => (idx + 1) % videos.length)
         videoEl.load()
+        await videoEl.play()
     }
 
     const videoControlsAnimationProps = {
@@ -82,7 +83,7 @@ export default function Hero({
         timeout: theme.transitions.duration.ease,
     }
 
-    const videoControlButtonSizePx = 75
+    const videoControlButtonSizePx = 50
 
     const opacityTransition = theme.transitions.create(
         'opacity',
@@ -152,10 +153,10 @@ export default function Hero({
                             onPause={() => setVideoPaused(true)}
                             onEnded={() => setVideoEnded(true)}
                         >
-                            <source
+                            {!videoEnded && <source
                                 src={video.videoSrc}
                                 type='video/mp4'
-                            />
+                            />}
                             <Image
                                 src={video.imageSrc}
                                 alt='Picture of Spatial Transcriptomics'

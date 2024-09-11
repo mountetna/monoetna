@@ -31,3 +31,24 @@ export function unflattenObject(obj: Record<string, any>, delimiter = '.'): Reco
         return res;
     }, {})
 }
+
+
+export class CountRecord {
+    record: Record<string, number>
+    
+    constructor() {
+        this.record = {}
+    }
+
+    increment(key: string) {
+        if (key in this.record) {
+            return this.record[key] += 1
+        }
+
+        return this.record[key] = 1
+    }
+
+    [Symbol.iterator]() {
+        return Object.entries(this.record)
+    }
+}
