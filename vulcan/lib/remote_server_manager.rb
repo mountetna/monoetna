@@ -281,8 +281,8 @@ class Vulcan
       invoke_ssh_command(command)
     end
 
-    def checkout_tag(dir, tag)
-      command = "cd #{Shellwords.escape(dir)} && git checkout tags/#{Shellwords.escape(tag)}"
+    def checkout_version(dir, sha_or_tag)
+      command = "cd #{Shellwords.escape(dir)} && git checkout #{Shellwords.escape(sha_or_tag)}"
       invoke_ssh_command(command)
     end
 
