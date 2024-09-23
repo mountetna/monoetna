@@ -107,7 +107,8 @@ export function useApi(
   );
 
   const getWorkflows = useCallback((): Promise<WorkflowsResponse> => {
-    return vulcanGet(vulcanPath(ROUTES.fetch_workflows()))
+    // old: ROUTES.fetch_workflows
+    return vulcanGet(vulcanPath('/api/workflows'))
       .then(handleFetchSuccess)
       .catch(handleFetchError);
   }, [vulcanGet, vulcanPath]);
@@ -121,7 +122,8 @@ export function useApi(
       }
 
       return vulcanPost(
-        vulcanPath(ROUTES.submit(session.project_name, session.workflow_name)),
+        // old: ROUTES.submit
+        vulcanPath(`/api/${session.project_name}/session/${workflow_name}`),
         session
       )
         .then(handleFetchSuccess)
@@ -139,7 +141,8 @@ export function useApi(
       }
 
       return vulcanPost(
-        vulcanPath(ROUTES.status(session.project_name, session.workflow_name)),
+        // Old: ROUTES.status
+        vulcanPath(`/api/${session.project_name}/session/${session.workflow_name}/status`),
         session
       )
         .then(handleFetchSuccess)
@@ -184,7 +187,8 @@ export function useApi(
 
   const fetchFigures = useCallback(
     (projectName: string): Promise<FiguresResponse> => {
-      return vulcanGet(vulcanPath(ROUTES.fetch_figures(projectName)))
+      // Old: ROUTES.fetch_figures
+      return vulcanGet(vulcanPath(`/api/${projectName}/figures`))
         .then(handleFetchSuccess)
         .catch(handleFetchError);
     },
@@ -193,7 +197,8 @@ export function useApi(
 
   const fetchFigure = useCallback(
     (projectName: string, figureId: number): Promise<VulcanFigureSession> => {
-      return vulcanGet(vulcanPath(ROUTES.fetch_figure(projectName, figureId)))
+      // Old: ROUTES.fetch_figure
+      return vulcanGet(vulcanPath(`/api/${projectName}/figure/${figureId}`))
         .then(handleFetchSuccess)
         .catch(handleFetchError);
     },
@@ -203,7 +208,8 @@ export function useApi(
   const updateFigure = useCallback(
     (projectName: string, params: any): Promise<VulcanFigureSession> => {
       return vulcanPost(
-        vulcanPath(ROUTES.update_figure(projectName, params.figure_id)),
+        // Old: ROUTES.update_figure
+        vulcanPath(`/api/${projectName}/figure/${params.figure_id}/update`),
         params
       )
         .then(handleFetchSuccess)
@@ -215,7 +221,8 @@ export function useApi(
   const updateFigureDependencies = useCallback(
     (projectName: string, figure_id: number): Promise<VulcanFigureSession> => {
       return vulcanPost(
-        vulcanPath(ROUTES.update_figure(projectName, figure_id)),
+        // Old: ROUTES.update_figure
+        vulcanPath(`/api/${projectName}/figure/${figure_id}/update`),
         {
           update_dependencies: true,
           comment: 'Updating dependencies and snapshot'
@@ -229,7 +236,8 @@ export function useApi(
 
   const createFigure = useCallback(
     (projectName: string, params: any): Promise<VulcanFigureSession> => {
-      return vulcanPost(vulcanPath(ROUTES.create_figure(projectName)), params)
+      // Old: ROUTES.create_figure
+      return vulcanPost(vulcanPath(`/api/${projectName}/figure/create`), params)
         .then(handleFetchSuccess)
         .catch(handleFetchError);
     },
@@ -239,7 +247,8 @@ export function useApi(
   const deleteFigure = useCallback(
     (projectName: string, figureId: number): Promise<VulcanFigureSession> => {
       return vulcanDelete(
-        vulcanPath(ROUTES.delete_figure(projectName, figureId))
+        // Old: ROUTES.delete_figure
+        vulcanPath(`/api/${projectName}/figure/${figureId}`)
       )
         .then(handleFetchSuccess)
         .catch(handleFetchError);
