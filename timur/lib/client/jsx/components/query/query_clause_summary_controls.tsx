@@ -1,11 +1,11 @@
 import React from 'react';
-import Typography from '@mui/material/Typography';
-import Tooltip from '@mui/material/Tooltip';
-import IconButton from '@mui/material/IconButton';
-import AddIcon from '@mui/icons-material/Add';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import Typography from '@material-ui/core/Typography';
+import Tooltip from '@material-ui/core/Tooltip';
+import IconButton from '@material-ui/core/IconButton';
+import AddIcon from '@material-ui/icons/Add';
+import RemoveCircleIcon from '@material-ui/icons/RemoveCircle';
 
-import { makeStyles } from '@mui/styles';
+import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
   folded: {
@@ -37,7 +37,7 @@ const QueryClauseSummaryControls = ({fold, setFold, itemName, numItems, addHandl
           </Tooltip>
           <Tooltip title={`Remove all ${itemName}s`} aria-label={`Remove all ${itemName}s`}>
             <IconButton size='small' onClick={removeHandler} color='primary'>
-              <RestartAltIcon fontSize='small'/>
+              <RemoveCircleIcon fontSize='small'/>
             </IconButton>
           </Tooltip>
         </>

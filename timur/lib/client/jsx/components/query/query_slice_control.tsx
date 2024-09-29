@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
@@ -9,7 +9,7 @@ import RemoveIcon from './query_remove_icon';
 import QueryNumber from './query_number';
 import QueryModelAttributeSelector from './query_model_attribute_selector';
 import QueryFilterSubclause from './query_filter_subclause';
-import { makeStyles } from '@mui/styles';
+import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
   subclause: {
@@ -20,12 +20,14 @@ const useStyles = makeStyles((theme) => ({
 
 const QuerySliceControl = ({
   slice,
+  sliceIndex,
   modelNames,
   graph,
   patchSlice,
   removeSlice
 }: {
   slice: QuerySlice;
+  sliceIndex: number;
   modelNames: string[];
   graph: QueryGraph;
   patchSlice: (slice: QuerySlice) => void;

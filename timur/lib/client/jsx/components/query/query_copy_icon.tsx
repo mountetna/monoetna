@@ -19,8 +19,8 @@ const CopyIcon = React.memo(
 
     return (
       <Tooltip title={`Copy ${label}`} aria-label={`copy ${label}`}>
-        <IconButton aria-label={`copy ${label}`} onClick={onClick}>
-          <FileCopyIcon color='action' />
+        <IconButton aria-label={`copy ${label}`} onClick={onClick} size="small">
+          <FileCopyIcon color='action' fontSize='small' />
         </IconButton>
       </Tooltip>
     );

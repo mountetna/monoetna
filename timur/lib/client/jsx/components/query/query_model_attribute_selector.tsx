@@ -13,6 +13,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListItem from '@material-ui/core/ListItem';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectModelNames, selectTemplate} from 'etna-js/selectors/magma';
+import {makeStyles, useTheme} from '@material-ui/core/styles';
 import MapSelector from './map_selector';
 
 const useStyles = makeStyles((theme) => ({
@@ -43,18 +44,20 @@ const QueryModelAttributeSelector = ({setModel, modelNames, modelName, setAttrib
 
   const classes = useStyles();
 
+  const theme = useTheme();
+
   return <>
     <Grid className={ !readOnly ? classes.selection : null } onClick={ openDialog }>
     {
       modelName
-        ? <Typography component='span' color={ setModel ? 'secondary' : '#444' }>{modelName}</Typography>
-        : <Typography component='span' color='red'>model_name</Typography>
+        ? <Typography component='span' style={{ color: setModel ? theme.palette.secondary.main : '#444' }}>{modelName}</Typography>
+        : <Typography component='span' color='error'>model_name</Typography>
     }
     <Typography component='span'>.</Typography>
     {
       attributeName
-        ? <Typography component='span' color={ setAttribute ? 'secondary' : '#444' }>{attributeName}</Typography>
-        : <Typography component='span' color='red'>attribute_name</Typography>
+        ? <Typography component='span' style={{ color: setAttribute ? theme.palette.secondary.main : '#444' }}>{attributeName}</Typography>
+        : <Typography component='span' color='error'>attribute_name</Typography>
     }
     </Grid>
     <MapSelector

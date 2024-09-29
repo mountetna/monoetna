@@ -1,10 +1,10 @@
 import React, {useState, useContext, useMemo} from 'react';
-import Grid from '@mui/material/Grid';
-import IconButton from '@mui/material/IconButton';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import Typography from '@mui/material/Typography';
-import { makeStyles } from '@mui/styles';
+import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
 
 import {QueryResultsContext} from '../../contexts/query/query_results_context';
 

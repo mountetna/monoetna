@@ -190,7 +190,7 @@ const QueryControlButtons = () => {
   }
 
   const disableQueryBtn = useMemo(() => {
-    return (
+    return !rootModel || (
       _.isEqual(columns, lastColumns) &&
       _.isEqual(recordFilters, lastFilters) &&
       _.isEqual(orRecordFilterIndices, lastOrFilterIndices) &&
@@ -213,14 +213,11 @@ const QueryControlButtons = () => {
     setLastOrFilterIndices(orRecordFilterIndices);
   }, [runQuery, columns, recordFilters, orRecordFilterIndices]);
 
-  if (!rootModel) return null;
-
   return (
     <>
       <Grid item>
         <Button
           className={classes.button}
-          color='default'
           onClick={resetQuery}
           startIcon={<ReplayIcon />}
         >

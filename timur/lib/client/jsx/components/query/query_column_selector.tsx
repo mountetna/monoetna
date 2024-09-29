@@ -1,14 +1,14 @@
 import React, {useCallback, useState, useEffect, useMemo} from 'react';
-import Grid from '@mui/material/Grid';
-import FormControl from '@mui/material/FormControl';
-import { makeStyles } from '@mui/styles';
-import Autocomplete from '@mui/material/Autocomplete';
-import TextField from '@mui/material/TextField';
-import Tooltip from '@mui/material/Tooltip';
-import IconButton from '@mui/material/IconButton';
-import FileCopyIcon from '@mui/icons-material/FileCopyOutlined';
-import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
+import Grid from '@material-ui/core/Grid';
+import FormControl from '@material-ui/core/FormControl';
+import { makeStyles } from '@material-ui/core/styles';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import TextField from '@material-ui/core/TextField';
+import Tooltip from '@material-ui/core/Tooltip';
+import IconButton from '@material-ui/core/IconButton';
+import FileCopyIcon from '@material-ui/icons/FileCopyOutlined';
+import Typography from '@material-ui/core/Typography';
+import Paper from '@material-ui/core/Paper';
 
 import {Attribute} from '../../models/model_types';
 

@@ -195,7 +195,7 @@ const ModelAttribute = ({
         align='left'
         onClick={(attribute && setAttribute) ? () => setAttribute(attribute_name) : undefined}
       >
-        <Tooltip title={`${attribute_name}${ !hasColumn('description') ? `- ${description}` : ''}`}>{attribute_name}{' '}</Tooltip>
+        <Tooltip title={`${attribute_name}${ !hasColumn('description') ? `- ${description}` : ''}`}><span>{attribute_name}{' '}</span></Tooltip>
       </TableCell>}
       {hasColumn('group') && <TableCell align='left'>{attribute_group}</TableCell>}
       {hasColumn('description') && <TableCell className={classes.description} align='left'>
@@ -267,7 +267,7 @@ const ModelAttributesTable = ({
   );
 
   const matchesFilter = useCallback(
-    (attribute) => {
+    (attribute:Attribute) => {
       if (filterString == '') return true;
 
       let tokens = filterString
@@ -281,7 +281,7 @@ const ModelAttributesTable = ({
           ? [attribute[ATT_KEYS[column]]]
           : Object.values(ATT_KEYS).map((k) => attribute[k]);
 
-        return values.some((s) => s?.match(tokenMatch));
+        return values.some((s) => typeof s == 'string' && s.match(tokenMatch));
       });
     },
     [filterString]

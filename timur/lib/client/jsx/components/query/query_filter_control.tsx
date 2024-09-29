@@ -6,7 +6,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Checkbox from '@material-ui/core/Checkbox';
 import Typography from '@material-ui/core/Typography';
 import AddIcon from '@material-ui/icons/Add';
-import FileCopyIcon from '@material-ui/icons/FileCopy;
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 
 import {QueryClause, QueryFilter} from '../../contexts/query/query_types';
 import {emptyQueryClauseStamp} from '../../selectors/query_selector';
@@ -133,7 +133,7 @@ const QueryFilterControl = ({
     onMouseLeave={ () => setShowControls(false) }
   >
     { filterIndex > 0 && <Grid className={classes.and} container>
-    <Typography color='purple' onClick={setOr}>{ or ? 'or' : 'and' }</Typography>
+    <Typography style={{ color:'purple'}} onClick={setOr}>{ or ? 'or' : 'and' }</Typography>
     </Grid>
     }
     <QueryNumber setRemoveHint={ setRemoveHint } onClick={ removeFilter } number={filterIndex} level={0}/>

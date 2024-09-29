@@ -87,7 +87,7 @@ const QuerySliceModelAttributePane = ({
               removeSlice={() => handleRemoveSlice(index)}
             />
         ))}
-      </Grid> : <Typography className={classes.empty} component='div' color='gray'>no conditions</Typography>
+      </Grid> : <Typography className={classes.empty} component='div' style={{ color:'gray'}}>no conditions</Typography>
       }
     </Grid>
   );

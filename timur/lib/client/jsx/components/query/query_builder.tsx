@@ -2,14 +2,14 @@ import React, {useContext,useState,useRef} from 'react';
 
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import QueryControls from './query_controls';
-import Grid from '@mui/material/Grid';
-import Slide from '@mui/material/Slide';
-import Tooltip from '@mui/material/Tooltip';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import ManageSearchIcon from '@mui/icons-material/ManageSearch';
-import DataArrayIcon from '@mui/icons-material/DataArray';
-import TuneIcon from '@mui/icons-material/Tune';
+import Grid from '@material-ui/core/Grid';
+import Slide from '@material-ui/core/Slide';
+import Tooltip from '@material-ui/core/Tooltip';
+import IconButton from '@material-ui/core/IconButton';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
+import ListIcon from '@material-ui/icons/List';
+import CodeIcon from '@material-ui/icons/Code';
+import TuneIcon from '@material-ui/icons/Tune';
 import QueryControlButtons from './query_control_buttons';
 import QueryResults from './query_results';
 import QueryString from './query_string';
@@ -17,12 +17,22 @@ import QueryOptions from './query_options';
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 
 import useQueryGraph from '../../contexts/query/use_query_graph';
-import { makeStyles } from '@mui/styles';
+import { useTheme, makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
-  buttons: {
+  toolbar: {
     padding: '15px',
     borderBottom: '1px solid #ccc'
+  },
+  button: {
+    '&& :not(:last-child)': {
+      borderRight: '1px solid #ccc'
+    }
+  },
+  buttons: {
+    border: '1px solid #ccc',
+    borderRadius: '2px',
+    height: '30px'
   },
   slide: {
     overflowY: 'scroll',
@@ -70,36 +80,38 @@ const QueryBuilder = ({}) => {
 
   const ref = useRef(null);
 
-  const transitionStyle = theme => ({
+  const theme = useTheme();
+
+  const transitionStyle = {
     transform: showQuery ? 'none' : 'translate(calc( -1 * max(700px,40%)))',
     flex: showQuery ? '1 1 max(700px, 40%)' : '0',
     transitionProperty: "transform, flex",
     transitionDuration: `${theme.transitions.duration.standard}ms`,
-    trasitionTimingFunction: `${theme.transitions.easing.easeIn}`
-  });
+    transitionTimingFunction: `${theme.transitions.easing.easeIn}`
+  };
 
   return (
       <Grid style={{ overflow: 'hidden', height: '100%' }} direction='column' container>
-        <Grid item container direction='row' className={classes.buttons} alignItems='center'>
-          <ToggleButtonGroup>
+        <Grid item container direction='row' className={classes.toolbar} alignItems='center'>
+          <ButtonGroup className={classes.buttons} size="small">
             <Tooltip title="Query controls">
-              <ToggleButton disableRipple={true} selected={showQuery} onChange={ () => setShowQuery(!showQuery) } color='secondary'>
-                <ManageSearchIcon/>
-              </ToggleButton>
+              <IconButton className={classes.button} disableRipple={true} color={ showQuery ? 'secondary' : 'primary' } onClick={ () => setShowQuery(!showQuery) }>
+                <ListIcon/>
+              </IconButton>
             </Tooltip>
             { showQuery && <Tooltip title="Raw query">
-                <ToggleButton disableRipple={true} selected={showRawQuery} onChange={ () => setShowRawQuery(!showRawQuery) } color='secondary'>
-                  <DataArrayIcon/>
-                </ToggleButton>
+              <IconButton className={classes.button} disableRipple={true} color={showRawQuery ? 'secondary' : 'primary' } onClick={ () => setShowRawQuery(!showRawQuery) } >
+                  <CodeIcon/>
+                </IconButton>
               </Tooltip>
             }
             { showQuery && <Tooltip title="Query Options">
-                <ToggleButton disableRipple={true} selected={showQueryOptions} onChange={ () => setShowQueryOptions(!showQueryOptions) } color='secondary'>
+                <IconButton className={classes.button} disableRipple={true} color={showQueryOptions ? 'secondary' : 'primary' } onClick={ () => setShowQueryOptions(!showQueryOptions) }>
                   <TuneIcon/>
-                </ToggleButton>
+                </IconButton>
               </Tooltip>
             }
-          </ToggleButtonGroup>
+          </ButtonGroup>
           <QueryOptions open={showQueryOptions} onClose={ () => setShowQueryOptions(false) }/>
           <Grid item container direction='row' alignItems='center'
             justifyContent='flex-end'
@@ -109,7 +121,7 @@ const QueryBuilder = ({}) => {
         </Grid>
         <Grid item className={classes.query} container direction='row' ref={ref}>
             <Grid
-              sx={transitionStyle}
+              style={transitionStyle}
               item
               container
               className={classes.slide}

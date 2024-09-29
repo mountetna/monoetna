@@ -56,7 +56,7 @@ const QueryFromPane = () => {
   );
 
   return (
-    <QueryClause title='From'>
+    <QueryClause title=''>
       <Grid item container>
         <Grid item container xs={8} alignItems='center'>
           <QueryChevron disabled/>
@@ -66,9 +66,6 @@ const QueryFromPane = () => {
             modelNames={[...graph.allowedModels]}
             modelName={rootModel || ''}
           />&nbsp;as&nbsp;<b>rows</b>
-        </Grid>
-        <Grid item container alignItems='center' justify='flex-end' xs={4}>
-          {rootModel ? <QueryControlButtons /> : null}
         </Grid>
       </Grid>
     </QueryClause>

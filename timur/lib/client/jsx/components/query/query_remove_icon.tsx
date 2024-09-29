@@ -18,8 +18,8 @@ const RemoveIcon = React.memo(
 
     return (
       <Tooltip title={`Remove ${label}`} aria-label={`remove ${label}`}>
-        <IconButton aria-label={`remove ${label}`} onClick={onClick}>
-          <ClearIcon color='action' />
+        <IconButton aria-label={`remove ${label}`} onClick={onClick} size="small">
+          <ClearIcon color='action' fontSize="small"/>
         </IconButton>
       </Tooltip>
     );

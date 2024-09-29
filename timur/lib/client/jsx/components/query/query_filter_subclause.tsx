@@ -4,6 +4,7 @@ import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {Debouncer} from 'etna-js/utils/debouncer';
 import {QuerySubclause} from '../../contexts/query/query_types';
@@ -189,7 +190,6 @@ const QueryFilterSubclause = ({
       modelAttributes.length > 0 && <>
         <QueryNumber setRemoveHint={ showRemoveIcon ? setRemoveHint : null } onClick={ showRemoveIcon ? removeSubclause : null} number={subclauseIndex} level={2}/>
         <Selector
-          label={`operator-${subclauseIndex}`}
           canEdit={true}
           label='attribute'
           placeholder='attribute'

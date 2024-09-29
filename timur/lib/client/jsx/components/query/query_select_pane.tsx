@@ -59,15 +59,15 @@ const QuerySelectPane = () => {
   );
 
   const handleOnSelectAttribute = useCallback(
-    (columnIndex: number, column: QueryColumn, attributeName: string) => {
+    (columnIndex: number, column: QueryColumn, modelName: string, attributeName: string) => {
       const previousDefaultLabel = `${column.model_name}.${column.attribute_name}`;
 
       const newLabel = ['', previousDefaultLabel].includes(column.display_label)
-        ? `${column.model_name}.${attributeName}`
+        ? `${modelName}.${attributeName}`
         : column.display_label;
 
       patchQueryColumn(columnIndex, {
-        model_name: column.model_name,
+        model_name: modelName,
         slices: [],
         attribute_name: attributeName,
         display_label: newLabel

@@ -1,18 +1,18 @@
 import React, {useCallback, useState, useEffect, useMemo} from 'react';
 import ModelMapGraphic from '../model_map/model_map_graphic';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import { makeStyles } from '@mui/styles';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import { makeStyles } from '@material-ui/core/styles';
 
-import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
+import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
 
-import List from '@mui/material/List';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import ListItem from '@mui/material/ListItem';
+import List from '@material-ui/core/List';
+import ListItemButton from '@material-ui/core/ListItemButton';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItem from '@material-ui/core/ListItem';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectModelNames, selectTemplate} from 'etna-js/selectors/magma';
 import ModelAttributesTable from '../model_map/model_attributes_table';
@@ -22,6 +22,7 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: '600px',
     width: '480px',
     overflow: 'hidden',
+    flexWrap: 'nowrap',
     padding: '0 25px 25px 0'
   },
   selection: {

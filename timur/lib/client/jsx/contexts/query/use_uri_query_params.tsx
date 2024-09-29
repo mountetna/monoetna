@@ -47,7 +47,7 @@ export default function useUriQueryParams({
       searchParams.set(key, JSON.stringify(value));
     });
 
-    if (search !== searchParams.toString()) {
+    if (search.slice(1) !== searchParams.toString()) {
       history.pushState({}, '', `${pathname}#${searchParams.toString()}`);
     }
   }, [rootModel, search, whereState, columnState, pathname]);

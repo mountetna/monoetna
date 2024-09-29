@@ -40,8 +40,8 @@ const QueryModelSelector = ({setModel, modelNames, modelName}) => {
     <Grid className={ !readOnly ? classes.selection : null } onClick={ openDialog }>
     {
       modelName
-        ? <Typography component='span' color={ setModel ? 'secondary' : '#444' }>{modelName}</Typography>
-        : <Typography component='span' color='red'>model_name</Typography>
+        ? <Typography component='span' color={ setModel ? 'secondary' : 'inherit' }>{modelName}</Typography>
+        : <Typography component='span' color='error'>model_name</Typography>
     }
     </Grid>
     <MapSelector

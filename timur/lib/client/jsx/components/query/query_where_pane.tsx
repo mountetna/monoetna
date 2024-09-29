@@ -144,7 +144,7 @@ const QueryWherePane = () => {
       </Grid>
       {
         !fold && <Grid container direction='column' className={classes.conditions}>
-          {!recordFilters.length && <Typography className={classes.empty} onClick={addNewRecordFilter} color='gray'>no conditions</Typography> }
+          {!recordFilters.length && <Typography className={classes.empty} onClick={addNewRecordFilter} style={{ color:'gray' }}>no conditions</Typography> }
           {recordFilters.map((filter: QueryFilter, index: number) => (
             <QueryFilterControl
               key={`${index}-${updateCounter}`}
