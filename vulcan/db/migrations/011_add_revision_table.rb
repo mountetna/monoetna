@@ -2,8 +2,8 @@ Sequel.migration do
   up do
     create_table(:revisions) do
       primary_key :id
-      foreign_key :workspace_id, :workspace
-      json :ui_params, null: false
+      foreign_key :workspace_id, :workspaces
+      json :params, null: false
       String :message, null: false
       DateTime :created_at, null: false
       DateTime :updated_at, null: false

@@ -2,14 +2,17 @@ require 'etna'
 require 'digest'
 require_relative "./vulcan_controller"
 require_relative "./../../path"
-require_relative './../../remote_server_manager'
-require_relative './../../snakemake'
+require_relative './../../remote_manager'
+require_relative './../../snakemake_remote_manager'
+require_relative './../../snakemake_command'
+
 
 class VulcanV2Controller < Vulcan::Controller
 
   def initialize(request, action = nil)
     super
-    @remote_manager = Vulcan::RemoteServerManager.new(Vulcan.instance.ssh_pool)
+    @remote_manager = Vulcan::RemoteManager.new(Vulcan.instance.ssh_pool)
+    @snakemake_manager = Vulcan::Snakemake::RemoteManager.new(@remote_manager)
   end
 
   def create_workflow
@@ -21,10 +24,9 @@ class VulcanV2Controller < Vulcan::Controller
     end
     begin
       obj = Vulcan::WorkflowV2.create(
-        projects: "{#{@params[:projects].join(',')}}", #TODO: fix this
+        project_name: @params[:project_name],
         name: @params[:workflow_name],
         repo_remote_url: @params[:repo_url],
-        branch: @escaped_params[:branch],
         created_at: Time.now,
         updated_at: Time.now
       )
@@ -38,18 +40,17 @@ class VulcanV2Controller < Vulcan::Controller
   def list_workflows
     success_json(
       workflows: Vulcan::WorkflowV2.where(
-        Sequel.lit("projects @> ARRAY['all'] OR projects @> ARRAY[?]", @params[:project_name])
+         @params[:project_name])
       ).all.map do |w|
         w.to_hash
       end
-    )
   end
 
   def update_workflow
   end
 
   def create_workspace
-    workflow = Vulcan::WorkflowV2.first(id: @params[:workflow_id])
+    workflow = Vulcan::WorkflowV2.first(id: @params[:workflow_id], project_name: @params[:project_name])
     unless workflow
       msg = "Workflow: #{@params[:workflow_name]} for project: #{@params[:project_name]} does not exist."
       raise Etna::BadRequest.new(msg)
@@ -58,13 +59,16 @@ class VulcanV2Controller < Vulcan::Controller
       workspace_dir = Vulcan::Path.workspace_dir(@escaped_params[:project_name], workspace_hash)
     begin
         @remote_manager.mkdir(workspace_dir)
-        @remote_manager.clone(workflow.repo_remote_url, workflow.branch, workspace_dir)
+        @remote_manager.clone(workflow.repo_remote_url, @escaped_params[:branch], workspace_dir)
         @remote_manager.checkout_version(workspace_dir, @escaped_params[:git_version])
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
+        @remote_manager.mkdir(Vulcan::Path.workspace_output_path(workspace_dir))
         @remote_manager.upload_dir(Vulcan::Path::SNAKEMAKE_UTILS_DIR, workspace_dir, true)
+        config = @remote_manager.read_yaml_file(Vulcan::Path.snakemake_config(workspace_dir))
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
           name: @params[:workspace_name],
+          target_mapping: @snakemake_manager.generate_target_mapping(workspace_dir, config),
           path: workspace_dir,
           user_email: @user.email,
           created_at: Time.now,
@@ -113,11 +117,53 @@ class VulcanV2Controller < Vulcan::Controller
       raise Etna::BadRequest.new(msg)
     end
     begin
-      success_json({dag: @remote_manager.get_dag(workspace.path)})
+      success_json({dag: @snakemake_manager.get_dag(workspace.path)})
     rescue => e
       Vulcan.instance.logger.log_error(e)
       raise Etna::BadRequest.new(e.message)
     end
+  end
+
+  def save_params
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    unless workspace
+      msg = "Workspace for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+    begin
+      # Account for jobs with no params
+      request_params = @params[:params] ? @params[:params] : {}
+      # We must write the params of snakemake to a file to read them.
+      config_path = Vulcan::Path.workspace_config_path(workspace.path)
+      @remote_manager.write_file(config_path, request_params.to_json)
+      # Build snakemake command
+      command = Vulcan::Snakemake::CommandBuilder.new
+      command.target_meta = {
+        mapping: workspace.target_mapping,
+        provided_params: request_params.transform_keys(&:to_s),
+        available_files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)),
+      }
+      command.options = {
+        config_path: config_path,
+        profile_path: Vulcan::Path.profile_dir(workspace.path),
+        dry_run: true,
+      }
+      @snakemake_manager.run_snakemake(workspace.path, command.build)
+      obj = Vulcan::Config.create(
+        config_path: config_path,
+        hash: @remote_manager.md5sum(config_path),
+        created_at: Time.now,
+        updated_at: Time.now
+      )
+      success_json({run_id: obj.id})
+    rescue Etna::TooManyRequests => e
+      # Re-raise the TooManyRequests exception to avoid handling it as a BadRequest
+      raise e
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
+
   end
 
   def run_workflow
@@ -128,30 +174,24 @@ class VulcanV2Controller < Vulcan::Controller
     end
     begin
       raise Etna::TooManyRequests.new("workflow is still running...") if @remote_manager.snakemake_is_running?(workspace.path)
-      config_path = Vulcan::Path.workspace_config_path(workspace.path)
-      params = @params[:run] && @params[:run][:params] ? @params[:run][:params] : {} # Account for jobs with no params
-
-      # We must always keep an updated version of the params that were used on a workflow.
-      # Snakemake needs this to understand what inputs have changed. # Fetch the last params, and append new params.
+      # Account for jobs with no params
+      request_params = @params[:run] && @params[:run][:params] ? @params[:run][:params] : {}
       last_run = Vulcan::Run.where(workspace_id: workspace.id).order(:created_at).last
-      if last_run
-        old_params = @remote_manager.read_json_file(last_run.config_path)
-        params = old_params.merge(params) # params take precedence over old_params
-      end
-      @remote_manager.write_file(config_path, params.to_json) # We must write the params of snakemake to a file to read them
-
-      # Build snakemake commmand
-      command = Vulcan::SnakemakeCommandBuilder.new
+      # We must write the params of snakemake to a file to read them.
+      config_path = @snakemake_manager.write_snakemake_params(request_params, workspace.path, last_run ? last_run.config_path : nil)
+      # Build snakemake command
+      command = Vulcan::Snakemake::CommandBuilder.new
       command.options = {
-        jobs: @params[:run][:jobs],
+        target_mapping: workspace.target_mapping,
+        provided_params: request_params,
+        available_files: @remote_manager.list_files(workspace.path),
         config_path: config_path,
         profile_path: Vulcan::Path.profile_dir(workspace.path),
       }
-      slurm_run_uuid = @remote_manager.run_snakemake(workspace.path, command.build)
-      log = @remote_manager.get_snakemake_log(workspace.path, slurm_run_uuid)
+      slurm_run_uuid = @snakemake_manager.run_snakemake(workspace.path, command.build)
+      log = @snakemake_manager.get_snakemake_log(workspace.path, slurm_run_uuid)
       obj = Vulcan::Run.create(
         workspace_id: workspace.id,
-        jobs: @params[:run][:jobs].join(','),
         slurm_run_uuid: slurm_run_uuid,
         config_path: config_path,
         log_path: log,
@@ -175,8 +215,8 @@ class VulcanV2Controller < Vulcan::Controller
       raise Etna::BadRequest.new(msg)
     end
     begin
-      job_id_hash = @remote_manager.parse_log_for_slurm_ids(workflow_run.jobs.split(','), workflow_run.log_path)
-      response = @remote_manager.query_sacct(workflow_run.slurm_run_uuid, job_id_hash)
+      job_id_hash = @snakemake_manager.parse_log_for_slurm_ids(workflow_run.jobs, workflow_run.log_path)
+      response = @snakemake_manager.query_sacct(workflow_run.slurm_run_uuid, job_id_hash)
       success_json(response)
     rescue => e
       Vulcan.instance.logger.log_error(e)
@@ -221,12 +261,6 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   def get_files
-  end
-
-  def load_params
-  end
-
-  def save_params
   end
 
 end
