@@ -73,6 +73,9 @@ etna/packages/magmaR*.tar.gz
 etna/packages/magmaR/.Renviron
 etna/packages/magmaR.Rcheck*
 
+# For possible Singularity dev work
+**.sif
+
 **/venv/
 **/__pycache__
 **/node_modules
