@@ -144,7 +144,7 @@ class C4(SSHBase):
                 sftp.mkdir(path_to_folder)
             traversed.append(folder)
 
-        cmd = f"lftp sftp://{cat_hook.connection.login}:{cat_hook.connection.password}@{cat_hook.connection.host}  -e \"get {source_file.full_path} -o {os.path.join(full_path, file_name)}; bye\""
+        cmd = f"lftp sftp://{cat_hook.connection.login}:{cat_hook.connection.password}@{cat_hook.connection.host}  -e \"set xfer:clobber on; get {source_file.full_path} -o {os.path.join(full_path, file_name)}; bye\""
 
         with self.ssh() as ssh, ssh.get_transport() as transport, transport.open_channel("session") as channel:
             channel.set_combine_stderr(True)
