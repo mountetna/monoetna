@@ -16,6 +16,8 @@ require 'rack/test'
 require_relative '../lib/server'
 require_relative '../lib/vulcan'
 require_relative '../lib/server/controllers/vulcan_v2_controller'
+require_relative '../lib/snakemake_command'
+require_relative '../lib/snakemake_parser'
 require 'etna/spec/vcr'
 
 Vulcan.instance.configure(YAML.load(File.read('config.yml')))

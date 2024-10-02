@@ -124,41 +124,40 @@ class VulcanV2Controller < Vulcan::Controller
     end
   end
 
-  def save_params
+  def save_config
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     unless workspace
       msg = "Workspace for project: #{@params[:project_name]} does not exist."
       raise Etna::BadRequest.new(msg)
     end
     begin
-      # Account for jobs with no params
-      request_params = @params[:params] ? @params[:params] : {}
-      # We must write the params of snakemake to a file to read them.
-      config_path = Vulcan::Path.workspace_config_path(workspace.path)
-      @remote_manager.write_file(config_path, request_params.to_json)
-      # Build snakemake command
+      request_params = @params[:params]
+      params_hash = Digest::MD5.hexdigest(request_params.to_json)
+      config = Vulcan::Config.first(hash: params_hash)
+      unless config
+        config_path = Vulcan::Path.workspace_config_path(workspace.path, params_hash)
+        @remote_manager.write_file(config_path, request_params.to_json)
+        config = Vulcan::Config.create(
+          config_path: config_path,
+          hash: params_hash,
+          created_at: Time.now,
+          updated_at: Time.now
+        )
+      end
       command = Vulcan::Snakemake::CommandBuilder.new
       command.target_meta = {
-        mapping: workspace.target_mapping,
+        mapping: workspace.target_mapping.keys,
         provided_params: request_params.transform_keys(&:to_s),
         available_files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)),
       }
       command.options = {
-        config_path: config_path,
+        config_path: config.path,
         profile_path: Vulcan::Path.profile_dir(workspace.path),
         dry_run: true,
       }
-      @snakemake_manager.run_snakemake(workspace.path, command.build)
-      obj = Vulcan::Config.create(
-        config_path: config_path,
-        hash: @remote_manager.md5sum(config_path),
-        created_at: Time.now,
-        updated_at: Time.now
-      )
-      success_json({run_id: obj.id})
-    rescue Etna::TooManyRequests => e
-      # Re-raise the TooManyRequests exception to avoid handling it as a BadRequest
-      raise e
+      # TODO: do something here with the output
+      #@snakemake_manager.run_snakemake(workspace.path, command.build)
+      success_json({config_id: config.id})
     rescue => e
       Vulcan.instance.logger.log_error(e)
       raise Etna::BadRequest.new(e.message)
@@ -174,26 +173,29 @@ class VulcanV2Controller < Vulcan::Controller
     end
     begin
       raise Etna::TooManyRequests.new("workflow is still running...") if @remote_manager.snakemake_is_running?(workspace.path)
-      # Account for jobs with no params
-      request_params = @params[:run] && @params[:run][:params] ? @params[:run][:params] : {}
-      last_run = Vulcan::Run.where(workspace_id: workspace.id).order(:created_at).last
-      # We must write the params of snakemake to a file to read them.
-      config_path = @snakemake_manager.write_snakemake_params(request_params, workspace.path, last_run ? last_run.config_path : nil)
+      config = Vulcan::Config.where(config_id: @params[:config_id]).first
+      unless params
+        msg = "Config for workspace: #{workspace.path} does not exist."
+        raise Etna::BadRequest.new(msg)
+      end
+
       # Build snakemake command
       command = Vulcan::Snakemake::CommandBuilder.new
+      command.target_meta = {
+        mapping: workspace.target_mapping.keys,
+        provided_params: @remote_manager.read_json_file(config.config_path).transform_keys(&:to_s),
+        available_files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)),
+      }
       command.options = {
-        target_mapping: workspace.target_mapping,
-        provided_params: request_params,
-        available_files: @remote_manager.list_files(workspace.path),
-        config_path: config_path,
+        config_path: config.config_path,
         profile_path: Vulcan::Path.profile_dir(workspace.path),
       }
       slurm_run_uuid = @snakemake_manager.run_snakemake(workspace.path, command.build)
       log = @snakemake_manager.get_snakemake_log(workspace.path, slurm_run_uuid)
       obj = Vulcan::Run.create(
         workspace_id: workspace.id,
+        config_id: config.id,
         slurm_run_uuid: slurm_run_uuid,
-        config_path: config_path,
         log_path: log,
         created_at: Time.now,
         updated_at: Time.now

@@ -1,32 +1,47 @@
 class Vulcan
   class Snakemake
-    class Parser
+    class TargetParser
       def initialize(snakefile, config)
-        @snakefile = snakefile
-        @config = config
+        @snakefile = snakefile # raw file
+        @config = config  # yaml loaded
         @targets = {}  # Initialize the targets hash to store output targets as keys
       end
 
       # Public method to initiate parsing
       def parse
-        @snakefile = preprocess
+        preprocess
+        @snakefile = filter_ui_rules
         parse_lines
         @targets  # Return the parsed targets with outputs as keys
       end
 
       private
-
-      # Replaces config variables in the file content and returns the processed content
+      
       def preprocess
-        @snakefile.gsub(/config\["([^"]+)"\]/) do
+        # Use gsub! to replace only config variables whose values start with "output/"
+        @snakefile.gsub!(/config\["([^"]+)"\]/) do
           key = Regexp.last_match(1)
           value = @config[key]
+          # Only replace if the value starts with "output/"
           if value.nil?
-            "config[\"#{key}\"]"  # Leave unchanged if not found
+            "config[\"#{key}\"]"  # Leave unchanged if the config key is not found
+          elsif value.is_a?(String) && value.start_with?("output/")
+            "\"#{value}\""  # Replace file paths starting with "output/"
           else
-            value.is_a?(String) ? "\"#{value}\"" : value.to_s
+            "config[\"#{key}\"]"  # Leave unchanged for other config variables
           end
         end
+      end
+
+ 
+      # Removes rules that don't contain specified directives, like "ui rules"
+      def filter_ui_rules
+        directives = ["shell", "run", "script", "notebook", "wrapper", "cwl"]
+        rules = @snakefile.split(/(?=rule\s+\w+:)/)
+        filtered_rules = rules.select do |rule|
+          directives.any? { |directive| rule.include?(directive + ":") }
+        end
+        filtered_rules.join("\n")
       end
 
       # Parses each line of the preprocessed file content

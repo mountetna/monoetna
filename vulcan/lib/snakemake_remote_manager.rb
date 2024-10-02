@@ -109,19 +109,13 @@ class Vulcan
         mapping = {}
         snakefiles.each do |file|
           file_content = @remote_manager.read_file_to_memory(file)
-          parser = Vulcan::Snakemake::Parser.new(file_content, config)
-          binding.pry
+          parser = Vulcan::Snakemake::TargetParser.new(file_content, config)
           values = parser.parse
           mapping.merge!(values)
         end
 
         # Remove the all key, delete the outputs key, and remove any empty targets
         mapping.delete(:all)
-        mapping.each do |target, values|
-          values.delete(:outputs)
-          mapping.delete(target) if target[:inputs].nil? && target[:params].nil?
-          end
-
         mapping
         end
 
