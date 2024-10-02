@@ -5,7 +5,7 @@ rule all:
         thumbnail="output/thumbnail.png"
 
 rule get_dataset_and_summarize:
-    input:
+    params:
         dataset_name=config["dataset_name"]
     output:
         scdata="dataset/scdata.Rds",
@@ -18,14 +18,11 @@ rule get_dataset_and_summarize:
     script:
         "scripts/get_dataset_and_summarize.R"
 
-# Uncertain if this rule is required.
-# "JS job" with a file ouput.
-# I think the primary goal is letting snakemake understand where the "temps/plot_setup.json" file comes from.
-rule plot_setup:
-  input:
-    plotting_options="dataset/plotting_options.json"
-  output:
-    plot_settings="temps/plot_setup.json"
+rule plot_setup_ui:
+    input:
+        plotting_options="dataset/plotting_options.json"
+    output:
+        plot_settings="temps/plot_setup.json"
 
 rule make_plot:
     input:
@@ -38,3 +35,11 @@ rule make_plot:
         plot_Rds="output/plot.Rds"
     script:
         "scripts/make_dittoSeq_plot.R"
+
+rule display_plot_ui:
+    input:
+        plot_out="output/plot.out"
+
+rule download_plot_Robj_ui:
+    input:
+        plot_Rds="output/plot.Rds"
