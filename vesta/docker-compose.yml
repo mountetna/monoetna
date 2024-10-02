@@ -31,10 +31,10 @@ x-base-etna-service:
     APP_NAME: 'vesta'
   entrypoint: /entrypoints/development.sh
 
-  networks:
+  networks: &base-etna-networks
     default:
     edge_net:
-  extra_hosts:
+  extra_hosts: &base-etna-extra-hosts
     - 'metis.development.local:172.16.238.10'
     - 'magma.development.local:172.16.238.10'
     - 'janus.development.local:172.16.238.10'
@@ -65,18 +65,24 @@ x-base-etna-services:
       APP_NAME: 'vesta'
     container_name: 'vesta_db_1'
 
-  'vesta_ui':
-    &base-etna-ui # The JS UI
-    build: ./ui
-    image: vesta-ui-dev
+  'vesta_ui': &base-etna-ui # The JS UI
+    build:
+      context: ./ui
+      dockerfile: ./Dockerfile.development
     volumes:
       - ./ui/src:/app/src:delegated
       - ./ui/public:/app/public:delegated
     depends_on:
       - 'vesta_app'
-    # command: ["npm", "run", "dev"]
     environment:
       APP_NAME: 'vesta_ui'
+      NODE_TLS_REJECT_UNAUTHORIZED: 0  # REMOVE FOR PROD. Needed to ignore bad TLS certs
+      API_URL: https://vesta.development.local/api/
+      JANUS_URL: https://janus.development.local
+      JANUS_TOKEN_COOKIE_NAME: JANUS_DEV_TOKEN
+      TIMUR_URL: https://timur.development.local
+    networks: *base-etna-networks
+    extra_hosts: *base-etna-extra-hosts
 
   'vesta_app_fe':
     &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the JS UI and Ruby API

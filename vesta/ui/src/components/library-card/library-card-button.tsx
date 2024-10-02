@@ -1,6 +1,8 @@
 import * as React from 'react';
 import ButtonBase from '@mui/material/ButtonBase';
-import { Typography } from '@mui/material';
+import { SxProps, Typography } from '@mui/material';
+
+import Link from '../link/link';
 
 
 export enum Classes {
@@ -10,33 +12,48 @@ export enum Classes {
 
 export default function LibraryCardButton({
     isLoggedIn,
+    accessUrl,
     textOverride,
     onClick,
     disabled = false,
 }: {
     isLoggedIn: boolean,
+    accessUrl: string,
     textOverride?: string,
     onClick: () => void,
     disabled?: boolean,
 }) {
-    return (
+    const textEl = (
+        <Typography variant='pBodyMediumWt'>
+            {textOverride !== undefined ? textOverride : isLoggedIn ? 'View your Library Card' : 'Get Access'}
+        </Typography>
+    )
+
+    const sx: SxProps = {
+        width: 'fit-content',
+        px: '16px',
+        py: '8px',
+        color: 'utilityHighlight.main',
+        backgroundColor: 'blue.grade50',
+        borderRadius: '10px',
+    }
+
+    return isLoggedIn ? (
         <ButtonBase
             tabIndex={0}
             className={Classes.root}
             onClick={onClick}
-            sx={{
-                width: 'fit-content',
-                px: '16px',
-                py: '8px',
-                color: 'utilityHighlight.main',
-                backgroundColor: 'blue.grade50',
-                borderRadius: '10px',
-            }}
+            sx={sx}
             disabled={disabled}
         >
-            <Typography variant='pBodyMediumWt'>
-                {textOverride !== undefined ? textOverride : isLoggedIn ? 'View your Library Card' : 'Get Access'}
-            </Typography>
+            {textEl}
         </ButtonBase>
+    ) : (
+        <Link
+            href={accessUrl}
+            sx={sx}
+        >
+            {textEl}
+        </Link>
     )
 }

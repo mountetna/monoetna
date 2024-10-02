@@ -288,9 +288,9 @@ function LibraryCardFront({
                         {user.name}
                     </Typography>
 
-                    <Typography variant='pMedium'>
+                    {user.title && <Typography variant='pMedium'>
                         {user.title}
-                    </Typography>
+                    </Typography>}
                 </Box>
 
                 <Box

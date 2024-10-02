@@ -221,7 +221,7 @@ export function _AboutCarousel({ items }: Props) {
                 allowTouchMove={false}
                 autoHeight={true}
                 onInit={(swiper) => setSwiperRefMobile(swiper)}
-                onSlideChange={(swiper) => setItemIndex(swiper.activeIndex)}
+                onSlideChange={(swiper) => setItemIndex(swiper.realIndex)}
                 effect={'fade'}
                 fadeEffect={{ crossFade: true, }}
                 speed={theme.transitions.duration.quint}
@@ -273,7 +273,7 @@ export function _AboutCarousel({ items }: Props) {
                     allowTouchMove={false}
                     autoHeight={true}
                     onInit={(swiper) => setSwiperRefTabletDesktop(swiper)}
-                    onSlideChange={(swiper) => setItemIndex(swiper.activeIndex)}
+                    onSlideChange={(swiper) => setItemIndex(swiper.realIndex)}
                     centeredSlides={true}
                     slidesPerView={'auto'}
                     speed={theme.transitions.duration.quint}

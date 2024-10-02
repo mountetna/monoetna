@@ -1,3 +1,5 @@
+require 'byebug'
+
 class StatsController < Janus::Controller
   def project_stats
     projects_to_include = @params[:projects]
@@ -20,6 +22,7 @@ class StatsController < Janus::Controller
         project_name: proj.project_name,
         project_name_full: proj.project_name_full,
         resource: proj.resource,
+        principal_investigators: [],
         user_count: 0,
       }
     end
@@ -29,6 +32,16 @@ class StatsController < Janus::Controller
       proj = projects.find { |proj| proj[:project_name] == project_name }
 
       proj[:user_count] += 1
+
+      if perm[:affiliation] == 'PI'
+
+        user = User[perm[:user_id]]
+
+        proj[:principal_investigators].push({
+          name: user[:name],
+          email: user[:email],
+        })
+      end
     end
 
     user_count = User.count

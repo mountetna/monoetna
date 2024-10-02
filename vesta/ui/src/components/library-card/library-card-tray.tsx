@@ -10,9 +10,6 @@ import LibraryCard from './library-card';
 import { ClickAwayListener } from '@mui/base';
 import { FILE_EXPORT_STATUS, handleExportElementToImage } from '@/lib/utils/file-export';
 
-import downloadSimpleDarkIcon from '/public/images/icons/download-simple-dark.svg'
-import Image from 'next/image';
-
 
 export enum Classes {
     root = 'library-card-tray'
@@ -20,6 +17,7 @@ export enum Classes {
 
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
+    accessUrl: string
     open: boolean
     onSetOpen: (open: boolean) => void
     user: User | null
@@ -28,7 +26,7 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
 
 
 function LibraryCardTray(props: Props, ref: React.ForwardedRef<unknown>) {
-    const { open, onSetOpen, user, disabled = false, ...htmlProps } = props
+    const { accessUrl, open, onSetOpen, user, disabled = false, ...htmlProps } = props
     const theme = useTheme()
 
     const libraryCardRef = React.useRef<HTMLElement>()
@@ -137,6 +135,7 @@ function LibraryCardTray(props: Props, ref: React.ForwardedRef<unknown>) {
                 >
                     <LibraryCardButton
                         isLoggedIn={user !== null}
+                        accessUrl={accessUrl}
                         onClick={() => onSetOpen(!open)}
                         textOverride={open ? 'Hide your Library Card' : undefined}
                         disabled={disabled}
@@ -149,18 +148,19 @@ function LibraryCardTray(props: Props, ref: React.ForwardedRef<unknown>) {
                             px: '16px',
                             py: '8px',
                             gap: '5px',
+                            textWrap: 'nowrap',
                             opacity: open ? 1 : 0,
                             transition: opacityTransition,
                         }}
                     >
-                        <Image
+                        {/* <Image
                             src={downloadSimpleDarkIcon}
                             alt='Download icon'
                             height={22}
-                        />
+                        /> */}
 
                         <Typography variant='pBody'>
-                            Save
+                            Save Image
                         </Typography>
                     </ButtonBase>
                 </Box>

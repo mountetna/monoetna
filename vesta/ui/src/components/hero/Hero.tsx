@@ -13,12 +13,11 @@ import Link from 'next/link'
 import StatsCarousel, { Stats } from '@/components/stats/stats-carousel';
 import { scrollTo } from '@/lib/utils/scroll';
 import { useBreakpoint } from '@/lib/utils/responsive';
+import { useUser } from '../user/context';
 
 import arrowUpRightLightIcon from '/public/images/icons/arrow-up-right-light.svg'
 import arrowRightLightIcon from '/public/images/icons/arrow-right-light.svg'
 import arrowCounterClockwiseLightIcon from '/public/images/icons/arrow-counter-clockwise-light.svg'
-import pauseLightIcon from '/public/images/icons/pause-light.svg'
-import playLightIcon from '/public/images/icons/play-light.svg'
 
 
 export interface Video {
@@ -31,14 +30,18 @@ export default function Hero({
     initVideoIdx,
     stats,
     scrollTargetId,
+    accessUrl,
 }: {
     videos: Video[],
     initVideoIdx: number,
     stats: Stats,
     scrollTargetId: string,
+    accessUrl: string,
 }) {
     const theme = useTheme()
     const breakpoint = useBreakpoint()
+
+    const user = useUser()
 
     const handleClickScrollToExplore = () => {
         const el = document.getElementById(scrollTargetId)
@@ -76,11 +79,6 @@ export default function Hero({
         setVideoIdx(idx => (idx + 1) % videos.length)
         videoEl.load()
         await videoEl.play()
-    }
-
-    const videoControlsAnimationProps = {
-        easing: theme.transitions.easing.ease,
-        timeout: theme.transitions.duration.ease,
     }
 
     const videoControlButtonSizePx = 50
@@ -126,11 +124,6 @@ export default function Hero({
                             },
                             gridColumn: 'span 12',
                             px: '31px',
-                            '& video': {
-                                width: '100%',
-                                height: 'auto',
-                                aspectRatio: '1/1',
-                            },
                             [theme.breakpoints.up('tablet')]: {
                                 gridColumn: 'span 10',
                                 px: '0',
@@ -152,11 +145,19 @@ export default function Hero({
                             }}
                             onPause={() => setVideoPaused(true)}
                             onEnded={() => setVideoEnded(true)}
+                            style={{
+                                width: '100%',
+                                height: 'auto',
+                                aspectRatio: '1/1',
+                                objectFit: 'cover',
+                                borderRadius: '50%',
+                            }}
                         >
-                            {!videoEnded && <source
+                            <source
                                 src={video.videoSrc}
                                 type='video/mp4'
-                            />}
+                            />
+
                             <Image
                                 src={video.imageSrc}
                                 alt='Picture of Spatial Transcriptomics'
@@ -165,6 +166,7 @@ export default function Hero({
 
                         {/* controls */}
                         <Box
+                            onClick={() => videoEnded && handleClickPlayPauseReset()}
                             sx={{
                                 position: 'absolute',
                                 left: 0,
@@ -176,17 +178,11 @@ export default function Hero({
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '50px',
-                                '& > button': {
-                                    opacity: videoPaused ? 0.7 : 0,
-                                    transition: opacityTransition,
-                                },
+                                transition: opacityTransition,
+                                opacity: 0,
                                 '&:hover': {
-                                    '& > div': {
-                                        opacity: 0.7,
-                                    },
-                                    '& > button': {
-                                        opacity: 1,
-                                    },
+                                    opacity: videoEnded ? 1 : 0,
+                                    cursor: videoEnded ? 'pointer' : 'default',
                                 },
                             }}
                         >
@@ -197,65 +193,31 @@ export default function Hero({
                                     left: 0,
                                     width: '100%',
                                     height: '100%',
+                                    opacity: 0.7,
                                     bgcolor: theme.palette.utilityLowlight.main,
-                                    opacity: videoPaused ? 0.5 : 0,
-                                    transition: opacityTransition,
                                 }}
                             />
 
-
-                            {/* play, pause, restart */}
+                            {/* restart */}
                             <ButtonBase
                                 onClick={handleClickPlayPauseReset}
+                                disabled={!videoEnded}
+                                aria-label='Restart video'
                                 sx={{
-                                    position: 'relative',
                                     height: `${videoControlButtonSizePx}px`,
                                     aspectRatio: '1/1',
-                                    '& > *': {
-                                        position: 'absolute'
-                                    },
                                 }}
                             >
-                                <Fade
-                                    in={videoPaused && !videoEnded}
-                                    aria-label='Play'
-                                    {...videoControlsAnimationProps}
-                                >
-                                    <Image
-                                        src={playLightIcon}
-                                        alt='Play'
-                                        height={videoControlButtonSizePx}
-                                    />
-                                </Fade>
-
-                                <Fade
-                                    in={!videoPaused && !videoEnded}
-                                    aria-label='Pause'
-                                    {...videoControlsAnimationProps}
-                                >
-                                    <Image
-                                        src={pauseLightIcon}
-                                        alt='Pause'
-                                        height={videoControlButtonSizePx}
-                                    />
-                                </Fade>
-
-                                <Fade
-                                    in={videoEnded}
-                                    aria-label='Restart'
-                                    {...videoControlsAnimationProps}
-                                >
-                                    <Image
-                                        src={arrowCounterClockwiseLightIcon}
-                                        alt='Arrow counter clockwise'
-                                        height={videoControlButtonSizePx}
-                                    />
-                                </Fade>
+                                <Image
+                                    src={arrowCounterClockwiseLightIcon}
+                                    alt='Arrow counter clockwise'
+                                />
                             </ButtonBase>
 
                             {/* next */}
                             <ButtonBase
                                 onClick={handleClickNext}
+                                disabled={!videoEnded}
                                 aria-label='Next video'
                                 sx={{
                                     height: `${videoControlButtonSizePx}px`,
@@ -265,7 +227,6 @@ export default function Hero({
                                 <Image
                                     src={arrowRightLightIcon}
                                     alt='Arrow right'
-                                    height={videoControlButtonSizePx}
                                 />
                             </ButtonBase>
                         </Box>
@@ -363,7 +324,7 @@ export default function Hero({
                             <StatsCarousel stats={stats} />
                         </Box>
                         <MUILink
-                            href="#"
+                            href={accessUrl}
                             tabIndex={0}
                             component={Link}
                             underline='none'
@@ -384,7 +345,7 @@ export default function Hero({
                                 variant='h5'
                                 color='utilityHighlight.main'
                             >
-                                Get Access
+                                {user ? 'Go to Dashboard' : 'Get Access'}
                             </Typography>
                             <Box
                                 sx={{

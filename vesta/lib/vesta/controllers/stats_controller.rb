@@ -13,7 +13,9 @@ class StatsController < Vesta::Controller
     projects_to_include = @params[:projects]
 
     stats = Vesta::ProjectStats
-    stats = stats.where(name: projects_to_include) unless projects_to_include.nil?
+    unless projects_to_include.nil?
+      stats = stats.where(name: projects_to_include)
+    end
 
     success_json(stats.all)
   end

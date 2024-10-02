@@ -7,21 +7,24 @@ import { SxProps, useTheme } from '@mui/material';
 import Image from 'next/image';
 
 import { PrincipalInvestigator } from './models';
+import Link from '../link/link';
 
 
 // Maybe make this a generic member component
 // instead of specific to PIs?
 
-// TODO: add profile link if available
+
 export default function ProjectPI({
     data,
     showAvatar = true,
     showNameAndTitle = true,
+    linkToProfile = false,
     variant = 'stroked',
 }: {
     data: PrincipalInvestigator,
     showAvatar?: boolean,
     showNameAndTitle?: boolean,
+    linkToProfile?: boolean
     variant?: 'stroked' | 'filled',
 }) {
     const theme = useTheme()
@@ -40,7 +43,7 @@ export default function ProjectPI({
         }
     }
 
-    return (
+    const mainEl = (
         <Box
             sx={{
                 display: 'flex',
@@ -144,5 +147,17 @@ export default function ProjectPI({
                 }
             </Box>}
         </Box>
+    )
+
+    return (
+        linkToProfile && data.profileUrl ? (
+            <Link
+                href={data.profileUrl}
+            >
+                {mainEl}
+            </Link>
+        ) : (
+            mainEl
+        )
     )
 }

@@ -20,6 +20,7 @@ import { useBreakpoint } from '@/lib/utils/responsive';
 import Pill from '../pill/pill';
 import ProjectUserCountPack from './project-user-count-pack';
 import Link from '../link/link';
+import { useUser } from '../user/context';
 
 
 export enum Classes {
@@ -77,8 +78,8 @@ export default function ProjectListing({
     const isMobile = breakpoint === 'mobile'
     const isDesktop = (['desktop', 'desktopLg'] as (typeof breakpoint)[]).includes(breakpoint)
 
-    // TODO
-    const userHasAccess = false
+    const user = useUser()
+    const userHasAccess = data.name in (user?.permissions || {})
 
     const animationProps: TransitionProps = {
         in: open,
@@ -400,8 +401,7 @@ export default function ProjectListing({
                                     </Box>
 
                                     <Link
-                                        // TODO: href
-                                        href={'#'}
+                                        href={data.href}
                                         tabIndex={0}
                                         sx={{
                                             display: 'flex',
@@ -429,7 +429,7 @@ export default function ProjectListing({
                                             variant='pSubtitle'
                                             color='#F5F5F5'
                                         >
-                                            {userHasAccess ? 'Visit Project' : 'Get Access'}
+                                            {userHasAccess ? 'Go to Project' : 'Get Access'}
                                         </Typography>
                                     </Link>
                                 </Box>
@@ -577,6 +577,7 @@ export default function ProjectListing({
                                                                         key={`${aspect.propName}_${i}`}
                                                                         data={piData}
                                                                         showAvatar={hasOpened}
+                                                                        linkToProfile={true}
                                                                     />
                                                                 ))
 

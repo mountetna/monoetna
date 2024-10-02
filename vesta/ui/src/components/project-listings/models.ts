@@ -14,27 +14,12 @@ export enum ProjectType {
     external = 'External',
 }
 
-export enum DataType {
-    cytof = 'CyTOF',
-    bulkRnaSeq = 'Bulk RNA-Seq',
-    citeSeq = 'CITE-Seq',
-    tcrBcrRepertoire = 'TCR-BCR Repertoire',
-    zeNith = 'ZeNITH',
-    hlaSequencing = 'HLA Sequencing',
-    phIpSeq = 'PhIP-Seq',
-    wholeExomeSeq = 'Whole-exome seq',
-    atacSeq = 'ATAC-seq',
-    visiumSpatialTranscriptomics = 'Visium Spatial Transcriptomics',
-    organoidExpansion = 'Organoid expansion',
-    vdjSeq = 'V(D)Jseq',
-    microbiome = 'Microbiome',
-    tcrSeq = 'TCR-seq',
-}
-
 export interface PrincipalInvestigator {
     name: string
+    email: string
     title?: string
     imageUrl?: string
+    profileUrl?: string
     color: string
     altColor: string
 }
@@ -44,20 +29,20 @@ export interface Project {
     fullName: string
     heading?: string
     description: string
-    fundingSource: string
+    fundingSource?: string
     principalInvestigators: PrincipalInvestigator[]
     status: ProjectStatus
     type: ProjectType
-    dataTypes: DataType[]
+    dataTypes: string[]
     sampleCount: number
     assayCount: number
-    contributorCount: number
     hasClinicalData: string,
     species: string
     startDate: Date
     dataCollectionComplete: boolean
     userCount: number
     theme: ThemeData
+    href: string
 }
 
 export enum ExternalProjectStatus {

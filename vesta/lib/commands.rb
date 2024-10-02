@@ -6,10 +6,14 @@ require 'tempfile'
 require 'active_support/all'
 require 'etna/command'
 require_relative 'helpers'
+require 'net/http'
+require 'byebug'
 
 
 class Vesta
   class Migrate < Etna::Command
+    include WithLogger
+
     usage 'Run migrations for the current environment.'
     string_flags << '--version'
 
@@ -57,13 +61,13 @@ class Vesta
 
     def execute
       # get all projects
-      janus_stats_by_project = janus_client.get_project_stats
+      janus_stats = janus_client.get_project_stats
 
       # byte and file counts
       file_count_by_project = metis_client.get_file_count_by_project
       byte_count_by_project = metis_client.get_byte_count_by_project
 
-      project_stats = janus_stats_by_project[:projects].map do |proj|
+      project_stats = janus_stats[:projects].map do |proj|
         # skip resource projects
         next if proj[:resource] == true
 
@@ -80,8 +84,9 @@ class Vesta
           subject_count = query_model_counts(proj_name, @magma_config[:subject_models].to_set, models)
           sample_count = query_model_counts(proj_name, @magma_config[:sample_models].to_set, models)
           assay_count = query_model_counts(proj_name, @magma_config[:assay_models].to_set, models)
+          clinical_data_count = query_model_counts(proj_name, @magma_config[:clinical_models].to_set, models)
         rescue => e
-          # log error
+          puts "Error collecting Magma counts for #{proj_name}: #{e}"
           next
         end
 
@@ -93,14 +98,26 @@ class Vesta
           subject_count: subject_count,
           sample_count: sample_count,
           assay_count: assay_count,
+          clinical_data_count: clinical_data_count,
         }
+      end.compact
+
+      global_stats = Hash.new(0)
+      project_stats.each do |item|
+        item.each do |k, v|
+          next if [:name, :user_count, :clinical_data_count].include?(k)
+          global_stats[k] += v
+        end
       end
+
+      # top-level user count dedupes users belonging to multiple projects
+      global_stats[:user_count] = janus_stats[:user_count]
 
       Vesta.instance.db.transaction do
         # save projects stats
-        Vesta::ProjectStats.multi_insert(project_stats.compact)
+        Vesta::ProjectStats.multi_insert(project_stats)
         # save global stats
-        Vesta::GlobalStats.create(user_count: janus_stats_by_project[:user_count])
+        Vesta::GlobalStats.create(global_stats)
       end
     end
 
@@ -119,7 +136,7 @@ class Vesta
         count += response_count
       end
 
-      count
+      count || 0
     end
 
     def setup(config)
@@ -142,13 +159,27 @@ class Vesta
       janus_stats_by_project = janus_client.get_project_stats
 
       janus_stats_by_project[:projects].each do |proj|
-        # skip resource projects
-        next if proj[:resource] == true
-
         proj_name = proj[:project_name]
+
+        # skip resource projects
+        if proj[:resource] == true
+          puts "Skipping collecting project info for #{proj_name}"
+          next
+        end
+
+        puts "Start collecting project info for #{proj_name}"
 
         begin
           project_info = retrieve_project_info(proj_name)
+          project_data_types = retrieve_data_types(proj_name)
+
+          pi_profiles = proj[:principal_investigators].map do |janus_pi|
+            begin
+              retrieve_ucsf_profile(janus_pi)
+            rescue => e
+              puts "Error retreiving UCSF profile for #{janus_pi[:name]}: #{e}"
+            end
+          end
 
           # insert project data one-by-one (vs multi_insert)
           # in case any one project has null vals for non-nullable attrs
@@ -159,18 +190,21 @@ class Vesta
             full_name: proj[:project_name_full],
             description: project_info[:description],
             funding_source: project_info[:funding_source],
-            principal_investigator: project_info[:principal_investigator],
+            principal_investigators: pi_profiles,
             status: project_info[:project_status],
             type: project_info[:project_type],
             species: project_info[:species],
-            start_date: project_info[:start_date],
+            start_date: parse_start_date(project_info[:start_date]),
             theme: project_info[:theme],
-            data_collection_complete: project_info[:completed],
+            data_collection_complete: project_info[:completed] != nil ? project_info[:completed] : false,
+            data_types: project_data_types,
           )
         rescue => e
-          # log error
+          puts "Error collecting project info for #{proj_name}: #{e}"
           next
         end
+
+        puts "Successfully collected project info for #{proj_name}"
       end
     end
 
@@ -180,7 +214,7 @@ class Vesta
         model_name: 'project',
         attribute_names: [
           'completed', 'description', 'funding_source',
-          'principal_investigator', 'project_status', 'project_type',
+          'project_status', 'project_type',
           'species', 'start_date', 'theme',
         ],
         record_names: 'all',
@@ -188,6 +222,46 @@ class Vesta
 
       data = response.models.raw["project"]["documents"][project_name]
       data.transform_keys(&:to_sym)
+    end
+
+    def retrieve_data_types(project_name)
+      response = magma_client.retrieve(
+        project_name: project_name,
+        model_name: 'all',
+        attribute_names: [],
+        record_names: [],
+      )
+
+      response.models.raw.keys.map(&:to_sym)
+    end
+
+    def retrieve_ucsf_profile(janus_pi)
+      uri = URI('https://api.profiles.ucsf.edu/json/v2/')
+      params = {
+        ProfilesURLName: janus_pi[:email].split('@')[0],
+        source: 'datalibrary.ucsf.edu',
+      }
+      uri.query = URI.encode_www_form(params)
+
+      res = Net::HTTP.get_response(uri)
+
+      return janus_pi.merge({
+        profile_url: nil,
+        title: nil,
+        photo_url: nil,
+      }) unless res.is_a?(Net::HTTPSuccess)
+
+      json = JSON.parse(res.body, symbolize_names: true)[:Profiles][0]
+
+      return janus_pi.merge({
+        profile_url: json[:ProfilesURL],
+        title: json[:Title],
+        photo_url: json[:PhotoURL],
+      })
+    end
+
+    def parse_start_date(start_date)
+      Date.strptime(start_date, '%Y')
     end
 
     def setup(config)

@@ -35,7 +35,7 @@ export default function LibraryStats({
 
         const latest = v[v.length - 1].value
         latestStats[k] = roundValueToNearestSIPrefix(latest)
-        since7DaysAgo[k] = roundValueToNearestSIPrefix(latest - v[v.length - 8].value)
+        since7DaysAgo[k] = roundValueToNearestSIPrefix(latest - v[Math.max(v.length - 8, v.length - 1)].value)
         carouselStats[k] = latest
     }
 

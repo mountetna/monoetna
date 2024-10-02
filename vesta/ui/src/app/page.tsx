@@ -5,7 +5,6 @@ import { faker } from '@faker-js/faker'
 import _ from 'lodash'
 
 import Hero from '@/components/hero/hero';
-import { getRandomItem } from '@/lib/utils/random';
 import AboutCarousel from '@/components/about/about-carousel';
 import LibraryStats from '@/components/stats/library-stats';
 import { Instance } from '@/components/stats/types';
@@ -14,8 +13,10 @@ import { sectionMargins } from '@/theme';
 import ThemeShelf from '@/components/themes/theme-shelf';
 import { ThemeData } from '@/components/themes/models';
 import ProjectListings from '@/components/project-listings/project-listings';
-import { Project, ProjectStatus, ProjectType, DataType, ProjectsSearchParamsState, PROJECTS_SEARCH_PARAMS_KEY } from '@/components/project-listings/models';
+import { Project, ProjectStatus, ProjectType, ProjectsSearchParamsState, PROJECTS_SEARCH_PARAMS_KEY } from '@/components/project-listings/models';
 import { toSearchParamsString } from '@/lib/utils/uri';
+import { VestaApiClient } from '@/lib/clients/vesta-api/client';
+import { defaultDict } from '@/lib/utils/object';
 
 import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
 import xeniumFallback from '/public/images/hero/xenium-fallback.png'
@@ -68,16 +69,17 @@ import womensHealthThemeProjectBg from '/public/images/themes/components/womens-
 
 // Cache configuration
 // https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#revalidate
-export const revalidate = 86400  // 1 day
+// export const revalidate = 86400  // 1 day
+export const revalidate = 0
 
 export const metadata: Metadata = {
   title: 'UCSF Data Library',
 }
 
 const VIDEOS = [
-  { videoSrc: '/videos/hero/oscc1.mp4', imageSrc: oscc1Fallback },
-  { videoSrc: '/videos/hero/xenium.mp4', imageSrc: xeniumFallback },
-  { videoSrc: '/videos/hero/tonsil.mp4', imageSrc: tonsilFallback },
+  { videoSrc: '/videos/hero/oscc1-clipped.mp4', imageSrc: oscc1Fallback },
+  { videoSrc: '/videos/hero/xenium-clipped.mp4', imageSrc: xeniumFallback },
+  { videoSrc: '/videos/hero/tonsil-clipped.mp4', imageSrc: tonsilFallback },
 ]
 
 const ABOUT_ITEMS = [
@@ -110,7 +112,7 @@ const ABOUT_ITEMS = [
     header: 'What tools are available',
     body: 'The data library has many tools at your disposal, Janus for administration and permissions, midas for enim sem ut tincidunt vehicula vulputate donec etiam morbi. Ac nec facilisis sagittis aliquet. Felis laoreet sed rhoncus a quis odio dignissim est nisl. At est vulputate id etiam felis. Proin ac dapibus nec a pretium vel. Tincidunt feugiat dolor risus maecenas est est varius senectus scelerisque.',
     link: {
-      href: '#',
+      href: process.env.TIMUR_URL,
       label: 'Get Access',
     },
     image: {
@@ -123,7 +125,7 @@ const ABOUT_ITEMS = [
     header: 'Getting access to the library',
     body: 'The Data Library requires a library card to access. Each project is unique, and must be added to your card separately. All projects require signing a data sharing agreement to access.',
     link: {
-      href: '#',
+      href: process.env.TIMUR_URL,
       label: 'Get Access',
     },
     image: {
@@ -133,46 +135,13 @@ const ABOUT_ITEMS = [
   },
 ]
 
-const startDate = new Date(Date.now())
-const daysInRange = 365 * 4
-startDate.setDate(startDate.getDate() - daysInRange)
-const dayInMs = 24 * 60 * 60 * 1000
-
-const STATS = {
-  bytes: Array(daysInRange).fill(null).map((_, i) => ({
-    date: new Date(startDate.getTime() + i * dayInMs),
-    value: faker.helpers.rangeToNumber({ min: 1e12, max: 999e12, }),
-  })),
-  assays: Array(daysInRange).fill(null).map((_, i) => ({
-    date: new Date(startDate.getTime() + i * dayInMs),
-    value: faker.helpers.rangeToNumber({ min: 1000, max: 400000, }),
-  })),
-  subjects: Array(daysInRange).fill(null).map((_, i) => ({
-    date: new Date(startDate.getTime() + i * dayInMs),
-    value: faker.helpers.rangeToNumber({ min: 10, max: 999, }),
-  })),
-  files: Array(daysInRange).fill(null).map((_, i) => ({
-    date: new Date(startDate.getTime() + i * dayInMs),
-    value: faker.helpers.rangeToNumber({ min: 1000, max: 999999, }),
-  })),
-  samples: Array(daysInRange).fill(null).map((_, i) => ({
-    date: new Date(startDate.getTime() + i * dayInMs),
-    value: faker.helpers.rangeToNumber({ min: 100000, max: 999999, }),
-  })),
-  users: Array(daysInRange).fill(null).map((_, i) => ({
-    date: new Date(startDate.getTime() + i * dayInMs),
-    value: faker.helpers.rangeToNumber({ min: 100, max: 1000, }),
-  })),
-}
-
-
 const THEMES: ThemeData[] = [
   {
     name: 'Infection',
     color: '#89A7CE',
     altColor: '#E8F2FF',
     textColor: 'light',
-    projectCount: 11,
+    projectCount: 0,
     projectsLink: '',
     description: faker.commerce.productDescription(),
     imageComponents: {
@@ -187,7 +156,7 @@ const THEMES: ThemeData[] = [
     color: '#D36F49',
     altColor: '#556E66',
     textColor: 'light',
-    projectCount: 23,
+    projectCount: 0,
     projectsLink: '',
     description: faker.commerce.productDescription(),
     imageComponents: {
@@ -202,7 +171,7 @@ const THEMES: ThemeData[] = [
     color: '#D6D8A8',
     altColor: '#F3F2E3',
     textColor: 'dark',
-    projectCount: 8,
+    projectCount: 0,
     projectsLink: '',
     description: faker.commerce.productDescription(),
     imageComponents: {
@@ -217,7 +186,7 @@ const THEMES: ThemeData[] = [
     color: '#A2A648',
     altColor: '#13283F',
     textColor: 'light',
-    projectCount: 2,
+    projectCount: 0,
     projectsLink: '',
     description: faker.commerce.productDescription(),
     imageComponents: {
@@ -232,7 +201,7 @@ const THEMES: ThemeData[] = [
     color: '#7FA190',
     altColor: '#3A4B48',
     textColor: 'light',
-    projectCount: 8,
+    projectCount: 0,
     projectsLink: '',
     description: faker.commerce.productDescription(),
     imageComponents: {
@@ -247,7 +216,7 @@ const THEMES: ThemeData[] = [
     color: '#E4B8C7',
     altColor: '#B53B38',
     textColor: 'dark',
-    projectCount: 21,
+    projectCount: 0,
     projectsLink: '',
     description: faker.commerce.productDescription(),
     imageComponents: {
@@ -262,7 +231,7 @@ const THEMES: ThemeData[] = [
     color: '#556E66',
     altColor: '#2A5A8D',
     textColor: 'light',
-    projectCount: 6,
+    projectCount: 0,
     projectsLink: '',
     description: faker.commerce.productDescription(),
     imageComponents: {
@@ -277,7 +246,7 @@ const THEMES: ThemeData[] = [
     color: '#E9C54E',
     altColor: '#B53B38',
     textColor: 'dark',
-    projectCount: 10,
+    projectCount: 0,
     projectsLink: '',
     description: faker.commerce.productDescription(),
     imageComponents: {
@@ -292,7 +261,7 @@ const THEMES: ThemeData[] = [
     color: '#DDDAD0',
     altColor: '#F9F8F6',
     textColor: 'dark',
-    projectCount: 4,
+    projectCount: 0,
     projectsLink: '',
     description: faker.commerce.productDescription(),
     imageComponents: {
@@ -304,72 +273,8 @@ const THEMES: ThemeData[] = [
   },
 ]
 
+// Manage projects link
 THEMES.forEach(theme => {
-  theme.projectsLink = `#projects__${_.kebabCase(theme.name)}`
-})
-
-function createRandomArray<E extends any>(min: number, max: number, generator: () => E): Array<E> {
-  const result = [] as Array<E>
-  for (let i = 0; i < faker.helpers.rangeToNumber({ min: min, max: max, }); i++) {
-    result.push(generator())
-  }
-  return result
-}
-
-function randomBool(): boolean {
-  return Math.round(Math.random()) === 1
-}
-
-const PROJECTS: Project[] = []
-const projectNames = new Set<string>()
-
-THEMES.forEach(theme => {
-  for (let i = 0; i < theme.projectCount; i++) {
-
-    let name = ''
-    do {
-      name = faker.company.name().replace(' -', '')
-    } while (projectNames.has(name))
-    projectNames.add(name)
-
-    const project: Project = {
-      name: name.toLowerCase().slice(0, 4),
-      fullName: name,
-      heading: faker.helpers.maybe(faker.lorem.sentence),
-      description: faker.lorem.paragraphs({ min: 1, max: 3 }),
-      fundingSource: faker.commerce.department(),
-      principalInvestigators: createRandomArray(1, 10, () => {
-        const theme = faker.helpers.arrayElement(THEMES)
-
-        return {
-          name: faker.person.fullName(),
-          title: faker.helpers.maybe(faker.person.jobTitle),
-          imageUrl: faker.helpers.maybe(faker.image.avatar),
-          color: theme.color,
-          altColor: theme.textColor === 'light' ? 'utilityHighlight.main' : 'ground.grade10',
-        }
-      }),
-      status: faker.helpers.arrayElement(Object.values(ProjectStatus)),
-      type: faker.helpers.arrayElement(Object.values(ProjectType)),
-      // Dedupe
-      dataTypes: Array.from(new Set(
-        createRandomArray(1, 10, () => faker.helpers.arrayElement(Object.values(DataType)))
-      )),
-      hasClinicalData: randomBool() ? 'Yes' : 'No',
-      species: faker.lorem.word(),
-      startDate: faker.date.between({ from: '2018-01-01T00:00:00.000Z', to: '2024-01-01T00:00:00.000Z' }),
-      dataCollectionComplete: randomBool(),
-      userCount: faker.helpers.rangeToNumber({ min: 5, max: 100, }),
-      theme: theme,
-      sampleCount: randomBool() ? faker.helpers.rangeToNumber({ min: 1, max: 1000, }) : 0,
-      assayCount: randomBool() ? faker.helpers.rangeToNumber({ min: 1, max: 1000, }) : 0,
-      contributorCount: faker.helpers.rangeToNumber({ min: 5, max: 100, }),
-    }
-
-    PROJECTS.push(project)
-  }
-
-  // Manage projects link
   const projectsSearchParamsState: ProjectsSearchParamsState = {
     filters: { theme: [theme.name] }
   }
@@ -379,22 +284,83 @@ THEMES.forEach(theme => {
 
 
 async function getData() {
+  const apiClient = new VestaApiClient()
+
+  const [
+    stats,
+    apiProjects,
+  ] = await Promise.all([
+    apiClient.fetchStats(),
+    apiClient.fetchProjects(),
+  ])
+
+  const themeProjectsCount = defaultDict<string, number>(_ => 0)
+
+  const projects: (Project | undefined)[] = apiProjects.map(proj => {
+    const status = Object.values(ProjectStatus).find(k => k.toUpperCase() === proj.status.toUpperCase())
+    const type = Object.values(ProjectType).find(k => k.toUpperCase() === proj.type.toUpperCase())
+    const theme = THEMES.find(theme => theme.name.toUpperCase() === proj.theme.toUpperCase())
+    if (!status || !type || !theme) {
+      return
+    }
+
+    themeProjectsCount[theme.name.toUpperCase()] += 1
+
+    const dataTypes = proj.data_types.filter(dt => dt.toUpperCase() !== 'project'.toUpperCase())
+
+    return {
+      name: proj.name,
+      fullName: _.words(proj.full_name).join(' '),
+      description: proj.description,
+      fundingSource: proj.funding_source,
+      principalInvestigators: proj.principal_investigators.map(pi => {
+        const theme = faker.helpers.arrayElement(THEMES)
+
+        return {
+          name: pi.name,
+          email: pi.email,
+          title: pi.title,
+          imageUrl: pi.image_url,
+          profileUrl: pi.profile_url,
+          color: theme.color,
+          altColor: theme.textColor === 'light' ? 'utilityHighlight.main' : 'ground.grade10',
+        }
+      }),
+      status,
+      type,
+      dataTypes,
+      sampleCount: proj.name in stats.byProjectName && stats.byProjectName[proj.name].samples.length > 0 ? stats.byProjectName[proj.name].samples.at(-1)?.value || 0 : 0,
+      assayCount: proj.name in stats.byProjectName && stats.byProjectName[proj.name].assays.length > 0 ? stats.byProjectName[proj.name].assays.at(-1)?.value || 0 : 0,
+      hasClinicalData: (proj.name in stats.byProjectName && stats.byProjectName[proj.name].assays.length > 0 ? stats.byProjectName[proj.name].assays.at(-1)?.value || 0 : 0) > 0 ? 'Yes' : 'No',
+      species: proj.species,
+      startDate: proj.start_date,
+      dataCollectionComplete: proj.data_collection_complete,
+      userCount: proj.name in stats.byProjectName && stats.byProjectName[proj.name].users.length > 0 ? stats.byProjectName[proj.name].users.at(-1)?.value || 0 : 0,
+      theme,
+      href: (new URL(`/${proj.name}`, process.env.TIMUR_URL)).href
+    }
+  })
+
+  const themes = THEMES.map(theme => ({
+    ...theme,
+    projectCount: themeProjectsCount[theme.name.toUpperCase()],
+  }))
+
   return {
     heroVideos: VIDEOS,
-    // TODO: replace with real data
-    stats: STATS,
-    // TODO: replace with real data
+    stats: stats.global,
     aboutItems: ABOUT_ITEMS,
-    themes: THEMES,
-    projects: PROJECTS,
+    themes,
+    projects: (projects.filter(p => p) as Project[]),
+    accessUrl: process.env.TIMUR_URL
   }
 }
 
 export default async function Home() {
   const data = await getData()
 
-  const carouselStats = {} as Record<keyof typeof STATS, number>
-  for (const [k, v] of (Object.entries(STATS) as [keyof typeof STATS, Instance<number>[]][])) {
+  const carouselStats = {} as Record<keyof typeof data.stats, number>
+  for (const [k, v] of (Object.entries(data.stats) as [keyof typeof data.stats, Instance<number>[]][])) {
     carouselStats[k] = v[v.length - 1].value
   }
 
@@ -414,6 +380,7 @@ export default async function Home() {
         initVideoIdx={faker.helpers.rangeToNumber({ min: 0, max: data.heroVideos.length - 1 })}
         stats={carouselStats}
         scrollTargetId='about'
+        accessUrl={data.accessUrl}
       />
 
       <Box sx={sectionMargins}>

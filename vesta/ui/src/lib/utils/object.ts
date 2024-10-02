@@ -32,23 +32,30 @@ export function unflattenObject(obj: Record<string, any>, delimiter = '.'): Reco
     }, {})
 }
 
-
-export class CountRecord {
-    record: Record<string, number>
-    
-    constructor() {
-        this.record = {}
-    }
-
-    increment(key: string) {
-        if (key in this.record) {
-            return this.record[key] += 1
+export function defaultDict<K extends keyof any, V>(createValue: (property: any) => V): Record<K, V> {
+    return new Proxy(Object.create(null), {
+        get(storage: Record<any, any>, property: any) {
+            if (!(property in storage)) {
+                storage[property] = createValue(property);
+            }
+            return storage[property];
         }
+    });
+}
 
-        return this.record[key] = 1
-    }
+export function listToIdObject<T extends Record<any, any>>(list: T[], idPropName: keyof T): Record<any, T> {
+    const idObject: Record<any, T> = {};
+    list.forEach(item => {
+        idObject[item[idPropName]] = item;
+    });
 
-    [Symbol.iterator]() {
-        return Object.entries(this.record)
-    }
+    return idObject;
+}
+
+export function listToGroupObject<T extends Record<any, any>>(list: T[], groupPropName: keyof T): Record<string, T[]> {
+    const idObject = defaultDict<string, T[]>(_ => []);
+
+    list.forEach(item => idObject[item[groupPropName]].push(item));
+
+    return { ...idObject }; // removes default value getter
 }

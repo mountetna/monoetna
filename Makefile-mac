@@ -252,6 +252,9 @@ vulcan-migrate:
 
 ## Vesta ##
 
+vesta-build:
+	cd vesta && docker compose build
+
 vesta-up:
 	cd edge-apache &&  docker compose up -d
 	cd vesta && docker compose up -d

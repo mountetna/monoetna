@@ -17,7 +17,13 @@ import arrowCounterClockwiseLightIcon from '/public/images/icons/arrow-counter-c
 export type Stats = Record<'bytes' | 'assays' | 'subjects' | 'files' | 'samples' | 'users', number>
 
 
-export default function StatsCarousel({ stats }: { stats: Stats }) {
+export default function StatsCarousel({
+    stats,
+    loop = true,
+}: {
+    stats: Stats
+    loop?: boolean,
+}) {
     const theme = useTheme()
     const darkText = theme.palette.ground.grade10
     const lightText = theme.palette.utilityHighlight.main
@@ -46,45 +52,46 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
     const [itemIndex, setItemIndex] = React.useState<number>(0)
     const [swiperRef, setSwiperRef] = React.useState<SwiperClass>()
 
-    const items = [
-        {
-            label: 'Total Data Stored',
-            value: `${Math.round(stats.bytes / 1e12).toLocaleString()}TB`,
-            textColor: darkText,
-            backgroundColor: theme.palette.yellow.grade50,
-        },
-        {
-            label: 'Assays',
-            value: stats.assays.toLocaleString(),
-            textColor: lightText,
-            backgroundColor: theme.palette.blue.grade50,
-        },
-        {
-            label: 'Subjects',
-            value: stats.subjects.toLocaleString(),
-            textColor: lightText,
-            backgroundColor: theme.palette.orange.grade50,
-        },
-        {
-            label: 'Files',
-            value: stats.files.toLocaleString(),
-            textColor: lightText,
-            backgroundColor: theme.palette.teal.grade50,
-        },
-        {
-            label: 'Samples',
-            value: stats.samples.toLocaleString(),
-            textColor: darkText,
-            backgroundColor: theme.palette.green.grade75,
-        },
-
-        {
-            label: 'Users',
-            value: stats.users.toLocaleString(),
-            textColor: darkText,
-            backgroundColor: theme.palette.magenta.grade75,
-        },
-    ]
+    const items = React.useMemo(() => {
+        return [
+            {
+                label: 'Total Data Stored',
+                value: `${Math.round(stats.bytes / 1e12).toLocaleString()}TB`,
+                textColor: darkText,
+                backgroundColor: theme.palette.yellow.grade50,
+            },
+            {
+                label: 'Assays',
+                value: stats.assays.toLocaleString(),
+                textColor: lightText,
+                backgroundColor: theme.palette.blue.grade50,
+            },
+            {
+                label: 'Subjects',
+                value: stats.subjects.toLocaleString(),
+                textColor: lightText,
+                backgroundColor: theme.palette.orange.grade50,
+            },
+            {
+                label: 'Files',
+                value: stats.files.toLocaleString(),
+                textColor: lightText,
+                backgroundColor: theme.palette.teal.grade50,
+            },
+            {
+                label: 'Samples',
+                value: stats.samples.toLocaleString(),
+                textColor: darkText,
+                backgroundColor: theme.palette.green.grade75,
+            },
+            {
+                label: 'Users',
+                value: stats.users.toLocaleString(),
+                textColor: darkText,
+                backgroundColor: theme.palette.magenta.grade75,
+            },
+        ]
+    }, ([stats]))
 
     const handleClickCarouselIndexIndicator = (index: number) => {
         setItemIndex(index)
@@ -96,6 +103,10 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
     }
 
     const simpleStatPaddingPx = 16
+
+    if (items[itemIndex] === undefined) {
+        console.error('bad item index', items, itemIndex, swiperRef?.activeIndex, swiperRef?.realIndex)
+    }
 
     return (
         <Box
@@ -133,13 +144,15 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
                 <Swiper
                     modules={[A11y, Autoplay]}
                     autoplay={{
-                        delay: theme.transitions.duration.long,
-                        stopOnLastSlide: true,
+                        delay: theme.transitions.duration.long * 1.5,
+                        stopOnLastSlide: !loop,
                     }}
                     onInit={(swiper) => setSwiperRef(swiper)}
-                    onSlideChange={(swiper) => setItemIndex(swiper.activeIndex)}
+                    // `realIndex` should take into account looping but doesn't sometimes
+                    // TODO: figure out why
+                    onSlideChange={(swiper) => setItemIndex(swiper.realIndex % items.length)}
                 >
-                    {items.map((item, idx) => {
+                    {items.map(item => {
                         return (
                             <SwiperSlide key={item.label}>
                                 <Box
@@ -194,7 +207,7 @@ export default function StatsCarousel({ stats }: { stats: Stats }) {
                 })}
             </Box>
 
-            {itemIndex === items.length - 1 && <Fade
+            {!loop && itemIndex === items.length - 1 && <Fade
                 in={true}
                 appear={true}
                 easing={theme.transitions.easing.quint}

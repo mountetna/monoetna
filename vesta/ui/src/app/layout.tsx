@@ -5,12 +5,14 @@ import CssBaseline from '@mui/material/CssBaseline';
 import 'swiper/css';
 import 'swiper/css/bundle';
 import { faker } from '@faker-js/faker';
+import { cookies } from 'next/headers';
 
 import theme from '@/theme';
 import MainNav from '@/components/nav/main-nav';
 import Footer from '@/components/footer/footer';
 import { User } from '@/components/user/models';
 import { UserContextProvider } from '@/components/user/context';
+import { isSuperuser, parseToken } from '@/lib/utils/janus';
 
 import sample1 from '/public/images/library-card/image-samples/1.png'
 import sample2 from '/public/images/library-card/image-samples/2.png'
@@ -93,22 +95,31 @@ const IMAGES = [
 ]
 
 
-const USER: User = {
-  name: faker.person.fullName(),
-  email: faker.internet.email(),
-  title: faker.person.jobTitle(),
-  role: faker.person.jobType(),
-  imageUrl: faker.helpers.arrayElement(IMAGES),
-  avatarUrl: faker.helpers.maybe(() => faker.image.avatar()),
-  color: faker.color.rgb(),
-  joinDate: faker.date.past({ years: 10 }),
-  contributions: faker.number.int({ min: 0, max: 100 }),
-  projectMemberships: faker.number.int({ min: 0, max: 100 }),
-}
-
 async function getData() {
+  const janusToken = cookies().get(process.env.JANUS_TOKEN_COOKIE_NAME)?.value
+  const userCookie = janusToken ? parseToken(janusToken) : null
+
+  let user: User | null = null
+  if (userCookie) {
+    user = {
+      name: userCookie.name,
+      email: userCookie.email,
+      // TODO: check from UCSF Profiles API
+      title: undefined,
+      role: isSuperuser(userCookie) ? 'Administrator' : 'Member',
+      imageUrl: faker.helpers.arrayElement(IMAGES),
+      // TODO: check from UCSF Profiles API
+      avatarUrl: undefined,
+      color: faker.color.rgb(),
+      joinDate: userCookie.joined_at,
+      projectMemberships: Object.keys(userCookie.permissions).length,
+      permissions: userCookie.permissions,
+    }
+  }
+
   return {
-    user: USER,
+    user,
+    accessUrl: process.env.TIMUR_URL,
   }
 }
 
@@ -129,7 +140,9 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
               value={data.user}
             >
 
-              <MainNav />
+              <MainNav
+                accessUrl={data.accessUrl}
+              />
               <main>{props.children}</main>
               <Footer />
 

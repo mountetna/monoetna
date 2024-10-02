@@ -123,7 +123,7 @@ describe User do
       expect(perm.user).to eq(user)
       expect(perm.role).to eq('viewer')
     end
-    
+
     it 'does nothing if user disagreed to coc, but already has viewer+ permission' do
       user = create(
         :user, name: 'Portunus', email: 'portunus@two-faces.org'
@@ -160,7 +160,7 @@ describe User do
       permission = create(
         :permission, project: gateway, user: user, role: 'guest'
       )
-      
+
       now = Time.now
       cc1 = create(
         :cc_agreement, user_email: 'portunus@two-faces.org', cc_text: 'blah blah blah',
@@ -172,7 +172,7 @@ describe User do
         agreed: false, project_name: 'gateway',
         created_at: now
       )
-      
+
       user.set_guest_permissions!('gateway')
       expect(Permission.count).to eq(0)
     end
@@ -411,9 +411,10 @@ describe UserController do
 
       expect(last_response.status).to eq(200)
       expect(json_body[:user]).to match(
-        email: "janus@two-faces.org",                                  
+        email: "janus@two-faces.org",
         name: "Janus Bifrons",
         public_key: user.key_fingerprint
+        joined_at: user.user_create_stamp,
       )
     end
   end

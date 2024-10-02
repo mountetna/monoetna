@@ -133,15 +133,10 @@ function _StatTimeseriesLineChart({
     } = useParentSize({ debounceTime: 500, })
     const paddingPx = 16
 
-    const isMobile = useMediaQuery(theme.breakpoints.down('tablet'))
-    const isTablet = useMediaQuery(theme.breakpoints.between(
-        theme.breakpoints.values.tablet,
-        theme.breakpoints.values.desktop,
-    ))
-    const isDesktop = useMediaQuery(theme.breakpoints.between(
-        theme.breakpoints.values.desktop,
-        theme.breakpoints.values.desktopLg,
-    ))
+    const breakpoint = useBreakpoint()
+    const isMobile = breakpoint === 'mobile'
+    const isTablet = breakpoint === 'tablet'
+    const isDesktop = breakpoint === 'desktop' || breakpoint === 'desktopLg'
 
     const accessors = {
         xAccessor: (d: StatInstance<number>) => d.date,

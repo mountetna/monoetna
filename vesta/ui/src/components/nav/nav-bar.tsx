@@ -44,10 +44,12 @@ export const Heights: Record<Breakpoint, BreakpointHeights> = {
 
 
 export default function NavBar({
+    accessUrl,
     variant,
     onClickOverlayNavButton,
     sx = {},
 }: {
+    accessUrl: string,
     variant: 'default' | 'condensed',
     onClickOverlayNavButton: () => void,
     sx?: SxProps
@@ -266,12 +268,13 @@ export default function NavBar({
                                 display: 'block',
                             },
                             [theme.breakpoints.up('desktop')]: {
-                                display: 'none',
+                                display: user ? 'none' : 'block',
                             },
                         }}
                     >
                         <LibraryCardButton
-                            isLoggedIn={user !== null}
+                            isLoggedIn={!!user}
+                            accessUrl={accessUrl}
                             onClick={() => handleSetLibraryCardModalOpen(!libraryCardModalOpen)}
                         />
 
@@ -288,7 +291,7 @@ export default function NavBar({
                         sx={{
                             display: 'none',
                             [theme.breakpoints.up('desktop')]: {
-                                display: 'block',
+                                display: user ? 'block' : 'none',
                             },
                             '& > *:first-child': {
                                 opacity: 0,
@@ -308,6 +311,7 @@ export default function NavBar({
                         <LibraryCardTray
                             aria-hidden={true}
                             open={false}
+                            accessUrl={accessUrl}
                             onSetOpen={() => { }}
                             user={user}
                             disabled={true}
@@ -316,6 +320,7 @@ export default function NavBar({
                         {/* actually-interactive el */}
                         <LibraryCardTray
                             open={libraryCardTrayOpen}
+                            accessUrl={accessUrl}
                             onSetOpen={handleSetLibraryCardTrayOpen}
                             user={user}
                         />

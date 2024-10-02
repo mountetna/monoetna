@@ -28,7 +28,7 @@ import { useBreakpoint } from '@/lib/utils/responsive';
 import filterLightIcon from '/public/images/icons/filter-light.svg'
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
-import { CountRecord, flattenObject } from '@/lib/utils/object';
+import { CountRecord, defaultDict, flattenObject } from '@/lib/utils/object';
 import { FilterMethod } from '../searchable-list/models';
 
 
@@ -133,7 +133,7 @@ function _ProjectListings({
     const [currentPage, setCurrentPage] = React.useState(0)
     const pageSize = 12
 
-    const countsByFilterItemType: Record<string, CountRecord> = {}
+    const countsByFilterItemType: Record<string, Record<string, number>> = defaultDict(_ => defaultDict(_ => 0))
 
     const [searchOptions] = React.useState(() => {
 
@@ -144,10 +144,7 @@ function _ProjectListings({
         function addOption(value: FilterItem['value'], type: FilterItem['type'], projectKey: keyof SearchableProjectData) {
             const key = getFilterItemKey(value, type)
 
-            if (!(type in countsByFilterItemType)) {
-                countsByFilterItemType[type] = new CountRecord()
-            }
-            countsByFilterItemType[type].increment(key)
+            countsByFilterItemType[type][key] += 1
 
             if (!existingOptions.has(key)) {
                 existingOptions.add(key)
@@ -229,7 +226,7 @@ function _ProjectListings({
 
         const sorted: FilterItem[] = []
         for (const [type, items] of Object.entries(itemsByType)) {
-            const counts = countsByFilterItemType[type].record
+            const counts = countsByFilterItemType[type]
             items.sort((a, b) => counts[b.key] - counts[a.key])
             sorted.push(...items)
         }

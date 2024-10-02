@@ -7,6 +7,31 @@
     :host: https://timur.development.local
   :magma:
     :host: https://magma.development.local
+    :subject_models:
+      - subject
+      - patient
+      - participant
+    :sample_models:
+      - sample
+      - biospecimen
+    :assay_models:
+      - sc_seq
+      - rna_seq
+      - dna_seq
+      - immunoassay
+      - cytof
+      - omni_tcr_seq
+    :clinical_models:
+      - demographic
+      - diagnostic
+      - diagnostics
+      - treatment
+      - medication
+      - comorbidity
+      - evaluation
+      - clinical_lab
+      - admission_lab
+      - symptom
   :vulcan:
     :host: https://vulcan.development.local
   :metis:
