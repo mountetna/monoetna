@@ -23,7 +23,7 @@ class Vulcan
         if @remote_manager.file_exists?(boot_log, true)
           begin
             regex = /SLURM run ID: ([a-f0-9\-]+)/
-            matched = find_string(boot_log, regex)
+            matched = @remote_manager.find_string(boot_log, regex)
             if matched.nil?
               file_output = @remote_manager.invoke_ssh_command("cat #{boot_log}")
               raise "Could not capture slurm id, error is: #{file_output}"
@@ -46,7 +46,7 @@ class Vulcan
         # The function checks if there are any open files in the .snakemake/log directory.
         # If any files are open, it assumes that a Snakemake process is running.
         snakemake_log_dir = "#{Shellwords.escape(dir)}/.snakemake/log"
-        return false unless dir_exists?(snakemake_log_dir)
+        return false unless @remote_manager.dir_exists?(snakemake_log_dir)
         command = "lsof +D #{snakemake_log_dir}"
         begin
           result = @remote_manager.invoke_ssh_command(command)
@@ -170,7 +170,7 @@ class Vulcan
 
         # Remove dummy files
         dummy_files.each do |value|
-          rm_file(value)
+          @remote_manager.rm_file(value)
         end
         flattened_dag
       end

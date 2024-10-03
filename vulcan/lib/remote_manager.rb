@@ -59,7 +59,7 @@ class Vulcan
       invoke_ssh_command(command)
     end
 
-    def list_files(dir)
+    def list_files(dir, append_dir: false)
       command = "ls #{Shellwords.escape(dir)}"
       out = invoke_ssh_command(command)
       out[:stdout].split("\n")
@@ -100,8 +100,8 @@ class Vulcan
     end
 
     def rm_file(file)
-      # TODO: revisit
-      command = Shellwords.join(["rm","-f", file])
+      # TODO: revisit for safety
+        command = Shellwords.join(["rm","-f", file])
       invoke_ssh_command(command)
     end
 
@@ -164,8 +164,6 @@ class Vulcan
         remote_file_exists?(file_path)
       end
     end
-
-    private
 
     def invoke_background_ssh_command(command)
       # Runs a ssh command as a async background process.
