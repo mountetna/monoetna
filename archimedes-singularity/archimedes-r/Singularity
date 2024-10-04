@@ -1,5 +1,5 @@
 BootStrap: localimage
-From: /home/danb/r-base/r-base.sif
+From: /home/danb/archimedes-r-base/archimedes-r-base.sif
 
 %labels
     Author Daniel Bunis

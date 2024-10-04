@@ -74,6 +74,7 @@ etna/packages/magmaR/.Renviron
 etna/packages/magmaR.Rcheck*
 
 # For possible Singularity dev work
+archimedes-singularity/transfer
 **.sif
 
 **/venv/

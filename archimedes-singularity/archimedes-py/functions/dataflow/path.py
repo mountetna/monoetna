@@ -3,8 +3,6 @@ import os as _os
 import os.path as _os_path
 from pandas import DataFrame, read_csv
 import json
-from snakemake.script import snakemake
-
 
 def input_path(key):
 
