@@ -33,7 +33,10 @@ export const defaultApiHelpers = {
   pollStatus(session: VulcanSession): Promise<SessionStatusResponse> {
     return new Promise(() => null);
   },
-  getWorkflows(): Promise<WorkflowsResponse> {
+  getWorkflows(projectName: string): Promise<WorkflowsResponse> {
+    return new Promise(() => null);
+  },
+  createWorkflow(projectName: string, repoUrl: string, workflowName: string): Promise<WorkflowsResponse> {
     return new Promise(() => null);
   },
   fetchFigures(projectName: string): Promise<FiguresResponse> {
@@ -43,6 +46,9 @@ export const defaultApiHelpers = {
     projectName: string,
     figureId: number
   ): Promise<VulcanFigureSession> {
+    return new Promise(() => null);
+  },
+  createWorkspace(projectName: string, workflowId: number, branch: string, workspaceName: string): Promise<SessionStatusResponse> {
     return new Promise(() => null);
   },
   createFigure(projectName: string, params: any): Promise<VulcanFigureSession> {
@@ -106,12 +112,22 @@ export function useApi(
     [rawVulcanGet]
   );
 
-  const getWorkflows = useCallback((): Promise<WorkflowsResponse> => {
+  const getWorkflows = useCallback((projectName: string): Promise<WorkflowsResponse> => {
     // old: ROUTES.fetch_workflows
-    return vulcanGet(vulcanPath('/api/workflows'))
+    return vulcanGet(vulcanPath(`/api/v2/${projectName}/workflows`))
       .then(handleFetchSuccess)
       .catch(handleFetchError);
   }, [vulcanGet, vulcanPath]);
+
+  const createWorkflow = useCallback((projectName: string, repoUrl: string, workflowName: string): Promise<WorkflowsResponse> => {
+    return vulcanPost(
+      vulcanPath(`/api/v2/${projectName}/workflows/create`),
+      {
+        project_name: projectName,
+        repo_url: repoUrl,
+        workflow_name: workflowName
+      }).then(handleFetchSuccess).catch(handleFetchError);
+  }, [vulcanPost, vulcanPath]);
 
   const postInputs = useCallback(
     (session: VulcanSession): Promise<SessionStatusResponse> => {
@@ -168,6 +184,16 @@ export function useApi(
     },
     [vulcanGet]
   );
+
+  const createWorkspace = useCallback((projectName: string, workflowId: number, branch: string, workspaceName: string): Promise<SessionStatusResponse> => {
+    return vulcanPost(
+      vulcanPath(`/api/v2/${projectName}/workspace/create`),
+      {
+        workflow_id: workflowId,
+        branch: branch,
+        workspace_name: workspaceName
+      }).then(handleFetchSuccess).catch(handleFetchError);
+  }, [vulcanPost, vulcanPath]);
 
   const showErrors = useCallback(
     <T>(work: Promise<T>): Promise<T> => {
@@ -260,8 +286,10 @@ export function useApi(
     showErrors,
     getData,
     getWorkflows,
+    createWorkflow,
     postInputs,
     pollStatus,
+    createWorkspace,
     deleteFigure,
     createFigure,
     updateFigure,

@@ -8,7 +8,9 @@ import {makeStyles} from '@material-ui/core/styles';
 
 import {pushLocation} from 'etna-js/actions/location_actions';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {Workflow} from '../../api_types';
+import {Workflow} from '../../../api_types';
+import WorkflowCreateButtonModal from './workflow_creation';
+import WorkspaceCreateButtonModal from './workspace_creation';
 
 const useStyles = makeStyles((theme) => ({
   controls: {
@@ -25,31 +27,14 @@ export default function WorkflowControls({
   const classes = useStyles();
   const invoke = useActionInvoker();
 
-  const handleCreateFigure = useCallback(() => {
-    if (!workflow) return;
-    invoke(
-      pushLocation(
-        `/${project_name}/figure/new/${workflow.name.replace('.cwl', '')}`
-      )
-    );
-  }, [invoke, project_name, workflow]);
-
   return (
     <ButtonGroup
       variant='contained'
       color='primary'
       className={classes.controls}
     >
-      <Tooltip title='Create figure'>
-        <Button
-          disabled={!workflow}
-          onClick={handleCreateFigure}
-          color='primary'
-          startIcon={<InsertChartIcon />}
-        >
-          Create figure
-        </Button>
-      </Tooltip>
+      <WorkspaceCreateButtonModal projectName={project_name} workflow={workflow} />
+      <WorkflowCreateButtonModal projectName={project_name}/>
     </ButtonGroup>
   );
 }

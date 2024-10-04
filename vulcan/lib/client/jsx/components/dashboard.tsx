@@ -9,7 +9,7 @@ import {Workflow} from '../api_types';
 import WorkflowsCarousel from './dashboard/workflows_carousel';
 import FiguresGrid from './dashboard/figures_grid';
 import FiguresControls from './dashboard/figures_controls';
-import WorkflowControls from './dashboard/workflow_controls';
+import WorkflowControls from './dashboard/workflow_control/workflow_controls';
 import ProjectHeader from 'etna-js/components/project-header';
 
 const useStyles = makeStyles((theme) => ({

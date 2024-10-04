@@ -113,7 +113,7 @@ function PrimaryInputsInner() {
         onClick={() => setOpen(!open)}
       >
         <Grid item>
-          <Typography variant='h6'>Primary Inputs</Typography>
+          <Typography variant='h6'>Config Params</Typography>
         </Grid>
         <Grid item>
           <IconButton size='small'>
