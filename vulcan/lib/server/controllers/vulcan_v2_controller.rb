@@ -47,6 +47,7 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   def update_workflow
+    # re-generate target mapping and dag
   end
 
   def create_workspace
@@ -68,6 +69,7 @@ class VulcanV2Controller < Vulcan::Controller
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
           name: @params[:workspace_name],
+          dag: "{#{@snakemake_manager.get_dag(workspace_dir).join(',')}}",
           target_mapping: @snakemake_manager.generate_target_mapping(workspace_dir, config),
           path: workspace_dir,
           user_email: @user.email,
@@ -78,7 +80,7 @@ class VulcanV2Controller < Vulcan::Controller
           workspace_id: obj.id,
           workflow_id: obj.workflow_id,
           vulcan_config: @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace_dir)),
-          dag: @snakemake_manager.get_dag(workspace_dir)
+          dag: obj.dag
         }
         success_json(response)
       rescue => e
@@ -86,9 +88,6 @@ class VulcanV2Controller < Vulcan::Controller
         Vulcan.instance.logger.log_error(e)
         raise Etna::BadRequest.new(e.message)
       end
-  end
-
-  def update_workspace_tag
   end
 
   def list_workspaces
@@ -116,25 +115,14 @@ class VulcanV2Controller < Vulcan::Controller
       workspace_id: workspace.id,
       workflow_id: workspace.workflow_id,
       vulcan_config: @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace.path)),
-      dag: @snakemake_manager.get_dag(workspace_dir),
+      dag: workspace.dag,
       last_config: last_config.to_hash,
       last_job_status: Vulcan::Run.where(workspace_id: workspace.id).order(Sequel.desc(:created_at)).first.to_hash
     }
     success_json(response)
   end
 
-  def get_dag
-    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
-    unless workspace
-      msg = "Workspace for project: #{@params[:project_name]} does not exist."
-      raise Etna::BadRequest.new(msg)
-    end
-    begin
-      success_json({dag: @snakemake_manager.get_dag(workspace.path)})
-    rescue => e
-      Vulcan.instance.logger.log_error(e)
-      raise Etna::BadRequest.new(e.message)
-    end
+  def update_workspace
   end
 
   def save_config
@@ -160,18 +148,17 @@ class VulcanV2Controller < Vulcan::Controller
       end
       command = Vulcan::Snakemake::CommandBuilder.new
       command.target_meta = {
-        mapping: workspace.target_mapping.keys,
+        mapping: workspace.target_mapping,
         provided_params: request_params.keys.map(&:to_s),
-        available_files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)),
+        available_files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" },
       }
       command.options = {
         config_path: config.path,
         profile_path: Vulcan::Path.profile_dir(workspace.path),
         dry_run: true,
       }
-      # TODO: do something here with the output
-      #@snakemake_manager.run_snakemake(workspace.path, command.build)
-      success_json({config_id: config.id})
+      jobs = @snakemake_manager.dry_run_snakemake(workspace.path, command.build)
+      success_json({config_id: config.id, scheduled: jobs, unscheduled: workspace.dag - jobs})
     rescue => e
       Vulcan.instance.logger.log_error(e)
       raise Etna::BadRequest.new(e.message)
@@ -196,7 +183,7 @@ class VulcanV2Controller < Vulcan::Controller
       # Build snakemake command
       command = Vulcan::Snakemake::CommandBuilder.new
       command.target_meta = {
-        mapping: workspace.target_mapping.transform_values { |v| v.transform_keys(&:to_sym) }, # TODO: maybe change this
+        mapping: workspace.target_mapping,
         provided_params: @remote_manager.read_json_file(config.path).keys,
         available_files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" },
       }
@@ -232,7 +219,7 @@ class VulcanV2Controller < Vulcan::Controller
     end
     begin
       job_id_hash = @snakemake_manager.parse_log_for_slurm_ids(workflow_run.log_path)
-      response = @snakemake_manager.query_sacct(workflow_run.slurm_run_uuid, job_id_hash)
+      slurm_status = @snakemake_manager.query_sacct(workflow_run.slurm_run_uuid, job_id_hash)
       success_json(response)
     rescue => e
       Vulcan.instance.logger.log_error(e)

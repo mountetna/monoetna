@@ -29,10 +29,10 @@ class Vulcan
         buildable = Set.new
         target_mapping.each do |target, requirements|
           # Check if all input files are available
-          inputs_satisfied = requirements[:inputs].to_set.subset?(available_files_set)
+          inputs_satisfied = requirements["inputs"].to_set.subset?(available_files_set)
 
           # Check if all required params are provided
-          params_satisfied = requirements[:params].to_set.subset?(provided_params_set)
+          params_satisfied = requirements["params"].to_set.subset?(provided_params_set)
 
           # If both conditions are satisfied, add the target to buildable
           if inputs_satisfied && params_satisfied
@@ -87,7 +87,7 @@ class Vulcan
         end
 
         if @options[:dry_run]
-          cmd << "--dry-run'"
+          cmd << "--dry-run"
         end
 
         # Targets at the end

@@ -40,6 +40,12 @@ class Vulcan
         slurm_uuid
       end
 
+      def dry_run_snakemake(dir, snakemake_command)
+        command = "cd #{Shellwords.escape(dir)} && #{snakemake_command}"
+        out = @remote_manager.invoke_ssh_command(command)
+        get_rules_from_run(out[:stdout])
+      end
+
       def snakemake_is_running?(dir)
         # Snakemake uses a lock file to ensure that only one instance of Snakemake is running in a particular working directory at a time.
         # You will run into lock errors if you try to @remote_manager.invoke snakemake before the last process has finished running.
@@ -72,7 +78,7 @@ class Vulcan
         # are un-identified. So, we must parse the snakemake log to figure out this mapping.
         rule_to_job_id = {}
         log = @remote_manager.read_file_to_memory(snakemake_log)
-        rules = get_jobs_from_run(snakemake_log)
+        rules = get_rules_from_run(log)
         rules.each do |rule|
           regex = /rule #{rule}:[\s\S]*?Job \d+ has been submitted with SLURM jobid (\d+)/
           match = log.match(regex)
@@ -82,11 +88,11 @@ class Vulcan
         rule_to_job_id
       end
 
-      def get_jobs_from_run(snakemake_log)
-        log = @remote_manager.read_file_to_memory(snakemake_log)
-        
+      def get_rules_from_run(snakemake_log)
+        # snakemake_log is the raw bytes
+
         # Extract the Job stats section up to the first double newline
-        job_stats_section = log[/Job stats:.*?(?=\n\n)/m]
+        job_stats_section = snakemake_log[/Job stats:.*?(?=\n\n)/m]
         return [] unless job_stats_section
         
         # Scan for lines that have a job name followed by a count

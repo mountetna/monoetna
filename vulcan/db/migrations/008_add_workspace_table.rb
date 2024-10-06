@@ -10,6 +10,7 @@ Sequel.migration do
       String :user_email, null: false
       String :path, null: false
       column :tags, 'text[]'
+      column :dag, 'text[]'
 
       DateTime :created_at, null: false
       DateTime :updated_at, null: false

@@ -151,6 +151,7 @@ describe VulcanV2Controller do
       # DB object exists
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
       expect(obj).to_not be_nil
+      expect(obj.dag).to eq(["count", "arithmetic", "checker", "checker_ui", "summary"])
       expect(File.basename(obj.path).match?(/\A[a-f0-9]{32}\z/)).to be_truthy
     end
 
@@ -331,35 +332,6 @@ describe VulcanV2Controller do
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/")
       expect(last_response.status).to eq(200)
       expect(json_body[:files]).to eq(["poem.txt", "poem_2.txt"])
-    end
-
-  end
-
-  context 'retrieve dag' do
-
-    before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      expect(last_response.status).to eq(200)
-    end
-
-    it 'fetches the dag when no input files need to be generated' do
-    end
-
-    it 'generates dummy input files and then fetches the dag' do
-      auth_header(:editor)
-      workspace_id = Vulcan::Workspace.all[0].id
-      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/dag")
-      expect(json_body[:dag]).to eq(["count", "arithmetic", "checker", "checker_ui", "summary"])
-      # Make sure dummy files are removed
     end
 
   end
