@@ -40,4 +40,12 @@ module Etna
       @level = Logger::ERROR
     end
   end
+
+  class TooManyRequests < Etna::Error
+    def initialize(msg = 'Too many requests', status = 429)
+      super
+      @level = Logger::ERROR
+    end
+  end
+
 end

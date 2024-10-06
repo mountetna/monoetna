@@ -15,6 +15,9 @@ require 'rack/test'
 
 require_relative '../lib/server'
 require_relative '../lib/vulcan'
+require_relative '../lib/server/controllers/vulcan_v2_controller'
+require_relative '../lib/snakemake_command'
+require_relative '../lib/snakemake_parser'
 require 'etna/spec/vcr'
 
 Vulcan.instance.configure(YAML.load(File.read('config.yml')))
@@ -28,7 +31,11 @@ OUTER_APP = Rack::Builder.new do
   run Vulcan::Server.new
 end
 
+
 AUTH_USERS = {
+  superuser: {
+    email: 'zeus@twelve-labors.org', name: 'Zeus', perm: 'a:administration'
+  },
   admin: {
     email: 'hera@olympus.org', name: 'Hera', perm: 'a:labors', exp: Time.now.to_i + 6000, flags: 'vulcan'
   },
@@ -86,18 +93,23 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     FactoryBot.find_definitions
-    # DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
 
-  config.around(:each) do |example|
+  # Note: I've had to comment out this code below to get long-ish running tests to work.
+  # This comes at the cost of auto_savepointing... which isn't a bottleneck for us (we don't have complicated nested
+  # transactions)
+  # I've also re-enabled  DatabaseCleaner.strategy = :transaction above
+
+  # config.around(:each) do |example|
     # Unfortunately, DatabaseCleaner + Sequel does not properly handle the auto_savepointing, which means that
     # exceptions handled in rescue blocks do not behave correctly in tests (where as they would be fine outside of
     # tests).  Thus, we are forced to manually handle the transaction wrapping of examples manually to set this option.
     # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
     #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
-    Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
-  end
+  # Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
+  # end
 
   if ENV['RUN_E2E']=='1'
     config.filter_run e2e: true
@@ -258,4 +270,127 @@ def configure_etna_yml_ignore_dependencies(value=true)
         ignore_dependencies: value
     })
   })
+end
+
+# For Vulcan V2
+#
+class TestRemoteServerManager < Vulcan::RemoteManager
+  # Auxiliary functions to help with testing but not needed for prod
+  def initialize(ssh_pool)
+    super(ssh_pool)
+  end
+
+  def rmdir(dir)
+    # Exclude all the safety checks for testing purposes
+    command = Shellwords.join(["rm", "-r", "-f", dir])
+    invoke_ssh_command(command)
+  end
+end
+
+def create_temp_file(file_name)
+  file = Tempfile.new([file_name, '.txt'])
+  file_name_ext = "#{file_name}.txt"
+  file.write("This is a test file, with content 1")
+  file.rewind
+  File.rename(file.path, File.join(File.dirname(file.path), file_name_ext))
+  Rack::Test::UploadedFile.new(File.join(File.dirname(file.path), file_name_ext), 'text/plain')
+end
+
+def create_poem_1
+  file = Tempfile.new(['poem', '.txt'])
+  file_name = 'poem.txt'
+  text = <<~TEXT
+    In the realm of the midnight sky,
+    Where stars whisper and comets fly,
+    A moonlit dance, a celestial show,
+    Unfolding secrets we yearn to know.
+  TEXT
+  file.write(text)
+  file.rewind
+  # Rename the temporary file to the desired filename
+  File.rename(file.path, File.join(File.dirname(file.path), file_name))
+  # Create the UploadedFile object using the renamed file path
+  Rack::Test::UploadedFile.new(File.join(File.dirname(file.path), file_name), 'text/plain')
+end
+
+def create_poem_2
+  file = Tempfile.new(['poem_2', '.txt'])
+  file_name = 'poem_2.txt'
+  text = <<~TEXT
+    A brook babbles secrets to the stones,
+    Tales of ancient earth, of forgotten bones.
+    Sunbeams filter through the emerald canopy,
+    Painting dappled dreams, a verdant tapestry.
+  TEXT
+  file.write(text)
+  file.rewind
+  # Rename the temporary file to the desired filename
+  File.rename(file.path, File.join(File.dirname(file.path), file_name))
+  # Create the UploadedFile object using the renamed file path
+  Rack::Test::UploadedFile.new(File.join(File.dirname(file.path), file_name), 'text/plain')
+end
+
+def write_files_to_workspace(workspace_id)
+  # The first step in the test workflow involves the UI writing files to the workspace
+  auth_header(:editor)
+  poem_1 = create_poem_1
+  poem_2 = create_poem_2
+  request = {
+    files: [poem_1, poem_2]
+  }
+  post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+  expect(last_response.status).to eq(200)
+end
+
+def remove_all_dirs
+  remote_manager.rmdir(Vulcan::Path::WORKFLOW_BASE_DIR)
+  remote_manager.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR)
+  remote_manager.rmdir(Vulcan::Path::VULCAN_TMP_DIR)
+end
+
+
+def check_jobs_status(job_names, max_attempts = 10, base_delay = 10)
+  attempts = 0
+
+  loop do
+    attempts += 1
+    yield
+
+    # Check the status of each job in the response
+    all_jobs_completed = job_names.all? do |job_name|
+      json_body[job_name.to_sym] == "COMPLETED"
+    end
+
+    # Break the loop if all jobs are completed
+    break if all_jobs_completed
+
+    # Break the loop if maximum attempts have been reached
+    if attempts >= max_attempts
+      raise "Timeout: Maximum attempts reached without all jobs being completed"
+    end
+
+    # Sleep with exponential backoff
+    sleep_duration = base_delay * (2 ** (attempts - 1))
+    sleep(sleep_duration)
+  end
+end
+
+def run_workflow_with_retry(max_attempts = 3, base_delay = 15)
+  attempts = 0
+
+  loop do
+    attempts += 1
+    yield
+
+    if last_response.status == 429
+      if attempts < max_attempts
+        sleep_duration = base_delay * (2 ** (attempts - 1))
+        sleep(sleep_duration)
+      else
+        raise "Request failed after #{attempts} attempts due to 429 status."
+      end
+    else
+      break
+    end
+  end
 end
