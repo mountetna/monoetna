@@ -231,8 +231,7 @@ class VulcanV2Controller < Vulcan::Controller
       raise Etna::BadRequest.new(msg)
     end
     begin
-      job_id_hash = @snakemake_manager.parse_log_for_slurm_ids(workflow_run.jobs, workflow_run.log_path)
-      # TODO: parse the log file for the jobs or do something else
+      job_id_hash = @snakemake_manager.parse_log_for_slurm_ids(workflow_run.log_path)
       response = @snakemake_manager.query_sacct(workflow_run.slurm_run_uuid, job_id_hash)
       success_json(response)
     rescue => e
@@ -278,6 +277,9 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   def get_files
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    raise Etna::BadRequest.new("Workspace not found") unless workspace
+    success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path))})
   end
 
 end

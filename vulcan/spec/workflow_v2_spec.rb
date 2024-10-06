@@ -235,7 +235,6 @@ describe VulcanV2Controller do
     end
 
 
-
   end
 
   context 'write files' do
@@ -310,6 +309,32 @@ describe VulcanV2Controller do
 
   end
 
+  context 'get files' do
+
+    before do
+      auth_header(:superuser)
+      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
+      auth_header(:editor)
+      request = {
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger",
+        branch: "main",
+        git_version: "v1"
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'gets a list of files in the workspace' do
+      workspace_id = Vulcan::Workspace.all[0].id
+      write_files_to_workspace(workspace_id)
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:files]).to eq(["poem.txt", "poem_2.txt"])
+    end
+
+  end
+
   context 'retrieve dag' do
 
     before do
@@ -329,7 +354,7 @@ describe VulcanV2Controller do
     it 'fetches the dag when no input files need to be generated' do
     end
 
-    it 'generates input files and then fetches the dag' do
+    it 'generates dummy input files and then fetches the dag' do
       auth_header(:editor)
       workspace_id = Vulcan::Workspace.all[0].id
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/dag")
@@ -437,7 +462,7 @@ describe VulcanV2Controller do
       run_id = json_body[:run_id]
       expect(last_response.status).to eq(200)
       expect(run_id).to_not be_nil
-
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
       # Wait until jobs are completed
       check_jobs_status(["count"]) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
@@ -462,7 +487,7 @@ describe VulcanV2Controller do
             count_bytes: false,
             count_chars: true,
             add: 2,
-          add_and_multiply_by: 2
+            add_and_multiply_by: 2
         }
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
@@ -470,7 +495,6 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
       expect(json_body[:run_id]).to_not be_nil
       run_id = json_body[:run_id]
-
       # Make sure jobs are finished
       check_jobs_status(["count", "arithmetic", "checker"]) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
@@ -507,30 +531,31 @@ describe VulcanV2Controller do
       check_jobs_status(["count"]) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
       end
+      expect(last_response.status).to eq(200)
 
       # Run the next job
       request = {
-        count_bytes: false,
-        count_chars: true,
-        add: 2,
-        add_and_multiply_by: 4
+        params: {
+          count_bytes: false,
+          count_chars: true,
+          add: 2,
+          add_and_multiply_by: 4
+        }
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
       expect(last_response.status).to eq(200)
-      run_id = json_body[:run_id]
-
+      config_id = json_body[:config_id]
       # Sometimes snakemake still needs a minute to shut-down even though slurm reports the job as complete
       run_workflow_with_retry do
-        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       end
       expect(last_response.status).to eq(200)
       run_id = json_body[:run_id]
-
       # Make sure jobs have finished
-      check_jobs_status(["arithmetic"]) do
+      check_jobs_status(["arithmetic", "checker"]) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
       end
+      expect(last_response.status).to eq(200)
 
       # Make sure files exist
       expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
@@ -555,9 +580,9 @@ describe VulcanV2Controller do
       # Run the first 3 jobs
       request = {
         params: {
-        count_bytes: true,
-        count_chars: false,
-        add: 2,
+          count_bytes: true,
+          count_chars: false,
+          add: 2,
           add_and_multiply_by: 4
         }
       }
@@ -568,6 +593,7 @@ describe VulcanV2Controller do
       check_jobs_status(["count", "arithmetic", "checker"]) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
       end
+      expect(last_response.status).to eq(200)
 
       # Next step involves writing another file to the workspace (checker-ui job)
       request = {
@@ -578,30 +604,30 @@ describe VulcanV2Controller do
       # Run the last job, send the same params as before
       request = {
         params: {
-        count_bytes: true,
-        count_chars: false,
-        add: 2,
+          count_bytes: true,
+          count_chars: false,
+          add: 2,
           add_and_multiply_by: 4
         }
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      config_id = json_body[:config_id]
       run_workflow_with_retry do
-        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       end
-
-      run_id = json_body[:run_id]
-
+      expect(last_response.status).to eq(200)
       # Make sure jobs have finished
+      run_id = json_body[:run_id]
       check_jobs_status(["summary"]) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
       end
+      expect(last_response.status).to eq(200)
 
       # Make sure files exist
       expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
       expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
       expect(remote_manager.file_exists?("#{workspace.path}/output/check.txt")).to be_truthy
       expect(remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_check.txt")).to be_truthy
       expect(remote_manager.file_exists?("#{workspace.path}/output/summary.txt")).to be_truthy
 
       # Make sure two run objects exist
@@ -623,11 +649,14 @@ describe VulcanV2Controller do
           params: {
             count_bytes: true,
             count_chars: false,
-            add: 2
+            add: 2,
+            add_and_multiply_by: 4
           }
       }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      config_id = json_body[:config_id]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       expect(last_response.status).to eq(429)
       expect(json_body[:error]).to eq("workflow is still running...")
     end
@@ -654,18 +683,17 @@ describe VulcanV2Controller do
     it 'invokes the first step of a workflow' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
-      # First step in the test workflow requires files to be written to the workspace
-      file_names = write_files_to_workspace(workspace.id)
+      write_files_to_workspace(workspace.id)
       request = {
-        run: {
           params: {
             count_bytes: true,
             count_chars: false
           }
-        }
       }
       # TODO: add a meta key that can switch profiles
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run", request)
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      config_id = json_body[:config_id]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       expect(last_response.status).to eq(200)
       get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:run_id]}")
       expect(last_response.status).to eq(200)

@@ -64,7 +64,7 @@ class Vulcan
         end
       end
 
-      def parse_log_for_slurm_ids(rules, snakemake_log)
+      def parse_log_for_slurm_ids(snakemake_log)
         # The slurm snakemake integration uses comments to write the name of the rule to the slurm back-end db
         # (along with the uuid). Currently --comments are disabled on the slurm instance on c4.
         # This make it very tricky to query the db and determine the mapping between rules and slurm job ids.
@@ -72,7 +72,7 @@ class Vulcan
         # are un-identified. So, we must parse the snakemake log to figure out this mapping.
         rule_to_job_id = {}
         log = @remote_manager.read_file_to_memory(snakemake_log)
-
+        rules = get_jobs_from_run(snakemake_log)
         rules.each do |rule|
           regex = /rule #{rule}:[\s\S]*?Job \d+ has been submitted with SLURM jobid (\d+)/
           match = log.match(regex)
@@ -81,6 +81,24 @@ class Vulcan
 
         rule_to_job_id
       end
+
+      def get_jobs_from_run(snakemake_log)
+        log = @remote_manager.read_file_to_memory(snakemake_log)
+        
+        # Extract the Job stats section up to the first double newline
+        job_stats_section = log[/Job stats:.*?(?=\n\n)/m]
+        return [] unless job_stats_section
+        
+        # Scan for lines that have a job name followed by a count
+        jobs = job_stats_section.scan(/^(\w+)\s+(\d+)$/)
+        
+        # Reject the 'total' entry and extract only the job names
+        job_names = jobs.reject { |job, _| job.downcase == 'total' }
+                         .map { |job, _| job }
+        
+        job_names
+      end
+
 
       def query_sacct(slurm_uuid, job_id_hash)
         status_hash = {}
