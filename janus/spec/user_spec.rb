@@ -413,8 +413,8 @@ describe UserController do
       expect(json_body[:user]).to match(
         email: "janus@two-faces.org",
         name: "Janus Bifrons",
-        public_key: user.key_fingerprint
-        joined_at: user.user_create_stamp,
+        public_key: user.key_fingerprint,
+        joined_at: user.user_create_stamp.strftime('%Y-%m-%dT%H:%M:%S.%L%:z'),
       )
     end
   end
