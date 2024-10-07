@@ -49,7 +49,6 @@ class Vesta
       super
       Vesta.instance.setup_db
       Vesta.instance.setup_sequel
-      Vesta.instance.setup_ssh
     end
   end
 

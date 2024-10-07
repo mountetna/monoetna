@@ -230,7 +230,7 @@ function renderOptions<Value>(
     delete optionProps.key
 
     return (
-      <Option key={key} {...optionProps}>
+      <Option {...optionProps} key={key}>
         {renderOption({ option, index })}
       </Option>
     )

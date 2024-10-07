@@ -9,7 +9,7 @@ import Fade from '@mui/material/Fade';
 import _ from 'lodash'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import { DataType, ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project, ProjectHeadingInfoSet, PROJECTS_SEARCH_PARAMS_KEY, ProjectsSearchParamsControls, ProjectsSearchParamsState } from './models';
+import { ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project, ProjectHeadingInfoSet, PROJECTS_SEARCH_PARAMS_KEY, ProjectsSearchParamsControls, ProjectsSearchParamsState } from './models';
 import ProjectListing from './project-listing';
 import Pagination, { PaginationClasses } from '@/components/searchable-list/controls/pagination'
 import DrawerButton from '@/components/searchable-list/controls/drawer/button';
@@ -24,12 +24,12 @@ import { DrawerSectionClasses, DrawerClasses } from '../searchable-list/controls
 import { parseSearchParams, toSearchParamsString } from '@/lib/utils/uri';
 import { scrollTo } from '@/lib/utils/scroll';
 import { useBreakpoint } from '@/lib/utils/responsive';
+import { defaultDict, flattenObject } from '@/lib/utils/object';
+import { FilterMethod } from '../searchable-list/models';
 
 import filterLightIcon from '/public/images/icons/filter-light.svg'
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
-import { CountRecord, defaultDict, flattenObject } from '@/lib/utils/object';
-import { FilterMethod } from '../searchable-list/models';
 
 
 const searchableProjectKeys: (keyof SearchableProjectData)[] = ['fullName', 'principalInvestigators', 'type', 'dataTypes', 'theme', 'status', 'hasClinicalData']
@@ -39,7 +39,8 @@ interface SearchableProjectData extends Pick<Project, 'fullName' | 'principalInv
 }
 
 interface FilterItem {
-    value: (ValueOf<Omit<SearchableProjectData, 'principalInvestigators' | 'dataTypes' | 'theme'>>) | PrincipalInvestigator | DataType
+    // TODO: define value and type as separate interfaces? using Omit is a bit confusing
+    value: (ValueOf<Omit<SearchableProjectData, 'principalInvestigators' | 'dataTypes' | 'theme'>>) | PrincipalInvestigator | ThemeData
     type: (keyof Omit<SearchableProjectData, 'principalInvestigators' | 'dataTypes' | 'fullName'>) | 'principalInvestigator' | 'dataType' | 'name' | 'hasClinicalData'
     label: string;
     key: string;
@@ -531,7 +532,7 @@ function _ProjectListings({
                                     showResultsOnEmpty={false}
                                     // @ts-ignore
                                     onChange={(_, value: FilterItem[], reason) => {
-                                        // disable removing options with backspace
+                                        // disables removing options with backspace
                                         if (reason === 'removeOption') return
 
                                         handleChangeFilterItems(value)
