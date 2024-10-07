@@ -2,120 +2,56 @@ require 'etna'
 require 'digest'
 require_relative "./vulcan_controller"
 require_relative "./../../path"
-require_relative './../../remote_server_manager'
-require_relative './../../snakemake'
+require_relative './../../remote_manager'
+require_relative './../../snakemake_remote_manager'
+require_relative './../../snakemake_command'
+
 
 class VulcanV2Controller < Vulcan::Controller
 
   def initialize(request, action = nil)
     super
-    @remote_manager = Vulcan::RemoteServerManager.new(Vulcan.instance.ssh_pool)
+    @remote_manager = Vulcan::RemoteManager.new(Vulcan.instance.ssh_pool)
+    @snakemake_manager = Vulcan::Snakemake::RemoteManager.new(@remote_manager)
   end
 
-  # Admin command complete prior
-  def clone_repo
-    repo_name = File.basename(@escaped_params[:repo_url])
-    repo_local_path = Vulcan::Path.repo_path(@escaped_params[:project_name], repo_name)
-    begin
-      if @remote_manager.dir_exists?("#{repo_local_path}")
-        msg = "Repo: #{repo_local_path} for project: #{@params[:project_name]} already exists."
-        Vulcan.instance.logger.info(msg)
-        return success_json({'msg': msg})
-      end
-      @remote_manager.mkdir(Vulcan::Path.project_dir(@escaped_params[:project_name]))
-      @remote_manager.clone(@escaped_params[:repo_url], @escaped_params[:branch], repo_local_path)
-      success_json({ repo_path: repo_local_path, repo_name: repo_name})
-    rescue => e
-      Vulcan.instance.logger.log_error(e)
-      raise Etna::BadRequest.new(e.message)
-    end
-  end
-
-  # Admin
-  def list_repos
-    begin
-      project_dir = Vulcan::Path.project_dir(@escaped_params[:project_name])
-      success_json(@remote_manager.list_repos_with_tags(project_dir))
-    rescue => e
-      Vulcan.instance.logger.log_error(e)
-      raise Etna::BadRequest.new(e.message)
-    end
-  end
-
-  def delete_repo
-    begin
-      repo_path = Vulcan::Path.repo_path(@params[:project_name], @params[:repo_name])
-      raise Etna::BadRequest.new("Repo #{@params[:repo_name]} does not exist") unless @remote_manager.dir_exists?(repo_path)
-      @remote_manager.rmdir(repo_path)
-      success_json({'msg': "Repo has been deleted"})
-    rescue => e
-      Vulcan.instance.logger.log_error(e)
-      raise Etna::BadRequest.new(e.message)
-    end
-  end
-
-  def pull_repo
-    begin
-      repo_path = Vulcan::Path.repo_path(@params[:project_name], @params[:repo_name])
-      @remote_manager.fetch_tags(repo_path)
-      success_json({'msg': "Repo has been pulled"})
-    rescue => e
-      Vulcan.instance.logger.log_error(e)
-      raise Etna::BadRequest.new(e.message)
-    end
-  end
-
-  # User
-  def publish_workflow
+  def create_workflow
     workflow = Vulcan::WorkflowV2.first(
-      project: @params[:project_name],
-      name: @params[:workflow_name],
-      repo_tag: @params[:tag]
+      repo_remote_url: @params[:repo_url],
     )
     if workflow
-      return success_json({'msg': "Workflow: #{@params[:name]} for project: #{@params[:project_name]} already exists."})
+      return success_json({'msg': "Workflow: #{workflow.name} for project: #{@params[:project_name]} already exists."})
     end
-    tmp_dir = Vulcan::Path.tmp_dir(Vulcan::Path.tmp_hash(@escaped_params[:workflow_name], @user.email))
     begin
-      # Create a temporary directory to do work inside
-      @remote_manager.mkdir(tmp_dir)
-      @remote_manager.clone(@escaped_params[:repo_path], @escaped_params[:branch], tmp_dir)
-      @remote_manager.checkout_tag(tmp_dir, @escaped_params[:tag])
-      vulcan_config = @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(tmp_dir))
-      # TODO: maybe run a validation on the snakefile, config and the vulcan_config
       obj = Vulcan::WorkflowV2.create(
-        project: @escaped_params[:project_name],
-        name: @escaped_params[:workflow_name],
-        author: @escaped_params[:author],
-        repo_remote_url: @remote_manager.get_repo_remote_url(@escaped_params[:repo_path]),
-        repo_path: @escaped_params[:repo_path],
-        branch: @escaped_params[:branch],
-        vulcan_config: JSON.pretty_generate(vulcan_config),
-        repo_tag: @escaped_params[:tag],
+        project_name: @params[:project_name],
+        name: @params[:workflow_name],
+        repo_remote_url: @params[:repo_url],
         created_at: Time.now,
         updated_at: Time.now
       )
-      @remote_manager.rmdir(tmp_dir)
       success_json({'workflow_id': obj.id, 'workflow_name': obj.name})
     rescue => e
-      @remote_manager.rmdir(tmp_dir)
       Vulcan.instance.logger.log_error(e)
       raise Etna::BadRequest.new(e.message)
     end
   end
-
+  # Admin
   def list_workflows
     success_json(
       workflows: Vulcan::WorkflowV2.where(
-        project: @params[:project_name]
+         @params[:project_name])
       ).all.map do |w|
         w.to_hash
       end
-    )
+  end
+
+  def update_workflow
+    # re-generate target mapping and dag
   end
 
   def create_workspace
-    workflow = Vulcan::WorkflowV2.first(id: @params[:workflow_id])
+    workflow = Vulcan::WorkflowV2.first(id: @params[:workflow_id], project_name: @params[:project_name])
     unless workflow
       msg = "Workflow: #{@params[:workflow_name]} for project: #{@params[:project_name]} does not exist."
       raise Etna::BadRequest.new(msg)
@@ -124,13 +60,17 @@ class VulcanV2Controller < Vulcan::Controller
       workspace_dir = Vulcan::Path.workspace_dir(@escaped_params[:project_name], workspace_hash)
     begin
         @remote_manager.mkdir(workspace_dir)
-        @remote_manager.clone(workflow.repo_path, workflow.branch, workspace_dir)
-        @remote_manager.checkout_tag(workspace_dir, workflow.repo_tag)
+        @remote_manager.clone(workflow.repo_remote_url, @escaped_params[:branch], workspace_dir)
+        @remote_manager.checkout_version(workspace_dir, @escaped_params[:git_version])
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
+        @remote_manager.mkdir(Vulcan::Path.workspace_output_path(workspace_dir))
         @remote_manager.upload_dir(Vulcan::Path::SNAKEMAKE_UTILS_DIR, workspace_dir, true)
+        config = @remote_manager.read_yaml_file(Vulcan::Path.snakemake_config(workspace_dir))
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
           name: @params[:workspace_name],
+          dag: "{#{@snakemake_manager.get_dag(workspace_dir).join(',')}}",
+          target_mapping: @snakemake_manager.generate_target_mapping(workspace_dir, config),
           path: workspace_dir,
           user_email: @user.email,
           created_at: Time.now,
@@ -139,7 +79,8 @@ class VulcanV2Controller < Vulcan::Controller
         response = {
           workspace_id: obj.id,
           workflow_id: obj.workflow_id,
-          vulcan_config: workflow.vulcan_config
+          vulcan_config: @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace_dir)),
+          dag: obj.dag
         }
         success_json(response)
       rescue => e
@@ -160,25 +101,69 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   def get_workspace
-    success_json(
-      workspace: Vulcan::Workspace.first(
-        id: @params[:workspace_id],
-        user_email: @user.email
-      ).to_hash_with_vulcan_config)
+    workspace = Vulcan::Workspace.first(
+      id: @params[:workspace_id],
+      user_email: @user.email
+    )
+    unless workspace
+      msg = "Workspace for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+    last_config = Vulcan::Config.where(workspace_id: workspace.id).order(Sequel.desc(:created_at)).first
+    last_job_status = Vulcan::Run.where(workspace_id: workspace.id, config_id: last_config.id).first
+    response = {
+      workspace_id: workspace.id,
+      workflow_id: workspace.workflow_id,
+      vulcan_config: @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace.path)),
+      dag: workspace.dag,
+      last_config: last_config.to_hash,
+      last_job_status: Vulcan::Run.where(workspace_id: workspace.id).order(Sequel.desc(:created_at)).first.to_hash
+    }
+    success_json(response)
   end
 
-  def get_dag
+  def update_workspace
+  end
+
+  def save_config
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     unless workspace
       msg = "Workspace for project: #{@params[:project_name]} does not exist."
       raise Etna::BadRequest.new(msg)
     end
     begin
-      success_json({dag: @remote_manager.get_dag(workspace.path)})
+      request_params = @params[:params]
+      params_hash = Digest::MD5.hexdigest(request_params.to_json)
+      config = Vulcan::Config.first(workspace_id: workspace.id, hash: params_hash)
+      unless config
+        config_path = Vulcan::Path.workspace_config_path(workspace.path, params_hash)
+        @remote_manager.write_file(config_path, request_params.to_json)
+        config = Vulcan::Config.create(
+          workspace_id: workspace.id,
+          path: config_path,
+          hash: params_hash,
+          created_at: Time.now,
+          updated_at: Time.now
+        )
+      end
+      command = Vulcan::Snakemake::CommandBuilder.new
+      command.target_meta = {
+        mapping: workspace.target_mapping,
+        provided_params: request_params.keys.map(&:to_s),
+        available_files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" },
+      }
+      command.options = {
+        config_path: config.path,
+        profile_path: Vulcan::Path.profile_dir(workspace.path),
+        dry_run: true,
+      }
+      jobs = @snakemake_manager.dry_run_snakemake(workspace.path, command.build)
+      success_json({config_id: config.id, scheduled: jobs, unscheduled: workspace.dag - jobs})
     rescue => e
       Vulcan.instance.logger.log_error(e)
       raise Etna::BadRequest.new(e.message)
     end
+
   end
 
   def run_workflow
@@ -188,33 +173,30 @@ class VulcanV2Controller < Vulcan::Controller
       raise Etna::BadRequest.new(msg)
     end
     begin
-      raise Etna::TooManyRequests.new("workflow is still running...") if @remote_manager.snakemake_is_running?(workspace.path)
-      config_path = Vulcan::Path.workspace_config_path(workspace.path)
-      params = @params[:run] && @params[:run][:params] ? @params[:run][:params] : {} # Account for jobs with no params
-
-      # We must always keep an updated version of the params that were used on a workflow.
-      # Snakemake needs this to understand what inputs have changed. # Fetch the last params, and append new params.
-      last_run = Vulcan::Run.where(workspace_id: workspace.id).order(:created_at).last
-      if last_run
-        old_params = @remote_manager.read_json_file(last_run.config_path)
-        params = old_params.merge(params) # params take precedence over old_params
+      raise Etna::TooManyRequests.new("workflow is still running...") if @snakemake_manager.snakemake_is_running?(workspace.path)
+      config = Vulcan::Config.where(id: @params[:config_id]).first
+      unless config
+        msg = "Config for workspace: #{workspace.path} does not exist."
+        raise Etna::BadRequest.new(msg)
       end
-      @remote_manager.write_file(config_path, params.to_json) # We must write the params of snakemake to a file to read them
 
-      # Build snakemake commmand
-      command = Vulcan::SnakemakeCommandBuilder.new
+      # Build snakemake command
+      command = Vulcan::Snakemake::CommandBuilder.new
+      command.target_meta = {
+        mapping: workspace.target_mapping,
+        provided_params: @remote_manager.read_json_file(config.path).keys,
+        available_files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" },
+      }
       command.options = {
-        jobs: @params[:run][:jobs],
-        config_path: config_path,
+        config_path: config.path,
         profile_path: Vulcan::Path.profile_dir(workspace.path),
       }
-      slurm_run_uuid = @remote_manager.run_snakemake(workspace.path, command.build)
-      log = @remote_manager.get_snakemake_log(workspace.path, slurm_run_uuid)
+      slurm_run_uuid = @snakemake_manager.run_snakemake(workspace.path, command.build)
+      log = @snakemake_manager.get_snakemake_log(workspace.path, slurm_run_uuid)
       obj = Vulcan::Run.create(
         workspace_id: workspace.id,
-        jobs: @params[:run][:jobs].join(','),
+        config_id: config.id,
         slurm_run_uuid: slurm_run_uuid,
-        config_path: config_path,
         log_path: log,
         created_at: Time.now,
         updated_at: Time.now
@@ -236,8 +218,8 @@ class VulcanV2Controller < Vulcan::Controller
       raise Etna::BadRequest.new(msg)
     end
     begin
-      job_id_hash = @remote_manager.parse_log_for_slurm_ids(workflow_run.jobs.split(','), workflow_run.log_path)
-      response = @remote_manager.query_sacct(workflow_run.slurm_run_uuid, job_id_hash)
+      job_id_hash = @snakemake_manager.parse_log_for_slurm_ids(workflow_run.log_path)
+      slurm_status = @snakemake_manager.query_sacct(workflow_run.slurm_run_uuid, job_id_hash)
       success_json(response)
     rescue => e
       Vulcan.instance.logger.log_error(e)
@@ -279,6 +261,12 @@ class VulcanV2Controller < Vulcan::Controller
       }
     end
     success_json({files: file_contents})
+  end
+
+  def get_files
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    raise Etna::BadRequest.new("Workspace not found") unless workspace
+    success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path))})
   end
 
 end

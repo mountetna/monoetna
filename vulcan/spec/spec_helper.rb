@@ -16,6 +16,8 @@ require 'rack/test'
 require_relative '../lib/server'
 require_relative '../lib/vulcan'
 require_relative '../lib/server/controllers/vulcan_v2_controller'
+require_relative '../lib/snakemake_command'
+require_relative '../lib/snakemake_parser'
 require 'etna/spec/vcr'
 
 Vulcan.instance.configure(YAML.load(File.read('config.yml')))
@@ -272,7 +274,7 @@ end
 
 # For Vulcan V2
 #
-class TestRemoteServerManager < Vulcan::RemoteServerManager
+class TestRemoteServerManager < Vulcan::RemoteManager
   # Auxiliary functions to help with testing but not needed for prod
   def initialize(ssh_pool)
     super(ssh_pool)
@@ -282,28 +284,6 @@ class TestRemoteServerManager < Vulcan::RemoteServerManager
     # Exclude all the safety checks for testing purposes
     command = Shellwords.join(["rm", "-r", "-f", dir])
     invoke_ssh_command(command)
-  end
-
-  def tag_repo(repo, tag)
-    command = "cd #{Shellwords.escape(repo)} && git tag #{tag}"
-    invoke_ssh_command(command)
-  end
-
-  def delete_tag(repo, tag)
-    command = "cd #{Shellwords.escape(repo)} && git tag -d #{tag}"
-    invoke_ssh_command(command)
-  end
-
-  def tag_exists?(repo, tag)
-    command = "cd #{Shellwords.escape(repo)} && git describe --tags"
-    out = invoke_ssh_command(command)
-    out[:stdout].chomp == tag
-  end
-
-  def list_files(dir)
-    command = "cd #{Shellwords.escape(dir)} && ls"
-    out = invoke_ssh_command(command)
-    out[:stdout].split("\n")
   end
 end
 

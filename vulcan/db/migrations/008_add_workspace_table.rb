@@ -5,10 +5,12 @@ Sequel.migration do
 
       Integer :workflow_id, null: false
       foreign_key [:workflow_id], :workflows
-
+      json :target_mapping, null: false
       String :name, null: false
       String :user_email, null: false
       String :path, null: false
+      column :tags, 'text[]'
+      column :dag, 'text[]'
 
       DateTime :created_at, null: false
       DateTime :updated_at, null: false

@@ -51,8 +51,13 @@ class Vulcan
       "#{path}/vulcan_config.yaml"
     end
 
-    def self.workspace_config_path(workspace_path)
-      "#{workspace_path}/configs/#{Time.now.to_i}.json"
+    def self.snakemake_config(path)
+      "#{path}/config.yaml"
+    end
+
+
+    def self.workspace_config_path(workspace_path, md5_hash)
+      "#{workspace_path}/configs/#{md5_hash}.json"
     end
 
     def self.workspace_output_path(workspace_path)

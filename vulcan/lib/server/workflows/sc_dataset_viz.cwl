@@ -51,5 +51,3 @@ steps:
     in:
       a: make_plot/plot.out
     out: []
-
-
