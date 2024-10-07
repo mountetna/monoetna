@@ -69,8 +69,7 @@ import womensHealthThemeProjectBg from '/public/images/themes/components/womens-
 
 // Cache configuration
 // https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#revalidate
-// export const revalidate = 86400  // 1 day
-export const revalidate = 0
+export const revalidate = 86400  // 1 day
 
 export const metadata: Metadata = {
   title: 'UCSF Data Library',
