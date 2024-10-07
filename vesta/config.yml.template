@@ -45,6 +45,14 @@
     :host: https://gnomon.development.local
   :vesta:
     :host: https://vesta.development.local
+    :contact_email:
+      :internal:
+        :address: "datalibrary@ucsf.edu"
+        :subject: New Data Library Contribution Request
+        :template: "The following email has requested to contribute to the Data Library: %{email}"
+      :external:
+        :subject: UCSF Data Library - Contributing
+        :template: "Thank you for request to contribute to the UCSF Data Library. Someone from our team will be in touch shortly!"
   :log_file: /dev/stdout
   :db:
     :adapter: postgres
