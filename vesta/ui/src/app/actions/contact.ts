@@ -13,8 +13,11 @@ const emailFormSchema = z.object({
     }),
 })
 
+const rateLimitMax = parseInt(process.env.CONTACT_EMAIL_RATE_LIMIT)
+const rateLimitIntervalSeconds = parseInt(process.env.CONTACT_EMAIL_RATE_LIMIT_INTERVAL_SECONDS)
+
 const rateLimiter = rateLimit({
-    interval: process.env.CONTACT_EMAIL_RATE_LIMIT_INTERVAL_SECONDS * 1000, // convert from milliseconds
+    interval: rateLimitIntervalSeconds * 1000, // convert from milliseconds
     uniqueTokenPerInterval: 1,
 })
 
@@ -34,7 +37,7 @@ export async function sendContributeEmail(formData: FormData): Promise<SendConta
     }
 
     try {
-        await rateLimiter.check(process.env.CONTACT_EMAIL_RATE_LIMIT, rateLimiterToken)
+        await rateLimiter.check(rateLimitMax, rateLimiterToken)
     } catch {
         return {
             status: 'rateLimit',
