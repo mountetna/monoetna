@@ -14,6 +14,8 @@ USER root
 # Authorize SSH Hosts here with ssh-keyscan entries
 COPY --from=0 /known_hosts /root/.ssh/known_hosts
 RUN chmod 0700 /root/.ssh
+# add postgres 10 repo for debian bionic
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ bullseye-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
 RUN apt-get update
 RUN apt-get install -y bash curl jq git openssh-client ncat
 RUN groupadd --gid 999 docker \
