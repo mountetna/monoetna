@@ -46,3 +46,8 @@ export interface ApiProjectInfo {
     created_at: Date
     updated_at: Date
 }
+
+export interface SendContactStatus {
+    status: 'success' | 'error' | 'rateLimit'
+    message?: string
+}

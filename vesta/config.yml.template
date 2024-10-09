@@ -52,7 +52,7 @@
         :template: "The following email has requested to contribute to the Data Library: %{email}"
       :external:
         :subject: UCSF Data Library - Contributing
-        :template: "Thank you for request to contribute to the UCSF Data Library. Someone from our team will be in touch shortly!"
+        :template: "Thank you for your request to contribute to the UCSF Data Library. Someone from our team will be in touch shortly!"
   :log_file: /dev/stdout
   :db:
     :adapter: postgres

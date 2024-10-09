@@ -5,32 +5,40 @@ import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import Image from 'next/image';
 import { useTheme } from '@mui/material';
+import _ from 'lodash'
 
 import contributeImage from '/public/images/footer/contribute.png'
 import TextInput from '../inputs/text-input';
 import ArrowLinkButton from '../inputs/arrow-link-button';
 import { FormControl } from '@mui/base';
+import { sendContributeEmail } from '@/app/actions/contact';
+import { SendContactStatus } from '@/lib/clients/vesta-api/models';
+
+
+interface FormStatus {
+    status: SendContactStatus['status'] | 'idle' | 'sending'
+    message?: string
+}
 
 
 export default function Contribute({ }: {}) {
     const theme = useTheme()
 
     const [inputVal, setInputVal] = React.useState<string>('')
+    const [formStatus, setFormStatus] = React.useState<FormStatus>({ status: 'idle' })
 
     const formRef = React.useRef<HTMLFormElement>()
-    const handleSubmitForm = (event?: React.FormEvent) => {
+    const handleSubmitForm = async (event?: React.FormEvent) => {
         const formEl = formRef.current
 
         if (!formEl) return
-        if (!formEl.reportValidity()) {
-            if (!event) {
-                return
-            }
-        }
+        if (!formEl.reportValidity() && !event) return
 
         event && event.preventDefault()
 
-        console.log('here', inputVal)
+        setFormStatus({ status: 'sending' })
+        const res = await sendContributeEmail(new FormData(formEl))
+        setFormStatus({ status: res.status, message: res.message })
     }
 
     return (
@@ -128,6 +136,7 @@ export default function Contribute({ }: {}) {
                             gradeVariant='light'
                             required={true}
                             type='email'
+                            name='email'
                         />
                     </FormControl>
 
@@ -135,6 +144,16 @@ export default function Contribute({ }: {}) {
                         onClick={() => handleSubmitForm()}
                     />
                 </Box>
+
+                {/* TODO: make prettier */}
+                {formStatus.status !== 'idle' && (
+                    <Typography
+                        variant='pBody'
+                    >
+                        {_.words(formStatus.status).map((word) => _.capitalize(word)).join(' ')}
+                        {formStatus.message ? `: ${formStatus.message}` : undefined}
+                    </Typography>
+                )}
             </Box>
         </Box>
     )

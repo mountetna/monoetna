@@ -1,5 +1,5 @@
 import { defaultDict } from "@/lib/utils/object"
-import { ApiProjectInfo, ApiProjectStats, Stats, ApiStatsInstance } from "./models"
+import { ApiProjectInfo, ApiProjectStats, Stats, ApiStatsInstance, SendContactStatus } from "./models"
 import { StatsTimeseries } from "@/components/stats/library-stats"
 
 export class VestaApiClient {
@@ -107,5 +107,31 @@ export class VestaApiClient {
     #apiStatsKeyToTimeseriesKey(apiKey: keyof ApiStatsInstance): keyof StatsTimeseries {
         // @ts-ignore
         return apiKey.split('_')[0] + 's'
+    }
+
+    async sendContributeEmail(email: string): Promise<SendContactStatus> {
+        let res: Response
+        try {
+            res = await fetch(this.#createUrl('contact'), {
+                method: "POST",
+                body: JSON.stringify({ requester_email: email }),
+            })
+        } catch (e) {
+            return {
+                status: 'error',
+                message: String(e),
+            }
+        }
+
+        if (res && res.status === 200) {
+            return {
+                status: 'success',
+            }
+        }
+
+        return {
+            status: 'error',
+            message: 'Unknown error'
+        }
     }
 }

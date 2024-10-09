@@ -1,6 +1,7 @@
 require_relative 'controller'
 
 class ContactController < Vesta::Controller
+  # TODO: handle when send_email times out (sometimes it will and not throw an error)
   def send_contact_email
     config = Vesta.instance.config(:vesta)[:contact_email]
     requester_email = @params[:requester_email]
@@ -37,9 +38,9 @@ class ContactController < Vesta::Controller
         external_config[:template],
       )
 
-      puts "Successfully sent external email to #{external_config[:address]}"
+      puts "Successfully sent external email to #{requester_email}"
     rescue error => e
-      puts "Error sending external email to #{external_config[:address]}: #{e}"
+      puts "Error sending external email to #{requester_email}: #{e}"
       raise
     end
 
