@@ -112,7 +112,7 @@ class AuthorizationController < Janus::Controller
         exp: @params[:exp].to_i
       }
     )
-    
+
     checker = Token::Checker.new(token)
 
     # forbid bad permissions
@@ -144,9 +144,18 @@ class AuthorizationController < Janus::Controller
     email = (@request.env['HTTP_X_SHIB_ATTRIBUTE'] || '').downcase
     raise Etna::Unauthorized if email == '(null)' || email.empty?
 
-    # Get and check user. No password required.
+    # Get and check user. No password required. Create if doesn't exist.
     user = User[email: email]
-    raise Etna::Unauthorized, "Unauthorized request for #{email}" unless user
+    unless user
+      begin
+        name = email.split('@')[0].split('.').map(&:capitalize).join(' ')
+        user = User.create(email: email, name: name)
+        # TODO: add to `example` project?
+      rescue => e
+        @logger.log_error(e)
+        raise Etna::Unauthorized, "Unauthorized request for #{email}"
+      end
+    end
 
     # Create a new token for the user.
     token = user.create_token!

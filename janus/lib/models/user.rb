@@ -49,6 +49,7 @@ class User < Sequel::Model
       email: email,
       name: name,
       flags: flags,
+      joined_at: user_create_stamp,
       public_key: public_key && key_fingerprint
     }.compact
   end
