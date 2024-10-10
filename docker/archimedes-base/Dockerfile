@@ -1,7 +1,7 @@
 FROM etna-py AS etna-py
 FROM development-certs
 
-FROM python:3.8-slim-buster
+FROM python:3.8-slim-bullseye
 WORKDIR /app
 
 ENV DOCKER_VERSION 19.03.12
@@ -29,7 +29,7 @@ RUN apt-get update \
       --no-install-recommends
 
 # add postgres 10 repo for debian bionic
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ buster-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ bullseye-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
 RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
 RUN apt-get update \
