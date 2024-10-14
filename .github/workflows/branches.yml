@@ -28,7 +28,6 @@ jobs:
           - etna
           - archimedes
           - deployer
-          - airflow
           - archimedes-node
       fail-fast: false
     steps:
