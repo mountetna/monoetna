@@ -26,5 +26,6 @@ cryptography = "^37.0.3"
 pyserde = "^0.8.2"
 
 [tool.poetry.dev-dependencies]
-pytest = "^3.0"
+pytest = "^6.1"
 responses = "^0.21.0"
+importlib-metadata = "^8.4.0"
