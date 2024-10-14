@@ -1,7 +1,8 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {useAsync} from 'etna-js/utils/cancellable_helpers'
 
 import ListBucket from './list/list-bucket';
 import ListHead from './list/list-head';
@@ -9,6 +10,21 @@ import FolderBreadcrumb from './folder-breadcrumb';
 import ControlBar from './control-bar';
 
 import {selectBuckets} from 'etna-js/selectors/directory-selector';
+
+import AutorenewIcon from '@material-ui/icons/Autorenew';
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme) => ({
+  loadingIcon: {
+    'animation': '$spin 4s linear infinite'
+  },
+  '@keyframes spin': {
+      '100%': {
+          '-webkit-transform': 'rotate(360deg)',
+          'transform': 'rotate(360deg)',
+      }
+  },
+}))
 
 const COLUMNS = [
   {name: 'type', width: '60px'},
@@ -32,6 +48,9 @@ const BucketView = () => {
   const invoke = useActionInvoker();
   const buckets = useReduxState((state) => selectBuckets(state));
 
+  const [loading, setLoading] = useState(true)
+  const classes = useStyles();
+
   function createBucket(bucket) {
     invoke({type: 'CREATE_BUCKET', bucket});
   }
@@ -54,8 +73,9 @@ const BucketView = () => {
     }
   ];
 
-  useEffect(() => {
-    invoke({type: 'RETRIEVE_BUCKETS'});
+  useAsync( async () => {
+    await invoke({type: 'RETRIEVE_BUCKETS'});
+    setLoading(false);
   }, []);
 
   return (
@@ -75,6 +95,10 @@ const BucketView = () => {
               bucket={bucket}
             />
           ))}
+        {loading ? <>
+          <AutorenewIcon className={classes.loadingIcon}/>
+          Loading
+        </> : null}
       </div>
     </div>
   );
