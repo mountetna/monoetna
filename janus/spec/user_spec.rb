@@ -414,7 +414,7 @@ describe UserController do
         email: "janus@two-faces.org",
         name: "Janus Bifrons",
         public_key: user.key_fingerprint,
-        joined_at: user.user_create_stamp.strftime('%Y-%m-%dT%H:%M:%S.%L%:z'),
+        joined_at: user.created_at.iso8601
       )
     end
   end

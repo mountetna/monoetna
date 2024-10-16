@@ -1,14 +1,4 @@
-require 'date'
-require 'logger'
-require 'rollbar'
-require 'sequel'
-require 'tempfile'
-require 'active_support/all'
-require 'etna/command'
 require_relative 'helpers'
-require 'net/http'
-require 'byebug'
-
 
 class Vesta
   class Migrate < Etna::Command

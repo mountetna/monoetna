@@ -148,7 +148,12 @@ class AuthorizationController < Janus::Controller
     user = User[email: email]
     unless user
       begin
+        raise unless email =~ URI::MailTo::EMAIL_REGEXP
+
         name = email.split('@')[0].split('.').map(&:capitalize).join(' ')
+
+        raise if name.empty?
+
         user = User.create(email: email, name: name)
         # TODO: add to `example` project?
       rescue => e

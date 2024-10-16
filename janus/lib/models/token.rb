@@ -29,7 +29,7 @@ module Token
         name: @janus_user.name,
         perm:  serialize_permissions(filters: filters),
         flags: @janus_user.flags&.join(';'),
-        joined_at: @janus_user.user_create_stamp,
+        joined_at: @janus_user.created_at.iso8601,
       }.compact
     end
 
