@@ -1,6 +1,3 @@
-
-version: '3.4'
-
 networks:
   edge_net:
     ipam:
