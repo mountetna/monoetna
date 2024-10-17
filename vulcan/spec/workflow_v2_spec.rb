@@ -220,19 +220,71 @@ describe VulcanV2Controller do
         git_version: "v1"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
-      expect(last_response.status).to eq(200)
     end
 
-    it 'displays a config and job statues for the last run' do
+    it 'returns the last run and last config ' do
+      workspace_id = json_body[:workspace_id]
+      write_files_to_workspace(workspace_id)
+      # Create a config and run a job
+      request = {
+        params: {
+          count_bytes: false,
+          count_chars: true
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/config", request)
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{json_body[:config_id]}")
+      expect(last_response.status).to eq(200)
+      run_id = json_body[:run_id]
+      check_jobs_status(["count"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{run_id}")
+      end
+
+      # Create another config and run a job
+      request_2 = {
+        params: {
+          count_bytes: true,
+          count_chars: false 
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/config", request_2)
+      config_id = json_body[:config_id]
+      run_workflow_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{config_id}")
+      end
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(json_body[:last_config]).to eq({
+        count_bytes: "true",
+        count_chars: "false"
+      })
+    end
+
+    it 'returns a config if no run exists' do
+      workspace_id = json_body[:workspace_id]
+      write_files_to_workspace(workspace_id)
+      # Create a config and run a job
+      request = {
+        params: {
+          count_bytes: false,
+          count_chars: true
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/config", request)
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:last_config]).to eq({
+        count_bytes: "false",
+        count_chars: "true"
+      })
+      expect(json_body[:last_job_status]).to be_nil
+    end
+
+    it 'returns no configs if they do not exist' do
       workspace_id = json_body[:workspace_id]
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
       expect(last_response.status).to eq(200)
-    end
-
-    it 'omits a config and job statues if no run exists' do
-      workspace_id = json_body[:workspace_id]
-      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
-      expect(last_response.status).to eq(200)
+      expect(json_body[:last_config]).to be_nil
+      expect(json_body[:last_job_status]).to be_nil
     end
 
 
@@ -396,6 +448,24 @@ describe VulcanV2Controller do
       expect(Vulcan::Config.where(workspace_id: workspace.id).count).to eq(1)
     end
 
+    it 'correctly returns scheduled and downstream jobs' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      # We need to write some initial input files to the workspace.
+      write_files_to_workspace(workspace.id)
+      # Next we run the first snakemake job
+      request = {
+          params: {
+            count_bytes: false,
+            count_chars: true,
+            add: 2,
+            add_and_multiply_by: 2
+          }
+        }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      expect(json_body[:scheduled]).to match_array(["arithmetic", "checker", "count"])
+      expect(json_body[:downstream]).to match_array(["ui_job_one", "ui_job_two", "summary"])
+    end
   end
 
   context 'running workflows' do
@@ -434,7 +504,6 @@ describe VulcanV2Controller do
       run_id = json_body[:run_id]
       expect(last_response.status).to eq(200)
       expect(run_id).to_not be_nil
-      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
       # Wait until jobs are completed
       check_jobs_status(["count"]) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
@@ -558,7 +627,6 @@ describe VulcanV2Controller do
           add_and_multiply_by: 4
         }
       }
-
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
       run_id = json_body[:run_id]
@@ -567,9 +635,9 @@ describe VulcanV2Controller do
       end
       expect(last_response.status).to eq(200)
 
-      # Next step involves writing another file to the workspace (checker-ui job)
+      # Next step involves writing files to the workspace 
       request = {
-        files: [create_temp_file("ui_check")]
+        files: [create_temp_file("ui_job_one"), create_temp_file("ui_job_two")]
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
 

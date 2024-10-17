@@ -89,7 +89,7 @@ class Vulcan
       end
 
       def get_rules_from_run(snakemake_log)
-        # snakemake_log is the raw bytes
+        # TODO: refactor this
 
         # Extract the Job stats section up to the first double newline
         job_stats_section = snakemake_log[/Job stats:.*?(?=\n\n)/m]
@@ -99,10 +99,7 @@ class Vulcan
         jobs = job_stats_section.scan(/^(\w+)\s+(\d+)$/)
         
         # Reject the 'total' entry and extract only the job names
-        job_names = jobs.reject { |job, _| job.downcase == 'total' }
-                         .map { |job, _| job }
-        
-        job_names
+        jobs.reject { |job, _| job.downcase == 'total' }.map { |job, _| job }
       end
 
 
