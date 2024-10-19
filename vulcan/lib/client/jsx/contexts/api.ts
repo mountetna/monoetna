@@ -33,7 +33,10 @@ export const defaultApiHelpers = {
   pollStatus(session: VulcanSession): Promise<SessionStatusResponse> {
     return new Promise(() => null);
   },
-  getWorkflows(): Promise<WorkflowsResponse> {
+  getWorkflows(projectName: string): Promise<WorkflowsResponse> {
+    return new Promise(() => null);
+  },
+  createWorkflow(projectName: string, repoUrl: string, workflowName: string): Promise<WorkflowsResponse> {
     return new Promise(() => null);
   },
   fetchFigures(projectName: string): Promise<FiguresResponse> {
@@ -43,6 +46,9 @@ export const defaultApiHelpers = {
     projectName: string,
     figureId: number
   ): Promise<VulcanFigureSession> {
+    return new Promise(() => null);
+  },
+  createWorkspace(projectName: string, workflowId: number, branch: string, workspaceName: string): Promise<SessionStatusResponse> {
     return new Promise(() => null);
   },
   createFigure(projectName: string, params: any): Promise<VulcanFigureSession> {
@@ -106,11 +112,22 @@ export function useApi(
     [rawVulcanGet]
   );
 
-  const getWorkflows = useCallback((): Promise<WorkflowsResponse> => {
-    return vulcanGet(vulcanPath(ROUTES.fetch_workflows()))
+  const getWorkflows = useCallback((projectName: string): Promise<WorkflowsResponse> => {
+    // old: ROUTES.fetch_workflows
+    return vulcanGet(vulcanPath(`/api/v2/${projectName}/workflows`))
       .then(handleFetchSuccess)
       .catch(handleFetchError);
   }, [vulcanGet, vulcanPath]);
+
+  const createWorkflow = useCallback((projectName: string, repoUrl: string, workflowName: string): Promise<WorkflowsResponse> => {
+    return vulcanPost(
+      vulcanPath(`/api/v2/${projectName}/workflows/create`),
+      {
+        project_name: projectName,
+        repo_url: repoUrl,
+        workflow_name: workflowName
+      }).then(handleFetchSuccess).catch(handleFetchError);
+  }, [vulcanPost, vulcanPath]);
 
   const postInputs = useCallback(
     (session: VulcanSession): Promise<SessionStatusResponse> => {
@@ -121,7 +138,8 @@ export function useApi(
       }
 
       return vulcanPost(
-        vulcanPath(ROUTES.submit(session.project_name, session.workflow_name)),
+        // old: ROUTES.submit
+        vulcanPath(`/api/${session.project_name}/session/${workflow_name}`),
         session
       )
         .then(handleFetchSuccess)
@@ -139,7 +157,8 @@ export function useApi(
       }
 
       return vulcanPost(
-        vulcanPath(ROUTES.status(session.project_name, session.workflow_name)),
+        // Old: ROUTES.status
+        vulcanPath(`/api/${session.project_name}/session/${session.workflow_name}/status`),
         session
       )
         .then(handleFetchSuccess)
@@ -166,6 +185,16 @@ export function useApi(
     [vulcanGet]
   );
 
+  const createWorkspace = useCallback((projectName: string, workflowId: number, branch: string, workspaceName: string): Promise<SessionStatusResponse> => {
+    return vulcanPost(
+      vulcanPath(`/api/v2/${projectName}/workspace/create`),
+      {
+        workflow_id: workflowId,
+        branch: branch,
+        workspace_name: workspaceName
+      }).then(handleFetchSuccess).catch(handleFetchError);
+  }, [vulcanPost, vulcanPath]);
+
   const showErrors = useCallback(
     <T>(work: Promise<T>): Promise<T> => {
       work.catch((e) => {
@@ -184,7 +213,8 @@ export function useApi(
 
   const fetchFigures = useCallback(
     (projectName: string): Promise<FiguresResponse> => {
-      return vulcanGet(vulcanPath(ROUTES.fetch_figures(projectName)))
+      // Old: ROUTES.fetch_figures
+      return vulcanGet(vulcanPath(`/api/${projectName}/figures`))
         .then(handleFetchSuccess)
         .catch(handleFetchError);
     },
@@ -193,7 +223,8 @@ export function useApi(
 
   const fetchFigure = useCallback(
     (projectName: string, figureId: number): Promise<VulcanFigureSession> => {
-      return vulcanGet(vulcanPath(ROUTES.fetch_figure(projectName, figureId)))
+      // Old: ROUTES.fetch_figure
+      return vulcanGet(vulcanPath(`/api/${projectName}/figure/${figureId}`))
         .then(handleFetchSuccess)
         .catch(handleFetchError);
     },
@@ -203,7 +234,8 @@ export function useApi(
   const updateFigure = useCallback(
     (projectName: string, params: any): Promise<VulcanFigureSession> => {
       return vulcanPost(
-        vulcanPath(ROUTES.update_figure(projectName, params.figure_id)),
+        // Old: ROUTES.update_figure
+        vulcanPath(`/api/${projectName}/figure/${params.figure_id}/update`),
         params
       )
         .then(handleFetchSuccess)
@@ -215,7 +247,8 @@ export function useApi(
   const updateFigureDependencies = useCallback(
     (projectName: string, figure_id: number): Promise<VulcanFigureSession> => {
       return vulcanPost(
-        vulcanPath(ROUTES.update_figure(projectName, figure_id)),
+        // Old: ROUTES.update_figure
+        vulcanPath(`/api/${projectName}/figure/${figure_id}/update`),
         {
           update_dependencies: true,
           comment: 'Updating dependencies and snapshot'
@@ -229,7 +262,8 @@ export function useApi(
 
   const createFigure = useCallback(
     (projectName: string, params: any): Promise<VulcanFigureSession> => {
-      return vulcanPost(vulcanPath(ROUTES.create_figure(projectName)), params)
+      // Old: ROUTES.create_figure
+      return vulcanPost(vulcanPath(`/api/${projectName}/figure/create`), params)
         .then(handleFetchSuccess)
         .catch(handleFetchError);
     },
@@ -239,7 +273,8 @@ export function useApi(
   const deleteFigure = useCallback(
     (projectName: string, figureId: number): Promise<VulcanFigureSession> => {
       return vulcanDelete(
-        vulcanPath(ROUTES.delete_figure(projectName, figureId))
+        // Old: ROUTES.delete_figure
+        vulcanPath(`/api/${projectName}/figure/${figureId}`)
       )
         .then(handleFetchSuccess)
         .catch(handleFetchError);
@@ -251,8 +286,10 @@ export function useApi(
     showErrors,
     getData,
     getWorkflows,
+    createWorkflow,
     postInputs,
     pollStatus,
+    createWorkspace,
     deleteFigure,
     createFigure,
     updateFigure,
