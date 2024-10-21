@@ -70,10 +70,10 @@ class Vesta
             .model_keys
             .to_set
 
-          subject_count = query_model_counts(proj_name, @magma_config[:subject_models].to_set, models)
-          sample_count = query_model_counts(proj_name, @magma_config[:sample_models].to_set, models)
-          assay_count = query_model_counts(proj_name, @magma_config[:assay_models].to_set, models)
-          clinical_data_count = query_model_counts(proj_name, @magma_config[:clinical_models].to_set, models)
+          subject_count = query_model_counts(proj_name, @data_types[:subject_models].to_set, models)
+          sample_count = query_model_counts(proj_name, @data_types[:sample_models].to_set, models)
+          assay_count = query_model_counts(proj_name, @data_types[:assay_models].to_set, models)
+          clinical_data_count = query_model_counts(proj_name, @data_types[:clinical_models].to_set, models)
         rescue => e
           puts "Error collecting Magma counts for #{proj_name}: #{e}"
           next
@@ -82,8 +82,8 @@ class Vesta
         {
           name: proj_name,
           user_count: proj[:user_count],
-          file_count: file_count_by_project[proj_name] || 0,
-          byte_count: byte_count_by_project[proj_name] || 0,
+          file_count: file_count_by_project[proj_name.to_sym] || 0,
+          byte_count: byte_count_by_project[proj_name.to_sym] || 0,
           subject_count: subject_count,
           sample_count: sample_count,
           assay_count: assay_count,
@@ -130,7 +130,7 @@ class Vesta
 
     def setup(config)
       super
-      @magma_config = Vesta.instance.config(:magma)
+      @data_types = Vesta.instance.config(:data_types)
       Vesta.instance.setup_db
       Vesta.instance.setup_sequel
       Vesta.instance.setup_logger
@@ -160,7 +160,7 @@ class Vesta
 
         begin
           project_info = retrieve_project_info(proj_name)
-          project_data_types = retrieve_data_types(proj_name)
+          project_model_names = retrieve_model_names(proj_name)
 
           pi_profiles = proj[:principal_investigators].map do |janus_pi|
             begin
@@ -186,10 +186,12 @@ class Vesta
             start_date: parse_start_date(project_info[:start_date]),
             theme: project_info[:theme],
             data_collection_complete: project_info[:completed] != nil ? project_info[:completed] : false,
-            data_types: project_data_types,
+            data_types: project_model_names,
           )
         rescue => e
           puts "Error collecting project info for #{proj_name}: #{e}"
+          require 'pry'
+          binding.pry
           next
         end
 
@@ -197,15 +199,22 @@ class Vesta
       end
     end
 
+    PROJECT_ATTRIBUTES=[
+        'completed',
+        'description',
+        'funding_source',
+        'project_status',
+        'project_type',
+        'species',
+        'start_date',
+        'theme'
+    ]
+
     def retrieve_project_info(project_name)
       response = magma_client.retrieve(
         project_name: project_name,
         model_name: 'project',
-        attribute_names: [
-          'completed', 'description', 'funding_source',
-          'project_status', 'project_type',
-          'species', 'start_date', 'theme',
-        ],
+        attribute_names: PROJECT_ATTRIBUTES,
         record_names: 'all',
       )
 
@@ -213,7 +222,7 @@ class Vesta
       data.transform_keys(&:to_sym)
     end
 
-    def retrieve_data_types(project_name)
+    def retrieve_model_names(project_name)
       response = magma_client.retrieve(
         project_name: project_name,
         model_name: 'all',
@@ -250,12 +259,12 @@ class Vesta
     end
 
     def parse_start_date(start_date)
-      Date.strptime(start_date, '%Y')
+      start_date ? Date.strptime(start_date, '%Y') : nil
     end
 
     def setup(config)
       super
-      @magma_config = Vesta.instance.config(:magma)
+      @data_types = Vesta.instance.config(:data_types)
       Vesta.instance.setup_db
       Vesta.instance.setup_sequel
       Vesta.instance.setup_logger

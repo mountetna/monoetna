@@ -72,3 +72,49 @@ def json_post(endpoint, hash)
   post(URI.encode("/#{endpoint.reverse.chomp('/').reverse}"), hash.to_json, { "CONTENT_TYPE" => "application/json" })
 end
 
+def stub_retrieve(request, response)
+  stub_request(:post, "https://magma.test/retrieve").
+    with(
+      body: request.to_json
+     ).to_return(
+       status: 200, body: response.to_json, headers: {}
+     )
+end
+
+def stub_models(project, models)
+  stub_request(:post, "https://magma.test/retrieve").
+    with(
+      body: {
+        project_name: project,
+        model_name: "all",
+        attribute_names: [],
+        record_names: []
+      }.to_json
+     ).to_return(
+       status: 200, body: {
+         models: models.map{ |m| [ m, {} ] }.to_h
+       }.to_json, headers: {}
+     )
+end
+
+def stub_query_count(project, model, count)
+  stub_request(:post, "https://magma.test/query")
+    .with(
+      body: {
+        query: [model,"::count"],
+        project_name: project
+      }
+    )
+    .to_return(
+      status: 200, body: { answer: count }.to_json, headers: {}
+    )
+end
+
+def stub_options(path)
+  stub_request(:options, path).to_return(status: 200, body: "{}", headers: {})
+end
+
+def stub_json(path, payload, headers={})
+  stub_request(:get, path).
+    to_return(status: 200, body: payload.to_json, headers: headers)
+end

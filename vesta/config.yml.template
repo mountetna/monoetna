@@ -1,12 +1,5 @@
 :development:
-  :docker:
-    :default_tag: latest
-  :janus:
-    :host: https://janus.development.local
-  :timur:
-    :host: https://timur.development.local
-  :magma:
-    :host: https://magma.development.local
+  :data_types:
     :subject_models:
       - subject
       - patient
@@ -32,6 +25,14 @@
       - clinical_lab
       - admission_lab
       - symptom
+  :docker:
+    :default_tag: latest
+  :janus:
+    :host: https://janus.development.local
+  :timur:
+    :host: https://timur.development.local
+  :magma:
+    :host: https://magma.development.local
   :vulcan:
     :host: https://vulcan.development.local
   :metis:
@@ -98,6 +99,17 @@
         :ssh-key: public-key-of-server
 
 :test:
+  :data_types:
+    :subject_models:
+      - victim
+      - olympian
+    :sample_models:
+      - blood
+      - census
+    :assay_models:
+      - form
+    :clinical_models:
+      - demographics
   :magma:
     :host: https://magma.test
   :metis:
