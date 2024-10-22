@@ -190,8 +190,6 @@ class Vesta
           )
         rescue => e
           puts "Error collecting project info for #{proj_name}: #{e}"
-          require 'pry'
-          binding.pry
           next
         end
 
