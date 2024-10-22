@@ -29,7 +29,6 @@ jobs:
           - archimedes
           - deployer
           - archimedes-node
-          - vesta
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
@@ -71,7 +70,7 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           make -C vulcan release
-  test-vesta-ui:
+  test-vesta:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -88,4 +87,5 @@ jobs:
           CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
+          make -C vesta release
           make -f Makefile-mac vesta-ui-test
