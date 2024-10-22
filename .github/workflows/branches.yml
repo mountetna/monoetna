@@ -71,3 +71,21 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           make -C vulcan release
+  test-vesta-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: docker login
+        env:
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
+      - name: Run ${{ matrix.test-app }} test suite
+        id: app_first_test_run
+        env:
+          # Runs tests and builds images, but does not push (PUSH_IMAGES not set to 1)
+          IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
+          IMAGES_POSTFIX: :master
+        run: |
+          make -f Makefile-mac vesta-ui-test
