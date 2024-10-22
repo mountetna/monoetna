@@ -1,0 +1,399 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Renderable homepage elements Hero 1`] = `
+<div>
+  <html
+    lang="en"
+  >
+    <body>
+      <main>
+        <div
+          class="MuiBox-root mui-139lcja"
+        >
+          <div
+            class="MuiContainer-root MuiContainer-maxWidthDesktopLg mui-1jg98ud-MuiContainer-root"
+          >
+            <div
+              class="MuiBox-root mui-mzes97"
+            >
+              <div
+                class="MuiBox-root mui-1giofh5"
+              >
+                <video
+                  autoplay=""
+                  playsinline=""
+                  style="width: 100%; height: auto; object-fit: cover; border-radius: 50%;"
+                >
+                  <source
+                    src="/videos/hero/oscc1-clipped.mp4"
+                    type="video/mp4"
+                  />
+                  <img
+                    alt="Picture of Spatial Transcriptomics"
+                    data-nimg="1"
+                    decoding="async"
+                    height="40"
+                    loading="lazy"
+                    src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                    srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                    style="color: transparent;"
+                    width="40"
+                  />
+                </video>
+                <div
+                  class="MuiBox-root mui-jz6po3"
+                >
+                  <div
+                    class="MuiBox-root mui-glypg7"
+                  />
+                  <button
+                    aria-label="Restart video"
+                    class="MuiButtonBase-root Mui-disabled mui-1ffx3aa-MuiButtonBase-root"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <img
+                      alt="Arrow counter clockwise"
+                      data-nimg="1"
+                      decoding="async"
+                      height="40"
+                      loading="lazy"
+                      src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                      srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                      style="color: transparent;"
+                      width="40"
+                    />
+                  </button>
+                  <button
+                    aria-label="Next video"
+                    class="MuiButtonBase-root Mui-disabled mui-1ffx3aa-MuiButtonBase-root"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <img
+                      alt="Arrow right"
+                      data-nimg="1"
+                      decoding="async"
+                      height="40"
+                      loading="lazy"
+                      src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                      srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                      style="color: transparent;"
+                      width="40"
+                    />
+                  </button>
+                </div>
+              </div>
+              <div
+                class="MuiBox-root mui-15yxpa7"
+              >
+                <h3
+                  class="MuiTypography-root MuiTypography-h3 mui-bzfrh0-MuiTypography-root"
+                >
+                  A library capturing, curating, and sharing biological data generated on UCSF campus — enabling radically collaborative research.
+                </h3>
+                <div
+                  class="MuiBox-root mui-0"
+                >
+                  <button
+                    class="MuiButtonBase-root mui-10d1a0h-MuiButtonBase-root"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiBox-root mui-2zprzl"
+                    >
+                      <img
+                        alt="Arrow pointing down"
+                        data-nimg="1"
+                        decoding="async"
+                        height="40"
+                        loading="lazy"
+                        src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                        srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                        style="color: transparent;"
+                        width="40"
+                      />
+                    </span>
+                    <span
+                      class="MuiTypography-root MuiTypography-pMedium mui-c3tgdv-MuiTypography-root"
+                    >
+                      Scroll to explore
+                    </span>
+                  </button>
+                </div>
+              </div>
+              <div
+                class="MuiBox-root mui-1gz1k8k"
+              >
+                <div
+                  class="MuiBox-root mui-1hibaip"
+                >
+                  <div
+                    class="stats-carousel MuiBox-root mui-ob771v"
+                  >
+                    <div
+                      class="MuiBox-root mui-17y7wj2"
+                    >
+                      <div
+                        data-testid="swiper-testid"
+                      >
+                        <div
+                          data-testid="swiper-slide-testid"
+                        >
+                          <div
+                            class="MuiBox-root mui-1vx1dtt"
+                          >
+                            <div
+                              class="stat-card MuiBox-root mui-19935ou"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Total Data Stored
+                              </h5>
+                              <div
+                                class="MuiBox-root mui-r7q7qr"
+                              >
+                                <div
+                                  class="stat stat-primary MuiBox-root mui-k008qs"
+                                >
+                                  <h3
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                  >
+                                    0TB
+                                  </h3>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          data-testid="swiper-slide-testid"
+                        >
+                          <div
+                            class="MuiBox-root mui-1vx1dtt"
+                          >
+                            <div
+                              class="stat-card MuiBox-root mui-1hsvz7x"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Assays
+                              </h5>
+                              <div
+                                class="MuiBox-root mui-r7q7qr"
+                              >
+                                <div
+                                  class="stat stat-primary MuiBox-root mui-k008qs"
+                                >
+                                  <h3
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                  >
+                                    100
+                                  </h3>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          data-testid="swiper-slide-testid"
+                        >
+                          <div
+                            class="MuiBox-root mui-1vx1dtt"
+                          >
+                            <div
+                              class="stat-card MuiBox-root mui-1hsvz7x"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Subjects
+                              </h5>
+                              <div
+                                class="MuiBox-root mui-r7q7qr"
+                              >
+                                <div
+                                  class="stat stat-primary MuiBox-root mui-k008qs"
+                                >
+                                  <h3
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                  >
+                                    148
+                                  </h3>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          data-testid="swiper-slide-testid"
+                        >
+                          <div
+                            class="MuiBox-root mui-1vx1dtt"
+                          >
+                            <div
+                              class="stat-card MuiBox-root mui-1hsvz7x"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Files
+                              </h5>
+                              <div
+                                class="MuiBox-root mui-r7q7qr"
+                              >
+                                <div
+                                  class="stat stat-primary MuiBox-root mui-k008qs"
+                                >
+                                  <h3
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                  >
+                                    597
+                                  </h3>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          data-testid="swiper-slide-testid"
+                        >
+                          <div
+                            class="MuiBox-root mui-1vx1dtt"
+                          >
+                            <div
+                              class="stat-card MuiBox-root mui-19935ou"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Samples
+                              </h5>
+                              <div
+                                class="MuiBox-root mui-r7q7qr"
+                              >
+                                <div
+                                  class="stat stat-primary MuiBox-root mui-k008qs"
+                                >
+                                  <h3
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                  >
+                                    1,000
+                                  </h3>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          data-testid="swiper-slide-testid"
+                        >
+                          <div
+                            class="MuiBox-root mui-1vx1dtt"
+                          >
+                            <div
+                              class="stat-card MuiBox-root mui-19935ou"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Users
+                              </h5>
+                              <div
+                                class="MuiBox-root mui-r7q7qr"
+                              >
+                                <div
+                                  class="stat stat-primary MuiBox-root mui-k008qs"
+                                >
+                                  <h3
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                  >
+                                    50
+                                  </h3>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="MuiBox-root mui-wiexpe"
+                    >
+                      <button
+                        class="MuiButtonBase-root carousel-index-indicator active mui-10d1a0h-MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      />
+                      <button
+                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      />
+                      <button
+                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      />
+                      <button
+                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      />
+                      <button
+                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      />
+                      <button
+                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <a
+                  class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-ayjyg5-MuiTypography-root-MuiLink-root"
+                  href="https://example.com"
+                  tabindex="0"
+                >
+                  <h5
+                    class="MuiTypography-root MuiTypography-h5 mui-b15gk3-MuiTypography-root"
+                  >
+                    Get Access
+                  </h5>
+                  <div
+                    class="MuiBox-root mui-1bvc4cc"
+                  >
+                    <span
+                      class="MuiBox-root mui-1xyxjys"
+                    >
+                      <img
+                        alt="Arrow pointing up-right"
+                        data-nimg="1"
+                        decoding="async"
+                        height="40"
+                        loading="lazy"
+                        src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                        srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                        style="color: transparent;"
+                        width="40"
+                      />
+                    </span>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </body>
+  </html>
+</div>
+`;
