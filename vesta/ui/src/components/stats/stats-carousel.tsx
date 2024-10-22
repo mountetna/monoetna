@@ -1,20 +1,20 @@
 'use client'
 
-import * as React from 'react'
-import Box from '@mui/system/Box'
+import * as React from 'react';
+import Box from '@mui/system/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import { useTheme, alpha } from '@mui/material/styles';
 import { Swiper, SwiperSlide, SwiperClass } from 'swiper/react';
-import { A11y, Autoplay } from 'swiper/modules'
+import { A11y, Autoplay } from 'swiper/modules';
 import Image from 'next/image';
 import { Fade } from '@mui/material';
 
-import StatCard from './stat-card'
+import StatCard from './stat-card';
 
-import arrowCounterClockwiseLightIcon from '/public/images/icons/arrow-counter-clockwise-light.svg'
+import arrowCounterClockwiseLightIcon from '/public/images/icons/arrow-counter-clockwise-light.svg';
 
 
-export type Stats = Record<'bytes' | 'assays' | 'subjects' | 'files' | 'samples' | 'users', number>
+export type Stats = Record<'bytes' | 'assays' | 'subjects' | 'files' | 'samples' | 'users', number>;
 
 
 export default function StatsCarousel({
