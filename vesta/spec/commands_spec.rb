@@ -184,20 +184,20 @@ describe 'Vesta Commands' do
       command.execute
 
       expect(Vesta::Project.count).to eq(2)
-      expect(Vesta::Project[name: "athena"].as_json).to include(
+      expect(Vesta::Project[name: "athena"].to_hash).to include(
        name: "athena",
        data_collection_complete: false,
        data_types: [ "olympian", "blood" ],
        description: "Birth Athena",
        full_name: "Athena",
        funding_source: "Zeus",
-       principal_investigators: [{:email=>"metis@headofzeus.org", :name=>"Metis", :photo_url=>"https://photos.something/metis", :profile_url=>"https://profiles.something/metis", :title=>"Titaness"}],
+       principal_investigators: [{"email"=>"metis@headofzeus.org", "name"=>"Metis", "photo_url"=>"https://photos.something/metis", "profile_url"=>"https://profiles.something/metis", "title"=>"Titaness"}],
        species: "olympian",
        status: "in capite",
        theme: "fetal",
        type: "community"
       )
-      expect(Vesta::Project[name: "labors"].as_json).to include(
+      expect(Vesta::Project[name: "labors"].to_hash).to include(
        name: "labors",
        data_collection_complete: false,
        data_types: ["victim", "form", "census"],
@@ -205,8 +205,8 @@ describe 'Vesta Commands' do
        full_name: "Labors",
        funding_source: "Hera",
        principal_investigators: [
-         {email: "eurystheus@twelve-labors.org", name: "Eurystheus", photo_url: "https://photos.something/eurystheus", profile_url: "https://profiles.something/eurystheus", title: "King"},
-         {email: "hera@olympus.org", name: "Hera", photo_url: "https://photos.something/hera", profile_url: "https://profiles.something/hera", title: "Queen of Heaven"}
+         {"email" => "eurystheus@twelve-labors.org", "name" => "Eurystheus", "photo_url" => "https://photos.something/eurystheus", "profile_url" => "https://profiles.something/eurystheus", "title" => "King"},
+         {"email" => "hera@olympus.org", "name" => "Hera", "photo_url" => "https://photos.something/hera", "profile_url" => "https://profiles.something/hera", "title" => "Queen of Heaven"}
        ],
        species: "lion,hydra",
        status: "in media res",

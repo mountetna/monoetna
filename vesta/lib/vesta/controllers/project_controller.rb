@@ -7,6 +7,6 @@ class ProjectController < Vesta::Controller
     projects = Vesta::Project
     projects = projects.where(name: projects_to_include) unless projects_to_include.nil?
 
-    success_json(projects.all)
+    success_json(projects.map(&:to_hash))
   end
 end

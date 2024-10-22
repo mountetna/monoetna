@@ -64,6 +64,18 @@ RSpec.configure do |config|
   end
 end
 
+FactoryBot.define do
+  factory :global_stats, class: Vesta::GlobalStats do
+    to_create(&:save)
+  end
+  factory :project_stats, class: Vesta::ProjectStats do
+    to_create(&:save)
+  end
+  factory :project, class: Vesta::Project do
+    to_create(&:save)
+  end
+end
+
 def json_body
   JSON.parse(last_response.body, symbolize_names: true)
 end

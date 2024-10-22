@@ -6,7 +6,7 @@ class StatsController < Vesta::Controller
 
     stats = Vesta::GlobalStats.all
 
-    success_json(stats)
+    success_json(stats.map(&:to_hash))
   end
 
   def project_stats
@@ -17,6 +17,6 @@ class StatsController < Vesta::Controller
       stats = stats.where(name: projects_to_include)
     end
 
-    success_json(stats.all)
+    success_json(stats.map(&:to_hash))
   end
 end
