@@ -269,7 +269,7 @@ vesta-migrate:
 	cd vesta && docker compose run --rm -e UPDATE_STATE=1 vesta_app
 
 vesta-ui-test:
-	cd vesta/ui && docker compose build && docker compose run --rm vesta_ui sh -c 'npm test'
+	cd vesta && docker compose build && docker compose run --rm vesta_ui sh -c 'npm test'
 
 ### Clean targets ###
 
