@@ -8,6 +8,7 @@ require_relative './server/controllers/upload_controller'
 require_relative './server/controllers/download_controller'
 require_relative './server/controllers/client_controller'
 require_relative './server/controllers/data_block_controller'
+require_relative './server/controllers/stats_controller'
 require_relative './server/set_uid'
 
 class Metis
@@ -15,6 +16,9 @@ class Metis
     get '/', action: 'client#index'
 
     post '/api/exists', action: 'data_block#exists'
+
+    get '/api/stats/files', action: 'stats#file_count_by_project', auth: { user: { is_supereditor?: true } }
+    get '/api/stats/bytes', action: 'stats#byte_count_by_project', auth: { user: { is_supereditor?: true } }
 
     get '/:project_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
     get '/:project_name/browse/:bucket_name', action: 'client#index', auth: { user: { can_view?: :project_name } }

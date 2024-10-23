@@ -1,0 +1,107 @@
+volumes:
+  vesta-app-gems:
+    driver: local
+  vesta-log-dir:
+    driver: local
+  vesta-tmp-dir:
+    driver: local
+  vesta-public-dir:
+    driver: local
+  vesta-data-dir:
+    driver: local
+  vesta-db-data:
+    driver: local
+  vesta-opt-dir:
+    driver: local
+
+x-base-etna-service:
+  &base-etna-service # Base configuration used by most etna services.
+  image: etna-base
+  volumes: &base-etna-service-volumes
+    - .:/app:delegated
+    - vesta-log-dir:/app/log:rw
+    - vesta-tmp-dir:/app/tmp:rw
+    - vesta-public-dir:/app/public:rw
+    - vesta-data-dir:/app/data:rw
+    - vesta-opt-dir:/usr/opt:rw
+    - ../etna:/etna:delegated
+    - /tmp/metrics.prom:/tmp/metrics.prom
+  environment: &base-etna-env
+    'VESTA_ENV': 'development'
+    APP_NAME: 'vesta'
+  entrypoint: /entrypoints/development.sh
+
+  networks: &base-etna-networks
+    default:
+    edge_net:
+  extra_hosts: &base-etna-extra-hosts
+    - 'metis.development.local:172.16.238.10'
+    - 'magma.development.local:172.16.238.10'
+    - 'janus.development.local:172.16.238.10'
+    - 'timur.development.local:172.16.238.10'
+    - 'rtemis.development.local:172.16.238.10'
+    - 'archimedes.development.local:172.16.238.10'
+    - 'polyphemus.development.local:172.16.238.10'
+    - 'gnomon.development.local:172.16.238.10'
+    - 'vesta.development.local:172.16.238.10'
+
+x-base-etna-services:
+  &base-etna-services # Default list of services an etna app may have.
+  'vesta_app': &base-etna-app # The ruby webserver
+    <<: *base-etna-service
+    command: ./bin/puma.sh
+    depends_on:
+      - 'vesta_db'
+
+  'vesta_db':
+    &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
+    image: development-psql
+    volumes:
+      - vesta-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: 'vesta_development'
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+      APP_NAME: 'vesta'
+    container_name: 'vesta_db_1'
+
+  'vesta_ui': &base-etna-ui # The JS UI
+    build:
+      context: ./ui
+      dockerfile: ./Dockerfile.development
+    volumes:
+      - ./ui/src:/app/src:delegated
+      - ./ui/public:/app/public:delegated
+    depends_on:
+      - 'vesta_app'
+    environment:
+      APP_NAME: 'vesta_ui'
+      NODE_TLS_REJECT_UNAUTHORIZED: 0  # REMOVE FOR PROD. Needed to ignore bad TLS certs
+      API_URL: https://vesta.development.local/api/
+      JANUS_URL: https://janus.development.local
+      JANUS_TOKEN_COOKIE_NAME: JANUS_DEV_TOKEN
+      TIMUR_URL: https://timur.development.local
+    networks: *base-etna-networks
+    extra_hosts: *base-etna-extra-hosts
+
+  'vesta_app_fe':
+    &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the JS UI and Ruby API
+    image: etna-apache-v2
+    depends_on:
+      - 'vesta_app'
+      - 'vesta_ui'
+    entrypoint: /entrypoints/development_app_fe.sh
+    command: ['httpd', '-DFOREGROUND']
+    environment:
+      APP_NAME: 'vesta_app_fe'
+
+networks:
+  edge_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: '172.16.238.0/24'
+        - subnet: '2001:3984:3989::/64'
+
+services:
+  <<: *base-etna-services

@@ -58,5 +58,7 @@ clean:  ## Cleans many dangling docker references, recovering much disk space.
 	docker images | grep janus_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
 	docker images | grep timur_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
 	docker images | grep vulcan_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
+	docker images | grep gnomon_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
+	docker images | grep vesta_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
 	docker images | grep etnaagent | cut -d ' ' -f1 | xargs -n1 docker image rm || true
 	docker image prune

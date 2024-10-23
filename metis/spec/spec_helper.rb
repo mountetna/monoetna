@@ -398,6 +398,9 @@ EOT
 
 
 AUTH_USERS = {
+  supereditor: {
+    email: 'vesta@olympus.org', name: 'Vesta', perm: 'a:administration'
+  },
   editor: {
     email: 'metis@olympus.org', name: 'Metis', perm: 'e:athena,backup'
   },
