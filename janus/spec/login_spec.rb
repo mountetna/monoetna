@@ -182,13 +182,25 @@ describe AuthorizationController do
       expect(last_response.status).to eq(401)
     end
 
-    it 'complains if there is no user' do
+    it 'creates a user if there is no user' do
       email = 'janus@two-faces.org'
       header('X-Shib-Attribute', email)
 
       get("/login?refer=#{@refer}")
 
+      expect(last_response.status).to eq(302)
+      expect(User.count).to eq(1)
+      expect(User.first.email).to eq("janus@two-faces.org")
+    end
+
+    it 'does not create a user if the email is malformed' do
+      email = 'janus-two-faces.org'
+      header('X-Shib-Attribute', email)
+
+      get("/login?refer=#{@refer}")
+
       expect(last_response.status).to eq(401)
+      expect(User.count).to eq(0)
     end
 
     it 'creates a token and returns a user' do

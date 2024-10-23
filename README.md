@@ -141,6 +141,8 @@ want to maintain entries like the following based on which services you are test
 127.0.0.1 polyphemus.development.local
 127.0.0.1 vulcan.development.local
 127.0.0.1 prometheus.development.local
+127.0.0.1 gnomon.development.local
+127.0.0.1 vesta.development.local
 ```
 
 ### Gemfiles
