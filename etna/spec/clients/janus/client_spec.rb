@@ -3,7 +3,7 @@ require 'json'
 require_relative '../../../lib/etna/clients/janus'
 
 describe 'Janus Client class' do
-  let(:test_class) { Etna::Clients::Janus.new(token: TEST_TOKEN, host: 'https://janus.test') }
+  let(:test_class) { Etna::Clients::Janus.new(token: TEST_TOKEN, host: JANUS_HOST) }
 
   before(:each) do
     stub_janus_setup
@@ -55,5 +55,24 @@ describe 'Janus Client class' do
     response = test_class.refresh_token(Etna::Clients::Janus::RefreshTokenRequest.new)
     expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/api\/tokens\/generate/)
     expect(response.token).to eq('a token for you!')
+  end
+
+  it 'can fetch stats' do
+    stub_janus_get_project_stats
+    test_class.get_project_stats(Etna::Clients::Janus::GetStatsRequest.new)
+    expect(WebMock).to have_requested(:get, %r!#{JANUS_HOST}/api/stats/projects!)
+  end
+
+  it 'can fetch stats with projects specified' do
+    project_names = ['test']
+
+    stub_janus_get_project_stats(project_names)
+
+    query = project_names.map do |name|
+      "projects%5B%5D=#{name}"
+    end.join('&')
+
+    test_class.get_project_stats(Etna::Clients::Janus::GetStatsRequest.new(project_names: project_names))
+    expect(WebMock).to have_requested(:get, %r!#{JANUS_HOST}/api/stats/projects\?#{query}!)
   end
 end

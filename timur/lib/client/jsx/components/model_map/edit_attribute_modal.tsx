@@ -7,7 +7,7 @@ import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 
 import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 import {Attribute} from '../../api/magma_api';
-import {SNAKE_CASE, COMMA_SEP, VALIDATION_TYPES} from '../../utils/edit_map';
+import {SNAKE_CASE, COMMA_SEP, COMMA_SEP_WITH_SPACES, VALIDATION_TYPES} from '../../utils/edit_map';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 import ModalSelect from './modal_select';
 
@@ -39,6 +39,8 @@ export default function EditAttributeModal({
         value:
           isArrayValidation && !Array.isArray(validationValue)
             ? validationValue.split(',')
+              // ignore leading and trailing white-space per entry
+              .map((s: string) => s.trim())
             : validationValue
       };
     } else {
@@ -151,7 +153,7 @@ export default function EditAttributeModal({
             onChange={(e: React.ChangeEvent<any>) =>
               setValidationValue(e.target.value)
             }
-            pattern={isArrayValidation ? COMMA_SEP : null}
+            pattern={isArrayValidation ? COMMA_SEP_WITH_SPACES : null}
           />
         )}
         <FormControlLabel
