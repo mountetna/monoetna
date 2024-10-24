@@ -75,13 +75,13 @@ export const metadata: Metadata = {
   title: 'UCSF Data Library',
 }
 
-export const VIDEOS = [
+const VIDEOS = [
   { videoSrc: '/videos/hero/oscc1-clipped.mp4', imageSrc: oscc1Fallback },
   { videoSrc: '/videos/hero/xenium-clipped.mp4', imageSrc: xeniumFallback },
   { videoSrc: '/videos/hero/tonsil-clipped.mp4', imageSrc: tonsilFallback },
 ]
 
-export const ABOUT_ITEMS = [
+const ABOUT_ITEMS = [
   {
     title: 'About the Library',
     header: 'About the Data Library',
