@@ -6,8 +6,18 @@ $(sort \
 	$(call map,readlink, \
 		$(filter-out $(shell dirname $(firstword $(wildcard $(addsuffix /monoetna,.. ../.. ../../..))))/%, \
 			$(wildcard \
-				$(filter-out $(addsuffix /airflow%,. .. ../.. ../../..), $(wildcard $(addsuffix /*/$(1),. .. ../.. ../../..))) \
-				$(addsuffix /docker/*/$(1),. .. ../.. ../../..) \
+				$(filter-out \
+					$(addsuffix /airflow%,. .. ../.. ../../..) \
+					$(addsuffix /vulcan%,. .. ../.. ../../..) \
+					$(addsuffix /archimedes%,. .. ../.. ../../..), \
+					$(wildcard $(addsuffix /*/$(1),. .. ../.. ../../..)) \
+				) \
+				$(filter-out \
+					$(addsuffix /docker/vulcan%,. .. ../.. ../../..) \ oddly filters vulcan/vulcan_app_fe
+					$(addsuffix /docker/archimedes%,. .. ../.. ../../..), \
+					$(wildcard $(addsuffix /docker/*/$(1),. .. ../.. ../../..)) \
+				) \
+				$(addsuffix /vesta/*/$(1),. .. ../.. ../../..) \
 				$(addsuffix /swarm/*/$(1),. .. ../.. ../../..) \
 				$(addsuffix /etna/packages/*/$(1),. .. ../.. ../../..) \
 			) \

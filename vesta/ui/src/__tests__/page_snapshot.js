@@ -1,5 +1,8 @@
 import { render } from '@testing-library/react'
-import {VIDEOS, ABOUT_ITEMS} from '../app/page'
+
+import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
+import xeniumFallback from '/public/images/hero/xenium-fallback.png'
+import tonsilFallback from '/public/images/hero/tonsil-fallback.png'
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
 import { ThemeProvider } from '@mui/material/styles';
@@ -43,6 +46,12 @@ jest.mock('next/navigation', () => {
     useServerInsertedHTML: jest.fn()
   }
 })
+
+const VIDEOS = [
+  { videoSrc: '/videos/hero/oscc1-clipped.mp4', imageSrc: oscc1Fallback },
+  { videoSrc: '/videos/hero/xenium-clipped.mp4', imageSrc: xeniumFallback },
+  { videoSrc: '/videos/hero/tonsil-clipped.mp4', imageSrc: tonsilFallback },
+]
 
 const mockThemes = [
   {
