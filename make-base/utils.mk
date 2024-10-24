@@ -8,6 +8,7 @@ $(sort \
 			$(wildcard \
 				$(filter-out $(addsuffix /airflow%,. .. ../.. ../../..), $(wildcard $(addsuffix /*/$(1),. .. ../.. ../../..))) \
 				$(addsuffix /docker/*/$(1),. .. ../.. ../../..) \
+				$(addsuffix /vesta/*/$(1),. .. ../.. ../../..) \
 				$(addsuffix /swarm/*/$(1),. .. ../.. ../../..) \
 				$(addsuffix /etna/packages/*/$(1),. .. ../.. ../../..) \
 			) \
