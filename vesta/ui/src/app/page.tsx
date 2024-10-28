@@ -241,7 +241,7 @@ const THEMES: ThemeData[] = [
     icon: neurodegenerationThemeIcon,
   },
   {
-    name: "Women's Health",
+    name: "Womens Health",
     color: '#E9C54E',
     altColor: '#B53B38',
     textColor: 'dark',
