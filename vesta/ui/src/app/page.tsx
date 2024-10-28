@@ -142,7 +142,7 @@ const THEMES: ThemeData[] = [
     textColor: 'light',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Microbial infections, including viral and bacterial pathogenesis",
     imageComponents: {
       filtered: infectionThemeFiltered,
       projectBackground: infectionThemeProjectBg,
@@ -157,7 +157,7 @@ const THEMES: ThemeData[] = [
     textColor: 'light',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Autoimmune and rheumatic conditions",
     imageComponents: {
       filtered: autoimmunityThemeFiltered,
       projectBackground: autoimmunityThemeProjectBg,
@@ -172,7 +172,7 @@ const THEMES: ThemeData[] = [
     textColor: 'dark',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Conditions that confer a predominantly inflammatory phenotype",
     imageComponents: {
       filtered: inflammationThemeFiltered,
       projectBackground: inflammationThemeProjectBg,
@@ -187,7 +187,7 @@ const THEMES: ThemeData[] = [
     textColor: 'light',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Conditions that result in significant tissue fibrosis",
     imageComponents: {
       filtered: fibrosisThemeFiltered,
       projectBackground: fibrosisThemeProjectBg,
@@ -202,7 +202,7 @@ const THEMES: ThemeData[] = [
     textColor: 'light',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Immune and systems development in early life",
     imageComponents: {
       filtered: earlyLifeThemeFiltered,
       projectBackground: earlyLifeThemeProjectBg,
@@ -217,7 +217,7 @@ const THEMES: ThemeData[] = [
     textColor: 'dark',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Human cancers and animal models, including affected tissue and peripheral sampling",
     imageComponents: {
       filtered: cancerThemeFiltered,
       projectBackground: cancerThemeProjectBg,
@@ -232,7 +232,7 @@ const THEMES: ThemeData[] = [
     textColor: 'light',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Conditions affecting the brain and nervous system",
     imageComponents: {
       filtered: neurodegenerationThemeFiltered,
       projectBackground: neurodegenerationThemeProjectBg,
@@ -247,7 +247,7 @@ const THEMES: ThemeData[] = [
     textColor: 'dark',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Conditions predominantly affecting women such as those affecting reproductive organs",
     imageComponents: {
       filtered: womensHealthThemeFiltered,
       projectBackground: womensHealthThemeProjectBg,
@@ -262,7 +262,7 @@ const THEMES: ThemeData[] = [
     textColor: 'dark',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Studies of healthy individuals for use as reference in pathologic settings",
     imageComponents: {
       filtered: healthyReferenceThemeFiltered,
       projectBackground: healthyReferenceThemeProjectBg,
