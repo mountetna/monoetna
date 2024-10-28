@@ -92,7 +92,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                 <h3
                   class="MuiTypography-root MuiTypography-h3 mui-bzfrh0-MuiTypography-root"
                 >
-                  A library capturing, curating, and sharing biological data generated on UCSF campus — enabling radically collaborative research.
+                  A library capturing, curating, and sharing biological data — creating a foundation for transformative collaborative research.
                 </h3>
                 <div
                   class="MuiBox-root mui-0"
