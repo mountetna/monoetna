@@ -64,6 +64,7 @@ class Vesta
 
         # get project template
         begin
+          puts "Collecting Magma counts for #{proj_name}"
           models = magma_client
             .retrieve(project_name: proj_name, model_name: 'all', attribute_names: [], record_names: [])
             .models
@@ -91,6 +92,8 @@ class Vesta
         }
       end.compact
 
+      puts "DONE collecting project counts"
+
       global_stats = Hash.new(0)
       project_stats.each do |item|
         item.each do |k, v|
@@ -101,6 +104,7 @@ class Vesta
 
       # top-level user count dedupes users belonging to multiple projects
       global_stats[:user_count] = janus_stats[:user_count]
+      puts "DONE generating global stats"
 
       Vesta.instance.db.transaction do
         # save projects stats
@@ -215,8 +219,9 @@ class Vesta
         attribute_names: PROJECT_ATTRIBUTES,
         record_names: 'all',
       )
-
-      data = response.models.raw["project"]["documents"][project_name]
+      # There should only ever be 1 project record, but its id is not enforced
+      docs = response.models.raw["project"]["documents"]
+      data = docs[docs.keys().first]
       data.transform_keys(&:to_sym)
     end
 
