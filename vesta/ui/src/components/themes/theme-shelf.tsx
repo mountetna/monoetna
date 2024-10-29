@@ -120,7 +120,7 @@ export default function ThemeShelf({
                         },
                     })}
                 >
-                    Our research themes are focus areas driven to advance our understanding of challenges that face the human race.
+                    Our research themes serve as broad categories that encompass the foundational biology of our projects.
                 </Typography>
             </Container>
 

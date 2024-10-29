@@ -85,7 +85,7 @@ const ABOUT_ITEMS = [
   {
     title: 'About the Library',
     header: 'About the Data Library',
-    body: 'The UCSF Data Library project aims to capture, curate, and share biological data generated on campus — enabling data search, exploration, visualization and cross-project analyses through a series of applications in available in your web browser. The library engineering team in the Data Science CoLab is building these tools with close collaboration and input from the CoLabs, ImmunoX, and participating CoProject labs.',
+    body: 'The UCSF Data Library project aims to capture, curate, and share biological data generated on campus — enabling data search, exploration, visualization and cross-project analyses through a series of applications in available in your web browser. The library engineering team in the Data Science CoLab is building these tools with close collaboration and input from the CoLabs, ImmunoX, and participating CoProject labs. Support: The Data Library project is made possible through generous support from a variety of sources including the ImmunoX Computational Biology Initiative and the Bakar ImmunoX funds.',
     image: {
       src: aboutImg1,
       alt: 'Random Data Library iconography',
@@ -107,9 +107,9 @@ const ABOUT_ITEMS = [
     },
   },
   {
-    title: 'Available tools',
+    title: 'Data Library Tools',
     header: 'What tools are available',
-    body: 'The data library has many tools at your disposal, Janus for administration and permissions, midas for enim sem ut tincidunt vehicula vulputate donec etiam morbi. Ac nec facilisis sagittis aliquet. Felis laoreet sed rhoncus a quis odio dignissim est nisl. At est vulputate id etiam felis. Proin ac dapibus nec a pretium vel. Tincidunt feugiat dolor risus maecenas est est varius senectus scelerisque.',
+    body: 'The data library has many tools at your disposal. "Access" = Create projects, add users and set access permissions. "File" = File server for bulk downloads of raw, processed and sample collection data. "Name" = Generate names for data consistently, using a project specific grammar for tracking and data integrity purposes. "Browse" = Browse & model hierarchically connected data. "Link" = Link raw data from the file server to data models in the Browse app using configurable, automated data loaders. "Analyze" = Run processing or analysis workflows on data, generating files and figures.',
     link: {
       href: process.env.TIMUR_URL,
       label: 'Get Access',
