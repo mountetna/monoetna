@@ -12,9 +12,13 @@ class Magma
       )
     end
 
+    def link_attribute
+      link_model.attributes[ link_attribute_name.to_sym ]
+    end
+
     def foreign_id
-      if [Magma::ChildAttribute, Magma::CollectionAttribute].include?(self.class)
-        return link_model.attributes[link_attribute_name.to_sym].column_name.to_sym
+      if is_child_type?
+        return link_attribute.column_name.to_sym
       end
       
       :"#{attribute_name}_id"

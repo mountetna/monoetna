@@ -7,13 +7,36 @@ class Project < Sequel::Model
     project_name =~ /\A#{PROJECT_NAME_MATCH.source}\Z/
   end
 
+  PROJECT_TYPES={
+    'team' => {
+      public: false
+    },
+    'resource' => {
+      public: true
+    },
+    'community' => {
+      public: true,
+      requires_agreement: true
+    },
+    'template' => {
+      public: true
+    }
+  }
+
+  PUBLIC_PROJECT_TYPES=PROJECT_TYPES.select do |type, props|
+    props[:public]
+  end.keys
+
+  def requires_agreement?
+    !!Project::PROJECT_TYPES[project_type][:requires_agreement]
+  end
+
   def to_hash
     {
       project_name: project_name,
       project_name_full: project_name_full,
+      project_type: project_type,
       permissions: permissions.map(&:to_hash),
-      resource: resource,
-      requires_agreement: requires_agreement,
       cc_text: cc_text,
       contact_email: contact_email
     }

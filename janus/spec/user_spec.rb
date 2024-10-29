@@ -83,7 +83,7 @@ describe User do
       )
       gateway = create(
         :project, project_name: 'gateway', project_name_full: 'Gateway',
-        resource: true, requires_agreement: true
+        project_type: 'community'
       )
       cc = create(
         :cc_agreement, user_email: 'portunus@two-faces.org', cc_text: 'blah blah blah',
@@ -105,7 +105,7 @@ describe User do
       )
       gateway = create(
         :project, project_name: 'gateway', project_name_full: 'Gateway',
-        resource: true, requires_agreement: true
+        project_type: 'community'
       )
       permission = create(
         :permission, project: gateway, user: user, role: 'viewer'
@@ -130,7 +130,7 @@ describe User do
       )
       gateway = create(
         :project, project_name: 'gateway', project_name_full: 'Gateway',
-        resource: true, requires_agreement: true
+        project_type: 'community'
       )
       permission = create(
         :permission, project: gateway, user: user, role: 'viewer'
@@ -155,7 +155,7 @@ describe User do
       )
       gateway = create(
         :project, project_name: 'gateway', project_name_full: 'Gateway',
-        resource: true, requires_agreement: true
+        project_type: 'community'
       )
       permission = create(
         :permission, project: gateway, user: user, role: 'guest'
@@ -183,7 +183,7 @@ describe User do
       )
       gateway = create(
         :project, project_name: 'gateway', project_name_full: 'Gateway',
-        resource: true, requires_agreement: true
+        project_type: 'community'
       )
       permission = create(
         :permission, project: gateway, user: user, role: 'guest'
@@ -335,25 +335,19 @@ describe UserController do
         project_name_full: "Tunnel",
         role: "viewer",
         privileged: true,
-        resource: false,
-        requires_agreement: false,
-        cc_text: "",
+        project_type: "team"
       }, {
         project_name: "mirror",
         project_name_full: "Mirror",
         role: "editor",
         privileged: nil,
-        resource: false,
-        requires_agreement: false,
-        cc_text: "",
+        project_type: "team"
       }, {
         project_name: "gateway",
         project_name_full: "Gateway",
         role: "editor",
         privileged: nil,
-        resource: false,
-        requires_agreement: false,
-        cc_text: "",
+        project_type: "team"
       }])
     end
 
@@ -363,7 +357,7 @@ describe UserController do
       gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
       tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
       mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
-      door = create(:project, project_name: 'door', project_name_full: 'Door', resource: true)
+      door = create(:project, project_name: 'door', project_name_full: 'Door', project_type: 'resource')
 
       auth_header(:janus)
       get('/api/user/projects')
@@ -372,9 +366,7 @@ describe UserController do
       expect(json_body[:projects]).to eq([{
         project_name: "door",
         project_name_full: "Door",
-        resource: true,
-        requires_agreement: false,
-        cc_text: "",
+        project_type: 'resource'
       }])
     end
 
@@ -384,7 +376,7 @@ describe UserController do
       gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
       tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
       mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
-      door = create(:project, project_name: 'door', project_name_full: 'Door', resource: true, requires_agreement: true)
+      door = create(:project, project_name: 'door', project_name_full: 'Door', project_type: 'community')
 
       auth_header(:janus)
       get('/api/user/projects')
@@ -393,9 +385,7 @@ describe UserController do
       expect(json_body[:projects]).to eq([{
         project_name: "door",
         project_name_full: "Door",
-        resource: true,
-        requires_agreement: true,
-        cc_text: "",
+        project_type: 'community'
       }])
     end
   end

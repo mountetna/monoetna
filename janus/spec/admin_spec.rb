@@ -11,7 +11,7 @@ describe AdminController do
 
       gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
       tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
-      mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror', resource: true)
+      mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror', project_type: 'resource')
     end
 
     it 'prevents access to the list of all projects for non-superusers' do
@@ -29,9 +29,9 @@ describe AdminController do
 
       expect(json_body[:projects]).to eq(
         [
-          { project_name: "gateway", project_name_full: "Gateway", resource: false},
-          { project_name: "tunnel", project_name_full: "Tunnel", resource: false},
-          { project_name: "mirror", project_name_full: "Mirror", resource: true}
+          { project_name: "gateway", project_name_full: "Gateway", project_type: 'team'},
+          { project_name: "tunnel", project_name_full: "Tunnel", project_type: 'team'},
+          { project_name: "mirror", project_name_full: "Mirror", project_type: 'resource'}
         ]
       )
     end
@@ -127,44 +127,40 @@ describe AdminController do
       end
     end
 
-    it 'can set the resource flag' do
+    it 'can set a resource project_type' do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
-
-      expect(door.resource).to eq(false)
 
       auth_header(:zeus)
 
-      json_post('/api/admin/door/update', resource: true)
+      json_post('/api/admin/door/update', project_type: 'resource')
 
       expect(last_response.status).to eq(200)
       door.refresh
-      expect(door.resource).to eq(true)
+      expect(door.project_type).to eq('resource')
 
-      json_post('/api/admin/door/update', resource: false)
+      json_post('/api/admin/door/update', project_type: 'team')
 
       expect(last_response.status).to eq(200)
       door.refresh
-      expect(door.resource).to eq(false)
+      expect(door.project_type).to eq('team')
     end
 
-    it 'can set the requires_agreement flag' do
+    it 'can set a community project_type' do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
-
-      expect(door.requires_agreement).to eq(false)
 
       auth_header(:zeus)
 
-      json_post('/api/admin/door/update', requires_agreement: true)
+      json_post('/api/admin/door/update', project_type: 'community')
 
       expect(last_response.status).to eq(200)
       door.refresh
-      expect(door.requires_agreement).to eq(true)
+      expect(door.project_type).to eq('community')
 
-      json_post('/api/admin/door/update', requires_agreement: false)
+      json_post('/api/admin/door/update', project_type: 'team')
 
       expect(last_response.status).to eq(200)
       door.refresh
-      expect(door.requires_agreement).to eq(false)
+      expect(door.project_type).to eq('team')
     end
 
     it 'can set the code of conduct text' do
@@ -235,17 +231,15 @@ describe AdminController do
       expect(door.contact_email).to eq('')
     end
 
-    it 'resource flag does not change if not provided in params' do
-      door = create(:project, project_name: 'door', project_name_full: 'Door', resource: true)
-
-      expect(door.resource).to eq(true)
+    it 'project_type does not change if not provided in params' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door', project_type: 'resource')
 
       auth_header(:zeus)
       json_post('/api/admin/door/update', arbitrary: false)
 
       expect(last_response.status).to eq(200)
       door.refresh
-      expect(door.resource).to eq(true)
+      expect(door.project_type).to eq('resource')
     end
 
     it 'returns a list of permissions for the project' do
@@ -281,8 +275,7 @@ describe AdminController do
         ],
         project_name: "door",
         project_name_full: "Door",
-        resource: false,
-        requires_agreement: false,
+        project_type: 'team',
         cc_text: '',
         contact_email: ''
       )
@@ -1061,60 +1054,53 @@ describe AdminController do
 
   context '#update_cc_agreement' do
     before(:each) do
-      @door = create(:project, project_name: 'door', project_name_full: 'Door')
+      @door = create(:project, project_name: 'door', project_name_full: 'Door', project_type: 'community')
       @user = create(:user, name: "Zeus The God", email: "zeus@olympus.org")
     end
 
-    context 'when requires_agreement=True' do
-      before(:each) do
-        @door.update(requires_agreement: true)
-      end
+    it 'requires cc_text and agreed' do
+      auth_header(:superuser)
+      json_post('/api/admin/door/cc', something: 'not-relevant')
 
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq("Missing param cc_text, agreed")
+    end
 
-      it 'requires cc_text and agreed' do
-        auth_header(:superuser)
-        json_post('/api/admin/door/cc', something: 'not-relevant')
+    it 'can submit multiple for same user / project, with different cc_text or agreed status' do
+      expect(CcAgreement.count).to eq(0)
+      auth_header(:superuser)
+      json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: false)
 
-        expect(last_response.status).to eq(422)
-        expect(json_body[:error]).to eq("Missing param cc_text, agreed")
-      end
+      expect(last_response.status).to eq(200)
+      expect(CcAgreement.count).to eq(1)
 
-      it 'can submit multiple for same user / project, with different cc_text or agreed status' do
-        expect(CcAgreement.count).to eq(0)
-        auth_header(:superuser)
-        json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: false)
+      sleep(1)
 
-        expect(last_response.status).to eq(200)
-        expect(CcAgreement.count).to eq(1)
+      json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: true)
 
-        sleep(1)
+      expect(last_response.status).to eq(200)
+      expect(CcAgreement.count).to eq(2)
 
-        json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: true)
+      sleep(3)
 
-        expect(last_response.status).to eq(200)
-        expect(CcAgreement.count).to eq(2)
+      json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
 
-        sleep(3)
+      expect(last_response.status).to eq(200)
+      expect(CcAgreement.count).to eq(3)
 
-        json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
+      expect(CcAgreement.first.created_at).not_to eq(CcAgreement.last.created_at)
+    end
 
-        expect(last_response.status).to eq(200)
-        expect(CcAgreement.count).to eq(3)
+    it 'allows non-authorized users to set for a given project' do
+      user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
-        expect(CcAgreement.first.created_at).not_to eq(CcAgreement.last.created_at)
-      end
+      expect(CcAgreement.count).to eq(0)
+      auth_header(:portunus)
+      json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
 
-      it 'allows non-authorized users to set for a given project' do
-        user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
-
-        expect(CcAgreement.count).to eq(0)
-        auth_header(:portunus)
-        json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
-
-        expect(last_response.status).to eq(200)
-        expect(CcAgreement.count).to eq(1)
-        expect(CcAgreement.first.user_email).to eq(user.email)
-      end
+      expect(last_response.status).to eq(200)
+      expect(CcAgreement.count).to eq(1)
+      expect(CcAgreement.first.user_email).to eq(user.email)
     end
   end
 end
