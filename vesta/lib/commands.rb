@@ -58,7 +58,8 @@ class Vesta
 
       project_stats = janus_stats[:projects].map do |proj|
         # skip resource projects
-        next if proj[:resource] == true
+        # ToDo: Make it not skip community projects
+        next if proj[:resource] == true and proj[:project_name] != "ipi"
 
         proj_name = proj[:project_name]
 
@@ -154,8 +155,8 @@ class Vesta
       janus_stats_by_project[:projects].each do |proj|
         proj_name = proj[:project_name]
 
-        # skip resource projects
-        if proj[:resource] == true
+        # skip resource projects, ToDo: don't skip community projects
+        if proj[:resource] == true and proj[:project_name] != "ipi"
           puts "Skipping collecting project info for #{proj_name}"
           next
         end
