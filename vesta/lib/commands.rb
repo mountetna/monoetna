@@ -179,7 +179,7 @@ class Vesta
           # in case any one project has null vals for non-nullable attrs
           Vesta::Project.update_or_create(
             {
-              name: project_info[:name],
+              name: proj_name,
             },
             full_name: proj[:project_name_full],
             description: project_info[:description],
