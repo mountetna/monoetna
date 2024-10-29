@@ -92,9 +92,9 @@ const ABOUT_ITEMS = [
     },
   },
   {
-    title: 'Contributing',
+    title: 'Contribute Data',
     header: 'Contributing to the library',
-    body: 'Anyone at UCSF can contribute data from their project, and external collaborators can reach out to add their data from the library while sharing data alike. The library is here to be a source for open collaboration to enable new research.',
+    body: 'Designed as a resource for open collaboration, the UCSF Data library aims to be a catalyst for new research discoveries. We encourage everyone, both UCSF members and external collaborators, to share their data on our platform.',
     link: {
       header: 'Working on something great?',
       blurb: 'We’re always looking for new data and projects to make more accessible.',
