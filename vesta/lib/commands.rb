@@ -172,6 +172,13 @@ class Vesta
               retrieve_ucsf_profile(janus_pi)
             rescue => e
               puts "Error retreiving UCSF profile for #{janus_pi[:name]}: #{e}"
+              {
+                name: janus_pi[:name],
+                email: janus_pi[:email],
+                profile_url: nil,
+                title: nil,
+                photo_url: nil,
+              }
             end
           end
 
