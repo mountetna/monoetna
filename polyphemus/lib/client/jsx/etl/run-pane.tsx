@@ -2,6 +2,7 @@ import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import * as _ from 'lodash';
 
 import Button from '@material-ui/core/Button';
+import Tooltip from '@material-ui/core/Tooltip';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
@@ -208,39 +209,52 @@ const RunPane = ({
   }, [runValue, newParams]);
 
   const formChanged = useMemo(() => {
+    console.log({ sp: savePayload(), np: { params, run_interval } });
     return !_.isEqual(savePayload(), { params, run_interval });
   }, [savePayload, params]);
+
+  console.log({nonBooleanParamOpts, newParams, param_opts});
+  console.log({formChanged, formValid});
 
   return (
     <EtlPane mode='run' selected={selected}>
       <EtlPaneHeader title='Run'>
-        { formValid && formChanged && <Grid className={classes.runbar} spacing={1} container alignItems='center'>
+        <Grid className={classes.runbar} spacing={1} container alignItems='center'>
           <Grid item>
-            <Button
-              onClick={() => {
-                setError('')
-                // Simple error checking, but could use a more robust system if more validations come up!
-                if (runState == RUN_INTERVAL && runIntervalTime < 300) {
-                  setError('Run interval cannot be less than 300 seconds.')
-                } else {
-                  update(savePayload());
-                }
-              }}
-            >
-              Save
-            </Button>
+            <Tooltip title={ !formValid ? 'Missing values' : !formChanged ? 'No changes' : '' }>
+              <span>
+                <Button
+                  disabled={ !formChanged || !formValid }
+                  onClick={() => {
+                    setError('')
+                    // Simple error checking, but could use a more robust system if more validations come up!
+                    if (runState == RUN_INTERVAL && runIntervalTime < 300) {
+                      setError('Run interval cannot be less than 300 seconds.')
+                    } else {
+                      update(savePayload());
+                    }
+                  }}
+                >
+                  Save
+                </Button>
+              </span>
+            </Tooltip>
           </Grid>
           <Grid item>
-            <Button onClick={reset} color='secondary'>
-              Reset
-            </Button>
+            <Tooltip title={ !formChanged ? 'No changes' : '' }>
+              <span>
+                <Button onClick={reset} color='secondary' disabled={ !formChanged }>
+                  Reset
+                </Button>
+              </span>
+            </Tooltip>
           </Grid>
           {(error) && (
             <Grid item >
               <Typography style={{color: 'green', paddingLeft: '0.5rem'}}>{error}</Typography>
             </Grid>
           )}
-        </Grid> }
+        </Grid>
       </EtlPaneHeader>
       <Grid spacing={1} container alignItems='center'>
         <Grid className={classes.title} item>
