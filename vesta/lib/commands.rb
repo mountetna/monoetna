@@ -57,8 +57,7 @@ class Vesta
       byte_count_by_project = metis_client.get_byte_count_by_project
 
       project_stats = janus_stats[:projects].map do |proj|
-        # skip resource projects
-        # ToDo: Make it not skip community projects
+        # skip resource but not community projects
         next if proj[:resource] == true and proj[:requires_agreement] == false
 
         proj_name = proj[:project_name]
@@ -107,6 +106,7 @@ class Vesta
       global_stats[:user_count] = janus_stats[:user_count]
       puts "DONE generating global stats"
 
+      puts "Sending both sets of stats to the database"
       Vesta.instance.db.transaction do
         # save projects stats
         Vesta::ProjectStats.multi_insert(project_stats)
@@ -155,7 +155,7 @@ class Vesta
       janus_stats_by_project[:projects].each do |proj|
         proj_name = proj[:project_name]
 
-        # skip resource projects, ToDo: don't skip community projects
+        # skip resource but not community projects
         if proj[:resource] == true and proj[:requires_agreement] == false
           puts "Skipping collecting project info for #{proj_name}"
           next
@@ -205,7 +205,7 @@ class Vesta
           next
         end
 
-        puts "Successfully collected project info for #{proj_name}"
+        puts "Successfully collected project info for #{proj_name}, and passed it into the database"
       end
     end
 
