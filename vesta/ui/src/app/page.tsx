@@ -85,16 +85,16 @@ const ABOUT_ITEMS = [
   {
     title: 'About the Library',
     header: 'About the Data Library',
-    body: 'The UCSF Data Library project aims to capture, curate, and share biological data generated on campus — enabling data search, exploration, visualization and cross-project analyses through a series of applications in available in your web browser. The library engineering team in the Data Science CoLab is building these tools with close collaboration and input from the CoLabs, ImmunoX, and participating CoProject labs.',
+    body: 'The UCSF Data Library project aims to capture, curate, and share biological data generated on campus — enabling data search, exploration, visualization and cross-project analyses through a series of applications in available in your web browser. The library engineering team in the Data Science CoLab is building these tools with close collaboration and input from the CoLabs, ImmunoX, and participating CoProject labs. Support: The Data Library project is made possible through generous support from a variety of sources including the ImmunoX Computational Biology Initiative and the Bakar ImmunoX funds.',
     image: {
       src: aboutImg1,
       alt: 'Random Data Library iconography',
     },
   },
   {
-    title: 'Contributing',
+    title: 'Contribute Data',
     header: 'Contributing to the library',
-    body: 'Anyone at UCSF can contribute data from their project, and external collaborators can reach out to add their data from the library while sharing data alike. The library is here to be a source for open collaboration to enable new research.',
+    body: 'Designed as a resource for open collaboration, the UCSF Data library aims to be a catalyst for new research discoveries. We encourage everyone, both UCSF members and external collaborators, to share their data on our platform.',
     link: {
       header: 'Working on something great?',
       blurb: 'We’re always looking for new data and projects to make more accessible.',
@@ -107,9 +107,9 @@ const ABOUT_ITEMS = [
     },
   },
   {
-    title: 'Available tools',
+    title: 'Data Library Tools',
     header: 'What tools are available',
-    body: 'The data library has many tools at your disposal, Janus for administration and permissions, midas for enim sem ut tincidunt vehicula vulputate donec etiam morbi. Ac nec facilisis sagittis aliquet. Felis laoreet sed rhoncus a quis odio dignissim est nisl. At est vulputate id etiam felis. Proin ac dapibus nec a pretium vel. Tincidunt feugiat dolor risus maecenas est est varius senectus scelerisque.',
+    body: 'The data library has many tools at your disposal. "Access" = Create projects, add users and set access permissions. "File" = File server for bulk downloads of raw, processed and sample collection data. "Name" = Generate names for data consistently, using a project specific grammar for tracking and data integrity purposes. "Browse" = Browse & model hierarchically connected data. "Link" = Link raw data from the file server to data models in the Browse app using configurable, automated data loaders. "Analyze" = Run processing or analysis workflows on data, generating files and figures.',
     link: {
       href: process.env.TIMUR_URL,
       label: 'Get Access',
@@ -142,7 +142,7 @@ const THEMES: ThemeData[] = [
     textColor: 'light',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Microbial infections, including viral and bacterial pathogenesis",
     imageComponents: {
       filtered: infectionThemeFiltered,
       projectBackground: infectionThemeProjectBg,
@@ -157,7 +157,7 @@ const THEMES: ThemeData[] = [
     textColor: 'light',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Autoimmune and rheumatic conditions",
     imageComponents: {
       filtered: autoimmunityThemeFiltered,
       projectBackground: autoimmunityThemeProjectBg,
@@ -172,7 +172,7 @@ const THEMES: ThemeData[] = [
     textColor: 'dark',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Conditions that confer a predominantly inflammatory phenotype",
     imageComponents: {
       filtered: inflammationThemeFiltered,
       projectBackground: inflammationThemeProjectBg,
@@ -187,7 +187,7 @@ const THEMES: ThemeData[] = [
     textColor: 'light',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Conditions that result in significant tissue fibrosis",
     imageComponents: {
       filtered: fibrosisThemeFiltered,
       projectBackground: fibrosisThemeProjectBg,
@@ -202,7 +202,7 @@ const THEMES: ThemeData[] = [
     textColor: 'light',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Immune and systems development in early life",
     imageComponents: {
       filtered: earlyLifeThemeFiltered,
       projectBackground: earlyLifeThemeProjectBg,
@@ -217,7 +217,7 @@ const THEMES: ThemeData[] = [
     textColor: 'dark',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Human cancers and animal models, including affected tissue and peripheral sampling",
     imageComponents: {
       filtered: cancerThemeFiltered,
       projectBackground: cancerThemeProjectBg,
@@ -232,7 +232,7 @@ const THEMES: ThemeData[] = [
     textColor: 'light',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Conditions affecting the brain and nervous system",
     imageComponents: {
       filtered: neurodegenerationThemeFiltered,
       projectBackground: neurodegenerationThemeProjectBg,
@@ -241,13 +241,13 @@ const THEMES: ThemeData[] = [
     icon: neurodegenerationThemeIcon,
   },
   {
-    name: "Women's Health",
+    name: "Womens Health",
     color: '#E9C54E',
     altColor: '#B53B38',
     textColor: 'dark',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Conditions predominantly affecting women such as those affecting reproductive organs",
     imageComponents: {
       filtered: womensHealthThemeFiltered,
       projectBackground: womensHealthThemeProjectBg,
@@ -262,7 +262,7 @@ const THEMES: ThemeData[] = [
     textColor: 'dark',
     projectCount: 0,
     projectsLink: '',
-    description: faker.commerce.productDescription(),
+    description: "Studies of healthy individuals for use as reference in pathologic settings",
     imageComponents: {
       filtered: healthyReferenceThemeFiltered,
       projectBackground: healthyReferenceThemeProjectBg,

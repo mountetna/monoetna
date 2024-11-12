@@ -27,11 +27,11 @@ describe StatsController do
 
       expect(last_response.status).to eq(200)
       expect(json_body[:projects]).to eq([
-        {project_name: "administration", project_name_full: "Administration", resource: false, user_count: 1, principal_investigators: []},
-        {project_name: "gateway", project_name_full: "Gateway", resource: false, user_count: 1, principal_investigators: []},
-        {project_name: "tunnel", project_name_full: "Tunnel", resource: false, user_count: 2, principal_investigators: [{name: user1[:name], email: user1[:email]}]},
-        {project_name: "mirror", project_name_full: "Mirror", resource: false, user_count: 1, principal_investigators: []},
-        {project_name: "door", project_name_full: "Door", resource: true, user_count: 0, principal_investigators: []},
+        {project_name: "administration", project_name_full: "Administration", resource: false, requires_agreement: false, user_count: 1, principal_investigators: []},
+        {project_name: "gateway", project_name_full: "Gateway", resource: false, requires_agreement: false, user_count: 1, principal_investigators: []},
+        {project_name: "tunnel", project_name_full: "Tunnel", resource: false, requires_agreement: false, user_count: 2, principal_investigators: [{name: user1[:name], email: user1[:email]}]},
+        {project_name: "mirror", project_name_full: "Mirror", resource: false, requires_agreement: false, user_count: 1, principal_investigators: []},
+        {project_name: "door", project_name_full: "Door", resource: true, requires_agreement: false, user_count: 0, principal_investigators: []},
       ])
       expect(json_body[:user_count]).to eq(2)
     end
@@ -56,8 +56,8 @@ describe StatsController do
 
       expect(last_response.status).to eq(200)
       expect(json_body[:projects]).to eq([
-        {project_name: "tunnel", project_name_full: "Tunnel", resource: false, user_count: 1, principal_investigators: []},
-        {project_name: "door", project_name_full: "Door", resource: false, user_count: 0, principal_investigators: []}
+        {project_name: "tunnel", project_name_full: "Tunnel", resource: false, requires_agreement: false, user_count: 1, principal_investigators: []},
+        {project_name: "door", project_name_full: "Door", resource: false, requires_agreement: false, user_count: 0, principal_investigators: []}
       ])
       expect(json_body[:user_count]).to eq(1)
     end

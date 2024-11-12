@@ -465,11 +465,11 @@ function LibraryCardFront({
                                     py: '3px',
                                 }}
                             >
-                                {user.joinDate.toLocaleDateString(undefined, {
+                                {user.joinDate ? user.joinDate.toLocaleDateString(undefined, {
                                     year: 'numeric',
                                     month: 'long',
                                     day: 'numeric',
-                                })}
+                                }) : "Unknown Date"}
                             </Box>
                         </Typography>
 

@@ -12,6 +12,7 @@ export enum ProjectType {
     copilot = 'CoPilot',
     collab = 'Collaboration',
     external = 'External',
+    'hellman award' = 'Hellman Award',
 }
 
 export interface PrincipalInvestigator {
