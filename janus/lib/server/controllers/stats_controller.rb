@@ -22,6 +22,7 @@ class StatsController < Janus::Controller
         project_name: proj.project_name,
         project_name_full: proj.project_name_full,
         resource: proj.resource,
+        requires_agreement: proj.requires_agreement,
         principal_investigators: [],
         user_count: 0,
       }

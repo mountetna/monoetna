@@ -252,8 +252,7 @@ export default function Hero({
                                 pb: '18px',
                             })}
                         >
-                            A library capturing, curating, and sharing biological data
-                            generated on UCSF campus — enabling radically collaborative research.
+                            A library capturing, curating, and sharing biological data — creating a foundation for transformative collaborative research.
                         </Typography>
                         <Box>
                             <ButtonBase

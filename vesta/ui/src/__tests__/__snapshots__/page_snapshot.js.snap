@@ -92,7 +92,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                 <h3
                   class="MuiTypography-root MuiTypography-h3 mui-bzfrh0-MuiTypography-root"
                 >
-                  A library capturing, curating, and sharing biological data generated on UCSF campus — enabling radically collaborative research.
+                  A library capturing, curating, and sharing biological data — creating a foundation for transformative collaborative research.
                 </h3>
                 <div
                   class="MuiBox-root mui-0"
@@ -419,7 +419,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
             <div
               class="MuiTypography-root MuiTypography-pLarge mui-1688cwk-MuiTypography-root"
             >
-              Our research themes are focus areas driven to advance our understanding of challenges that face the human race.
+              Our research themes serve as broad categories that encompass the foundational biology of our projects.
             </div>
           </div>
           <div

@@ -57,13 +57,14 @@ class Vesta
       byte_count_by_project = metis_client.get_byte_count_by_project
 
       project_stats = janus_stats[:projects].map do |proj|
-        # skip resource projects
-        next if proj[:resource] == true
+        # skip resource but not community projects
+        next if proj[:resource] == true and proj[:requires_agreement] == false
 
         proj_name = proj[:project_name]
 
         # get project template
         begin
+          puts "Collecting Magma counts for #{proj_name}"
           models = magma_client
             .retrieve(project_name: proj_name, model_name: 'all', attribute_names: [], record_names: [])
             .models
@@ -91,6 +92,8 @@ class Vesta
         }
       end.compact
 
+      puts "DONE collecting project counts"
+
       global_stats = Hash.new(0)
       project_stats.each do |item|
         item.each do |k, v|
@@ -101,7 +104,9 @@ class Vesta
 
       # top-level user count dedupes users belonging to multiple projects
       global_stats[:user_count] = janus_stats[:user_count]
+      puts "DONE generating global stats"
 
+      puts "Sending both sets of stats to the database"
       Vesta.instance.db.transaction do
         # save projects stats
         Vesta::ProjectStats.multi_insert(project_stats)
@@ -150,8 +155,8 @@ class Vesta
       janus_stats_by_project[:projects].each do |proj|
         proj_name = proj[:project_name]
 
-        # skip resource projects
-        if proj[:resource] == true
+        # skip resource but not community projects
+        if proj[:resource] == true and proj[:requires_agreement] == false
           puts "Skipping collecting project info for #{proj_name}"
           next
         end
@@ -167,6 +172,13 @@ class Vesta
               retrieve_ucsf_profile(janus_pi)
             rescue => e
               puts "Error retreiving UCSF profile for #{janus_pi[:name]}: #{e}"
+              {
+                name: janus_pi[:name],
+                email: janus_pi[:email],
+                profile_url: nil,
+                title: nil,
+                photo_url: nil,
+              }
             end
           end
 
@@ -174,7 +186,7 @@ class Vesta
           # in case any one project has null vals for non-nullable attrs
           Vesta::Project.update_or_create(
             {
-              name: project_info[:name],
+              name: proj_name,
             },
             full_name: proj[:project_name_full],
             description: project_info[:description],
@@ -193,7 +205,7 @@ class Vesta
           next
         end
 
-        puts "Successfully collected project info for #{proj_name}"
+        puts "Successfully collected project info for #{proj_name}, and passed it into the database"
       end
     end
 
@@ -215,8 +227,9 @@ class Vesta
         attribute_names: PROJECT_ATTRIBUTES,
         record_names: 'all',
       )
-
-      data = response.models.raw["project"]["documents"][project_name]
+      # There should only ever be 1 project record, but its id is not enforced
+      docs = response.models.raw["project"]["documents"]
+      data = docs[docs.keys().first]
       data.transform_keys(&:to_sym)
     end
 

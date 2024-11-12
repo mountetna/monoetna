@@ -130,7 +130,7 @@ export default function DLNav({
                 typography={linkTypography}
             />
             <NavLink
-                text='Contribute'
+                text='Contribute Data'
                 href='#contribute'
                 onClick={handleClickNavLink}
                 typography={linkTypography}
