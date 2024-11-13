@@ -69,7 +69,7 @@ module Etna
     end
 
     def active? project=nil
-      permissions.keys.length > 0
+      true
     end
 
     def display_name
