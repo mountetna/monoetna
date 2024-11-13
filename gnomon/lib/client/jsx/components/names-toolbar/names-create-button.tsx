@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useAppSelector as useSelector } from '../../hooks';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -18,7 +18,7 @@ import _ from 'lodash';
 
 import { useDispatch } from '../../utils/redux';
 import ToolbarButtonWithPopper from './toolbar-button-with-popper';
-import { selectCompleteCreateNamesCreationPayloads, selectComposeErrorCount, selectNamesCreationRequestState, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from '../../selectors/names';
+import { selectCompleteCreateNamesCreationPayloads, selectNamesCreationRequestState, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from '../../selectors/names';
 import { makeCreateNamesCreationRequest } from '../../actions/names';
 import { selectPathParts } from '../../selectors/location';
 import { exportDataToBlob, FILE_FORMATS_TO_MIME } from '../../utils/export';
@@ -81,9 +81,20 @@ const useStyles = makeStyles((theme) => ({
         '& svg': {
             marginRight: '0.25em',
         },
-        '&.inProgress': { color: 'orange', },
+        '&.inProgress': {
+            color: 'orange',
+            '& svg': {
+                'animation': 'spin 4s linear infinite',
+            },
+        },
         '&.success': { color: 'green', },
         '&.error': { color: 'red', },
+    },
+    '@keyframes spin': {
+        '100%': {
+            '-webkit-transform': 'rotate(360deg)',
+            'transform': 'rotate(360deg)',
+        }
     },
     buttonsContainer: {
         '& > button:not(:last-child)': {
@@ -136,7 +147,6 @@ const NamesCreateButton = ({ small, className }: { small: boolean, className?: s
     const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length;
     const creationRequestPayloads = useSelector(selectCompleteCreateNamesCreationPayloads);
     const creationRequestState = useSelector(selectNamesCreationRequestState);
-    const composeErrorCount = useSelector(selectComposeErrorCount);
 
     let foundImplicit = false;
     const rows = creationRequestPayloads
@@ -248,7 +258,7 @@ const NamesCreateButton = ({ small, className }: { small: boolean, className?: s
                 variant={small ? 'compact' : 'full'}
                 color="#0057FF"
                 popperId="create-dialog"
-                disabled={completeCreateNameGroupsCount - composeErrorCount == 0}
+                disabled={completeCreateNameGroupsCount == 0}
                 onClickOrPopperChange={handleToggle}
                 className={className}
             />

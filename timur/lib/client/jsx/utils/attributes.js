@@ -24,6 +24,10 @@ const order = (attribute, identifierFirst) => {
   return map[attribute_type] || 9;
 };
 
+const LINK_TYPES = [ 'collection', 'table', 'child', 'parent', 'link' ];
+
+export const isLink = attribute => LINK_TYPES.includes(attribute.attribute_type);
+
 export const sortAttributeList = (attributes, identifierFirst = false) => (
   attributes.sort(
     (a, b) =>

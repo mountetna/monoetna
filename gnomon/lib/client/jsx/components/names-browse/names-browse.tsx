@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useAppSelector as useSelector } from '../../hooks';
 import { makeStyles } from '@material-ui/core/styles';
 
 import ProjectHeader from 'etna-js/components/project-header';

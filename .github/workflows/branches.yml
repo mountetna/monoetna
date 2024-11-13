@@ -21,15 +21,11 @@ jobs:
           - metis
           - magma
           - janus
-          - vulcan
           - gnomon
           - polyphemus
           - timur
           - etna
-          - archimedes
           - deployer
-          - airflow
-          - archimedes-node
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
@@ -47,7 +43,7 @@ jobs:
           IMAGES_POSTFIX: :master
         run: |
           make -C ${{ matrix.test-app }} release
-  test_vulcan:
+  test-vesta:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -55,7 +51,7 @@ jobs:
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
-      - name: Run vulcan e2e test suite
+      - name: Run ${{ matrix.test-app }} test suite
         id: app_first_test_run
         env:
           # Runs tests and builds images, but does not push (PUSH_IMAGES not set to 1)
@@ -63,11 +59,6 @@ jobs:
           IS_CI: 1
           CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
-          RUN_E2E: 1
         run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          make -C vulcan release
+          make -C vesta release
+          make -f Makefile-mac vesta-ui-test

@@ -26,6 +26,7 @@ export default function ModalSelect({
   const classes = useStyles();
   return (
     <TextField
+      fullWidth
       id={id}
       select
       value={value}
