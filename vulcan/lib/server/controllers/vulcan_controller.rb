@@ -1,10 +1,20 @@
 require 'etna'
+require 'shellwords'
 
 class Vulcan
   class Controller < Etna::Controller
     VIEW_PATH=File.expand_path('../views', __dir__)
 
+    def initialize(request, action = nil)
+      super
+      escaped_params
+    end
+
     private
+
+    def escaped_params
+      @escaped_params ||= @params.transform_values { |value| Shellwords.escape(value.to_s) }
+    end
 
     def config_json
       {
