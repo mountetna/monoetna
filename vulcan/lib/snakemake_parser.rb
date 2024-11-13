@@ -1,18 +1,18 @@
 class Vulcan
   class Snakemake
     class TargetParser
+      # TODO: refactor this class to be more readable
       def initialize(snakefile, config)
         @snakefile = snakefile # raw file
         @config = config  # yaml loaded
         @targets = {}  # Initialize the targets hash to store output targets as keys
       end
 
-      # Public method to initiate parsing
       def parse
         preprocess
         @snakefile = filter_ui_rules
         parse_lines
-        @targets  # Return the parsed targets with outputs as keys
+        @targets  
       end
 
       private
@@ -111,7 +111,7 @@ class Vulcan
       # Stores the parsed rule data in the @targets hash with output targets as keys
       def store_target(outputs, inputs, params)
         outputs.each do |output|
-          @targets[output] = { inputs: inputs.uniq, params: params.uniq }
+        @targets[output] = { "inputs" => inputs.uniq, "params" => params.uniq }
         end
       end
 
