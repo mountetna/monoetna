@@ -95,6 +95,7 @@ describe('ModelMap for model with no records', () => {
     expect(screen.getByTitle('Add Attribute')).toBeTruthy();
     expect(screen.getByTitle('Add Model')).toBeTruthy();
     expect(screen.getByTitle('Determining if reparenting is possible')).toBeTruthy();
+    expect(screen.getByTitle('Cannot remove a model with any attribute of the types: table, child, collection')).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
   });
 
@@ -127,6 +128,37 @@ describe('ModelMap for model with no records', () => {
     expect(screen.getByTitle('Add Attribute')).toBeTruthy();
     expect(screen.getByTitle('Add Model')).toBeTruthy();
     expect(screen.getByTitle('Reparent Model')).toBeTruthy();
+    expect(asFragment()).toMatchSnapshot();
+  });
+
+  it('renders with remove model enabled for leaf model and admin user', async () => {
+    store = mockStore({
+      magma: {models: {...models, aspect: {template: require('../fixtures/template_aspect.json')}}},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {
+        permissions: {
+          labors: {
+            role: 'administrator'
+          }
+        }
+      }
+    });
+
+    const {asFragment} = render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    await waitFor(() => screen.findByText('Attribute'));
+
+    const aspectModel = screen.getByText('aspect');
+    fireEvent.click(aspectModel);
+
+    expect(screen.getByTitle('Add Link')).toBeTruthy();
+    expect(screen.getByTitle('Add Attribute')).toBeTruthy();
+    expect(screen.getByTitle('Add Model')).toBeTruthy();
+    expect(screen.getByTitle('Remove Model')).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
   });
 

@@ -11,7 +11,7 @@ import {
 } from './user_input_pieces';
 import {Button, PropTypes} from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
-import { nestedOptionSet } from './visualizations';
+import { nestedOptionSet } from './pieces/utils';
 
 /*
 This script defines a component that behaves like all other 'user_input_pieces'.
@@ -94,7 +94,7 @@ const singleMethod = (
   def: (string | number | null)[] = emptyMethod,
   index: number,
   data_summary: DataEnvelope<any>,
-  subset_options: DataEnvelope<DataEnvelope<DataEnvelope<null>|null>|null> | string[],
+  subset_options: nestedOptionSet | string[],
   updateCurrent: Function,
   overallChangeFxn: Function,
   key: string,

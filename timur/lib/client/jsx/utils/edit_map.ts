@@ -6,7 +6,24 @@ export const SNAKE_CASE_STRICT = '^[a-z]*(_[a-z]*)*$';
 
 export const COMMA_SEP = '^[a-zA-Z0-9]*(,[a-zA-Z0-9]*)*$';
 
+export const COMMA_SEP_WITH_SPACES = '^[a-zA-Z0-9 ]*(,[a-zA-Z0-9 ]*)*$';
+
 export const VALIDATION_TYPES = ['Array', 'Regexp'];
+
+export const EDITABLE_OPTIONS = [
+    'description',
+    'display_name',
+    'format_hint',
+    'hidden',
+    'attribute_group',
+    'index',
+    'link_model_name',
+    'read_only',
+    'restricted',
+    'unique',
+    'validation',
+    'link_attribute_name'
+]
 
 export const REMOVABLE_ATTRIBUTE_TYPES = [
   'string',
@@ -29,7 +46,7 @@ export const UNREMOVABLE_ATTRIBUTE_NAMES = ['created_at', 'updated_at'];
 
 export const UNEDITABLE_ATTRIBUTE_NAMES = ['created_at', 'updated_at'];
 
-const CHILD_ATTRIBUTE_TYPES = ['table', 'child', 'collection'];
+export const CHILD_ATTRIBUTE_TYPES = ['table', 'child', 'collection'];
 
 export const isLeafModel = (model: Model) => {
   return (
