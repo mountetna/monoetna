@@ -110,7 +110,7 @@ export default function Card({workflow, onClick, selected}) {
         <div className={classes.row}>
           <div className={classes.value}>
             <Typography variant='subtitle1'>
-              {workflow.displayName || workflowName(workflow)}
+              {workflow.name || workflowName(workflow)}
             </Typography>
           </div>
         </div>

@@ -57,66 +57,64 @@ export const OUTPUT_COMPONENT = {
   RAW: 'raw'
 };
 
-export const defaultWorkflowsResponse = {
-  workflows: [] as Workflow[]
-};
+export const defaultWorkflowsResponse = [] as Workflow[];
 
 export type WorkflowsResponse = typeof defaultWorkflowsResponse;
-export type ProjectWorkflowsResponse = typeof defaultWorkflowsResponse;
+// export type ProjectWorkflowsResponse = typeof defaultWorkflowsResponse;
 
-export interface StepInput {
-  id: string;
-  source: string;
-  doc?: string | null;
-  label?: string | null;
-}
+// export interface StepInput {
+//   id: string;
+//   source: string;
+//   doc?: string | null;
+//   label?: string | null;
+// }
 
-export interface WorkflowStep {
-  name: string;
-  run: string;
-  in: StepInput[];
-  out: string[];
-  label?: string | null;
-  doc?: string | null;
-}
+// export interface WorkflowStep {
+//   name: string;
+//   run: string;
+//   in: StepInput[];
+//   out: string[];
+//   label?: string | null;
+//   doc?: string | null;
+// }
 
-export const defaultWorkflowStep: WorkflowStep = {
-  name: '',
-  run: '',
-  in: [],
-  out: []
-};
+// export const defaultWorkflowStep: WorkflowStep = {
+//   name: '',
+//   run: '',
+//   in: [],
+//   out: []
+// };
 
-export interface WorkflowOutput {
-  outputSource: string;
-  label?: string | null;
-  type: string;
-  default: any | null;
-  format: string | null;
-}
+// export interface WorkflowOutput {
+//   outputSource: string;
+//   label?: string | null;
+//   type: string;
+//   default: any | null;
+//   format: string | null;
+// }
 
-export const defaultWorkflowInput: WorkflowInput = {
-  type: TYPE.STRING
-};
+// export const defaultWorkflowInput: WorkflowInput = {
+//   type: TYPE.STRING
+// };
 
-export interface WorkflowInput {
-  doc?: string | null;
-  label?: string | null;
-  type: string;
-  format?: string | null;
-  default?: any | null;
-}
+// export interface WorkflowInput {
+//   doc?: string | null;
+//   label?: string | null;
+//   type: string;
+//   format?: string | null;
+//   default?: any | null;
+// }
 
 export interface Workflow {
-  class: string;
-  cwlVersion: string;
+  id: number;
   name: string;
-  inputs: {[k: string]: WorkflowInput};
-  outputs: {[k: string]: WorkflowOutput};
-  steps: [WorkflowStep[]];
+  projects?: string[] | null;
+  branch: string;
+  repo_remote_url: string;
+  created_at: number;
+  updated_at: number;
   vignette?: string;
   image?: string;
-  projects?: string[] | null;
   authors?: string[];
   displayName?: string;
   description?: string;
@@ -125,14 +123,71 @@ export interface Workflow {
 }
 
 export const defaultWorkflow: Workflow = {
-  class: '',
-  cwlVersion: '',
+  id: 0,
   name: '',
-  inputs: {} as {[k: string]: WorkflowInput},
-  outputs: {} as {[k: string]: WorkflowOutput},
-  steps: [[]] as [WorkflowStep[]]
+  projects: [],
+  branch: '',
+  repo_remote_url: '',
+  created_at: 0,
+  updated_at: 0
 };
 
+export interface WorkspaceResponse {
+  workspace_id: number;
+  workflow_id: number;
+  vulcan_config: VulcanConfig;
+  dag: string[];
+  last_config?: {[k: string]: any}
+  last_job_status?: {[k: string]: StatusString}
+}
+
+export type WorkspacesResponse = WorkspaceResponse[]
+
+export interface FileContent {
+  filename: string;
+  content: string;
+}
+
+export type MultiFileContent = FileContent[]
+
+export interface ParamsContent {
+  [k: string]: any
+}
+
+export interface AccountingReturn {
+  config_id: number,
+  scheduled: string[],
+  downstream: string[]
+}
+
+export type VulcanConfig = VulcanConfigElement[]
+
+export interface VulcanConfigElement {
+  display: string;
+  ui_component: string;
+  input?: InputConfig;
+  output: OutputConfig;
+}
+
+export interface InputConfig {
+  files?: string[]
+  params?: string[]
+}
+
+export interface OutputConfig {
+  files?: string[]
+  params?: string[]
+}
+
+export interface RunReturn {
+  run_id: number
+}
+
+export interface RunStatus {
+  [k: string]: StatusString
+}
+
+// Update me!
 export type StatusString = 'running' | 'pending' | 'complete' | 'error';
 
 export interface StepStatus {

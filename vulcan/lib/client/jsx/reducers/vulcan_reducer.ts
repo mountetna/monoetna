@@ -5,7 +5,8 @@ import {
   StepStatus,
   Workflow,
   WorkflowsResponse,
-  VulcanFigure
+  VulcanFigure,
+  WorkspaceResponse
 } from '../api_types';
 import {
   allExpectedOutputSources,
@@ -20,8 +21,8 @@ import {mapSome, Maybe, some, withDefault} from '../selectors/maybe';
 export type DownloadedData = any; // TODO: improve typing here.
 export type DownloadedStepDataMap = {[k: string]: DownloadedData};
 
-const defaultWorkflows: WorkflowsResponse['workflows'] = [];
-const defaultWorkflow: Workflow | null = null;
+const defaultWorkflows: WorkflowsResponse = [];
+const defaultWorkspace: WorkspaceResponse | null = null;
 const defaultStatus: SessionStatusResponse['status'] = [[]];
 const defaultData: DownloadedStepDataMap = {};
 const defaultInputs: SessionStatusResponse['session']['inputs'] = {};
@@ -40,8 +41,11 @@ const defaultFigure: VulcanFigure = {
 const defaultValidationErrors: [string | null, string, string[]][] = [];
 
 export const defaultVulcanState = {
+  projectName: '',
   workflows: defaultWorkflows,
-  workflow: defaultWorkflow as Workflow | null,
+  workspace: defaultWorkflow as Workflow | null,
+  config_id: null as number | null,
+  run_id: null as number | null,
   status: defaultStatus,
   data: defaultData,
 

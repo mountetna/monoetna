@@ -38,10 +38,9 @@ export default function WorkflowsCarousel({
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
 
+  // v2: workflows are already retrieved in a project specific context
   const projectWorkflows = workflows
-    ? workflows.filter(({projects}: {projects?: string[] | null}) =>
-        projects?.includes(project_name)
-      )
+    ? workflows
     : [];
 
   const collator = new Intl.Collator(undefined, {
@@ -60,7 +59,7 @@ export default function WorkflowsCarousel({
 
   const handleOnSelectWorkflow = useCallback(
     (workflow: Workflow) => {
-      if (workflow.name === selectedWorkflow?.name) {
+      if (workflow.id === selectedWorkflow?.id) {
         setSelectedWorkflow(null);
       } else {
         setSelectedWorkflow(workflow);
@@ -78,7 +77,7 @@ export default function WorkflowsCarousel({
         return (
           <Grid item key={index}>
             <WorkflowCard
-              selected={selectedWorkflow?.name === workflow.name}
+              selected={selectedWorkflow?.id === workflow.id}
               workflow={workflow}
               onClick={() => handleOnSelectWorkflow(workflow)}
             />
