@@ -68,10 +68,6 @@ module Etna
       is_supereditor? || has_any_role?(project, :admin)
     end
 
-    def active? project=nil
-      true
-    end
-
     def display_name
       [ email, name ].join('|')
     end
