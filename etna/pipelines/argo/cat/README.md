@@ -5,12 +5,13 @@
 - volume that contains files_to_update.txt
 - db table `cat_ingestion`: 
 	- id
+	- etl_configs_id
 	- argo_id
 	- last_scan
 	- num_files_to_update
 	- num_c4_files_updated
 	- num_metis_files_updates
-	- updated_at
+	- created_at
 	- modified_at
 
 ## Pipeline details

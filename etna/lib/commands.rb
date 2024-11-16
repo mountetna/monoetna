@@ -55,7 +55,7 @@ class EtnaApp
       boolean_flags << '--ignore-ssl'
 
       def execute(host, ignore_ssl: false)
-        polyphemus_client = Etna::Clients::Polyphemus.new(
+        polyphemus_client = etna::clients::polyphemus.new(
             host: host,
             token: token(ignore_environment: true),
             ignore_ssl: ignore_ssl)
@@ -696,4 +696,26 @@ class EtnaApp
       super
     end
   end
+
+  class RunJob < Etna::Command
+    include WithEtnaClients
+
+    def job_map
+      {
+        "file_discovery" => Etna::Jobs::SftpFileDiscovery
+      }
+    end
+
+    def execute(project_name, pipeline, job_name)
+      # Retrieve the pipeline config from polyphemus
+      config, secrets = polyphemus_client.get_pipeline_config(project_name, pipeline)
+
+      # Instantiate the job and run it
+      job = job_map[job_name]
+      job.new(config, secrets)
+      job.execute
+    end
+
+  end
+
 end

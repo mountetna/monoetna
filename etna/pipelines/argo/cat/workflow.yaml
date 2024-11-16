@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: cat-ingestion-workflow-
+spec:
+  entrypoint: cat-ingestion 
+  templates:
+    - name: cat-ingestion
+      steps:
+        - - name: file-discovery
+            template: run-job
+            arguments:
+              parameters:
+                - name: pipeline
+                  value: cat_ingestion
+                - name: job
+                  value: file_discovery
+        - - name: c4-update
+            template: run-job
+            arguments:
+              parameters:
+                - name: pipeline
+                  value: cat_ingestion
+                - name: job
+                  value: c4_update
+        - - name: metis-update
+            template: run-job
+            arguments:
+              parameters:
+                - name: pipeline
+                  value: cat_ingestion
+                - name: job
+                  value: metis_update
+    - name: run-job
+      inputs:
+        parameters:
+          - name: pipeline
+          - name: job
+      container:
+        image: base_etna
+        command:
+          - sh
+          - -c
+        args:
+          - |
+            bin/run_job {{inputs.parameters.pipeline}} {{inputs.parameters.job}}
+        env:
+          - name: ARGO_WORKFLOW_ID
+            value: "{{workflow.id}}"
+          - name: PIPELINE_TABLE
+            value: cat_ingestion
+          - name: PIPELINE
+            value: "{{inputs.parameters.pipeline}}"
+          - name: JOB_NAME
+            value: "{{inputs.parameters.job}}"

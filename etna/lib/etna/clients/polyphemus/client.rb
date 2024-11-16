@@ -33,6 +33,16 @@ module Etna
             yield res
         end
       end
+
+      def get_pipeline_config(project_name, pipeline)
+      end
+
+      def get_pipeline_state(project_name, pipeline)
+      end
+
+      def update_pipeline_state(project_name, pipeline, state)
+      end
+
     end
   end
 end
