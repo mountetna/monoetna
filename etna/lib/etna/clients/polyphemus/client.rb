@@ -34,7 +34,7 @@ module Etna
         end
       end
 
-      def get_workflow(project_name, workflow_name, revision: "latest")
+      def get_workflow(project_name, workflow_name, config: "latest")
       end
 
       def get_workflow_state(argo_id)

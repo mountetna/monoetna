@@ -45,7 +45,7 @@ ETL jobs should use the polyphemus database for 2 reasons:
 The ETL jobs achieve this by using the Polyphemus client and the following api calls:
 
 ```      
-def get_workflow(project_name, workflow_name, revision: "latest")
+def get_workflow(project_name, workflow_name, config: "latest")
 end
 
 def get_workflow_state(argo_id)
@@ -71,12 +71,12 @@ Ex: for the cat ingestion workflow, we have a db table called `workflow_cat_inge
 
 Your db table should always have:
 - an `argo_id` column. 
-- a `workflow_id` column. 
+- a `config_id` column. 
 
 Example columns for the cat ingestion pipeline:
 
 - id
-- workflow_id
+- config_id
 - argo_id
 - last_scan
 - num_files_to_update
