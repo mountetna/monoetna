@@ -11,7 +11,7 @@ spec:
             template: run-job
             arguments:
               parameters:
-                - name: pipeline
+                - name: workflow
                   value: cat_ingestion
                 - name: job
                   value: file_discovery
@@ -19,7 +19,7 @@ spec:
             template: run-job
             arguments:
               parameters:
-                - name: pipeline
+                - name: workflow
                   value: cat_ingestion
                 - name: job
                   value: c4_update
@@ -27,14 +27,14 @@ spec:
             template: run-job
             arguments:
               parameters:
-                - name: pipeline
+                - name: workflow
                   value: cat_ingestion
                 - name: job
                   value: metis_update
     - name: run-job
       inputs:
         parameters:
-          - name: pipeline
+          - name: workflow
           - name: job
       container:
         image: base_etna
@@ -43,13 +43,13 @@ spec:
           - -c
         args:
           - |
-            bin/run_job {{inputs.parameters.pipeline}} {{inputs.parameters.job}}
+            bin/run_job {{inputs.parameters.workflow}} {{inputs.parameters.job}}
         env:
           - name: ARGO_WORKFLOW_ID
             value: "{{workflow.id}}"
-          - name: PIPELINE_TABLE
+          - name: WORKFLOW_TABLE
             value: cat_ingestion
-          - name: PIPELINE
-            value: "{{inputs.parameters.pipeline}}"
+          - name: WORKFLOW_NAME
+            value: "{{inputs.parameters.workflow}}"
           - name: JOB_NAME
             value: "{{inputs.parameters.job}}"

@@ -55,7 +55,7 @@ class EtnaApp
       boolean_flags << '--ignore-ssl'
 
       def execute(host, ignore_ssl: false)
-        polyphemus_client = etna::clients::polyphemus.new(
+        polyphemus_client = Etna::Clients::Polyphemus.new(
             host: host,
             token: token(ignore_environment: true),
             ignore_ssl: ignore_ssl)
@@ -706,9 +706,9 @@ class EtnaApp
       }
     end
 
-    def execute(project_name, pipeline, job_name)
-      # Retrieve the pipeline config from polyphemus
-      config, secrets = polyphemus_client.get_pipeline_config(project_name, pipeline)
+    def execute(project_name, workflow, job_name)
+      # Retrieve the workflow config from polyphemus
+      config, secrets = polyphemus_client.get_workflow(project_name, workflow)
 
       # Instantiate the job and run it
       job = job_map[job_name]

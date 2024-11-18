@@ -11,7 +11,7 @@ class FileDiscoveryJob < ETLJob
       password: secrets[:sftp_password],
       port: config[:sftp_port] || 22
     )
-    @pipeline_config_id = config[:etl_configs_id]
+    @workflow_config_id = config[:config_id]
     @regex = config[:regex]
     @root_dir = config[:root_dir]
   end
@@ -24,13 +24,17 @@ class FileDiscoveryJob < ETLJob
   def process
     last_scan = fetch_last_scan
     files_to_update = fetch_files_from_sftp(last_scan)
-    write_files_to_update(files_to_update)
+    @sftp_client.write_csv(config[:files_to_update_path], files_to_update)
   end
 
   # Post-condition method to update the number of files to update in the DB
   def post
     file_count = File.readlines(config[:files_to_update_path]).size
-    update_db_with_file_count(file_count)
+    polyphemus_client.update_workflow_state(argo_id, {
+      num_files_to_update: file_count,
+      updated_at: Time.now,
+      modified_at: Time.now,
+    })
     puts "Number of files to update: #{file_count}"
   end
 
@@ -38,7 +42,7 @@ class FileDiscoveryJob < ETLJob
 
   # Fetch the last_scan timestamp from the pipeline state using Polyphemus client
   def fetch_last_scan
-    state = polyphemus_client.get_pipeline_state(config[:project_name], pipeline_table)
+    state = polyphemus_client.get_workflow_state(argo_id)
     state[:last_scan] ? Time.parse(state[:last_scan]) : Time.at(0) # Default to epoch if not found
   rescue StandardError => e
     puts "Error fetching pipeline state: #{e.message}"
@@ -69,28 +73,8 @@ class FileDiscoveryJob < ETLJob
   def file_matches_criteria?(entry, last_scan)
     matches_type = entry[:longname] =~ @regex
     newer_than_last_scan = Time.at(entry[:attributes].mtime) > last_scan
-
     matches_type && newer_than_last_scan
   end
 
-  # Write the list of files to update to a CSV file
-  def write_files_to_update(files)
-    @sftp_client.write_csv(config[:files_to_update_path], files)
-    puts "Written #{files.size} files to #{config[:files_to_update_path]}"
-  rescue StandardError => e
-    puts "Error writing files_to_update.txt: #{e.message}"
-    raise
-  end
 
-  # Update the num_files_to_update column in the database using Polyphemus client
-  def update_db_with_file_count(count)
-    polyphemus_client.update_pipeline_state(config[:project_name], pipeline_table, {
-      num_files_to_update: count,
-      updated_at: Time.now,
-      modified_at: Time.now,
-    })
-  rescue StandardError => e
-    puts "Failed to update the database: #{e.message}"
-    raise
-  end
 end

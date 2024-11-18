@@ -12,8 +12,8 @@ class ETLJob
       @argo_id ||= ENV['ARGO_WORKFLOW_ID']
     end
 
-    def pipeline_table
-      @pipeline_table ||= ENV['PIPELINE_TABLE']
+    def workflow_table
+      @workflow_table ||= ENV['WORKFLOW_TABLE']
     end
 
     # Pre-condition method to check if ETL should proceed

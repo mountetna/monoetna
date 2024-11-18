@@ -34,13 +34,13 @@ module Etna
         end
       end
 
-      def get_pipeline_config(project_name, pipeline)
+      def get_workflow(project_name, workflow_name, revision: "latest")
       end
 
-      def get_pipeline_state(project_name, pipeline)
+      def get_workflow_state(argo_id)
       end
 
-      def update_pipeline_state(project_name, pipeline, state)
+      def update_workflow_state(argo_id, state)
       end
 
     end
