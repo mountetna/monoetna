@@ -73,7 +73,6 @@ x-base-etna-services:
     command: ['httpd', '-DFOREGROUND']
     environment:
       APP_NAME: 'vulcan_app_fe'
-
   'vulcan_c4_env':
     image: vulcan_c4_env
     ports:
@@ -84,6 +83,8 @@ x-base-etna-services:
     volumes:
       # Note that if you make changes to /spec/fixtures/v2/snakemake-repo
       # you must remove the .git file in the c4_env container and re-run git-init.sh
+      # rm -r -f /test-utils/available-workflows/snakemake-repo/.git
+      # ./test-utils/entrypoints/git-init.sh
       - ./spec/fixtures/v2/snakemake-repo:/test-utils/available-workflows/snakemake-repo
       - ./spec/fixtures/v2/vulcan-files:/test-utils/vulcan-files
       - ./spec/fixtures/v2/git-init.sh:/test-utils/entrypoints/git-init.sh
@@ -100,6 +101,7 @@ x-base-etna-services:
                service mariadb start &&
                ./test-utils/entrypoints/git-init.sh &&
                ./test-utils/entrypoints/slurm-db-init.sh &&
+               chmod 600 /usr/local/etc/slurmdbd.conf &&
                /usr/local/sbin/slurmdbd &&
                 sleep 5 &&  # The timeout here the db to start and slurmctld to connect to it
                /usr/local/sbin/slurmctld && 

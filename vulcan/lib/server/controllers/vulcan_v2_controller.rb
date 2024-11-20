@@ -246,14 +246,13 @@ class VulcanV2Controller < Vulcan::Controller
   def write_files
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
-    raise Etna::BadRequest.new("Unsupported Content-Type: #{request.content_type}")  unless @request.content_type.start_with?('multipart/form-data')
-    files = @params[:files] || []
-    raise Etna:BadRequest.new("No files provided" ) if files.empty?
+    files = @params || {}
+    raise Etna::BadRequest.new("No files provided") if files.empty?
+
     begin
-      files.each do |file|
-        content = file[:tempfile].read()
+      files.each do |file_name, content|
         output_path = Vulcan::Path.workspace_output_path(workspace.path)
-        @remote_manager.write_file("#{output_path}#{file[:filename]}", content)
+        @remote_manager.write_file("#{output_path}#{file_name}", content)
       end
     rescue => e
       Vulcan.instance.logger.log_error(e)

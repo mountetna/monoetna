@@ -94,7 +94,6 @@ describe VulcanV2Controller do
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
-      require 'pry'; binding.pry
       expect(remote_manager.dir_exists?("#{obj.path}")).to be_truthy
     end
 
@@ -305,20 +304,21 @@ describe VulcanV2Controller do
         git_version: "v1"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
-      require 'pry'; binding.pry
       expect(last_response.status).to eq(200)
     end
 
     it 'writes a file to the workspace' do
-      file_to_upload = create_temp_file
       auth_header(:editor)
-      workspace_id = Vulcan::Workspace.all[0].id
+      workspace = Vulcan::Workspace.all[0]
+      file_name = "test_file_name"
+      content = "This is a test file, with content 1."
       request = {
-        files: [file_to_upload]
+        file_name => content
       }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request)
       expect(last_response.status).to eq(200)
-      # Assert file exists
+      expect(remote_manager.file_exists?("#{workspace.path}/output/#{file_name}")).to be_truthy
+      expect(remote_manager.read_file_to_memory("#{workspace.path}/output/#{file_name}").chomp).to eq(content)
     end
 
     it 'writes multiple files' do
@@ -345,16 +345,14 @@ describe VulcanV2Controller do
 
     it 'requests a file from the workspace' do
       # Write a file to the workspace
-      temp_file = create_temp_file
       workspace_id = Vulcan::Workspace.all[0].id
-      request = {
-        files: [temp_file]
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+      request = {"test_file_name": "This is a test file, with content 1"}
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
+      expect(last_response.status).to eq(200)
 
       # Read that file
       request = {
-        file_names: [temp_file.original_filename]
+        file_names: ["test_file_name"]
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/read", request)
       expect(last_response.status).to eq(200)
@@ -636,10 +634,8 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
 
       # Next step involves writing files to the workspace 
-      request = {
-        files: [create_temp_file("ui_job_one"), create_temp_file("ui_job_two")]
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+      request = {"test_file_name": "This is a test file, with content 1"}
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request)
 
       # Run the last job, send the same params as before
       request = {
