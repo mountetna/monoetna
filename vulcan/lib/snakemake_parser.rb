@@ -1,7 +1,7 @@
 class Vulcan
   class Snakemake
     class TargetParser
-      # TODO: refactor this class to be more readable
+      # TODO: this class was quickly prototyped, refactor this class to be more readable
       def initialize(snakefile, config)
         @snakefile = snakefile # raw file
         @config = config  # yaml loaded
