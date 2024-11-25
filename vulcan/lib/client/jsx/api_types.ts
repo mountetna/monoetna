@@ -69,14 +69,15 @@ export type WorkflowsResponse = typeof defaultWorkflowsResponse;
 //   label?: string | null;
 // }
 
-// export interface WorkflowStep {
-//   name: string;
-//   run: string;
-//   in: StepInput[];
-//   out: string[];
-//   label?: string | null;
-//   doc?: string | null;
-// }
+export interface WorkspaceStep {
+  name: string;
+  // run: string;
+  vulcan_config: boolean;
+  in: StepInput[];
+  out: string[];
+  label?: string | null;
+  doc?: string | null;
+}
 
 // export const defaultWorkflowStep: WorkflowStep = {
 //   name: '',
@@ -108,7 +109,7 @@ export type WorkflowsResponse = typeof defaultWorkflowsResponse;
 export interface Workflow {
   id: number;
   name: string;
-  projects?: string[] | null;
+  projects: string[];
   branch: string;
   repo_remote_url: string;
   created_at: number;
@@ -132,23 +133,28 @@ export const defaultWorkflow: Workflow = {
   updated_at: 0
 };
 
-export interface WorkspaceResponse {
+export interface Workspace {
   workspace_id: number;
   workflow_id: number;
+  project: string;
   vulcan_config: VulcanConfig;
   dag: string[];
   last_config?: {[k: string]: any}
   last_job_status?: {[k: string]: StatusString}
 }
 
-export type WorkspacesResponse = WorkspaceResponse[]
+export type Workspaces = Workspace[]
 
-export interface FileContent {
+export interface FileContentResponse {
   filename: string;
   content: string;
 }
 
-export type MultiFileContent = FileContent[]
+export type MultiFileContentResponse = FileContentResponse[]
+
+export interface MultiFileContent {
+  [filename: string]: any;
+}
 
 export interface ParamsContent {
   [k: string]: any
@@ -157,16 +163,17 @@ export interface ParamsContent {
 export interface AccountingReturn {
   config_id: number,
   scheduled: string[],
-  downstream: string[]
+  downstream: string[],
 }
 
-export type VulcanConfig = VulcanConfigElement[]
+// export type VulcanConfig = VulcanConfigElement[]
+export type VulcanConfig = {[k: string]: VulcanConfigElement}
 
 export interface VulcanConfigElement {
   display: string;
   ui_component: string;
   input?: InputConfig;
-  output: OutputConfig;
+  output?: OutputConfig;
 }
 
 export interface InputConfig {
@@ -187,74 +194,133 @@ export interface RunStatus {
   [k: string]: StatusString
 }
 
-// Update me!
-export type StatusString = 'running' | 'pending' | 'complete' | 'error';
+export type sacctStatusString =
+  'BOOT_FAIL' |
+  'CANCELLED' |
+  'COMPLETED' |
+  'CONFIGURING' |
+  'COMPLETING' |
+  'DEADLINE' |
+  'FAILED' |
+  'NODE_FAIL' |
+  'OUT_OF_MEMORY' |
+  'PENDING' |
+  'PREEMPTED' |
+  'REBOOT_PENDING' |
+  'REQUEUED' |
+  'RESIZING' |
+  'REVOKED' |
+  'RUNNING' |
+  'SUSPENDED' |
+  'TIMEOUT'
+
+export type StatusStringFine = sacctStatusString | 'NOT STARTED'
+
+export const StatusStringBroaden = (fine: StatusStringFine) => {
+  return ({
+    'BOOT_FAIL': 'error',
+    'CANCELLED': 'error',
+    'COMPLETED': 'complete',
+    'CONFIGURING': 'running',
+    'COMPLETING': 'running',
+    'DEADLINE': 'error',
+    'FAILED': 'error',
+    'NODE_FAIL': 'error',
+    'OUT_OF_MEMORY': 'error',
+    'PENDING': 'upcoming',
+    'PREEMPTED': 'error',
+    'REBOOT_PENDING': 'upcoming',
+    'REQUEUED': 'upcoming',
+    'RESIZING': 'running',
+    'REVOKED': 'error',
+    'RUNNING': 'running',
+    'SUSPENDED': 'error',
+    'TIMEOUT': 'error',
+    'NOT STARTED': 'pending'
+  } as {[k:string]: StatusString})[fine]
+}
+
+export type StatusString = 'running' | 'upcoming' |  'pending' | 'complete' | 'error';
 
 export interface StepStatus {
   name: string;
   status: StatusString;
-  downloads?: {[k: string]: string} | null;
-  error?: string | null;
-  hash: string;
+  statusFine: StatusStringFine;
+  outputs?: {files?: string[], params?: string[]};
+  error?: string;
 }
 
 export const defaultStepStatus: StepStatus = {
   name: '',
   status: 'pending',
-  hash: ''
+  statusFine: 'NOT STARTED'
 };
+
+export type WorkspaceStatus = {
+  steps: {[k: string]: StepStatus},
+  output_files: string[],
+  config_contents: {[k: string]: any},
+  ui_contents: {[k: string]: {[k: string]: any}},
+}
+
+export const defaultWorkspaceStatus: WorkspaceStatus = {
+  steps: {},
+  config_contents: {},
+  ui_contents: {},
+  output_files: []
+}
 
 export const defaultVulcanSession = {
   project_name: '',
-  workflow_name: '',
+  workflow_id: null as number | null,
+  workspace_id: null as number | null,
+  workspace: null as Workspace | null, 
   key: '',
-  inputs: {} as {[k: string]: any},
-  reference_figure_id: null as number | null
+  params: {} as {[k: string]: any},
+  ui_values: {} as {[k: string]: any},
 };
 
 export type VulcanSession = typeof defaultVulcanSession;
 
-export const defaultSessionStatusResponse = {
-  outputs: {downloads: null, status: 'pending'} as {
-    downloads: StepStatus['downloads'];
-    status: StepStatus['status'];
-  },
-  session: defaultVulcanSession,
-  status: [[]] as [StepStatus[]]
-};
+// export const defaultSessionStatusResponse = {
+//   session: defaultVulcanSession,
+//   status: [[]] as [StepStatus[]],
+//   files: [] as string[],
+// };
 
-export type SessionStatusResponse = typeof defaultSessionStatusResponse;
+// export type SessionStatusResponse = typeof defaultSessionStatusResponse;
 
-export interface VulcanFigure {
-  id: number | null;
-  figure_id?: number | null;
-  inputs: {[k: string]: any};
-  title?: string;
-  author?: string;
-  thumbnails?: string[];
-  comment?: string;
-  tags?: string[];
-  workflow_snapshot?: Workflow;
-}
+// // Update me!
+// export interface VulcanFigure {
+//   id: number | null;
+//   figure_id?: number | null;
+//   inputs: {[k: string]: any};
+//   title?: string;
+//   author?: string;
+//   thumbnails?: string[];
+//   comment?: string;
+//   tags?: string[];
+//   workflow_snapshot?: Workflow;
+// }
 
-export type VulcanFigureSession = VulcanSession & VulcanFigure;
+// export type VulcanFigureSession = VulcanSession & VulcanFigure;
 
-export interface VulcanRevision {
-  inputs: {[k: string]: any};
-  title?: string;
-  tags?: string[];
-  id: number;
-  workflow_snapshot?: Workflow;
-  dependencies: {[key: string]: string};
-}
+// export interface VulcanRevision {
+//   inputs: {[k: string]: any};
+//   title?: string;
+//   tags?: string[];
+//   id: number;
+//   workflow_snapshot?: Workflow;
+//   dependencies: {[key: string]: string};
+// }
 
-export const defaultFigure = {
-  id: null,
-  figure_id: null,
-  inputs: {},
-  workflow_snapshot: defaultWorkflow
-};
+// export const defaultFigure = {
+//   id: null,
+//   figure_id: null,
+//   inputs: {},
+//   workflow_snapshot: defaultWorkflow
+// };
 
-export interface FiguresResponse {
-  figures: VulcanFigureSession[];
-}
+// export interface FiguresResponse {
+//   figures: VulcanFigureSession[];
+// }

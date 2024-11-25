@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Workflow, WorkflowInput, WorkflowStep} from '../../../../api_types';
+import {Workflow, WorkflowInput, WorkspaceStep} from '../../../../api_types';
 import {Maybe, some, isSome, withDefault} from '../../../../selectors/maybe';
 import {Dispatch} from 'react';
 import {VulcanAction} from '../../../../actions/vulcan_actions';
@@ -44,7 +44,7 @@ export interface BoundInputSpecification<Value = unknown, DataElement = unknown>
 }
 
 export function getInputSpecifications(
-  step: WorkflowStep | [string, WorkflowInput][],
+  step: WorkspaceStep | [string, WorkflowInput][],
   workflow: Workflow | null
 ): InputSpecification[] {
   if (!workflow) return [];
@@ -190,7 +190,7 @@ export function bindInputSpecification(
   };
 }
 
-export type WorkflowStepGroup = {label: string; steps: WorkflowStep[]};
+export type WorkflowStepGroup = {label: string; steps: WorkspaceStep[]};
 
 export type InputBackendComponent<
   Params extends {} = {},

@@ -12,7 +12,8 @@ import {
   defaultSessionStatusResponse,
   defaultWorkflowsResponse,
   FiguresResponse,
-  FileContent,
+  FileContentResponse,
+  MultiFileContentResponse,
   MultiFileContent,
   ParamsContent,
   RunReturn,
@@ -21,8 +22,9 @@ import {
   VulcanFigureSession,
   VulcanSession,
   WorkflowsResponse,
-  WorkspaceResponse,
-  WorkspacesResponse
+  Workspace,
+  Workspaces,
+  WorkspaceStatus
 } from '../api_types';
 
 export const defaultApiHelpers = {
@@ -48,13 +50,13 @@ export const defaultApiHelpers = {
   getWorkflows(projectName: string): Promise<Response | WorkflowsResponse> {
     return new Promise(() => null);
   },
-  createWorkspace(projectName: string, workflowId: number, branch: string, workspaceName: string): Promise<Response | WorkspaceResponse> {
+  createWorkspace(projectName: string, workflowId: number, branch: string, workspaceName: string): Promise<Response | Workspace> {
     return new Promise(() => null);
   },
-  getWorkspaces(projectName: string): Promise<Response | WorkspacesResponse> {
+  getWorkspaces(projectName: string): Promise<Response | Workspaces> {
     return new Promise(() => null);
   },
-  getWorkspace(projectName: string, workspaceId: number): Promise<Response | WorkspaceResponse> {
+  getWorkspace(projectName: string, workspaceId: number): Promise<Response | Workspace> {
     return new Promise(() => null);
   },
   getFileNames(projectName: string, workspaceId: number): Promise<Response | string[]> {
@@ -67,6 +69,9 @@ export const defaultApiHelpers = {
     return new Promise(() => null);
   },
   setConfig(projectName: string, workspaceId: number, params: ParamsContent): Promise<Response | AccountingReturn> {
+    return new Promise(() => null);
+  },
+  postUIValues(projectName: string, workspaceId: number, status: WorkspaceStatus, steps?: string[]): Promise<Response | AccountingReturn> {
     return new Promise(() => null);
   },
   requestRun(projectName: string, workspaceId: number, configId: number): Promise<Response | RunReturn> {
@@ -157,25 +162,6 @@ export function useApi(
       }).then(handleFetchSuccess).catch(handleFetchError);
   }, [vulcanPost, vulcanPath]);
 
-  // const postInputs = useCallback(
-  //   (session: VulcanSession): Promise<SessionStatusResponse> => {
-  //     if (!session.workflow_name) {
-  //       return Promise.reject(
-  //         new Error('No workflow selected, bug in client.')
-  //       );
-  //     }
-
-  //     return vulcanPost(
-  //       // old: ROUTES.submit
-  //       vulcanPath(`/api/${session.project_name}/session/${workflow_name}`),
-  //       session
-  //     )
-  //       .then(handleFetchSuccess)
-  //       .catch(handleFetchError);
-  //   },
-  //   [vulcanPath, vulcanPost]
-  // );
-
   // const pollStatus = useCallback(
   //   (session: VulcanSession): Promise<SessionStatusResponse> => {
   //     if (!session.workflow_name) {
@@ -213,7 +199,7 @@ export function useApi(
   //   [vulcanGet]
   // );
 
-  const createWorkspace = useCallback((projectName: string, workflowId: number, branch: string, workspaceName: string): Promise<Response | WorkspaceResponse> => {
+  const createWorkspace = useCallback((projectName: string, workflowId: number, branch: string, workspaceName: string): Promise<Response | Workspace> => {
     return vulcanPost(
       vulcanPath(`/api/v2/${projectName}/workspace/create`),
       {
@@ -241,13 +227,13 @@ export function useApi(
   );
 
   const getWorkspaces = useCallback(
-    (projectName: string): Promise<Response | WorkspacesResponse> => {
+    (projectName: string): Promise<Response | Workspaces> => {
       // Old: ROUTES.fetch_figures
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace`));
   }, [vulcanGet, vulcanPath]);
 
   const getWorkspace = useCallback(
-    (projectName: string, workspaceId: number): Promise<Response | WorkspaceResponse> => {
+    (projectName: string, workspaceId: number): Promise<Response | Workspace> => {
       // Old: ROUTES.fetch_figure
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}`));
   }, [vulcanGet, vulcanPath]);
@@ -258,7 +244,7 @@ export function useApi(
   }, [vulcanGet, vulcanPath]);
 
   const writeFiles = useCallback(
-    (projectName: string, workspaceId: number, content: FileContent | MultiFileContent) => {
+    (projectName: string, workspaceId: number, content: FileContentResponse | MultiFileContentResponse) => {
       content = Array.isArray(content) ? content : [content]
       return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/file/write`),
@@ -268,7 +254,7 @@ export function useApi(
   }, [vulcanPost, vulcanPath]);
 
   const readFiles = useCallback(
-    (projectName: string, workspaceId: number, fileNames: string[]): Promise<Response| MultiFileContent> => {
+    (projectName: string, workspaceId: number, fileNames: string[]): Promise<Response | MultiFileContent> => {
       return vulcanGetWithParams(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/file/read`),
         {
@@ -283,6 +269,43 @@ export function useApi(
         params
       );
   }, [vulcanPost, vulcanPath]);
+
+  const postUIValues = useCallback(
+    (projectName: string, workspaceId: number, status: WorkspaceStatus, steps?: string[]): Promise<Response | AccountingReturn> => {
+      // Trims ui_content to send by requested 'steps', but config must be ALL each time.
+      const ui_steps: string[] = steps ? steps.filter(name => Object.keys(status.ui_contents).includes(name)) : Object.keys(status.ui_contents)
+
+      // Send UI content for inputs first, then send config content
+      if (ui_steps.length > 0) {
+        let filesContent: MultiFileContent = {};
+        ui_steps.map(step => {
+          if (! status.ui_contents[step]) {
+            return Promise.reject(
+              new Error(`${step} missing, bug in client.`)
+            );
+          }
+          Object.entries(status.ui_contents[step]).map(([key, val]) => {
+            filesContent[key] = val;
+          })
+        })
+        // ToDo: Return error if errors
+        writeFiles(
+          projectName,
+          workspaceId,
+          filesContent
+        )
+      }
+
+      return setConfig(
+        projectName,
+        workspaceId,
+        status.config_contents
+      )
+        .then(handleFetchSuccess)
+        .catch(handleFetchError);
+    },
+    [vulcanPost, vulcanPath, writeFiles, setConfig]
+  );
 
   const requestRun = useCallback(
     (projectName: string, workspaceId: number, configId: number): Promise<Response | RunReturn> => {
@@ -352,6 +375,7 @@ export function useApi(
     writeFiles,
     readFiles,
     setConfig,
+    postUIValues,
     requestRun,
     pullRunStatus
   };

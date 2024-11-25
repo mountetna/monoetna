@@ -1,71 +1,75 @@
 import {
+  AccountingReturn,
   SessionStatusResponse,
   VulcanFigure,
   VulcanFigureSession,
   VulcanSession,
   Workflow,
-  WorkflowsResponse
+  WorkflowsResponse,
+  Workspaces,
+  Workspace,
+  WorkspaceStatus
 } from '../api_types';
 import {Maybe} from '../selectors/maybe';
-import {selectFigure, selectSession} from '../selectors/workflow_selectors';
+import { selectFigure, selectSession, workspaceId } from '../selectors/workflow_selectors';
 
 function actionObject<T extends string, P>(type: T, payload: P): {type: T} & P {
   return {...payload, type};
 }
 
-export function setWorkflows(workflows: WorkflowsResponse['workflows']) {
+export function setProject(project: string) {
+  return actionObject('SET_PROJECT', {project});
+}
+
+export function setWorkflows(workflows: WorkflowsResponse) {
   return actionObject('SET_WORKFLOWS', {workflows});
+}
+
+export function setWorkspaces(workspaces: Workspaces) {
+  return actionObject('SET_WORKSPACES', {workspaces});
 }
 
 export function setWorkflow(workflow: Workflow, projectName: string) {
   return actionObject('SET_WORKFLOW', {workflow, projectName});
 }
 
+export function setWorkspaceId(workspaceId: Workspace['workspace_id']) {
+  return actionObject('SET_WORKSPACE_ID', {workspaceId});
+}
+
+export function setWorkspace(workspace: Workspace, projectName: string) {
+  return actionObject('SET_WORKSPACE', {workspace, projectName});
+}
+
+export function setConfigId(configId: Workspace['workspace_id']) {
+  return actionObject('SET_CONFIG_ID', {configId});
+}
+
+export function setRunId(runId: Workspace['workspace_id']) {
+  return actionObject('SET_RUN_ID', {runId});
+}
+
 export function setStatus(
-  status: SessionStatusResponse['status'],
+  accounting: AccountingReturn,
   submittingStep: Maybe<string> = null
 ) {
-  return actionObject('SET_STATUS', {status, submittingStep});
+  return actionObject('SET_STATUS', {accounting, submittingStep});
 }
 
-export function setDownloadedData(url: string, data: any) {
-  return actionObject('SET_DOWNLOAD', {url, data});
-}
-
-export function setSession(session: SessionStatusResponse['session']) {
-  return actionObject('SET_SESSION', {session});
-}
-
-export function setSessionAndFigureSeparately(
-  figure: VulcanFigure,
-  session: VulcanSession
-) {
-  return actionObject('SET_SESSION_AND_FIGURE', {figure, session});
-}
-
-export function setSessionAndFigure(figureSession: VulcanFigureSession) {
-  return setSessionAndFigureSeparately(
-    selectFigure(figureSession),
-    selectSession(figureSession)
-  );
+export function setDownloadedData(fileName: string, fileData: any) {
+  return actionObject('SET_DOWNLOAD', {fileName, fileData});
 }
 
 // Fully replaces the inputs state.
-export function setInputs(inputs: SessionStatusResponse['session']['inputs']) {
-  return actionObject('SET_INPUTS', {inputs});
+export function setUIValues(values: WorkspaceStatus['ui_contents']) {
+  return actionObject('SET_UI_VALUES', {values});
 }
 
-// Adds any inputs specified, but does not fully replace inputs.
-// Removes the inputs by the given source name from the inputs and session states
-export function removeInputs(inputs: string[]) {
-  return actionObject('REMOVE_INPUTS', {inputs});
-}
-
-// Removes the downloads by the given step names from the status.  Usually this happens from server
-// responses anyways, but it is a responsive UX feature.
-export function removeDownloads(stepNames: string[]) {
-  return actionObject('REMOVE_DOWNLOADS', {stepNames});
-}
+// // Removes the downloads by the given step names from the status.  Usually this happens from server
+// // responses anyways, but it is a responsive UX feature.
+// export function removeDownloads(stepNames: string[]) {
+//   return actionObject('REMOVE_DOWNLOADS', {stepNames});
+// }
 
 export function addValidationErrors(
   stepName: string | null,
@@ -121,14 +125,18 @@ export function clearCommittedStepPending() {
 }
 
 export type VulcanAction =
+  | ReturnType<typeof setProject>
   | ReturnType<typeof setWorkflows>
+  | ReturnType<typeof setWorkspaces>
   | ReturnType<typeof setWorkflow>
+  | ReturnType<typeof setWorkspace>
+  | ReturnType<typeof setWorkspaceId>
+  | ReturnType<typeof setConfigId>
+  | ReturnType<typeof setRunId>
   | ReturnType<typeof setStatus>
   | ReturnType<typeof setDownloadedData>
-  | ReturnType<typeof setSession>
-  | ReturnType<typeof setInputs>
-  | ReturnType<typeof removeInputs>
-  | ReturnType<typeof removeDownloads>
+  | ReturnType<typeof setUIValues>
+  // | ReturnType<typeof removeDownloads>
   | ReturnType<typeof startPolling>
   | ReturnType<typeof finishPolling>
   | ReturnType<typeof addValidationErrors>
@@ -141,5 +149,3 @@ export type VulcanAction =
   | ReturnType<typeof clearRunTriggers>
   | ReturnType<typeof checkCommittedStepPending>
   | ReturnType<typeof clearCommittedStepPending>
-  | ReturnType<typeof setSessionAndFigure>
-  | ReturnType<typeof setSessionAndFigureSeparately>;
