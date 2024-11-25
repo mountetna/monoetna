@@ -8,6 +8,7 @@ Sequel.migration do
       Integer :version_number, null: false
       column :config, :json, null: false
       String :secrets, null: false
+      String :run_interval, size: 50
       DateTime :created_at, null: false
       DateTime :updated_at, null: false
     end
