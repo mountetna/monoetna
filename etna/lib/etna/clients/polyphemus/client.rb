@@ -34,13 +34,16 @@ module Etna
         end
       end
 
-      def get_workflow(project_name, workflow_name, config: "latest")
+      def get_config(config_id)
       end
 
-      def get_workflow_state(argo_id)
+      def get_workflow_state(run_id)
       end
 
-      def update_workflow_state(argo_id, state)
+      def update_workflow_state(run_id, state)
+      end
+
+      def write_run_metadata(config_id, run_id, workflow_json)
       end
 
     end

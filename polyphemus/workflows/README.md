@@ -12,7 +12,7 @@
 
 Since the etl jobs are just ruby classes, and leverage much of the etna lib, we can keep them in the `etna/lib` directory. 
 
-- Build argo workflows in the `pipeline/workflows` directory.
+- Build argo workflows in the `polyphemus/workflows` directory.
 - Build etl jobs in the `etna/lib/jobs` directory.
 
 ### ETLJob super class
@@ -35,29 +35,21 @@ bin/etna run_job <workflow> <job_name> <other args>
 
 - Workflow meta-data: These are values that *argo* (or another orchestrator) generates for a given run. Things like how long the workflow took to run, failures, retries, etc. We can fetch this from argo. Argo generates a unique id for each run. 
 
-### Relationship to Polyphemus
+### Polyphemus
 
-ETL jobs should use the polyphemus database for 2 reasons:
+#### ETL Jobs
 
-1. To retrieve configs/params for a pipeline from a specific table.
-2. To manage pipeline state in a specific db table.
+ETL jobs use the polyphemus database for:
 
-The ETL jobs achieve this by using the Polyphemus client and the following api calls:
+1. To retrieve configs for a workflow.
+2. To manage pipeline state in the `runs` table.
 
-```      
-def get_workflow(project_name, workflow_name, config: "latest")
-end
+The ETL jobs achieve this by using the Polyphemus client to make API calls.
 
-def get_workflow_state(argo_id)
-end
+#### Run metadata
 
-def update_workflow_state(argo_id, state)
-end
-```
-
-### Existing data model
-
-Currently configs/params for a pipeline are stored in the `etl_configs.configs` table. 
+There is a command called `WriteRunMetadata` that is used to write runtime metadata to the `run_metadata` table.
+We use an argo onExit hook to run this once the workflow has completed.
 
 ### State management
 
@@ -65,28 +57,12 @@ Currently configs/params for a pipeline are stored in the `etl_configs.configs` 
 
 It is often the case that your ETL job will need to manage some state. 
 - If you need to store a file, in between pipeline runs, you should use a volume mount.
-- For all other data you need to track, you should create a db table in the polyphemus database.
-
-Ex: for the cat ingestion workflow, we have a db table called `workflow_cat_ingestion`
-
-Your db table should always have:
-- an `argo_id` column. 
-- a `config_id` column. 
-
-Example columns for the cat ingestion pipeline:
-
-- id
-- config_id
-- argo_id
-- last_scan
-- num_files_to_update
-- num_c4_files_updated
-- num_metis_files_updated
-
-Notice how these are all job specific. No need to collect meta-data about the pipeline run. Argo manages this.
+- For all other data you need to track, you should managed state in the `runs` table in the polyphemus database.
 
 ## Argo
 
-### Submitting pipelines
+### Submitting workflows
 
-### Viewing pipelines
+``` argo submit -f <path_to_workflow_yaml> -p config_id=<config_id>```
+
+### Viewing workflow runs

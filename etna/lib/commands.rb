@@ -706,9 +706,9 @@ class EtnaApp
       }
     end
 
-    def execute(project_name, workflow, job_name)
+    def execute(job_name, config_id)
       # Retrieve the workflow config from polyphemus
-      config, secrets = polyphemus_client.get_workflow(project_name, workflow)
+      config, secrets = polyphemus_client.get_config(config_id)
 
       # Instantiate the job and run it
       job = job_map[job_name]
@@ -717,5 +717,15 @@ class EtnaApp
     end
 
   end
+
+  class WriteRunMetadata < Etna::Command
+    include WithEtnaClients
+
+    def execute(config_id, run_id, workflow_json)
+      polyphemus_client.write_run_metadata(config_id, run_id, workflow_json)
+    end
+
+  end
+
 
 end

@@ -1,9 +1,9 @@
 Sequel.migration do
   up do
-    create_table(:workflow_cat_ingestion) do
+    create_table(:runs) do
       primary_key :id
       String :run_id, null: false
-      foreign_key :configs_id, :configs, null: false, on_delete: :cascade
+      foreign_key :config_id, :configs, null: false, 
       column :state, :json, null: false
       DateTime :created_at, null: false
       DateTime :updated_at, null: false
@@ -11,6 +11,6 @@ Sequel.migration do
   end
 
   down do
-    drop_table(:cat_ingestion)
+    drop_table(:runs)
   end
 end

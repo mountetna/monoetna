@@ -3,6 +3,7 @@ Sequel.migration do
     create_table(:configs) do
       primary_key :id
       String :project_name, null: false
+      String :workflow_name, null: false
       String :user, null: false
       String :name, null: false
       Integer :version_number, null: false

@@ -8,8 +8,8 @@ class ETLJob
       @secrets = secrets
     end
     
-    def argo_id
-      @argo_id ||= ENV['ARGO_WORKFLOW_ID']
+    def run_id
+      @run_id ||= ENV['ARGO_WORKFLOW_ID']
     end
 
     def workflow_table

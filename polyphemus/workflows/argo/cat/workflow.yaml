@@ -4,7 +4,7 @@ metadata:
   generateName: cat-ingestion-workflow-
 spec:
   entrypoint: cat-ingestion 
-  onExit: write-workflow_run_metadata
+  onExit: write-run_metadata
   templates:
     - name: cat-ingestion
       steps:
@@ -44,20 +44,19 @@ spec:
           - -c
         args:
           - |
-            bin/run_job {{inputs.parameters.workflow}} {{inputs.parameters.job}}
+            bin/run_job {{inputs.parameters.job}} {{inputs.parameters.config_id}}
         env:
           - name: ARGO_WORKFLOW_ID
             value: "{{workflow.id}}"
           - name: WORKFLOW_TABLE
-            value: cat_ingestion
-          - name: WORKFLOW_NAME
-            value: "{{inputs.parameters.workflow}}"
-          - name: JOB_NAME
-            value: "{{inputs.parameters.job}}"
-    - name: write-workflow_run_metadata
+            value: workflow_cat_ingestion
+    - name: write-run_metadata
       container:
         image: base_etna
         command: ["/bin/sh", "-c"]
         args:
           - |
-            bin/write_workflow_run_metadata {{workflow.id}}
+           # TODO makes sure this works / might need to install argo cli
+            bin/write_run_metadata {{workflow.id}} {{inputs.parameters.config_id}} "$(argo get --output=json {{workflow.name}} -n {{workflow.namespace}})"
+
+
