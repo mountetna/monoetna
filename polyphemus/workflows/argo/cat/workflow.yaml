@@ -4,6 +4,7 @@ metadata:
   generateName: cat-ingestion-workflow-
 spec:
   entrypoint: cat-ingestion 
+  onExit: write-workflow_run_metadata
   templates:
     - name: cat-ingestion
       steps:
@@ -53,3 +54,10 @@ spec:
             value: "{{inputs.parameters.workflow}}"
           - name: JOB_NAME
             value: "{{inputs.parameters.job}}"
+    - name: write-workflow_run_metadata
+      container:
+        image: base_etna
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            bin/write_workflow_run_metadata {{workflow.id}}
