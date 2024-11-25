@@ -12,7 +12,7 @@
 
 Since the etl jobs are just ruby classes, and leverage much of the etna lib, we can keep them in the `etna/lib` directory. 
 
-- Build argo pipelines in the `etna/pipelines/argo` directory.
+- Build argo workflows in the `pipeline/workflows` directory.
 - Build etl jobs in the `etna/lib/jobs` directory.
 
 ### ETLJob super class
