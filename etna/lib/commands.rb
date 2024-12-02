@@ -702,7 +702,7 @@ class EtnaApp
 
     def job_map
       {
-        "file_discovery" => Etna::Jobs::SftpFileDiscovery
+        "file_discovery" => SftpFileDiscoveryJob
       }
     end
 
@@ -711,7 +711,7 @@ class EtnaApp
       config, secrets = polyphemus_client.get_config(config_id)
 
       # Instantiate the job and run it
-      job = job_map[job_name]
+      job = job_map[job_name] || raise("Job not found: #{job_name}")
       job.new(config, secrets)
       job.execute
     end

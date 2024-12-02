@@ -1,5 +1,5 @@
-
-class ETLJob
+module Etna
+  class ETLJob
     attr_reader :config
     
   
@@ -52,3 +52,4 @@ class ETLJob
       raise e
     end
   end
+end

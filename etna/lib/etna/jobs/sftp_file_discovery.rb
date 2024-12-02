@@ -1,15 +1,15 @@
-require_relative '../../lib/sftp_client'
+require_relative 'etl_job'
+require_relative '../sftp_client'
 
-class FileDiscoveryJob < ETLJob
+class SFTPFileDiscovery < Etna::ETLJob
   include WithEtnaClients
 
   def initialize(config, secrets)
     super(config, secrets)
-    @sftp_client = SftpClient.new(
-      host: config[:sftp_host],
-      user: config[:sftp_user],
-      password: secrets[:sftp_password],
-      port: config[:sftp_port] || 22
+    @sftp_client = SFTPClient.new(
+      config[:sftp_host],
+      config[:sftp_user],
+      secrets[:sftp_password],
     )
     @workflow_config_id = config[:config_id]
     @regex = config[:regex]
@@ -30,7 +30,7 @@ class FileDiscoveryJob < ETLJob
   # Post-condition method to update the number of files to update in the DB
   def post
     file_count = File.readlines(config[:files_to_update_path]).size
-    polyphemus_client.update_workflow_state(argo_id, {
+    polyphemus_client.update_workflow_state(run_id, {
       num_files_to_update: file_count,
       updated_at: Time.now,
       modified_at: Time.now,
@@ -38,11 +38,12 @@ class FileDiscoveryJob < ETLJob
     puts "Number of files to update: #{file_count}"
   end
 
-  private
+  #private
 
   # Fetch the last_scan timestamp from the pipeline state using Polyphemus client
   def fetch_last_scan
-    state = polyphemus_client.get_workflow_state(argo_id)
+    require 'pry'; binding.pry
+    state = polyphemus_client.get_workflow_state(run_id, most_recent=True)
     state[:last_scan] ? Time.parse(state[:last_scan]) : Time.at(0) # Default to epoch if not found
   rescue StandardError => e
     puts "Error fetching pipeline state: #{e.message}"

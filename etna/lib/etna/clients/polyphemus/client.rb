@@ -35,15 +35,35 @@ module Etna
       end
 
       def get_config(config_id)
+        json = nil
+        @etna_client.get("/api/workflows/#{@project_name}/configs/#{config_id}") do |res|
+          json = JSON.parse(res.body)
+        end
+        json
       end
 
-      def get_workflow_state(run_id)
+      def get_workflow_state(run_id, most_recent=true)
+        json = nil
+        @etna_client.get("/api/workflows/#{@project_name}/workflows/#{run_id}", { most_recent: most_recent }) do |res|
+          json = JSON.parse(res.body)
+        end
+        json
       end
 
       def update_workflow_state(run_id, state)
+        json = nil
+        @etna_client.post("/api/workflows/#{@project_name}/workflows/#{run_id}", { state: state }) do |res|
+          json = JSON.parse(res.body)
+        end
+        json
       end
 
       def write_run_metadata(config_id, run_id, workflow_json)
+        json = nil
+        @etna_client.post("/api/workflows/#{@project_name}/metadata", { config_id: config_id, run_id: run_id, workflow_json: workflow_json }) do |res|
+          json = JSON.parse(res.body)
+        end
+        json
       end
 
     end
