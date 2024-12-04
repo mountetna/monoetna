@@ -16,7 +16,6 @@ module WithEtnaClients
   end
 
   def token(ignore_environment: false)
-    require 'pry'; binding.pry
     unless ignore_environment
       if environment == :many
         raise "You have multiple environments configured, please specify your environment by adding --environment <staging|production|development>"
