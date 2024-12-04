@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: run-job-template
+  namespace: argo
+spec:
+  templates:
+    - name: run-job
+      inputs:
+        parameters:
+          - name: job
+          - name: config_id
+      container:
+        image: base_etna
+        command:
+          - sh
+          - -c
+        args:
+          - |
+            bin/run_job {{inputs.parameters.job}} {{inputs.parameters.config_id}}
+        env:
+          - name: ARGO_WORKFLOW_ID
+            value: "{{workflow.id}}"
+          - name: WORKFLOW_TABLE
+            value: workflow_cat_ingestion

@@ -2,61 +2,48 @@ apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
   generateName: cat-ingestion-workflow-
+  namespace: argo
 spec:
-  entrypoint: cat-ingestion 
+  entrypoint: cat-ingestion
   onExit: write-run_metadata
   templates:
     - name: cat-ingestion
       steps:
         - - name: file-discovery
-            template: run-job
+            templateRef:
+              name: run-job-template
+              template: run-job
             arguments:
               parameters:
-                - name: workflow
-                  value: cat_ingestion
                 - name: job
                   value: file_discovery
+                - name: config_id
+                  value: "{{inputs.parameters.config_id}}"
         - - name: c4-update
-            template: run-job
+            templateRef:
+              name: run-job-template
+              template: run-job
             arguments:
               parameters:
-                - name: workflow
-                  value: cat_ingestion
                 - name: job
                   value: c4_update
+                - name: config_id
+                  value: "{{inputs.parameters.config_id}}"
         - - name: metis-update
-            template: run-job
+            templateRef:
+              name: run-job-template
+              template: run-job
             arguments:
               parameters:
-                - name: workflow
-                  value: cat_ingestion
                 - name: job
                   value: metis_update
-    - name: run-job
-      inputs:
-        parameters:
-          - name: workflow
-          - name: job
-      container:
-        image: base_etna
-        command:
-          - sh
-          - -c
-        args:
-          - |
-            bin/run_job {{inputs.parameters.job}} {{inputs.parameters.config_id}}
-        env:
-          - name: ARGO_WORKFLOW_ID
-            value: "{{workflow.id}}"
-          - name: WORKFLOW_TABLE
-            value: workflow_cat_ingestion
+                - name: config_id
+                  value: "{{inputs.parameters.config_id}}"
     - name: write-run_metadata
-      container:
-        image: base_etna
-        command: ["/bin/sh", "-c"]
-        args:
-          - |
-           # TODO makes sure this works / might need to install argo cli
-            bin/write_run_metadata {{workflow.id}} {{inputs.parameters.config_id}} "$(argo get --output=json {{workflow.name}} -n {{workflow.namespace}})"
-
-
+      templateRef:
+        name: write-run-metadata-template
+        template: write-run_metadata
+      arguments:
+        parameters:
+          - name: config_id
+            value: "{{inputs.parameters.config_id}}"

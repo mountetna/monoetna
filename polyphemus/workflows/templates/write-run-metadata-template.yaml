@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: write-run-metadata-template
+  namespace: argo
+spec:
+  templates:
+    - name: write-run_metadata
+      inputs:
+        parameters:
+          - name: config_id  # Ensure this parameter is passed if used
+      container:
+        image: base_etna
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            # Ensure Argo CLI is available in the image or install it here
+            bin/write_run_metadata {{workflow.id}} {{inputs.parameters.config_id}} "$(argo get --output=json {{workflow.name}} -n {{workflow.namespace}})"
