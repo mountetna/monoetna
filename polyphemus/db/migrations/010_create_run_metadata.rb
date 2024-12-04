@@ -4,7 +4,7 @@ Sequel.migration do
       primary_key :id
       String :run_id, null: false
       foreign_key :config_id, :configs, null: false
-      column :meta_data, :json, null: false
+      json :meta_data, null: false
       Text :comment, text: true
       DateTime :created_at, null: false
       DateTime :updated_at, null: false

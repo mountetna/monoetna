@@ -4,7 +4,11 @@ Sequel.migration do
 
     alter_table(:configs) do
       rename_column :etl, :workflow_name
-      drop_columns :params, :ran_at, :comment, :status, :output
+      drop_column :params
+      drop_column :ran_at
+      drop_column :comment
+      drop_column :status
+      drop_column :output
       set_column_type :run_interval, String, size: 50
     end
   end
@@ -12,11 +16,11 @@ Sequel.migration do
   down do
     alter_table(:configs) do
       rename_column :workflow_name, :etl
-      add_column :params, :json, null: false
-      add_column :ran_at, DateTime
-      add_column :comment, String
-      add_column :status, String
-      add_column :output, String
+      add_column :configs, :params, :json, null: false
+      add_column :configs, :ran_at, DateTime
+      add_column :configs, :comment, String
+      add_column :configs, :status, String
+      add_column :configs, :output, String
       set_column_type :run_interval, Integer
     end
 
