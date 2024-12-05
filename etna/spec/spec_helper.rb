@@ -18,6 +18,8 @@ ENV['ARACHNE_ENV'] = 'test'
 require_relative '../lib/etna'
 require_relative '../lib/commands'
 require_relative '../lib/etna/spec/vcr'
+require_relative '../lib/etna/jobs/etl_job'
+require_relative '../lib/etna/jobs/sftp_file_discovery'
 
 setup_base_vcr(__dir__)
 
@@ -388,6 +390,7 @@ def configure_etna_yml
           janus: { etis: "https://janus.development.local" },
           timur: { etis: "https://timur.development.local" },
           polyphemus: { etis: "https://polyphemus.development.local" },
+          polyphemus: { host: "https://polyphemus.development.local" },
           auth_redirect: "https://janus.development.local",
           ignore_ssl: false,
       }
