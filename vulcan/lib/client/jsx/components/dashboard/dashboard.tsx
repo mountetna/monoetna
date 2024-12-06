@@ -5,11 +5,11 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
 
-import {Workflow} from '../api_types';
-import WorkflowsCarousel from './dashboard/workflows_carousel';
-import WorkspacesGrid from './dashboard/workspace_control/figures_grid';
-import WorkspacesControls from './dashboard/workspace_control/figures_controls';
-import WorkflowControls from './dashboard/workflow_control/workflow_controls';
+import {Workflow} from '../../api_types';
+import WorkflowsCarousel from './workflows_carousel';
+import WorkspacesGrid from './workspace_control/workspaces_grid';
+import WorkspacesControls from './workspace_control/workspaces_controls';
+import WorkflowControls from './workflow_control/workflow_controls';
 import ProjectHeader from 'etna-js/components/project-header';
 
 const useStyles = makeStyles((theme) => ({

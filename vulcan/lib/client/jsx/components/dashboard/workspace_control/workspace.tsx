@@ -25,7 +25,7 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 import {Workflow, Workspace} from '../../../api_types';
 import useUserHooks from '../../useUserHooks';
 
-import Tag from '../../tag';
+import Tag from '../tag';
 import { workflowName } from '../../../selectors/workflow_selectors';
 
 const workspaceStyles = makeStyles((theme) => ({

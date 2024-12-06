@@ -17,9 +17,8 @@ import SearchIcon from '@material-ui/icons/Search';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {VulcanFigureSession, WorkflowsResponse, Workspaces} from '../../../api_types';
-import FigureCard from './workspace';
-import Tag from '../../tag';
+import {Workspaces} from '../../../api_types';
+import Tag from '../tag';
 
 const useStyles = makeStyles((theme) => ({
   controls: {

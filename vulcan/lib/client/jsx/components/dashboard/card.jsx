@@ -4,7 +4,7 @@ import Icon from 'etna-js/components/icon';
 
 import {workflowName} from '../../selectors/workflow_selectors';
 import ImageMemo from './image_memo';
-import Tag from '../tag';
+import Tag from './tag';
 import Typography from '@material-ui/core/Typography';
 
 // To get webpack to pick up the files.
