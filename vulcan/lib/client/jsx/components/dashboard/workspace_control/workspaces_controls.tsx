@@ -16,9 +16,8 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import SearchIcon from '@material-ui/icons/Search';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
-import {VulcanContext} from '../../contexts/vulcan_context';
-import {VulcanFigureSession} from '../../api_types';
-import FigureCard from './figure';
+import {VulcanContext} from '../../../contexts/vulcan_context';
+import {Workspaces} from '../../../api_types';
 import Tag from '../tag';
 
 const useStyles = makeStyles((theme) => ({
@@ -33,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function FiguresControls({
+export default function WorkspacesControls({
   project_name,
   setSearchString,
   setTags,
@@ -46,18 +45,16 @@ export default function FiguresControls({
   tags?: string[];
   searchString?: string;
 }) {
-  const {showErrors, fetchFigures} = useContext(VulcanContext);
+  const {showErrors, getWorkspaces} = useContext(VulcanContext);
 
-  const [allFigureSessions, setAllFigureSessions] = useState<
-    VulcanFigureSession[]
-  >([]);
+  const [allWorkspaces, setAllWorkspaces] = useState<Workspaces>([]);
 
   useEffect(() => {
     showErrors(
-      fetchFigures(
+      getWorkspaces(
         project_name
-      ).then(({figures}: {figures: VulcanFigureSession[]}) =>
-        setAllFigureSessions(figures)
+      ).then(({workspaces}: {workspaces: Workspaces}) =>
+        setAllWorkspaces(workspaces)
       )
     );
   }, []);
@@ -67,13 +64,13 @@ export default function FiguresControls({
   const allTags = useMemo(() => {
     return [
       ...new Set(
-        allFigureSessions.reduce(
+        allWorkspaces.reduce(
           (acc: string[], f) => acc.concat(f.tags || []),
           ['public']
         )
       )
     ];
-  }, [allFigureSessions]);
+  }, [allWorkspaces]);
 
   return (
     <Grid item container className={classes.controls} spacing={6}>

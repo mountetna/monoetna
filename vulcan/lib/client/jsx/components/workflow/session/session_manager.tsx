@@ -37,7 +37,7 @@ import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 import Vignette from '../vignette';
 import {workflowName} from '../../../selectors/workflow_selectors';
-import {useWorkflow} from '../../../contexts/workflow_context';
+import {useWorkspace} from '../../../contexts/workspace_context';
 import {
   VulcanFigure,
   VulcanFigureSession,
@@ -91,7 +91,7 @@ export default function SessionManager() {
     createFigure,
     clearLocalSession
   } = useContext(VulcanContext);
-  const {workflow, hasPendingEdits, complete} = useWorkflow();
+  const {workflow, workspace, hasPendingEdits, complete} = useWorkspace();
   const {canEdit, guest} = useUserHooks();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);

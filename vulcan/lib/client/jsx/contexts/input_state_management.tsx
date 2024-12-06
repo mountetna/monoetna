@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {defaultSession, VulcanState} from '../reducers/vulcan_reducer';
+import {VulcanState} from '../reducers/vulcan_reducer';
 import {
   createContext,
   Dispatch,
@@ -17,7 +17,7 @@ import {
   clearBufferedInput,
   clearAutoPassStep,
   setBufferedInput,
-  setInputs,
+  setUIValues,
   setRunTrigger,
   setAutoPassStep,
   VulcanAction
@@ -26,16 +26,14 @@ import {allSourcesForStepName} from '../selectors/workflow_selectors';
 import {
   mapSome,
   Maybe,
-  maybeOfNullable,
   some,
-  withDefault
 } from '../selectors/maybe';
 import {DataEnvelope} from '../components/workflow/user_interactions/inputs/input_types';
 import {VulcanContext} from './vulcan_context';
 
 import Button from '@material-ui/core/Button';
 import {FormControlLabel, Grid, Switch} from '@material-ui/core';
-import {Workflow} from '../api_types';
+import { Workspace } from '../api_types';
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(
@@ -48,12 +46,10 @@ export const defaultInputStateManagement = {
 
 export function isPassableUIStep(
   stepName: string | null,
-  workflow: Workflow | null
+  workspace: Workspace | null
 ) {
-  if (stepName != null) {
-    const this_step = workflow?.steps[0].filter(
-      (val) => val.name == stepName
-    )[0];
+  if (workspace && stepName != null && Object.keys(workspace.vulcan_config).includes(stepName)) {
+    const this_step = workspace?.vulcan_config[stepName];
     if (this_step?.doc?.startsWith('SKIPPABLE')) return true;
   }
   return false;
@@ -109,7 +105,7 @@ export function WithBufferedInputs({
         if (
           stepName != null &&
           stateRef.current.autoPassSteps.includes(stepName) &&
-          Object.keys(stateRef.current.session.inputs).filter((val) =>
+          Object.keys(stateRef.current.status.ui_contents).filter((val) =>
             val.includes(stepName)
           ).length < 1
         ) {
@@ -189,7 +185,7 @@ export function WithBufferedInputs({
 
   const autopass_switch = isPassableUIStep(
     stepName,
-    stateRef.current.workflow
+    stateRef.current.workspace
   ) ? (
     <FormControlLabel
       control={
@@ -206,7 +202,7 @@ export function WithBufferedInputs({
   ) : null;
 
   const controls_below =
-    isPassableUIStep(stepName, stateRef.current.workflow) || hasInputs ? (
+    isPassableUIStep(stepName, stateRef.current.workspace) || hasInputs ? (
       <Grid container style={{width: 'auto'}} justifyContent='flex-end'>
         {autopass_switch}
         {commit_reset_buttons}
@@ -260,13 +256,18 @@ export function useInputStateManagement(
       if (!validateInputs(stepName)) return false;
       const sources = allSourcesForStepName(
         stepName,
-        stateRef.current.workflow
+        stateRef.current.workspace
       );
-      const newInputs = {...stateRef.current.session.inputs};
+      const newInputs = {...stateRef.current.status.config_contents, ...stateRef.current.status.ui_contents};
       sources.forEach((source) => {
-        mapSome(inputs[source] || null, (inner) => (newInputs[source] = inner));
+        if (source.indexOf('/') > -1) {
+          const [source_step, source_name] = source.split('/');
+          mapSome(inputs[source_name] || null, (inner) => (newInputs[source_step][source_name] = inner));
+        } else {
+          mapSome(inputs[source] || null, (inner) => (newInputs[source] = inner));
+        }
       });
-      dispatch(setInputs(newInputs));
+      dispatch(setUIValues(newInputs));
       requestPoll(false, some(stepName as string));
       return true;
     },

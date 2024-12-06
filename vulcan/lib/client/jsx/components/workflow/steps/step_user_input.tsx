@@ -8,7 +8,7 @@ import {
   getInputSpecifications,
   InputSpecification
 } from '../user_interactions/inputs/input_types';
-import {useWorkflow} from '../../../contexts/workflow_context';
+import {useWorkspace} from '../../../contexts/workspace_context';
 import {
   BufferedInputsContext,
   WithBufferedInputs
@@ -23,7 +23,7 @@ function StepUserInputInner({
 }) {
   const {state} = useContext(VulcanContext);
   const {status, session, data} = state;
-  const {workflow} = useWorkflow();
+  const {workspace} = useWorkspace();
   const {inputs, setInputs} = useContext(BufferedInputsContext);
 
   const stepInputs: BoundInputSpecification[] = useMemo(
@@ -31,7 +31,7 @@ function StepUserInputInner({
       specs.map((spec) =>
         bindInputSpecification(
           spec,
-          workflow,
+          workspace,
           status,
           session,
           data,
@@ -39,7 +39,7 @@ function StepUserInputInner({
           setInputs
         )
       ),
-    [specs, workflow, status, session, data, inputs, setInputs]
+    [specs, workspace, status, session, data, inputs, setInputs]
   );
 
   return (
@@ -59,10 +59,10 @@ export default function StepUserInput({
   hideLabel: boolean;
 }) {
   const {dispatch, commitSessionInputChanges} = useContext(VulcanContext);
-  const {workflow} = useWorkflow();
+  const {workspace} = useWorkspace();
   const specs = useMemo(
-    () => getInputSpecifications(step, workflow),
-    [step, workflow]
+    () => getInputSpecifications(step, workspace),
+    [step, workspace]
   );
 
   return (

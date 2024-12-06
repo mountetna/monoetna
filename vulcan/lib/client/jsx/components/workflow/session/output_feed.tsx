@@ -4,18 +4,18 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import StepOutput from '../steps/step_output';
 import {completedUiOutputSteps} from '../../../selectors/workflow_selectors';
-import {useWorkflow} from '../../../contexts/workflow_context';
+import {useWorkspace} from '../../../contexts/workspace_context';
 
 export default function OutputFeed() {
   // Shows stream of Output, Plots, etc.,
   //   as the session object updates.
   const {state} = useContext(VulcanContext);
-  const {workflow} = useWorkflow();
+  const {workspace} = useWorkspace();
   const {status} = state;
 
   let outputs = useMemo(
-      () => completedUiOutputSteps(workflow, status),
-      [workflow, status],
+      () => completedUiOutputSteps(workspace, status),
+      [workspace, status],
   );
 
   return (

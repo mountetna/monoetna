@@ -10,7 +10,7 @@ import {
   completedSteps, isPendingUiQuery, pendingSteps, uiQueryOfStep, useMemoized
 } from '../../../selectors/workflow_selectors';
 import {BoundInputSpecification} from '../user_interactions/inputs/input_types';
-import {useWorkflow} from '../../../contexts/workflow_context';
+import {useWorkspace} from '../../../contexts/workspace_context';
 
 import IconButton from '@material-ui/core/IconButton';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
@@ -46,7 +46,7 @@ const collator = new Intl.Collator(undefined, {
 
 export default function InputGroup({inputs, groupName, select, expanded}: Props) {
   const {state} = useContext(VulcanContext);
-  const {workflow} = useWorkflow();
+  const {workspace} = useWorkspace();
   let {session, status, data} = state;
   const [open, setOpen] = useState(true);
 
@@ -55,10 +55,10 @@ export default function InputGroup({inputs, groupName, select, expanded}: Props)
   useEffect(() => {
     if (inputs.length === 0) return;
     // Automatically collapse the input group if there are pending or completed UI input steps.
-    let completed = completedSteps(workflow, status).filter(step => !!uiQueryOfStep(step));
-    let nextUiSteps = pendingSteps(workflow, status).filter(step => isPendingUiQuery(step, status, data, session));
+    let completed = completedSteps(workspace, status).filter(step => !!uiQueryOfStep(step));
+    let nextUiSteps = pendingSteps(workspace, status).filter(step => isPendingUiQuery(step, status, data, session));
     if (completed.length > 0 || nextUiSteps.length > 0) setOpen(false);
-  }, [status, data, session, workflow, inputs.length]);
+  }, [status, data, session, workspace, inputs.length]);
 
   const sortedInputs = useMemo(() => inputs.sort(
     (a, b) =>

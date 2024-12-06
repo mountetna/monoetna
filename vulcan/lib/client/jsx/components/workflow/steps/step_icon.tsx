@@ -26,6 +26,9 @@ const useStyles = makeStyles((theme) => ({
   [STATUS.PENDING]: {
     color: 'gray'
   },
+  [STATUS.UPCOMING]: {
+    color: 'gray'
+  },
   [STATUS.ERROR]: {
     color: 'red'
   }
@@ -37,6 +40,7 @@ const icons: {[k: string]: {icon: IconClass}} = {
   [STATUS.COMPLETE]: {icon: CheckIcon},
   [STATUS.RUNNING]: {icon: ClockIcon},
   [STATUS.PENDING]: {icon: ClockIcon},
+  [STATUS.UPCOMING]: {icon: ClockIcon},
   [STATUS.ERROR]: {icon: ErrorIcon}
 };
 const StepIcon = ({
