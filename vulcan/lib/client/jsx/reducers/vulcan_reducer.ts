@@ -1,27 +1,18 @@
 import {VulcanAction} from '../actions/vulcan_actions';
 import {
-  StepStatus,
-  Workflow,
   WorkflowsResponse,
   Workspace,
   AccountingReturn,
-  defaultWorkflowsResponse,
   defaultWorkspaceStatus,
+  WorkspaceStatus,
   Workspaces,
   defaultWorkflow
 } from '../api_types';
 import {
-  allExpectedOutputSources,
   allUISteps,
   configUISteps,
-  filterEmptyValues,
-  selectFigure,
-  selectSession,
-  statusOfStep,
-  stepOfStatus
 } from '../selectors/workflow_selectors';
 import {mapSome, Maybe, some, withDefault} from '../selectors/maybe';
-import { WorkspaceStatus, AccountingReturn } from '../api_types';
 
 export type DownloadedData = any; // TODO: improve typing here.
 export type DownloadedStepDataMap = {[k: string]: DownloadedData};
@@ -59,6 +50,9 @@ export const defaultVulcanState = {
   runId: defaultId,
   status: defaultStatus, // Only filled input/outputs in here
   data: defaultData,
+
+  // MAYBE: So that users can preview from their local storage before triggering the vulcan workspace to match it
+  sessionWorkspaceSyncd: true,
 
   // A subset of all steps that have buffered changes.
   bufferedSteps: [] as (string | null)[],
@@ -245,6 +239,34 @@ export default function VulcanReducer(
         }
       };
 
+    case 'SET_STATE_FROM_STORAGE':
+      const currentWorkspace = state.workspace;
+      if (
+        !currentWorkspace ||
+        action.storage.workspace.workflow_id !== currentWorkspace.workflow_id ||
+        action.storage.workspace.workspace_id !== currentWorkspace.workspace_id ||
+        action.storage.workspace.project !== currentWorkspace.project
+      ) {
+        console.warn(
+          'Cannot update session from cookie: project name, workflow id, or workspace id do not match.',
+          currentWorkspace,
+          action
+      );
+        return state;
+      }
+      return {
+        ...state,
+        workspace: {...action.storage.workspace},
+        status: {...action.storage.status},
+        sessionWorkspaceSyncd: false,
+      };
+
+    case 'SET_WORKSPACE_STATE_SYNCD':
+      return {
+        ...state,
+        sessionWorkspaceSyncd: true,
+      };
+
     // case 'REMOVE_DOWNLOADS':
     //   return {
     //     ...state,
@@ -256,6 +278,12 @@ export default function VulcanReducer(
     //       )
     //     ]
     //   };
+
+    case 'SET_WORKSPACE_FILES':
+      return {
+        ...state,
+        status: {...state.status, output_files: action.fileNames}
+      };
 
     case 'SET_UI_VALUES':
       if (state.pollingState) {

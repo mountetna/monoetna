@@ -7,8 +7,8 @@ import {makeStyles} from '@material-ui/core/styles';
 
 import {Workflow} from '../api_types';
 import WorkflowsCarousel from './dashboard/workflows_carousel';
-import FiguresGrid from './dashboard/figures_grid';
-import FiguresControls from './dashboard/figures_controls';
+import WorkspacesGrid from './dashboard/workspace_control/figures_grid';
+import WorkspacesControls from './dashboard/workspace_control/figures_controls';
 import WorkflowControls from './dashboard/workflow_control/workflow_controls';
 import ProjectHeader from 'etna-js/components/project-header';
 
@@ -74,7 +74,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
             </Typography>
           </Grid>
           <Grid item xs={10}>
-            <FiguresControls
+            <WorkspacesControls
               setSearchString={setSearchString}
               setTags={setTags}
               project_name={project_name}
@@ -83,9 +83,9 @@ export default function Dashboard({project_name}: {project_name: string}) {
             />
           </Grid>
         </Grid>
-        <FiguresGrid
+        <WorkspacesGrid
           project_name={project_name}
-          workflowName={selectedWorkflow?.name}
+          workflowId={selectedWorkflow?.id}
           tags={tags}
           searchString={searchString}
           setSearchString={setSearchString}

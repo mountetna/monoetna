@@ -1,11 +1,3 @@
-// Status
-export const STATUS = {
-  PENDING: 'pending',
-  COMPLETE: 'complete',
-  ERROR: 'error',
-  RUNNING: 'running'
-};
-
 // Types
 export const TYPE = {
   INTEGER: 'int',
@@ -71,12 +63,9 @@ export type WorkflowsResponse = typeof defaultWorkflowsResponse;
 
 export interface WorkspaceStep {
   name: string;
-  // run: string;
-  vulcan_config: boolean;
-  in: StepInput[];
-  out: string[];
-  label?: string | null;
-  doc?: string | null;
+  inputs: InputOutputConfig;
+  outputs: InputOutputConfig;
+  vulcan_config?: boolean;
 }
 
 // export const defaultWorkflowStep: WorkflowStep = {
@@ -107,7 +96,7 @@ export interface WorkspaceStep {
 // }
 
 export interface Workflow {
-  id: number;
+  id: number | null;
   name: string;
   projects: string[];
   branch: string;
@@ -124,26 +113,45 @@ export interface Workflow {
 }
 
 export const defaultWorkflow: Workflow = {
-  id: 0,
+  id: null,
   name: '',
   projects: [],
   branch: '',
   repo_remote_url: '',
   created_at: 0,
-  updated_at: 0
+  updated_at: 0,
+  tags: []
 };
 
 export interface Workspace {
-  workspace_id: number;
-  workflow_id: number;
+  workspace_id: number | null;
+  workflow_id: number | null;
   project: string;
   vulcan_config: VulcanConfig;
+  steps: {[k: string]: WorkspaceStep};
   dag: string[];
-  last_config?: {[k: string]: any}
-  last_job_status?: {[k: string]: StatusString}
+  last_config?: {[k: string]: any};
+  last_job_status?: {[k: string]: StatusString};
+  thumbnails?: string[];
+  author?: string;
+  title?: string;
+  tags: string[];
 }
 
+export const defaultWorkspace: Workspace = {
+  workspace_id: null,
+  workflow_id: null,
+  project: '',
+  vulcan_config: {},
+  steps: {},
+  dag: [],
+  last_config: {},
+  last_job_status: {},
+};
+
 export type Workspaces = Workspace[]
+
+export type WorkspacesResponse = {workspaces: Workspaces}
 
 export interface FileContentResponse {
   filename: string;
@@ -170,18 +178,15 @@ export interface AccountingReturn {
 export type VulcanConfig = {[k: string]: VulcanConfigElement}
 
 export interface VulcanConfigElement {
+  name: string;
   display: string;
   ui_component: string;
-  input?: InputConfig;
-  output?: OutputConfig;
+  doc?: string;
+  input?: InputOutputConfig;
+  output?: InputOutputConfig;
 }
 
-export interface InputConfig {
-  files?: string[]
-  params?: string[]
-}
-
-export interface OutputConfig {
+export interface InputOutputConfig {
   files?: string[]
   params?: string[]
 }
@@ -240,7 +245,15 @@ export const StatusStringBroaden = (fine: StatusStringFine) => {
   } as {[k:string]: StatusString})[fine]
 }
 
-export type StatusString = 'running' | 'upcoming' |  'pending' | 'complete' | 'error';
+export const STATUS = {
+  PENDING: 'pending',
+  UPCOMING: 'upcoming',
+  COMPLETE: 'complete',
+  ERROR: 'error',
+  RUNNING: 'running'
+} as const;
+
+export type StatusString = typeof STATUS[keyof typeof STATUS];
 
 export interface StepStatus {
   name: string;
@@ -256,31 +269,25 @@ export const defaultStepStatus: StepStatus = {
   statusFine: 'NOT STARTED'
 };
 
-export type WorkspaceStatus = {
-  steps: {[k: string]: StepStatus},
-  output_files: string[],
-  config_contents: {[k: string]: any},
-  ui_contents: {[k: string]: {[k: string]: any}},
+export const defaultWorkspaceStatus = {
+  steps: {} as {[k: string]: StepStatus},
+  output_files: [] as string[],
+  config_contents: {} as {[k: string]: any},
+  ui_contents: {} as {[k: string]: {[k: string]: any}},
 }
 
-export const defaultWorkspaceStatus: WorkspaceStatus = {
-  steps: {},
-  config_contents: {},
-  ui_contents: {},
-  output_files: []
-}
+export type WorkspaceStatus = typeof defaultWorkspaceStatus;
 
-export const defaultVulcanSession = {
-  project_name: '',
-  workflow_id: null as number | null,
-  workspace_id: null as number | null,
-  workspace: null as Workspace | null, 
-  key: '',
-  params: {} as {[k: string]: any},
-  ui_values: {} as {[k: string]: any},
+// The elements stored as local cookie.
+export type VulcanStorage = {
+  workspace: Workspace,
+  status: WorkspaceStatus
 };
 
-export type VulcanSession = typeof defaultVulcanSession;
+export const defaultVulcanStorage: VulcanStorage = {
+  workspace: {...defaultWorkspace},
+  status: {...defaultWorkspaceStatus},
+};
 
 // export const defaultSessionStatusResponse = {
 //   session: defaultVulcanSession,

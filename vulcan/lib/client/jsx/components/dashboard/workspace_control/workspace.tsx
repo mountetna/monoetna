@@ -21,18 +21,19 @@ import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Grid from '@material-ui/core/Grid';
 
-import {VulcanContext} from '../../contexts/vulcan_context';
-import {Workflow, VulcanFigureSession} from '../../api_types';
-import useUserHooks from '../useUserHooks';
+import {VulcanContext} from '../../../contexts/vulcan_context';
+import {Workflow, Workspace} from '../../../api_types';
+import useUserHooks from '../../useUserHooks';
 
-import Tag from '../tag';
+import Tag from '../../tag';
+import { workflowName } from '../../../selectors/workflow_selectors';
 
-const figureStyles = makeStyles((theme) => ({
+const workspaceStyles = makeStyles((theme) => ({
   content: {
     width: '100%',
     height: '100%'
   },
-  figure: {
+  workspace: {
     border: '1px solid #eee',
     margin: '25px',
     width: '300px'
@@ -91,7 +92,7 @@ const figureStyles = makeStyles((theme) => ({
   }
 }));
 
-const authorInitials = ({author}: VulcanFigureSession) => {
+const authorInitials = ({author}: Workspace) => {
   if (!author) return '';
 
   let names = author.split(/\s+/).filter((n: string) => /^[A-Z]/.test(n));
@@ -100,47 +101,47 @@ const authorInitials = ({author}: VulcanFigureSession) => {
     : names[0][0];
 };
 
-const figureImage = (
+const workspaceImage = (
   workflow: Workflow | null,
-  figure: VulcanFigureSession
+  workspace: Workspace
 ): [Boolean, string] =>
-  figure.thumbnails && figure.thumbnails.length > 0
-    ? [false, figure.thumbnails[0]]
+  workspace.thumbnails && workspace.thumbnails.length > 0
+    ? [false, workspace.thumbnails[0]]
     : [
         true,
         `/images/${workflow && workflow.image ? workflow.image : 'default.png'}`
       ];
 
-const Figure = ({
-  figureSession,
-  onCopy,
+const WorkspaceCard = ({
+  workspace,
+  // onCopy,
   onRename,
   onRemove
 }: {
-  figureSession: VulcanFigureSession;
-  onCopy: () => void;
+  workspace: Workspace;
+  // onCopy: () => void;
   onRename: () => void;
   onRemove: () => void;
 }) => {
   const invoke = useActionInvoker();
   let {state} = useContext(VulcanContext);
-  const {workflows} = state;
+  const {workflows, projectName} = state;
 
   const {canEdit} = useUserHooks();
 
-  const workflow = workflows
-    ? workflows.find((w) => w.name == figureSession.workflow_name) || null
+  const workflow = workflows && workspace.workflow_id
+    ? workflows.find((w) => w.id == workspace.workflow_id) || null
     : null;
 
-  const classes = figureStyles();
+  const classes = workspaceStyles();
 
-  const visitFigure = useCallback(() => {
+  const visitWorkspace = useCallback(() => {
     invoke(
       pushLocation(
-        `/${figureSession.project_name}/figure/${figureSession.figure_id}`
+        `/${projectName}/workspace/${workspace.workspace_id}`
       )
     );
-  }, [invoke, figureSession]);
+  }, [invoke, projectName, workspace]);
 
   const [menuAnchor, setMenuAnchor] = useState(
     null as HTMLButtonElement | null
@@ -150,10 +151,10 @@ const Figure = ({
     setMenuAnchor(null);
   };
 
-  const handleOnCopy = useCallback(() => {
-    handleClose();
-    onCopy();
-  }, [onCopy]);
+  // const handleOnCopy = useCallback(() => {
+  //   handleClose();
+  //   onCopy();
+  // }, [onCopy]);
 
   const handleOnRename = useCallback(() => {
     handleClose();
@@ -165,33 +166,35 @@ const Figure = ({
     onRemove();
   }, [onRemove]);
 
-  const editor = useMemo(() => canEdit(figureSession), [
-    figureSession,
+  const editor = useMemo(() => canEdit(workspace), [
+    workspace,
     canEdit
   ]);
 
-  const [defaultImage, image] = figureImage(workflow, figureSession);
+  const [defaultImage, image] = workspaceImage(workflow, workspace);
+
+  const title = workspace.title ? workspace.title : workflow ? `unnamed-${workflow.name}` : 'unnamed-workspace'
 
   return (
-    <Card className={classes.figure}>
+    <Card className={classes.workspace}>
       <Menu
-        id={`${figureSession.figure_id}-dropdown-menu`}
+        id={`${workspace.workspace_id}-dropdown-menu`}
         open={Boolean(menuAnchor)}
         anchorEl={menuAnchor}
         onClose={handleClose}
       >
-        <MenuItem onClick={handleOnCopy}>Copy</MenuItem>
+        {/* <MenuItem onClick={handleOnCopy}>Copy</MenuItem> */}
         {editor ? <MenuItem onClick={handleOnRename}>Rename</MenuItem> : null}
         {editor ? <MenuItem onClick={handleOnRemove}>Remove</MenuItem> : null}
       </Menu>
       <CardHeader
-        title={figureSession.title}
+        title={title}
         titleTypographyProps={{
           variant: 'subtitle1',
-          title: figureSession.title,
+          title: title,
           className: classes.title
         }}
-        subheader={figureSession.workflow_name.replace('.cwl', '')}
+        subheader={workflowName(workflow) || ''}
         subheaderTypographyProps={{variant: 'subtitle2'}}
         action={
           <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)}>
@@ -201,11 +204,11 @@ const Figure = ({
       />
       <CardMedia
         className={defaultImage ? classes.defaultImage : classes.image}
-        onClick={visitFigure}
+        onClick={visitWorkspace}
         component='img'
         height='200'
         image={image}
-        title={figureSession.title || ''}
+        title={title}
       />
       <CardContent style={{width: '280px', height: '65px', padding: '10px'}}>
         <Grid
@@ -215,14 +218,14 @@ const Figure = ({
           className={classes.content}
         >
           <Grid item xs={1}>
-            <Tooltip title={figureSession.author || ''}>
+            <Tooltip title={workspace.author || ''}>
               <Avatar className={classes.author}>
-                {authorInitials(figureSession)}
+                {authorInitials(workspace)}
               </Avatar>
             </Tooltip>
           </Grid>
           <Grid item xs={11} container className={classes.tags}>
-            {(figureSession.tags || []).map((tag, index) => (
+            {(workspace.tags || []).map((tag, index) => (
               <Tag className={classes.tag} key={index} label={tag} />
             ))}
           </Grid>
@@ -232,4 +235,4 @@ const Figure = ({
   );
 };
 
-export default Figure;
+export default WorkspaceCard;

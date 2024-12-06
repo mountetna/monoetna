@@ -66,13 +66,13 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
 
     const localSessionHelpers = withOverrides(useLocalSessionStorage(state, props), props);
     const apiHelpers = withOverrides(useApi(invoker), props);
-    const {showErrors, getData, getWorkflows, pollStatus, postInputs} = apiHelpers;
+    const {showErrors, readFiles, getWorkflows, pollStatus, postUIValues} = apiHelpers;
     const sessionSyncHelpers = withOverrides(
-      useSessionSync(stateRef, showErrors, pollStatus, postInputs, dispatch),
+      useSessionSync(stateRef, showErrors, pollStatus, postUIValues, dispatch),
       props
     );
-    useDataBuffering(state, dispatch, showErrors, getData);
-    useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, showErrors);
+    useDataBuffering(state, dispatch, showErrors, readFiles);
+    useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, showErrors, state.projectName);
     const confirmationHelpers = withOverrides(useConfirmation(), props);
     const inputHelpers = useInputStateManagement(invoker, dispatch, sessionSyncHelpers.requestPoll, stateRef);
 

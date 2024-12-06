@@ -19,7 +19,7 @@ import {
   DataEnvelope,
   getInputSpecifications
 } from '../user_interactions/inputs/input_types';
-import {useWorkflow} from '../../../contexts/workflow_context';
+import {useWorkspace} from '../../../contexts/workspace_context';
 import {Maybe, maybeOfNullable} from '../../../selectors/maybe';
 import {
   BufferedInputsContext,
@@ -50,12 +50,12 @@ function PrimaryInputsInner() {
   const {state} = useContext(VulcanContext);
   const {inputs, setInputs} = useContext(BufferedInputsContext);
   const {session} = state;
-  const {workflow} = useWorkflow();
+  const {workspace} = useWorkspace();
 
   // Ensure defaults are set.
   useEffect(() => {
     let withDefaults: DataEnvelope<Maybe<any>> = mergeInputsWithDefaults(
-      workflow.inputs,
+      workspace.inputs,
       session.inputs,
       inputs
     );
@@ -63,11 +63,11 @@ function PrimaryInputsInner() {
     if (Object.keys(withDefaults).length > 0) {
       setInputs((inputs) => ({...inputs, ...withDefaults}));
     }
-  }, [inputs, session.inputs, setInputs, workflow.inputs]);
+  }, [inputs, session.inputs, setInputs, workspace.inputs]);
 
   const inputSpecifications = useMemo(
-    () => getInputSpecifications(Object.entries(workflow.inputs), workflow),
-    [workflow]
+    () => getInputSpecifications(Object.entries(workspace.inputs), workspace),
+    [workspace]
   );
 
   let groupedInputs = useMemo(() => {
@@ -77,7 +77,7 @@ function PrimaryInputsInner() {
       result[groupName].push(
         bindInputSpecification(
           spec,
-          workflow,
+          workspace,
           state.status,
           state.session,
           state.data,
@@ -94,7 +94,7 @@ function PrimaryInputsInner() {
     state.data,
     state.session,
     state.status,
-    workflow
+    workspace
   ]);
 
   const [expanded, setExpanded] = useState('');

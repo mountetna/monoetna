@@ -20,11 +20,12 @@ import {
   RunStatus,
   SessionStatusResponse,
   VulcanFigureSession,
-  VulcanSession,
+  VulcanStorage,
   WorkflowsResponse,
   Workspace,
   Workspaces,
-  WorkspaceStatus
+  WorkspaceStatus,
+  WorkspacesResponse
 } from '../api_types';
 
 export const defaultApiHelpers = {
@@ -47,16 +48,22 @@ export const defaultApiHelpers = {
   createWorkflow(projectName: string, repoUrl: string, workflowName: string): Promise<Response> {
     return new Promise(() => null);
   },
-  getWorkflows(projectName: string): Promise<Response | WorkflowsResponse> {
+  getWorkflows(projectName: string): Promise<WorkflowsResponse> {
     return new Promise(() => null);
   },
   createWorkspace(projectName: string, workflowId: number, branch: string, workspaceName: string): Promise<Response | Workspace> {
     return new Promise(() => null);
   },
-  getWorkspaces(projectName: string): Promise<Response | Workspaces> {
+  getWorkspaces(projectName: string): Promise<WorkspacesResponse> {
     return new Promise(() => null);
   },
   getWorkspace(projectName: string, workspaceId: number): Promise<Response | Workspace> {
+    return new Promise(() => null);
+  },
+  updateWorkspace(projectName: string, workspaceId: number, name: string, tags: string[]): Promise<Workspace> {
+    return new Promise(() => null);
+  },
+  deleteWorkspace(projectName: string, workspaceId: number): Promise<Response> {
     return new Promise(() => null);
   },
   getFileNames(projectName: string, workspaceId: number): Promise<Response | string[]> {
@@ -147,7 +154,7 @@ export function useApi(
     });
   }, []);
 
-  const getWorkflows = useCallback((projectName: string): Promise<Response | WorkflowsResponse> => {
+  const getWorkflows = useCallback((projectName: string): Promise<WorkflowsResponse> => {
     // old: ROUTES.fetch_workflows
     return vulcanGet(vulcanPath(`/api/v2/${projectName}/workflows`))
   }, [vulcanGet, vulcanPath]);
@@ -227,7 +234,7 @@ export function useApi(
   );
 
   const getWorkspaces = useCallback(
-    (projectName: string): Promise<Response | Workspaces> => {
+    (projectName: string): Promise<WorkspacesResponse> => {
       // Old: ROUTES.fetch_figures
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace`));
   }, [vulcanGet, vulcanPath]);
@@ -238,13 +245,28 @@ export function useApi(
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}`));
   }, [vulcanGet, vulcanPath]);
 
+  const updateWorkspace = useCallback(
+    (projectName: string, workspaceId: number, title: string, tags: string[]): Promise<Workspace> => {
+      return vulcanPost(
+        vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/update`),
+        {
+          title: title,
+          tags: tags
+        });
+  }, [vulcanPost, vulcanPath]);
+
+  const deleteWorkspace = useCallback(
+    (projectName: string, workspaceId: number): Promise<Response> => {
+      return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/delete`));
+  }, [vulcanGet, vulcanPath]);
+
   const getFileNames = useCallback(
-    (projectName: string, workspaceId: number): Promise<Response | string[]> => {
+    (projectName: string, workspaceId: number): Promise<Response | {files: string[]}> => {
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/file`))
   }, [vulcanGet, vulcanPath]);
 
   const writeFiles = useCallback(
-    (projectName: string, workspaceId: number, content: FileContentResponse | MultiFileContentResponse) => {
+    (projectName: string, workspaceId: number, content: MultiFileContent) => {
       content = Array.isArray(content) ? content : [content]
       return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/file/write`),
@@ -371,6 +393,8 @@ export function useApi(
     createWorkspace,
     getWorkspaces,
     getWorkspace,
+    updateWorkspace,
+    deleteWorkspace,
     getFileNames,
     writeFiles,
     readFiles,

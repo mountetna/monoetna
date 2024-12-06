@@ -8,11 +8,14 @@ import {
   StepStatus,
   VulcanFigure,
   VulcanFigureSession,
-  VulcanSession,
+  VulcanStorage,
   Workflow,
+  WorkflowsResponse,
   WorkflowInput,
   WorkspaceStep,
-  Workspace
+  Workspace,
+  VulcanConfigElement,
+  defaultWorkflow
 } from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {
@@ -45,6 +48,13 @@ export function workflowById(
   state: VulcanState
 ): Workflow | undefined {
   return state.workflows.find((w) => workflowId(w) === id);
+}
+
+export function workflowByIdFromWorkflows(
+  id: Workspace['workflow_id'],
+  workflows: WorkflowsResponse
+): Workflow | undefined {
+  return id ? workflows.find((w) => workflowId(w) === id) : defaultWorkflow;
 }
 
 export const workspaceId = (workspace: Workspace | null | undefined) =>
@@ -99,6 +109,25 @@ export function outputUISteps(
     if (!value.output?.params && !value.output?.files) uiSteps.push(key)
   }
   return uiSteps
+}
+
+export function allUIFileInputs(
+  workspace: Workspace
+): string[] {
+  if (!workspace) return [];
+  let files: string[] = [];
+  for (const value of Object.values(workspace.vulcan_config)) {
+    if (value.input?.files) files.concat(value.input.files)
+  };
+  return files;
+}
+
+export function shouldDownloadOutput(
+  workspace: Workspace,
+  outputName: string
+) {
+  // Should download if output is an input to a UIstep -- which we can know from the vulcan config
+  return allUIFileInputs(workspace).includes(outputName)
 }
 
 // export function stepOfStatus(
@@ -203,8 +232,15 @@ export const stepInputDataUrls = (
   return result;
 };
 
-export function allWorkflowPrimaryInputSources(workflow: Workflow): string[] {
-  return Object.keys(workflow.inputs);
+export function allWorkspacePrimaryInputSources(workspace: Workspace): string[] {
+  let params = [] as string[];
+  // ONLY ui for config elements have param outputs.
+  Object.values(workspace.vulcan_config).map(val => {
+    if (val.output && val.output.params) {
+      params = params.concat(val.output.params);
+    }
+  })
+  return params;
 }
 
 export const sourceNameOfReference = (ref: [string, string]) => {
@@ -285,28 +321,34 @@ export function dataOfSource(
 }
 
 export function allExpectedOutputSources(
-  step: WorkspaceStep | WorkflowStepGroup
+  step: VulcanConfigElement | WorkflowStepGroup
 ): string[] {
   if ('steps' in step) {
     return step.steps
       .map(allExpectedOutputSources)
       .reduce((a, b) => [...a, ...b], []);
   } else {
-    return step.out.map((outputName) =>
-      sourceNameOfReference([step.name, outputName])
-    );
+    if (!step.output) return [];
+    let outputs: string[] = [];
+    if (step.output.params) {
+      outputs = outputs.concat(step.output.params);
+    }
+    if (step.output.files) {
+      outputs = outputs.concat(step.output.files);
+    }
+    return outputs;
   }
 }
 
 export function allSourcesForStepName(
   name: string | null,
-  workflow: Workflow | null
+  workspace: Workspace | null
 ): string[] {
-  if (!workflow) return [];
-  if (!name) return allWorkflowPrimaryInputSources(workflow);
-  const step = stepOfStatus(name, workflow);
-  if (!step) return [];
-  return allExpectedOutputSources(step);
+  if (!workspace) return [];
+  if (!name) return allWorkspacePrimaryInputSources(workspace);
+  if (!Object.keys(workspace.vulcan_config).includes(name)) return [];
+  const step = workspace.vulcan_config[name];
+  return allExpectedOutputSources(step).map(val => sourceNameOfReference([name, val]));
 }
 
 export const isDataConsumer = (step: WorkspaceStep) =>
@@ -498,7 +540,7 @@ export function useMemoized<P1, R>(f: (p1: P1) => R, p1: P1): R {
 
 export function selectSession(
   figureResponse: VulcanFigureSession
-): VulcanSession {
+): VulcanStorage {
   return {
     project_name: figureResponse.project_name,
     workflow_name: figureResponse.workflow_name,
@@ -524,8 +566,8 @@ export function selectFigure(
 
 export function mergeInputsWithDefaults(
   workflowInputs: Workflow['inputs'],
-  sessionInputs: VulcanSession['inputs'],
-  currentInputs: VulcanSession['inputs']
+  sessionInputs: VulcanStorage['inputs'],
+  currentInputs: VulcanStorage['inputs']
 ) {
   let withDefaults: DataEnvelope<Maybe<any>> = {};
   Object.keys(workflowInputs).forEach((inputName) => {

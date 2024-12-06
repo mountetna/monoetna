@@ -45,6 +45,7 @@ export default function WorkspaceCreateButtonModal({
   projectName: string;
   workflow: Workflow | null;
 }) {
+  if (!workflow || !workflow.id) return;
   const classes = useStyles();
   const invoke = useActionInvoker();
   let {state,
@@ -57,7 +58,7 @@ export default function WorkspaceCreateButtonModal({
   const [open, setOpen] = useState(false);
 
   const handleCreateWorkspace = useCallback(() => {
-    if (!workflow) return;
+    if (!workflow || !workflow.id) return;
     // ToDo: UI needed for branch / commit choice!
     const newSession = showErrors(createWorkspace(projectName, workflow.id, branch, workspaceName))
     invoke(

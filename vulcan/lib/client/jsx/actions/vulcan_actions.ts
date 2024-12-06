@@ -1,9 +1,6 @@
 import {
   AccountingReturn,
-  SessionStatusResponse,
-  VulcanFigure,
-  VulcanFigureSession,
-  VulcanSession,
+  VulcanStorage,
   Workflow,
   WorkflowsResponse,
   Workspaces,
@@ -41,6 +38,14 @@ export function setWorkspace(workspace: Workspace, projectName: string) {
   return actionObject('SET_WORKSPACE', {workspace, projectName});
 }
 
+export function setStateFromStorage(storage: VulcanStorage) {
+  return actionObject('SET_STATE_FROM_STORAGE', {storage});
+}
+
+export function setWorkspaceStateSyncd() {
+  return actionObject('SET_WORKSPACE_STATE_SYNCD', {});
+}
+
 export function setConfigId(configId: Workspace['workspace_id']) {
   return actionObject('SET_CONFIG_ID', {configId});
 }
@@ -58,6 +63,10 @@ export function setStatus(
 
 export function setDownloadedData(fileName: string, fileData: any) {
   return actionObject('SET_DOWNLOAD', {fileName, fileData});
+}
+
+export function setWorkspaceFiles(fileNames: string[]) {
+  return actionObject('SET_WORKSPACE_FILES', {fileNames});
 }
 
 // Fully replaces the inputs state.
@@ -131,10 +140,13 @@ export type VulcanAction =
   | ReturnType<typeof setWorkflow>
   | ReturnType<typeof setWorkspace>
   | ReturnType<typeof setWorkspaceId>
+  | ReturnType<typeof setStateFromStorage>
+  | ReturnType<typeof setWorkspaceStateSyncd>
   | ReturnType<typeof setConfigId>
   | ReturnType<typeof setRunId>
   | ReturnType<typeof setStatus>
   | ReturnType<typeof setDownloadedData>
+  | ReturnType<typeof setWorkspaceFiles>
   | ReturnType<typeof setUIValues>
   // | ReturnType<typeof removeDownloads>
   | ReturnType<typeof startPolling>

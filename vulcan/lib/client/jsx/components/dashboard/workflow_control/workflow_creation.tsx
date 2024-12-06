@@ -55,7 +55,8 @@ export default function WorkflowCreateButtonModal({projectName}: {
   const handleCreate = useCallback((workflowName: string, repoUrl: string) => {
     // Check if workflow name is available
     const current_workflows = showErrors(getWorkflows(projectName));
-    if (current_workflows.includes(workflowName)) {
+    const current_names = Object.values(current_workflows).map(val => val.name)
+    if (current_names.includes(workflowName)) {
       setWorkflowNameError(true);
     } else {
       showErrors(

@@ -4,19 +4,19 @@ import Icon from 'etna-js/components/icon';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import Step from './step';
 import {completedUiOutputSteps} from '../../../selectors/workflow_selectors';
-import {useWorkflow} from '../../../contexts/workflow_context';
+import {useWorkspace} from '../../../contexts/workspace_context';
 
 export default function StepsList() {
   const [open, setOpen] = useState(false);
   const {state} = useContext(VulcanContext);
   const {status} = state;
-  const {workflow} = useWorkflow();
+  const {workspace} = useWorkspace();
 
   function handleToggle() {
     setOpen(!open);
   }
 
-  const outputs = useMemo(() => completedUiOutputSteps(workflow, status), [workflow, status]);
+  const outputs = useMemo(() => completedUiOutputSteps(workspace, status), [workspace, status]);
   const hasCompletedOutputs = outputs.length === 0;
 
   useEffect(() => {
@@ -30,7 +30,8 @@ export default function StepsList() {
         <div className='title'>Steps</div>
       </div>
       <div className='steps-list-wrapper'>
-        {workflow ? workflow.steps[0].map((step, index) => {
+        {/* ToDo: Order based on workspace.dag */}
+        {workspace ? workflow.steps[0].map((step, index) => {
               return <Step key={index} step={step}/>;
             })
           : null}
