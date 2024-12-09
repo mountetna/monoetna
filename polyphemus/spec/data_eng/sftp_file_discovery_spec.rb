@@ -3,22 +3,21 @@ describe SFTPFileDiscoveryJob do
 
   let(:secrets) {
     {
-      sftp_host: "localhost",
+     "sftp_host" => "sftp",
+      "sftp_user" => "user",
+      "sftp_password" => "password",
+      "sftp_port" => "22",
     }
   }
 
   let(:config) {
     {
-      "sftp_path" => "/path/to/files",
+      "sftp_path" => "/home/user/uploads",
     }
   }
 
   before do
-    # Setup polyphemus client
-    configure_etna_yml
     ENV['TOKEN'] = TEST_TOKEN
-
-    # 
     ENV['ARGO_WORKFLOW_ID'] = "1234567890"
     # Setup sftp client
   end
@@ -36,7 +35,6 @@ describe SFTPFileDiscoveryJob do
     end
 
     it 'records the number of files to update in the db' do
-      # Lol
     end
 
     it 'writes the files to update to a csv' do

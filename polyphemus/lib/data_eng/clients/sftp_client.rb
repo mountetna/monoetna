@@ -64,6 +64,7 @@ class SFTPClient
   # @param remote_dir [String] the remote directory path
   def list_files(remote_dir)
     Net::SFTP.start(@host, @username, password: @password, port: @port) do |sftp|
+      require 'pry'; binding.pry
       entries = sftp.dir.entries(remote_dir)
       entries.each { |entry| puts entry.name }
     end

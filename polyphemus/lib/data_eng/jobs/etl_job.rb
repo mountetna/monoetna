@@ -12,9 +12,6 @@ module Etna
       @run_id ||= ENV['ARGO_WORKFLOW_ID']
     end
 
-    def workflow_table
-      @workflow_table ||= ENV['WORKFLOW_TABLE']
-    end
 
     # Pre-condition method to check if ETL should proceed
     #

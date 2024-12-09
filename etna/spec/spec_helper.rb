@@ -18,8 +18,6 @@ ENV['ARACHNE_ENV'] = 'test'
 require_relative '../lib/etna'
 require_relative '../lib/commands'
 require_relative '../lib/etna/spec/vcr'
-require_relative '../lib/etna/jobs/etl_job'
-require_relative '../lib/etna/jobs/sftp_file_discovery'
 
 setup_base_vcr(__dir__)
 

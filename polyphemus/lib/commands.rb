@@ -728,5 +728,37 @@ class Polyphemus
       Polyphemus.instance.setup_ssh
     end
   end
+
+class RunJob < Etna::Command
+    include WithEtnaClients
+
+    def job_map
+      {
+        "file_discovery" => SftpFileDiscoveryJob
+      }
+    end
+
+    def execute(job_name, config_id)
+      # Retrieve the workflow config from polyphemus
+      config, secrets = polyphemus_client.get_config(config_id)
+
+      # Instantiate the job and run it
+      job = job_map[job_name] || raise("Job not found: #{job_name}")
+      job.new(config, secrets)
+      job.execute
+    end
+
+  end
+
+  class WriteRunMetadata < Etna::Command
+    include WithEtnaClients
+
+    def execute(config_id, run_id, workflow_json)
+      polyphemus_client.write_run_metadata(config_id, run_id, workflow_json)
+    end
+
+  end
+
+
 end
 

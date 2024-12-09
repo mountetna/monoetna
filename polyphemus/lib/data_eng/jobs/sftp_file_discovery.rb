@@ -1,19 +1,18 @@
 require_relative 'etl_job'
 require_relative '../sftp_client'
 
-class SFTPFileDiscovery < Etna::ETLJob
+class SFTPFileDiscoveryJob < Etna::ETLJob
   include WithEtnaClients
 
   def initialize(config, secrets)
-    super(config, secrets)
     @sftp_client = SFTPClient.new(
-      config[:sftp_host],
-      config[:sftp_user],
-      secrets[:sftp_password],
+      secrets['sftp_host'],
+      secrets['sftp_user'],
+      secrets['sftp_password'],
     )
-    @workflow_config_id = config[:config_id]
-    @regex = config[:regex]
-    @root_dir = config[:root_dir]
+    @workflow_config_id = config['config_id']
+    @regex = config['regex']
+    @root_dir = config['root_dir']
   end
 
   def pre
@@ -22,6 +21,7 @@ class SFTPFileDiscovery < Etna::ETLJob
 
   # Process method containing the main File Discovery ETL logic
   def process
+    require 'pry'; binding.pry
     last_scan = fetch_last_scan
     files_to_update = fetch_files_from_sftp(last_scan)
     @sftp_client.write_csv(config[:files_to_update_path], files_to_update)
@@ -42,7 +42,6 @@ class SFTPFileDiscovery < Etna::ETLJob
 
   # Fetch the last_scan timestamp from the pipeline state using Polyphemus client
   def fetch_last_scan
-    require 'pry'; binding.pry
     state = polyphemus_client.get_workflow_state(run_id, most_recent=True)
     state[:last_scan] ? Time.parse(state[:last_scan]) : Time.at(0) # Default to epoch if not found
   rescue StandardError => e
