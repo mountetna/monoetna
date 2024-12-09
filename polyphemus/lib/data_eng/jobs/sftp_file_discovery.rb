@@ -1,7 +1,7 @@
 require_relative 'etl_job'
-require_relative '../sftp_client'
+require_relative '../clients/sftp_client'
 
-class SFTPFileDiscoveryJob < Etna::ETLJob
+class SFTPFileDiscoveryJob < Polyphemus::ETLJob
   include WithEtnaClients
 
   def initialize(config, secrets)
@@ -21,7 +21,6 @@ class SFTPFileDiscoveryJob < Etna::ETLJob
 
   # Process method containing the main File Discovery ETL logic
   def process
-    require 'pry'; binding.pry
     last_scan = fetch_last_scan
     files_to_update = fetch_files_from_sftp(last_scan)
     @sftp_client.write_csv(config[:files_to_update_path], files_to_update)

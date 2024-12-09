@@ -1,7 +1,6 @@
-module Etna
+class Polyphemus
   class ETLJob
     attr_reader :config
-    
   
     def initialize(config = {}, secrets = {})
       @config = config
@@ -11,7 +10,6 @@ module Etna
     def run_id
       @run_id ||= ENV['ARGO_WORKFLOW_ID']
     end
-
 
     # Pre-condition method to check if ETL should proceed
     #
