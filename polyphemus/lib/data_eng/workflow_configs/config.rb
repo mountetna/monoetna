@@ -1,7 +1,5 @@
 class Polyphemus
-  # This data could eventually get stored in a database, where we track
-  #   job status, submission time, etc.
-  class Job
+  class WorkflowConfig
     class << self
       def inherited(subclass)
         @list ||= []
@@ -17,10 +15,6 @@ class Polyphemus
 
       def secret_keys
         as_json[:secrets]
-      end
-
-      def should_run?
-        false
       end
 
       def validate_secrets(secrets)
@@ -74,10 +68,6 @@ class Polyphemus
       @request_params = request_params
       @token = token
       @errors = []
-    end
-
-    def run
-      raise "This should be implemented in a subclass."
     end
 
     def valid?

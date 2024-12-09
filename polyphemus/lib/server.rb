@@ -4,6 +4,7 @@ require "rack"
 require_relative "./polyphemus"
 require_relative "./polyphemus/controllers/configuration_controller"
 require_relative './polyphemus/controllers/etl_controller'
+require_relative './polyphemus/controllers/workflow_controller'
 
 class Polyphemus
   class Server < Etna::Server
@@ -36,5 +37,12 @@ class Polyphemus
     get '/' do erb_view(:client) end
 
     get '/:project_name' do erb_view(:client) end
+
+    # Polyphemus API V2
+    get "/api/workflows/:project_name/configs/:config_id", action: "etl#get_config", auth: { user: { can_edit?: :project_name } }
+    get "/api/workflows/:project_name/workflows/:run_id", action: "etl#get_workflow_state", auth: { user: { can_edit?: :project_name } }
+    post "/api/workflows/:project_name/workflows/:run_id", action: "etl#update_workflow_state", auth: { user: { can_edit?: :project_name } }
+    post "/api/workflows/:project_name/metadata", action: "etl#write_run_metadata", auth: { user: { can_edit?: :project_name } }
+
   end
 end

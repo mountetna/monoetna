@@ -696,4 +696,5 @@ class EtnaApp
       super
     end
   end
+
 end

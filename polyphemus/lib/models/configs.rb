@@ -1,5 +1,5 @@
 class Polyphemus
-  class EtlConfig < Sequel::Model
+  class Configs < Sequel::Model
     RUN_ONCE=0
     RUN_NEVER=-1
     RUN_ARCHIVED=-2
