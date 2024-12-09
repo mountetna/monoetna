@@ -37,7 +37,7 @@ export default function LibraryStats({
         latestStats[k] = roundValueToNearestSIPrefix(latest)
         // ToDo: Check that the elements are actually a week apart.
         // It's a time ordered array, but currently there's an unchecked assumption of 1 value per day!
-        since7DaysAgo[k] = roundValueToNearestSIPrefix(latest - v[v.length - 8].value)
+        since7DaysAgo[k] = roundValueToNearestSIPrefix(latest - v[Math.max(v.length - 8, 0)].value)
         carouselStats[k] = latest
     }
 
