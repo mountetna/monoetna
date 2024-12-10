@@ -1,12 +1,71 @@
 require_relative 'controller'
+require_relative '../../data_eng/workflow_manifests/manifest'
 
-class EtlController < Polyphemus::Controller
+class WorkflowController < Polyphemus::Controller
+
+  def create
+    require_params(:workflow_name, :workflow_type)
+
+    unless Polyphemus::WorkflowManifest.from_workflow_name(@params[:workflow_type])
+      raise Etna::BadRequest, "There is no such workflow type #{@params[:workflow_type]}"
+    end
+
+    config = Polyphemus::Config.create(
+      project_name: @params[:project_name],
+      workflow_name: @params[:workflow_name],
+      workflow_type: @params[:workflow_type],
+      config_id: Polyphemus::Config.next_id,
+      version_number: 1,
+      config: {},
+      secrets: {},
+    )
+    success_json(config.as_json)
+  end
+
+  def update
+    config = Polyphemus::Config.current.where(
+      project_name: @params[:project_name],
+      config_id: @params[:config_id]
+    ).first
+
+    if !config
+      raise Etna::NotFound, "No such config #{@params[:config_id]} configured for project #{@params[:project_name]}"
+    end
+    update = @params.slice(*(config.columns - [:id, :project_name, :config_id]))
+    manifest = Polyphemus::WorkflowManifest.from_workflow_name(config.workflow_type)
+
+    if update[:secrets]
+      error = manifest.validate_secrets(update[:secrets])
+      raise Etna::BadRequest, error if error
+      update[:secrets] = config.secrets.merge(update[:secrets])
+    end
+
+    if update[:config]
+      unless (errors = manifest.validate_config(update[:config])).empty?
+        raise Etna::BadRequest, "Invalid configuration for workflow \"#{config.workflow_type}\"\n#{
+          errors.map do |error|
+            JSONSchemer::Errors.pretty(error)
+          end.join("\n")
+        }"
+      end
+
+      update[:version_number] = config.version_number + 1
+
+      new_config = Polyphemus::Config.create(config.as_json.merge(update).merge(secrets: config.secrets))
+      return success_json(new_config)
+    else
+      config.update(update)
+    end
+
+    success_json(config.as_json)
+  end
+
   def jobs
     return success_json(Polyphemus::Job.list.map(&:as_json))
   end
 
   def list
-    configs = Polyphemus::EtlConfig.current.where(project_name: @params[:project_name]).all
+    configs = Polyphemus::Config.current.where(project_name: @params[:project_name]).all
     success_json(configs.map(&:as_json))
   end
 
@@ -15,7 +74,7 @@ class EtlController < Polyphemus::Controller
       raise Etna::BadRequest, "There is no such job type #{@params[:job_type]}"
     end
 
-    config_query = Polyphemus::EtlConfig.current
+    config_query = Polyphemus::Config.current
 
     if @params[:job_type]
       config_query = config_query.where(etl: @params[:job_type])
@@ -27,7 +86,7 @@ class EtlController < Polyphemus::Controller
   end
 
   def revisions
-    etl_configs = Polyphemus::EtlConfig.where(
+    etl_configs = Polyphemus::Config.where(
       project_name: @params[:project_name],
       config_id: @params[:config_id]
     ).reverse_order(:version_number).all
@@ -36,7 +95,7 @@ class EtlController < Polyphemus::Controller
   end
 
   def output
-    etl_config = Polyphemus::EtlConfig.current.where(
+    etl_config = Polyphemus::Config.current.where(
       project_name: @params[:project_name],
       config_id: @params[:config_id]
     ).first
@@ -47,7 +106,7 @@ class EtlController < Polyphemus::Controller
   end
 
   def add_output
-    etl_config = Polyphemus::EtlConfig.current.where(
+    etl_config = Polyphemus::Config.current.where(
       project_name: @params[:project_name],
       config_id: @params[:config_id]
     ).first
@@ -66,79 +125,5 @@ class EtlController < Polyphemus::Controller
     success_json(etl_config.as_json.merge(output: output))
   end
 
-  def update
-    etl_config = Polyphemus::EtlConfig.current.where(
-      project_name: @params[:project_name],
-      config_id: @params[:config_id]
-    ).first
-
-    if !etl_config
-      raise Etna::NotFound, "No such etl #{@params[:config_id]} configured for project #{@params[:project_name]}"
-    end
-
-    update = @params.slice(*(etl_config.columns - [:id, :project_name, :config_id]))
-
-    if update[:secrets]
-      error = etl_config.validate_secrets(update[:secrets])
-
-      raise Etna::BadRequest, error if error
-
-      update[:secrets] = etl_config.secrets.merge(update[:secrets])
-    end
-
-    if update[:params]
-      errors = etl_config.validate_params(update[:params])
-
-      unless errors.empty?
-        raise Etna::BadRequest, errors.join('; ').capitalize
-      end
-      update[:params] = etl_config.params.merge(update[:params])
-    end
-
-    if update[:config]
-      unless (errors = etl_config.validate_config(update[:config])).empty?
-        raise Etna::BadRequest, "Invalid configuration for etl \"#{etl_config.etl}\"\n#{
-          errors.map do |error|
-            JSONSchemer::Errors.pretty(error)
-          end.join("\n")
-        }"
-      end
-
-      update[:version_number] = etl_config.version_number + 1
-
-      new_etl_config = Polyphemus::EtlConfig.create(etl_config.as_json.merge(update).merge(secrets: etl_config.secrets))
-      return success_json(new_etl_config)
-    else
-      etl_config.update(update)
-    end
-
-    success_json(etl_config.as_json)
+  
   end
-
-  def create
-    require_params(:name, :job_type)
-
-    etl_configs = Polyphemus::EtlConfig.current.where(
-      project_name: @params[:project_name],
-      name: @params[:name]
-    ).all
-
-    unless Polyphemus::Job.from_name(@params[:job_type])
-      raise Etna::BadRequest, "There is no such job type #{@params[:job_type]}"
-    end
-
-    etl_config = Polyphemus::EtlConfig.create(
-      project_name: @params[:project_name],
-      name: @params[:name],
-      etl: @params[:job_type],
-      config_id: Polyphemus::EtlConfig.next_id,
-      version_number: 1,
-      config: {},
-      secrets: {},
-      params: {},
-      run_interval: Polyphemus::EtlConfig::RUN_NEVER
-    )
-
-    success_json(etl_config.as_json)
-  end
-end

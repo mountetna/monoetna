@@ -3,8 +3,9 @@ Sequel.migration do
     rename_table :etl_configs, :configs
 
     alter_table(:configs) do
-      rename_column :etl, :workflow_name
-      drop_column :params
+      rename_column :etl, :workflow_type
+      rename_column :name, :workflow_name
+      drop_column :params 
       drop_column :ran_at
       drop_column :status
       drop_column :output

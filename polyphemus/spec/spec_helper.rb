@@ -19,6 +19,9 @@ require "timecop"
 
 require_relative "../lib/server"
 require_relative "../lib/polyphemus"
+#require_relative '../lib/etna/jobs/etl_job'
+#require_relative '../lib/etna/jobs/sftp_file_discovery'
+
 
 setup_base_vcr(__dir__)
 
@@ -117,9 +120,9 @@ FactoryBot.define do
     to_create(&:save)
   end
 
-  factory :etl_config, class: Polyphemus::EtlConfig do
-    to_create(&:save)
-  end
+  # factory :etl_config, class: Polyphemus::EtlConfig do
+  #   to_create(&:save)
+  #end
 end
 
 def json_body
@@ -524,9 +527,9 @@ def stub_watch_folders(folder_data = nil)
   end
 end
 
-def create_dummy_etl(opts)
-  create(:etl_config, {project_name: "labors", name: "Dummy ETL", config_id: 1, version_number: 1, config: { foo: 2 }, params: {}, secrets: {}, etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_NEVER}.merge(opts))
-end
+# def create_dummy_etl(opts)
+#   create(:etl_config, {project_name: "labors", name: "Dummy ETL", config_id: 1, version_number: 1, config: { foo: 2 }, params: {}, secrets: {}, etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_NEVER}.merge(opts))
+# end
 
 def remove_dummy_job
   Polyphemus::Job.list.delete(Polyphemus::DummyJob)

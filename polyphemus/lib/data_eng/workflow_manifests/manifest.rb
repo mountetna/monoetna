@@ -1,26 +1,38 @@
 class Polyphemus
   class WorkflowManifest
     class << self
+      # Allows us to dynamically add subclasses to the list
+      # and create methods on subclasses
       def inherited(subclass)
         @list ||= []
         @list << subclass
       end
       attr_reader :list
 
-      def from_name(job_name)
-        list.find do |job|
-          job.job_name == job_name
+      def from_workflow_name(workflow_name)
+        list.find do |workflow|
+          workflow.as_json[:name] == workflow_name
         end
-      end
-
-      def secret_keys
-        as_json[:secrets]
       end
 
       def validate_secrets(secrets)
-        unless (secrets.keys - secret_keys).empty?
-          return "Secrets for #{job_name} jobs must be one of: #{secret_keys.join(', ')}"
+        unless (secrets.keys - self.as_json[:secrets]).empty?
+          return "Secrets for #{self.as_json[:name]} jobs must be one of: #{self.as_json[:secrets].join(', ')}"
         end
+      end
+
+      def validate_config(config_to_validate)
+        schema = JSONSchemer.schema(
+          JSON.parse(self.as_json[:schema].to_json)
+        )
+        schema.validate(JSON.parse(config_to_validate.to_json)).to_a
+      end
+    
+      def valid_config?(config)
+        schema = JSONSchemer.schema(
+        JSON.parse(self.as_json[:schema].to_json)
+      )
+      schema.valid?(JSON.parse(config.to_json))
       end
 
       def job_params
@@ -58,9 +70,6 @@ class Polyphemus
         errors
       end
 
-      def job_name
-        self.name.match(/::(.*)Job/)[1].underscore
-      end
     end
 
     attr_reader :request_params, :errors, :token
@@ -78,6 +87,10 @@ class Polyphemus
       raise "This should be implemented in a subclass."
     end
 
+    def as_json
+      raise "This should be implemented in a subclass."
+    end
+
     private
 
     def require_params(*params)
@@ -89,5 +102,6 @@ class Polyphemus
 
 end
 
-require_relative './redcap_job'
-require_relative './metis_job'
+require_relative './metis_linker'
+require_relative './redcap_loader'
+#require_relative './cat_ingestion'

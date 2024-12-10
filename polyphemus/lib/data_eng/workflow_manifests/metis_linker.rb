@@ -1,10 +1,11 @@
-require_relative '../etls/metis/loader'
+require_relative '../../etls/metis/loader'
 
 class Polyphemus
   class MetisLinkerManifest < Polyphemus::WorkflowManifest
+
     def self.as_json
       {
-        name: "metis",
+        name: 'metis',
         schema: Metis::Loader.to_schema,
         runtime_params: {
           commit: 'boolean'
