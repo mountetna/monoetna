@@ -10,20 +10,30 @@
 
 ### Directory structure 
 
-Since the etl jobs are just ruby classes, and leverage much of the etna lib, we can keep them in the `etna/lib` directory. 
-
 - Build argo workflows in the `polyphemus/workflows` directory.
-- Build etl jobs in the `etna/lib/jobs` directory.
+- Build etl jobs in the `polyphemus/lib/data_eng/` directory.
 
 ### ETLJob super class
 
 ETL jobs should subclass: `ETLJob` and implement the `pre`, `process`, and `post` methods.
 
+### WorkflowManifest class
+
+This class is responsible for definining:
+
+- The name of the workflow
+- The UI schema for the workflow
+- The runtime params for the workflow
+- The secrets for the workflow
+
+It is intentionally separate from ETL jobs. Ideally the ETL jobs should be agnostic of the workflow they are a part of.
+
+
 ### RunJob command
 
 We use the `RunJob` command to run an ETL job in the etna container.
 
-bin/etna run_job <workflow> <job_name> <other args>
+bin/polyphemus run_job <workflow> <job_name> <other args>
 
 ### Language 
 

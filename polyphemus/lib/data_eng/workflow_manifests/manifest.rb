@@ -1,5 +1,5 @@
 class Polyphemus
-  class WorkflowConfig
+  class WorkflowManifest
     class << self
       def inherited(subclass)
         @list ||= []
@@ -87,13 +87,6 @@ class Polyphemus
     alias_method :require_param, :require_params
   end
 
-  class JobType < String
-    REDCAP = JobType.new("redcap")
-    METIS = JobType.new("metis")
-  end
-
-  class JobError < StandardError
-  end
 end
 
 require_relative './redcap_job'

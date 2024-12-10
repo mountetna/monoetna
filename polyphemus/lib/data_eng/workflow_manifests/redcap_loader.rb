@@ -1,11 +1,11 @@
 class Polyphemus
-  class RedcapLoaderConfig < Polyphemus::WorkflowConfig
+  class RedcapLoaderManifest < Polyphemus::WorkflowManifest
     class << self
       def as_json
         {
           name: "redcap",
           schema: Redcap::Loader.to_schema,
-          params: {
+          runtime_params: {
             mode: [ {
               value: 'default',
               default: true,
