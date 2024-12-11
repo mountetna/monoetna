@@ -17,7 +17,7 @@ class Polyphemus
 
       def validate_secrets(secrets)
         unless (secrets.keys - self.as_json[:secrets]).empty?
-          return "Secrets for #{self.as_json[:name]} jobs must be one of: #{self.as_json[:secrets].join(', ')}"
+          return "Secrets for #{self.as_json[:name]} must be one of: #{self.as_json[:secrets].join(', ')}"
         end
       end
 

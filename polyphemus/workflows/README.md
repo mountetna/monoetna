@@ -22,7 +22,9 @@ ETL jobs should subclass: `ETLJob` and implement the `pre`, `process`, and `post
 This class is responsible for definining:
 
 - The name of the workflow
-- The UI schema for the workflow
+- The schema for the workflow config,
+    - used for the UI to render components 
+    - used for the definition and validation of the config
 - The runtime params for the workflow
 - The secrets for the workflow
 

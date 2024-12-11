@@ -19,8 +19,6 @@ require "timecop"
 
 require_relative "../lib/server"
 require_relative "../lib/polyphemus"
-#require_relative '../lib/etna/jobs/etl_job'
-#require_relative '../lib/etna/jobs/sftp_file_discovery'
 
 
 setup_base_vcr(__dir__)
@@ -123,6 +121,25 @@ FactoryBot.define do
   # factory :etl_config, class: Polyphemus::EtlConfig do
   #   to_create(&:save)
   #end
+end
+
+class TestManifest < Polyphemus::WorkflowManifest
+    def self.as_json
+    {
+      name: 'test workflow',
+      schema: {
+        type: 'object',
+        properties: {
+          test_key: { type: 'string' },
+        },
+        required: ['test_key'],
+      },
+      secrets: [:test_secret],
+      runtime_params: {
+        commit: 'boolean'
+      }
+    }
+    end
 end
 
 def json_body

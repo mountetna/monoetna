@@ -16,18 +16,6 @@ class Polyphemus
       Polyphemus.instance.db.get { nextval("etl_configs_ids") }
     end
 
-    def run_once?
-      run_interval == Polyphemus::Config::RUN_ONCE
-    end
-
-    def set_error!(e)
-      update(
-        status: STATUS_ERROR,
-        output: $stdout.string + "\n#{e.message}",
-        run_interval: Polyphemus::Config::RUN_NEVER
-      )
-    end
-
     def as_json(options = nil)
       to_hash.map do |key,value|
         case key
@@ -52,18 +40,5 @@ class Polyphemus
       as_json.slice(:config, :created_at, :version_number, :comment)
     end
 
-    def valid_config?(config)
-      schema = JSONSchemer.schema(
-        JSON.parse(etl_job_class.as_json[:schema].to_json)
-      )
-      schema.valid?(JSON.parse(config.to_json))
-    end
-
-    def validate_config(config)
-      schema = JSONSchemer.schema(
-        JSON.parse(etl_job_class.as_json[:schema].to_json)
-      )
-      schema.validate(JSON.parse(config.to_json)).to_a
-    end
   end
 end
