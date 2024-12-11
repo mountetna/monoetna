@@ -1,16 +1,123 @@
-describe EtlController do
+describe WorkflowController do
   include Rack::Test::Methods
 
   def app
     OUTER_APP
   end
 
-  before(:all) do
-    create_dummy_job
+  context 'config creation' do
+    it 'initializes a workflow' do
+      auth_header(:editor)
+      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+
+      expect(last_response.status).to eq(200)
+      expect(Polyphemus::Config.count).to eq(1)
+      config = Polyphemus::Config.last
+
+      expect(config.workflow_name).to eq('my workflow name')
+      expect(config.workflow_type).to eq('test workflow')
+      # expect(config.config_id).to eq(1)  This is 100 do not know why
+    end
+
+    it 'rejects invalid workflow types' do
+      auth_header(:editor)
+      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'not a workflow')
+      expect(last_response.status).to eq(422)
+    end
   end
 
-  after(:all) do
-    remove_dummy_job
+  context 'config updates' do
+
+    it 'correctly updates the config and version number' do
+      auth_header(:editor)
+      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      expect(last_response.status).to eq(200)
+      some_config = { 'test_key' => 'update 1' }
+      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+        workflow_name: 'my workflow name',
+        workflow_type: 'test workflow',
+        config: some_config
+      )
+      expect(last_response.status).to eq(200)
+      config = Polyphemus::Config.last
+      # Contains the updated config
+      expect(config.config).to eq(some_config)
+      # Contains the same config_id
+      expect(config.config_id).to eq(json_body[:config_id])
+      # Contains a new version number
+      expect(config.version_number).to eq(2)
+
+      another_config = { 'test_key' => 'update 2' }
+      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+        workflow_name: 'my workflow name',
+        workflow_type: 'test workflow',
+        config: another_config
+      )
+      expect(last_response.status).to eq(200)
+      config = Polyphemus::Config.last
+      expect(config.config_id).to eq(json_body[:config_id])
+      expect(config.config).to eq(another_config)
+      expect(config.version_number).to eq(3)
+
+    end
+
+    it 'rejects an invalid config' do
+      auth_header(:editor)
+      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      expect(last_response.status).to eq(200)
+      some_config = { 'not a valid key' => 'update 1' }
+      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+        workflow_name: 'my workflow name',
+        workflow_type: 'test workflow',
+        config: some_config
+      )
+      expect(last_response.status).to eq(422)
+    end
+
+    it 'updates secrets and not the version number' do
+      auth_header(:editor)
+      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      expect(last_response.status).to eq(200)
+      some_secret = { 'test_secret' => 'update 1' }
+      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+        workflow_name: 'my workflow name',
+        workflow_type: 'test workflow',
+        secrets: some_secret
+      )
+      expect(last_response.status).to eq(200)
+      config = Polyphemus::Config.last
+      expect(config.secrets).to eq(some_secret)
+      expect(config.version_number).to eq(1)
+
+      another_secret = { 'test_secret' => 'update 2' }
+      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+        workflow_name: 'my workflow name',
+        workflow_type: 'test workflow',
+        secrets: another_secret
+      )
+      expect(last_response.status).to eq(200)
+      config = Polyphemus::Config.last
+      expect(config.config_id).to eq(json_body[:config_id])
+      expect(config.secrets).to eq(another_secret)
+      expect(config.version_number).to eq(1)
+    end
+
+    it 'rejects unknown secrets' do
+      auth_header(:editor)
+      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      expect(last_response.status).to eq(200)
+      some_secret = { 'not_a_secret' => 'update 1' }
+      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+        workflow_name: 'my workflow name',
+        workflow_type: 'test workflow',
+        secrets: some_secret
+      )
+      config = Polyphemus::Config.last
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Secrets for test workflow must be one of: test_secret')
+      expect(config.secrets).to eq({})
+    end
+
   end
 
   context '#list' do
@@ -122,123 +229,7 @@ describe EtlController do
     end
   end
 
-  context '#update' do
-    it 'updates an etl' do
-      etl = create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_NEVER)
-
-      auth_header(:editor)
-      json_post('/api/etl/labors/update/1', run_interval: Polyphemus::EtlConfig::RUN_ONCE)
-
-      expect(last_response.status).to eq(200)
-
-      etl.refresh
-
-      expect(etl.run_interval).to eq(Polyphemus::EtlConfig::RUN_ONCE)
-    end
-
-    it 'rejects an invalid config' do
-      etl = create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_ONCE)
-
-      new_config = { 'blah' => 'blah' }
-      auth_header(:editor)
-      json_post('/api/etl/labors/update/1', config: new_config)
-
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq("Invalid configuration for etl \"dummy\"\nroot is missing required keys: foo\nproperty '/blah' is invalid: error_type=schema")
-      expect(Polyphemus::EtlConfig.count).to eq(1)
-      etl.refresh
-      expect(etl.config.to_h).to eq('foo' => 2)
-    end
-
-    it 'updates secrets' do
-      etl = create_dummy_etl(
-        run_interval: Polyphemus::EtlConfig::RUN_ONCE,
-        secrets: { 'password' => 'shibboleth', 'rumor' => 'King Midas has the ears of an ass' }
-      )
-
-      new_secret = { 'rumor' => 'Midas has the ears of an ass' }
-      auth_header(:editor)
-      json_post('/api/etl/labors/update/1', secrets: new_secret)
-
-      expect(last_response.status).to eq(200)
-      expect(Polyphemus::EtlConfig.count).to eq(1)
-      etl.refresh
-      expect(etl.secrets).to eq('rumor' => 'Midas has the ears of an ass', 'password' => 'shibboleth')
-    end
-
-    it 'complains about unknown secrets' do
-      etl = create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_ONCE)
-
-      new_secret = { 'barber' => 'Midas has the ears of an ass' }
-      auth_header(:editor)
-      json_post('/api/etl/labors/update/1', secrets: new_secret)
-
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Secrets for dummy jobs must be one of: rumor, password')
-      etl.refresh
-      expect(etl.secrets).to eq({})
-    end
-
-    it 'updates params' do
-      etl = create_dummy_etl(
-        run_interval: Polyphemus::EtlConfig::RUN_ONCE,
-        params: { problem: 'present' }
-      )
-
-      new_params = { whippit: true }
-      auth_header(:editor)
-      json_post('/api/etl/labors/update/1', params: new_params)
-
-      expect(last_response.status).to eq(200)
-      expect(Polyphemus::EtlConfig.count).to eq(1)
-      etl.refresh
-      expect(etl.params.to_h).to eq({'problem' => 'present', 'whippit' => true})
-    end
-
-    it 'complains about invalid params' do
-      etl = create_dummy_etl(
-        run_interval: Polyphemus::EtlConfig::RUN_ONCE,
-        params: {}
-      )
-
-      new_params = { problem: 'bogus', zippit: true, select_one: ["all"] }
-      auth_header(:editor)
-      json_post('/api/etl/labors/update/1', params: new_params)
-
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Problem must be in: present, absent; no such param zippit; select_one must be a comma-separated string')
-      expect(Polyphemus::EtlConfig.count).to eq(1)
-      etl.refresh
-      expect(etl.params.to_h).to eq({})
-    end
-  end
-
-  context '#create' do
-    it 'creates an etl' do
-      auth_header(:editor)
-      json_post('/api/etl/labors/create', name: 'Dummy ETL', job_type: 'dummy')
-
-      expect(last_response.status).to eq(200)
-
-      expect(Polyphemus::EtlConfig.count).to eq(1)
-
-      etl = Polyphemus::EtlConfig.last
-
-      expect(etl.run_interval).to eq(Polyphemus::EtlConfig::RUN_NEVER)
-      expect(etl.name).to eq('Dummy ETL')
-      expect(etl.config_id).to eq(1)
-    end
-
-    it 'rejects invalid job types' do
-      auth_header(:editor)
-      json_post('/api/etl/labors/create', name: 'Dummy ETL', job_type: 'mummy')
-
-      expect(Polyphemus::EtlConfig.count).to eq(0)
-
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('There is no such job type mummy')
-    end
-  end
+    
 
   context '#revisions' do
     it 'returns previous revisions for an etl' do

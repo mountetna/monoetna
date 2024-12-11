@@ -1,7 +1,7 @@
 require_relative '../etls/metis/loader'
 
 class Polyphemus
-  class MetisJob < Polyphemus::Job
+  class MetisJob < Polyphemus::ETLJob
     def self.as_json
       {
         name: "metis",
