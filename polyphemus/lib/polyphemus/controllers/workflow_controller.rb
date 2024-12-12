@@ -60,8 +60,24 @@ class WorkflowController < Polyphemus::Controller
     success_json(config.as_json)
   end
 
-  def jobs
-    return success_json(Polyphemus::Job.list.map(&:as_json))
+  def workflows
+    return success_json(Polyphemus::WorkflowManifest.list.map(&:as_json))
+  end
+
+  def list_by_id
+    if @params[:version]
+      config = Polyphemus::Config.where(
+        project_name: @params[:project_name],
+        config_id: @params[:config_id],
+        version_number: @params[:version]
+      ).first
+    else
+      config = Polyphemus::Config.current.where(
+        project_name: @params[:project_name],
+        config_id: @params[:config_id]
+      ).first
+    end
+    success_json(config.as_json)
   end
 
   def list
@@ -70,14 +86,14 @@ class WorkflowController < Polyphemus::Controller
   end
 
   def list_all
-    if @params[:job_type] && !Polyphemus::Job.from_name(@params[:job_type])
-      raise Etna::BadRequest, "There is no such job type #{@params[:job_type]}"
+    if @params[:workflow_type] && !Polyphemus::WorkflowManifest.from_workflow_name(@params[:workflow_type])
+      raise Etna::BadRequest, "There is no such workflow type #{@params[:workflow_type]}"
     end
 
     config_query = Polyphemus::Config.current
 
-    if @params[:job_type]
-      config_query = config_query.where(etl: @params[:job_type])
+    if @params[:workflow_type]
+      config_query = config_query.where(workflow_type: @params[:workflow_type])
     end
 
     configs = config_query.all

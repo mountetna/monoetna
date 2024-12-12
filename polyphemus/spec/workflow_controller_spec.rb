@@ -16,7 +16,7 @@ describe WorkflowController do
 
       expect(config.workflow_name).to eq('my workflow name')
       expect(config.workflow_type).to eq('test workflow')
-      # expect(config.config_id).to eq(1)  This is 100 do not know why
+      expect(config.config_id).to eq(1)
     end
 
     it 'rejects invalid workflow types' do
@@ -120,63 +120,161 @@ describe WorkflowController do
 
   end
 
-  context '#list' do
-    it 'returns a list of etl configs for a project' do
-      create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_NEVER, secrets: { 'password' => 'shibboleth' })
-      create_dummy_etl(config_id: 2, project_name: 'athena', run_interval: Polyphemus::EtlConfig::RUN_NEVER)
+  context 'list configs' do
+    it 'returns a list of the most recent configs for a project' do
+        auth_header(:editor)
+        # Create one workflow config object
+        json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+        expect(last_response.status).to eq(200)
+        some_config = { 'test_key' => 'update 1' }
+        json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+          workflow_name: 'my workflow name',
+          workflow_type: 'test workflow',
+          config: some_config
+        ) 
+        # Create another
+        json_post('/api/etl/labors/create', workflow_name: 'my 2nd workflow name', workflow_type: 'test workflow')
+        expect(last_response.status).to eq(200)
+        some_config = { 'test_key' => 'update 1' }
+        json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+          workflow_name: 'my workflow name',
+          workflow_type: 'test workflow',
+          config: some_config
+        )
       auth_header(:editor)
       get('/api/etl/labors/configs')
-
       expect(last_response.status).to eq(200)
-      expect(json_body.length).to eq(1)
-      expect(json_body.first.keys).to match_array([
-        :project_name, :etl, :name, :ran_at, :run_interval, :status, :config_id, :version_number, :created_at, :config, :comment, :secrets, :params
-      ])
-      expect(json_body.first[:project_name]).to eq('labors')
-      expect(json_body.first[:secrets]).to eq(password: '***')
+      expect(json_body.length).to eq(2)
+    end
+
+  end
+
+  context 'retrieve a config' do
+
+    before do
+      auth_header(:editor)
+      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      expect(last_response.status).to eq(200)
+      some_config = { 'test_key' => 'update 1' }
+      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+        workflow_name: 'my workflow name',
+        workflow_type: 'test workflow',
+        config: some_config
+      )
+      expect(last_response.status).to eq(200)
+      another_config = { 'test_key' => 'update 2' }
+      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+        workflow_name: 'my workflow name',
+        workflow_type: 'test workflow',
+        config: another_config
+      )
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns the most recent config when version is not specified' do
+      auth_header(:editor)
+      post("/api/etl/labors/configs/#{json_body[:config_id]}")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:version_number]).to eq(3)
+    end
+
+    it 'returns a config by id and version' do
+      auth_header(:editor)
+      post("/api/etl/labors/configs/#{json_body[:config_id]}", version: 1)
+      expect(last_response.status).to eq(200)
+      expect(json_body[:version_number]).to eq(1)
     end
   end
 
-  context '#list_all' do
-    it 'returns a list of etl configs for every project' do
-      create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_NEVER, secrets: { 'password' => 'shibboleth' })
-      create_dummy_etl(config_id: 2, project_name: 'athena', run_interval: Polyphemus::EtlConfig::RUN_NEVER)
-      create_dummy_etl(config_id: 3, etl: 'metis', run_interval: Polyphemus::EtlConfig::RUN_NEVER)
+  context 'list all configs' do
+    it 'returns a list of the most recent configs for every project' do
+      # Create one workflow config object
+      config = Polyphemus::Config.create(
+        project_name: 'labors',
+        workflow_name: 'my workflow name',
+        workflow_type: 'test workflow',
+        config_id: Polyphemus::Config.next_id,
+        version_number: 1,
+        config: {},
+        secrets: {},
+      )
+      config = Polyphemus::Config.create(
+        project_name: 'athena',
+        workflow_name: 'my 2nd workflow name',
+        workflow_type: 'test workflow',
+        config_id: Polyphemus::Config.next_id,
+        version_number: 1,
+        config: {},
+        secrets: {},
+      )
       auth_header(:superuser)
       post('/api/etl/configs')
-
-      expect(last_response.status).to eq(200)
-      expect(json_body[:configs].length).to eq(3)
-      expect(json_body[:configs].map(&:keys)).to all(match_array([
-        :project_name, :etl, :name, :ran_at, :run_interval, :status, :config_id, :version_number, :created_at, :config, :comment, :secrets, :params
-      ]))
-    end
-
-    it 'restricts the list by type' do
-      create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_NEVER, secrets: { 'password' => 'shibboleth' })
-      create_dummy_etl(config_id: 2, project_name: 'athena', run_interval: Polyphemus::EtlConfig::RUN_NEVER)
-      create_dummy_etl(config_id: 3, etl: 'metis', run_interval: Polyphemus::EtlConfig::RUN_NEVER)
-      auth_header(:superuser)
-      post('/api/etl/configs', job_type: 'dummy')
-
       expect(last_response.status).to eq(200)
       expect(json_body[:configs].length).to eq(2)
-      expect(json_body[:configs].map(&:keys)).to all(match_array([
-        :project_name, :etl, :name, :ran_at, :run_interval, :status, :config_id, :version_number, :created_at, :config, :comment, :secrets, :params
-      ]))
     end
 
-    it 'ignores archived configs' do
-      create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_NEVER, secrets: { 'password' => 'shibboleth' })
-      create_dummy_etl(config: { 'foo': 'bar'}, version_number: 2, comment: 'some tweaks')
-      create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_ARCHIVED, version_number: 3, comment: 'some tweaks')
-      create_dummy_etl(config_id: 2, project_name: 'athena', run_interval: Polyphemus::EtlConfig::RUN_NEVER)
+    it 'restricts the list by workflow type' do
+      # Create one workflow config object
+      config = Polyphemus::Config.create(
+        project_name: 'labors',
+        workflow_name: 'my workflow name',
+        workflow_type: 'test workflow',
+        config_id: Polyphemus::Config.next_id,
+        version_number: 1,
+        config: {},
+        secrets: {},
+      )
+      config = Polyphemus::Config.create( 
+        project_name: 'athena',
+        workflow_name: 'my 2nd workflow name',
+        workflow_type: 'metis',
+        config_id: Polyphemus::Config.next_id,
+        version_number: 1,
+        config: {},
+        secrets: {},
+      )
       auth_header(:superuser)
-      post('/api/etl/configs')
-
+      post('/api/etl/configs', workflow_type: 'test workflow')
       expect(last_response.status).to eq(200)
       expect(json_body[:configs].length).to eq(1)
-      expect(json_body[:configs].first[:project_name]).to eq('athena')
+    end
+
+  end
+
+  context 'workflows' do
+    it 'returns a list of workflows for a project' do
+      auth_header(:editor)
+      get('/api/etl/workflows')
+      expect(last_response.status).to eq(200)
+      expect(json_body.map(&:keys)).to all(satisfy { |v| !v.empty? && (v - [:name, :schema, :secrets, :runtime_params]).empty? })
+    end
+  end
+
+context '#revisions' do
+    it 'returns previous revisions for a workflow' do
+      auth_header(:editor)
+      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      expect(last_response.status).to eq(200)
+      some_config = { 'test_key' => 'update 1' }
+      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+        workflow_name: 'my workflow name',
+        workflow_type: 'test workflow',
+        config: some_config
+      )
+      expect(last_response.status).to eq(200)
+      another_config = { 'test_key' => 'update 2' }
+      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+        workflow_name: 'my workflow name',
+        workflow_type: 'test workflow',
+        config: another_config
+      )
+      auth_header(:editor)
+      get("/api/etl/labors/revisions/#{json_body[:config_id]}")
+      expect(last_response.status).to eq(200)
+      expect(json_body.length).to eq(3)
+      expect(json_body[0][:version_number]).to eq(3)
+      expect(json_body[1][:version_number]).to eq(2)  
+      expect(json_body[2][:version_number]).to eq(1)  
     end
   end
 
@@ -219,33 +317,6 @@ describe WorkflowController do
     end
   end
 
-  context '#jobs' do
-    it 'returns a list of etl jobs for a project' do
-      auth_header(:editor)
-      get('/api/etl/jobs')
-
-      expect(last_response.status).to eq(200)
-      expect(json_body.map(&:keys)).to all(satisfy { |v| !v.empty? && (v - [:name, :schema, :secrets, :params]).empty? })
-    end
-  end
-
     
 
-  context '#revisions' do
-    it 'returns previous revisions for an etl' do
-      etl = create_dummy_etl(config: {}, version_number: 1, comment: 'first pass')
-      etl = create_dummy_etl(config: { 'foo': 'bar'}, version_number: 2, comment: 'some tweaks')
-      etl = create_dummy_etl(config: { 'foo': 'baz'}, version_number: 3, comment: 'almost got it')
-      etl = create_dummy_etl(config: { 'foo': 1 }, version_number: 4, comment: 'final version')
-
-      auth_header(:editor)
-      get(URI.encode('/api/etl/labors/revisions/1'))
-
-      expect(last_response.status).to eq(200)
-      expect(json_body.map{|r| r[:config]}).to eq([
-        { foo: 1 }, { foo: 'baz' }, { foo: 'bar' }, {}
-      ])
-      expect(json_body.map(&:keys)).to all(match_array([ :config, :version_number, :comment, :created_at ]))
-    end
   end
-end
