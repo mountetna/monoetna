@@ -17,6 +17,7 @@ export const isGuest = ({ permissions }: { permissions: Record<string, Permissio
 function parsePermissions(perms: string) {
     // Permissions are encoded as 'a:project1,project2;v:project3'
     return perms.split(/;/).map(perm => {
+        if (!perm) return [];
         let [encoded_role, projects] = perm.split(/:/);
         let role = ROLES[encoded_role.toLowerCase()];
         let privileged = encoded_role.toUpperCase() == encoded_role;
