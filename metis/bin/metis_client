@@ -1174,6 +1174,10 @@ EOT
         opts.on("-F", "--fix-filenames", "List file properties") do |n|
           options[:fix_filenames] = true
         end
+
+        opts.on("-f", "--force", "Overwrite existing files") do |n|
+          options[:force] = true
+        end
       end
     end
 
@@ -1243,7 +1247,7 @@ EOT
       new_file_path = ::File.join(*[new_folder_path, file_name].compact)
 
       # see if it exists
-      return if folder[:files].find do |f|
+      return if !options[:force] && folder[:files].find do |f|
         f[:file_name] == file_name && f[:size] == ::File.size(actual_path)
       end
 
@@ -1788,27 +1792,6 @@ EOT
     Readline.completer_quote_characters = "\"'"
     Readline.completion_append_character = nil
     Readline.basic_word_break_characters = " \t\n\"'`@$><=;|&{("
-    Readline.quoting_detection_proc = proc do |input, index|
-      (
-        # you are not the first character
-        index > 0 &&
-        # you are a space
-        input[index] == ' ' &&
-        # the previous character is a slash
-        input[index-1] == '\\' &&
-        # the character before that does not exist, or it is not a slash
-        (index == 1 || input[index-2] != '\\')
-      ) || (
-        # you are not the last character
-        (index + 1 < input.size) &&
-        # you are a slash
-        input[index] == '\\' &&
-        # the character after you is a space
-        input[index+1] == ' ' &&
-        # the character before you does not exist or it is not a slash
-        (index == 0 || input[index-1] != '\\')
-      )
-    end
 
     while buf = Readline.readline(prompt, true)
       run_command(*parse(buf))

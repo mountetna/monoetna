@@ -28,7 +28,7 @@ class Janus
     post '/api/admin/:project_name/update', action: 'admin#update_project', auth: { user: { is_supereditor?: true } }
     post '/api/admin/:project_name/update_permission', action: 'admin#update_permission', auth: { user: { is_admin?: :project_name } }
     post '/api/admin/:project_name/add_user', action: 'admin#add_user', auth: { user: { is_admin?: :project_name } }
-    post '/api/admin/:project_name/cc', action: 'admin#update_cc_agreement', auth: { user: { active?: true } }
+    post '/api/admin/:project_name/cc', action: 'admin#update_cc_agreement'
 
     get '/api/admin/projects', action: 'admin#projects', auth: { user: { is_superviewer?: true } }
     post '/api/admin/add_project', action: 'admin#add_project', auth: { user: { is_supereditor?: true } }
@@ -36,7 +36,7 @@ class Janus
 
     post '/api/user/update_key', action: 'user#update_key'
     get '/api/user/info', action: 'user#info'
-    get '/api/user/projects', action: 'user#projects', auth: { user: { active?: true }, ignore_janus: true }
+    get '/api/user/projects', action: 'user#projects', auth: { ignore_janus: true }
     get '/api/users', action: 'user#fetch_all', auth: { user: { is_superuser?: true } }
 
     get '/*views' do erb_view(:client) end
