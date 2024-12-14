@@ -13,6 +13,22 @@
 - Build argo workflows in the `polyphemus/workflows` directory.
 - Build etl jobs in the `polyphemus/lib/data_eng/` directory.
 
+### Data model
+
+- `configs` table: This table stores the workflow configs.
+- `runs` table: This table stores the workflow runs.
+- `run_metadata` table: This table stores the workflow run metadata.
+
+A note on the configs table and ids.
+
+There are two ids in the configs table.
+
+1. `config_id`: This is the id of the config and does not change as multiple version of the configs are created.  Along with `version_number` it is the composite key for this table. 
+2. `id`: This is the id of the row in the configs table. It is a unique identifier for a given workflow run.
+
+`runs` and `run_metadata` tables both have a foreign key to the `configs` table via the `config_id` and `version_number` columns of the `configs` table.
+
+
 ### ETLJob super class
 
 ETL jobs should subclass: `ETLJob` and implement the `pre`, `process`, and `post` methods.
@@ -75,6 +91,6 @@ It is often the case that your ETL job will need to manage some state.
 
 ### Submitting workflows
 
-``` argo submit -f <path_to_workflow_yaml> -p config_id=<config_id>```
+``` argo submit -f <path_to_workflow_yaml> -p config_id=<config_id> -p version_number=<version_number>```
 
 ### Viewing workflow runs

@@ -16,11 +16,11 @@ Sequel.migration do
   down do
     alter_table(:configs) do
       rename_column :workflow_name, :etl
-      add_column :configs, :params, :json, null: false
-      add_column :configs, :ran_at, DateTime
-      add_column :configs, :status, String
-      add_column :configs, :output, String
-      add_column :configs, :run_interval, Integer
+      add_column :params, :json, null: false
+      add_column :ran_at, DateTime
+      add_column :status, String
+      add_column :output, String
+      add_column :run_interval, Integer
     end
 
     rename_table :configs, :etl_configs

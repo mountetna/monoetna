@@ -738,9 +738,9 @@ class RunJob < Etna::Command
       }
     end
 
-    def execute(job_name, config_id)
+    def execute(job_name, config_id, version_number)
       # Retrieve the workflow config from polyphemus
-      config, secrets = polyphemus_client.get_config(config_id)
+      config, secrets = polyphemus_client.get_config(config_id, version_number)
 
       # Instantiate the job and run it
       job = job_map[job_name] || raise("Job not found: #{job_name}")
@@ -759,6 +759,28 @@ class RunJob < Etna::Command
 
   end
 
-
+  class ArgoScheduler < Etna::Command
+    include WithLogger
+  
+    usage 'Continuously polls run_metadata for new entries and submits Argo workflows based on run_interval.'
+  
+    def execute
+      # TODO: WIP: think about this, maybe we just want to create cron workflows 
+      loop do
+        Polyphemus::RunMetadata.eligible_for_runs.each do |entry|
+          config_id = entry[:config_id]
+          version_number = entry[:version_number]
+          run_interval = entry[:run_interval]
+          logger.info("Found new entry: config_id=#{config_id}, version=#{version_number}, run_interval=#{run_interval}")
+          cmd = [
+            "argo", "submit",
+            "-f", WORKFLOW_PATH,
+            "-p", "config_id=#{config_id}",
+            "-p", "version=#{version_number}"
+          ].join(" ")
+        end
+      end
+    end
+  end
 end
 

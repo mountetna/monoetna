@@ -19,6 +19,8 @@ spec:
                   value: file_discovery
                 - name: config_id
                   value: "{{inputs.parameters.config_id}}"
+                - name: version_number
+                  value: "{{inputs.parameters.version_number}}"
         - - name: c4-update
             templateRef:
               name: run-job-template
@@ -29,6 +31,8 @@ spec:
                   value: c4_update
                 - name: config_id
                   value: "{{inputs.parameters.config_id}}"
+                - name: version_number
+                  value: "{{inputs.parameters.version_number}}"
         - - name: metis-update
             templateRef:
               name: run-job-template
@@ -39,6 +43,8 @@ spec:
                   value: metis_update
                 - name: config_id
                   value: "{{inputs.parameters.config_id}}"
+                - name: version_number
+                  value: "{{inputs.parameters.version_number}}"
     - name: write-run_metadata
       templateRef:
         name: write-run-metadata-template
