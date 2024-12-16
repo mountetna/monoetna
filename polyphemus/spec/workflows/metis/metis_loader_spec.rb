@@ -1,6 +1,6 @@
 describe Metis::Loader do
   def prep_tail(project_name, bucket_name, lines)
-    Etna::Clients::Metis::TailResponse.new(lines)
+    Etna::Clients::Metis::TailResponse.new(project_name, bucket_name, lines)
   end
 
   def labors_config(scripts, bucket_name="pics")
@@ -45,15 +45,12 @@ describe Metis::Loader do
       # given these we get an update
       update = Metis::Loader.new(config, rules).update_for(tail)
 
-      require 'pry'
-      binding.pry
-
       expect(update['revisions']).to eq(
-          'victim': {
-              'LABORS-LION-H2-C1': {
-                  'photo_deceased': {
-                      'original_filename': 'LABORS-LION-H2-C1.deceased.png',
-                      'path': 'metis://labors/pics/victims/LABORS-LION-H2-C1.deceased.png'
+          victim: {
+              'LABORS-LION-H2-C1' => {
+                  'photo_deceased' => {
+                      original_filename: 'LABORS-LION-H2-C1.deceased.png',
+                      path: 'metis://labors/pics/victims/LABORS-LION-H2-C1.deceased.png'
                   }
               }
           }
@@ -88,16 +85,16 @@ describe Metis::Loader do
       update = Metis::Loader.new(config, rules).update_for(tail)
 
       expect(update['revisions']).to eq(
-        'victim': {
-          'LABORS-LION-H2-C1': {
-            'family_photos': [
+        victim: {
+          'LABORS-LION-H2-C1' => {
+            'family_photos' => [
               {
-                'original_filename': 'family_photo.1.png',
-                'path': 'metis://labors/pics/family/LABORS-LION-H2-C1/family_photo.1.png'
+                original_filename: 'family_photo.1.png',
+                path: 'metis://labors/pics/family/LABORS-LION-H2-C1/family_photo.1.png'
               },
               {
-                'original_filename': 'family_photo.2.png',
-                'path': 'metis://labors/pics/family/LABORS-LION-H2-C1/family_photo.2.png'
+                original_filename: 'family_photo.2.png',
+                path: 'metis://labors/pics/family/LABORS-LION-H2-C1/family_photo.2.png'
               }
             ]
           }

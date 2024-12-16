@@ -22,7 +22,7 @@ module Etna
         include JsonSerializableStruct
       end
 
-      class UpdateRequest < Struct.new(:revisions, :project_name, :dry_run, keyword_init: true)
+      class UpdateRequest < Struct.new(:revisions, :project_name, :dry_run, :autolink, keyword_init: true)
         include JsonSerializableStruct
         include MultipartSerializableNestedHash
 
