@@ -42,7 +42,7 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
 
   # Fetch the last_scan timestamp from the pipeline state using Polyphemus client
   def fetch_last_scan
-    state = polyphemus_client.get_workflow_state(run_id, most_recent=True)
+    state = polyphemus_client.get_workflow_run(run_id)
     state[:last_scan] ? Time.parse(state[:last_scan]) : Time.at(0) # Default to epoch if not found
   rescue StandardError => e
     puts "Error fetching pipeline state: #{e.message}"

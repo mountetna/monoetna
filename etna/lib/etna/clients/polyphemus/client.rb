@@ -62,7 +62,6 @@ module Etna
       end
 
       def update_run_metadata(run_id, workflow_json)
-        def update_run_metadata(run_id, workflow_json)
           payload = {
             run_id: run_id,
             config_id: workflow_json[:config_id],
@@ -72,17 +71,13 @@ module Etna
             output: workflow_json[:output],
             append_output: workflow_json[:append_output],
             run_interval: workflow_json[:run_interval]
-          }.compact  # Removes any key-value pairs where the value is nil
-        
-          # Make the POST request with the cleaned payload
-          json = nil
-          @etna_client.post("/api/workflows/#{@project_name}/run_metadata", payload) do |res|
-            json = JSON.parse(res.body)
-          end
-          json
+          }.compact          
+
+        json = nil
+        @etna_client.post("/api/workflows/#{@project_name}/run_metadata", payload) do |res|
+          json = JSON.parse(res.body)
         end
-
-
+        json
       end
 
       def get_run_metadata(run_id)
