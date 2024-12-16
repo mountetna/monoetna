@@ -26,7 +26,7 @@ There are two ids in the configs table.
 1. `config_id`: This is the id of the config and does not change as multiple version of the configs are created.  Along with `version_number` it is the composite key for this table. 
 2. `id`: This is the id of the row in the configs table. It is a unique identifier for a given workflow run.
 
-`runs` and `run_metadata` tables both have a foreign key to the `configs` table via the `config_id` and `version_number` columns of the `configs` table.
+`runs` and `run_metadata` tables both have a foreign key to the `configs` table via the `config_id` and `version_number` columns of the `configs` table. We could have also used the `id` column of the `configs` table, but this is less explicit, and it is forces us to think of a "run" as a single instantiation of config and version number.
 
 
 ### ETLJob super class

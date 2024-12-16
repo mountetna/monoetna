@@ -4,15 +4,16 @@ require_relative '../clients/sftp_client'
 class SFTPFileDiscoveryJob < Polyphemus::ETLJob
   include WithEtnaClients
 
-  def initialize(config, secrets)
+  def initialize(config)
     @sftp_client = SFTPClient.new(
-      secrets['sftp_host'],
-      secrets['sftp_user'],
-      secrets['sftp_password'],
+      config["secrets"]["sftp_host"],
+      config["secrets"]["sftp_user"],
+      config["secrets"]["sftp_password"],
     )
     @workflow_config_id = config['config_id']
-    @regex = config['regex']
-    @root_dir = config['root_dir']
+    @workflow_version = config['version_number']
+    @regex = config['config']['regex']
+    @root_dir = config['config']['root_dir']
   end
 
   def pre

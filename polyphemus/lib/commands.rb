@@ -740,11 +740,11 @@ class RunJob < Etna::Command
 
     def execute(job_name, config_id, version_number)
       # Retrieve the workflow config from polyphemus
-      config, secrets = polyphemus_client.get_config(config_id, version_number)
+      config = polyphemus_client.get_config(config_id, version_number)
 
       # Instantiate the job and run it
       job = job_map[job_name] || raise("Job not found: #{job_name}")
-      job.new(config, secrets)
+      job.new(config)
       job.execute
     end
 

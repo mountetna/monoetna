@@ -101,6 +101,83 @@ class WorkflowController < Polyphemus::Controller
     success_json(configs: configs.map(&:as_json))
   end
 
+  def update_run
+    run = Polyphemus::Run.where(
+        run_id: @params[:run_id]
+    ).first
+
+    if run
+      run.update(state: @params[:state])
+    else
+      run = Polyphemus::Run.create(
+        run_id: @params[:run_id],
+        config_id: @params[:config_id],
+        version_number: @params[:version_number],
+        state: @params[:state],
+        created_at: Time.now,
+        updated_at: Time.now
+      )
+    end
+    success_json(run.as_json)
+  end
+
+  def get_run
+    run = Polyphemus::Run.where(
+      run_id: @params[:run_id]
+    ).first
+
+    raise Etna::NotFound, "No such run #{@params[:run_id]}" unless run
+    success_json(run.as_json)
+  end
+
+  def update_run_metadata
+    run_metadata = Polyphemus::RunMetadata.where(
+      run_id: @params[:run_id]
+    ).first
+
+    if run_metadata
+      update_columns = {
+        orchestrator_metadata: @params[:orchestrator_metadata],
+        runtime_config: @params[:runtime_config],
+        run_interval: @params[:run_interval],
+        updated_at: Time.current
+      }.compact
+
+      if @params[:output]
+        update_columns[:output] = @params[:append_output] ? 
+          [run_metadata.output, @params[:output]].compact.join : 
+          @params[:output]
+      end
+
+      run_metadata.update(update_columns)
+
+    else
+      run_metadata = Polyphemus::RunMetadata.create(
+        run_id: @params[:run_id],
+        config_id: @params[:config_id],
+        version_number: @params[:version_number],
+        orchestrator_metadata: @params[:orchestrator_metadata] ? @params[:orchestrator_metadata] : nil,
+        runtime_config: @params[:runtime_config] ? @params[:runtime_config] : nil,
+        output: @params[:output] ? @params[:output] : nil,
+        run_interval: @params[:run_interval],
+        created_at: Time.now,
+        updated_at: Time.now
+      )
+    end
+
+    success_json(run_metadata.as_json)
+  end
+
+  def get_run_metadata
+    run_metadata = Polyphemus::RunMetadata.where(
+      run_id: @params[:run_id]
+    ).first
+
+    raise Etna::NotFound, "No metadata found for run #{@params[:run_id]}" unless run_metadata
+    success_json(run_metadata.as_json)
+  end
+
+  
   def revisions
     etl_configs = Polyphemus::Config.where(
       project_name: @params[:project_name],
@@ -110,36 +187,4 @@ class WorkflowController < Polyphemus::Controller
     success_json(etl_configs.map(&:to_revision))
   end
 
-  def output
-    etl_config = Polyphemus::Config.current.where(
-      project_name: @params[:project_name],
-      config_id: @params[:config_id]
-    ).first
-
-    raise Etna::NotFound, "No such etl #{@params[:config_id]} configured for project #{@params[:project_name]}" unless etl_config
-
-    success_json(output: etl_config.output)
-  end
-
-  def add_output
-    etl_config = Polyphemus::Config.current.where(
-      project_name: @params[:project_name],
-      config_id: @params[:config_id]
-    ).first
-
-    if !etl_config
-      raise Etna::NotFound, "No such etl #{@params[:config_id]} configured for project #{@params[:project_name]}"
-    end
-
-    output = [
-      (@params[:append] ? etl_config.output : nil),
-      @params[:output]
-    ].compact.join
-
-    etl_config.update(output: output)
-
-    success_json(etl_config.as_json.merge(output: output))
-  end
-
-  
-  end
+end

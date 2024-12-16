@@ -39,13 +39,15 @@ class Polyphemus
     get '/api/etl/workflows', action: 'workflow#workflows'
     get '/api/etl/:project_name/revisions/:config_id', action: 'workflow#revisions', auth: { user: { can_edit?: :project_name } }
 
-    # Change format of this
-    post '/api/etl/:project_name/output/:config_id', action: 'workflow#add_output', auth: { user: { can_edit?: :project_name } }, log_redact_keys: [ :secrets ]
-    get '/api/etl/:project_name/output/:config_id', action: 'workflow#output', auth: { user: { can_edit?: :project_name } }
+    get '/api/etl/:project_name/run/:run_id', action: 'workflow#get_run', auth: { user: { can_edit?: :project_name } }
+    post '/api/etl/:project_name/run/update/:run_id', action: 'workflow#update_run', auth: { user: { can_edit?: :project_name } }
 
-    # New endpoints
-    get "/api/etl/:project_name/configs/:config_id/run/:run_id", action: "workflow#get_workflow_state", auth: { user: { can_edit?: :project_name } }
-    post "/api/etl/:project_name/:config_id/run/:run_id", action: "workflow#update_workflow_state", auth: { user: { can_edit?: :project_name } }
-    post "/api/etl/:project_name/:config_id/metadata", action: "workflow#write_run_metadata", auth: { user: { can_edit?: :project_name } }
+    get '/api/etl/:project_name/run_metadata/:run_id', action: 'workflow#get_run_metadata', auth: { user: { can_edit?: :project_name } }
+    post '/api/etl/:project_name/run_metadata/update/:run_id', action: 'workflow#update_run_metadata', auth: { user: { can_edit?: :project_name } }
+
+    # NOTE: these can be easily be merged into the update_run_metadata endpoint.
+    post '/api/etl/:project_name/output/:run_id', action: 'workflow#add_output', auth: { user: { can_edit?: :project_name } }, log_redact_keys: [ :secrets ]
+    get '/api/etl/:project_name/output/:run_id', action: 'workflow#get_output', auth: { user: { can_edit?: :project_name } }
+
   end
 end
