@@ -11,6 +11,7 @@ retrieveMetadata(
   meta_attributeNames = "all",
   target_modelName,
   target_recordNames = "all",
+  template = NULL,
   ...
 )
 }
@@ -25,6 +26,8 @@ They work the same as inputs of other functions without the \code{meta_} portion
 \item{target_modelName, target_recordNames}{Strings which indicate the "target" data that meta-data is desired to be reshaped into.
 They work the same as inputs of other functions without the \code{target_} portion, and
 these inputs ultimately set which records of "meta" model data to actually obtain.}
+
+\item{template}{For internal use in minimizing excess http requests to magma, NULL or the return of \code{retrieveTemplate(target, projectName)}.}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
