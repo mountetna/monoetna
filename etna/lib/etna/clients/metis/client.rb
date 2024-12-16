@@ -23,6 +23,14 @@ module Etna
           @etna_client.folder_list_all_folders(list_all_folders_request.to_h))
       end
 
+      def tail_bucket(tail_bucket_request = TailBucketRequest.new)
+        TailResponse.new(
+          tail_bucket_request.project_name,
+          tail_bucket_request.bucket_name,
+          @etna_client.bucket_tail(tail_bucket_request.to_h)
+        )
+      end
+
       def list_folder(list_folder_request = ListFolderRequest.new)
         if list_folder_request.folder_path != ''
           FoldersAndFilesResponse.new(
