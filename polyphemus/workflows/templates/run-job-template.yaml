@@ -21,5 +21,3 @@ spec:
         env:
           - name: ARGO_WORKFLOW_ID
             value: "{{workflow.id}}"
-          - name: WORKFLOW_TABLE
-            value: workflow_cat_ingestion

@@ -35,18 +35,18 @@ class Polyphemus
       schema.valid?(JSON.parse(config.to_json))
       end
 
-      def job_params
-        as_json[:params]
+      def runtime_params
+        as_json[:runtime_params]
       end
 
-      def validate_params(params)
+      def validate_runtime_config(params)
         errors = []
         params.each do |param, value|
-          unless job_params.has_key?(param)
+          unless runtime_params.has_key?(param)
             errors.push("no such param #{param}")
             next
           end
-          value_opts = job_params[param]
+          value_opts = runtime_params[param]
           case value_opts
           when Array
             options = value_opts.map { |v| v[:value] }

@@ -11,29 +11,19 @@
 ### Directory structure 
 
 - Build argo workflows in the `polyphemus/workflows` directory.
-- Build etl jobs in the `polyphemus/lib/data_eng/` directory.
+- Build etl jobs, related clients, and workflow manifests in the `polyphemus/lib/data_eng/` directory.
 
-### Data model
+### Language 
 
-- `configs` table: This table stores the workflow configs.
-- `runs` table: This table stores the workflow runs.
-- `run_metadata` table: This table stores the workflow run metadata.
+- Configs/Params: These are key value pairs that a *user* sets as the initial input for the ETL jobs. These can be configured in a UI by user in polyphemues, or by a simple json file that is then stored in db table. Things like metis directories, etc...
 
-A note on the configs table and ids.
+- Secrets: These are key value pairs that a *user* sets needed to run the ETL job. Things like ssh credentials, sftp credentials, etc.
 
-There are two ids in the configs table.
+- Workflow state: These are are values that the *workflow* and *jobs* generates for a given run. Things like how many files were updated, etc. Each workflow has it's own db table.
 
-1. `config_id`: This is the id of the config and does not change as multiple version of the configs are created.  Along with `version_number` it is the composite key for this table. 
-2. `id`: This is the id of the row in the configs table. It is a unique identifier for a given workflow run.
+- Workflow run meta-data: These are values that *argo* (or another orchestrator) generates for a given run. Things like how long the workflow took to run, failures, retries, etc. We can fetch this from argo. Argo generates a unique id for each run. 
 
-`runs` and `run_metadata` tables both have a foreign key to the `configs` table via the `config_id` and `version_number` columns of the `configs` table. We could have also used the `id` column of the `configs` table, but this is less explicit, and it is forces us to think of a "run" as a single instantiation of config and version number.
-
-
-### ETLJob super class
-
-ETL jobs should subclass: `ETLJob` and implement the `pre`, `process`, and `post` methods.
-
-### WorkflowManifest class
+- Workflow manifests: These are Ruby classes that encapsulate some meta-data about the workflow.
 
 This class is responsible for definining:
 
@@ -44,40 +34,54 @@ This class is responsible for definining:
 - The runtime params for the workflow
 - The secrets for the workflow
 
-It is intentionally separate from ETL jobs. Ideally the ETL jobs should be agnostic of the workflow they are a part of.
+Note they are intentionally separate from ETL jobs. The ETL jobs should be agnostic of the workflow they are a part of.
 
+### Data model
+
+- `configs` table: This table stores the workflow configs.
+- `runs` table: This table stores the workflow runs. 
+- `runtime_config` table: This table stores the runtime config for a workflow.
+
+A note on the configs table and ids.
+
+There are two ids in the configs table.
+
+1. `config_id`: This is the id of the config and does not change as multiple version of the configs are created.  Along with `version_number` it is the composite key for this table. 
+2. `id`: This is the id of the row in the configs table. It is a unique identifier for a given workflow run.
+
+`runs` has a foreign key to the `configs` table via the `config_id` and `version_number` columns of the `configs` table. We could have also used the `id` column of the `configs` table, but this is less explicit, and it is forces us to think of a "run" as a single instantiation of config and version number.
+
+It is also worth noting that the `runtime_config` table should only ever have one row per config. That row is always updated.
+
+### ETLJob super class
+
+ETL jobs should subclass: `ETLJob` and implement the `pre`, `process`, and `post` methods.
 
 ### RunJob command
 
-We use the `RunJob` command to run an ETL job in the etna container.
+We use the `RunJob` command to invoke ETLJobs.
 
-bin/polyphemus run_job <workflow> <job_name> <other args>
+bin/polyphemus run_job <workflow> <job_name> <config_id> <version_number>
 
-### Language 
-
-- Configs/Params: These are key value pairs that a *user* sets as the initial input for the ETL jobs. These can be configured in a UI by user in polyphemues, or by a simple json file that is then stored in db table. Things like metis directories, etc...
-
-- Secrets: These are key value pairs that a *user* sets needed to run the ETL job. Things like ssh credentials, sftp credentials, etc.
-
-- Workflow state: These are are values that the *workflow* and *jobs* generates for a given run. Things like how many files were updated, etc. Each workflow has it's own db table.
-
-- Workflow meta-data: These are values that *argo* (or another orchestrator) generates for a given run. Things like how long the workflow took to run, failures, retries, etc. We can fetch this from argo. Argo generates a unique id for each run. 
-
-### Polyphemus
-
-#### ETL Jobs
+### ETL Jobs
 
 ETL jobs use the polyphemus database for:
 
-1. To retrieve configs for a workflow.
+1. To retrieve configs for a workflow from the `configs` table.
 2. To manage pipeline state in the `runs` table.
 
 The ETL jobs achieve this by using the Polyphemus client to make API calls.
 
-#### Run metadata
+### Run metadata
 
-There is a command called `WriteRunMetadata` that is used to write runtime metadata to the `run_metadata` table.
-We use an argo onExit hook to run this once the workflow has completed.
+There is a command called `RecordOrchestratorMetadata` that is used to write runtime metadata to the `runs` table.
+We use an argo onExit hook to run this once the workflow has completed or exited for any reason.
+
+### Run intervals
+
+There is a column in the `runtime_configs` table called `run_interval`. This is used to determine how often the workflow should be run.
+
+WIP -> We can probably write some code and use CronWorkflows to manage this.
 
 ### State management
 
@@ -85,7 +89,7 @@ We use an argo onExit hook to run this once the workflow has completed.
 
 It is often the case that your ETL job will need to manage some state. 
 - If you need to store a file, in between pipeline runs, you should use a volume mount.
-- For all other data you need to track, you should managed state in the `runs` table in the polyphemus database.
+- For all other data you need to track, you should managed state in the `runs` table under the `state` column in the polyphemus database.
 
 ## Argo
 

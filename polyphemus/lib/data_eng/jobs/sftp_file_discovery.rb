@@ -4,7 +4,7 @@ require_relative '../clients/sftp_client'
 class SFTPFileDiscoveryJob < Polyphemus::ETLJob
   include WithEtnaClients
 
-  def initialize(config)
+  def initialize(config, runtime_config)
     @sftp_client = SFTPClient.new(
       config["secrets"]["sftp_host"],
       config["secrets"]["sftp_user"],
@@ -30,8 +30,8 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
   # Post-condition method to update the number of files to update in the DB
   def post
     file_count = File.readlines(config[:files_to_update_path]).size
-    polyphemus_client.update_workflow_state(run_id, {
-      num_files_to_update: file_count,
+    polyphemus_client.update_run(run_id, {
+      state: {num_files_to_update: file_count}
       updated_at: Time.now,
       modified_at: Time.now,
     })
@@ -42,8 +42,8 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
 
   # Fetch the last_scan timestamp from the pipeline state using Polyphemus client
   def fetch_last_scan
-    state = polyphemus_client.get_workflow_run(run_id)
-    state[:last_scan] ? Time.parse(state[:last_scan]) : Time.at(0) # Default to epoch if not found
+    run = polyphemus_client.get_run(run_id)
+    run.state[:last_scan] ? Time.parse(run.state[:last_scan]) : Time.at(0) # Default to epoch if not found
   rescue StandardError => e
     puts "Error fetching pipeline state: #{e.message}"
     Time.at(0)

@@ -732,29 +732,25 @@ class Polyphemus
 class RunJob < Etna::Command
     include WithEtnaClients
 
-    def job_map
-      {
-        "file_discovery" => SftpFileDiscoveryJob
-      }
-    end
-
     def execute(job_name, config_id, version_number)
       # Retrieve the workflow config from polyphemus
-      config = polyphemus_client.get_config(config_id, version_number)
+      config = polyphemus_client.get_config(config_id, version_number) 
+      runtime_config = polyphemus_client.get_runtime_config(config_id)
 
       # Instantiate the job and run it
-      job = job_map[job_name] || raise("Job not found: #{job_name}")
-      job.new(config)
+      # Dynamically load the job class from the job_name
+      job = Kernel.const_get("#{job_name}_job".camelize.to_sym)
+      job.new(config, runtime_config[:config])
       job.execute
     end
 
   end
 
-  class WriteRunMetadata < Etna::Command
+  class RecordOrchestratorMetadata < Etna::Command
     include WithEtnaClients
 
-    def execute(config_id, run_id, workflow_json)
-      polyphemus_client.write_run_metadata(config_id, run_id, workflow_json)
+    def execute(run_id, workflow_json)
+      polyphemus_client.update_run(run_id, orchestrator_metadata: workflow_json)
     end
 
   end

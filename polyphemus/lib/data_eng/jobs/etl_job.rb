@@ -2,8 +2,9 @@ class Polyphemus
   class ETLJob
     attr_reader :config
   
-    def initialize(config = {}) 
+    def initialize(config = {}, runtime_config = {}) 
       @config = config
+      @runtime_config = runtime_config
     end
     
     def run_id

@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: record-runtime-meta-template
+  namespace: argo
+spec:
+  templates:
+    - name: record-runtime-meta
+      container:
+        image: base_etna
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            # Ensure Argo CLI is available in the image or install it here
+            bin/record_orchestrator_metadata {{workflow.id}} "$(argo get --output=json {{workflow.name}} -n {{workflow.namespace}})"

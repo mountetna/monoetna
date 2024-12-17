@@ -102,21 +102,30 @@ class WorkflowController < Polyphemus::Controller
   end
 
   def update_run
+    require_params(:config_id, :version_number)
     run = Polyphemus::Run.where(
         run_id: @params[:run_id]
     ).first
 
+    update_columns = {
+      run_id: @params[:run_id],
+      config_id: @params[:config_id],
+      version_number: @params[:version_number],
+      state: @params[:state],
+      orchestrator_metadata: @params[:orchestrator_metadata],
+      updated_at: Time.now
+    }.compact
+
+    if @params[:output]
+      update_columns[:output] = @params[:append_output] ? 
+          [run.output, @params[:output]].compact.join : 
+          @params[:output]
+    end
+
     if run
-      run.update(state: @params[:state])
+      run.update(update_columns)
     else
-      run = Polyphemus::Run.create(
-        run_id: @params[:run_id],
-        config_id: @params[:config_id],
-        version_number: @params[:version_number],
-        state: @params[:state],
-        created_at: Time.now,
-        updated_at: Time.now
-      )
+      run = Polyphemus::Run.create(update_columns.merge(created_at: Time.now))
     end
     success_json(run.as_json)
   end
@@ -130,51 +139,49 @@ class WorkflowController < Polyphemus::Controller
     success_json(run.as_json)
   end
 
-  def update_run_metadata
-    run_metadata = Polyphemus::RunMetadata.where(
-      run_id: @params[:run_id]
+  def update_runtime_config
+    require_params(:config_id)
+
+    runtime_config = Polyphemus::RuntimeConfig.where(
+      config_id: @params[:config_id],
     ).first
 
-    if run_metadata
-      update_columns = {
-        orchestrator_metadata: @params[:orchestrator_metadata],
-        runtime_config: @params[:runtime_config],
+    config = Polyphemus::Config.where(
+          project_name: @params[:project_name],
+          config_id: @params[:config_id]
+    ).first
+
+    raise Etna::NotFound, "Cannot find a config for project #{@params[:project_name]} with config_id #{@params[:config_id]}" unless config 
+
+    if @params[:config]
+        manifest = Polyphemus::WorkflowManifest.from_workflow_name(config.workflow_type)
+        manifest.validate_runtime_config(@params[:config])
+    end
+    
+    update_columns = {
+        config_id: @params[:config_id],
+        run_id: @params[:run_id],
         run_interval: @params[:run_interval],
-        updated_at: Time.current
+        config: @params[:config],
+        updated_at: Time.now
       }.compact
 
-      if @params[:output]
-        update_columns[:output] = @params[:append_output] ? 
-          [run_metadata.output, @params[:output]].compact.join : 
-          @params[:output]
-      end
-
-      run_metadata.update(update_columns)
-
+    if runtime_config
+        runtime_config.update(update_columns)
     else
-      run_metadata = Polyphemus::RunMetadata.create(
-        run_id: @params[:run_id],
-        config_id: @params[:config_id],
-        version_number: @params[:version_number],
-        orchestrator_metadata: @params[:orchestrator_metadata] ? @params[:orchestrator_metadata] : nil,
-        runtime_config: @params[:runtime_config] ? @params[:runtime_config] : nil,
-        output: @params[:output] ? @params[:output] : nil,
-        run_interval: @params[:run_interval],
-        created_at: Time.now,
-        updated_at: Time.now
-      )
+        runtime_config = Polyphemus::RuntimeConfig.create(update_columns.merge(created_at: Time.now))
     end
 
-    success_json(run_metadata.as_json)
+    success_json(runtime_config.as_json)
   end
 
-  def get_run_metadata
-    run_metadata = Polyphemus::RunMetadata.where(
-      run_id: @params[:run_id]
+  def get_runtime_config
+    runtime_config = Polyphemus::RuntimeConfig.where(
+      config_id: @params[:config_id]
     ).first
 
-    raise Etna::NotFound, "No metadata found for run #{@params[:run_id]}" unless run_metadata
-    success_json(run_metadata.as_json)
+    raise Etna::NotFound, "No runtime config found for config_id #{@params[:config_id]}." unless runtime_config 
+    success_json(runtime_config.as_json)
   end
 
   

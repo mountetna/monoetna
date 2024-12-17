@@ -294,11 +294,11 @@ context '#revisions' do
     end
   end
 
-  context '#workflow_state' do
+  context 'run updates' do
     before do
       create_workflow_with_configs
     end
-    it 'creates the workflow state when it does not exist' do
+    it 'creates the run when it does not exist' do
       auth_header(:editor)
       the_state = {"some_state" => "wooo!"}
       json_post("/api/etl/labors/run/update/#{run_id}",
@@ -308,26 +308,57 @@ context '#revisions' do
       )
       expect(last_response.status).to eq(200)
       expect(Polyphemus::Run.last.state.to_h).to eq(the_state)
+      expect(Polyphemus::Run.last.created_at != nil)
     end
 
-    it 'updates the workflow state when it exists' do
+    it 'updates the run state when it exists' do
       auth_header(:editor)
       the_state = {"some_state" => "wooo!"}
+      orchestrator_metadata = { "initial" => "data" }
+      new_output = 'All is well'
+
       json_post("/api/etl/labors/run/update/#{run_id}",
         config_id: json_body[:config_id],
         version_number: 2,
-        state: the_state
+        state: the_state,
       )
       expect(last_response.status).to eq(200)
       new_state = {"some_state" => "ya_hooo!"}
       json_post("/api/etl/labors/run/update/#{run_id}",
         config_id: json_body[:config_id],
         version_number: 2,
-        state: new_state
+        state: new_state,
+        output: new_output,
+        orchestrator_metadata: orchestrator_metadata
       )
       expect(last_response.status).to eq(200)
       expect(Polyphemus::Run.last.state.to_h).to eq(new_state)
+      expect(Polyphemus::Run.last.orchestrator_metadata.to_h).to eq(orchestrator_metadata)
+      expect(Polyphemus::Run.last.output).to eq(new_output)
     end
+
+    it 'appends output to the run' do
+      initial_output = 'All is well'
+      additional_output = 'A serious error occurred.'
+
+      # Create run metadata with initial output
+      json_post("/api/etl/labors/run/update/#{run_id}",
+        config_id: json_body[:config_id],
+        version_number: 2,
+        output: initial_output,
+      )
+      expect(last_response.status).to eq(200)
+
+      json_post("/api/etl/labors/run/update/#{run_id}",
+        config_id: json_body[:config_id],
+        version_number: 2,
+        output: additional_output,
+        append_output: true
+      )
+      expect(last_response.status).to eq(200)
+      expect(json_body[:output]).to eq(initial_output + additional_output)
+    end
+
   end
 
   context 'retrieve the workflow state' do
@@ -356,104 +387,69 @@ context '#revisions' do
     end
   end
 
-  context 'updating run metadata' do
+  context 'runtime configs updates' do
     before do
       create_workflow_with_configs
     end
 
-    it 'creates new run metadata' do
-      orchestrator_metadata = { :workflow => "test" }
-      runtime_config = { :config => "test" }
-      output = "test output"
-
-      json_post("/api/etl/labors/run_metadata/update/#{run_id}",
-        config_id: json_body[:config_id],
-        version_number: 2,
-        orchestrator_metadata: orchestrator_metadata,
-        runtime_config: runtime_config,
-        output: output,
+    it 'creates new runtime config' do
+      config = {:commit  => true }
+      json_post("/api/etl/labors/runtime_configs/update/#{json_body[:config_id]}",
+        config: config,
         run_interval: 60
       )
-
       expect(last_response.status).to eq(200)
-      expect(json_body[:orchestrator_metadata]).to eq(orchestrator_metadata)
-      expect(json_body[:runtime_config]).to eq(runtime_config)
-      expect(json_body[:output]).to eq(output)
+      expect(json_body[:created_at] != nil)
+      expect(json_body[:config]).to eq(config)
       expect(json_body[:run_interval]).to eq(60)
     end
 
-    it 'updates existing run metadata' do
-      # Create initial metadata
-      json_post("/api/etl/labors/run_metadata/update/#{run_id}",
-        config_id: json_body[:config_id],
-        version_number: 2,
-        orchestrator_metadata: { :initial => "data" },
+    it 'updates existing runtime config' do
+      config = {:commit  => true }
+      json_post("/api/etl/labors/runtime_configs/update/#{json_body[:config_id]}",
+        config: config,
         run_interval: 60
       )
       expect(last_response.status).to eq(200)
 
       # Update metadata
-      new_metadata = { :updated => "metadata" }
-      json_post("/api/etl/labors/run_metadata/update/#{run_id}",
-        orchestrator_metadata: new_metadata
-      )
-
-      expect(last_response.status).to eq(200)
-      expect(json_body[:orchestrator_metadata].to_h).to eq(new_metadata)
-      expect(json_body[:run_interval]).to eq(60)
-    end
-
-    it 'appends output to the run metadata' do
-      initial_output = 'All is well'
-      additional_output = 'A serious error occurred.'
-
-      # Create run metadata with initial output
-      json_post("/api/etl/labors/run_metadata/update/#{run_id}",
-        config_id: json_body[:config_id],
-        version_number: 2,
-        output: initial_output,
-        run_interval: 60
+      new_config = {:commit  => false}
+      json_post("/api/etl/labors/runtime_configs/update/#{json_body[:config_id]}",
+        config: new_config,
+        run_interval: 120
       )
       expect(last_response.status).to eq(200)
-
-      json_post("/api/etl/labors/run_metadata/update/#{run_id}",
-        output: additional_output,
-        append_output: true
-      )
-      expect(last_response.status).to eq(200)
-      expect(json_body[:output]).to eq(initial_output + additional_output)
+      expect(json_body[:config]).to eq(new_config)
+      expect(json_body[:run_interval]).to eq(120)
     end
 
   end
 
-  context 'retrieving run metadata' do
+  context 'retrieving runtime configs' do
     before do
       create_workflow_with_configs
     end
 
-    it 'raises an error when run metadata does not exist' do
-      get("/api/etl/labors/run_metadata/#{run_id}")
+    it 'raises an error when runtime config does not exist' do
+      config_id_that_doesnt_exit = 10000
+      get("/api/etl/labors/runtime_configs/#{config_id_that_doesnt_exit}")
       expect(last_response.status).to eq(404)
-      expect(json_body[:error]).to eq('No metadata found for run argo_run_id_22')
+      expect(json_body[:error]).to eq('No runtime config found for config_id 10000.') 
     end
 
     it 'retrieves existing run metadata' do
-      test_metadata = { :workflow => "test" }
-      
-      # Create metadata
-      json_post("/api/etl/labors/run_metadata/update/#{run_id}",
-        config_id: json_body[:config_id],
-        version_number: 2,
-        orchestrator_metadata: test_metadata,
-        run_interval: 60
+      a_config = {:commit  => true }
+      json_post("/api/etl/labors/runtime_configs/update/#{json_body[:config_id]}",
+        config: a_config,
+        run_interval: 120
       )
       expect(last_response.status).to eq(200)
       
       # Retrieve and verify
-      get("/api/etl/labors/run_metadata/#{run_id}")
+      get("/api/etl/labors/runtime_configs/#{json_body[:config_id]}")
       expect(last_response.status).to eq(200)
-      expect(json_body[:orchestrator_metadata].to_h).to eq(test_metadata)
+      expect(json_body[:config]).to eq(a_config)
     end
   end
 
-  end
+end

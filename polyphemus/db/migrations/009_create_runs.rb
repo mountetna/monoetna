@@ -2,10 +2,12 @@ Sequel.migration do
   up do
     create_table(:runs) do
       primary_key :id
-      String :run_id, null: false
-      json :state, null: false
-      Integer :config_id, null: false
+      String :run_id, null: false, unique: true
       Integer :version_number, null: false
+      Integer :config_id, null: false
+      json :state, null: true
+      json :orchestrator_metadata, null: true # TODO: find specific fields we want to keep track of
+      String :output, null: true
       DateTime :created_at, null: false
       DateTime :updated_at, null: false
     end
