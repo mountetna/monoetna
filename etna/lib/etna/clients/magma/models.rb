@@ -229,6 +229,13 @@ module Etna
           Models.new({}.update(raw).update(raw_update))
         end
 
+        def is_table?(model_name)
+          parent_model_name = self.model(model_name)&.template&.parent
+          parent_model = self.model(parent_model_name)
+          parent_attribute = parent_model&.template&.attributes&.attribute(model_name)
+          parent_attribute&.attribute_type == 'table'
+        end
+
         # Can look up reciprocal links by many means.  At minimum, a source model or model name must be provided,
         # and either a link_attribute_name, attribute, or link_model.
         def find_reciprocal(
@@ -238,7 +245,7 @@ module Etna
             attribute: model&.template&.attributes&.attribute(link_attribute_name),
             link_model: self.model(attribute&.link_model_name)
         )
-          return nil if model.nil? || model.name.nil?
+          return nil if model.nil?
 
           return link_model&.template&.attributes&.all&.find { |a| a.name == link_attribute_name } if link_attribute_name
 

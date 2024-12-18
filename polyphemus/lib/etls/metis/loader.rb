@@ -3,25 +3,30 @@ module Metis
     class Error < Exception
     end
     class Script
-      def initialize(model_config, script)
+      def initialize(config, model_name, script)
+        @config = config
         @raw_script = script
-        @model_config = model_config
+        @model_name = model_name
       end
 
-      def type
-        @raw_script[:type]
+      def self.script_params(*params)
+        params.each do |param|
+          self.define_method param do
+            @raw_script[param]
+          end
+        end
       end
 
-      def attribute_name
-        @raw_script[:attribute_name]
+      script_params :type, :attribute_name, :folder_path,
+        :file_match, :column_map, :format, :values_to_ignore,
+        :blank_table
+
+      def model
+        @config.model_defs.model(model_name)
       end
 
-      def folder_path
-        @raw_script[:folder_path]
-      end
-
-      def file_match
-        @raw_script[:file_match]
+      def model_name
+        @model_name
       end
 
       def add_to_update(update, tail, metis=nil)
@@ -33,28 +38,20 @@ module Metis
         when 'data_frame'
           data_frame_update(update, tail, metis)
         else
-          raise Metis::Loader::Error.new("Invalid type for script #{type} for model #{@model_name}")
+          raise Metis::Loader::Error.new("Invalid type for script #{type} for model #{model_name}")
         end
       end
 
-      def validate_rule
-        if !@model_config.rule
-          raise Metis::Loader::Error.new(
-            "Cannot filter by file without a rule for #{@model_config.model_name}"
-          )
-        end
-
-        @rule_match ||= Regexp.new(@model_config.rule[1..-2])
+      def is_table?
+        @config.model_defs.is_table?(model_name)
       end
 
       def file_update(update, tail)
-        validate_rule
-
         files(tail).each do |file|
-          name = identifier(file.file_path)
+          name = @config.identifier(model_name, file.file_path)
           next unless name
           update.update_revision(
-            @model_config.model_name,
+            model_name,
             name,
             {
               attribute_name => file.as_magma_file_attribute
@@ -63,23 +60,127 @@ module Metis
         end
       end
 
-      def identifier(path)
-        match = @rule_match.match(path)
+      def table_separator(file)
+        case format
+        when 'csv'
+          return ','
+        when 'tsv'
+          return "\t"
+        when 'auto-detect'
+          if file.file_path =~ /csv$/
+             return ','
+          elsif file.file_path =~ /tsv$/
+             return "\t"
+          end
+        end
+      end
 
-        return match ? match[0] : nil
+      def data_frame_update(update, tail, metis)
+        model_attributes = model.template.attributes
+        id = model.template.identifier
+
+        if !is_table? && !column_map.has_key?(model.template.identifier.to_sym)
+          raise Metis::Loader::Error.new(
+            "Identifier attribute is missing from the 'column_map' of #{model_name} data_frame loader."
+          )
+        end
+
+        if is_table? && !column_map.has_key?(model.template.parent.to_sym)
+          raise Metis::Loader::Error.new(
+            "Parent attribute is missing from the 'column_map' of #{model_name} data_frame loader."
+          )
+        end
+
+        missing = (column_map.keys - model.template.attributes.attribute_keys.map(&:to_sym))
+
+        if !missing.empty?
+          raise Metis::Loader::Error.new(
+            "'column_map' of #{model_name} data_frame loader targets attribute(s) that don't exist: #{missing.join(', ')}."
+          )
+        end
+
+        # Parse Files
+        files(tail).each do |file|
+          file_contents = String.new
+          metis.download_file(file) do |chunk|
+            file_contents << chunk
+          end
+
+          head, *rows = CSV.parse(file_contents, col_sep: table_separator(file))
+          data = Daru::DataFrame.rows(rows, order: head.map(&:to_sym))
+
+          if !data.any? || data.ncols < 2
+            raise Metis::Loader::Error.new(
+              "#{file.file_name} seems to have fewer than 2 columns. Check the 'format' configuration for this data_frame loader."
+            )
+          end
+
+          missing = column_map.values - data.vectors.map(&:to_s)
+          if !missing.empty?
+            raise Metis::Loader::Error.new("#{file.file_name} is missing column(s) targetted by #{model_name} data_frame loader 'column_map': #{missing.join(', ')}.")
+          end
+
+          # not sure this is required any more
+          #if data.any?(:row) { |r| r.any?(&:nil?) }
+          #  raise Metis::Loader::Error.new("#{file.file_name} has unexpected empty values after all parsing. Data rows may be shorter than the column row indicates.")
+          #end
+          
+          # Trim to mapped columns and convert to attribute names
+          data.vectors = Daru::Index.new(
+            data.vectors.map do |column_name|
+              column_map.invert[ column_name.to_s ] || column_name
+            end
+          )
+
+          data.vectors.to_a.each do |name|
+            data.delete name unless column_map.has_key?(name)
+          end
+
+          # Blank data equaling values_to_ignore by setting as nil
+          if values_to_ignore
+            data.replace_values(values_to_ignore.split(","), nil)
+          end
+
+          # Determine Updates
+          if is_table?
+            data[:__temp__] = data.index.map { |i| "::temp-id-#{i}" }
+            data = data.set_index(:__temp__)
+
+            if blank_table
+              parent_model_name = model.template.parent.to_sym
+              data[ parent_model_name ].each do |parent_name|
+                next unless @config.identifier(parent_model_name, parent_name)
+                update.update_revision(
+                  parent_model_name.to_s,
+                  parent_name,
+                  {
+                    model_name => data.where( data[parent_model_name].eq(parent_name) ).index.to_a
+                  }
+                )
+              end
+            end
+            data.each_row_with_index do |attributes,name|
+              update.update_revision(model_name.to_s, name, attributes.to_h.compact) 
+            end
+          else
+            data = data.set_index(model.template.identifier.to_sym)
+            data.each_row_with_index do |attributes,name|
+              next if @config.rules[model_name] && !@config.identifier(model_name, name)
+              update.update_revision(model_name.to_s, name, attributes.to_h.compact) 
+            end
+          end
+        end
       end
 
       def file_collection_update(update, tail)
-        validate_rule
-
         grouped_files = files(tail).group_by do |file|
-          identifier(file.file_path)
+          @config.identifier(model_name, file.file_path)
         end
 
         grouped_files.each do |name, name_files|
           next unless name
           update.update_revision(
-            @model_config.model_name,
+            model_name,
             name,
             {
               attribute_name => name_files.map(&:as_magma_file_attribute)
@@ -97,27 +198,13 @@ module Metis
           )
         end
       end
-    end
 
-    class ModelConfig
-      attr_reader :model_name
-      attr_reader :model_def
-      attr_reader :rule
-      def initialize(model_name, model_config, model_def, rule)
-        @model_name = model_name
-        @raw_model_config = model_config
-        @model_def = model_def
-        @rule = rule
-      end
-
-      def scripts
-        @scripts ||= (@raw_model_config[:scripts] || []).map do |script|
-          Script.new(self, script)
-        end
-      end
     end
 
     class Config
+      attr_reader :rules
+      attr_reader :model_defs
+
       def initialize(config, params, model_defs, rules)
         @raw_config = config
         @params = params
@@ -131,10 +218,28 @@ module Metis
 
       def models
         @models ||= (config[:models] || {}).map do |model_name, model_config|
-          [ model_name, ModelConfig.new(
-              model_name, model_config, @model_defs[model_name], @rules[model_name]
-          ) ]
+          [
+            model_name,
+            (model_config[:scripts] || []).map do |script|
+              Script.new(self, model_name, script)
+            end
+          ]
         end.to_h
+      end
+
+      def rule_match(model_name)
+        @rule_match ||= {}
+        @rule_match[model_name] ||= Regexp.new(@rules[model_name][1..-2])
+      end
+
+      def identifier(model_name, path)
+        raise Metis::Loader::Error.new(
+            "Cannot filter without a rule for #{model_name}"
+        ) unless @rules[model_name]
+
+        match = rule_match(model_name).match(path)
+
+        return match ? match[0] : nil
       end
 
       def dry_run?
@@ -159,15 +264,15 @@ module Metis
       )
     end
 
-    def update_for(tail, metis_client=nil, models=nil)
+    def update_for(tail, metis_client=nil)
       update = Etna::Clients::Magma::UpdateRequest.new(
         project_name: @config.project_name,
         dry_run: @config.dry_run?,
         autolink: @config.autolink?
       )
 
-      @config.models.each do |model_name, model_config|
-        model_config.scripts.each do |script|
+      @config.models.each do |model_name, scripts|
+        scripts.each do |script|
           script.add_to_update(update, tail, metis_client)
         end
       end
