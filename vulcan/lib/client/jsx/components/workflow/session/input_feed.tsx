@@ -5,12 +5,13 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 import PrimaryInputs from './primary_inputs';
 import StepError from '../steps/step_error';
 import {
-  completedSteps,
-  erroredSteps,
+  completedStepNames,
+  erroredStepNames,
   groupUiSteps,
-  isPendingUiQuery,
-  pendingSteps,
-  uiQueryOfStep
+  pendingUIInputStepReady,
+  pendingStepNames,
+  uiComponentOfStep,
+  pickToArray
 } from '../../../selectors/workflow_selectors';
 import StepUserInputWrapper from '../steps/step_user_input_wrapper';
 
@@ -18,19 +19,19 @@ export default function InputFeed() {
   // Shows stream of Inputs,
   //   as the session object updates.
   const {state} = useContext(VulcanContext);
-  const {workflow, session, status, data} = state;
+  const {workflow, workspace, status, data} = state;
 
-  if (!workflow) return null;
+  if (!workflow || !workspace) return null;
 
-  let completed = completedSteps(workflow, status).filter(
-    (step) => !!uiQueryOfStep(step)
+  let completed = completedStepNames(workspace, status).filter(
+    (step) => !!uiComponentOfStep(step, workspace.vulcan_config)
   );
-  let nextUiSteps = pendingSteps(workflow, status).filter((step) =>
-    isPendingUiQuery(step, status, data, session)
+  let nextUiSteps = pendingStepNames(workspace, status).filter((step) =>
+    pendingUIInputStepReady(step, status, workspace, data)
   );
-  const groupedSteps = groupUiSteps(completed.concat(nextUiSteps));
+  const groupedSteps = groupUiSteps(completed.concat(nextUiSteps), workspace);
 
-  let errorSteps = erroredSteps(workflow, status);
+  let errorSteps = pickToArray(workspace.steps, erroredStepNames(workspace, status));
 
   return (
     <div className='session-input-feed'>
@@ -39,7 +40,7 @@ export default function InputFeed() {
         <StepUserInputWrapper key={index} group={s} />
       ))}
       {errorSteps.map((s, index) => (
-        <StepError key={index} step={s.step} />
+        <StepError key={index} step={s} />
       ))}
     </div>
   );

@@ -1,44 +1,31 @@
 import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {OUTPUT_COMPONENT} from '../../../api_types';
+import {dontDownloadForOutputTypes, OUTPUT_TYPES, OUTPUTS} from '../../ui_components';
 
 import StepName from './step_name';
-import RawOutput from '../user_interactions/outputs/raw';
-import LinkOutput from '../user_interactions/outputs/link';
-import { PlotOutput, PlotlyOutput, PngOutput } from '../user_interactions/outputs/plot';
-import ConsignmentOutput from '../user_interactions/outputs/consignment';
 
-import {statusOfStep, uiOutputOfStep, stepInputDataUrls, stepInputDataRaw} from '../../../selectors/workflow_selectors';
-import {WorkflowStep} from '../../../api_types';
+import {statusOfStep, uiComponentOfStep, stepInputDataUrls, stepInputDataRaw} from '../../../selectors/workflow_selectors';
+import {WorkspaceStep} from '../../../api_types';
 
-const OUTPUTS = {
-  default: LinkOutput,
-  [OUTPUT_COMPONENT.LINK]: LinkOutput,
-  [OUTPUT_COMPONENT.PLOTLY]: PlotlyOutput,
-  [OUTPUT_COMPONENT.PLOT]: PlotOutput,
-  [OUTPUT_COMPONENT.PNG]: PngOutput,
-  [OUTPUT_COMPONENT.CONSIGNMENT]: ConsignmentOutput,
-  [OUTPUT_COMPONENT.RAW]: RawOutput
-};
-
-export default function StepOutput({step}: {step: WorkflowStep}) {
+export default function StepOutput({step}: {step: WorkspaceStep}) {
   let {state} = useContext(VulcanContext);
+  const vulcan_config = state.workspace?.vulcan_config || {};
   const stepStatus = statusOfStep(step, state.status);
-  const uiOutput = uiOutputOfStep(step);
+  const uiOutput = uiComponentOfStep(step.name, vulcan_config);
 
   if (!stepStatus || !uiOutput) return null;
   const stepType = uiOutput in OUTPUTS ? uiOutput : 'default';
 
   let data;
-  if (['default', OUTPUT_COMPONENT.LINK].includes(stepType)) {
+  if (dontDownloadForOutputTypes.includes(stepType)) {
     data = stepInputDataUrls(step, state.status);
   } else {
     data = stepInputDataRaw(step, state.status, state.data, state.session);
   }
 
   let url;
-  if ([OUTPUT_COMPONENT.PLOT, OUTPUT_COMPONENT.PNG].includes(stepType)) {
+  if ([OUTPUT_TYPES.PLOT, OUTPUT_TYPES.PNG].includes(stepType)) {
     url = stepInputDataUrls(step, state.status);
   }
 

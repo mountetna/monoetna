@@ -2,9 +2,9 @@ import React, {useContext} from 'react';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import StepName from './step_name';
 import {statusOfStep} from '../../../selectors/workflow_selectors';
-import {WorkflowStep} from '../../../api_types';
+import {WorkspaceStep} from '../../../api_types';
 
-export default function StepError({step}: {step: WorkflowStep}) {
+export default function StepError({step}: {step: WorkspaceStep}) {
   let {state} = useContext(VulcanContext);
   const stepStatus = statusOfStep(step, state.status);
 

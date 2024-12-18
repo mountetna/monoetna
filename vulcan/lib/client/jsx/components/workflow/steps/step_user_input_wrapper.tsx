@@ -12,7 +12,7 @@ import {labelOfStepOrGroupedStep} from '../../../selectors/workflow_selectors';
 import {statusOfStep} from '../../../selectors/workflow_selectors';
 import StepUserInputDrawer from './step_user_input_drawer';
 import {STATUS} from '../../../api_types';
-import {WorkflowStepGroup} from '../user_interactions/inputs/input_types';
+import {WorkspaceStepGroup} from '../user_interactions/inputs/input_types';
 
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
@@ -44,7 +44,7 @@ const useStyles = makeStyles((theme) => ({
 export default function StepUserInputWrapper({
   group
 }: {
-  group: WorkflowStepGroup;
+  group: WorkspaceStepGroup;
 }) {
   const {state} = useContext(VulcanContext);
 

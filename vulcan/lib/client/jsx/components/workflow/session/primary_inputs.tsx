@@ -10,14 +10,14 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import {
   inputGroupName,
-  mergeInputsWithDefaults
+  missingConfigInputDefaults
 } from '../../../selectors/workflow_selectors';
 import InputGroup from './input_group';
 import {
   bindInputSpecification,
   BoundInputSpecification,
   DataEnvelope,
-  getInputSpecifications
+  getConfigUISpecifications
 } from '../user_interactions/inputs/input_types';
 import {useWorkspace} from '../../../contexts/workspace_context';
 import {Maybe, maybeOfNullable} from '../../../selectors/maybe';
@@ -49,24 +49,20 @@ const useStyles = makeStyles((theme) => ({
 function PrimaryInputsInner() {
   const {state} = useContext(VulcanContext);
   const {inputs, setInputs} = useContext(BufferedInputsContext);
-  const {session} = state;
-  const {workspace} = useWorkspace();
+  const {status, workspace} = state;
+  if (!workspace) return null;
 
   // Ensure defaults are set.
   useEffect(() => {
-    let withDefaults: DataEnvelope<Maybe<any>> = mergeInputsWithDefaults(
-      workspace.inputs,
-      session.inputs,
-      inputs
-    );
+    let newDefaults = missingConfigInputDefaults(workspace, status, inputs);
 
-    if (Object.keys(withDefaults).length > 0) {
-      setInputs((inputs) => ({...inputs, ...withDefaults}));
+    if (Object.keys(newDefaults).length > 0) {
+      setInputs((inputs) => ({...inputs, ...newDefaults}));
     }
-  }, [inputs, session.inputs, setInputs, workspace.inputs]);
+  }, [inputs, status, setInputs, workspace]);
 
   const inputSpecifications = useMemo(
-    () => getInputSpecifications(Object.entries(workspace.inputs), workspace),
+    () => getConfigUISpecifications(workspace),
     [workspace]
   );
 
@@ -97,7 +93,14 @@ function PrimaryInputsInner() {
     workspace
   ]);
 
-  const [expanded, setExpanded] = useState('');
+  const [expanded, setExpanded] = useState([] as string[]);
+  function toggleExpanded(groupName: string) {
+    if (expanded.includes(groupName)) {
+      setExpanded(expanded.filter(val => val != groupName));
+    } else {
+      setExpanded(expanded.concat(groupName))
+    }
+  }
 
   const [open, setOpen] = useState(false);
 
@@ -131,10 +134,8 @@ function PrimaryInputsInner() {
           .map((groupName, index) => {
             return (
               <InputGroup
-                expanded={expanded == groupName}
-                select={() =>
-                  setExpanded(expanded == groupName ? '' : groupName)
-                }
+                expanded={expanded.includes(groupName)}
+                select={() => toggleExpanded(groupName)}
                 groupName={groupName.split('_').slice(1).join(' ')}
                 key={index}
                 inputs={groupedInputs[groupName]}

@@ -10,7 +10,7 @@ import {
   useRef,
   useState
 } from 'react';
-import {defaultSessionSyncHelpers} from './session_sync';
+import {defaultSessionSyncHelpers} from './session_sync_while_running';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {dismissMessages, showMessages} from 'etna-js/actions/message_actions';
 import {
@@ -254,12 +254,12 @@ export function useInputStateManagement(
   >(
     (stepName, inputs) => {
       if (!validateInputs(stepName)) return false;
-      const sources = allSourcesForStepName(
+      const outputs = allSourcesForStepName(
         stepName,
         stateRef.current.workspace
       );
-      const newInputs = {...stateRef.current.status.config_contents, ...stateRef.current.status.ui_contents};
-      sources.forEach((source) => {
+      const newInputs = {...stateRef.current.status.params, ...stateRef.current.status.ui_contents};
+      outputs.forEach((source) => {
         if (source.indexOf('/') > -1) {
           const [source_step, source_name] = source.split('/');
           mapSome(inputs[source_name] || null, (inner) => (newInputs[source_step][source_name] = inner));

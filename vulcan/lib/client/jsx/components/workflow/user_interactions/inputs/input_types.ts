@@ -1,22 +1,16 @@
 import * as React from 'react';
-import {VulcanConfigElement, Workflow, WorkflowInput, WorkspaceStep} from '../../../../api_types';
+import {Workspace, WorkspaceStep} from '../../../../api_types';
 import {Maybe, some, isSome, withDefault} from '../../../../selectors/maybe';
-import {Dispatch} from 'react';
-import {VulcanAction} from '../../../../actions/vulcan_actions';
 import {VulcanState} from '../../../../reducers/vulcan_reducer';
 import {
-  sourceNamesOfStep,
+  paramUINames,
   splitSource,
   stepInputDataRaw,
-  stepOfSource,
-  stepOfStatus,
+  stepOfName,
   stepOutputs,
-  uiQueryOfStep
 } from '../../../../selectors/workflow_selectors';
 import {defaultBufferedInputs} from '../../../../contexts/input_state_management';
 import {InputType, DataEnvelope} from 'etna-js/utils/input_types';
-
-export {InputType, DataEnvelope} from 'etna-js/utils/input_types';
 
 export function nulled_vals(de: DataEnvelope<any>): DataEnvelope<null> {
   let de_ = {...de};
@@ -25,11 +19,10 @@ export function nulled_vals(de: DataEnvelope<any>): DataEnvelope<null> {
 }
 
 export interface InputSpecification {
-  type: InputType;
+  ui_component: string;
   label: string;
   name: string;
   doc?: string | null;
-  source: string;
 }
 
 export interface BoundInputSpecification<Value = unknown, DataElement = unknown>
@@ -43,81 +36,96 @@ export interface BoundInputSpecification<Value = unknown, DataElement = unknown>
   numOutputs?: number;
 }
 
-export function getInputSpecifications(
-  step: WorkspaceStep | [string, WorkflowInput][],
-  workflow: Workflow | null
+export function getParamUISpecifications(
+  workspace: Workspace | null
 ): InputSpecification[] {
-  if (!workflow) return [];
+  const elements = paramUINames(workspace);
+  if (!workspace || elements.length < 1) return [];
+  const {vulcan_config} = workspace;
+  return elements.map(name => {
+    const conf = {...vulcan_config[name]}
+    return {
+      ui_component: conf.ui_component,
+      label: conf.display,
+      name: name,
+      doc: conf.doc || null
+    }
+  })
+}
+
+export function getInputSpecifications(
+  step: WorkspaceStep | [string, WorkspaceStep][],
+  workspace: Workspace | null
+): InputSpecification[] {
+  if (!workspace) return [];
 
   if (Array.isArray(step)) {
-    return step.map(([name, workflowInput]) => {
+    return step.map(([name, WorkspaceStep]) => {
       return {
-        ...workflowInput,
-        name,
-        label: workflowInput.label || name,
-        source: name
+        ui_component: WorkspaceStep.ui_component || 'default',
+        label: WorkspaceStep.label || name,
+        name: name,
+        doc: WorkspaceStep.doc || null
       };
     });
   }
 
-  return sourceNamesOfStep(step).map((source) => ({
-    source,
+  return [{
     name: step.name,
     doc: step.doc,
     label: step.label || step.name,
-    type: uiQueryOfStep(step) || 'default'
-  }));
+    ui_component: step.ui_component || 'default'
+  }];
 }
 
-export function collapseInputValues(
-  stepName: string | undefined,
-  inputName: string,
-  inputs:
-    | typeof defaultBufferedInputs.inputs
-    | VulcanState['session']['inputs'],
-  fromBuffer: boolean
-): Maybe<unknown> {
-  const stepPrefixRegex = new RegExp(
-    stepName ? `^${inputName}\/` : `^${inputName}$`
-  );
-  const matchingInputs = Object.keys(inputs).filter((inputName: string) =>
-    inputName.match(stepPrefixRegex)
-  );
+// export function collapseInputValues(
+//   stepName: string | undefined,
+//   inputName: string,
+//   inputs:
+//     | typeof defaultBufferedInputs.inputs
+//     | VulcanState['session']['inputs'],
+//   fromBuffer: boolean
+// ): Maybe<unknown> {
+//   const stepPrefixRegex = new RegExp(
+//     stepName ? `^${inputName}\/` : `^${inputName}$`
+//   );
+//   const matchingInputs = Object.keys(inputs).filter((inputName: string) =>
+//     inputName.match(stepPrefixRegex)
+//   );
 
-  if (matchingInputs.length > 1) {
-    const groupedInputs = matchingInputs.reduce(
-      (acc: Maybe<{[key: string]: unknown}>, inputName) => {
-        if (!acc) return some({}); // should never return this? Here to make TSC happy.
+//   if (matchingInputs.length > 1) {
+//     const groupedInputs = matchingInputs.reduce(
+//       (acc: Maybe<{[key: string]: unknown}>, inputName) => {
+//         if (!acc) return some({}); // should never return this? Here to make TSC happy.
 
-        const outputName = inputName.replace(stepPrefixRegex, '');
-        acc[outputName as any] = inputs[inputName];
+//         const outputName = inputName.replace(stepPrefixRegex, '');
+//         acc[outputName as any] = inputs[inputName];
 
-        return acc;
-      },
-      {} as Maybe<{[key: string]: unknown}>
-    );
+//         return acc;
+//       },
+//       {} as Maybe<{[key: string]: unknown}>
+//     );
 
-    return fromBuffer ? some(groupedInputs) : groupedInputs;
-  } else if (matchingInputs.length === 1) {
-    return inputs[matchingInputs[0]];
-  }
+//     return fromBuffer ? some(groupedInputs) : groupedInputs;
+//   } else if (matchingInputs.length === 1) {
+//     return inputs[matchingInputs[0]];
+//   }
 
-  return null;
-}
+//   return null;
+// }
 
 export function bindInputSpecification(
   input: InputSpecification,
-  workflow: Workflow,
+  workspace: Workspace,
   status: VulcanState['status'],
   session: VulcanState['session'],
-  data: VulcanState['data'],
   buffered: typeof defaultBufferedInputs.inputs,
   setInputs: typeof defaultBufferedInputs.setInputs
 ): BoundInputSpecification {
-  const stepName = stepOfSource(input.source);
-  const step = stepName && stepOfStatus(stepName, workflow);
-  const inputData =
-    (stepName && step && stepInputDataRaw(step, status, data, session)) || {};
+  const stepName = input.name;
+  const step = stepOfName(stepName, workspace);
+  if (!step) return;
+  const inputData = stepInputDataRaw(step, status, workspace) || {};
 
   return {
     ...input,
@@ -186,11 +194,11 @@ export function bindInputSpecification(
         : input.source in session.inputs
         ? some(collapseInputValues(stepName, input.name, session.inputs, false))
         : null,
-    numOutputs: stepOutputs(stepOfStatus(input.name, workflow)).length
+    numOutputs: step.output ? (step.output.params?.length || 0) + (step.output.files?.length || 0) : 0
   };
 }
 
-export type WorkflowStepGroup = {label: string; steps: VulcanConfigElement[]};
+export type WorkspaceStepGroup = {label: string; steps: WorkspaceStep[]};
 
 export type InputBackendComponent<
   Params extends {} = {},

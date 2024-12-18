@@ -3,11 +3,10 @@ import React, {useContext, useEffect, useState, useCallback} from 'react';
 import {connect} from 'react-redux';
 
 import {VulcanContext} from '../contexts/vulcan_context';
-import {workflowName} from '../selectors/workflow_selectors';
+import {hasRunningSteps} from '../selectors/workflow_selectors';
 import Nav from 'etna-js/components/Nav';
 import Link from 'etna-js/components/link';
 import {selectUser} from 'etna-js/selectors/user-selector';
-import { statusStringOfStepOrGroupedStep } from '../selectors/workflow_selectors';
 
 const {sin, cos, PI, random, max, min, pow, abs, sqrt} = Math;
 
@@ -128,11 +127,9 @@ const Halo = ({radius}) => {
 
 function Logo() {
   const {state} = useContext(VulcanContext);
-  const {workflow, status} = state;
+  const {workspace, status} = state;
 
-  let calculating = workflow ? workflow.steps[0].some(
-    step => statusStringOfStepOrGroupedStep(step, workflow, status) == 'running'
-  ) : null;
+  let calculating = !!workspace ? hasRunningSteps(status) : null;
 
   return (
     <div id='vulcan-logo'>
@@ -142,13 +139,13 @@ function Logo() {
   );
 }
 
-const getTabs = (workflow, session) => ({
+const getTabs = (workspace) => ({
   help: 'https://mountetna.github.io/vulcan.html'
 });
 
-const ModeBar = ({mode, workflow, session}) => (
+const ModeBar = ({mode, workspace}) => (
   <div id='nav'>
-    {Object.entries(getTabs(workflow, session)).map(([tab_name, route]) => (
+    {Object.entries(getTabs(workspace)).map(([tab_name, route]) => (
       <div
         key={tab_name}
         className={`nav_tab ${mode == tab_name ? 'selected' : ''}`}
@@ -161,11 +158,11 @@ const ModeBar = ({mode, workflow, session}) => (
 
 const VulcanNav = ({mode, user}) => {
   let {state} = useContext(VulcanContext);
-  let {workflow, session} = state;
+  let {workspace} = state;
 
   return (
     <Nav user={user} logo={Logo} app='vulcan'>
-      {mode !== 'home' && <ModeBar mode={mode} workflow={workflow} session={session} />}
+      {mode !== 'home' && <ModeBar mode={mode} workspace={workspace}/>}
     </Nav>
   );
 };

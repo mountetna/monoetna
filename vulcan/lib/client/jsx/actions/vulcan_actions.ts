@@ -5,7 +5,10 @@ import {
   WorkflowsResponse,
   Workspaces,
   Workspace,
-  WorkspaceStatus
+  WorkspaceStatus,
+  WorkspaceRaw,
+  RunStatus,
+  MultiFileContent
 } from '../api_types';
 import {Maybe} from '../selectors/maybe';
 import { selectFigure, selectSession, workspaceId } from '../selectors/workflow_selectors';
@@ -34,7 +37,7 @@ export function setWorkspaceId(workspaceId: Workspace['workspace_id']) {
   return actionObject('SET_WORKSPACE_ID', {workspaceId});
 }
 
-export function setWorkspace(workspace: Workspace, projectName: string) {
+export function setWorkspace(workspace: Workspace | WorkspaceRaw, projectName: string) {
   return actionObject('SET_WORKSPACE', {workspace, projectName});
 }
 
@@ -54,15 +57,29 @@ export function setRunId(runId: Workspace['workspace_id']) {
   return actionObject('SET_RUN_ID', {runId});
 }
 
-export function setStatus(
+export function setLastConfig(lastConfig: WorkspaceStatus['last_params']) {
+  return actionObject('SET_LAST_CONFIG', {lastConfig})
+}
+
+export function useUIAccounting(
   accounting: AccountingReturn,
   submittingStep: Maybe<string> = null
 ) {
-  return actionObject('SET_STATUS', {accounting, submittingStep});
+  return actionObject('USE_UI_ACCOUNTING', {accounting, submittingStep});
 }
 
-export function setDownloadedData(fileName: string, fileData: any) {
-  return actionObject('SET_DOWNLOAD', {fileName, fileData});
+export function setStatusFromStatuses(
+  statusReturns: RunStatus
+) {
+  return actionObject('SET_STATUS_FROM_STATUSES', {statusReturns, submittingStep});
+}
+
+export function setFileContent(fileName: string, fileData: any) {
+  return actionObject('SET_FILE_CONTENT', {fileName, fileData});
+}
+
+export function setFilesContent(filesContent: MultiFileContent) {
+  return actionObject('SET_FILES_CONTENT', {filesContent});
 }
 
 export function setWorkspaceFiles(fileNames: string[]) {
@@ -144,8 +161,11 @@ export type VulcanAction =
   | ReturnType<typeof setWorkspaceStateSyncd>
   | ReturnType<typeof setConfigId>
   | ReturnType<typeof setRunId>
-  | ReturnType<typeof setStatus>
-  | ReturnType<typeof setDownloadedData>
+  | ReturnType<typeof setLastConfig>
+  | ReturnType<typeof useUIAccounting>
+  | ReturnType<typeof setStatusFromStatuses>
+  | ReturnType<typeof setFileContent>
+  | ReturnType<typeof setFilesContent>
   | ReturnType<typeof setWorkspaceFiles>
   | ReturnType<typeof setUIValues>
   // | ReturnType<typeof removeDownloads>

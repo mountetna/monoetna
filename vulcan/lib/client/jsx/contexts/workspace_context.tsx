@@ -6,6 +6,7 @@ export function useWorkspace() {
   const {state} = useContext(VulcanContext);
   const workflow = state.workflow || defaultWorkflow;
   const workspace = state.workspace || defaultWorkspace;
+  const workspaceId = state.workspace?.workspace_id;
   const {stepsStatus} = state.status.steps;
 
   const hasPendingEdits = state.bufferedSteps.length > 0;
@@ -15,5 +16,5 @@ export function useWorkspace() {
     [stepsStatus]
   );
 
-  return {workflow, workspace, hasPendingEdits, complete};
+  return {workflow, workspace, workspaceId, hasPendingEdits, complete};
 }

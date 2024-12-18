@@ -6,11 +6,15 @@ import {
   defaultWorkspaceStatus,
   WorkspaceStatus,
   Workspaces,
-  defaultWorkflow
+  defaultWorkflow,
+  StatusStringBroaden
 } from '../api_types';
 import {
-  allUISteps,
-  configUISteps,
+  allUIStepNames,
+  inputUINames,
+  paramUINames,
+  upcomingStepNames,
+  vulcanConfigFromRaw,
 } from '../selectors/workflow_selectors';
 import {mapSome, Maybe, some, withDefault} from '../selectors/maybe';
 
@@ -49,76 +53,79 @@ export const defaultVulcanState = {
   configId: defaultId,
   runId: defaultId,
   status: defaultStatus, // Only filled input/outputs in here
-  data: defaultData,
 
   // MAYBE: So that users can preview from their local storage before triggering the vulcan workspace to match it
+  // Not used yet
   sessionWorkspaceSyncd: true,
 
   // A subset of all steps that have buffered changes.
   bufferedSteps: [] as (string | null)[],
   // If a buffered step was filled in while remaining 'pending'
-  committedStepPending: false,
+  workQueueable: false,
 
   // Step marked for auto-passing by user
   autoPassSteps: [] as (string | null)[],
   triggerRun: [] as (string | null)[],
   
   validationErrors: defaultValidationErrors,
-  pollingState: 0
+  
+  pollingState: 0,
+  newStepCompletions: [] as string[]
 };
 
 export type VulcanState = Readonly<typeof defaultVulcanState>;
 
-function filterStaleness(
+function useAccounting(
   state: VulcanState,
-  action: {type: 'SET_STATUS'} & {
+  action: {type: 'USE_UI_ACCOUNTING'} & {
     accounting: AccountingReturn;
     submittingStep: Maybe<string>;
   }
-) {
+): VulcanState {
   /*
-  v1: outputs matching hash of step inputs were used for determining staleness
-  v2: snakemake determines staleness and the back-end returns 'scheduled' = will run in next Run, and
-      'downstream' = not ready to run yet, but is downstream in the dag of scheduled steps
+  v1: "filterStaleness" outputs matching hash of step inputs were used for determining staleness
+  v2: snakemake determines staleness and the back-end returns:
+        - 'config_id' = an id unique to the workspace setup
+        - 'scheduled' = will run in next Run, and
+        - 'downstream' = not ready to run yet, but is downstream in the dag of scheduled steps.
+      Filters staleness, updates step statuses, and sets the new configId.
   */
-  const {workspace, status, data} = state;
+  const {workspace, status} = state;
   if (!workspace) return state;
   
   let newStatus = {...status};
-  let newData = {...data}
 
   const staleSteps = action.accounting.downstream.concat(action.accounting.scheduled)
-  const staleUISteps = staleSteps.filter(name => allUISteps(state).includes(name))
+  const staleUISteps = staleSteps.filter(name => inputUINames(state).includes(name))
+  const submittingStep: string | null = withDefault(action.submittingStep, null);
 
-  return withDefault(
-    mapSome(action.submittingStep, (submittingStep) => {
+  for (let [step, stepStatus] of Object.entries(newStatus.steps)) {
+    // The submitting step is pushing a new value from the client up, thus
+    // it should not have its input made stale.
+    if (step === submittingStep || !staleSteps.includes(step)) continue;
 
-      for (let [step, stepStatus] of Object.entries(newStatus.steps)) {
-        // The submitting step is pushing a new value from the client up, thus
-        // it should not have its input made stale.
-        if (step === submittingStep || !staleSteps.includes(step)) continue;
-
-        // Clear ui_content knowledge, output_files knowledge, and downloaded output file content
-        // (May still exist in workspace, but we will assume it's stale.)
-        if (stepStatus.outputs?.files) {
-          for (let output in stepStatus.outputs.files) delete newData[output];
-          newStatus.output_files.filter(name => !stepStatus.outputs?.files?.includes(name));
-          if (staleUISteps.includes(step)) {
-            delete newStatus.ui_contents[step];
-          }
-        }
-
-        // Update steps' statuses
-        delete newStatus.steps[step].error ;
-        delete newStatus.steps[step].outputs;
-        newStatus.steps[step].statusFine = "NOT STARTED";
-        newStatus.steps[step].status = action.accounting.scheduled.includes(step) ? "upcoming" : "pending";
+    // Clear ui_content knowledge, output_files knowledge, and downloaded output file content
+    // (May still exist in workspace, but we will assume it's stale.)
+    if (!!workspace.steps[step]?.output?.files) {
+      for (let output in workspace.steps[step].output.files) delete newStatus.file_contents[output];
+      newStatus.output_files.filter(name => !workspace.steps[step]?.output?.files?.includes(name));
+      if (staleUISteps.includes(step)) {
+        delete newStatus.ui_contents[step];
       }
+    }
+
+    // Update steps' statuses
+    delete newStatus.steps[step].error;
+    newStatus.steps[step].statusFine = "NOT STARTED";
+    newStatus.steps[step].status = action.accounting.scheduled.includes(step) ? "upcoming" : "pending";
+  }
       
-      return {...state, status: newStatus};
-    }),
-    state
-  );
+  return {
+    ...state,
+    status: newStatus,
+    workQueueable: upcomingStepNames(workspace, newStatus).length > 0,
+    configId: action.accounting.config_id
+  };
 }
 
 export default function VulcanReducer(
@@ -174,23 +181,56 @@ export default function VulcanReducer(
 
       return {
         ...state,
-        workspace: action.workspace
+        workspace: {
+          ...action.workspace,
+          vulcan_config: vulcanConfigFromRaw(action.workspace.vulcan_config)
+        }
       };
     case 'SET_CONFIG_ID':
       return {
         ...state,
-        workspaceId: action.configId
+        configId: action.configId
       };
     case 'SET_RUN_ID':
       return {
         ...state,
-        workspaceId: action.runId
+        runId: action.runId
       };
-    case 'SET_STATUS':
+    case 'SET_LAST_CONFIG':
+      return {
+        ...state,
+        status: {
+          ...state.status,
+          last_params: action.lastConfig
+        }
+      };
+    case 'USE_UI_ACCOUNTING':
+      // Arrive here from sending ui-steup / config to the back-end
       // When a submitting step is given, filter stale inputs that result from submitting a change
       // to that step's outputs in session.inputs.
-      state = filterStaleness(state, action);
-      return {...state};
+      // ToDo once cache'ing: Also assess if 'stale' inputs can be filled in with versions matching sent setup.
+      return useAccounting(state, action);
+    case 'SET_STATUS_FROM_STATUSES':
+      // Arrive here from polling return
+      const newStepStatus = {...state.status.steps};
+      const newCompletions = {...state.newStepCompletions};
+      Object.entries(action.statusReturns).forEach(([stepName, statusFine]) => {
+        if (newStepStatus[stepName].statusFine==statusFine) return
+        const statusBroad = StatusStringBroaden(statusFine);
+        newStepStatus[stepName]['status'] = statusBroad;
+        newStepStatus[stepName]['statusFine'] = statusFine;
+        if (statusBroad=='complete') {
+          newCompletions.push(stepName);
+        }
+      });
+      return {
+        ...state,
+        status: {
+          ...state.status,
+          steps: newStepStatus
+        },
+        newStepCompletions: newCompletions
+      };
 
     case 'SET_BUFFERED_INPUT':
       if (state.bufferedSteps.includes(action.step)) {
@@ -230,12 +270,27 @@ export default function VulcanReducer(
       );
       return {...state, triggerRun};
 
-    case 'SET_DOWNLOAD':
+    case 'SET_FILE_CONTENT':
       return {
         ...state,
-        data: {
-          ...state.data,
-          [action.fileName]: action.fileData
+        status: {
+          ...state.status,
+          file_contents: {
+            ...state.status.file_contents,
+            [action.fileName]: action.fileData
+          }
+        }
+      };
+    
+    case 'SET_FILES_CONTENT':
+      return {
+        ...state,
+        status: {
+          ...state.status,
+          file_contents: {
+            ...state.status.file_contents,
+            ...action.filesContent
+          }
         }
       };
 
@@ -291,19 +346,19 @@ export default function VulcanReducer(
         return state;
       }
 
-      let config_values: WorkspaceStatus['ui_contents'] = {};
-      let ui_values: WorkspaceStatus['ui_contents'] = {};
+      let config_values: WorkspaceStatus['params'] = {...state.status.params};
+      let ui_values: WorkspaceStatus['ui_contents'] = {...state.status.ui_contents};
       for (let step in Object.keys(action.values)) {
-        if (configUISteps(state).includes(step)) {
-          config_values[step] = action.values[step];
-        } else {
+        if (allUIStepNames(state).includes(step)) {
           ui_values[step] = action.values[step];
+        } else {
+          config_values[step] = action.values[step];
         }
       }
 
       return {
         ...state,
-        status: {...state.status, config_contents: config_values, ui_contents: ui_values}
+        status: {...state.status, params: config_values, ui_contents: ui_values}
       };
 
     case 'ADD_VALIDATION_ERRORS':
@@ -336,13 +391,13 @@ export default function VulcanReducer(
       }
       return {
         ...state,
-        committedStepPending: ready
+        workQueueable: ready
       };
 
     case 'CLEAR_CHANGES_READY':
       return {
         ...state,
-        committedStepPending: false
+        workQueueable: false
       };
 
     default:

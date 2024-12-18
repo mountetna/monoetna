@@ -3,7 +3,7 @@ import React, {useContext, useMemo} from 'react';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import StepOutput from '../steps/step_output';
-import {completedUiOutputSteps} from '../../../selectors/workflow_selectors';
+import { completedUiOutputSteps } from '../../../selectors/workflow_selectors';
 import {useWorkspace} from '../../../contexts/workspace_context';
 
 export default function OutputFeed() {

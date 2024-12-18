@@ -15,7 +15,7 @@ import {
   FileContentResponse,
   MultiFileContentResponse,
   MultiFileContent,
-  ParamsContent,
+  FlatParams,
   RunReturn,
   RunStatus,
   SessionStatusResponse,
@@ -25,8 +25,10 @@ import {
   Workspace,
   Workspaces,
   WorkspaceStatus,
-  WorkspacesResponse
+  WorkspacesResponse,
+  WorkspaceRaw
 } from '../api_types';
+import { paramValuesToRaw } from '../selectors/workflow_selectors';
 
 export const defaultApiHelpers = {
   showErrors<T>(work: Promise<T>): Promise<T> {
@@ -57,7 +59,7 @@ export const defaultApiHelpers = {
   getWorkspaces(projectName: string): Promise<WorkspacesResponse> {
     return new Promise(() => null);
   },
-  getWorkspace(projectName: string, workspaceId: number): Promise<Response | Workspace> {
+  getWorkspace(projectName: string, workspaceId: number): Promise<Response | WorkspaceRaw> {
     return new Promise(() => null);
   },
   updateWorkspace(projectName: string, workspaceId: number, name: string, tags: string[]): Promise<Workspace> {
@@ -72,10 +74,10 @@ export const defaultApiHelpers = {
   writeFiles(projectName: string, workspaceId: number, content: FileContent | MultiFileContent) {
     return new Promise(() => null);
   },
-  readFiles(projectName: string, workspaceId: number, fileNames: string[]): Promise<Response | MultiFileContent> {
+  readFiles(projectName: string, workspaceId: number, fileNames: string[]): Promise<Response | MultiFileContentResponse> {
     return new Promise(() => null);
   },
-  setConfig(projectName: string, workspaceId: number, params: ParamsContent): Promise<Response | AccountingReturn> {
+  setConfig(projectName: string, workspaceId: number, params: FlatParams): Promise<Response | AccountingReturn> {
     return new Promise(() => null);
   },
   postUIValues(projectName: string, workspaceId: number, status: WorkspaceStatus, steps?: string[]): Promise<Response | AccountingReturn> {
@@ -240,7 +242,7 @@ export function useApi(
   }, [vulcanGet, vulcanPath]);
 
   const getWorkspace = useCallback(
-    (projectName: string, workspaceId: number): Promise<Response | Workspace> => {
+    (projectName: string, workspaceId: number): Promise<Response | WorkspaceRaw> => {
       // Old: ROUTES.fetch_figure
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}`));
   }, [vulcanGet, vulcanPath]);
@@ -276,7 +278,7 @@ export function useApi(
   }, [vulcanPost, vulcanPath]);
 
   const readFiles = useCallback(
-    (projectName: string, workspaceId: number, fileNames: string[]): Promise<Response | MultiFileContent> => {
+    (projectName: string, workspaceId: number, fileNames: string[]): Promise<Response | MultiFileContentResponse> => {
       return vulcanGetWithParams(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/file/read`),
         {
@@ -285,7 +287,7 @@ export function useApi(
   }, [vulcanGetWithParams, vulcanPath]);
 
   const setConfig = useCallback(
-    (projectName: string, workspaceId: number, params: ParamsContent): Promise<Response | AccountingReturn> => {
+    (projectName: string, workspaceId: number, params: FlatParams): Promise<Response | AccountingReturn> => {
       return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/config`),
         params
@@ -321,7 +323,7 @@ export function useApi(
       return setConfig(
         projectName,
         workspaceId,
-        status.config_contents
+        paramValuesToRaw(status.params)
       )
         .then(handleFetchSuccess)
         .catch(handleFetchError);

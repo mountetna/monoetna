@@ -1,7 +1,7 @@
 import React, {useContext, useMemo} from 'react';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import UserInput from '../user_interactions/inputs/user_input';
-import {WorkflowStep} from '../../../api_types';
+import {WorkspaceStep} from '../../../api_types';
 import {
   bindInputSpecification,
   BoundInputSpecification,
@@ -55,7 +55,7 @@ export default function StepUserInput({
   step,
   hideLabel = true
 }: {
-  step: WorkflowStep;
+  step: WorkspaceStep;
   hideLabel: boolean;
 }) {
   const {dispatch, commitSessionInputChanges} = useContext(VulcanContext);

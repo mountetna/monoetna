@@ -36,7 +36,7 @@ import {
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 import Vignette from '../vignette';
-import {workflowName} from '../../../selectors/workflow_selectors';
+import { uiContentsFromFiles, workflowName, paramValuesToRaw, pick } from '../../../selectors/workflow_selectors';
 import {useWorkspace} from '../../../contexts/workspace_context';
 import {
   VulcanFigure,
@@ -91,135 +91,128 @@ export default function SessionManager() {
     createFigure,
     clearLocalSession
   } = useContext(VulcanContext);
-  const {workflow, workspace, hasPendingEdits, complete} = useWorkspace();
+  const {workflow, workspace, workspaceId, hasPendingEdits, complete} = useWorkspace();
   const {canEdit, guest} = useUserHooks();
 
-  const [modalIsOpen, setIsOpen] = React.useState(false);
-  const {session, figure, committedStepPending} = state;
+  const [modalIsOpen, setIsOpen] = useState(false);
+  const {status, workQueueable: committedStepPending} = state;
 
-  const [tags, setTags] = useState<string[]>(figure.tags || []);
+  const [tags, setTags] = useState<string[]>(workspace.tags || []);
   const [openTagEditor, setOpenTagEditor] = useState(false);
   const [openRevisions, setOpenRevisions] = useState<boolean | null>(null);
-  const [localTitle, setLocalTitle] = useState(figure.title);
+  const [localTitle, setLocalTitle] = useState(workspace.title);
 
   const invoke = useActionInvoker();
 
   const classes = useStyles();
 
-  const name = workflowName(workflow);
+  const workflow_name = workflowName(workflow);
   const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
   const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   const run = useCallback(() => {
     showErrors(requestPoll(true));
     dispatch(clearCommittedStepPending());
+    // ToDo: Additional accounting per completed steps!
   }, [requestPoll, dispatch, showErrors]);
-  const stop = useCallback(() => cancelPolling(), [cancelPolling]);
+  const stop = useCallback(() => {
+    cancelPolling()
+    // ToDo: Additional accounting per completed steps!
+  }, [cancelPolling]);
 
   const cancelSaving = useCallback(() => {
     setSaving(false);
   }, []);
 
-  const handleSaveOrCreate = useCallback(
-    (figure: VulcanFigure, newTags: string[], newTitle: string | undefined) => {
-      let params = {
-        ...figure,
-        workflow_name: name,
-        inputs: {...session.inputs},
-        title: newTitle,
-        tags: [...newTags]
-      };
+  // // ToDo Later: Save is only viable once we are handling revisions. (& Tag / title editing handled separately)
+  // const handleSave = useCallback(
+  //   (figure: VulcanFigure, newTags: string[], newTitle: string | undefined) => {
+  //     let params = {
+  //       workspaceId ,
+  //       workflow_name: workflow_name,
+  //       inputs: {...session.inputs},
+  //       title: newTitle,
+  //       tags: [...newTags]
+  //     };
 
-      if (!params.title) {
-        params.title = prompt('Set a title for this figure') || undefined;
-        if (!params.title) return;
-      }
+  //     if (!params.title) {
+  //       params.title = prompt('Set a title for this figure') || undefined;
+  //       if (!params.title) return;
+  //     }
 
-      if (params.figure_id) {
-        params.comment = prompt('Enter a revision comment') || undefined;
-        if (!params.comment) return;
-      }
+  //     if (params.figure_id) {
+  //       params.comment = prompt('Enter a revision comment') || undefined;
+  //       if (!params.comment) return;
+  //     }
 
-      setSaving(true);
-      if (params.figure_id) {
-        showErrors(
-          updateFigure(session.project_name, params)
-            .then((figureResponse) => {
-              dispatch(setSessionAndFigure(figureResponse));
-            })
-            .finally(cancelSaving)
-        );
-      } else {
-        showErrors(
-          createFigure(session.project_name, params).then(
-            (figure: VulcanFigureSession) => {
-              cancelSaving();
-              clearLocalSession(
-                figure.workflow_name,
-                figure.project_name,
-                null
-              );
-              invoke(
-                pushLocation(
-                  `/${figure.project_name}/figure/${figure.figure_id}`
-                )
-              );
-            }
-          )
-        );
-      }
-    },
-    [
-      name,
-      session,
-      cancelSaving,
-      showErrors,
-      updateFigure,
-      invoke,
-      dispatch,
-      clearLocalSession,
-      createFigure
-    ]
-  );
+  //     setSaving(true);
+  //     if (params.figure_id) {
+  //       showErrors(
+  //         updateFigure(session.project_name, params)
+  //           .then((figureResponse) => {
+  //             dispatch(setSessionAndFigure(figureResponse));
+  //           })
+  //           .finally(cancelSaving)
+  //       );
+  //     }
+  //   },
+  //   [
+  //     workflow_name,
+  //     session,
+  //     cancelSaving,
+  //     showErrors,
+  //     updateFigure,
+  //     invoke,
+  //     dispatch,
+  //     clearLocalSession,
+  //     createFigure
+  //   ]
+  // );
 
-  const saveSession = useCallback(() => {
-    if (hasPendingEdits) {
-      if (!confirm('Pending edits will be discarded when saving. Proceed?')) {
-        return;
-      }
-    }
+  // const saveSession = useCallback(() => {
+  //   if (hasPendingEdits) {
+  //     if (!confirm('Pending edits will be discarded when saving. Proceed?')) {
+  //       return;
+  //     }
+  //   }
 
-    handleSaveOrCreate(figure, tags, localTitle);
-  }, [hasPendingEdits, handleSaveOrCreate, figure, tags, localTitle]);
+  //   handleSave(figure, tags, localTitle);
+  // }, [hasPendingEdits, handleSave, figure, tags, localTitle]);
 
-  const copyFigure = useCallback(() => {
-    let clone = {
-      ...figure
-    };
+  // // ToDo Later: Awaiting copyWorkspace API!
+  // const copyFigure = useCallback(() => {
+  //   let clone = {
+  //     ...figure
+  //   };
 
-    delete clone.figure_id;
+  //   delete clone.figure_id;
 
-    handleSaveOrCreate(clone, [], `${localTitle} - copy`);
-  }, [figure, handleSaveOrCreate, localTitle]);
+  //   handleSave(clone, [], `${localTitle} - copy`);
+  // }, [figure, handleSave, localTitle]);
 
-  const loadRevision = useCallback(
-    ({inputs, title, tags, id, workflow_snapshot}: VulcanRevision) => {
-      dispatch(
-        setSession({
-          ...session,
-          inputs,
-          reference_figure_id: id
-        } as VulcanFigureSession)
-      );
-      setLocalTitle(title);
-      setTags(tags || []);
-      requestPoll();
-      setOpenRevisions(false);
-      if (workflow_snapshot)
-        {dispatch(setWorkflow(workflow_snapshot, session.project_name));}
-    },
-    [dispatch, session, requestPoll]
-  );
+  // // ToDo Later: once we are handling revisions.
+  // const loadRevision = useCallback(
+  //   ({inputs, title, tags, id, workflow_snapshot}: VulcanRevision) => {
+  //     dispatch(
+  //       setSession({
+  //         ...session,
+  //         inputs,
+  //         reference_figure_id: id
+  //       } as VulcanFigureSession)
+  //     );
+  //     setLocalTitle(title);
+  //     setTags(tags || []);
+  //     requestPoll();
+  //     setOpenRevisions(false);
+  //     if (workflow_snapshot)
+  //       {dispatch(setWorkflow(workflow_snapshot, session.project_name));}
+  //   },
+  //   [dispatch, session, requestPoll]
+  // );
+
+  // // ToDo when have updateWorkspace API
+  // const handleSaveNewTitle
+  // const handleSaveNewTags
 
   const handleCloseEditTags = useCallback(() => {
     setOpenTagEditor(false);
@@ -228,10 +221,6 @@ export default function SessionManager() {
   const running = state.pollingState > 0;
   const disableRunButton =
     complete || running || (hasPendingEdits && !committedStepPending);
-
-  useEffect(() => {
-    if (figure.title) setLocalTitle(figure.title);
-  }, [figure]);
 
   // Catch auto-pass 'Run' trigger
   useEffect(() => {
@@ -242,44 +231,46 @@ export default function SessionManager() {
   }, [state.triggerRun, dispatch, run]);
 
   const inputsChanged = useMemo(() => {
-    return !_.isEqual(figure.inputs, session.inputs);
-  }, [figure, session]);
+    return !_.isEqual(paramValuesToRaw(status.params), status.last_params) ||
+      !_.isEqual(status.ui_contents, pick(uiContentsFromFiles(workspace, status.file_contents), Object.keys(status.ui_contents)));
+  }, [status, workspace]);
 
   const titleChanged = useMemo(() => {
-    return localTitle !== figure.title;
-  }, [figure, localTitle]);
+    return localTitle !== workspace.title;
+  }, [workspace.title, localTitle]);
 
   const tagsChanged = useMemo(() => {
-    return !_.isEqual(tags, figure.tags);
-  }, [figure, tags]);
+    return !_.isEqual(tags, workspace.tags);
+  }, [workspace.tags, tags]);
 
-  const viewingRevision = useMemo(() => {
-    return figure.id !== session.reference_figure_id;
-  }, [figure, session]);
+  // // ToDo Later: once we are handling revisions.
+  // const viewingRevision = useMemo(() => {
+  //   return figure.id !== session.reference_figure_id;
+  // }, [figure, session]);
 
-  const canSave = useMemo(() => {
-    return (
-      (titleChanged || inputsChanged || tagsChanged) &&
-      !(running || saving) &&
-      !viewingRevision
-    );
-  }, [
-    running,
-    saving,
-    inputsChanged,
-    titleChanged,
-    tagsChanged,
-    viewingRevision
-  ]);
+  // const canSave = useMemo(() => {
+  //   return (
+  //     (titleChanged || inputsChanged || tagsChanged) &&
+  //     !(running || saving) &&
+  //     !viewingRevision
+  //   );
+  // }, [
+  //   running,
+  //   saving,
+  //   inputsChanged,
+  //   titleChanged,
+  //   tagsChanged,
+  //   viewingRevision
+  // ]);
 
-  const editor = useMemo(() => canEdit(figure) || !figure.figure_id, [
-    figure,
+  const editor = useMemo(() => canEdit(workspace), [
+    workspace,
     canEdit
   ]);
 
   const isPublic = useMemo(() => (tags || []).includes('public'), [tags]);
 
-  if (!name || !session) return null;
+  if (!workflow_name || !workspace) return null;
 
   return (
     <div className='session-manager'>
@@ -290,8 +281,8 @@ export default function SessionManager() {
             li: classes.title
           }}
         >
-          <Link href={`/${session.project_name}`}>{session.project_name}</Link>
-          <Typography>{workflow.displayName}</Typography>
+          <Link href={`/${workspace.project}`}>{workspace.project}</Link>
+          <Typography>{workflow.name}</Typography>
           <Tooltip title={localTitle || ''}>
             <TextField
               fullWidth
@@ -308,6 +299,7 @@ export default function SessionManager() {
               placeholder='Untitled'
             />
           </Tooltip>
+          {/* titleChanged && <Button> for saving */}
         </Breadcrumbs>
         {workflow.vignette && (
           <React.Fragment>
@@ -323,7 +315,7 @@ export default function SessionManager() {
               style={modalStyles}
               contentLabel='Vignette'
             >
-              <Vignette workflowName={name} />
+              <Vignette workflowName={workflow_name} />
             </ReactModal>
           </React.Fragment>
         )}
@@ -363,7 +355,7 @@ export default function SessionManager() {
                 isPublic ? 'private' : 'public'
               }`}
               onClick={() => setTags(isPublic ? [] : ['public'])}
-              disabled={guest(session.project_name)}
+              disabled={guest(workspace.project)}
             />
             <FlatButton
               className='header-btn edit-tags'
@@ -394,7 +386,7 @@ export default function SessionManager() {
                 update={loadRevision}
                 getRevisions={() =>
                   json_get(
-                    `/api/${session.project_name}/figure/${figure.figure_id}/revisions`
+                    `/api/${workspace.project}/figure/${figure.figure_id}/revisions`
                   )
                 }
               />

@@ -5,7 +5,7 @@ import {defaultSessionStorageHelpers, useLocalSessionStorage} from './session_st
 import {defaultApiHelpers, useApi} from './api';
 import {useWorkflowsLoading} from './workflows_loading';
 import {useDataBuffering} from './data_buffering';
-import {defaultSessionSyncHelpers, useSessionSync} from './session_sync';
+import {defaultSessionSyncHelpers, useSessionSyncWhileRunning} from './session_sync_while_running';
 import {defaultInputStateManagement, useInputStateManagement} from './input_state_management';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {defaultConfirmationHelpers, useConfirmation} from './confirmation';
@@ -66,9 +66,9 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
 
     const localSessionHelpers = withOverrides(useLocalSessionStorage(state, props), props);
     const apiHelpers = withOverrides(useApi(invoker), props);
-    const {showErrors, readFiles, getWorkflows, pollStatus, postUIValues} = apiHelpers;
+    const {showErrors, readFiles, getWorkflows, requestRun, pullRunStatus, postUIValues} = apiHelpers;
     const sessionSyncHelpers = withOverrides(
-      useSessionSync(stateRef, showErrors, pollStatus, postUIValues, dispatch),
+      useSessionSyncWhileRunning(stateRef, showErrors, requestRun, pullRunStatus, postUIValues, dispatch),
       props
     );
     useDataBuffering(state, dispatch, showErrors, readFiles);

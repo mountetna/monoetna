@@ -1,52 +1,7 @@
-// Types
-export const TYPE = {
-  INTEGER: 'int',
-  FLOAT: 'float',
-  BOOL: 'boolean',
-  STRING: 'string',
-  ARRAY: 'array',
-  FILE: 'File',
-  METIS_FILE: 'MetisFile',
-  METIS_CSV_OR_TSV: 'MetisCSVorTSV',
-  METIS_FOLDER: 'MetisFolder',
-  METIS_FILE_OR_FOLDER: 'MetisPath',
-  MULTISELECT_STRING: 'multiselect-string',
-  SELECT_AUTOCOMPLETE: 'select-autocomplete',
-  SELECT_AUTOCOMPLETE_MULTI_PICK: 'select-autocomplete-multi-pick',
-  CHECKBOXES: 'checkboxes',
-  NESTED_SELECT_AUTOCOMPLETE: 'nested-select-autocomplete',
-  NESTED_SELECT_AUTOCOMPLETE_MULTI_PICK: 'nested-select-autocomplete-multi-pick',
-  MULTIPLE_MULTISELECT_STRING_ALL: 'multiple-multiselect-string-all',
-  MULTIPLE_STRING: 'multiple-string',
-  SINGLE_DROPDOWN_MULTICHECKBOX: 'single-dropdown-multicheckbox',
-  SCATTER_PLOTLY: 'scatter-plotly',
-  BAR_PLOTLY: 'bar-plotly',
-  Y_PLOTLY: 'y-plotly',
-  DITTOSEQ_DIM_PLOT: 'dittoseq-dim-plot',
-  DITTOSEQ_SCATTER_PLOT: 'dittoseq-scatter-plot',
-  DITTOSEQ_BAR_PLOT: 'dittoseq-bar-plot',
-  DITTOSEQ_PLOT: 'dittoseq-plot',
-  ANY_DITTOSEQ: 'any-dittoseq',
-  DIFF_EXP_SC: 'diff-exp-sc',
-  DATA_TRANSFORMATION: 'data-transformation',
-  ANNOTATION_EDITOR: 'annotation-editor',
-  ANY_VIZ: 'any-viz'
-};
-
 // CWL Step RUN Sentinels
 export const RUN = {
   UI_QUERY: 'ui-queries/',
   UI_OUTPUT: 'ui-outputs/'
-};
-
-// UI Output widgets
-export const OUTPUT_COMPONENT = {
-  LINK: 'link',
-  PLOT: 'plot',
-  PLOTLY: 'plotly',
-  PNG: 'png',
-  CONSIGNMENT: 'consignment',
-  RAW: 'raw'
 };
 
 export const defaultWorkflowsResponse = [] as Workflow[];
@@ -63,17 +18,19 @@ export type WorkflowsResponse = typeof defaultWorkflowsResponse;
 
 export interface WorkspaceStep {
   name: string;
-  inputs: InputOutputConfig;
-  outputs: InputOutputConfig;
+  input: InputOutputConfig;
+  output: InputOutputConfig;
   vulcan_config?: boolean;
+  label?: string;
+  ui_component?: string;
+  doc?: string;
 }
 
-// export const defaultWorkflowStep: WorkflowStep = {
-//   name: '',
-//   run: '',
-//   in: [],
-//   out: []
-// };
+export const defaultWorkspaceStep: WorkspaceStep = {
+  name: '',
+  input: {},
+  output: {}
+};
 
 // export interface WorkflowOutput {
 //   outputSource: string;
@@ -123,19 +80,26 @@ export const defaultWorkflow: Workflow = {
   tags: []
 };
 
-export interface Workspace {
+interface WorkspaceMinusInconsistent {
   workspace_id: number | null;
   workflow_id: number | null;
   project: string;
-  vulcan_config: VulcanConfig;
   steps: {[k: string]: WorkspaceStep};
   dag: string[];
   last_config?: {[k: string]: any};
-  last_job_status?: {[k: string]: StatusString};
+  last_job_status?: {[k: string]: StatusStringFine};
   thumbnails?: string[];
   author?: string;
   title?: string;
   tags: string[];
+}
+
+export interface Workspace extends WorkspaceMinusInconsistent {
+  vulcan_config: VulcanConfig;
+}
+
+export interface WorkspaceRaw extends WorkspaceMinusInconsistent {
+  vulcan_config: VulcanConfigElement[]
 }
 
 export const defaultWorkspace: Workspace = {
@@ -147,6 +111,7 @@ export const defaultWorkspace: Workspace = {
   dag: [],
   last_config: {},
   last_job_status: {},
+  tags: [],
 };
 
 export type Workspaces = Workspace[]
@@ -164,9 +129,9 @@ export interface MultiFileContent {
   [filename: string]: any;
 }
 
-export interface ParamsContent {
+export type FlatParams = {
   [k: string]: any
-}
+};
 
 export interface AccountingReturn {
   config_id: number,
@@ -176,17 +141,19 @@ export interface AccountingReturn {
 
 // export type VulcanConfig = VulcanConfigElement[]
 export type VulcanConfig = {[k: string]: VulcanConfigElement}
+export type VulcanConfigRaw = VulcanConfigElement[];
 
-export interface VulcanConfigElement {
+export type VulcanConfigElement = {
   name: string;
   display: string;
   ui_component: string;
+  default?: any;
   doc?: string;
   input?: InputOutputConfig;
   output?: InputOutputConfig;
 }
 
-export interface InputOutputConfig {
+export type InputOutputConfig = {
   files?: string[]
   params?: string[]
 }
@@ -196,7 +163,7 @@ export interface RunReturn {
 }
 
 export interface RunStatus {
-  [k: string]: StatusString
+  [k: string]: StatusStringFine
 }
 
 export type sacctStatusString =
@@ -259,21 +226,22 @@ export interface StepStatus {
   name: string;
   status: StatusString;
   statusFine: StatusStringFine;
-  outputs?: {files?: string[], params?: string[]};
   error?: string;
 }
 
 export const defaultStepStatus: StepStatus = {
   name: '',
   status: 'pending',
-  statusFine: 'NOT STARTED'
+  statusFine: 'NOT STARTED',
 };
 
 export const defaultWorkspaceStatus = {
   steps: {} as {[k: string]: StepStatus},
   output_files: [] as string[],
-  config_contents: {} as {[k: string]: any},
-  ui_contents: {} as {[k: string]: {[k: string]: any}},
+  file_contents: {} as {[k: string]: any}, // key = filenames
+  last_params: {} as {[k: string]: any},
+  params: {} as {[k: string]: {[k: string]: any}}, // top key = 'param1/param2/...paramN' if many from 1; innner keys = param output's keys.
+  ui_contents: {} as {[k: string]: {[k: string]: any}}, // top key = name defined in vulcan config (matches step name in dag); inner keys = file outputs' filenames
 }
 
 export type WorkspaceStatus = typeof defaultWorkspaceStatus;

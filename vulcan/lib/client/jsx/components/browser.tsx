@@ -3,7 +3,7 @@ import React, {useContext} from 'react';
 import 'regenerator-runtime/runtime';
 import {VulcanContext} from '../contexts/vulcan_context';
 
-import WorkflowManager from './workflow/workflow_manager';
+import WorkspaceInitializer from './workflow/workspace_initializer';
 
 interface Props {
   workflowName: string;
@@ -13,11 +13,11 @@ interface Props {
 export default function Browser({
   workflow_name,
   project_name,
-  figure_id
+  workspace_id
 }: {
   workflow_name: string;
   project_name: string;
-  figure_id: number;
+  workspace_id: number;
 }) {
   const {
     state: {workflows}
@@ -27,9 +27,9 @@ export default function Browser({
 
   return (
     <main className='vulcan-browser browser'>
-      <WorkflowManager
+      <WorkspaceInitializer
         workflowName={workflow_name}
-        figureId={figure_id}
+        workspaceId={workspace_id}
         projectName={project_name}
       />
     </main>
