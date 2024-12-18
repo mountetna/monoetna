@@ -6,18 +6,16 @@ import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {VulcanFigure, VulcanSession} from '../../../api_types';
+import {Workspace} from '../../../api_types';
 import {
   setSessionAndFigure,
   setWorkflow
 } from '../../../actions/vulcan_actions';
 
-export default function AdvancedSessionControls({
-  session,
-  figure
+export default function AdvancedWorkspaceControls({
+  workspace
 }: {
-  figure: VulcanFigure;
-  session: VulcanSession;
+  workspace: Workspace;
 }) {
   const [menuAnchor, setMenuAnchor] = useState(
     null as HTMLButtonElement | null
