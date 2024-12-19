@@ -5,6 +5,7 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
   include WithEtnaClients
 
   def initialize(config, runtime_config)
+    @project_name = config['project_name']
     @sftp_client = SFTPClient.new(
       config["secrets"]["sftp_host"],
       config["secrets"]["sftp_user"],
@@ -31,7 +32,7 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
   def post
     file_count = File.readlines(config[:files_to_update_path]).size
     polyphemus_client.update_run(run_id, {
-      state: {num_files_to_update: file_count}
+      state: {num_files_to_update: file_count},
       updated_at: Time.now,
       modified_at: Time.now,
     })
@@ -42,11 +43,11 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
 
   # Fetch the last_scan timestamp from the pipeline state using Polyphemus client
   def fetch_last_scan
-    run = polyphemus_client.get_run(run_id)
-    run.state[:last_scan] ? Time.parse(run.state[:last_scan]) : Time.at(0) # Default to epoch if not found
+    require 'pry'; binding.pry
+    run = polyphemus_client.get_previous_run(@project_name, @workflow_config_id, @workflow_version)
+    run.state[:last_scan] ? Time.parse(run.state[:last_scan]) : Time.now.to_i 
   rescue StandardError => e
-    puts "Error fetching pipeline state: #{e.message}"
-    Time.at(0)
+    raise "Error fetching pipeline state: #{e.message}"
   end
 
   # Fetch files from SFTP that are newer than last_scan using regex

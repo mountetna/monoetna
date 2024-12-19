@@ -6,6 +6,13 @@ class SFTPClient
     @username = username
     @password = password
     @port = port
+    begin
+      Net::SFTP.start(@host, @username, password: @password, port: @port) do |sftp|
+        sftp.dir.entries('.')
+      end
+    rescue StandardError => e
+      raise "Failed to establish SFTP connection: #{e.message}"
+    end
   end
 
   # Uploads a local file to the remote SFTP server
