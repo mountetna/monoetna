@@ -41,6 +41,10 @@ export function setWorkspace(workspace: Workspace | WorkspaceRaw, projectName: s
   return actionObject('SET_WORKSPACE', {workspace, projectName});
 }
 
+export function setFullWorkspaceState(workspace: Workspace, status: WorkspaceStatus) {
+  return actionObject('SET_FULL_WORKSPACE_STATUS', {workspace, status});
+}
+
 export function setStateFromStorage(storage: VulcanStorage) {
   return actionObject('SET_STATE_FROM_STORAGE', {storage});
 }
@@ -157,6 +161,7 @@ export type VulcanAction =
   | ReturnType<typeof setWorkflow>
   | ReturnType<typeof setWorkspace>
   | ReturnType<typeof setWorkspaceId>
+  | ReturnType<typeof setFullWorkspaceState>
   | ReturnType<typeof setStateFromStorage>
   | ReturnType<typeof setWorkspaceStateSyncd>
   | ReturnType<typeof setConfigId>

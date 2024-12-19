@@ -88,6 +88,7 @@ interface WorkspaceMinusInconsistent {
   dag: string[];
   last_config?: {[k: string]: any};
   last_job_status?: {[k: string]: StatusStringFine};
+  vignette?: string;
   thumbnails?: string[];
   author?: string;
   title?: string;

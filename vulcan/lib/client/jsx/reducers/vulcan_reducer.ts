@@ -186,6 +186,15 @@ export default function VulcanReducer(
           vulcan_config: vulcanConfigFromRaw(action.workspace.vulcan_config)
         }
       };
+    case 'SET_FULL_WORKSPACE_STATUS':
+      if (state.workspaceId !== action.workspace.workspace_id) {
+        console.warn('Cannot update to show workspace of the wrong id.');
+      }
+      return {
+        ...state,
+        workspace: {...action.workspace},
+        status: {...action.status}
+      }
     case 'SET_CONFIG_ID':
       return {
         ...state,

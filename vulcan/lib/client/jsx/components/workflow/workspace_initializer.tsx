@@ -8,13 +8,14 @@ import {
   vulcanConfigFromRaw,
   workflowByName,
   allFilesToBuffer,
-  filesReturnToMultiFileContent
+  filesReturnToMultiFileContent,
+  updateStepStatusesFromRunStatus
 } from '../../selectors/workflow_selectors';
 
-import SessionManager from './session/session_manager';
+import WorkspaceManager from './session/workspace_manager';
 import StepsList from './steps/steps_list';
 import { paramValuesToRaw } from '../../selectors/workflow_selectors';
-import { FileContentResponse } from '../../api_types';
+import { defaultWorkspaceStatus, FileContentResponse, Workspace, WorkspaceStatus } from '../../api_types';
 import {
   setWorkflow,
   setAutoPassStep,
@@ -24,7 +25,8 @@ import {
   setLastConfig,
   setWorkspaceFiles,
   setFileContent,
-  setFilesContent
+  setFilesContent,
+  setFullWorkspaceState
 } from '../../actions/vulcan_actions';
 import {
   defaultStepStatus,
@@ -32,6 +34,7 @@ import {
   MultiFileContentResponse,
   WorkspaceRaw
 } from '../../api_types';
+import {runPromise, useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
 
 export default function WorkspaceInitializer({
   workflowName,
@@ -85,61 +88,68 @@ export default function WorkspaceInitializer({
   //   [projectName, showErrors, fetchFigure, initializeFromSessionAndFigure]
   // );
 
-  const initializeFromWorkspace = useCallback(() => {
+  const initializeFromWorkspace = useAsyncCallback(function* () {
     const workflow = workflowByName(workflowName, state);
     if (!!workflow) dispatch(setWorkflow(workflow, projectName));
-    showErrors(getWorkspace(projectName, workspaceId).then(
-      (workspaceRaw: WorkspaceRaw | Response) => {
-        // ToDo: Fix this error handling!!!!!
-        if (!('workspace_id' in workspaceRaw)) return;
-        const vulcanConfig = vulcanConfigFromRaw(workspaceRaw.vulcan_config);
-        const workspace = {
-          ...workspaceRaw,
-          vulcan_config: vulcanConfig
-        };
-        dispatch(setWorkspace(workspace, projectName));
-        dispatch(setStatusFromStatuses(
-          !!workspace.last_job_status ?
-            workspace.last_job_status :
-            Object.fromEntries(workspace.dag.map(
-              stepName => [stepName, defaultStepStatus.statusFine]
-            ))
-        ));
-        const param_vals = paramValuesFromRaw(workspace.last_config, workspace);
-        dispatch(setUIValues(param_vals));
-        dispatch(setLastConfig(
-          !!workspace.last_config ?
-            workspace.last_config :
-            paramValuesToRaw(param_vals)
-        ))
-        getFileNames(projectName, workspaceId).then(
-          (fileNames: string[] | Response) => {
-            if (!Array.isArray(fileNames)) return;
-            dispatch(setWorkspaceFiles(fileNames));
-            const fileGrabs = allFilesToBuffer(workspace).filter(f => fileNames.includes(f));
-            if (fileGrabs.length > 0) {
-              readFiles(projectName, workspaceId, fileGrabs).then(
-                (filesContentRaw: MultiFileContentResponse | Response) => {
-                  if (!Array.isArray(filesContentRaw)) return;
-                  const filesContent = filesReturnToMultiFileContent(filesContentRaw);
-                  dispatch(setFilesContent(filesContent))
-                  dispatch(setUIValues(uiContentsFromFiles(workspace, filesContent)));
-              })
-            } else {
-              dispatch(setUIValues(uiContentsFromFiles(workspace)));
-            }
-        })
-        if (workflow && workflow.vignette?.includes('Primary inputs are skippable') && !workspace.last_job_status) {
-          dispatch(setAutoPassStep(null));
-        }
-      })
-    )
+    
+    // workspace 
+    const workspaceRaw: Workspace = yield* runPromise(showErrors(getWorkspace(projectName, workspaceId)));
+    if (!('workspace_id' in workspaceRaw)) {
+      console.log("workspaceRaw is not a workspace");
+    }
+    const vulcanConfig = vulcanConfigFromRaw(workspaceRaw.vulcan_config);
+    const workspace = {
+      ...workspaceRaw,
+      vulcan_config: vulcanConfig
+    };
+    
+    const status = defaultWorkspaceStatus;
+    // step statuses
+    const defaultStepStatuses = Object.fromEntries(workspace.dag.map(
+      stepName => [stepName, defaultStepStatus]
+    ))
+    status['steps'] = !!workspace.last_job_status ?
+      updateStepStatusesFromRunStatus(workspace.last_job_status, defaultStepStatuses).newStepStatus :
+      defaultStepStatuses;
+
+    // paramUIs
+    const param_vals = paramValuesFromRaw(workspace.last_config, workspace);
+    status['last_params'] = !!workspace.last_config ?
+      workspace.last_config :
+      paramValuesToRaw(param_vals)
+    status['params'] = param_vals
+
+    // File pulls & inputUIs
+    const fileNames: string[] = yield* runPromise(showErrors(getFileNames(projectName, workspaceId)));
+    if (!Array.isArray(fileNames)) {
+      console.log("fileNames is not an array");
+    }
+    status['output_files'] = fileNames;
+    const fileGrabs = allFilesToBuffer(workspace).filter(f => fileNames.includes(f));
+    if (fileGrabs.length > 0) {
+      const filesContentRaw: MultiFileContentResponse = yield* runPromise(readFiles(projectName, workspaceId, fileGrabs))
+      if (!Array.isArray(filesContentRaw)) {
+        console.log("filesContentRaw is not an array");
+      }
+      const filesContent = filesReturnToMultiFileContent(filesContentRaw);
+      status['file_contents'] = filesContent;
+      status['ui_contents'] = uiContentsFromFiles(workspace, filesContent);
+    } else {
+      status['ui_contents'] = uiContentsFromFiles(workspace);
+    }
+
+    dispatch(setFullWorkspaceState(workspace, status));
+
+    // Auto-pass for fully-defaulted params
+    if (workspace.vignette?.includes('Primary inputs are skippable') && !workspace.last_job_status) {
+      dispatch(setAutoPassStep(null));
+    }
   }, [workflowName, state, projectName, dispatch]);
 
   useEffect(() => {
     if (!state.workspace) {
-      getLocalSession(workspaceId, projectName).then(
-      (localSession) => {
+      // getLocalSession(workspaceId, projectName).then(
+      // (localSession) => {
         // cancelPolling();
 
         // if (!!localSession) {
@@ -147,7 +157,7 @@ export default function WorkspaceInitializer({
         // } else {
           initializeFromWorkspace();
         // }
-      });
+      // });
     }
   }, []);
 
@@ -157,7 +167,7 @@ export default function WorkspaceInitializer({
 
   return (
     <div className='workspace-manager'>
-      <SessionManager key={workspaceId} />
+      <WorkspaceManager key={workspaceId} />
       <StepsList />
     </div>
   );

@@ -6,18 +6,18 @@ import React, {
   useMemo
 } from 'react';
 import * as _ from 'lodash';
-import ReactModal from 'react-modal';
+// import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
 
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+// import Dialog from '@material-ui/core/Dialog';
+// import DialogTitle from '@material-ui/core/DialogTitle';
+// import DialogActions from '@material-ui/core/DialogActions';
+// import DialogContent from '@material-ui/core/DialogContent';
 import {makeStyles} from '@material-ui/core/styles';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+// import Autocomplete from '@material-ui/lab/Autocomplete';
 
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {pushLocation} from 'etna-js/actions/location_actions';
+// import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+// import {pushLocation} from 'etna-js/actions/location_actions';
 
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import Typography from '@material-ui/core/Typography';
@@ -28,29 +28,19 @@ import Tooltip from '@material-ui/core/Tooltip';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import {
   clearCommittedStepPending,
-  clearRunTriggers,
-  setSession,
-  setSessionAndFigure,
-  setWorkflow
+  clearRunTriggers
 } from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
-import Vignette from '../vignette';
-import { uiContentsFromFiles, workflowName, paramValuesToRaw, pick } from '../../../selectors/workflow_selectors';
+// import Vignette from '../vignette';
+import { workflowName } from '../../../selectors/workflow_selectors';
 import {useWorkspace} from '../../../contexts/workspace_context';
-import {
-  VulcanFigure,
-  VulcanFigureSession,
-  VulcanRevision
-} from '../../../api_types';
-import {json_get} from 'etna-js/utils/fetch';
-import useUserHooks from '../../useUserHooks';
-import Button from '@material-ui/core/Button';
-import Tag from '../../tag';
+// import {json_get} from 'etna-js/utils/fetch';
+// import useUserHooks from '../../useUserHooks';
+// import Button from '@material-ui/core/Button';
+// import Tag from '../../tag';
 
-import RevisionHistory from 'etna-js/components/revision-history';
-
-import AdvancedSessionControls from './advanced_session_controls';
+// import RevisionHistory from 'etna-js/components/revision-history';
 
 const modalStyles = {
   content: {
@@ -79,7 +69,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function SessionManager() {
+export default function WorkspaceManager() {
   const [saving, setSaving] = useState(false);
   const {
     state,
@@ -87,28 +77,28 @@ export default function SessionManager() {
     showErrors,
     requestPoll,
     cancelPolling,
-    updateFigure,
-    createFigure,
-    clearLocalSession
+    // updateFigure,
+    // createFigure,
+    // clearLocalSession
   } = useContext(VulcanContext);
   const {workflow, workspace, workspaceId, hasPendingEdits, complete} = useWorkspace();
-  const {canEdit, guest} = useUserHooks();
+  // const {canEdit, guest} = useUserHooks();
 
-  const [modalIsOpen, setIsOpen] = useState(false);
+  // const [modalIsOpen, setIsOpen] = useState(false);
   const {status, workQueueable: committedStepPending} = state;
 
-  const [tags, setTags] = useState<string[]>(workspace.tags || []);
-  const [openTagEditor, setOpenTagEditor] = useState(false);
-  const [openRevisions, setOpenRevisions] = useState<boolean | null>(null);
+  // const [tags, setTags] = useState<string[]>(workspace.tags || []);
+  // const [openTagEditor, setOpenTagEditor] = useState(false);
+  // const [openRevisions, setOpenRevisions] = useState<boolean | null>(null);
   const [localTitle, setLocalTitle] = useState(workspace.title);
 
-  const invoke = useActionInvoker();
+  // const invoke = useActionInvoker();
 
   const classes = useStyles();
 
   const workflow_name = workflowName(workflow);
-  const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
-  const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
+  // const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
+  // const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   const run = useCallback(() => {
     showErrors(requestPoll(true));
@@ -120,9 +110,10 @@ export default function SessionManager() {
     // ToDo: Additional accounting per completed steps!
   }, [cancelPolling]);
 
-  const cancelSaving = useCallback(() => {
-    setSaving(false);
-  }, []);
+  // ToDo Later: once we figure out revisions.
+  // const cancelSaving = useCallback(() => {
+  //   setSaving(false);
+  // }, []);
 
   // // ToDo Later: Save is only viable once we are handling revisions. (& Tag / title editing handled separately)
   // const handleSave = useCallback(
@@ -214,9 +205,9 @@ export default function SessionManager() {
   // const handleSaveNewTitle
   // const handleSaveNewTags
 
-  const handleCloseEditTags = useCallback(() => {
-    setOpenTagEditor(false);
-  }, []);
+  // const handleCloseEditTags = useCallback(() => {
+  //   setOpenTagEditor(false);
+  // }, []);
 
   const running = state.pollingState > 0;
   const disableRunButton =
@@ -230,18 +221,21 @@ export default function SessionManager() {
     }
   }, [state.triggerRun, dispatch, run]);
 
-  const inputsChanged = useMemo(() => {
-    return !_.isEqual(paramValuesToRaw(status.params), status.last_params) ||
-      !_.isEqual(status.ui_contents, pick(uiContentsFromFiles(workspace, status.file_contents), Object.keys(status.ui_contents)));
-  }, [status, workspace]);
+  // // ToDo Later: once we figure out revisions.
+  // const inputsChanged = useMemo(() => {
+  //   return !_.isEqual(paramValuesToRaw(status.params), status.last_params) ||
+  //     !_.isEqual(status.ui_contents, pick(uiContentsFromFiles(workspace, status.file_contents), Object.keys(status.ui_contents)));
+  // }, [status, workspace]);
 
-  const titleChanged = useMemo(() => {
-    return localTitle !== workspace.title;
-  }, [workspace.title, localTitle]);
+  // // ToDo Later: once we allow updateWorkspace.
+  // const titleChanged = useMemo(() => {
+  //   return localTitle !== workspace.title;
+  // }, [workspace.title, localTitle]);
 
-  const tagsChanged = useMemo(() => {
-    return !_.isEqual(tags, workspace.tags);
-  }, [workspace.tags, tags]);
+  // // ToDo Later: once we allow updateWorkspace.
+  // const tagsChanged = useMemo(() => {
+  //   return !_.isEqual(tags, workspace.tags);
+  // }, [workspace.tags, tags]);
 
   // // ToDo Later: once we are handling revisions.
   // const viewingRevision = useMemo(() => {
@@ -263,12 +257,14 @@ export default function SessionManager() {
   //   viewingRevision
   // ]);
 
-  const editor = useMemo(() => canEdit(workspace), [
-    workspace,
-    canEdit
-  ]);
+  // // ToDo Later: once we allow updateWorkspace or copyWorkspace.
+  // const editor = useMemo(() => canEdit(workspace), [
+  //   workspace,
+  //   canEdit
+  // ]);
 
-  const isPublic = useMemo(() => (tags || []).includes('public'), [tags]);
+  // // ToDo Later: once we allow updateWorkspace.
+  // const isPublic = useMemo(() => (tags || []).includes('public'), [tags]);
 
   if (!workflow_name || !workspace) return null;
 
@@ -299,9 +295,9 @@ export default function SessionManager() {
               placeholder='Untitled'
             />
           </Tooltip>
-          {/* titleChanged && <Button> for saving */}
+          {/* titleChanged && <Button> for saving once have updateWorkspace */}
         </Breadcrumbs>
-        {workflow.vignette && (
+        {/* {workflow.vignette && (
           <React.Fragment>
             <FlatButton
               icon='book'
@@ -318,7 +314,7 @@ export default function SessionManager() {
               <Vignette workflowName={workflow_name} />
             </ReactModal>
           </React.Fragment>
-        )}
+        )} */}
         {state.pollingState ? (
           <FlatButton
             className={'header-btn'}
@@ -337,7 +333,7 @@ export default function SessionManager() {
             disabled={disableRunButton}
           />
         )}
-        {editor ? (
+        {/* editor ? (
           <>
             <FlatButton
               className='header-btn save'
@@ -391,6 +387,7 @@ export default function SessionManager() {
                 }
               />
             )}
+            // ToDo Later: If choose to allow workspaces to pull from a different commit, or updated container
             <AdvancedSessionControls session={session} figure={figure} />
             <Dialog
               maxWidth='md'
@@ -443,7 +440,7 @@ export default function SessionManager() {
             title='Copy current workflow parameters to new figure'
             onClick={copyFigure}
           />
-        )}
+        )*/}
       </div>
       <div className='session-feed-container'>
         <InputFeed />
