@@ -19,6 +19,7 @@ require "timecop"
 
 require_relative "../lib/server"
 require_relative "../lib/polyphemus"
+require_relative "../lib/data_eng/jobs/sftp_file_discovery"
 
 setup_base_vcr(__dir__)
 
@@ -30,6 +31,7 @@ RESTRICT_BUCKET = Polyphemus.instance.config(:metis)[:restrict_bucket]
 MAGMA_HOST = Polyphemus.instance.config(:magma)[:host]
 REDCAP_HOST = Polyphemus.instance.config(:redcap)[:host]
 JANUS_HOST = Polyphemus.instance.config(:janus)[:host]
+POLYPHEMUS_HOST = Polyphemus.instance.config(:polyphemus)[:host]
 TEST_TOKEN = Polyphemus.instance.config(:polyphemus)[:token]
 
 PROJECT = "mvir1"
@@ -117,9 +119,9 @@ FactoryBot.define do
     to_create(&:save)
   end
 
-  factory :etl_config, class: Polyphemus::EtlConfig do
-    to_create(&:save)
-  end
+  # factory :etl_config, class: Polyphemus::EtlConfig do
+  #   to_create(&:save)
+  #end
 end
 
 def json_body
@@ -524,9 +526,9 @@ def stub_watch_folders(folder_data = nil)
   end
 end
 
-def create_dummy_etl(opts)
-  create(:etl_config, {project_name: "labors", name: "Dummy ETL", config_id: 1, version_number: 1, config: { foo: 2 }, params: {}, secrets: {}, etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_NEVER}.merge(opts))
-end
+# def create_dummy_etl(opts)
+#   create(:etl_config, {project_name: "labors", name: "Dummy ETL", config_id: 1, version_number: 1, config: { foo: 2 }, params: {}, secrets: {}, etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_NEVER}.merge(opts))
+# end
 
 def remove_dummy_job
   Polyphemus::Job.list.delete(Polyphemus::DummyJob)
@@ -594,3 +596,51 @@ def create_metis_file(file_name, file_path, file_hash: SecureRandom.hex, updated
     folder_id: folder_id
   })
 end
+
+## Polyphemus V2
+
+class TestManifest < Polyphemus::WorkflowManifest
+    def self.as_json
+    {
+      name: 'test workflow',
+      schema: {
+        type: 'object',
+        properties: {
+          test_key: { type: 'string' },
+        },
+        required: ['test_key'],
+      },
+      secrets: [:test_secret],
+      runtime_params: {
+        commit: 'boolean'
+      }
+    }
+    end
+end
+
+# Polyphemus API Stubs
+def stub_polyphemus_get_previous_run(project_name, config_id, version_number, run_record)
+  puts "Requesting: #{POLYPHEMUS_HOST}/api/etl/#{project_name}/run/previous/#{config_id}"
+  stub_request(:post, "#{POLYPHEMUS_HOST}/api/etl/#{project_name}/run/previous/#{config_id}")
+    .with(body: { version_number: version_number })
+    .to_return({
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: {
+        run_id: run_record.run_id,
+        config_id: run_record.config_id,
+        version_number: run_record.version_number,
+        state: run_record.state,
+        orchestrator_metadata: run_record.orchestrator_metadata,
+        output: run_record.output,
+        created_at: run_record.created_at,
+        updated_at: run_record.updated_at
+      }.to_json
+    })
+end
+
+# SFTP Server Stubs
+
+

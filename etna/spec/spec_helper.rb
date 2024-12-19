@@ -388,6 +388,7 @@ def configure_etna_yml
           janus: { etis: "https://janus.development.local" },
           timur: { etis: "https://timur.development.local" },
           polyphemus: { etis: "https://polyphemus.development.local" },
+          polyphemus: { host: "https://polyphemus.development.local" },
           auth_redirect: "https://janus.development.local",
           ignore_ssl: false,
       }
