@@ -19,20 +19,11 @@ import { defaultWorkspaceStatus, FileContentResponse, Workspace, WorkspaceStatus
 import {
   setWorkflow,
   setAutoPassStep,
-  setWorkspace,
-  setStatusFromStatuses,
-  setUIValues,
-  setLastConfig,
-  setWorkspaceFiles,
-  setFileContent,
-  setFilesContent,
   setFullWorkspaceState
 } from '../../actions/vulcan_actions';
 import {
   defaultStepStatus,
-  MultiFileContent,
   MultiFileContentResponse,
-  WorkspaceRaw
 } from '../../api_types';
 import {runPromise, useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
 
@@ -48,9 +39,6 @@ export default function WorkspaceInitializer({
   const {
     state,
     dispatch,
-    getLocalSession,
-    cancelPolling,
-    requestPoll,
     showErrors,
     getWorkspace,
     getFileNames,
