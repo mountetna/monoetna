@@ -8,22 +8,13 @@ import {
 } from 'etna-js/utils/fetch';
 import {
   AccountingReturn,
-  ConfigContent,
-  defaultSessionStatusResponse,
-  defaultWorkflowsResponse,
-  FiguresResponse,
-  FileContentResponse,
   MultiFileContentResponse,
   MultiFileContent,
   FlatParams,
   RunReturn,
   RunStatus,
-  SessionStatusResponse,
-  VulcanFigureSession,
-  VulcanStorage,
   WorkflowsResponse,
   Workspace,
-  Workspaces,
   WorkspaceStatus,
   WorkspacesResponse,
   WorkspaceRaw
