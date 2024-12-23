@@ -56,6 +56,7 @@ It is also worth noting that the `runtime_config` table should only ever have on
 ### ETLJob super class
 
 ETL jobs should subclass: `ETLJob` and implement the `pre`, `process`, and `post` methods.
+You care store state in the context hash between methods.
 
 ### RunJob command
 

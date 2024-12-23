@@ -3,25 +3,21 @@
 ## State management
 
 - volume that contains files_to_update.txt
-- db table `cat_ingestion`: 
-	- id
-	- etl_configs_id
-	- argo_id
-	- last_scan
-	- num_files_to_update
-	- num_c4_files_updated
-	- num_metis_files_updates
-	- created_at
-	- modified_at
+- runs.state contains last_scan
 
 ## Pipeline details
 
-### Job 1 - File discovery
+### Job 1 - SFTP File discovery
 
-- checks cat_ingestion.last_scan in the db 
-- performs a regex search on the ftp server for all files that > last_run
-- grab their file name and md5 and write it to a file files_to_update.txt - in csv form file, hash
-- writes number of files_to_update 
+- checks runs.state.last_scan in the db 
+- if it is not set, we set start_time to the initial_start_scan_time
+- if it is set, we set start_time to the last_scan timestamp
+- if the config.interval param is set, we set end_time to the last_scan timestamp + interval
+- if the config.interval param is not set, we set end_time to the current time
+- performs a regex search on the ftp server for all files that > start_time and < end_time
+- grab their file name and timestamp it which it was updated and write it to a file:
+called:  {file_path}-{argo_id}-files_to_update.txt - in csv form.
+- writes number of files_to_update to the db
 
 ### Job 2 - C4 update
 

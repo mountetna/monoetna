@@ -620,15 +620,13 @@ end
 
 # Polyphemus API Stubs
 def stub_polyphemus_get_previous_run(project_name, config_id, version_number, run_record)
-  puts "Requesting: #{POLYPHEMUS_HOST}/api/etl/#{project_name}/run/previous/#{config_id}"
   stub_request(:post, "#{POLYPHEMUS_HOST}/api/etl/#{project_name}/run/previous/#{config_id}")
-    .with(body: { version_number: version_number })
     .to_return({
       status: 200,
       headers: {
         'Content-Type': 'application/json'
       },
-      body: {
+      body: run_record.empty? ? {}.to_json : {
         run_id: run_record.run_id,
         config_id: run_record.config_id,
         version_number: run_record.version_number,
@@ -642,5 +640,15 @@ def stub_polyphemus_get_previous_run(project_name, config_id, version_number, ru
 end
 
 # SFTP Server Stubs
+def stub_initial_sftp_connection
+  sftp = double('sftp')
+  dir = double('dir', entries: [])
+  allow(sftp).to receive(:dir).and_return(dir)
+  allow(Net::SFTP).to receive(:start).and_yield(sftp)
+end
 
-
+def stub_sftp_search_files(files_to_return)
+  allow_any_instance_of(SFTPClient).to receive(:search_files) do |_instance, remote_dir, pattern, last_scan, ignore_dirs|
+    files_to_return
+  end
+end

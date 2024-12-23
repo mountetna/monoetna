@@ -4,19 +4,41 @@ describe SFTPFileDiscoveryJob do
     config = {
       "project_name" => "labors",
       "secrets" => {
-        "sftp_host" => "monoetna-polyphemus_sftp-1", 
+        "sftp_host" => "some-sftp-host", 
         "sftp_user" => "user",
         "sftp_password" => "password",
         "sftp_port" => "22"
       },
       "config" => {
-        "regex" => ".*",
-        "root_dir" => "/home/user/uploads"
+        "file_regex" => "DSCOLAB(-|_).*",
+        "sftp_root_dir" => "SSD",
+        "interval" => 864000, # 10 days
+        "initial_start_scan_time" => 1672531200, #Jan 1, 2023
+        "path_to_write_files" => "/tmp/" 
       },
       "config_id" => "1",
       "version_number" => "1"
     }
     config
+  }
+
+  let(:last_scan_timestamp) {
+    "1672531200" #Jan 1, 2023
+  }
+  let(:sftp_files) {
+    [
+      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB2_SCC1_S32_L007_R1_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB2_SCC1_S32_L007_I1_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB2_SCC1_S32_L007_I2_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB2_SCC1_S32_L007_R2_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_IPIMEL575-T1-CD45enriched-SCC1_S33_L007_R1_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_IPIMEL575-T1-CD45enriched-SCC1_S33_L007_I1_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_IPIMEL575-T1-CD45enriched-SCC1_S33_L007_I2_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_IPIMEL575-T1-CD45enriched-SCC1_S33_L007_R2_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB1_SCG1_S22_L008_R1_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB1_SCG1_S22_L008_I1_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB1_SCG1_S22_L008_I2_001.fastq.gz", modified_time: 1672876800 },
+    ]
   }
 
   let(:runtime_config) {
@@ -27,6 +49,12 @@ describe SFTPFileDiscoveryJob do
 
   let(:run_id) { "1234567890" }
   let(:empty_run_record) {
+    {}
+  }
+  let(:empty_run_record) {
+    {}
+  }
+  let(:run_record) {
     Polyphemus::Run.new(
       run_id: run_id,
       config_id: config["config_id"],
@@ -38,27 +66,23 @@ describe SFTPFileDiscoveryJob do
       updated_at: Time.now
     )
   }
-
-
-
+  
   before do
     ENV['TOKEN'] = TEST_TOKEN
     ENV['ARGO_WORKFLOW_ID'] = run_id
-    # Setup sftp client
   end
 
   context 'first run' do
 
     before do
-      WebMock.enable!
-      require 'pry'; binding.pry
       stub_polyphemus_get_previous_run(config["project_name"], config["config_id"], config["version_number"], empty_run_record)
+      stub_initial_sftp_connection
+      stub_sftp_search_files(sftp_files)
       job = SFTPFileDiscoveryJob.new(config, runtime_config)
-      job.process 
+      job.execute
     end
 
     it "records the last scan timestamp in the db" do
-      # check the db
     end
 
     it 'records the number of files to update in the db' do
@@ -73,12 +97,9 @@ describe SFTPFileDiscoveryJob do
   context 'subsequent runs' do
 
     before do
-      # set the db
     end
 
     it "fetches the last scan timestamp from the database" do
-      job = SFTPFileDiscoveryJob.new(config, secrets)
-      job.fetch_last_scan
     end
   end
 

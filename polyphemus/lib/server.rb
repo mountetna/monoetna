@@ -40,7 +40,7 @@ class Polyphemus
     get '/api/etl/:project_name/revisions/:config_id', action: 'workflow#revisions', auth: { user: { can_edit?: :project_name } }
 
     get '/api/etl/:project_name/run/:run_id', action: 'workflow#get_run', auth: { user: { can_edit?: :project_name } }
-    post '/api/etl/:project_name/run/update/:run_id', action: 'workflow#update_run', auth: { user: { can_edit?: :project_name } }
+    post '/api/etl/:project_name/run/update/:config_id', action: 'workflow#update_run', auth: { user: { can_edit?: :project_name } }
     post '/api/etl/:project_name/run/previous/:config_id', action: 'workflow#get_previous_run', auth: { user: { can_edit?: :project_name } }
 
     get '/api/etl/:project_name/runtime_configs/:config_id/', action: 'workflow#get_runtime_config', auth: { user: { can_edit?: :project_name } }

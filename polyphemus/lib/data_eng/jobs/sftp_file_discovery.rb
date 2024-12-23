@@ -11,71 +11,75 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
       config["secrets"]["sftp_user"],
       config["secrets"]["sftp_password"],
     )
+
+    # Mandatory params
     @workflow_config_id = config['config_id']
     @workflow_version = config['version_number']
-    @regex = config['config']['regex']
-    @root_dir = config['config']['root_dir']
+    @file_regex = config['config']['file_regex']
+    @sftp_root_dir = config['config']['sftp_root_dir']
+    @initial_start_scan_time = config['config']['initial_start_scan_time']
+    @path_to_write_files = config['config']['path_to_write_files']
+
+    # Optional params
+    @interval = config['config']['interval'] || nil
   end
 
-  def pre
-    true
+  def pre(context)
+    context[:start_time] = fetch_last_scan
+    if @interval
+      context[:end_time] = context[:start_time] + @interval
+    else
+      context[:end_time] = context[:start_time] + Time.now.to_i
+    end
   end
 
   # Process method containing the main File Discovery ETL logic
-  def process
-    last_scan = fetch_last_scan
-    files_to_update = fetch_files_from_sftp(last_scan)
-    @sftp_client.write_csv(config[:files_to_update_path], files_to_update)
+  def process(context)
+    files_to_update = @sftp_client.search_files(@sftp_root_dir, @file_regex, context[:start_time], context[:end_time ])
+    if files_to_update.empty?
+      context[:num_files_to_update] = 0
+    else
+      context[:num_files_to_update] = files_to_update.size
+      context[:files_to_update_path] = write_csv(files_to_update)
+    end
   end
 
   # Post-condition method to update the number of files to update in the DB
-  def post
-    file_count = File.readlines(config[:files_to_update_path]).size
+  def post(context)
+    require 'pry'; binding.pry
     polyphemus_client.update_run(run_id, {
-      state: {num_files_to_update: file_count},
-      updated_at: Time.now,
-      modified_at: Time.now,
+      state: {
+        num_files_to_update: context[:num_files_to_update],
+        files_to_update_path: context[:files_to_update_path],
+        start_time: context[:start_time],
+        end_time: context[:end_time]
+      },
     })
-    puts "Number of files to update: #{file_count}"
   end
 
-  #private
+  private
 
   # Fetch the last_scan timestamp from the pipeline state using Polyphemus client
   def fetch_last_scan
-    require 'pry'; binding.pry
     run = polyphemus_client.get_previous_run(@project_name, @workflow_config_id, @workflow_version)
-    run.state[:last_scan] ? Time.parse(run.state[:last_scan]) : Time.now.to_i 
-  rescue StandardError => e
-    raise "Error fetching pipeline state: #{e.message}"
-  end
-
-  # Fetch files from SFTP that are newer than last_scan using regex
-  def fetch_files_from_sftp(last_scan)
-    files = []
-    entries = @sftp_client.list_directory(config[:sftp_directory])
-
-    entries.each do |entry|
-      next if entry[:name] == '.' || entry[:name] == '..'
-
-      full_path = File.join(config[:sftp_directory], entry[:name])
-      next unless file_matches_criteria?(entry, last_scan)
-
-      md5 = @sftp_client.calculate_md5(full_path)
-      files << [full_path, md5] if md5 != 'error'
+    # No previous run exists, this is the first run ever
+    if run.empty?
+      @initial_start_scan_time
+    else
+      Time.parse(run.state[:end_time]) 
     end
-    files
-  rescue StandardError => e
-    puts "Error fetching files from SFTP: #{e.message}"
-    raise
   end
 
-  # Check if the file matches the required criteria
-  def file_matches_criteria?(entry, last_scan)
-    matches_type = entry[:longname] =~ @regex
-    newer_than_last_scan = Time.at(entry[:attributes].mtime) > last_scan
-    matches_type && newer_than_last_scan
+  def write_csv(files_to_update)
+    filename = "#{run_id}-files_to_update.txt"
+    filepath = File.join(@path_to_write_files, filename)
+    CSV.open(filepath, "wb") do |csv|
+      csv << ["path", "modified_time"]
+      files_to_update.each do |file|
+        csv << [file[:path], file[:modified_time]]
+      end
+    end
+    filepath
   end
-
 
 end

@@ -104,7 +104,9 @@ class WorkflowController < Polyphemus::Controller
   def update_run
     require_params(:config_id, :version_number)
     run = Polyphemus::Run.where(
-        run_id: @params[:run_id]
+        run_id: @params[:run_id],
+        config_id: @params[:config_id],
+        version_number: @params[:version_number]
     ).first
 
     update_columns = {
@@ -146,8 +148,7 @@ class WorkflowController < Polyphemus::Controller
       version_number: @params[:version_number]
     ).order(created_at: :desc).first
 
-    raise Etna::NotFound, "No previous run found for config_id #{@params[:config_id]} version #{@params[:version_number]}" unless run
-    success_json(run.as_json)
+    success_json(run&.as_json || {})
   end
 
   def update_runtime_config
