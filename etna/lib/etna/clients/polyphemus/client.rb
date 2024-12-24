@@ -50,11 +50,11 @@ module Etna
         json
       end
 
-      def update_run(project_name, run_id, updates)
+      def update_run(project_name, run_id, config_id, version_number, updates)
         payload = {
             run_id: run_id,
-            config_id: updates[:config_id],
-            version_number: updates[:version_number],
+            config_id: config_id,
+            version_number: version_number,
             state: updates[:state],
             orchestrator_metadata: updates[:orchestrator_metadata],
             output: updates[:output],

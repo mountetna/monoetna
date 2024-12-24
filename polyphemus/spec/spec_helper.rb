@@ -627,17 +627,35 @@ def stub_polyphemus_get_previous_run(project_name, config_id, version_number, ru
         'Content-Type': 'application/json'
       },
       body: run_record.empty? ? {}.to_json : {
-        run_id: run_record.run_id,
-        config_id: run_record.config_id,
-        version_number: run_record.version_number,
-        state: run_record.state,
-        orchestrator_metadata: run_record.orchestrator_metadata,
-        output: run_record.output,
-        created_at: run_record.created_at,
-        updated_at: run_record.updated_at
+        run_id: run_record[:run_id],
+        config_id: run_record[:config_id],
+        version_number: run_record[:version_number],
+        state: run_record[:state],
+        orchestrator_metadata: run_record[:orchestrator_metadata],
+        output: run_record[:output],
+        created_at: run_record[:created_at],
+        updated_at: run_record[:updated_at]
       }.to_json
     })
 end
+
+def stub_polyphemus_update_run(project_name, run_id, captured_requests)
+  stub_request(:post, "#{POLYPHEMUS_HOST}/api/etl/#{project_name}/run/update/#{run_id}")
+    .with(
+      headers: {
+        'Content-Type' => 'application/json'
+      }
+    )
+    .to_return do |request|
+      captured_requests << JSON.parse(request.body, symbolize_names: true)
+      {
+        status: 200,
+        headers: { 'Content-Type' => 'application/json' },
+        body: { success: true }.to_json
+      }
+    end
+end
+
 
 # SFTP Server Stubs
 def stub_initial_sftp_connection

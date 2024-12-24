@@ -102,7 +102,7 @@ class WorkflowController < Polyphemus::Controller
   end
 
   def update_run
-    require_params(:config_id, :version_number)
+    require_params(:run_id, :config_id, :version_number)
     run = Polyphemus::Run.where(
         run_id: @params[:run_id],
         config_id: @params[:config_id],

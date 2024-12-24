@@ -29,11 +29,10 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
     if @interval
       context[:end_time] = context[:start_time] + @interval
     else
-      context[:end_time] = context[:start_time] + Time.now.to_i
+      context[:end_time] = Time.now.to_i
     end
   end
 
-  # Process method containing the main File Discovery ETL logic
   def process(context)
     files_to_update = @sftp_client.search_files(@sftp_root_dir, @file_regex, context[:start_time], context[:end_time ])
     if files_to_update.empty?
@@ -44,10 +43,8 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
     end
   end
 
-  # Post-condition method to update the number of files to update in the DB
   def post(context)
-    require 'pry'; binding.pry
-    polyphemus_client.update_run(run_id, {
+    polyphemus_client.update_run(@project_name, @run_id, @workflow_config_id, @workflow_version, {
       state: {
         num_files_to_update: context[:num_files_to_update],
         files_to_update_path: context[:files_to_update_path],
@@ -66,7 +63,7 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
     if run.empty?
       @initial_start_scan_time
     else
-      Time.parse(run.state[:end_time]) 
+      run["state"]["end_time"]
     end
   end
 
