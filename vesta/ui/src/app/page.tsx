@@ -319,7 +319,7 @@ async function getData() {
           name: pi.name,
           email: pi.email,
           title: pi.title,
-          imageUrl: pi.image_url,
+          imageUrl: pi.photo_url,
           profileUrl: pi.profile_url,
           color: theme.color,
           altColor: theme.textColor === 'light' ? 'utilityHighlight.main' : 'ground.grade10',

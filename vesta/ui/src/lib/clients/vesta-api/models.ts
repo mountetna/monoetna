@@ -25,7 +25,7 @@ interface PrincipalInvestigator {
     name: string
     email: string
     title?: string
-    image_url?: string
+    photo_url?: string
     profile_url?: string
 }
 
