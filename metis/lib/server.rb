@@ -33,6 +33,8 @@ class Metis
     post '/:project_name/tail/:bucket_name', action: 'bucket#tail', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/:bucket_name/*folder_path', action: 'folder#list', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/:bucket_name', action: 'folder#list', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/size/:bucket_name/*folder_path', action: 'folder#size', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/size/:bucket_name', action: 'folder#size', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list_all_folders/:bucket_name', action: 'folder#list_all_folders', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/', action: 'bucket#list', auth: { user: { can_view?: :project_name } }
     # To make ETLs work better, we let you list a folder by just an ID
