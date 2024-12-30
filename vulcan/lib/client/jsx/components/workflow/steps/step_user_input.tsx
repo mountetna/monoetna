@@ -22,24 +22,26 @@ function StepUserInputInner({
   hideLabel: boolean;
 }) {
   const {state} = useContext(VulcanContext);
-  const {status, session, data} = state;
+  const {status} = state;
   const {workspace} = useWorkspace();
-  const {inputs, setInputs} = useContext(BufferedInputsContext);
+  const {values, setValues} = useContext(BufferedInputsContext);
 
   const stepInputs: BoundInputSpecification[] = useMemo(
     () =>
       specs.map((spec) =>
         bindInputSpecification(
           spec,
-          workspace,
-          status,
-          session,
-          data,
-          inputs,
-          setInputs
+          workspace.steps,
+          workspace.vulcan_config,
+          status.last_params,
+          status.file_contents,
+          status.params,
+          status.ui_contents,
+          values,
+          setValues
         )
       ),
-    [specs, workspace, status, session, data, inputs, setInputs]
+    [specs, workspace, status, values, setValues]
   );
 
   return (

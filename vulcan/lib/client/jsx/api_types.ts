@@ -151,6 +151,7 @@ export type VulcanConfigElement = {
   default?: any;
   doc?: string;
   input?: InputOutputConfig;
+  input_map?: string[];
   output?: InputOutputConfig;
 }
 

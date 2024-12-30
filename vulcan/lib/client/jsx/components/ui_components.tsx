@@ -70,14 +70,22 @@ export const INPUT_TYPES = {
   ANY_VIZ: 'any-viz'
 };
 
-const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
+export const components = {} as {[k: string]: [
+  InputBackendComponent<any, any, any>,
+  InputValidator<any, any>,
+  string[],
+  string | undefined
+]};
 function configureComponent<Value, DataElement>(
   type: InputType,
-  Input: InputBackendComponent<any, Value, DataElement>,
+  component: InputBackendComponent<any, Value, DataElement>,
   validator: InputValidator<Value, DataElement>,
+  outputNames: string[],
+  inputNames: string[],
+  optionalInputName?: string
 ) {
   if (type in components) throw new Error(`Duplicate definition for ${type}`);
-  components[type] = [Input, validator];
+  components[type] = [component, validator, inputNames, optionalInputName];
 }
 configureComponent(INPUT_TYPES.STRING, StringInput, NotEmptyValidator);
 configureComponent(INPUT_TYPES.FLOAT, FloatInput, NotEmptyValidator);

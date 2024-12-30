@@ -1,12 +1,15 @@
-import * as React from 'react';
-import {Workspace, WorkspaceStep} from '../../../../api_types';
+import React, {useMemo} from 'react';
+import {VulcanConfig, Workspace, WorkspaceStatus, WorkspaceStep} from '../../../../api_types';
 import {Maybe, some, isSome, withDefault} from '../../../../selectors/maybe';
 import {VulcanState} from '../../../../reducers/vulcan_reducer';
 import {
   paramUINames,
   splitSource,
   stepInputDataRaw,
+  stepInputMapping,
   stepOfName,
+  stepOutputData,
+  stepOutputMapping,
   stepOutputs,
 } from '../../../../selectors/workflow_selectors';
 import {defaultBufferedInputs} from '../../../../contexts/input_state_management';
@@ -32,8 +35,6 @@ export interface BoundInputSpecification<Value = unknown, DataElement = unknown>
   onChange(v: Maybe<Value>, destructure?: boolean): void;
 
   data?: DataEnvelope<DataElement> | undefined | null;
-
-  numOutputs?: number;
 }
 
 export function getParamUISpecifications(
@@ -82,7 +83,7 @@ export function getInputSpecifications(
 //   stepName: string | undefined,
 //   inputName: string,
 //   inputs:
-//     | typeof defaultBufferedInputs.inputs
+//     | typeof defaultBufferedInputs.values
 //     | VulcanState['session']['inputs'],
 //   fromBuffer: boolean
 // ): Maybe<unknown> {
@@ -116,85 +117,45 @@ export function getInputSpecifications(
 
 export function bindInputSpecification(
   input: InputSpecification,
-  workspace: Workspace,
-  status: VulcanState['status'],
-  session: VulcanState['session'],
-  buffered: typeof defaultBufferedInputs.inputs,
-  setInputs: typeof defaultBufferedInputs.setInputs
+  workspace_steps: Workspace['steps'],
+  vulcan_config: VulcanConfig,
+  last_params: WorkspaceStatus['last_params'],
+  file_contents: WorkspaceStatus['file_contents'],
+  params: WorkspaceStatus['params'],
+  ui_contents: WorkspaceStatus['ui_contents'],
+  setValues: typeof defaultBufferedInputs.setValues
 ): BoundInputSpecification {
+  
   const stepName = input.name;
-  const step = stepOfName(stepName, workspace);
+  const step = stepOfName(stepName, workspace_steps, vulcan_config);
+  // ToDo: Surface an error instead
   if (!step) return;
-  const inputData = stepInputDataRaw(step, status, workspace) || {};
+  const config = vulcan_config[stepName];
+
+  const inputDataKeyMap = useMemo( () => stepInputMapping(config),
+  [config]);
+  const inputDataRaw = useMemo( () => stepInputDataRaw(step, last_params, file_contents),
+  [step, last_params, file_contents])
+  const inputData = useMemo(() => {
+    const data: {[k: string]: any} = {};
+    Object.keys(inputDataKeyMap).forEach( (name) => {
+      data[name] = inputDataRaw[inputDataKeyMap[name]];
+    })
+    return data;
+  }, [inputDataKeyMap, inputDataRaw])
+
+  const outputDataKeyMap = useMemo( () => stepOutputMapping(config),
+  [config]);
+  const value = useMemo(() => stepOutputData(stepName, outputDataKeyMap, params, ui_contents),
+  [stepName, outputDataKeyMap, params, ui_contents]);
 
   return {
     ...input,
-    onChange(v: Maybe<unknown>, destructure: boolean = false) {
-      if (destructure) {
-        const authoredOutputs = stepOutputs(step);
-
-        let values: {[key: string]: any} = {};
-        const userValue: {[key: string]: any} = withDefault(v, {}) as any;
-        // First, look for authored outputs that appear in the userValue object
-        const [withValues, withoutValues] = authoredOutputs.reduce(
-          (acc, authoredOutput) => {
-            let [_, outputName] = splitSource(authoredOutput);
-
-            acc[userValue.hasOwnProperty(outputName) ? 0 : 1].push(
-              authoredOutput
-            );
-
-            return acc;
-          },
-          [[] as string[], [] as string[]]
-        );
-
-        withValues.forEach((authoredOutput) => {
-          let [_, outputName] = splitSource(authoredOutput);
-          // Widget has specified a Hash that explicitly matches
-          //   the CWL output names.
-          values[authoredOutput] = userValue[outputName as any];
-        });
-
-        // Next, any remaining, unassigned outputs are picked
-        //   from the unassigned userValue keys as if we were popping
-        //   values off a queue.
-        const usedValueKeys = Object.keys(values).map((k) => splitSource(k)[1]);
-        const unassignedValueKeys = Object.keys(userValue)
-          .filter((key: string) => {
-            return !usedValueKeys.includes(key);
-          })
-          .sort();
-
-        withoutValues.forEach((authoredOutput, index) => {
-          if (unassignedValueKeys[index]) {
-            values[authoredOutput] =
-              userValue[unassignedValueKeys[index] as any];
-          }
-        });
-
-        // Any unassigned values in `userValue` are discarded at this point.
-        // Warn in the console. Should we warn the user more visibly?
-        if (unassignedValueKeys.length > withoutValues.length) {
-          console.warn(
-            'UI input returned values not assigned in CWL.',
-            unassignedValueKeys.slice(withoutValues.length)
-          );
-        }
-
-        setInputs((inputs) => ({...inputs, ...(values as any)}));
-      } else {
-        setInputs((inputs) => ({...inputs, [input.source]: v}));
-      }
-    },
     data: inputData,
-    value:
-      input.source in buffered
-        ? collapseInputValues(stepName, input.name, buffered, true)
-        : input.source in session.inputs
-        ? some(collapseInputValues(stepName, input.name, session.inputs, false))
-        : null,
-    numOutputs: step.output ? (step.output.params?.length || 0) + (step.output.files?.length || 0) : 0
+    value: value,
+    onChange(v: {[k:string]: Maybe<unknown>}) {
+      setValues(v);
+    },
   };
 }
 

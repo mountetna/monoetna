@@ -48,18 +48,18 @@ const useStyles = makeStyles((theme) => ({
 
 function PrimaryInputsInner() {
   const {state} = useContext(VulcanContext);
-  const {inputs, setInputs} = useContext(BufferedInputsContext);
+  const {values, setValues} = useContext(BufferedInputsContext);
   const {status, workspace} = state;
   if (!workspace) return null;
 
   // Ensure defaults are set.
   useEffect(() => {
-    let newDefaults = missingConfigInputDefaults(workspace, status, inputs);
+    let newDefaults = missingConfigInputDefaults(workspace, status, values);
 
     if (Object.keys(newDefaults).length > 0) {
-      setInputs((inputs) => ({...inputs, ...newDefaults}));
+      setValues((values) => ({...values, ...newDefaults}));
     }
-  }, [inputs, status, setInputs, workspace]);
+  }, [values, status, setValues, workspace]);
 
   const inputSpecifications = useMemo(
     () => getConfigUISpecifications(workspace),
@@ -73,23 +73,26 @@ function PrimaryInputsInner() {
       result[groupName].push(
         bindInputSpecification(
           spec,
-          workspace,
-          state.status,
-          state.session,
-          state.data,
-          inputs,
-          setInputs
+          workspace.steps,
+          workspace.vulcan_config,
+          status.last_params,
+          status.file_contents,
+          status.params,
+          status.ui_contents,
+          values,
+          setValues
         )
       );
       return result;
     }, {} as {[k: string]: BoundInputSpecification[]});
   }, [
     inputSpecifications,
-    inputs,
-    setInputs,
-    state.data,
-    state.session,
-    state.status,
+    values,
+    setValues,
+    workspace.steps,
+    workspace.vulcan_config,
+    status.last_params,
+    status.file_contents,
     workspace
   ]);
 

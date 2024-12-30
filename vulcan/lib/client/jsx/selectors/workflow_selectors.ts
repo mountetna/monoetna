@@ -38,7 +38,7 @@ import {
   withDefault
 } from './maybe';
 import {DataEnvelope} from 'etna-js/utils/input_types';
-import { dontDownloadForOutputTypes, OUTPUT_TYPES } from '../components/ui_components';
+import { components, dontDownloadForOutputTypes, OUTPUT_TYPES } from '../components/ui_components';
 
 export function pick<T extends DataEnvelope<any>, K extends keyof T>(obj: T, keys: K[]) {
   return Object.fromEntries(
@@ -287,11 +287,12 @@ export function updateStepStatusesFromRunStatus(stepStatusReturns: RunStatus, st
 
 export function stepOfName(
   stepName: string,
-  workspace: Workspace
+  workspace_steps: Workspace['steps'],
+  vulcan_config: VulcanConfig
 ): WorkspaceStep | undefined {
-  if (stepName in workspace.steps) return workspace.steps[stepName];
-  if (stepName in workspace.vulcan_config) {
-    const step_conf = workspace.vulcan_config[stepName];
+  if (stepName in workspace_steps) return workspace_steps[stepName];
+  if (stepName in vulcan_config) {
+    const step_conf = vulcan_config[stepName];
     return {
       name: stepName,
       input: step_conf.input || {},
@@ -576,29 +577,108 @@ export function compSetNameOfParam(paramName: string, vulcan_config: VulcanConfi
   return found.length > 0 ? found[0] : undefined;
 }
 
-export const stepInputDataRaw = (
+export function stepInputDataRaw(
   step: WorkspaceStep,
-  status: VulcanState['status'],
-  workspace: Workspace
-): {[k: string]: any} => {
+  last_params: WorkspaceStatus['last_params'],
+  file_contents: WorkspaceStatus['file_contents']
+): {[k: string]: any} {
   // Pull out any previous step's output data link that is a required
   //   input into this UI step.
   const result: {[k: string]: any} = {};
 
   if (!!step.input.params) {
     step.input.params.forEach((paramName) => {
-      const keyOfParam = compSetNameOfParam(paramName, workspace.vulcan_config)
-      result[paramName] = !!keyOfParam ? status.params[keyOfParam][paramName] : null;
+      result[paramName] = last_params[paramName] || null;
     });
   }
   
   if (!!step.input.files) {
     step.input.files.forEach((fileName) => {
-      result[fileName] = status.file_contents[fileName] || null;
+      result[fileName] = file_contents[fileName] || null;
     });
   }
 
   return result;
+};
+
+export function stepInputMapping(
+  config: VulcanConfigElement,
+) {
+  // Returns the mapping of:
+  //   - component's internal data value naming expectations ("internal-name")
+  //   - actual file/param names to use as source ("external-name")
+  // in the form:
+  //   - {internal-name: external-name}
+  const rawKeys = config.input_map ? config.input_map :
+    config.input?.params ? config.input.params :
+    config.input?.files ? config.input.files : [] as string[];
+  // Todo MAYBE (should be enforced elsewhere): Error handling if empty array
+  
+  const componentNeeds = components[config.ui_component].slice(3,5) as [string[], string | undefined];
+  // Required Elements
+  const map: {[k: string]: string} = {};
+  componentNeeds[0].forEach( (val, i) => {
+    // ToDo MAYBE (should be enforced elsewhere): Error if rawKeys is too short
+    map[val] = rawKeys[i]
+  })
+
+  // Optional Element
+  if (rawKeys.length > componentNeeds[0].length && !!componentNeeds[1]) {
+    map[componentNeeds[1]] = rawKeys[rawKeys.length-1];
+  }
+
+  return map;
+}
+
+export function stepOutputMapping(
+  config: VulcanConfigElement,
+) {
+  // Returns the mapping of:
+  //   - component's internal value naming expectations ("internal-name")
+  //   - actual file/param names to output to ("external-name")
+  // in the form:
+  //   - {internal-name: external-name}
+  const rawKeys = config.output?.params ? config.output.params :
+    config.output?.files ? config.output.files : [] as string[];
+  // Todo MAYBE (should be enforced elsewhere): Error handling if empty array
+  
+  const componentNeeds = components[config.ui_component][2];
+  const map: {[k: string]: string} = {};
+  componentNeeds.forEach( (val, i) => {
+    // ToDo MAYBE (should be enforced elsewhere): Error if rawKeys is too short
+    map[val] = rawKeys[i]
+  })
+  return map;
+};
+
+export function stepOutputDataOriginal(
+  config: VulcanConfigElement,
+  last_params: WorkspaceStatus['last_params'],
+  file_contents: WorkspaceStatus['file_contents']
+) {
+  const keyMap = stepOutputMapping(config);
+  const values: {[k: string]: any} = {};
+  Object.keys(keyMap).forEach( (name) => {
+    values[name] = name in last_params ?
+      last_params[keyMap[name]] :
+      name in file_contents ? file_contents[keyMap[name]] : null
+  });
+  return values;
+};
+
+export function stepOutputData(
+  stepName: string,
+  keyMap: ReturnType<typeof stepOutputMapping>,
+  params: WorkspaceStatus['params'],
+  ui_contents: WorkspaceStatus['ui_contents']
+) {
+  const values: {[k: string]: any} = {};
+  Object.keys(keyMap).forEach( (name) => {
+    values[name] = stepName in params ?
+      params[stepName][keyMap[name]] :
+      ui_contents[stepName][keyMap[name]]
+  });
+  return values;
 };
 
 export function pendingUIInputStepReady(

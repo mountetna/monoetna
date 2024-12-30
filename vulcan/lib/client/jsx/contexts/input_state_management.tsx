@@ -56,14 +56,14 @@ export function isPassableUIStep(
 }
 
 export const defaultBufferedInputs = {
-  inputs: {} as DataEnvelope<Maybe<any>>,
-  setInputs(
-    inputs:
+  values: {} as DataEnvelope<Maybe<any>>,
+  setValues(
+    values:
       | DataEnvelope<Maybe<any>>
       | ((prev: DataEnvelope<Maybe<any>>) => DataEnvelope<Maybe<any>>)
   ) {},
-  commitInputs() {},
-  cancelInputs() {}
+  commitValueUpdates() {},
+  cancelValueUpdates() {}
 };
 export const BufferedInputsContext = createContext(defaultBufferedInputs);
 
@@ -78,26 +78,26 @@ export function WithBufferedInputs({
   stepName: string | null;
 }>) {
   const {stateRef, state} = useContext(VulcanContext);
-  const inputsRef = useRef({} as DataEnvelope<Maybe<any>>);
-  const [inputs, setInputsState] = useState(inputsRef.current);
-  const hasInputs = Object.keys(inputs).length > 0;
+  const valuesRef = useRef({} as DataEnvelope<Maybe<any>>);
+  const [values, setValuesState] = useState(valuesRef.current);
+  const hasValues = Object.keys(values).length > 0;
 
-  const cancelInputs: any = useCallback(() => {
+  const cancelValueUpdates: any = useCallback(() => {
     // eslint-disable-next-line
-    setInputs({});
+    setValues({});
     // @ts-ignore
     // eslint-disable-next-line
-  }, [setInputs]);
+  }, [setValues]);
 
-  const setInputs: any = useCallback<typeof defaultBufferedInputs.setInputs>(
-    (inputs) => {
-      if (inputs instanceof Function) {
-        inputsRef.current = inputs(inputsRef.current);
+  const setValues: any = useCallback<typeof defaultBufferedInputs.setValues>(
+    (values) => {
+      if (values instanceof Function) {
+        valuesRef.current = values(valuesRef.current);
       } else {
-        inputsRef.current = inputs;
+        valuesRef.current = values;
       }
 
-      if (Object.keys(inputsRef.current).length > 0) {
+      if (Object.keys(valuesRef.current).length > 0) {
         if (!stateRef.current.bufferedSteps.includes(stepName)) {
           dispatch(setBufferedInput(stepName));
         }
@@ -109,8 +109,8 @@ export function WithBufferedInputs({
             val.includes(stepName)
           ).length < 1
         ) {
-          if (commitSessionInputChanges(stepName, inputsRef.current)) {
-            cancelInputs();
+          if (commitSessionInputChanges(stepName, valuesRef.current)) {
+            cancelValueUpdates();
             dispatch(setRunTrigger(stepName));
           }
         }
@@ -119,19 +119,19 @@ export function WithBufferedInputs({
           dispatch(clearBufferedInput(stepName));
         }
       }
-      setInputsState(inputsRef.current);
+      setValuesState(valuesRef.current);
     },
-    [dispatch, stateRef, stepName, cancelInputs, commitSessionInputChanges]
+    [dispatch, stateRef, stepName, cancelValueUpdates, commitSessionInputChanges]
   );
 
   useEffect(() => {
     if (
       !state.bufferedSteps.includes(stepName) &&
-      Object.keys(inputs).length > 0
+      Object.keys(values).length > 0
     ) {
-      setInputs({});
+      setValues({});
     }
-  }, [setInputs, state.bufferedSteps, inputs, stepName]);
+  }, [setValues, state.bufferedSteps, values, stepName]);
 
   useEffect(() => {
     // Initiate auto-pass attempt, primary inputs.
@@ -139,19 +139,19 @@ export function WithBufferedInputs({
       stepName === null &&
       stateRef.current.autoPassSteps.includes(stepName)
     ) {
-      if (commitSessionInputChanges(stepName, inputsRef.current)) {
-        cancelInputs();
+      if (commitSessionInputChanges(stepName, valuesRef.current)) {
+        cancelValueUpdates();
         dispatch(setRunTrigger(stepName));
       }
       dispatch(clearAutoPassStep(null));
     }
-  }, [stateRef.current.autoPassSteps, cancelInputs, commitSessionInputChanges]);
+  }, [stateRef.current.autoPassSteps, cancelValueUpdates, commitSessionInputChanges]);
 
-  const commitInputs = useCallback(() => {
-    if (commitSessionInputChanges(stepName, inputsRef.current)) {
-      cancelInputs();
+  const commitValueUpdates = useCallback(() => {
+    if (commitSessionInputChanges(stepName, valuesRef.current)) {
+      cancelValueUpdates();
     }
-  }, [cancelInputs, commitSessionInputChanges, stepName]);
+  }, [cancelValueUpdates, commitSessionInputChanges, stepName]);
 
   function setAutoPass(event: any, checked: boolean) {
     if (checked) {
@@ -161,13 +161,13 @@ export function WithBufferedInputs({
     }
   }
 
-  const commit_reset_buttons = hasInputs ? (
+  const commit_reset_buttons = hasValues ? (
     <div className='reset-or-commit-inputs'>
-      <Button onClick={cancelInputs} disabled={!!state.pollingState}>
+      <Button onClick={cancelValueUpdates} disabled={!!state.pollingState}>
         Reset
       </Button>
       <Button
-        onClick={commitInputs}
+        onClick={commitValueUpdates}
         style={{
           background: 'linear-gradient(135deg, #6e8efb, #a777e3)',
           textAlign: 'center',
@@ -202,7 +202,7 @@ export function WithBufferedInputs({
   ) : null;
 
   const controls_below =
-    isPassableUIStep(stepName, stateRef.current.workspace) || hasInputs ? (
+    isPassableUIStep(stepName, stateRef.current.workspace) || hasValues ? (
       <Grid container style={{width: 'auto'}} justifyContent='flex-end'>
         {autopass_switch}
         {commit_reset_buttons}
@@ -211,7 +211,7 @@ export function WithBufferedInputs({
 
   return (
     <BufferedInputsContext.Provider
-      value={{inputs, setInputs, commitInputs, cancelInputs}}
+      value={{values, setValues, commitValueUpdates, cancelValueUpdates}}
     >
       <div>{children}</div>
       {controls_below}
@@ -258,6 +258,7 @@ export function useInputStateManagement(
         stepName,
         stateRef.current.workspace
       );
+      // ToDo: CHECK ME!
       const newInputs = {...stateRef.current.status.params, ...stateRef.current.status.ui_contents};
       outputs.forEach((source) => {
         if (source.indexOf('/') > -1) {
