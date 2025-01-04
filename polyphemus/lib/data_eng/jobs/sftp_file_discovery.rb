@@ -3,6 +3,7 @@ require_relative '../clients/sftp_client'
 
 class SFTPFileDiscoveryJob < Polyphemus::ETLJob
   include WithEtnaClients
+  include WithLogger
 
   def initialize(config, runtime_config)
     @project_name = config['project_name']
@@ -18,7 +19,7 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
     @file_regex = config['config']['file_regex']
     @sftp_root_dir = config['config']['sftp_root_dir']
     @initial_start_scan_time = config['config']['initial_start_scan_time']
-    @path_to_write_files = config['config']['path_to_write_files']
+    @path_to_write_files = config['config']['files_modified_path']
 
     # Optional params
     @interval = config['config']['interval'] || nil
@@ -34,12 +35,15 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
   end
 
   def process(context)
+    logger.info("Searching for files from #{context[:start_time]} to #{context[:end_time]}")
     files_to_update = @sftp_client.search_files(@sftp_root_dir, @file_regex, context[:start_time], context[:end_time ])
     if files_to_update.empty?
       context[:num_files_to_update] = 0
+      logger.info("No files found to update...")
     else
       context[:num_files_to_update] = files_to_update.size
       context[:files_to_update_path] = write_csv(files_to_update)
+      logger.info("Found #{files_to_update.size} files to update...")
     end
   end
 
@@ -61,15 +65,18 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
     run = polyphemus_client.get_previous_run(@project_name, @workflow_config_id, @workflow_version)
     # No previous run exists, this is the first run ever
     if run.empty?
+      logger.info("No previous run exists, this is the first run ever...")
       @initial_start_scan_time
     else
+      logger.info("Previous run exists, using end_time from previous run...")
       run["state"]["end_time"]
     end
   end
 
   def write_csv(files_to_update)
-    filename = "#{run_id}-files_to_update.txt"
-    filepath = File.join(@path_to_write_files, filename)
+    dir_path = File.join(@path_to_write_files, run_id)
+    FileUtils.mkdir_p(dir_path)
+    filepath = File.join(dir_path, "files_to_update.csv")
     CSV.open(filepath, "wb") do |csv|
       csv << ["path", "modified_time"]
       files_to_update.each do |file|

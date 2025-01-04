@@ -14,7 +14,7 @@ describe SFTPFileDiscoveryJob do
         "sftp_root_dir" => "SSD",
         "interval" => 864000, # 10 days
         "initial_start_scan_time" => 1672531200, #Jan 1, 2023
-        "path_to_write_files" => "/tmp/" 
+        "files_modified_path" => "/tmp/" 
       },
       "config_id" => "1",
       "version_number" => "1"

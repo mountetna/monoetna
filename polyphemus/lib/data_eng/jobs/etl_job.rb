@@ -41,6 +41,7 @@ class Polyphemus
         process(context)
         post(context)
       end
+      context
     rescue StandardError => e
       raise e
     end

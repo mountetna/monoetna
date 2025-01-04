@@ -15,10 +15,6 @@ class SFTPClient
     end
   end
 
-  # Uploads a local file to the remote SFTP server
-  #
-  # @param local_path [String] the path to the local file
-  # @param remote_path [String] the destination path on the remote server
   def upload(local_path, remote_path)
     Net::SFTP.start(@host, @username, password: @password, port: @port) do |sftp|
       sftp.upload!(local_path, remote_path)
@@ -28,37 +24,29 @@ class SFTPClient
     puts "Upload failed: #{e.message}"
   end
 
-  # Downloads a file from the remote SFTP server to the local machine
-  #
-  # @param remote_path [String] the path to the remote file
-  # @param local_path [String] the destination path on the local machine
-  def download(remote_path, local_path)
+  def download_as_stream(remote_path)
+    io = StringIO.new
     Net::SFTP.start(@host, @username, password: @password, port: @port) do |sftp|
-      sftp.download!(remote_path, local_path)
-      puts "Downloaded #{remote_path} to #{local_path}"
+      sftp.download!(remote_path, io)
     end
+    io.rewind
+    io
   rescue StandardError => e
-    puts "Download failed: #{e.message}"
+    puts "Download as stream failed for #{remote_path}: #{e.message}"
+    nil
   end
 
-    # Recursively searches for files in remote directories that match a given regex pattern
-    #
-    # @param remote_dir [String] the remote directory path to start search from
-    # @param pattern [Regexp] the regex pattern to match file names
-    # @param start_time [Time] the start of the modified time range
-    # @param end_time [Time] the end of the modified time range
-    # @param ignore_dirs [Array<String>] list of directory names to ignore
-    # @return [Array<String>] list of matching file paths
-    def search_files(remote_dir, pattern, start_time, end_time, ignore_dirs=[])
-      matching_files = []
-      Net::SFTP.start(@host, @username, password: @password, port: @port) do |sftp|
-        search_directory(sftp, remote_dir, pattern, start_time, end_time, ignore_dirs, matching_files)
-      end
-      matching_files
-    rescue StandardError => e
-      puts "Search failed: #{e.message}"
-      []
+  # Recursively searches for files in remote directories that match a given regex pattern
+  def search_files(remote_dir, pattern, start_time, end_time, ignore_dirs=[])
+    matching_files = []
+    Net::SFTP.start(@host, @username, password: @password, port: @port) do |sftp|
+      search_directory(sftp, remote_dir, pattern, start_time, end_time, ignore_dirs, matching_files)
     end
+    matching_files
+  rescue StandardError => e
+    puts "Search failed: #{e.message}"
+    []
+  end
 
     private
     def search_directory(sftp, current_dir, pattern, start_time, end_time, ignore_dirs, matching_files)

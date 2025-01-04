@@ -20,6 +20,7 @@ require "timecop"
 require_relative "../lib/server"
 require_relative "../lib/polyphemus"
 require_relative "../lib/data_eng/jobs/sftp_file_discovery"
+require_relative "../lib/data_eng/jobs/sftp_metis_uploader"
 
 setup_base_vcr(__dir__)
 
@@ -639,6 +640,27 @@ def stub_polyphemus_get_previous_run(project_name, config_id, version_number, ru
     })
 end
 
+# Polyphemus API Stubs
+def stub_polyphemus_get_run(project_name, run_id, run_record)
+  stub_request(:get, "#{POLYPHEMUS_HOST}/api/etl/#{project_name}/run/#{run_id}")
+    .to_return({
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: run_record.empty? ? {}.to_json : {
+        run_id: run_record[:run_id],
+        config_id: run_record[:config_id],
+        version_number: run_record[:version_number],
+        state: run_record[:state],
+        orchestrator_metadata: run_record[:orchestrator_metadata],
+        output: run_record[:output],
+        created_at: run_record[:created_at],
+        updated_at: run_record[:updated_at]
+      }.to_json
+    })
+end
+
 def stub_polyphemus_update_run(project_name, run_id, captured_requests)
   stub_request(:post, "#{POLYPHEMUS_HOST}/api/etl/#{project_name}/run/update/#{run_id}")
     .with(
@@ -669,4 +691,8 @@ def stub_sftp_search_files(files_to_return)
   allow_any_instance_of(SFTPClient).to receive(:search_files) do |_instance, remote_dir, pattern, last_scan, ignore_dirs|
     files_to_return
   end
+end
+
+def stub_sftp_client_download_as_stream(return_io: StringIO.new("fake file content"))
+  allow_any_instance_of(SFTPClient).to receive(:download_as_stream).and_return(return_io)
 end
