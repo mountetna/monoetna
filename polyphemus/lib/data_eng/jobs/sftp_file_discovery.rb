@@ -1,9 +1,12 @@
 require_relative 'etl_job'
+require_relative 'common'
 require_relative '../clients/sftp_client'
 
 class SFTPFileDiscoveryJob < Polyphemus::ETLJob
   include WithEtnaClients
   include WithLogger
+
+  SFTP_FILES_TO_UPDATE_CSV = "sftp_files_to_update.csv"
 
   def initialize(config, runtime_config)
     @project_name = config['project_name']
@@ -19,7 +22,7 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
     @file_regex = config['config']['file_regex']
     @sftp_root_dir = config['config']['sftp_root_dir']
     @initial_start_scan_time = config['config']['initial_start_scan_time']
-    @path_to_write_files = config['config']['files_modified_path']
+    @path_to_write_files = config['config']['path_to_write_files']
 
     # Optional params
     @interval = config['config']['interval'] || nil
@@ -32,6 +35,7 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
     else
       context[:end_time] = Time.now.to_i
     end
+    true
   end
 
   def process(context)
@@ -42,7 +46,8 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
       logger.info("No files found to update...")
     else
       context[:num_files_to_update] = files_to_update.size
-      context[:files_to_update_path] = write_csv(files_to_update)
+      writable_dir = build_pipeline_state_dir(@path_to_write_files, run_id)
+      context[:files_to_update_path] = write_csv(writable_dir, files_to_update)
       logger.info("Found #{files_to_update.size} files to update...")
     end
   end
@@ -73,10 +78,8 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
     end
   end
 
-  def write_csv(files_to_update)
-    dir_path = File.join(@path_to_write_files, run_id)
-    FileUtils.mkdir_p(dir_path)
-    filepath = File.join(dir_path, "files_to_update.csv")
+  def write_csv(dir_path, files_to_update)
+    filepath = File.join(dir_path, SFTP_FILES_TO_UPDATE_CSV)
     CSV.open(filepath, "wb") do |csv|
       csv << ["path", "modified_time"]
       files_to_update.each do |file|

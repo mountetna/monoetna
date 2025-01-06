@@ -3,7 +3,7 @@
 ## State management
 
 - volume that contains files_to_update.txt
-- runs.state contains last_scan
+- runs.state 
 
 ## Pipeline details
 
@@ -16,7 +16,7 @@
 - if the config.interval param is not set, we set end_time to the current time
 - performs a regex search on the ftp server for all files that > start_time and < end_time
 - grab their file name and timestamp it which it was updated and write it to a file:
-called:  {file_path}-{argo_id}-files_to_update.txt - in csv form.
+called:  {file_path}/{argo_id}/files_to_update.txt - in csv form.
 - writes number of files_to_update to the db
 
 ### Job 2 - C4 update

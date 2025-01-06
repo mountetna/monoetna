@@ -14,7 +14,7 @@ describe SFTPFileDiscoveryJob do
         "sftp_root_dir" => "SSD",
         "interval" => 864000, # 10 days
         "initial_start_scan_time" => 1672531200, #Jan 1, 2023
-        "files_modified_path" => "/tmp/" 
+        "path_to_write_files" => "/tmp/" 
       },
       "config_id" => "1",
       "version_number" => "1"
@@ -109,7 +109,7 @@ describe SFTPFileDiscoveryJob do
       job = SFTPFileDiscoveryJob.new(config, runtime_config)
       job.execute
       expect(captured_requests[0][:state][:num_files_to_update]).to eq(11)
-      expect(captured_requests[0][:state][:files_to_update_path]).to eq("/tmp/1234567890-files_to_update.txt")
+      expect(captured_requests[0][:state][:files_to_update_path]).to eq("/tmp/1234567890/#{SFTPFileDiscoveryJob::SFTP_FILES_TO_UPDATE_CSV}")
     end
 
     it 'writes the files to update to a csv' do

@@ -21,6 +21,7 @@ require_relative "../lib/server"
 require_relative "../lib/polyphemus"
 require_relative "../lib/data_eng/jobs/sftp_file_discovery"
 require_relative "../lib/data_eng/jobs/sftp_metis_uploader"
+require_relative "../lib/data_eng/jobs/sftp_c4_uploader"
 
 setup_base_vcr(__dir__)
 
@@ -695,4 +696,23 @@ end
 
 def stub_sftp_client_download_as_stream(return_io: StringIO.new("fake file content"))
   allow_any_instance_of(SFTPClient).to receive(:download_as_stream).and_return(return_io)
+end
+
+
+def stub_initial_ssh_connection
+  ssh = double('ssh')
+  scp = double('scp')
+  allow(ssh).to receive(:scp).and_return(scp)
+  allow(scp).to receive(:upload!).and_return(true)
+  allow(Net::SSH).to receive(:start).and_return(ssh)
+end
+
+
+def stub_remote_ssh_file_upload(success: true)
+  if success
+    allow_any_instance_of(Etna::RemoteSSH).to receive(:file_upload).and_return(true)
+  else
+    allow_any_instance_of(Etna::RemoteSSH).to receive(:file_upload)
+      .and_raise(Etna::RemoteSSH::RemoteSSHError.new("Simulated upload failure"))
+  end
 end
