@@ -1,12 +1,11 @@
 import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import Icon from 'etna-js/components/icon';
 import AnimatedClock from './animated_clock';
-import {WorkflowStep} from '../../../api_types';
+import {WorkspaceStep} from '../../../api_types';
 import {labelOfStepOrGroupedStep, statusStringOfStepOrGroupedStep} from '../../../selectors/workflow_selectors';
 import {STATUS} from '../../../api_types';
-import {WorkflowStepGroup} from '../user_interactions/inputs/input_types';
+import {WorkspaceStepGroup} from '../user_interactions/inputs/input_types';
 import {makeStyles} from '@material-ui/core/styles';
 import Tooltip from '@material-ui/core/Tooltip';
 import CheckIcon from '@material-ui/icons/Check';
@@ -26,6 +25,9 @@ const useStyles = makeStyles((theme) => ({
   [STATUS.PENDING]: {
     color: 'gray'
   },
+  [STATUS.UPCOMING]: {
+    color: 'gray'
+  },
   [STATUS.ERROR]: {
     color: 'red'
   }
@@ -37,12 +39,13 @@ const icons: {[k: string]: {icon: IconClass}} = {
   [STATUS.COMPLETE]: {icon: CheckIcon},
   [STATUS.RUNNING]: {icon: ClockIcon},
   [STATUS.PENDING]: {icon: ClockIcon},
+  [STATUS.UPCOMING]: {icon: ClockIcon},
   [STATUS.ERROR]: {icon: ErrorIcon}
 };
 const StepIcon = ({
   step
 }: {
-  step: WorkflowStep | WorkflowStepGroup;
+  step: WorkspaceStep | WorkspaceStepGroup;
 }) => {
   let {state} = useContext(VulcanContext);
   const {workflow, status} = state;

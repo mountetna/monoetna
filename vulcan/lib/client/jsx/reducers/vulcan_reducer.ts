@@ -1,124 +1,132 @@
 import {VulcanAction} from '../actions/vulcan_actions';
 import {
-  defaultSessionStatusResponse,
-  SessionStatusResponse,
-  StepStatus,
-  Workflow,
   WorkflowsResponse,
-  VulcanFigure
+  Workspace,
+  AccountingReturn,
+  defaultWorkspaceStatus,
+  WorkspaceStatus,
+  Workspaces,
+  defaultWorkflow,
+  StatusStringBroaden
 } from '../api_types';
 import {
-  allExpectedOutputSources,
-  filterEmptyValues,
-  selectFigure,
-  selectSession,
-  statusOfStep,
-  stepOfStatus
+  allUIStepNames,
+  inputUINames,
+  paramUINames,
+  upcomingStepNames,
+  vulcanConfigFromRaw,
 } from '../selectors/workflow_selectors';
 import {mapSome, Maybe, some, withDefault} from '../selectors/maybe';
+import {DataEnvelope} from 'etna-js/utils/input_types';
 
 export type DownloadedData = any; // TODO: improve typing here.
 export type DownloadedStepDataMap = {[k: string]: DownloadedData};
 
-const defaultWorkflows: WorkflowsResponse['workflows'] = [];
-const defaultWorkflow: Workflow | null = null;
-const defaultStatus: SessionStatusResponse['status'] = [[]];
+const defaultWorkflows = [] as WorkflowsResponse;
+const defaultWorkspaces = [] as Workspaces;
+const defaultWorkspace = null as Workspace | null;
+const defaultId = null as number | null;
+const defaultStatus = defaultWorkspaceStatus;
+const defaultFiles = [] as string[];
 const defaultData: DownloadedStepDataMap = {};
-const defaultInputs: SessionStatusResponse['session']['inputs'] = {};
-export const defaultSession: SessionStatusResponse['session'] = {
-  project_name: '',
-  workflow_name: '',
-  key: '',
-  inputs: {},
-  reference_figure_id: null
-};
-const defaultFigure: VulcanFigure = {
-  figure_id: null,
-  inputs: {},
-  id: null
-};
+// const defaultInputs: SessionStatusResponse['session']['inputs'] = {};
+// export const defaultSession: SessionStatusResponse['session'] = {
+//   project_name: '',
+//   workflow_id: null,
+//   key: '',
+//   inputs: {},
+//   reference_figure_id: null
+// };
+// const defaultFigure: VulcanFigure = {
+//   figure_id: null,
+//   inputs: {},
+//   id: null
+// };
 const defaultValidationErrors: [string | null, string, string[]][] = [];
 
 export const defaultVulcanState = {
+  projectName: '',
   workflows: defaultWorkflows,
-  workflow: defaultWorkflow as Workflow | null,
-  status: defaultStatus,
-  data: defaultData,
+  workflow: defaultWorkflow,
+  workspaces: defaultWorkspaces,
+  workspaceId: defaultId,
+  workspace: defaultWorkspace, // All possible input/outputs defined in here
+  configId: defaultId,
+  runId: defaultId,
+  status: defaultStatus, // Only filled input/outputs in here
+
+  // MAYBE: So that users can preview from their local storage before triggering the vulcan workspace to match it
+  // Not used yet
+  sessionWorkspaceSyncd: true,
 
   // A subset of all steps that have buffered changes.
   bufferedSteps: [] as (string | null)[],
   // If a buffered step was filled in while remaining 'pending'
-  committedStepPending: false,
+  workQueueable: false,
 
   // Step marked for auto-passing by user
   autoPassSteps: [] as (string | null)[],
   triggerRun: [] as (string | null)[],
-
-  session: defaultSession,
-  outputs: defaultSessionStatusResponse.outputs,
+  
   validationErrors: defaultValidationErrors,
+  
   pollingState: 0,
-  figure: defaultFigure
+  newStepCompletions: [] as string[]
 };
 
 export type VulcanState = Readonly<typeof defaultVulcanState>;
 
-function filterStaleInputs(
+function useAccounting(
   state: VulcanState,
-  action: {type: 'SET_STATUS'} & {
-    status: [StepStatus[]];
+  action: {type: 'USE_UI_ACCOUNTING'} & {
+    accounting: AccountingReturn;
     submittingStep: Maybe<string>;
   }
-) {
-  const {workflow} = state;
-  if (!workflow) return state;
+): VulcanState {
+  /*
+  v1: "filterStaleness" outputs matching hash of step inputs were used for determining staleness
+  v2: snakemake determines staleness and the back-end returns:
+        - 'config_id' = an id unique to the workspace setup
+        - 'scheduled' = will run in next Run, and
+        - 'downstream' = not ready to run yet, but is downstream in the dag of scheduled steps.
+      Filters staleness, updates step statuses, and sets the new configId.
+  */
+  const {workspace, status} = state;
+  if (!workspace) return state;
+  
+  let newStatus = {...status};
 
-  return withDefault(
-    mapSome(action.submittingStep, (submittingStep) => {
-      let newState = {...state};
-      let newInputs = state.session.inputs;
-      let newData = state.data;
+  const staleSteps = action.accounting.downstream.concat(action.accounting.scheduled)
+  const staleUISteps = staleSteps.filter(name => inputUINames(state).includes(name))
+  const submittingStep: string | null = withDefault(action.submittingStep, null);
 
-      const hashesOfSteps = {} as {[k: string]: string};
-      action.status[0].forEach((stepStatus) => {
-        hashesOfSteps[stepStatus.name] = stepStatus.hash;
-      });
+  for (let [step, stepStatus] of Object.entries(newStatus.steps)) {
+    // The submitting step is pushing a new value from the client up, thus
+    // it should not have its input made stale.
+    if (step === submittingStep || !staleSteps.includes(step)) continue;
 
-      for (let stepStatus of state.status[0]) {
-        // The submitting step is pushing a new value from the client up, thus
-        // it should not have its input made stale.
-        if (stepStatus.name === submittingStep) continue;
-
-        if (hashesOfSteps[stepStatus.name] !== stepStatus.hash) {
-          const step = stepOfStatus(stepStatus, workflow);
-          if (!step) continue;
-          allExpectedOutputSources(step).forEach((outputSource) => {
-            if (newState === state) {
-              newState = {
-                ...state,
-                session: {...state.session, inputs: {...state.session.inputs}}
-              };
-              newInputs = state.session.inputs;
-            }
-            delete newInputs[outputSource];
-          });
-
-          if (stepStatus.downloads) {
-            Object.values(stepStatus.downloads).forEach((url) => {
-              if (newState === state) {
-                newState = {...state, data: {...state.data}};
-                newData = newState.data;
-              }
-              delete newData[url];
-            });
-          }
-        }
+    // Clear ui_content knowledge, output_files knowledge, and downloaded output file content
+    // (May still exist in workspace, but we will assume it's stale.)
+    if (!!workspace.steps[step]?.output?.files) {
+      for (let output in workspace.steps[step].output.files) delete newStatus.file_contents[output];
+      newStatus.output_files.filter(name => !workspace.steps[step]?.output?.files?.includes(name));
+      if (staleUISteps.includes(step)) {
+        newStatus.ui_contents[step] = Object.fromEntries(Object.keys(newStatus.ui_contents[step]).map(k => [k, null]));
       }
+    }
 
-      return newState;
-    }),
-    state
-  );
+    // Update steps' statuses
+    delete newStatus.steps[step].error;
+    newStatus.steps[step].statusFine = "NOT STARTED";
+    newStatus.steps[step].status = action.accounting.scheduled.includes(step) ? "upcoming" : "pending";
+  }
+      
+  return {
+    ...state,
+    status: newStatus,
+    workQueueable: upcomingStepNames(workspace, newStatus).length > 0,
+    configId: action.accounting.config_id
+  };
 }
 
 export default function VulcanReducer(
@@ -128,10 +136,20 @@ export default function VulcanReducer(
   state = state || defaultVulcanState;
 
   switch (action.type) {
+    case 'SET_PROJECT':
+      return {
+        ...state,
+        projectName: action.project
+      };
     case 'SET_WORKFLOWS':
       return {
         ...state,
         workflows: action.workflows
+      };
+    case 'SET_WORKSPACES':
+      return {
+        ...state,
+        workspaces: action.workspaces
       };
     case 'MODIFY_POLLING':
       return {
@@ -141,23 +159,90 @@ export default function VulcanReducer(
     case 'SET_WORKFLOW':
       const workflowProjects = action.workflow.projects;
       if (
-        workflowProjects === undefined ||
-        (workflowProjects !== null &&
-          !workflowProjects.includes(action.projectName))
+        !workflowProjects.includes("all") && // CHECK ME!!!!!
+          !workflowProjects.includes(action.projectName)
       ) {
         return state;
       }
 
       return {
         ...state,
-        workflow: action.workflow,
-        data: defaultData
+        workflow: action.workflow
       };
-    case 'SET_STATUS':
+    case 'SET_WORKSPACE_ID':
+      return {
+        ...state,
+        workspaceId: action.workspaceId
+      };
+    case 'SET_WORKSPACE':
+      const workspaceProject = action.workspace.project;
+      if (workspaceProject!=action.projectName) {
+        return state;
+      }
+
+      return {
+        ...state,
+        workspace: {
+          ...action.workspace,
+          vulcan_config: vulcanConfigFromRaw(action.workspace.vulcan_config)
+        }
+      };
+    case 'SET_FULL_WORKSPACE_STATUS':
+      if (state.workspaceId !== action.workspace.workspace_id) {
+        console.warn('Cannot update to show workspace of the wrong id.');
+      }
+      return {
+        ...state,
+        workspace: {...action.workspace},
+        status: {...action.status}
+      }
+    case 'SET_CONFIG_ID':
+      return {
+        ...state,
+        configId: action.configId
+      };
+    case 'SET_RUN_ID':
+      return {
+        ...state,
+        runId: action.runId
+      };
+    case 'SET_LAST_CONFIG':
+      return {
+        ...state,
+        status: {
+          ...state.status,
+          last_params: action.lastConfig
+        }
+      };
+    case 'USE_UI_ACCOUNTING':
+      // Arrive here from sending ui-steup / config to the back-end
       // When a submitting step is given, filter stale inputs that result from submitting a change
       // to that step's outputs in session.inputs.
-      state = filterStaleInputs(state, action);
-      return {...state, status: action.status};
+      // ToDo once cache'ing: Also assess if 'stale' inputs can be filled in with versions matching sent setup.
+      return useAccounting(state, action);
+    case 'SET_STATUS_FROM_STATUSES':
+      // Arrive here from polling return
+      const newStepStatus = {...state.status.steps};
+      const newCompletions = {...state.newStepCompletions};
+      Object.entries(action.statusReturns).forEach(([stepName, statusFine]) => {
+        if (newStepStatus[stepName].statusFine==statusFine) return
+        const statusBroad = StatusStringBroaden(statusFine);
+        newStepStatus[stepName]['status'] = statusBroad;
+        newStepStatus[stepName]['statusFine'] = statusFine;
+        if (statusBroad=='complete') {
+          newCompletions.push(stepName);
+        }
+      });
+      const newStatus = {
+        ...state.status,
+        steps: newStepStatus
+      };
+      return {
+        ...state,
+        status: newStatus,
+        workQueueable: upcomingStepNames(state.workspace as Workspace, newStatus).length > 0,
+        newStepCompletions: newCompletions
+      };
 
     case 'SET_BUFFERED_INPUT':
       if (state.bufferedSteps.includes(action.step)) {
@@ -197,72 +282,95 @@ export default function VulcanReducer(
       );
       return {...state, triggerRun};
 
-    case 'SET_DOWNLOAD':
+    case 'SET_FILE_CONTENT':
       return {
         ...state,
-        data: {
-          ...state.data,
-          [action.url]: action.data
+        status: {
+          ...state.status,
+          file_contents: {
+            ...state.status.file_contents,
+            [action.fileName]: action.fileData
+          }
+        }
+      };
+    
+    case 'SET_FILES_CONTENT':
+      return {
+        ...state,
+        status: {
+          ...state.status,
+          file_contents: {
+            ...state.status.file_contents,
+            ...action.filesContent
+          }
         }
       };
 
-    case 'SET_SESSION':
-      // Ignore sessions not for this workflow, project combination. safety guard.
-      // The project name and workflow names are locked in via the set workflow action.
-      const sessionWorkflow = state.workflow;
+    case 'SET_STATE_FROM_STORAGE':
+      const currentWorkspace = state.workspace;
       if (
-        !sessionWorkflow ||
-        action.session.workflow_name !== sessionWorkflow.name
+        !currentWorkspace ||
+        action.storage.workspace.workflow_id !== currentWorkspace.workflow_id ||
+        action.storage.workspace.workspace_id !== currentWorkspace.workspace_id ||
+        action.storage.workspace.project !== currentWorkspace.project
       ) {
         console.warn(
-          'Cannot set session, project name / workflow name does not match.',
-          sessionWorkflow,
+          'Cannot update session from cookie: project name, workflow id, or workspace id do not match.',
+          currentWorkspace,
           action
-        );
+      );
         return state;
       }
-
       return {
         ...state,
-        session: {...state.session, ...action.session},
-        bufferedSteps: []
+        workspace: {...action.storage.workspace},
+        status: {...action.storage.status},
+        sessionWorkspaceSyncd: false,
       };
 
-    case 'REMOVE_DOWNLOADS':
+    case 'SET_WORKSPACE_STATE_SYNCD':
       return {
         ...state,
-        status: [
-          state.status[0].map((status) =>
-            action.stepNames.includes(status.name)
-              ? {...status, downloads: null}
-              : status
-          )
-        ]
+        sessionWorkspaceSyncd: true,
       };
 
-    case 'REMOVE_INPUTS':
+    // case 'REMOVE_DOWNLOADS':
+    //   return {
+    //     ...state,
+    //     status: [
+    //       state.status[0].map((status) =>
+    //         action.stepNames.includes(status.name)
+    //           ? {...status, downloads: null}
+    //           : status
+    //       )
+    //     ]
+    //   };
+
+    case 'SET_WORKSPACE_FILES':
+      return {
+        ...state,
+        status: {...state.status, output_files: action.fileNames}
+      };
+
+    case 'SET_UI_VALUES':
       if (state.pollingState) {
         console.error('cannot change inputs while polling...');
         return state;
       }
 
-      const removedInputs = {...state.session.inputs};
-      action.inputs.forEach((source) => delete removedInputs[source]);
-
-      return {
-        ...state,
-        session: {...state.session, inputs: filterEmptyValues(removedInputs)}
-      };
-
-    case 'SET_INPUTS':
-      if (state.pollingState) {
-        console.error('cannot change inputs while polling...');
-        return state;
+      let config_values: WorkspaceStatus['params'] = {...state.status.params};
+      let ui_values: WorkspaceStatus['ui_contents'] = {...state.status.ui_contents};
+      for (let step in Object.keys(action.values)) {
+        if (allUIStepNames(state).includes(step)) {
+          ui_values[step] = action.values[step];
+        } else {
+          config_values[step] = action.values[step];
+        }
       }
 
       return {
         ...state,
-        session: {...state.session, inputs: filterEmptyValues(action.inputs)}
+        status: {...state.status, params: config_values, ui_contents: ui_values}
       };
 
     case 'ADD_VALIDATION_ERRORS':
@@ -285,7 +393,7 @@ export default function VulcanReducer(
     case 'CHECK_CHANGES_READY':
       const stepName = withDefault(action.step, null);
       let ready: boolean;
-      if (stepName == null) {
+      if (action.step == null) {
         ready = false;
       } else {
         const stepNum = state.status[0].findIndex(
@@ -295,33 +403,13 @@ export default function VulcanReducer(
       }
       return {
         ...state,
-        committedStepPending: ready
+        workQueueable: ready
       };
 
     case 'CLEAR_CHANGES_READY':
       return {
         ...state,
-        committedStepPending: false
-      };
-
-    case 'SET_SESSION_AND_FIGURE':
-      const currentWorkflow = state.workflow;
-      if (
-        !currentWorkflow ||
-        action.session.workflow_name !== currentWorkflow.name
-      ) {
-        console.warn(
-          'Cannot set session, project name / workflow name does not match.',
-          currentWorkflow,
-          action
-        );
-        return state;
-      }
-      return {
-        ...state,
-        session: {...action.session},
-        figure: {...action.figure},
-        bufferedSteps: []
+        workQueueable: false
       };
 
     default:

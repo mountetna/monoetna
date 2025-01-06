@@ -1,39 +1,23 @@
 import {useEffect, useCallback} from 'react';
-import {
-  SessionStatusResponse,
-  VulcanFigure,
-  VulcanFigureSession,
-  VulcanSession
-} from '../api_types';
+import {VulcanStorage} from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
-import {cwlName} from '../selectors/workflow_selectors';
 
 const localStorageKey = ({
-  figure_id,
-  project_name,
-  workflow_name
+  workspaceId,
+  projectName,
 }: {
-  figure_id?: number | null;
-  project_name: string;
-  workflow_name: string;
+  workspaceId: number;
+  projectName: string;
 }) =>
-  figure_id
-    ? `${project_name}/figure/${figure_id}`
-    : `${project_name}/figure/new/${cwlName(workflow_name)}`;
+  `${projectName}/workspace/${workspaceId}`
 
 export const defaultSessionStorageHelpers = {
   getLocalSession(
-    workflow_name: string,
-    project_name: string,
-    figure_id: number | null
-  ): Promise<(SessionStatusResponse['session'] & VulcanFigure) | null> {
+    workspaceId: number, projectName: string
+  ): Promise<VulcanStorage | null> {
     return Promise.resolve(null);
   },
-  clearLocalSession(
-    workflow_name: string,
-    project_name: string,
-    figure_id: number | null
-  ): void {}
+  clearLocalSession(): void {}
 };
 
 // invoked every time
@@ -42,31 +26,31 @@ export function useLocalSessionStorage(
   props: {storage?: typeof localStorage} = {}
 ): typeof defaultSessionStorageHelpers {
   const storage = props.storage || localStorage;
-  const {session, workflow, figure} = state;
+  const {workspace, workflow, workspaceId, status} = state;
 
   useEffect(() => {
-    if (storage && session && figure && workflow) {
+    if (storage && workflow && workspace && workspaceId && status) {
       storage.setItem(
         localStorageKey({
-          figure_id: figure.figure_id,
-          workflow_name: session.workflow_name,
-          project_name: session.project_name
+          workspaceId: workspaceId,
+          projectName: state.projectName
         }),
-        JSON.stringify({...figure, ...session})
+        // What should this look like???
+        JSON.stringify({workspace: {...workspace}, status: {...status}})
       );
     }
-  }, [session, storage, figure, workflow]);
+  }, [storage, workflow, workspace, workspaceId, status]);
 
   const getLocalSession = useCallback(
-    (workflow_name: string, project_name: string, figure_id: number | null) => {
+    (workspaceId: number, projectName: string) => {
       let storedSession: any = storage.getItem(
-        localStorageKey({workflow_name, figure_id, project_name})
+        localStorageKey({workspaceId, projectName})
       );
       if (!storedSession) return Promise.resolve(null);
 
       try {
-        const parsedSession: VulcanFigureSession = JSON.parse(storedSession);
-        if (parsedSession.project_name !== project_name)
+        const parsedSession: VulcanStorage = JSON.parse(storedSession);
+        if (parsedSession.workspace.project !== projectName)
           {return Promise.resolve(null);}
         return Promise.resolve(parsedSession);
       } catch (e) {
@@ -78,19 +62,16 @@ export function useLocalSessionStorage(
     [storage]
   );
 
-  const clearLocalSession = (
-    workflow_name: string,
-    project_name: string,
-    figure_id: number | null
-  ) => {
-    storage.setItem(
-      localStorageKey({
-        figure_id: figure.figure_id,
-        workflow_name: session.workflow_name,
-        project_name: session.project_name
-      }),
-      JSON.stringify({})
-    );
+  const clearLocalSession = () => {
+    if (workspaceId) {
+      storage.setItem(
+        localStorageKey({
+          workspaceId: workspaceId,
+          projectName: state.projectName
+        }),
+        JSON.stringify({})
+      );
+    };
   };
 
   return {

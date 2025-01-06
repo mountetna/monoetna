@@ -36,17 +36,11 @@ const ROUTES = [
     mode: ''
   },
   {
-    name: 'new_figure',
-    template: ':project_name/figure/new/:workflow_name',
+    name: 'workspace',
+    template: ':project_name/:workflow_name/:workspace_id',
     component: Browser,
     mode: 'workflow'
   },
-  {
-    name: 'figure',
-    template: ':project_name/figure/:figure_id',
-    component: Browser,
-    mode: 'workflow'
-  }
 ];
 
 setRoutes(ROUTES);
