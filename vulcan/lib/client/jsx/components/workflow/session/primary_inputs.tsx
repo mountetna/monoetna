@@ -16,8 +16,7 @@ import InputGroup from './input_group';
 import {
   bindInputSpecification,
   BoundInputSpecification,
-  DataEnvelope,
-  getConfigUISpecifications
+  getParamUISpecifications
 } from '../user_interactions/inputs/input_types';
 import {useWorkspace} from '../../../contexts/workspace_context';
 import {Maybe, maybeOfNullable} from '../../../selectors/maybe';
@@ -62,7 +61,7 @@ function PrimaryInputsInner() {
   }, [values, status, setValues, workspace]);
 
   const inputSpecifications = useMemo(
-    () => getConfigUISpecifications(workspace),
+    () => getParamUISpecifications(workspace),
     [workspace]
   );
 

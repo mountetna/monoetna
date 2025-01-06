@@ -17,6 +17,7 @@ import {
   vulcanConfigFromRaw,
 } from '../selectors/workflow_selectors';
 import {mapSome, Maybe, some, withDefault} from '../selectors/maybe';
+import {DataEnvelope} from 'etna-js/utils/input_types';
 
 export type DownloadedData = any; // TODO: improve typing here.
 export type DownloadedStepDataMap = {[k: string]: DownloadedData};
@@ -110,7 +111,7 @@ function useAccounting(
       for (let output in workspace.steps[step].output.files) delete newStatus.file_contents[output];
       newStatus.output_files.filter(name => !workspace.steps[step]?.output?.files?.includes(name));
       if (staleUISteps.includes(step)) {
-        delete newStatus.ui_contents[step];
+        newStatus.ui_contents[step] = Object.fromEntries(Object.keys(newStatus.ui_contents[step]).map(k => [k, null]));
       }
     }
 
@@ -232,12 +233,14 @@ export default function VulcanReducer(
           newCompletions.push(stepName);
         }
       });
+      const newStatus = {
+        ...state.status,
+        steps: newStepStatus
+      };
       return {
         ...state,
-        status: {
-          ...state.status,
-          steps: newStepStatus
-        },
+        status: newStatus,
+        workQueueable: upcomingStepNames(state.workspace as Workspace, newStatus).length > 0,
         newStepCompletions: newCompletions
       };
 
@@ -390,7 +393,7 @@ export default function VulcanReducer(
     case 'CHECK_CHANGES_READY':
       const stepName = withDefault(action.step, null);
       let ready: boolean;
-      if (stepName == null) {
+      if (action.step == null) {
         ready = false;
       } else {
         const stepNum = state.status[0].findIndex(

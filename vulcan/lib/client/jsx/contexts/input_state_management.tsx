@@ -28,7 +28,7 @@ import {
   Maybe,
   some,
 } from '../selectors/maybe';
-import {DataEnvelope} from '../components/workflow/user_interactions/inputs/input_types';
+import {DataEnvelope} from 'etna-js/utils/input_types';
 import {VulcanContext} from './vulcan_context';
 
 import Button from '@material-ui/core/Button';
@@ -83,10 +83,10 @@ export function WithBufferedInputs({
   const hasValues = Object.keys(values).length > 0;
 
   const cancelValueUpdates: any = useCallback(() => {
-    // eslint-disable-next-line
-    setValues({});
-    // @ts-ignore
-    // eslint-disable-next-line
+    // // eslint-disable-next-line
+    // setValues({});
+    // // @ts-ignore
+    // // eslint-disable-next-line
   }, [setValues]);
 
   const setValues: any = useCallback<typeof defaultBufferedInputs.setValues>(
@@ -101,19 +101,19 @@ export function WithBufferedInputs({
         if (!stateRef.current.bufferedSteps.includes(stepName)) {
           dispatch(setBufferedInput(stepName));
         }
-        // Check / Initiate auto-pass attempt stepUI.
-        if (
-          stepName != null &&
-          stateRef.current.autoPassSteps.includes(stepName) &&
-          Object.keys(stateRef.current.status.ui_contents).filter((val) =>
-            val.includes(stepName)
-          ).length < 1
-        ) {
-          if (commitSessionInputChanges(stepName, valuesRef.current)) {
-            cancelValueUpdates();
-            dispatch(setRunTrigger(stepName));
-          }
-        }
+        // // Check / Initiate auto-pass attempt stepUI.
+        // if (
+        //   stepName != null &&
+        //   stateRef.current.autoPassSteps.includes(stepName) &&
+        //   Object.keys(stateRef.current.status.ui_contents).filter((val) =>
+        //     val.includes(stepName)
+        //   ).length < 1
+        // ) {
+        //   if (commitSessionInputChanges(stepName, valuesRef.current)) {
+        //     // cancelValueUpdates();
+        //     dispatch(setRunTrigger(stepName));
+        //   }
+        // }
       } else {
         if (stateRef.current.bufferedSteps.includes(stepName)) {
           dispatch(clearBufferedInput(stepName));
@@ -124,28 +124,19 @@ export function WithBufferedInputs({
     [dispatch, stateRef, stepName, cancelValueUpdates, commitSessionInputChanges]
   );
 
-  useEffect(() => {
-    if (
-      !state.bufferedSteps.includes(stepName) &&
-      Object.keys(values).length > 0
-    ) {
-      setValues({});
-    }
-  }, [setValues, state.bufferedSteps, values, stepName]);
-
-  useEffect(() => {
-    // Initiate auto-pass attempt, primary inputs.
-    if (
-      stepName === null &&
-      stateRef.current.autoPassSteps.includes(stepName)
-    ) {
-      if (commitSessionInputChanges(stepName, valuesRef.current)) {
-        cancelValueUpdates();
-        dispatch(setRunTrigger(stepName));
-      }
-      dispatch(clearAutoPassStep(null));
-    }
-  }, [stateRef.current.autoPassSteps, cancelValueUpdates, commitSessionInputChanges]);
+  // useEffect(() => {
+  //   // Initiate auto-pass attempt, primary inputs.
+  //   if (
+  //     stepName === null &&
+  //     stateRef.current.autoPassSteps.includes(stepName)
+  //   ) {
+  //     if (commitSessionInputChanges(stepName, valuesRef.current)) {
+  //       cancelValueUpdates();
+  //       dispatch(setRunTrigger(stepName));
+  //     }
+  //     dispatch(clearAutoPassStep(null));
+  //   }
+  // }, [stateRef.current.autoPassSteps, cancelValueUpdates, commitSessionInputChanges]);
 
   const commitValueUpdates = useCallback(() => {
     if (commitSessionInputChanges(stepName, valuesRef.current)) {
@@ -253,26 +244,15 @@ export function useInputStateManagement(
     typeof defaultInputStateManagement.commitSessionInputChanges
   >(
     (stepName, inputs) => {
+      // Set ui_contents in status
+      dispatch(setUIValues(inputs, stepName))
+      // Validate current input set, ending here if not valid
       if (!validateInputs(stepName)) return false;
-      const outputs = allSourcesForStepName(
-        stepName,
-        stateRef.current.workspace
-      );
-      // ToDo: CHECK ME!
-      const newInputs = {...stateRef.current.status.params, ...stateRef.current.status.ui_contents};
-      outputs.forEach((source) => {
-        if (source.indexOf('/') > -1) {
-          const [source_step, source_name] = source.split('/');
-          mapSome(inputs[source_name] || null, (inner) => (newInputs[source_step][source_name] = inner));
-        } else {
-          mapSome(inputs[source] || null, (inner) => (newInputs[source] = inner));
-        }
-      });
-      dispatch(setUIValues(newInputs));
-      requestPoll(false, some(stepName as string));
+      // Push for this step only
+      requestPoll(true, false, stepName);
       return true;
     },
-    [dispatch, requestPoll, stateRef, validateInputs]
+    [dispatch, requestPoll, validateInputs]
   );
 
   return {

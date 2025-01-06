@@ -123,6 +123,7 @@ export function bindInputSpecification(
   file_contents: WorkspaceStatus['file_contents'],
   params: WorkspaceStatus['params'],
   ui_contents: WorkspaceStatus['ui_contents'],
+  buffered: typeof defaultBufferedInputs.values,
   setValues: typeof defaultBufferedInputs.setValues
 ): BoundInputSpecification {
   
@@ -146,8 +147,8 @@ export function bindInputSpecification(
 
   const outputDataKeyMap = useMemo( () => stepOutputMapping(config),
   [config]);
-  const value = useMemo(() => stepOutputData(stepName, outputDataKeyMap, params, ui_contents),
-  [stepName, outputDataKeyMap, params, ui_contents]);
+  const value = useMemo(() => stepOutputData(stepName, outputDataKeyMap, buffered, params, ui_contents),
+  [stepName, buffered, outputDataKeyMap, params, ui_contents]);
 
   return {
     ...input,

@@ -1,9 +1,9 @@
 import React, {Dispatch, PropsWithChildren, useMemo, useState} from 'react';
 import * as _ from 'lodash';
 
-import {DataEnvelope, WithInputParams} from './input_types';
-import {useSetsDefault} from './useSetsDefault';
-import {some} from '../../../../selectors/maybe';
+import {DataEnvelope, WithInputParams} from '../input_types';
+import {useSetsDefault} from '../useSetsDefault';
+import {some} from '../../../../../selectors/maybe';
 import {
   Accordion,
   AccordionDetails,
@@ -21,11 +21,11 @@ import {
   ReductionSetupPiece,
   nestedDropdownPiece,
   MultiselectAfterDataChoicePiece
-} from './user_input_pieces';
-import {subsetDataFramePiece} from './subsetDataFrame_piece';
-import {ReorderCustomOnlyPiece, ReorderVizPiece} from './reorder_piece';
-import NestedDropdownMultiPickAdvanced from './pieces/nested_dropdown_multi_pick_advanced';
-import { nestedOptionSet } from './pieces/utils';
+} from '../pieces/user_input_pieces';
+import {subsetDataFramePiece} from '../pieces/subsetDataFrame_piece';
+import {ReorderCustomOnlyPiece, ReorderVizPiece} from '../pieces/reorder_piece';
+import NestedDropdownMultiPickAdvanced from '../pieces/nested_dropdown_multi_pick_advanced';
+import { nestedOptionSet } from '../pieces/utils';
 
 /*
 Docmentation last updated: Apr 15, 2022
@@ -81,12 +81,17 @@ JSX:
   'data', object with slots:
     data_frame:
       A hash representing the data_frame that will be used to make a plot. keys = column names, values = data points.
-    continuous_cols:
-      A vector of column names of data_frame which contain continuous data.
-    discrete_cols:
-      A vector of column names of data_frame which contain discrete data.
-    ?preset:
-      A hash where keys = input pieces that should be hidden from the user & values = the preset value that should be used for that input. E.g. The x_by and y_by inputs are hardset within the umap workflow as '0' and '1', so a user has no choice here and should not be able to adjust those fields!
+    ?optional:
+      continuous_cols:
+        Needed in order to work most properly, but allowed to work without it. A vector of column names of data_frame which contain continuous data.
+      discrete_cols:
+        Needed in order to work most properly, but allowed to work without it. A vector of column names of data_frame which contain discrete data.
+      all_cols:
+        string[] or nestedOptionSet. Useful to give as nestedOptionSet when some organization to the potential column names is ideal, e.g. for metadata vs genes versus ADTs with single-cell data.
+      reduction_opts:
+        E.g. {<reduciton-name>: ['1', '2', ..., 'n']}. An object powering selection of dimensionality reduction, and then which components to use. Keys should be reduction names that exist in the single-cell object, and values should be all possible components to use for that dimesnaionality reduction. A special case exists where one key can be '_Recommended_'.
+      preset:
+        A hash where keys = input pieces that should be hidden from the user & values = the preset value that should be used for that input. E.g. The x_by and y_by inputs are hardset within the umap workflow as '0' and '1', so a user has no choice here and should not be able to adjust those fields!
 
   'value', object where (key,val) pairs mostly equate to (key,val) pairs that could be splatted into an archimedes visualization funciton.
 
@@ -650,10 +655,10 @@ function VisualizationUI(
   components: DataEnvelope<Function>,
   plot_relabels?: DataEnvelope<string> | undefined
 ) {
-  const preset = useMemo(() => data && data['preset'], [data]);
+  const preset = useMemo(() => data && 'optional' in data && 'preset' in data['optional'] ? data['optional']['preset'] : undefined, [data]);
   const hide = useMemo(() => preset && Object.keys(preset), [preset]);
   const defaultValue = whichDefaults(setPlotType, preset, defaults, redefaults, input_sets);
-  const value = useSetsDefault(defaultValue, props.value, onChange);
+  const value = useSetsDefault(defaultValue, props.value.plot_setup, onChange);
   const [expandedDrawers, setExpandedDrawers] = useState(['primary features']);
   const plotType =
     value && value['plot_type'] ? (value['plot_type'] as string) : null;
@@ -670,22 +675,22 @@ function VisualizationUI(
   }, [data_frame]);
 
   const continuous_columns: string[] | nestedOptionSet = useMemo(() => { // NOTE: these data don't necessarily need to be contained within the given data_frame (to accomodate for visualizing genomics data)
-    if (data == null) return [];
-    if (data['continuous_cols'] == null) return df_columns; // Should build a warning here instead?
-    return data['continuous_cols'];
+    if (data == null || !('optional' in data)) return [];
+    if (data['optional']['continuous_cols'] == null) return df_columns; // Should build a warning here instead?
+    return data['optional']['continuous_cols'];
   }, [data]);
   const discrete_columns: string[] = useMemo(() => {
-    if (data == null) return [];
-    if (data['discrete_cols'] == null) return df_columns; // Should build a warning here instead?
-    return data['discrete_cols'];
+    if (data == null || !data['optional']) return [];
+    if (data['optional']['discrete_cols'] == null) return df_columns; // Should build a warning here instead?
+    return data['optional']['discrete_cols'];
   }, [data]);
 
-  const columns: string[] | nestedOptionSet = (data != null && data['all_cols'] != null) ? data['all_cols'] : df_columns
+  const columns: string[] | nestedOptionSet = (data != null && 'optional' in data && data['optional']['all_cols'] != null) ? data['optional']['all_cols'] : df_columns
 
-  const reduction_opts: DataEnvelope<number[]> | null = useMemo(() => {
-    if (data == null) return null;
-    if (data['reduction_opts'] == null) return null;
-    return data['reduction_opts'];
+  const reduction_opts: DataEnvelope<string[]> | null = useMemo(() => {
+    if (data == null || !('optional' in data)) return null;
+    if (data['optional']['reduction_opts'] == null) return null;
+    return data['optional']['reduction_opts'];
   }, [data])
   // console.log({reduction_opts});
 
@@ -734,12 +739,12 @@ function VisualizationUI(
   }, [value, hide]);
 
   const updatePlotType = (newType: string, key: string) => {
-    onChange(some(whichDefaults(newType, preset, defaults, redefaults, input_sets)));
+    onChange({plot_setup: some(whichDefaults(newType, preset, defaults, redefaults, input_sets))});
   };
 
   const updateValue = (newValue: any, key: string, prevValues = {...value}) => {
     prevValues[key] = newValue;
-    onChange(some(prevValues));
+    onChange({plot_setup: some(prevValues)});
   };
 
   function toggleDrawerExpansion(drawerTitle: string) {

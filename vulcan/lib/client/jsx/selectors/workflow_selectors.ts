@@ -32,9 +32,11 @@ import {
 } from '../components/workflow/user_interactions/inputs/input_types';
 import {useMemo} from 'react';
 import {
+  isSome,
   mapSome,
   Maybe,
   maybeOfNullable,
+  some,
   withDefault
 } from './maybe';
 import {DataEnvelope} from 'etna-js/utils/input_types';
@@ -63,6 +65,23 @@ export function parseIfCan(data: any) {
   } catch {
     return data;
   }
+}
+
+export function unMaybe(obj: DataEnvelope<Maybe<any>>, keep: boolean = false): DataEnvelope<any> {
+  // keeps only filled keys, and only their values
+  if (keep) {
+    // Not recommended due to CLASH: original null & [null] become the same. 
+    return Object.fromEntries(
+      Object.keys(obj).map((k) => [k, isSome(obj[k]) ? obj[k][0] : null])
+    );
+  }
+  return Object.fromEntries(
+    Object.keys(obj).filter((k) => isSome(obj[k])).map((k) => [k, obj[k][0]])
+  );
+}
+
+function toSomes(obj: DataEnvelope<any>): DataEnvelope<Maybe<any>> {
+  return Object.fromEntries(Object.keys(obj).map((k) => [k, some(obj[k])]))
 }
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
@@ -116,6 +135,7 @@ export function compSetLabel(content: VulcanConfigElement) {
 }
 
 export function vulcanConfigFromRaw(config: VulcanConfig | VulcanConfigRaw) {
+  // Transforms it from array to object, using compSetNames as keys
   if (!Array.isArray(config)) return config;
   return Object.fromEntries(config.map(content => [compSetName(content), content]));
 }
@@ -125,7 +145,7 @@ export function paramValuesFromRaw(param_values: Workspace['last_config'], works
   return Object.fromEntries(paramUINames(workspace).map(setName => [
       setName,
       !!param_values ?
-        pick(param_values, vulcan_config[setName].output?.params as string[]) :
+        toSomes(pick(param_values, vulcan_config[setName].output?.params as string[])) :
         Object.fromEntries((vulcan_config[setName].output?.params as string[]).map(p => [p, null]))
     ]
   ))
@@ -134,7 +154,7 @@ export function paramValuesFromRaw(param_values: Workspace['last_config'], works
 export function paramValuesToRaw(params: WorkspaceStatus['params']): FlatParams {
   let output = {} as {[k: string]: any};
   Object.values(params).forEach(vals => {
-    output = {...output, ...vals};
+    output = {...output, unMaybe(vals)};
   })
   return output;
 }
@@ -143,20 +163,21 @@ export function uiContentsFromFiles(workspace: Workspace, file_contents?: Worksp
   const {vulcan_config} = workspace;
   if (!file_contents) {
     return Object.fromEntries(allUIStepNames(workspace).map(setName => [
+      setName,
       Object.fromEntries((vulcan_config[setName].output?.files as string[]).map(f => [f, null]))
     ]));
   }
   return Object.fromEntries(allUIStepNames(workspace).map(setName => {
     const step_files = vulcan_config[setName].output?.files as string[];
-    const existing = step_files.filter(f => f in file_contents && file_contents[f]!=null);
-    const missing = Object.fromEntries(step_files.filter(f => !existing.includes(f)).map(f => [f, null]));
-    return [
-      setName,
-      {
-        ...pick(file_contents, existing),
-        ...missing
+    const fileData: DataEnvelope<Maybe<any>> = {};
+    step_files.forEach(f => {
+      if (f in file_contents) {
+        fileData[f] = null;
+      } else {
+        fileData[f] = some(file_contents[f]);
       }
-    ]
+    })
+    return [setName, fileData]
   }));
 }
 
@@ -519,11 +540,11 @@ export function dataOfSource(
 }
 
 export function allExpectedOutputSources(
-  step: VulcanConfigElement | WorkspaceStepGroup
+  step: VulcanConfigElement | WorkspaceStepGroup | WorkspaceStep
 ): string[] {
   if ('steps' in step) {
     return step.steps
-      .map(allExpectedOutputSources)
+      .map(s => allExpectedOutputSources(s))
       .reduce((a, b) => [...a, ...b], []);
   } else {
     if (!step.output) return [];
@@ -669,14 +690,17 @@ export function stepOutputDataOriginal(
 export function stepOutputData(
   stepName: string,
   keyMap: ReturnType<typeof stepOutputMapping>,
+  buffered: DataEnvelope<Maybe<any>>,
   params: WorkspaceStatus['params'],
   ui_contents: WorkspaceStatus['ui_contents']
 ) {
-  const values: {[k: string]: any} = {};
+  const values: {[k: string]: Maybe<any>} = {};
   Object.keys(keyMap).forEach( (name) => {
-    values[name] = stepName in params ?
+    values[name] = name in buffered ? 
+      buffered[name] :
+      stepName in params ?
       params[stepName][keyMap[name]] :
-      ui_contents[stepName][keyMap[name]]
+      ui_contents[stepName][keyMap[name]] || null
   });
   return values;
 };

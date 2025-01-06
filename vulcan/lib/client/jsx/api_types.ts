@@ -1,3 +1,5 @@
+import { Maybe } from "./selectors/maybe";
+
 // CWL Step RUN Sentinels
 export const RUN = {
   UI_QUERY: 'ui-queries/',
@@ -242,8 +244,8 @@ export const defaultWorkspaceStatus = {
   output_files: [] as string[],
   file_contents: {} as {[k: string]: any}, // key = filenames
   last_params: {} as {[k: string]: any},
-  params: {} as {[k: string]: {[k: string]: any}}, // top key = 'param1/param2/...paramN' if many from 1; innner keys = param output's keys.
-  ui_contents: {} as {[k: string]: {[k: string]: any}}, // top key = name defined in vulcan config (matches step name in dag); inner keys = file outputs' filenames
+  params: {} as {[k: string]: {[k: string]: Maybe<any>}}, // top key = 'param1/param2/...paramN' if many from 1; innner keys = param output's keys.
+  ui_contents: {} as {[k: string]: {[k: string]: Maybe<any>}}, // top key = name defined in vulcan config (matches step name in dag); inner keys = file outputs' filenames
 }
 
 export type WorkspaceStatus = typeof defaultWorkspaceStatus;

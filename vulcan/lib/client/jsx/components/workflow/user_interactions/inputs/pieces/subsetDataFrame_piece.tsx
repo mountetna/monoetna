@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {DataEnvelope} from './input_types';
+import {DataEnvelope} from '../input_types';
 import {
   checkboxPiece,
   dropdownPiece,
@@ -11,7 +11,7 @@ import {
 } from './user_input_pieces';
 import {Button, PropTypes} from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
-import { nestedOptionSet } from './pieces/utils';
+import { nestedOptionSet } from './utils';
 
 /*
 This script defines a component that behaves like all other 'user_input_pieces'.

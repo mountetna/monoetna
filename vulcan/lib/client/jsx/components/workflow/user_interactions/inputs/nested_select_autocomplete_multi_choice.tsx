@@ -9,7 +9,7 @@ import {joinNesting} from './monoids';
 import {useSetsDefault} from './useSetsDefault';
 import { Grid } from '@material-ui/core'
 import SubdirectoryArrowRightOutlinedIcon from '@material-ui/icons/SubdirectoryArrowRight';
-import { arrayLevels } from './user_input_pieces';
+import { arrayLevels } from './pieces/user_input_pieces';
 import SelectAutocompleteMultiPickInput from './select_autocomplete_multi_choice';
 import { nestedOptionSet } from './pieces/utils';
 

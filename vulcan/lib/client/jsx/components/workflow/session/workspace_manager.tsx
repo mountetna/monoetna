@@ -101,7 +101,7 @@ export default function WorkspaceManager() {
   // const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   const run = useCallback(() => {
-    showErrors(requestPoll(true));
+    showErrors(requestPoll(false,true));
     dispatch(clearCommittedStepPending());
     // ToDo: Additional accounting per completed steps!
   }, [requestPoll, dispatch, showErrors]);

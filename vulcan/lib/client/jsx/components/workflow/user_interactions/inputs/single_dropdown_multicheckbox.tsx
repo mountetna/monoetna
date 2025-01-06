@@ -2,7 +2,7 @@
 // shows values based on a selected key
 import React, {useCallback, useMemo, useState,} from 'react';
 
-import CheckboxesInput from './checkboxes';
+import CheckboxesInput from './components/checkboxes';
 import {DataEnvelope, WithInputParams} from './input_types';
 import {Maybe, some} from '../../../../selectors/maybe';
 import {joinNesting} from './monoids';

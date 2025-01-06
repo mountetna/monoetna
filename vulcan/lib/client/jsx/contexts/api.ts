@@ -20,6 +20,7 @@ import {
   WorkspaceRaw
 } from '../api_types';
 import { paramValuesToRaw } from '../selectors/workflow_selectors';
+import { isSome } from '../selectors/maybe';
 
 export const defaultApiHelpers = {
   showErrors<T>(work: Promise<T>): Promise<T> {
@@ -71,7 +72,7 @@ export const defaultApiHelpers = {
   setConfig(projectName: string, workspaceId: number, params: FlatParams): Promise<Response | AccountingReturn> {
     return new Promise(() => null);
   },
-  postUIValues(projectName: string, workspaceId: number, status: WorkspaceStatus, steps?: string[]): Promise<Response | AccountingReturn> {
+  postUIValues(projectName: string, workspaceId: number, status: WorkspaceStatus, steps: string | null): Promise<Response | AccountingReturn> {
     return new Promise(() => null);
   },
   requestRun(projectName: string, workspaceId: number, configId: number): Promise<Response | RunReturn> {
@@ -286,22 +287,27 @@ export function useApi(
   }, [vulcanPost, vulcanPath]);
 
   const postUIValues = useCallback(
-    (projectName: string, workspaceId: number, status: WorkspaceStatus, steps?: string[]): Promise<Response | AccountingReturn> => {
-      // Trims ui_content to send by requested 'steps', but config must be ALL each time.
-      const ui_steps: string[] = steps ? steps.filter(name => Object.keys(status.ui_contents).includes(name)) : Object.keys(status.ui_contents)
+    (projectName: string, workspaceId: number, status: WorkspaceStatus, step: string | null): Promise<Response | AccountingReturn> => {
+      // Only ever per a single 'step'.
+      // Assume the values have already been validated.      
 
-      // Send UI content for inputs first, then send config content
-      if (ui_steps.length > 0) {
+      // If a "inputUI", send targeted file outputs
+      if (step!=null) {
         let filesContent: MultiFileContent = {};
-        ui_steps.map(step => {
-          if (! status.ui_contents[step]) {
+        if (! (step in status.ui_contents)) {
+          return Promise.reject(
+            new Error(`${step} missing, bug in client.`)
+          );
+        }
+        Object.entries(status.ui_contents[step]).map(([key, val]) => {
+          if (isSome(val)) {
+            // These should never really not be a 'some' / at least [null] as will have been deliberately set to a (possibly null) value.
+            filesContent[key] = val[0];
+          } else {
             return Promise.reject(
-              new Error(`${step} missing, bug in client.`)
+              new Error(`${key} had no value, so cannot send file contents.`)
             );
           }
-          Object.entries(status.ui_contents[step]).map(([key, val]) => {
-            filesContent[key] = val;
-          })
         })
         // ToDo: Return error if errors
         writeFiles(
@@ -311,10 +317,12 @@ export function useApi(
         )
       }
 
+      // Send params to request new accounting
+      const params_use = step === null ? paramValuesToRaw(status.params) : status.last_params;
       return setConfig(
         projectName,
         workspaceId,
-        paramValuesToRaw(status.params)
+        params_use
       )
         .then(handleFetchSuccess)
         .catch(handleFetchError);

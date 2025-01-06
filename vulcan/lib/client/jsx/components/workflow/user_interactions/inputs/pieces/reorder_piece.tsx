@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useMemo} from 'react';
-import {DataEnvelope} from './input_types';
+import {DataEnvelope} from '../input_types';
 import Paper from '@material-ui/core/Paper';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -10,8 +10,8 @@ import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp';
 import LowPriorityIcon from '@material-ui/icons/LowPriority';
 import DragHandleIcon from '@material-ui/icons/DragHandle';
 import Typography from '@material-ui/core/Typography';
-import {some} from '../../../../selectors/maybe';
-import SelectAutocompleteInput from './select_autocomplete';
+import {some} from '../../../../../selectors/maybe';
+import SelectAutocompleteInput from '../select_autocomplete';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 import {arrayLevels, checkboxPiece} from './user_input_pieces';
 

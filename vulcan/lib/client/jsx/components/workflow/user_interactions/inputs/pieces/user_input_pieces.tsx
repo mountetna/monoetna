@@ -1,18 +1,18 @@
 import React, {useEffect, useMemo} from 'react';
-import {DataEnvelope} from './input_types';
-import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
-import MultiselectStringInput from './multiselect_string';
+import {DataEnvelope} from '../input_types';
+import { maybeOfNullable, some, withDefault, Maybe } from '../../../../../selectors/maybe';
+import MultiselectStringInput from '../components/multiselect_string';
 import InputLabel from '@material-ui/core/InputLabel';
 import Slider from '@material-ui/core/Slider';
-import StringInput from './string';
-import BooleanInput from './boolean';
-import SelectAutocompleteInput from './select_autocomplete';
-import FloatInput from './float';
+import StringInput from '../components/string';
+import BooleanInput from '../components/boolean';
+import SelectAutocompleteInput from '../select_autocomplete';
+import FloatInput from '../components/float';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
-import NestedSelectAutocompleteInput from './nested_select_autocomplete';
-import { nestedOptionSet } from './pieces/utils'
-import NestedSelectAutocompleteMultiPickInput from './nested_select_autocomplete_multi_choice';
+import NestedSelectAutocompleteInput from '../nested_select_autocomplete';
+import { nestedOptionSet } from './utils'
+import NestedSelectAutocompleteMultiPickInput from '../nested_select_autocomplete_multi_choice';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v};

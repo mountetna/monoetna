@@ -8,9 +8,10 @@ import {
   WorkspaceStatus,
   WorkspaceRaw,
   RunStatus,
-  MultiFileContent
+  MultiFileContent,
 } from '../api_types';
 import {Maybe} from '../selectors/maybe';
+import {DataEnvelope} from 'etna-js/utils/input_types';
 import { selectFigure, selectSession, workspaceId } from '../selectors/workflow_selectors';
 
 function actionObject<T extends string, P>(type: T, payload: P): {type: T} & P {
@@ -91,8 +92,8 @@ export function setWorkspaceFiles(fileNames: string[]) {
 }
 
 // Fully replaces the inputs state.
-export function setUIValues(values: WorkspaceStatus['ui_contents']) {
-  return actionObject('SET_UI_VALUES', {values});
+export function setUIValues(values: DataEnvelope<Maybe<any>>, stepName: string | null) {
+  return actionObject('SET_UI_VALUES', {values, stepName});
 }
 
 // // Removes the downloads by the given step names from the status.  Usually this happens from server
@@ -146,7 +147,7 @@ export function clearRunTriggers(steps: (string | null)[]) {
   return actionObject('CLEAR_RUN_TRIGGERS', {steps});
 }
 
-export function checkCommittedStepPending(step: Maybe<string>) {
+export function checkCommittedStepPending(step: string | null) {
   return actionObject('CHECK_CHANGES_READY', {step});
 }
 

@@ -1,7 +1,7 @@
 import React, {useCallback, useState} from 'react';
-import {WithInputParams} from './input_types';
-import {some} from '../../../../selectors/maybe';
-import {useSetsDefault} from './useSetsDefault';
+import {WithInputParams} from '../input_types';
+import {some} from '../../../../../selectors/maybe';
+import {useSetsDefault} from '../useSetsDefault';
 import {TextField} from '@material-ui/core';
 
 function parseIntBetter(s: string) {
@@ -27,7 +27,7 @@ export function NumberInput(
   >,
   block_decimal = false
 ) {
-  const value = useSetsDefault(0, props.value, onChange); // Had to replace selectDefaultNumber(data) with 0 due how the component can be cleared.  NaN was not an option because of cross-language conversion.
+  const value = useSetsDefault(0, props.value.value, onChange); // Had to replace selectDefaultNumber(data) with 0 due how the component can be cleared.  NaN was not an option because of cross-language conversion.
   const [inputState, setInputState] = useState({
     text: from_num(value),
     hasError: false
@@ -38,10 +38,10 @@ export function NumberInput(
       const parsed = parser(event.target.value);
       if (isNaN(parsed)) {
         setInputState({text: event.target.value, hasError: true});
-        onChange([null]);
+        onChange({value: [null]});
       } else {
         setInputState({text: event.target.value, hasError: false});
-        onChange(some(parsed));
+        onChange({value: some(parsed)});
       }
     },
     [onChange]
