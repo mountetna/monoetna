@@ -109,14 +109,14 @@ module Etna
               add_to_page(page, table_record)
             end
 
-            if page_count > @page_size
+            if page_count >= @page_size
               results.update(update_part(page))
               page = {}
               page_count = 0
             end
           end
 
-          results.update(update_part(page))
+          results.update(update_part(page)) if page_count > 0
 
           return results
         end
