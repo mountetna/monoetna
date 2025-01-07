@@ -175,7 +175,16 @@ describe Etna::Clients::Magma do
         }
       end
 
-      it 'posts a paged update appending to tables' do
+      let(:append_table_update) do
+        {
+          project_name: 'labors',
+          revisions: {
+            'victim' => blank_table_update[:revisions]['victim']
+          }
+        }
+      end
+
+      it 'posts a paged update blanking tables' do
         revisions1 = {
           "monster" => blank_table_update[:revisions]["monster"].slice('Nemean Lion'),
           "victim" => blank_table_update[:revisions]["victim"].slice(
@@ -210,18 +219,34 @@ describe Etna::Clients::Magma do
         response = magma_client.update_json(Etna::Clients::Magma::UpdateRequest.new(blank_table_update), 2)
 
         expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).twice
-        expect(response.models.model("monster").documents.document_keys).to eq(["Nemean Lion", "Lernean Hydra", "Ceryneian Hind"])
+        expect(response.models.model("monster").documents.document_keys).to eq(["Nemean Lion", "Lernean Hydra"])
       end
 
-      it 'posts a paged update blanking tables' do
-        stub_request(:post, /#{MAGMA_HOST}\/update$/).to_return([
-          { body: response1.to_json }, {body: response2.to_json}
-        ])
-        stub_request(:post, /#{MAGMA_HOST}\/retrieve$/).to_return(body: monster_model.to_json)
-        response = magma_client.update_json(Etna::Clients::Magma::UpdateRequest.new(update), 2)
+      it 'posts a paged update appending to tables' do
+        stub_request(:post, /#{MAGMA_HOST}\/update$/).to_return do |request| 
+          update = JSON.parse(request.body)
 
-        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).twice
-        expect(response.models.model("monster").documents.document_keys).to eq(["Nemean Lion", "Lernean Hydra", "Ceryneian Hind"])
+          expect(update["revisions"]["victim"].size).to be <= 2
+
+          {
+            body: {
+              models: {
+                'victim' => {
+                  "documents" => update["revisions"]["victim"]
+                }
+              }
+            }.to_json
+          }
+        end
+        stub_request(:post, /#{MAGMA_HOST}\/retrieve$/).to_return(body: monster_model.to_json)
+        response = magma_client.update_json(Etna::Clients::Magma::UpdateRequest.new(append_table_update), 2)
+
+        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).times(5)
+        expect(response.models.model("victim").documents.document_keys).to match_array([
+          "::temp-victim1", "::temp-victim2", "::temp-victim3",
+          "::temp-victim4", "::temp-victim5", "::temp-victim6",
+          "::temp-victim7", "::temp-victim8", "::temp-victim9"
+        ])
       end
     end
   end
