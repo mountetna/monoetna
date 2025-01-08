@@ -19,13 +19,14 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
     # Mandatory params
     @workflow_config_id = config['config_id']
     @workflow_version = config['version_number']
+    @path_to_write_files = config['config']['path_to_write_files']
     @file_regex = config['config']['file_regex']
     @sftp_root_dir = config['config']['sftp_root_dir']
-    @initial_start_scan_time = config['config']['initial_start_scan_time']
-    @path_to_write_files = config['config']['path_to_write_files']
 
-    # Optional params
-    @interval = config['config']['interval'] || nil
+    # Runtime params
+    @initial_start_scan_time = runtime_config['config']['initial_start_scan_time']
+    @interval = runtime_config['config']['interval'] || nil
+    @restart_scan = runtime_config['config']['restart_scan']
   end
 
   def pre(context)
@@ -65,16 +66,22 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
 
   private
 
-  # Fetch the last_scan timestamp from the pipeline state using Polyphemus client
   def fetch_last_scan
-    run = polyphemus_client.get_previous_run(@project_name, @workflow_config_id, @workflow_version)
-    # No previous run exists, this is the first run ever
-    if run.empty?
-      logger.info("No previous run exists, this is the first run ever...")
+    if @restart_scan
+      logger.info("Restarting scan... at #{Time.at(@initial_start_scan_time).strftime('%Y-%m-%d %H:%M:%S')}")
       @initial_start_scan_time
     else
-      logger.info("Previous run exists, using end_time from previous run...")
-      run["state"]["end_time"]
+      response = polyphemus_client.get_previous_state(
+       @project_name,
+       @workflow_config_id,
+       @workflow_version,
+       state: [:end_time]
+      )
+      if response[:error]
+        logger.warn("Error fetching previous state: #{response[:error]}")
+        raise StandardError, response[:error]
+      end
+      response["end_time"]
     end
   end
 

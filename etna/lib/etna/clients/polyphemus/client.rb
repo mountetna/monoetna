@@ -76,9 +76,12 @@ module Etna
         json
       end
 
-      def get_previous_run(project_name, config_id, version_number)
+      def get_previous_state(project_name, config_id, version_number, state: [])
         json = nil
-        @etna_client.post("/api/etl/#{project_name}/run/previous/#{config_id}", version_number: version_number) do |res|
+        @etna_client.post("/api/etl/#{project_name}/run/previous/#{config_id}",
+          version_number: version_number,
+          state: state
+        ) do |res|
           json = JSON.parse(res.body)
         end
         json

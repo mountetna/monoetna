@@ -12,14 +12,11 @@ describe SFTPFileDiscoveryJob do
       "config" => {
         "file_regex" => "DSCOLAB(-|_).*",
         "sftp_root_dir" => "SSD",
-        "interval" => 864000, # 10 days
-        "initial_start_scan_time" => 1672531200, #Jan 1, 2023
         "path_to_write_files" => "/tmp/" 
       },
       "config_id" => "1",
       "version_number" => "1"
     }
-    config
   }
 
   let(:sftp_files) {
@@ -38,27 +35,8 @@ describe SFTPFileDiscoveryJob do
     ]
   }
 
-  let(:runtime_config) {
-    {
-      "commit" => true,
-    }
-  }
   let(:run_id) { "1234567890" }
-  let(:empty_run_record) {
-    {}
-  }
-  let(:run_record) {
-    {
-      run_id: run_id,
-      config_id: config["config_id"],
-      version_number: config["version_number"],
-      state: {end_time: 1672876800}, # Jan 5, 2023
-      orchestrator_metadata: {},
-      output: nil,
-      created_at: Time.now,
-      updated_at: Time.now
-    }
-  }
+  
   
   before do
     ENV['TOKEN'] = TEST_TOKEN
@@ -68,7 +46,6 @@ describe SFTPFileDiscoveryJob do
   context 'time window' do
 
     before do
-      stub_polyphemus_get_previous_run(config["project_name"], config["config_id"], config["version_number"], empty_run_record)
       stub_initial_sftp_connection
       stub_sftp_search_files(sftp_files)
     end 
@@ -76,29 +53,52 @@ describe SFTPFileDiscoveryJob do
     it 'sets the end time to the start time + interval if provided' do
       captured_requests = []
       stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
+      runtime_config = {
+        "config" => {
+          "restart_scan" => true,
+          "interval" => 864000, # 10 days
+          "initial_start_scan_time" => 1672531200, #Jan 1, 2023
+        }
+      }
       job = SFTPFileDiscoveryJob.new(config, runtime_config)
       job.execute
-      expect(captured_requests[0][:state][:start_time]).to eq(config["config"]["initial_start_scan_time"])
-      expect(captured_requests[0][:state][:end_time]).to eq(config["config"]["initial_start_scan_time"] + config["config"]["interval"])
+      expect(captured_requests[0][:state][:start_time]).to eq(runtime_config["config"]["initial_start_scan_time"])
+      expect(captured_requests[0][:state][:end_time]).to eq(runtime_config["config"]["initial_start_scan_time"] + runtime_config["config"]["interval"])
     end
 
     it 'sets the end time to the current time if no interval is provided' do
       config["config"]["interval"] = nil
       captured_requests = []
       stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
+      runtime_config = {
+        "config" => {
+          "interval" => nil,
+          "restart_scan" => true,
+          "initial_start_scan_time" => 1672531200, #Jan 1, 2023
+        }
+      }
       job = SFTPFileDiscoveryJob.new(config, runtime_config)
       job.execute
-      expect(captured_requests[0][:state][:start_time]).to eq(config["config"]["initial_start_scan_time"])
+      expect(captured_requests[0][:state][:start_time]).to eq(runtime_config["config"]["initial_start_scan_time"])
       expect(captured_requests[0][:state][:end_time]).to be_within(5).of(Time.now.to_i)
     end
 
   end
 
 
-  context 'first run' do
+  context 'first run (restarted)' do
+
+    let(:runtime_config) {
+      {
+        "config" => {
+          "restart_scan" => true,
+          "interval" => 864000, # 10 days
+          "initial_start_scan_time" => 1672531200, #Jan 1, 2023
+        }
+      }
+    }
 
     before do
-      stub_polyphemus_get_previous_run(config["project_name"], config["config_id"], config["version_number"], empty_run_record)
       stub_initial_sftp_connection
       stub_sftp_search_files(sftp_files)
     end
@@ -125,8 +125,20 @@ describe SFTPFileDiscoveryJob do
 
   context 'subsequent runs' do
 
+
+    let(:last_state) { {"end_time" => 1672876800} } # Jan 5, 2023
+    let(:runtime_config) {
+      {
+        "config" => {
+          "restart_scan" => false,
+          "interval" => 864000, # 10 days
+          "initial_start_scan_time" => 1672531200, #Jan 1, 2023
+        }
+      }
+    }
+
     before do
-      stub_polyphemus_get_previous_run(config["project_name"], config["config_id"], config["version_number"], run_record)
+      stub_polyphemus_get_last_state(config["project_name"], config["config_id"], config["version_number"], last_state)
       stub_initial_sftp_connection
       stub_sftp_search_files(sftp_files)
     end
@@ -136,8 +148,8 @@ describe SFTPFileDiscoveryJob do
       stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
       job = SFTPFileDiscoveryJob.new(config, runtime_config)
       job.execute
-      expect(captured_requests[0][:state][:start_time]).to eq(run_record[:state][:end_time])
-      expect(captured_requests[0][:state][:end_time]).to eq(run_record[:state][:end_time] + 864000)
+      expect(captured_requests[0][:state][:start_time]).to eq(last_state["end_time"])
+      expect(captured_requests[0][:state][:end_time]).to eq(last_state["end_time"] + 864000)
     end
   end
 

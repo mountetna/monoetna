@@ -621,23 +621,14 @@ class TestManifest < Polyphemus::WorkflowManifest
 end
 
 # Polyphemus API Stubs
-def stub_polyphemus_get_previous_run(project_name, config_id, version_number, run_record)
+def stub_polyphemus_get_last_state(project_name, config_id, version_number, last_state)
   stub_request(:post, "#{POLYPHEMUS_HOST}/api/etl/#{project_name}/run/previous/#{config_id}")
     .to_return({
       status: 200,
       headers: {
         'Content-Type': 'application/json'
       },
-      body: run_record.empty? ? {}.to_json : {
-        run_id: run_record[:run_id],
-        config_id: run_record[:config_id],
-        version_number: run_record[:version_number],
-        state: run_record[:state],
-        orchestrator_metadata: run_record[:orchestrator_metadata],
-        output: run_record[:output],
-        created_at: run_record[:created_at],
-        updated_at: run_record[:updated_at]
-      }.to_json
+      body: last_state.empty? ? {}.to_json : last_state.to_json
     })
 end
 

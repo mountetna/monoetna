@@ -733,15 +733,21 @@ class RunJob < Etna::Command
     include WithEtnaClients
 
     def execute(job_name, config_id, version_number)
-      # Retrieve the workflow config from polyphemus
+      # Retrieve the config from polyphemus
       # We need to use the db here to get the decrypted secrets
-      config = Polyphemus.instance.db.run("SELECT * FROM runs WHERE config_id = ? AND version_number = ?", config_id, version_number).first
-      runtime_config = polyphemus_client.get_runtime_config(config_id)
+      config = Polyphemus::Config.current.where(
+        config_id: config_id,
+        version_number: version_number
+      ).first
+
+      runtime_config = Polyphemus::RuntimeConfig.where(
+        config_id: config_id,
+      ).first
 
       # Instantiate the job and run it
       # Dynamically load the job class from the job_name
       job = Kernel.const_get("#{job_name}_job".camelize.to_sym)
-      job.new(config, runtime_config[:config])
+      job.new(config, runtime_config)
       job.execute
     end
 

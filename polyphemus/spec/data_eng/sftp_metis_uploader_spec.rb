@@ -12,8 +12,6 @@ describe SFTPMetisUploaderJob do
       "config" => {
         "file_regex" => "DSCOLAB(-|_).*",
         "sftp_root_dir" => "SSD",
-        "interval" => 864000, # 10 days
-        "initial_start_scan_time" => 1672531200, #Jan 1, 2023
         "path_to_write_files" => "/tmp/",
         "bucket_name" => "triage",
         "metis_root_path" => "browse/waiting_room/fastq.ucsf.edu"

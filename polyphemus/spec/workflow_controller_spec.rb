@@ -387,6 +387,40 @@ context '#revisions' do
     end
   end
 
+  context 'retrieve the previous workflow state' do
+    before do
+      create_workflow_with_configs
+      # Create a new run
+      auth_header(:editor)
+      the_state = {:some_state => "ya_hooo!", :another_state => "woohoo!"}
+      json_post("/api/etl/labors/run/update/#{run_id}",
+        config_id: json_body[:config_id],
+        version_number: 2,
+        state: the_state
+      )
+    end
+
+    it 'returns the specific state when a state is specified' do
+      state_to_retrieve = [:some_state]
+      post("/api/etl/labors/run/previous/#{json_body[:config_id]}",
+        version_number: 2,
+        state: state_to_retrieve
+      )
+      expect(last_response.status).to eq(200)
+      expect(json_body).to eq(:some_state => "ya_hooo!")
+    end
+
+    it 'raises an error when a state is not found' do
+      post("/api/etl/labors/run/previous/#{json_body[:config_id]}",
+        version_number: 2,
+        state: [:some_state_that_doesnt_exist, :another_state_that_doesnt_exist]
+      )
+      expect(last_response.status).to eq(404)
+      expect(json_body[:error]).to eq("Requested state keys some_state_that_doesnt_exist, another_state_that_doesnt_exist not found in run.state")
+    end
+
+  end
+
   context 'runtime configs updates' do
     before do
       create_workflow_with_configs

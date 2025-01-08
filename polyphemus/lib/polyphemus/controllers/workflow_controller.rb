@@ -141,14 +141,20 @@ class WorkflowController < Polyphemus::Controller
     success_json(run.as_json)
   end
 
-  def get_previous_run
-    require_params(:config_id, :version_number)
+  def get_previous_state
+    require_params(:config_id, :version_number, :state)
     run = Polyphemus::Run.where(
       config_id: @params[:config_id],
       version_number: @params[:version_number]
-    ).order(created_at: :desc).first
+    ).order(Sequel.desc(:created_at)).first
 
-    success_json(run&.as_json || {})
+    raise Etna::NotFound, "No such run for config_id #{@params[:config_id]} and version_number #{@params[:version_number]}" unless run
+
+    filtered_state = run.state.slice(*@params[:state])
+    if filtered_state.empty?
+      raise Etna::NotFound, "Requested state keys #{@params[:state].join(', ')} not found in run.state"
+    end
+    success_json(filtered_state)
   end
 
   def update_runtime_config
