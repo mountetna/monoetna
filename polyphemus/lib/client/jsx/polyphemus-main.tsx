@@ -7,9 +7,9 @@ import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
-import { EtlConfigRow, EtlConfig } from './etl/etl-config';
-import EtlCreate from './etl/etl-create';
-import {Etl, Job} from './polyphemus';
+import { WorkflowConfigRow, WorkflowConfig } from './workflow/workflow-config';
+import WorkflowCreate from './workflow/workflow-create';
+import {Workflow, Job} from './polyphemus';
 
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -20,14 +20,14 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import Paper from '@material-ui/core/Paper';
 
-import {runTime} from './etl/run-state';
+import {runTime} from './workflow/run-state';
 import {MagmaContext} from 'etna-js/contexts/magma-context';
 
 const useStyles = makeStyles((theme) => ({
-  etls: {
+  workflows: {
     minWidth: '800px'
   },
-  etl_list: {
+  workflow_list: {
     border: '1px solid #ccc',
     height: 'calc(100vh - 160px)',
     marginBottom: '5px'
@@ -43,55 +43,55 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const PolyphemusMain = ({project_name}: {project_name: string}) => {
-  const [etls, setEtls] = useState<Etl[]>([]);
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [jobs, setJobs] = useState<Job[] | null>(null);
   const [create, setCreate] = useState(false);
   const {models, setModels} = useContext(MagmaContext);
 
-  const addEtl = (etl: Etl) => {
-    let index = etls.findIndex((e) => e.config_id == etl.config_id);
-    let new_etls =
+  const addWorkflow = (workflow: Workflow) => {
+    let index = workflows.findIndex((e) => e.config_id == workflow.config_id);
+    let new_workflows =
       index == -1
-        ? etls.concat(etl)
-        : etl.run_interval == -2
-        ? etls.filter((e, i) => i != index)
-        : etls.map((e, i) => (i == index ? etl : e));
+        ? workflows.concat(workflow)
+        : workflow.run_interval == -2
+        ? workflows.filter((e, i) => i != index)
+        : workflows.map((e, i) => (i == index ? workflow : e));
 
-    setEtls(new_etls);
+    setWorkflows(new_workflows);
   };
 
   const classes = useStyles();
 
   useEffect( () => {
-    const updateEtls = () => {
-      json_get(`/api/etl/${project_name}/configs`).then(
-        new_etls => {
-          const newEtls = etls.map(
-            etl => {
-              const new_etl = new_etls.find( (e:Etl) => e.config_id == etl.config_id );
-              if (new_etl) {
-                const { ran_at, run_interval, status } = new_etl;
+    const updateWorkflows = () => {
+      json_get(`/api/workflow/${project_name}/configs`).then(
+        new_workflows => {
+          const newWorkflows = workflows.map(
+            workflow => {
+              const new_workflow = new_workflows.find( (e:Workflow) => e.config_id == workflow.config_id );
+              if (new_workflow) {
+                const { ran_at, run_interval, status } = new_workflow;
 
-                etl = { ...etl, ran_at, run_interval, status };
+                workflow = { ...workflow, ran_at, run_interval, status };
               }
 
-              return etl
+              return workflow
             }
           );
 
-          setEtls(newEtls);
+          setWorkflows(newWorkflows);
         }
       );
     };
 
-    const interval = setInterval(updateEtls, 30000);
+    const interval = setInterval(updateWorkflows, 30000);
 
     return () => clearInterval(interval);
-  }, [etls]);
+  }, [workflows]);
 
   useEffect(() => {
-    json_get('/api/etl/jobs').then(setJobs);
-    json_get(`/api/etl/${project_name}/configs`).then(setEtls);
+    json_get('/api/workflow/workflows').then(setJobs);
+    json_get(`/api/workflow/${project_name}/configs`).then(setWorkflows);
 
     getDocuments(
       {
@@ -116,13 +116,13 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
   const [orderBy, setOrderBy] = useState('Job Type');
   const [selected, setSelected] = useState<number|null>(null);
 
-  const selectedEtl = etls.find( e => e.config_id === selected );
+  const selectedWorkflow = workflows.find( e => e.config_id === selected );
 
   const headCells = [
     {
       id: 'Job Type',
       align: 'left' as const,
-      key: 'etl'
+      key: 'workflow'
     },
     {
       id: 'Name',
@@ -142,12 +142,12 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
     {
       id: 'Next Run',
       align: 'right' as const,
-      compare: (a:Etl,b:Etl) => runTime(a.ran_at,a.run_interval).localeCompare(runTime(b.ran_at,b.run_interval))
+      compare: (a:Workflow,b:Workflow) => runTime(a.ran_at,a.run_interval).localeCompare(runTime(b.ran_at,b.run_interval))
     },
     {
       id: 'Run State',
       align: 'right' as const,
-      compare: (a:Etl,b:Etl) => a.run_interval - b.run_interval
+      compare: (a:Workflow,b:Workflow) => a.run_interval - b.run_interval
     }
   ];
 
@@ -175,7 +175,7 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
   return (
     <Grid id='polyphemus-main'>
       {!jobs ? null : (
-        <Grid className={classes.etls} item xs={12}>
+        <Grid className={classes.workflows} item xs={12}>
           <Breadcrumbs className={classes.title}>
             <Typography>
               {project_name}
@@ -186,18 +186,18 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
               : <Typography>data loaders</Typography>
             }
             {
-              selected ? <Typography>{ selectedEtl?.name }</Typography> : null
+              selected ? <Typography>{ selectedWorkflow?.name }</Typography> : null
             }
           </Breadcrumbs>
           {
-            selected && selectedEtl
-            ? <EtlConfig
-                {...selectedEtl}
-                onUpdate={addEtl}
-                job={jobs.find((j) => j.name == selectedEtl?.etl)}
+            selected && selectedWorkflow
+            ? <WorkflowConfig
+                {...selectedWorkflow}
+                onUpdate={addWorkflow}
+                job={jobs.find((j) => j.name == selectedWorkflow?.workflow)}
               />
             : <>
-              <TableContainer className={classes.etl_list}>
+              <TableContainer className={classes.workflow_list}>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
@@ -216,14 +216,14 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {etls
+                    {workflows
                       .sort((a, b) => compareBy(a, b))
-                      .map((etl: Etl) => (
-                        <EtlConfigRow
-                          key={etl.name}
-                          {...etl}
-                          onClick={ () => setSelected(etl.config_id) }
-                          job={jobs.find((j) => j.name == etl.etl)}
+                      .map((workflow: Workflow) => (
+                        <WorkflowConfigRow
+                          key={workflow.name}
+                          {...workflow}
+                          onClick={ () => setSelected(workflow.config_id) }
+                          job={jobs.find((j) => j.name == workflow.workflow_type)}
                         />
                       ))}
                   </TableBody>
@@ -231,11 +231,11 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
               </TableContainer>
               <Grid>
                 <Button onClick={() => setCreate(true)}>Add Loader</Button>
-                <EtlCreate
+                <WorkflowCreate
                   project_name={project_name}
                   open={create}
                   onClose={() => setCreate(false)}
-                  onCreate={addEtl}
+                  onCreate={addWorkflow}
                   jobs={jobs}
                 />
               </Grid>

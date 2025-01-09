@@ -14,7 +14,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import {json_post} from 'etna-js/utils/fetch';
 import {Job, EtnaError} from '../polyphemus';
 
-const EtlCreate = ({
+const WorkflowCreate = ({
   project_name,
   open,
   onClose,
@@ -43,9 +43,9 @@ const EtlCreate = ({
   };
 
   const createJob = () =>
-    json_post(`/api/etl/${project_name}/create`, {name: job_name, job_type})
-      .then((etl) => {
-        onCreate(etl);
+    json_post(`/api/workflow/${project_name}/create`, {name: job_name, job_type})
+      .then((workflow) => {
+        onCreate(workflow);
         close();
       })
       .catch((response) =>
@@ -94,4 +94,4 @@ const EtlCreate = ({
   );
 };
 
-export default EtlCreate;
+export default WorkflowCreate;

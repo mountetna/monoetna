@@ -9,22 +9,18 @@ export type Job = {
   secrets: any;
 };
 
-export type Etl = {
+export type Workflow = {
   project_name: string;
-  name: string;
+  workflow_name: string;
   config_id: number;
-  etl: string;
+  version_number: number;
+  workflow_type: string;
   config: any;
-  ran_at: string;
-  updated_at: string;
-  run_interval: number;
-  output: string;
   secrets: any;
-  params: any;
-  status: string;
+  created_at: string;
 };
 
-type EtlRevision = {
+type WorkflowRevision = {
   config: any;
   comment: string;
   updated_at: string;

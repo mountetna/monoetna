@@ -1,5 +1,6 @@
 class Polyphemus
   class RuntimeConfig < Sequel::Model(:runtime_configs)
+    plugin :timestamps, update_on_create: true
     include WithLogger
 
     # TODO: maybe move the scheduling logic to CronWorkflows

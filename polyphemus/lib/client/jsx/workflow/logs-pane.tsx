@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useMemo} from 'react';
-import EtlPane, {EtlPaneHeader} from './etl-pane';
+import WorkflowPane, {WorkflowPaneHeader} from './workflow-pane';
 import {makeStyles} from '@material-ui/core/styles';
 import {json_get} from 'etna-js/utils/fetch';
 
@@ -38,7 +38,7 @@ const LogsPane = ({
   const [output, setOutput] = useState('');
 
   useEffect(() => {
-    json_get(`/api/etl/${project_name}/output/${config_id}`).then(({output}) =>
+    json_get(`/api/workflow/${project_name}/output/${config_id}`).then(({output}) =>
       setOutput(output)
     );
   }, []);
@@ -59,8 +59,8 @@ const LogsPane = ({
   );
 
   return (
-    <EtlPane mode='logs' selected={selected}>
-      <EtlPaneHeader title='Logs' />
+    <WorkflowPane mode='logs' selected={selected}>
+      <WorkflowPaneHeader title='Logs' />
       <div className={classes.editor}>
         <ErrorBoundary>
           <CodeMirror extensions={extensions} value={output} />
@@ -74,7 +74,7 @@ const LogsPane = ({
           Download log
         </a>
       )}
-    </EtlPane>
+    </WorkflowPane>
   );
 };
 

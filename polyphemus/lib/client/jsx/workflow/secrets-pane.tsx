@@ -1,5 +1,5 @@
 import React, {useState, useCallback} from 'react';
-import EtlPane, {EtlPaneHeader} from './etl-pane';
+import WorkflowPane, {WorkflowPaneHeader} from './workflow-pane';
 import {makeStyles} from '@material-ui/core/styles';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
@@ -41,8 +41,8 @@ const SecretsPane = ({
   }, [update, secret, value]);
 
   return (
-    <EtlPane mode='secrets' selected={selected}>
-      <EtlPaneHeader title='Secrets' />
+    <WorkflowPane mode='secrets' selected={selected}>
+      <WorkflowPaneHeader title='Secrets' />
       <Grid container className={classes.table}>
         {keys &&
           keys.map((key) => (
@@ -90,7 +90,7 @@ const SecretsPane = ({
           </React.Fragment>
         )}
       </Grid>
-    </EtlPane>
+    </WorkflowPane>
   );
 };
 

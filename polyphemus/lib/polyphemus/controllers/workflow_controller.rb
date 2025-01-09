@@ -187,16 +187,14 @@ class WorkflowController < Polyphemus::Controller
     
     update_columns = {
         config_id: @params[:config_id],
-        run_id: @params[:run_id],
         run_interval: @params[:run_interval],
-        config: @params[:config],
-        updated_at: Time.now
+        config: @params[:config]
       }.compact
 
     if runtime_config
-        runtime_config.update(update_columns)
+      runtime_config.update(update_columns)
     else
-        runtime_config = Polyphemus::RuntimeConfig.create(update_columns.merge(created_at: Time.now))
+      runtime_config = Polyphemus::RuntimeConfig.create(update_columns)
     end
 
     success_json(runtime_config.as_json)
@@ -207,8 +205,19 @@ class WorkflowController < Polyphemus::Controller
       config_id: @params[:config_id]
     ).first
 
-    raise Etna::NotFound, "No runtime config found for config_id #{@params[:config_id]}." unless runtime_config 
-    success_json(runtime_config.as_json)
+    return success_json(runtime_config.as_json) if runtime_config
+
+    config = Polyphemus::Config.current.where(config_id: @params[:config_id]).first
+
+    raise Etna::NotFound, "No config found for config_id #{@params[:config_id]}." unless config
+
+    success_json(
+      Polyphemus::RuntimeConfig.create(
+        config_id: @params[:config_id],
+        config: {},
+        run_interval: -1
+      ).as_json
+    )
   end
 
   def run_once

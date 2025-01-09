@@ -1,5 +1,6 @@
 class Polyphemus
   class Run < Sequel::Model(:runs)
+    plugin :timestamps, update_on_create: true
 
     def started_at
       return nil unless self.orchestrator_metadata
@@ -23,7 +24,6 @@ class Polyphemus
     def is_succeeded?
       self.status == 'Succeeded'
     end
-
   end
 end
   

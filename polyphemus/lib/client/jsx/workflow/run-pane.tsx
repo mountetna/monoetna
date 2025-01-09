@@ -11,7 +11,7 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import {makeStyles} from '@material-ui/core/styles';
-import EtlPane, {EtlPaneHeader} from './etl-pane';
+import WorkflowPane, {WorkflowPaneHeader} from './workflow-pane';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {
@@ -217,8 +217,8 @@ const RunPane = ({
   console.log({formChanged, formValid});
 
   return (
-    <EtlPane mode='run' selected={selected}>
-      <EtlPaneHeader title='Run'>
+    <WorkflowPane mode='run' selected={selected}>
+      <WorkflowPaneHeader title='Run'>
         <Grid className={classes.runbar} spacing={1} container alignItems='center'>
           <Grid item>
             <Tooltip title={ !formValid ? 'Missing values' : !formChanged ? 'No changes' : '' }>
@@ -255,7 +255,7 @@ const RunPane = ({
             </Grid>
           )}
         </Grid>
-      </EtlPaneHeader>
+      </WorkflowPaneHeader>
       <Grid spacing={1} container alignItems='center'>
         <Grid className={classes.title} item>
           <Typography>Interval</Typography>
@@ -320,7 +320,7 @@ const RunPane = ({
             ))}
         </Grid>
       </Grid>
-    </EtlPane>
+    </WorkflowPane>
   );
 };
 

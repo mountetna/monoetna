@@ -21,7 +21,7 @@ import ScheduleIcon from '@material-ui/icons/Schedule';
 import Grid from '@material-ui/core/Grid';
 import Chip from '@material-ui/core/Chip';
 
-import EtlButton from './etl-button';
+import WorkflowButton from './workflow-button';
 import RunPane from './run-pane';
 import ConfigurePane from './configure-pane';
 import RemovePane from './remove-pane';
@@ -30,7 +30,7 @@ import SecretsPane from './secrets-pane';
 import {formatTime, runTime, runDesc} from './run-state';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
-import {Etl, Job} from '../polyphemus';
+import {Workflow, Job} from '../polyphemus';
 
 const StatusIcon = ({status}: {status: string}) => {
   let IconComponent: any;
@@ -58,12 +58,12 @@ const useStyles = makeStyles((theme) => ({
   heading: {
     borderBottom: '1px solid #ccc'
   },
-  etl: {
+  workflow: {
     border: '1px solid #ccc',
     marginBottom: '15px',
     height: 'calc(100vh - 160px)'
   },
-  etlrow: {
+  workflowrow: {
     marginBottom: '15px',
     cursor: 'pointer',
     '&:hover': {
@@ -95,7 +95,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export const EtlConfigRow = ({
+export const WorkflowConfigRow = ({
   project_name,
   name,
   config,
@@ -107,7 +107,7 @@ export const EtlConfigRow = ({
   ran_at,
   job,
   onClick
-}: Etl & {job: Job | undefined; onClick: Function}) => {
+}: Workflow & {job: Job | undefined; onClick: Function}) => {
   const [mode, setMode] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -115,7 +115,7 @@ export const EtlConfigRow = ({
   const classes: any = useStyles();
 
   return (
-    <TableRow className={classes.etlrow} onClick={ onClick as React.MouseEventHandler<HTMLTableRowElement>}>
+    <TableRow className={classes.workflowrow} onClick={ onClick as React.MouseEventHandler<HTMLTableRowElement>}>
       <TableCell>{job?.name}</TableCell>
       <TableCell>{name}</TableCell>
       <TableCell align="right">{status || 'none'}</TableCell>
@@ -126,9 +126,9 @@ export const EtlConfigRow = ({
   );
 };
 
-export const EtlConfig = ({
+export const WorkflowConfig = ({
   project_name,
-  etl,
+  workflow,
   name,
   config_id,
   config,
@@ -140,7 +140,7 @@ export const EtlConfig = ({
   ran_at,
   job,
   onUpdate
-}: Etl & {job: Job | undefined; onUpdate: Function}) => {
+}: Workflow & {job: Job | undefined; onUpdate: Function}) => {
   const [mode, setMode] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -160,9 +160,9 @@ export const EtlConfig = ({
   const [_, postUpdate] = useAsyncWork(
     function postUpdate(update: any) {
       clearMessages();
-      return json_post(`/api/etl/${project_name}/update/${config_id}`, update)
-        .then((etl) => {
-          onUpdate(etl);
+      return json_post(`/api/workflow/${project_name}/update/${config_id}`, update)
+        .then((workflow) => {
+          onUpdate(workflow);
           setMessage('Saved!');
         })
         .catch((r) => r.then(({error}: {error: string}) => setError(error)));
@@ -171,7 +171,7 @@ export const EtlConfig = ({
   );
 
   return (
-    <Card className={classes.etl} elevation={0} key={etl}>
+    <Card className={classes.workflow} elevation={0} key={workflow}>
       <CardContent>
         <CardActions>
           <Grid direction='row' container>
@@ -231,21 +231,21 @@ export const EtlConfig = ({
               alignItems='center'
               xs={3}
             >
-              <EtlButton selected={mode} mode='run' onClick={toggleMode}>
+              <WorkflowButton selected={mode} mode='run' onClick={toggleMode}>
                 <PlayArrowIcon />
-              </EtlButton>
-              <EtlButton selected={mode} mode='logs' onClick={toggleMode}>
+              </WorkflowButton>
+              <WorkflowButton selected={mode} mode='logs' onClick={toggleMode}>
                 <LibraryBooksIcon />
-              </EtlButton>
-              <EtlButton selected={mode} mode='configure' onClick={toggleMode}>
+              </WorkflowButton>
+              <WorkflowButton selected={mode} mode='configure' onClick={toggleMode}>
                 <SettingsIcon />
-              </EtlButton>
-              <EtlButton selected={mode} mode='secrets' onClick={toggleMode}>
+              </WorkflowButton>
+              <WorkflowButton selected={mode} mode='secrets' onClick={toggleMode}>
                 <LockIcon />
-              </EtlButton>
-              <EtlButton selected={mode} mode='remove' onClick={toggleMode}>
+              </WorkflowButton>
+              <WorkflowButton selected={mode} mode='remove' onClick={toggleMode}>
                 <DeleteIcon />
-              </EtlButton>
+              </WorkflowButton>
             </Grid>
           </Grid>
         </CardActions>
