@@ -622,7 +622,7 @@ end
 
 # Polyphemus API Stubs
 def stub_polyphemus_get_last_state(project_name, config_id, version_number, last_state)
-  stub_request(:post, "#{POLYPHEMUS_HOST}/api/etl/#{project_name}/run/previous/#{config_id}")
+  stub_request(:post, "#{POLYPHEMUS_HOST}/api/workflows/#{project_name}/run/previous/#{config_id}")
     .to_return({
       status: 200,
       headers: {
@@ -634,7 +634,7 @@ end
 
 # Polyphemus API Stubs
 def stub_polyphemus_get_run(project_name, run_id, run_record)
-  stub_request(:get, "#{POLYPHEMUS_HOST}/api/etl/#{project_name}/run/#{run_id}")
+  stub_request(:get, "#{POLYPHEMUS_HOST}/api/workflows/#{project_name}/run/#{run_id}")
     .to_return({
       status: 200,
       headers: {
@@ -654,7 +654,7 @@ def stub_polyphemus_get_run(project_name, run_id, run_record)
 end
 
 def stub_polyphemus_update_run(project_name, run_id, captured_requests)
-  stub_request(:post, "#{POLYPHEMUS_HOST}/api/etl/#{project_name}/run/update/#{run_id}")
+  stub_request(:post, "#{POLYPHEMUS_HOST}/api/workflows/#{project_name}/run/update/#{run_id}")
     .with(
       headers: {
         'Content-Type' => 'application/json'

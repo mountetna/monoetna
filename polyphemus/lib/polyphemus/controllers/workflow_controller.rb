@@ -60,7 +60,7 @@ class WorkflowController < Polyphemus::Controller
     success_json(config.as_json)
   end
 
-  def workflows
+  def get_workflows
     return success_json(Polyphemus::WorkflowManifest.list.map(&:as_json))
   end
 

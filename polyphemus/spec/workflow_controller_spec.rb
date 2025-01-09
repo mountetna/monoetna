@@ -10,10 +10,10 @@ describe WorkflowController do
 
   def create_workflow_with_configs
     auth_header(:editor)
-    json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+    json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
     expect(last_response.status).to eq(200)
     some_config = { "test_key" => 'update 1' }
-    json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+    json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
       workflow_name: 'my workflow name',
       workflow_type: 'test workflow',
       config: some_config
@@ -24,7 +24,7 @@ describe WorkflowController do
   context 'config creation' do
     it 'initializes a workflow' do
       auth_header(:editor)
-      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
 
       expect(last_response.status).to eq(200)
       expect(Polyphemus::Config.count).to eq(1)
@@ -37,7 +37,7 @@ describe WorkflowController do
 
     it 'rejects invalid workflow types' do
       auth_header(:editor)
-      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'not a workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'not a workflow')
       expect(last_response.status).to eq(422)
     end
   end
@@ -46,10 +46,10 @@ describe WorkflowController do
 
     it 'correctly updates the config and version number' do
       auth_header(:editor)
-      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
       expect(last_response.status).to eq(200)
       some_config = { 'test_key' => 'update 1' }
-      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
         workflow_name: 'my workflow name',
         workflow_type: 'test workflow',
         config: some_config
@@ -64,7 +64,7 @@ describe WorkflowController do
       expect(config.version_number).to eq(2)
 
       another_config = { 'test_key' => 'update 2' }
-      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
         workflow_name: 'my workflow name',
         workflow_type: 'test workflow',
         config: another_config
@@ -79,10 +79,10 @@ describe WorkflowController do
 
     it 'rejects an invalid config' do
       auth_header(:editor)
-      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
       expect(last_response.status).to eq(200)
       some_config = { 'not a valid key' => 'update 1' }
-      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
         workflow_name: 'my workflow name',
         workflow_type: 'test workflow',
         config: some_config
@@ -92,10 +92,10 @@ describe WorkflowController do
 
     it 'updates secrets and not the version number' do
       auth_header(:editor)
-      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
       expect(last_response.status).to eq(200)
       some_secret = { 'test_secret' => 'update 1' }
-      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
         workflow_name: 'my workflow name',
         workflow_type: 'test workflow',
         secrets: some_secret
@@ -106,7 +106,7 @@ describe WorkflowController do
       expect(config.version_number).to eq(1)
 
       another_secret = { 'test_secret' => 'update 2' }
-      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
         workflow_name: 'my workflow name',
         workflow_type: 'test workflow',
         secrets: another_secret
@@ -120,10 +120,10 @@ describe WorkflowController do
 
     it 'rejects unknown secrets' do
       auth_header(:editor)
-      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
       expect(last_response.status).to eq(200)
       some_secret = { 'not_a_secret' => 'update 1' }
-      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
         workflow_name: 'my workflow name',
         workflow_type: 'test workflow',
         secrets: some_secret
@@ -140,25 +140,25 @@ describe WorkflowController do
     it 'returns a list of the most recent configs for a project' do
         auth_header(:editor)
         # Create one workflow config object
-        json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+        json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
         expect(last_response.status).to eq(200)
         some_config = { 'test_key' => 'update 1' }
-        json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+        json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
           workflow_name: 'my workflow name',
           workflow_type: 'test workflow',
           config: some_config
         ) 
         # Create another
-        json_post('/api/etl/labors/create', workflow_name: 'my 2nd workflow name', workflow_type: 'test workflow')
+        json_post('/api/workflows/labors/create', workflow_name: 'my 2nd workflow name', workflow_type: 'test workflow')
         expect(last_response.status).to eq(200)
         some_config = { 'test_key' => 'update 1' }
-        json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+        json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
           workflow_name: 'my workflow name',
           workflow_type: 'test workflow',
           config: some_config
         )
       auth_header(:editor)
-      get('/api/etl/labors/configs')
+      get('/api/workflows/labors/configs')
       expect(last_response.status).to eq(200)
       expect(json_body.length).to eq(2)
     end
@@ -169,17 +169,17 @@ describe WorkflowController do
 
     before do
       auth_header(:editor)
-      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
       expect(last_response.status).to eq(200)
       some_config = { 'test_key' => 'update 1' }
-      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
         workflow_name: 'my workflow name',
         workflow_type: 'test workflow',
         config: some_config
       )
       expect(last_response.status).to eq(200)
       another_config = { 'test_key' => 'update 2' }
-      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
         workflow_name: 'my workflow name',
         workflow_type: 'test workflow',
         config: another_config
@@ -189,14 +189,14 @@ describe WorkflowController do
 
     it 'returns the most recent config when version is not specified' do
       auth_header(:editor)
-      post("/api/etl/labors/configs/#{json_body[:config_id]}")
+      post("/api/workflows/labors/configs/#{json_body[:config_id]}")
       expect(last_response.status).to eq(200)
       expect(json_body[:version_number]).to eq(3)
     end
 
     it 'returns a config by id and version' do
       auth_header(:editor)
-      post("/api/etl/labors/configs/#{json_body[:config_id]}", version: 1)
+      post("/api/workflows/labors/configs/#{json_body[:config_id]}", version: 1)
       expect(last_response.status).to eq(200)
       expect(json_body[:version_number]).to eq(1)
     end
@@ -224,7 +224,7 @@ describe WorkflowController do
         secrets: {},
       )
       auth_header(:superuser)
-      post('/api/etl/configs')
+      post('/api/workflows/configs')
       expect(last_response.status).to eq(200)
       expect(json_body[:configs].length).to eq(2)
     end
@@ -250,7 +250,7 @@ describe WorkflowController do
         secrets: {},
       )
       auth_header(:superuser)
-      post('/api/etl/configs', workflow_type: 'test workflow')
+      post('/api/workflows/configs', workflow_type: 'test workflow')
       expect(last_response.status).to eq(200)
       expect(json_body[:configs].length).to eq(1)
     end
@@ -260,7 +260,7 @@ describe WorkflowController do
   context 'workflows' do
     it 'returns a list of workflows for a project' do
       auth_header(:editor)
-      get('/api/etl/workflows')
+      get('/api/workflows')
       expect(last_response.status).to eq(200)
       expect(json_body.map(&:keys)).to all(satisfy { |v| !v.empty? && (v - [:name, :schema, :secrets, :runtime_params]).empty? })
     end
@@ -269,23 +269,23 @@ describe WorkflowController do
 context '#revisions' do
     it 'returns previous revisions for a workflow' do
       auth_header(:editor)
-      json_post('/api/etl/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test workflow')
       expect(last_response.status).to eq(200)
       some_config = { 'test_key' => 'update 1' }
-      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
         workflow_name: 'my workflow name',
         workflow_type: 'test workflow',
         config: some_config
       )
       expect(last_response.status).to eq(200)
       another_config = { 'test_key' => 'update 2' }
-      json_post("/api/etl/labors/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
         workflow_name: 'my workflow name',
         workflow_type: 'test workflow',
         config: another_config
       )
       auth_header(:editor)
-      get("/api/etl/labors/revisions/#{json_body[:config_id]}")
+      get("/api/workflows/labors/revisions/#{json_body[:config_id]}")
       expect(last_response.status).to eq(200)
       expect(json_body.length).to eq(3)
       expect(json_body[0][:version_number]).to eq(3)
@@ -301,7 +301,7 @@ context '#revisions' do
     it 'creates the run when it does not exist' do
       auth_header(:editor)
       the_state = {"some_state" => "wooo!"}
-      json_post("/api/etl/labors/run/update/#{run_id}",
+      json_post("/api/workflows/labors/run/update/#{run_id}",
         config_id: json_body[:config_id],
         version_number: 2,
         state: the_state
@@ -317,14 +317,14 @@ context '#revisions' do
       orchestrator_metadata = { "initial" => "data" }
       new_output = 'All is well'
 
-      json_post("/api/etl/labors/run/update/#{run_id}",
+      json_post("/api/workflows/labors/run/update/#{run_id}",
         config_id: json_body[:config_id],
         version_number: 2,
         state: the_state,
       )
       expect(last_response.status).to eq(200)
       new_state = {"some_state" => "ya_hooo!"}
-      json_post("/api/etl/labors/run/update/#{run_id}",
+      json_post("/api/workflows/labors/run/update/#{run_id}",
         config_id: json_body[:config_id],
         version_number: 2,
         state: new_state,
@@ -342,14 +342,14 @@ context '#revisions' do
       additional_output = 'A serious error occurred.'
 
       # Create run metadata with initial output
-      json_post("/api/etl/labors/run/update/#{run_id}",
+      json_post("/api/workflows/labors/run/update/#{run_id}",
         config_id: json_body[:config_id],
         version_number: 2,
         output: initial_output,
       )
       expect(last_response.status).to eq(200)
 
-      json_post("/api/etl/labors/run/update/#{run_id}",
+      json_post("/api/workflows/labors/run/update/#{run_id}",
         config_id: json_body[:config_id],
         version_number: 2,
         output: additional_output,
@@ -367,7 +367,7 @@ context '#revisions' do
     end
     it 'raises and error when a workflow has not been run yet' do
       auth_header(:editor)
-      get("/api/etl/labors/run/#{run_id}")
+      get("/api/workflows/labors/run/#{run_id}")
       expect(last_response.status).to eq(404)
       expect(json_body[:error]).to eq('No such run argo_run_id_22')
     end
@@ -375,13 +375,13 @@ context '#revisions' do
     it 'returns the state for a config when a workflow has been run' do
       auth_header(:editor)
       the_state = {:some_state => "ya_hooo!"}
-      json_post("/api/etl/labors/run/update/#{run_id}",
+      json_post("/api/workflows/labors/run/update/#{run_id}",
         config_id: json_body[:config_id],
         version_number: 2,
         state: the_state
       )
       expect(last_response.status).to eq(200)
-      get("/api/etl/labors/run/#{run_id}")
+      get("/api/workflows/labors/run/#{run_id}")
       expect(last_response.status).to eq(200)
       expect(json_body[:state].to_h).to eq(the_state)
     end
@@ -393,7 +393,7 @@ context '#revisions' do
       # Create a new run
       auth_header(:editor)
       the_state = {:some_state => "ya_hooo!", :another_state => "woohoo!"}
-      json_post("/api/etl/labors/run/update/#{run_id}",
+      json_post("/api/workflows/labors/run/update/#{run_id}",
         config_id: json_body[:config_id],
         version_number: 2,
         state: the_state
@@ -402,7 +402,7 @@ context '#revisions' do
 
     it 'returns the specific state when a state is specified' do
       state_to_retrieve = [:some_state]
-      post("/api/etl/labors/run/previous/#{json_body[:config_id]}",
+      post("/api/workflows/labors/run/previous/#{json_body[:config_id]}",
         version_number: 2,
         state: state_to_retrieve
       )
@@ -411,7 +411,7 @@ context '#revisions' do
     end
 
     it 'raises an error when a state is not found' do
-      post("/api/etl/labors/run/previous/#{json_body[:config_id]}",
+      post("/api/workflows/labors/run/previous/#{json_body[:config_id]}",
         version_number: 2,
         state: [:some_state_that_doesnt_exist, :another_state_that_doesnt_exist]
       )
@@ -428,7 +428,7 @@ context '#revisions' do
 
     it 'creates new runtime config' do
       config = {:commit  => true }
-      json_post("/api/etl/labors/runtime_configs/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/runtime_configs/update/#{json_body[:config_id]}",
         config: config,
         run_interval: 60
       )
@@ -440,7 +440,7 @@ context '#revisions' do
 
     it 'updates existing runtime config' do
       config = {:commit  => true }
-      json_post("/api/etl/labors/runtime_configs/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/runtime_configs/update/#{json_body[:config_id]}",
         config: config,
         run_interval: 60
       )
@@ -448,7 +448,7 @@ context '#revisions' do
 
       # Update metadata
       new_config = {:commit  => false}
-      json_post("/api/etl/labors/runtime_configs/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/runtime_configs/update/#{json_body[:config_id]}",
         config: new_config,
         run_interval: 120
       )
@@ -466,21 +466,21 @@ context '#revisions' do
 
     it 'raises an error when runtime config does not exist' do
       config_id_that_doesnt_exit = 10000
-      get("/api/etl/labors/runtime_configs/#{config_id_that_doesnt_exit}")
+      get("/api/workflows/labors/runtime_configs/#{config_id_that_doesnt_exit}")
       expect(last_response.status).to eq(404)
       expect(json_body[:error]).to eq('No runtime config found for config_id 10000.') 
     end
 
     it 'retrieves existing run metadata' do
       a_config = {:commit  => true }
-      json_post("/api/etl/labors/runtime_configs/update/#{json_body[:config_id]}",
+      json_post("/api/workflows/labors/runtime_configs/update/#{json_body[:config_id]}",
         config: a_config,
         run_interval: 120
       )
       expect(last_response.status).to eq(200)
       
       # Retrieve and verify
-      get("/api/etl/labors/runtime_configs/#{json_body[:config_id]}")
+      get("/api/workflows/labors/runtime_configs/#{json_body[:config_id]}")
       expect(last_response.status).to eq(200)
       expect(json_body[:config]).to eq(a_config)
     end
