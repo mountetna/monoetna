@@ -28,12 +28,13 @@ gem 'spreadsheet'
 gem 'activerecord'
 gem 'activesupport', '>= 4.2.6'
 gem 'addressable', '~> 2.8.1'
-
 gem "yabeda"
 gem "yabeda-prometheus"
 gem "yabeda-puma-plugin"
 gem "curb"
 gem "net-ssh"
+gem "net-scp"
+gem "net-sftp"
 gem "rsync", "~> 1.0", ">= 1.0.9"
 gem "json_schemer"
 

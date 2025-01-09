@@ -728,5 +728,62 @@ class Polyphemus
       Polyphemus.instance.setup_ssh
     end
   end
+
+class RunJob < Etna::Command
+    include WithEtnaClients
+
+    def execute(job_name, config_id, version_number)
+      # Retrieve the config from polyphemus
+      # We need to use the db here to get the decrypted secrets
+      config = Polyphemus::Config.current.where(
+        config_id: config_id,
+        version_number: version_number
+      ).first
+
+      runtime_config = Polyphemus::RuntimeConfig.where(
+        config_id: config_id,
+      ).first
+
+      # Instantiate the job and run it
+      # Dynamically load the job class from the job_name
+      job = Kernel.const_get("#{job_name}_job".camelize.to_sym)
+      job.new(config, runtime_config)
+      job.execute
+    end
+
+  end
+
+  class RecordOrchestratorMetadata < Etna::Command
+    include WithEtnaClients
+
+    def execute(run_id, workflow_json)
+      polyphemus_client.update_run(run_id, orchestrator_metadata: workflow_json)
+    end
+
+  end
+
+  class ArgoScheduler < Etna::Command
+    include WithLogger
+  
+    usage 'Continuously polls run_metadata for new entries and submits Argo workflows based on run_interval.'
+  
+    def execute
+      # TODO: WIP: think about this, maybe we just want to create cron workflows 
+      loop do
+        Polyphemus::RunMetadata.eligible_for_runs.each do |entry|
+          config_id = entry[:config_id]
+          version_number = entry[:version_number]
+          run_interval = entry[:run_interval]
+          logger.info("Found new entry: config_id=#{config_id}, version=#{version_number}, run_interval=#{run_interval}")
+          cmd = [
+            "argo", "submit",
+            "-f", WORKFLOW_PATH,
+            "-p", "config_id=#{config_id}",
+            "-p", "version=#{version_number}"
+          ].join(" ")
+        end
+      end
+    end
+  end
 end
 
