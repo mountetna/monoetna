@@ -95,5 +95,4 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
     end
     filepath
   end
-
 end

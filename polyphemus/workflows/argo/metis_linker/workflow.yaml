@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: metis-linker-workflow-
+  namespace: argo
+spec:
+  entrypoint: metis-linker
+  onExit: write-run_metadata
+  templates:
+    - name: metis-linker
+      steps:
+        - - name: metis-linker
+            templateRef:
+              name: run-job-template
+              template: run-job
+            arguments:
+              parameters:
+                - name: job
+                  value: metis_linker
+                - name: config_id
+                  value: "{{inputs.parameters.config_id}}"
+                - name: version_number
+                  value: "{{inputs.parameters.version_number}}"
+    - name: record-runtime-meta
+      templateRef:
+        name: record-runtime-meta-template
+        template: record-runtime-meta

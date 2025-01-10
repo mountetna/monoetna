@@ -12,7 +12,7 @@ require "simplecov"
 SimpleCov.start
 
 require "yaml"
-require "etna/spec/vcr"
+#require "etna/spec/vcr"
 
 require "fileutils"
 require "timecop"
@@ -23,7 +23,7 @@ require_relative "../lib/data_eng/jobs/sftp_file_discovery"
 require_relative "../lib/data_eng/jobs/sftp_metis_uploader"
 require_relative "../lib/data_eng/jobs/sftp_c4_uploader"
 
-setup_base_vcr(__dir__)
+#setup_base_vcr(__dir__)
 
 Polyphemus.instance.configure(YAML.load(File.read("config.yml")))
 
@@ -233,7 +233,6 @@ def stub_metis_setup
     { :method => "POST", :route => "/:project_name/upload/:bucket_name/*file_path", :name => "upload_upload", :params => ["project_name", "bucket_name", "file_path"] },
     { :method => "POST", :route => "/:project_name/find/:bucket_name", :name => "bucket_find", :params => ["project_name", "bucket_name"] },
   ])
-
   stub_request(:options, METIS_HOST).
     to_return({
     status: 200,
@@ -310,7 +309,7 @@ def stub_upload_file(params = {})
 end
 
 def stub_download_file(params = {})
-  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/download/)
+  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/download\/#{ params[:file] || '' }/)
     .to_return({
       status: params[:status] || 200,
       body: params[:file_contents] || "",
