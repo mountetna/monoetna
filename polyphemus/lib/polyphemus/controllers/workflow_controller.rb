@@ -88,7 +88,7 @@ class WorkflowController < Polyphemus::Controller
 
   def list
     configs = Polyphemus::Config.current.where(project_name: @params[:project_name]).all
-    success_json(configs.map(&:as_json))
+    success_json(configs.map(&:with_status))
   end
 
   def list_all
@@ -201,23 +201,11 @@ class WorkflowController < Polyphemus::Controller
   end
 
   def get_runtime_config
-    runtime_config = Polyphemus::RuntimeConfig.where(
-      config_id: @params[:config_id]
-    ).first
+    runtime_config = Polyphemus::RuntimeConfig.for_config(@params[:config_id])
 
     return success_json(runtime_config.as_json) if runtime_config
 
-    config = Polyphemus::Config.current.where(config_id: @params[:config_id]).first
-
-    raise Etna::NotFound, "No config found for config_id #{@params[:config_id]}." unless config
-
-    success_json(
-      Polyphemus::RuntimeConfig.create(
-        config_id: @params[:config_id],
-        config: {},
-        run_interval: -1
-      ).as_json
-    )
+    raise Etna::NotFound("No such config #{@params[:config_id]}")
   end
 
   def run_once

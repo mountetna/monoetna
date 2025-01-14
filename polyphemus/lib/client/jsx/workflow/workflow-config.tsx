@@ -96,28 +96,28 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export const WorkflowConfigRow = ({
-  project_name,
-  name,
-  config,
+  workflow,
+  runtimeConfig,
   status,
-  secrets,
   params,
   output,
   run_interval,
   ran_at,
   job,
   onClick
-}: Workflow & {job: Job | undefined; onClick: Function}) => {
+}:{ workflow: Workflow; runtimeConfig: RuntimeConfig; job: Job | undefined; onClick: Function}) => {
   const [mode, setMode] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  const { workflow_name } = workflow;
 
   const classes: any = useStyles();
 
   return (
     <TableRow className={classes.workflowrow} onClick={ onClick as React.MouseEventHandler<HTMLTableRowElement>}>
       <TableCell>{job?.name}</TableCell>
-      <TableCell>{name}</TableCell>
+      <TableCell>{workflow_name}</TableCell>
       <TableCell align="right">{status || 'none'}</TableCell>
       <TableCell align="right">{ran_at ? formatTime(ran_at) : 'never'}</TableCell>
       <TableCell align="right">{runTime(ran_at, run_interval)}</TableCell>
@@ -127,20 +127,14 @@ export const WorkflowConfigRow = ({
 };
 
 export const WorkflowConfig = ({
-  project_name,
   workflow,
-  name,
-  config_id,
-  config,
-  status,
-  secrets,
-  params,
-  output,
-  run_interval,
-  ran_at,
   job,
   onUpdate
-}: Workflow & {job: Job | undefined; onUpdate: Function}) => {
+}:{
+  workflow: Workflow;
+  job: Job | undefined;
+  onUpdate: Function
+}) => {
   const [mode, setMode] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');

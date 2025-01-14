@@ -18,6 +18,13 @@ export type Workflow = {
   config: any;
   secrets: any;
   created_at: string;
+  status?: WorkflowStatus;
+};
+
+export type WorkflowStatus = {
+  run_interval: number;
+  status: string;
+  last_run: string;
 };
 
 type WorkflowRevision = {

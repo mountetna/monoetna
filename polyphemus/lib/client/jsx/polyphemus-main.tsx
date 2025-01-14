@@ -44,6 +44,7 @@ const useStyles = makeStyles((theme) => ({
 
 const PolyphemusMain = ({project_name}: {project_name: string}) => {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [runtimeConfigs, setRuntimeConfigs] = useState<{ [ config_id: string ]: RuntimeConfig }>({});
   const [jobs, setJobs] = useState<Job[] | null>(null);
   const [create, setCreate] = useState(false);
   const {models, setModels} = useContext(MagmaContext);
@@ -64,7 +65,7 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
 
   useEffect( () => {
     const updateWorkflows = () => {
-      json_get(`/api/workflow/${project_name}/configs`).then(
+      json_get(`/api/workflows/${project_name}/configs`).then(
         new_workflows => {
           const newWorkflows = workflows.map(
             workflow => {
@@ -90,8 +91,13 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
   }, [workflows]);
 
   useEffect(() => {
-    json_get('/api/workflow/workflows').then(setJobs);
-    json_get(`/api/workflow/${project_name}/configs`).then(setWorkflows);
+    json_get('/api/workflows').then(setJobs);
+    json_get(`/api/workflows/${project_name}/configs`).then(setWorkflows);
+    json_get(`/api/workflows/${project_name}/runtime_configs`).then(
+      (runtimes:RuntimeConfig[]) => setRuntimeConfigs(
+        Object.fromEntries(runtimes.map(runtime => [ runtime.config_id, runtime ]))
+      )
+    );
 
     getDocuments(
       {
@@ -167,7 +173,7 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
         ? (orderCell.compare
           ? orderCell.compare(a, b)
           : (a[ orderCell.key ] || '').localeCompare(b[ orderCell.key ] || ''))
-        : 0) || a.name.localeCompare(b.name);
+        : 0) || a.workflow_name.localeCompare(b.workflow_name);
       return dir * comp;
     }, [ orderBy, order ]
   );
@@ -192,9 +198,9 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
           {
             selected && selectedWorkflow
             ? <WorkflowConfig
-                {...selectedWorkflow}
+                workflow={selectedWorkflow}
                 onUpdate={addWorkflow}
-                job={jobs.find((j) => j.name == selectedWorkflow?.workflow)}
+                job={jobs.find((j) => j.name == selectedWorkflow?.workflow_type)}
               />
             : <>
               <TableContainer className={classes.workflow_list}>
@@ -220,8 +226,9 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
                       .sort((a, b) => compareBy(a, b))
                       .map((workflow: Workflow) => (
                         <WorkflowConfigRow
-                          key={workflow.name}
-                          {...workflow}
+                          key={workflow.workflow_name}
+                          workflow={workflow}
+                          runtimeConfig={ runtimeConfigs[workflow.config_id] }
                           onClick={ () => setSelected(workflow.config_id) }
                           job={jobs.find((j) => j.name == workflow.workflow_type)}
                         />
