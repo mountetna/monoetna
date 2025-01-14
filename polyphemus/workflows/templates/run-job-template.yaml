@@ -19,5 +19,7 @@ spec:
           - |
             bin/run_job {{inputs.parameters.job}} {{inputs.parameters.config_id}} {{inputs.parameters.version_number}}
         env:
-          - name: ARGO_WORKFLOW_ID
-            value: "{{workflow.id}}"
+          - name: KUBE_ID
+            value: "{{workflow.uid}}"
+          - name: WORKFLOW_NAME 
+            value: "{{workflow.name}}"

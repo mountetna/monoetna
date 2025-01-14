@@ -97,7 +97,7 @@ class SFTPMetisUploaderJob < Polyphemus::ETLJob
         csv << [path]
         end
       end
-      polyphemus_client.update_run(@project_name, @run_id, @workflow_config_id, @workflow_version, {
+      polyphemus_client.update_run(@project_name, @run_id, {
         state: {
           metis_num_failed_files: context[:failed_files].size,
           metis_failed_files_path: context[:failed_files_path],

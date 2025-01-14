@@ -16,7 +16,7 @@ spec:
             arguments:
               parameters:
                 - name: job
-                  value: file_discovery
+                  value: sftp_file_discovery
                 - name: config_id
                   value: "{{inputs.parameters.config_id}}"
                 - name: version_number
@@ -28,7 +28,7 @@ spec:
             arguments:
               parameters:
                 - name: job
-                  value: c4_update
+                  value: sftp_c4_uploader
                 - name: config_id
                   value: "{{inputs.parameters.config_id}}"
                 - name: version_number
@@ -40,7 +40,7 @@ spec:
             arguments:
               parameters:
                 - name: job
-                  value: metis_update
+                  value: sftp_metis_uploader
                 - name: config_id
                   value: "{{inputs.parameters.config_id}}"
                 - name: version_number

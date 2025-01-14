@@ -3,6 +3,7 @@ Sequel.migration do
     create_table(:runs) do
       primary_key :id
       String :run_id, null: false, unique: true
+      String :name, null: false, unique: false
       Integer :version_number, null: false
       Integer :config_id, null: false
       json :state, null: true

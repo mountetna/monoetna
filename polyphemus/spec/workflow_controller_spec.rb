@@ -298,17 +298,20 @@ context '#revisions' do
     before do
       create_workflow_with_configs
     end
+
     it 'creates the run when it does not exist' do
       auth_header(:editor)
       the_state = {"some_state" => "wooo!"}
       json_post("/api/workflows/labors/run/update/#{run_id}",
+        workflow_name: "test workflow",
         config_id: json_body[:config_id],
         version_number: 2,
         state: the_state
       )
       expect(last_response.status).to eq(200)
       expect(Polyphemus::Run.last.state.to_h).to eq(the_state)
-      expect(Polyphemus::Run.last.created_at != nil)
+      expect(Polyphemus::Run.last.created_at).to_not be_nil
+      expect(Polyphemus::Run.last.name).to eq("test workflow")
     end
 
     it 'updates the run state when it exists' do
@@ -317,16 +320,19 @@ context '#revisions' do
       orchestrator_metadata = { "initial" => "data" }
       new_output = 'All is well'
 
+      # Create initial run
       json_post("/api/workflows/labors/run/update/#{run_id}",
+        workflow_name: "test workflow", 
         config_id: json_body[:config_id],
         version_number: 2,
-        state: the_state,
+        state: the_state
       )
       expect(last_response.status).to eq(200)
+      initial_updated_at = Polyphemus::Run.last.updated_at
+
+      # Update the run
       new_state = {"some_state" => "ya_hooo!"}
       json_post("/api/workflows/labors/run/update/#{run_id}",
-        config_id: json_body[:config_id],
-        version_number: 2,
         state: new_state,
         output: new_output,
         orchestrator_metadata: orchestrator_metadata
@@ -335,6 +341,7 @@ context '#revisions' do
       expect(Polyphemus::Run.last.state.to_h).to eq(new_state)
       expect(Polyphemus::Run.last.orchestrator_metadata.to_h).to eq(orchestrator_metadata)
       expect(Polyphemus::Run.last.output).to eq(new_output)
+      expect(Polyphemus::Run.last.updated_at).to be > initial_updated_at
     end
 
     it 'appends output to the run' do
@@ -343,15 +350,15 @@ context '#revisions' do
 
       # Create run metadata with initial output
       json_post("/api/workflows/labors/run/update/#{run_id}",
+        workflow_name: "test workflow",
         config_id: json_body[:config_id],
         version_number: 2,
-        output: initial_output,
+        output: initial_output
       )
       expect(last_response.status).to eq(200)
 
+      # Update with additional output
       json_post("/api/workflows/labors/run/update/#{run_id}",
-        config_id: json_body[:config_id],
-        version_number: 2,
         output: additional_output,
         append_output: true
       )

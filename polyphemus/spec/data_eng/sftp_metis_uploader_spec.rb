@@ -57,10 +57,16 @@ describe SFTPMetisUploaderJob do
       end
     end
   end
+
+
+  let(:workflow_name){
+    "workflow_name-2000"
+  }
   
   before do
-    ENV['TOKEN'] = TEST_TOKEN
-    ENV['ARGO_WORKFLOW_ID'] = run_id
+      ENV['TOKEN'] = TEST_TOKEN
+      ENV['KUBE_ID'] = run_id
+      ENV['WORKFLOW_NAME'] = workflow_name
   end
 
   def stub_upload_file_with_stream(file_path, stream, force_error: false)

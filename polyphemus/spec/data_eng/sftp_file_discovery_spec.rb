@@ -36,11 +36,15 @@ describe SFTPFileDiscoveryJob do
   }
 
   let(:run_id) { "1234567890" }
-  
+
+  let(:workflow_name){
+    "workflow_name-2000"
+  }
   
   before do
-    ENV['TOKEN'] = TEST_TOKEN
-    ENV['ARGO_WORKFLOW_ID'] = run_id
+      ENV['TOKEN'] = TEST_TOKEN
+      ENV['KUBE_ID'] = run_id
+      ENV['WORKFLOW_NAME'] = workflow_name
   end
 
   context 'time window' do

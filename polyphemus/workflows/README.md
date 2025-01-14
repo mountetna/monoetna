@@ -53,6 +53,16 @@ There are two ids in the configs table.
 
 It is also worth noting that the `runtime_config` table should only ever have one row per config. That row is always updated.
 
+#### Workflow names and UID
+
+Argo generates two useful idenfiers when a workflow is run:
+
+- workflow.name: This is a human readable name and is unique for the duration of the worfklow. It MAY be re-used after the workflow has been cleared.
+
+- workflow.uid: Th unique Kubernetes-assigned UID
+
+The workflow.uid is known as the `run_id` in our db. 
+
 ### ETLJob super class
 
 ETL jobs should subclass: `ETLJob` and implement the `pre`, `process`, and `post` methods.
@@ -63,6 +73,10 @@ You care store state in the context hash between methods.
 We use the `RunJob` command to invoke ETLJobs.
 
 bin/polyphemus run_job <workflow> <job_name> <config_id> <version_number>
+
+Note: If you want to invoke the `SFTPFileDiscoveryJob`, in the workflow yaml, you must use the string `sftp_file_discovery`.
+Ex: 
+
 
 ### ETL Jobs
 

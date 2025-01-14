@@ -50,16 +50,18 @@ module Etna
         json
       end
 
-      def update_run(project_name, run_id, config_id, version_number, updates)
+      def update_run(project_name, run_id, updates)
         payload = {
-            run_id: run_id,
-            config_id: config_id,
-            version_number: version_number,
-            state: updates[:state],
-            orchestrator_metadata: updates[:orchestrator_metadata],
-            output: updates[:output],
-            append_output: updates[:append_output]
-        }.compact          
+          run_id: run_id,
+          workflow_name: updates[:workflow_name],
+          name: updates[:name],
+          config_id: updates[:config_id], 
+          version_number: updates[:version_number],
+          state: updates[:state],
+          orchestrator_metadata: updates[:orchestrator_metadata],
+          output: updates[:output],
+          append_output: updates[:append_output]
+        }.compact
 
         json = nil
         @etna_client.post("/api/workflows/#{project_name}/run/update/#{run_id}", payload) do |res|

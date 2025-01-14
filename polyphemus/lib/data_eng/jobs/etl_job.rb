@@ -1,14 +1,18 @@
 class Polyphemus
   class ETLJob
-    attr_reader :config
-  
+    attr_reader :config, :runtime_config
+
     def initialize(config = {}, runtime_config = {}) 
       @config = config # config is the entire record for the table configs
       @runtime_config = runtime_config # runtime_config is the runtime_config.config json column
     end
     
     def run_id
-      @run_id ||= ENV['ARGO_WORKFLOW_ID']
+      @run_id ||= ENV['KUBE_ID']
+    end
+
+    def workflow_name
+      @run_id ||= ENV['WORKFLOW_NAME']
     end
 
     # Pre-condition method to check if ETL should proceed

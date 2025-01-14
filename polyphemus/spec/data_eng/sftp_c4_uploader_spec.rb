@@ -35,6 +35,10 @@ describe SFTPC4UploaderJob do
         "commit" => true,
       }
     }
+
+    let(:workflow_name){
+      "workflow_name-2000"
+    }
   
     let(:run_id) { "1234567890" }
     let(:run_record) {
@@ -61,7 +65,8 @@ describe SFTPC4UploaderJob do
     
     before do
       ENV['TOKEN'] = TEST_TOKEN
-      ENV['ARGO_WORKFLOW_ID'] = run_id
+      ENV['KUBE_ID'] = run_id
+      ENV['WORKFLOW_NAME'] = workflow_name
     end
   
     context 'records to process' do

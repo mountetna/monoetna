@@ -753,24 +753,41 @@ class RunJob < Etna::Command
 
   end
 
-  class RecordOrchestratorMetadata < Etna::Command
+  class GetRuntimeMetadata < Etna::Command
     include WithEtnaClients
 
-    def execute(run_id, workflow_json)
-      polyphemus_client.update_run(run_id, orchestrator_metadata: workflow_json)
+    def execute(run_id, workflow_json, output)
+
+      # We need to fetch the project name
+      run = Polyphemus::Run.where(
+        run_id: run_id
+      ).first
+
+      config = Polyphemus::Config.current.where(
+        config_id: run.config_id,
+        version_number: run.version_number
+      ).first
+      
+      # Parse the workflow_json and just extract status
+      workflow_data = JSON.parse(workflow_json)
+      status = workflow_data["status"]
+      updates = {
+        orchestrator_metadata: status,
+        output: output
+      }
+      polyphemus_client.update_run(config.project_name, run_id, updates)
     end
 
   end
 
-  class ArgoScheduler < Etna::Command
+  class IntervalScheduler < Etna::Command
     include WithLogger
   
     usage 'Continuously polls run_metadata for new entries and submits Argo workflows based on run_interval.'
   
     def execute
-      # TODO: WIP: think about this, maybe we just want to create cron workflows 
       loop do
-        Polyphemus::RunMetadata.eligible_for_runs.each do |entry|
+        Polyphemus::RuntimeConfig.eligible_interval_configs.each do |entry|
           config_id = entry[:config_id]
           version_number = entry[:version_number]
           run_interval = entry[:run_interval]

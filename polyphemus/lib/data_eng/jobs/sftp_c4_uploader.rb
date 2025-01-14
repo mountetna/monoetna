@@ -92,7 +92,7 @@ class SFTPC4UploaderJob < Polyphemus::ETLJob
         end
       end
 
-      polyphemus_client.update_run(@project_name, @run_id, @workflow_config_id, @workflow_version, {
+      polyphemus_client.update_run(@project_name, @run_id, {
         state: {
           c4_num_failed_files: context[:failed_files].size,
           c4_failed_files_path: context[:failed_files_path],

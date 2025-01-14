@@ -102,19 +102,12 @@ class WorkflowController < Polyphemus::Controller
   end
 
   def update_run
-    require_params(:run_id, :config_id, :version_number)
-    run = Polyphemus::Run.where(
-        run_id: @params[:run_id],
-        config_id: @params[:config_id],
-        version_number: @params[:version_number]
-    ).first
+    require_params(:run_id)
+    run = Polyphemus::Run.where(run_id: @params[:run_id]).first
 
     update_columns = {
-      run_id: @params[:run_id],
-      config_id: @params[:config_id],
-      version_number: @params[:version_number],
       state: @params[:state],
-      orchestrator_metadata: @params[:orchestrator_metadata],
+      orchestrator_metadata: @params[:orchestrator_metadata], 
       updated_at: Time.now
     }.compact
 
@@ -127,7 +120,16 @@ class WorkflowController < Polyphemus::Controller
     if run
       run.update(update_columns)
     else
-      run = Polyphemus::Run.create(update_columns.merge(created_at: Time.now))
+      # For new runs we still need config_id and version_number
+      require_params(:config_id, :version_number)
+      update_columns.merge!({
+        run_id: @params[:run_id],
+        name: @params[:workflow_name],
+        config_id: @params[:config_id],
+        version_number: @params[:version_number],
+        created_at: Time.now
+      })
+      run = Polyphemus::Run.create(update_columns)
     end
     success_json(run.as_json)
   end
@@ -202,7 +204,6 @@ class WorkflowController < Polyphemus::Controller
     success_json(runtime_config.as_json)
   end
 
-  
   def revisions
     etl_configs = Polyphemus::Config.where(
       project_name: @params[:project_name],
