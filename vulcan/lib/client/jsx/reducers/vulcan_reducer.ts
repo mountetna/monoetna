@@ -358,20 +358,29 @@ export default function VulcanReducer(
         return state;
       }
 
-      let config_values: WorkspaceStatus['params'] = {...state.status.params};
-      let ui_values: WorkspaceStatus['ui_contents'] = {...state.status.ui_contents};
-      for (let step in Object.keys(action.values)) {
-        if (allUIStepNames(state).includes(step)) {
-          ui_values[step] = action.values[step];
-        } else {
-          config_values[step] = action.values[step];
-        }
+      if (allUIStepNames(state).includes(action.stepName)) {
+        return {
+          ...state,
+          status: {
+            ...state.status,
+            ui_contents: {
+              ...state.status.ui_contents,
+              [action.stepName]: action.values
+            }
+          }
+        };
+      } else {
+        return {
+          ...state,
+          status: {
+            ...state.status,
+            params: {
+              ...state.status.params,
+              [action.stepName]: action.values
+            }
+          }
+        };
       }
-
-      return {
-        ...state,
-        status: {...state.status, params: config_values, ui_contents: ui_values}
-      };
 
     case 'ADD_VALIDATION_ERRORS':
       return {

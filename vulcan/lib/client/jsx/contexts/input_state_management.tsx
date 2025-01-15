@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {
   createContext,
@@ -22,7 +22,7 @@ import {
   setAutoPassStep,
   VulcanAction
 } from '../actions/vulcan_actions';
-import {allSourcesForStepName} from '../selectors/workflow_selectors';
+import {allSourcesForStepName, stepOutputData, stepOutputMapping} from '../selectors/workflow_selectors';
 import {
   mapSome,
   Maybe,
@@ -37,7 +37,7 @@ import { Workspace } from '../api_types';
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(
-    stepName: string | null,
+    stepName: string,
     inputs: DataEnvelope<Maybe<any>>
   ) {
     return false;
@@ -45,10 +45,10 @@ export const defaultInputStateManagement = {
 };
 
 export function isPassableUIStep(
-  stepName: string | null,
+  stepName: string,
   workspace: Workspace | null
 ) {
-  if (workspace && stepName != null && Object.keys(workspace.vulcan_config).includes(stepName)) {
+  if (workspace && Object.keys(workspace.vulcan_config).includes(stepName)) {
     const this_step = workspace?.vulcan_config[stepName];
     if (this_step?.doc?.startsWith('SKIPPABLE')) return true;
   }
@@ -75,7 +75,7 @@ export function WithBufferedInputs({
 }: PropsWithChildren<{
   commitSessionInputChanges: typeof defaultInputStateManagement.commitSessionInputChanges;
   dispatch: Dispatch<VulcanAction>;
-  stepName: string | null;
+  stepName: string;
 }>) {
   const {stateRef, state} = useContext(VulcanContext);
   const valuesRef = useRef({} as DataEnvelope<Maybe<any>>);
@@ -83,11 +83,20 @@ export function WithBufferedInputs({
   const hasValues = Object.keys(values).length > 0;
 
   const cancelValueUpdates: any = useCallback(() => {
-    // // eslint-disable-next-line
-    // setValues({});
-    // // @ts-ignore
-    // // eslint-disable-next-line
-  }, [setValues]);
+    if (stateRef.current.workspace!=null) {
+      const origValue = stepOutputData(
+        stepName,
+        stepOutputMapping((stateRef.current.workspace as Workspace).vulcan_config[stepName]),
+        {},
+        stateRef.current.status.params,
+        stateRef.current.status.ui_contents)
+
+        // // eslint-disable-next-line
+        setValues(origValue);
+        // // @ts-ignore
+        // // eslint-disable-next-line
+    }
+  }, [setValues, stepName, stateRef.current.workspace, stateRef.current.status.params, stateRef.current.status.ui_contents]);
 
   const setValues: any = useCallback<typeof defaultBufferedInputs.setValues>(
     (values) => {
@@ -110,7 +119,6 @@ export function WithBufferedInputs({
         //   ).length < 1
         // ) {
         //   if (commitSessionInputChanges(stepName, valuesRef.current)) {
-        //     // cancelValueUpdates();
         //     dispatch(setRunTrigger(stepName));
         //   }
         // }

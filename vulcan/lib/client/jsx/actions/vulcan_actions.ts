@@ -92,7 +92,7 @@ export function setWorkspaceFiles(fileNames: string[]) {
 }
 
 // Fully replaces the inputs state.
-export function setUIValues(values: DataEnvelope<Maybe<any>>, stepName: string | null) {
+export function setUIValues(values: DataEnvelope<Maybe<any>>, stepName: string) {
   return actionObject('SET_UI_VALUES', {values, stepName});
 }
 
