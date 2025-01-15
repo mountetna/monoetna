@@ -604,7 +604,7 @@ end
 class TestManifest < Polyphemus::WorkflowManifest
     def self.as_json
     {
-      name: 'test workflow',
+      name: 'test-workflow',
       schema: {
         type: 'object',
         properties: {

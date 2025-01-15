@@ -45,5 +45,7 @@ class Polyphemus
 
     get '/api/workflows/:project_name/runtime_configs/:config_id/', action: 'workflow#get_runtime_config', auth: { user: { can_edit?: :project_name } }
     post '/api/workflows/:project_name/runtime_configs/update/:config_id', action: 'workflow#update_runtime_config', auth: { user: { can_edit?: :project_name } }
+
+    post '/api/workflows/:project_name/runtime_configs/run_once/:config_id', action: 'workflow#run_once', auth: { user: { can_edit?: :project_name } }
   end
 end

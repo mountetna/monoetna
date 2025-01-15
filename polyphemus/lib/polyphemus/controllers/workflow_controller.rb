@@ -124,7 +124,7 @@ class WorkflowController < Polyphemus::Controller
       require_params(:config_id, :version_number)
       update_columns.merge!({
         run_id: @params[:run_id],
-        name: @params[:workflow_name],
+        name: @params[:name],
         config_id: @params[:config_id],
         version_number: @params[:version_number],
         created_at: Time.now
@@ -166,7 +166,7 @@ class WorkflowController < Polyphemus::Controller
       config_id: @params[:config_id],
     ).first
 
-    config = Polyphemus::Config.where(
+    config = Polyphemus::Config.current.where(
           project_name: @params[:project_name],
           config_id: @params[:config_id]
     ).first
@@ -175,7 +175,8 @@ class WorkflowController < Polyphemus::Controller
 
     if @params[:config]
         manifest = Polyphemus::WorkflowManifest.from_workflow_name(config.workflow_type)
-        manifest.validate_runtime_config(@params[:config])
+        errors = manifest.validate_runtime_config(@params[:config])
+        raise Etna::BadRequest, errors.join(', ') if errors.any?
     end
     
     update_columns = {
@@ -202,6 +203,46 @@ class WorkflowController < Polyphemus::Controller
 
     raise Etna::NotFound, "No runtime config found for config_id #{@params[:config_id]}." unless runtime_config 
     success_json(runtime_config.as_json)
+  end
+
+  def run_once
+    require_params(:config_id, :workflow_type)
+    config = Polyphemus::Config.current.where(
+          project_name: @params[:project_name],
+          config_id: @params[:config_id]
+    ).first
+
+    raise Etna::NotFound, "Cannot find a config for project #{@params[:project_name]} with config_id #{@params[:config_id]}" unless config 
+
+    unless Polyphemus::WorkflowManifest.from_workflow_name(@params[:workflow_type])
+      raise Etna::BadRequest, "There is no such workflow type #{@params[:workflow_type]}"
+    end
+
+    manifest = Polyphemus::WorkflowManifest.from_workflow_name(@params[:workflow_type])
+    errors = manifest.validate_runtime_config(@params[:config])
+    raise Etna::BadRequest, errors.join(', ') if errors.any?
+
+    # Build command with proper escaping
+    workflow_path = "/app/workflows/argo/#{@params[:workflow_type]}/workflow.yaml".shellescape
+    cmd = [
+      "argo", "submit",
+      "-f", workflow_path,
+      "-p", "config_id=#{config.config_id}",
+      "-p", "version_number=#{config.version_number}"
+    ]
+
+    # Execute command and capture output using Open3
+    begin
+      stdout, stderr, status = Open3.capture3(*cmd)
+    rescue StandardError => e
+      raise Etna::Error, "Failed to submit Argo workflow: #{e}"
+    end
+
+    unless status.success?
+      raise Etna::Error, "Failed to submit Argo workflow: #{stderr}"
+    end
+
+    success_json(msg: stdout, status: status)
   end
 
   def revisions
