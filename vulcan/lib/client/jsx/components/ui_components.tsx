@@ -1,4 +1,5 @@
 import {InputType} from 'etna-js/utils/input_types';
+export {InputType, DataEnvelope} from 'etna-js/utils/input_types';
 import BooleanInput from "./workflow/user_interactions/inputs/components/boolean";
 import CheckboxesInput from "./workflow/user_interactions/inputs/components/checkboxes";
 import { AnnotationEditorInput, DataTransformationInput } from "./workflow/user_interactions/inputs/data_transformation";

@@ -11,8 +11,7 @@ import {
   MultiFileContent,
 } from '../api_types';
 import {Maybe} from '../selectors/maybe';
-import {DataEnvelope} from 'etna-js/utils/input_types';
-import { selectFigure, selectSession, workspaceId } from '../selectors/workflow_selectors';
+import {DataEnvelope} from '../components/ui_components';
 
 function actionObject<T extends string, P>(type: T, payload: P): {type: T} & P {
   return {...payload, type};

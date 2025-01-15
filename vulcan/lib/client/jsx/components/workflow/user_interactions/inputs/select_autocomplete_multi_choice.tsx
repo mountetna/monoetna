@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {DataEnvelope, WithInputParams} from './input_types';
+import {WithInputParams} from './input_types';
 import {maybeOfNullable, some, withDefault} from '../../../../selectors/maybe';
 import {flattenStringOptions, StringOptions} from './monoids';
 import {useMemoized} from '../../../../selectors/workflow_selectors';

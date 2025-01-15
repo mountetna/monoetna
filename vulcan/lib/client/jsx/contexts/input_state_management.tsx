@@ -22,18 +22,18 @@ import {
   setAutoPassStep,
   VulcanAction
 } from '../actions/vulcan_actions';
-import {allSourcesForStepName, stepOutputData, stepOutputMapping} from '../selectors/workflow_selectors';
+import {stepOutputData, stepOutputMapping} from '../selectors/workflow_selectors';
 import {
   mapSome,
   Maybe,
   some,
 } from '../selectors/maybe';
-import {DataEnvelope} from 'etna-js/utils/input_types';
 import {VulcanContext} from './vulcan_context';
 
 import Button from '@material-ui/core/Button';
 import {FormControlLabel, Grid, Switch} from '@material-ui/core';
 import { Workspace } from '../api_types';
+import { DataEnvelope } from '../components/ui_components';
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(

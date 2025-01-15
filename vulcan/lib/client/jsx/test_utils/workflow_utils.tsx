@@ -7,7 +7,6 @@ import {
   setSessionAndFigure
 } from '../actions/vulcan_actions';
 import {
-  defaultFigure,
   defaultStepStatus,
   defaultWorkflow,
   defaultWorkflowInput,
@@ -20,14 +19,12 @@ import {
 } from '../api_types';
 import {createStepStatusFixture, createUpdatedStatusFixture} from './fixtures';
 import VulcanReducer, {
-  defaultSession,
   defaultVulcanState,
   VulcanState
 } from '../reducers/vulcan_reducer';
 import {VulcanContext} from '../contexts/vulcan_context';
 import {useContext, useState} from 'react';
 import {
-  selectFigure,
   splitSource,
   statusOfStep
 } from '../selectors/workflow_selectors';

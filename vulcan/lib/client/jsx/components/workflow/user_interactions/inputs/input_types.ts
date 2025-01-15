@@ -1,19 +1,17 @@
 import React, {useMemo} from 'react';
 import {VulcanConfig, Workspace, WorkspaceStatus, WorkspaceStep} from '../../../../api_types';
-import {Maybe, some, isSome, withDefault} from '../../../../selectors/maybe';
-import {VulcanState} from '../../../../reducers/vulcan_reducer';
+import {Maybe} from '../../../../selectors/maybe';
 import {
   paramUINames,
-  splitSource,
   stepInputDataRaw,
   stepInputMapping,
   stepOfName,
   stepOutputData,
   stepOutputMapping,
-  stepOutputs,
 } from '../../../../selectors/workflow_selectors';
 import {defaultBufferedInputs} from '../../../../contexts/input_state_management';
-import {InputType, DataEnvelope} from 'etna-js/utils/input_types';
+import {DataEnvelope} from '../../../../components/ui_components';
+export {DataEnvelope} from '../../../../components/ui_components';
 
 export function nulled_vals(de: DataEnvelope<any>): DataEnvelope<null> {
   let de_ = {...de};

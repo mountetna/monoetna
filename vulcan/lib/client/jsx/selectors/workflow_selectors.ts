@@ -1,16 +1,9 @@
 import * as _ from 'lodash';
 import {
-  RUN,
-  SessionStatusResponse,
   STATUS,
-  StepInput,
   StepStatus,
-  VulcanFigure,
-  VulcanFigureSession,
-  VulcanStorage,
   Workflow,
   WorkflowsResponse,
-  WorkflowInput,
   WorkspaceStep,
   Workspace,
   VulcanConfigElement,
@@ -27,7 +20,6 @@ import {
 } from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {
-  DataEnvelope,
   WorkspaceStepGroup
 } from '../components/workflow/user_interactions/inputs/input_types';
 import {useMemo} from 'react';
@@ -35,12 +27,10 @@ import {
   isSome,
   mapSome,
   Maybe,
-  maybeOfNullable,
   some,
   withDefault
 } from './maybe';
-import {DataEnvelope} from 'etna-js/utils/input_types';
-import { components, dontDownloadForOutputTypes, OUTPUT_TYPES } from '../components/ui_components';
+import { components, dontDownloadForOutputTypes, DataEnvelope } from '../components/ui_components';
 
 export function pick<T extends DataEnvelope<any>, K extends keyof T>(obj: T, keys: K[]) {
   return Object.fromEntries(
@@ -97,12 +87,12 @@ export function workflowByName(
 export const workflowId = (workflow: Workflow | null | undefined) =>
   workflow && workflow.id ? workflow.id : null;
 
-export function workflowById(
-  id: any,
-  state: VulcanState
-): Workflow | undefined {
-  return state.workflows.find((w) => workflowId(w) === id);
-}
+// export function workflowById(
+//   id: any,
+//   state: VulcanState
+// ): Workflow | undefined {
+//   return state.workflows.find((w) => workflowId(w) === id);
+// }
 
 export function workflowByIdFromWorkflows(
   id: Workspace['workflow_id'],
@@ -130,9 +120,9 @@ export function compSetName(content: VulcanConfigElement) {
   return !!content.name ? content.name : content.display
 }
 
-export function compSetLabel(content: VulcanConfigElement) {
-  return content.display
-}
+// export function compSetLabel(content: VulcanConfigElement) {
+//   return content.display
+// }
 
 export function vulcanConfigFromRaw(config: VulcanConfig | VulcanConfigRaw) {
   // Transforms it from array to object, using compSetNames as keys
@@ -181,13 +171,13 @@ export function uiContentsFromFiles(workspace: Workspace, file_contents?: Worksp
   }));
 }
 
-// All components defined in the vulcan_config
-export function allUIComponentNames(
-  given: VulcanState | VulcanState['workspace']
-): string[] {
-  const workspace = !!given && 'workspace' in given ? given.workspace : given;
-  return workspace ? Object.keys(workspace.vulcan_config) : [];
-}
+// // All components defined in the vulcan_config
+// export function allUIComponentNames(
+//   given: VulcanState | VulcanState['workspace']
+// ): string[] {
+//   const workspace = !!given && 'workspace' in given ? given.workspace : given;
+//   return workspace ? Object.keys(workspace.vulcan_config) : [];
+// }
 
 
 // Components defined in the vulcan_config that populate "primary inputs" of the input_feed
@@ -377,20 +367,6 @@ export function labelOfStepOrGroupedStep(
   return step.label || step.name;
 }
 
-const SOURCE_STR_REGEX = /^([^\/]+)\/[^\/]+$/;
-
-export function stepOfSource(source: string): string | undefined {
-  const match = source.match(SOURCE_STR_REGEX);
-  if (match) return match[1];
-  return undefined;
-}
-
-export function splitSource(source: string): [string | undefined, string] {
-  const step = stepOfSource(source);
-  if (step) source = source.slice(step.length + 1);
-  return [step, source];
-}
-
 // ToDo: Assess need to keep
 //  - additionally only outputs if an output component, but...
 //  - could have a single component retrieval route for inputs and outputs
@@ -427,67 +403,6 @@ export const stepInputDataUrls = (
   return result;
 };
 
-export function allWorkspacePrimaryInputSources(workspace: Workspace): string[] {
-  let params = [] as string[];
-  // ONLY ui for config elements have param outputs.
-  Object.values(workspace.vulcan_config).map(val => {
-    if (val.output && val.output.params) {
-      params = params.concat(val.output.params);
-    }
-  })
-  return params;
-}
-
-export function allWorkspaceUISources(config: Workspace | VulcanConfig): {params: string[], files: string[]} {
-  const vulcan_config = 'vulcan_config' in config ? config.vulcan_config as VulcanConfig: config;
-  let params = [] as string[];
-  let files = [] as string[];
-  Object.values(vulcan_config).map(val => {
-    if (val.output) {
-      if (val.output.params) {
-        params = params.concat(val.output.params);
-      }
-      if (val.output.files) {
-        files = files.concat(val.output.files);
-      }
-    }
-  })
-  return {
-    params: uniqueValues(params),
-    files: uniqueValues(files)
-  };
-}
-
-export function getInputSources(step: string, state: VulcanState) {
-
-}
-
-export const sourceNameOfReference = (ref: [string, string]) => {
-  return ref.join('/');
-};
-
-// export function inputSourcesOfStep(step: WorkspaceStep) {
-//   return step.out.map((outputName) =>
-//     sourceNameOfReference([step.name, outputName])
-//   );
-// }
-
-// export function inputSourcesOfPrimaryInputs(workflow: Workflow) {
-//   return Object.keys(workflow.inputs);
-// }
-
-// export function allWorkflowInputSources(workflow: Workflow): string[] {
-//   return allWorkflowPrimaryInputSources(workflow).concat(
-//     workflow.steps[0].reduce((acc, step) => {
-//       if (uiQueryOfStep(step)) {
-//         acc.push(...inputSourcesOfStep(step));
-//       }
-
-//       return acc;
-//     }, [] as string[])
-//   );
-// }
-
 export function inputValueNonEmpty(
   val: Maybe<any>,
   disallow_empty_string = false,
@@ -515,88 +430,15 @@ export function isNullish(value: any) {
   return value == null || value === 'null' || value === '';
 }
 
-export function dataOfSource(
-  source: string,
-  workflow: Workflow | null,
-  status: VulcanState['status'],
-  data: VulcanState['data'],
-  session: VulcanState['session']
-): [any] | null {
-  if (!workflow) return null;
-  const [originalStepName, outputName] = splitSource(source);
-  const originalStep = originalStepName
-    ? stepOfStatus(originalStepName, workflow)
-    : null;
-  if (!originalStep) return null;
-
-  if (source in session.inputs) return [session.inputs[source]];
-  const stepStatus = statusOfStep(originalStep, status);
-  if (!stepStatus) return null;
-  const {downloads} = stepStatus;
-  if (!downloads) return null;
-  const url = downloads[outputName];
-  if (url in data) return data[url];
-  return null;
-}
-
-export function allExpectedOutputSources(
-  step: VulcanConfigElement | WorkspaceStepGroup | WorkspaceStep
-): string[] {
-  if ('steps' in step) {
-    return step.steps
-      .map(s => allExpectedOutputSources(s))
-      .reduce((a, b) => [...a, ...b], []);
-  } else {
-    if (!step.output) return [];
-    let outputs: string[] = [];
-    if (step.output.params) {
-      outputs = outputs.concat(step.output.params);
-    }
-    if (step.output.files) {
-      outputs = outputs.concat(step.output.files);
-    }
-    return outputs;
-  }
-}
-
-export function allSourcesForStepName(
-  name: string | null,
-  workspace: Workspace | null
-): string[] {
-  if (!workspace) return [];
-  if (!name) return allWorkspacePrimaryInputSources(workspace);
-  if (!Object.keys(workspace.vulcan_config).includes(name)) return [];
-  const step = workspace.vulcan_config[name];
-  return allExpectedOutputSources(step).map(val => sourceNameOfReference([name, val]));
-}
-
-export const isDataConsumer = (step: WorkspaceStep) =>
-  uiQueryOfStep(step) != null ||
-  [null, OUTPUT_TYPES.LINK].indexOf(uiOutputOfStep(step)) === -1;
-
-export function shouldDownloadStep(
-  stepName: string,
-  workflow: Workflow,
-  outputName: string
-) {
-  return !!workflow.steps[0].find((step) => {
-    if (!isDataConsumer(step)) return false;
-    return !!step.in.find(({source}) => {
-      const [sourceStep, sourceOutputName] = splitSource(source);
-      return sourceStep === stepName && sourceOutputName == outputName;
-    });
-  });
-}
-
-export function compSetNameOfParam(paramName: string, vulcan_config: VulcanConfig) {
-  function hasParam(config: VulcanConfigElement) {
-    return !!config.output && !!config.output.params && config.output.params?.includes(paramName)
-  }
-  const found = Object.keys(vulcan_config).filter(
-    setName => hasParam(vulcan_config[setName])
-  )
-  return found.length > 0 ? found[0] : undefined;
-}
+// export function compSetNameOfParam(paramName: string, vulcan_config: VulcanConfig) {
+//   function hasParam(config: VulcanConfigElement) {
+//     return !!config.output && !!config.output.params && config.output.params?.includes(paramName)
+//   }
+//   const found = Object.keys(vulcan_config).filter(
+//     setName => hasParam(vulcan_config[setName])
+//   )
+//   return found.length > 0 ? found[0] : undefined;
+// }
 
 export function stepInputDataRaw(
   step: WorkspaceStep,
@@ -672,20 +514,20 @@ export function stepOutputMapping(
   return map;
 };
 
-export function stepOutputDataOriginal(
-  config: VulcanConfigElement,
-  last_params: WorkspaceStatus['last_params'],
-  file_contents: WorkspaceStatus['file_contents']
-) {
-  const keyMap = stepOutputMapping(config);
-  const values: {[k: string]: any} = {};
-  Object.keys(keyMap).forEach( (name) => {
-    values[name] = name in last_params ?
-      last_params[keyMap[name]] :
-      name in file_contents ? file_contents[keyMap[name]] : null
-  });
-  return values;
-};
+// export function stepOutputDataOriginal(
+//   config: VulcanConfigElement,
+//   last_params: WorkspaceStatus['last_params'],
+//   file_contents: WorkspaceStatus['file_contents']
+// ) {
+//   const keyMap = stepOutputMapping(config);
+//   const values: {[k: string]: any} = {};
+//   Object.keys(keyMap).forEach( (name) => {
+//     values[name] = name in last_params ?
+//       last_params[keyMap[name]] :
+//       name in file_contents ? file_contents[keyMap[name]] : null
+//   });
+//   return values;
+// };
 
 export function stepOutputData(
   stepName: string,
@@ -722,41 +564,6 @@ export function pendingUIInputStepReady(
     pendingStepNames(workspace, status).includes(step) &&
     workspace.vulcan_config[step].input?.files?.every((id) => id in data)
   );
-}
-
-export const stepOutputs = (step: WorkspaceStep | undefined | '') => {
-  if (!step) return [];
-
-  return step.out.map((name) => sourceNameOfReference([step.name, name]));
-};
-
-export const sourceNamesOfStep = (step: WorkspaceStep) => {
-  // return stepOutputs(step); Originally this...
-
-  if (step.out.length === 0) return [];
-
-  // Assign one output per CWL step so that any downloaded input data is grabbed.
-  // But only take one output so that the input widget itself is not
-  //   rendered multiple times in the UI.
-  return [sourceNameOfReference([step.name, step.out[0]])];
-};
-
-export function missingOutputsForStep(
-  step: WorkspaceStep,
-  inputs: VulcanState['session']['inputs']
-): {[k: string]: null} {
-  const result: {[k: string]: null} = {};
-
-  step.out.forEach((outputName) => {
-    const source = sourceNameOfReference([step.name, outputName]);
-    if (source in inputs) {
-      return;
-    }
-
-    result[source] = null;
-  });
-
-  return result;
 }
 
 function stepNamesOfStatus(
@@ -806,10 +613,6 @@ export function hasRunningSteps(status: VulcanState['status']): boolean {
   return Object.values(status.steps).filter((s) => s.status == 'running').length > 0;
 }
 
-export function hasNoRunningSteps(status: VulcanState['status']): boolean {
-  return !hasRunningSteps(status);
-}
-
 export const inputGroupName = (name: string) => {
   let groupName = name.split('__')[0];
   if (groupName === name) return null;
@@ -843,77 +646,6 @@ export function groupUiSteps(uiStepNames: string[], workspace: Workspace): Works
   return result;
 }
 
-export function filterEmptyValues(values: {[k: string]: any}): {
-  [k: string]: any;
-} {
-  const result: {[k: string]: any} = {};
-
-  Object.keys(values).forEach((k) => {
-    const val = values[k];
-    if (inputValueNonEmpty(maybeOfNullable(val))) result[k] = val;
-  });
-
-  return result;
-}
-
 export function useMemoized<P1, R>(f: (p1: P1) => R, p1: P1): R {
   return useMemo(() => f(p1), [f, p1]);
-}
-
-export function selectSession(
-  figureResponse: VulcanFigureSession
-): VulcanStorage {
-  return {
-    project_name: figureResponse.project_name,
-    workflow_name: figureResponse.workflow_name,
-    key: figureResponse.key,
-    inputs: {...figureResponse.inputs},
-    reference_figure_id: figureResponse.id
-  };
-}
-
-export function selectFigure(
-  figureResponse: VulcanFigureSession
-): VulcanFigure {
-  return {
-    figure_id: figureResponse.figure_id,
-    title: figureResponse.title,
-    author: figureResponse.author,
-    inputs: {...figureResponse.inputs},
-    tags: [...(figureResponse.tags || [])],
-    workflow_snapshot: figureResponse.workflow_snapshot,
-    id: figureResponse.id
-  };
-}
-
-export function configDefaults(
-  workspace: Workspace
-): DataEnvelope<Maybe<any>> {
-  if (!workspace) return {};
-  const {vulcan_config} = workspace;
-  const configComps = paramUINames(workspace);
-  
-  let defaults: DataEnvelope<Maybe<any>> = {};
-  configComps.forEach(step => {
-    defaults[step] = maybeOfNullable(vulcan_config[step].default)
-  });
-  return defaults;
-}
-
-export function missingConfigInputDefaults(
-  workspace: Workspace | null,
-  status: VulcanState['status'],
-  currentConfigInputs: DataEnvelope<Maybe<any>>
-): DataEnvelope<Maybe<any>> {
-  if (!workspace) return currentConfigInputs;
-  const {vulcan_config} = workspace;
-  const configComps = paramUINames(workspace);
-
-  let newDefaults: DataEnvelope<Maybe<any>> = {};
-  configComps.forEach((step) => {
-    if (!(step in Object.keys(currentConfigInputs)) && !(step in Object.keys(status.params))) {
-      newDefaults[step] = maybeOfNullable(vulcan_config[step].default);
-    }
-  });
-  return newDefaults;
 }

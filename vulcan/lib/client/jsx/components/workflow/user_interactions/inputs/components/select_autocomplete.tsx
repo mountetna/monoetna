@@ -6,7 +6,6 @@ import {useMemoized} from '../../../../../selectors/workflow_selectors';
 import {useSetsDefault} from '../useSetsDefault';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
-import {debounce} from 'lodash';
 import {useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
 
 export function pullRecommendation<T extends DataEnvelope<any>>(
