@@ -692,15 +692,21 @@ export function stepOutputData(
   keyMap: ReturnType<typeof stepOutputMapping>,
   buffered: DataEnvelope<Maybe<any>>,
   params: WorkspaceStatus['params'],
-  ui_contents: WorkspaceStatus['ui_contents']
+  ui_contents: WorkspaceStatus['ui_contents'],
+  _default: any
 ) {
   const values: {[k: string]: Maybe<any>} = {};
-  Object.keys(keyMap).forEach( (name) => {
-    values[name] = name in buffered ? 
-      buffered[name] :
+  if (_default != null && !Array.isArray(_default)) {
+    _default = [_default]
+  }
+  Object.entries(keyMap).forEach( ([internal, external], index) => {
+    // internal = the value names known to the ui_component definition
+    // external = the file or param name mapping to that value element
+    values[internal] = internal in buffered ? 
+      buffered[internal] :
       stepName in params ?
-      params[stepName][keyMap[name]] :
-      ui_contents[stepName][keyMap[name]] || null
+      params[stepName][external] || _default[index] || null:
+      ui_contents[stepName][external] || _default[index] || null
   });
   return values;
 };

@@ -12,11 +12,12 @@ import {
   inputGroupName,
   missingConfigInputDefaults
 } from '../../../selectors/workflow_selectors';
-import InputGroup from './input_group';
+import PrimaryInputGroup from './primary_input_group';
 import {
   bindInputSpecification,
   BoundInputSpecification,
-  getParamUISpecifications
+  getParamUISpecifications,
+  InputSpecification
 } from '../user_interactions/inputs/input_types';
 import {useWorkspace} from '../../../contexts/workspace_context';
 import {Maybe, maybeOfNullable} from '../../../selectors/maybe';
@@ -45,20 +46,10 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-function PrimaryInputsInner() {
+export default function PrimaryInputs() {
   const {state} = useContext(VulcanContext);
-  const {values, setValues} = useContext(BufferedInputsContext);
-  const {status, workspace} = state;
+  const {workspace} = state;
   if (!workspace) return null;
-
-  // Ensure defaults are set.
-  useEffect(() => {
-    let newDefaults = missingConfigInputDefaults(workspace, status, values);
-
-    if (Object.keys(newDefaults).length > 0) {
-      setValues((values) => ({...values, ...newDefaults}));
-    }
-  }, [values, status, setValues, workspace]);
 
   const inputSpecifications = useMemo(
     () => getParamUISpecifications(workspace),
@@ -67,32 +58,13 @@ function PrimaryInputsInner() {
 
   let groupedInputs = useMemo(() => {
     return inputSpecifications.reduce((result, spec) => {
-      let groupName = inputGroupName(spec.name) || 'Inputs';
+      let groupName = inputGroupName(spec.name) || 'Config Inputs';
       result[groupName] = result[groupName] || [];
-      result[groupName].push(
-        bindInputSpecification(
-          spec,
-          workspace.steps,
-          workspace.vulcan_config,
-          status.last_params,
-          status.file_contents,
-          status.params,
-          status.ui_contents,
-          values,
-          setValues
-        )
-      );
+      result[groupName].push(spec);
       return result;
-    }, {} as {[k: string]: BoundInputSpecification[]});
+    }, {} as {[k: string]: InputSpecification[]});
   }, [
-    inputSpecifications,
-    values,
-    setValues,
-    workspace.steps,
-    workspace.vulcan_config,
-    status.last_params,
-    status.file_contents,
-    workspace
+    inputSpecifications
   ]);
 
   const [expanded, setExpanded] = useState([] as string[]);
@@ -135,7 +107,7 @@ function PrimaryInputsInner() {
           .sort()
           .map((groupName, index) => {
             return (
-              <InputGroup
+              <PrimaryInputGroup
                 expanded={expanded.includes(groupName)}
                 select={() => toggleExpanded(groupName)}
                 groupName={groupName.split('_').slice(1).join(' ')}
@@ -146,19 +118,5 @@ function PrimaryInputsInner() {
           })}
       </Collapse>
     </Card>
-  );
-}
-
-export default function PrimaryInputs() {
-  const {commitSessionInputChanges, dispatch} = useContext(VulcanContext);
-
-  return (
-    <WithBufferedInputs
-      commitSessionInputChanges={commitSessionInputChanges}
-      dispatch={dispatch}
-      stepName={null}
-    >
-      <PrimaryInputsInner />
-    </WithBufferedInputs>
   );
 }

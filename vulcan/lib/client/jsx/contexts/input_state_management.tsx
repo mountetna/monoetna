@@ -84,12 +84,14 @@ export function WithBufferedInputs({
 
   const cancelValueUpdates: any = useCallback(() => {
     if (stateRef.current.workspace!=null) {
+      const config = (stateRef.current.workspace as Workspace).vulcan_config[stepName];
       const origValue = stepOutputData(
         stepName,
-        stepOutputMapping((stateRef.current.workspace as Workspace).vulcan_config[stepName]),
+        stepOutputMapping(config),
         {},
         stateRef.current.status.params,
-        stateRef.current.status.ui_contents)
+        stateRef.current.status.ui_contents,
+        config['default'])
 
         // // eslint-disable-next-line
         setValues(origValue);

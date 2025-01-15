@@ -100,30 +100,30 @@ export default function UserInput({
   input: BoundInputSpecification;
   hideLabel?: boolean;
 }) {
-  const [InputComponent, Validator] = backendComponentOf(input.type);
+  const [InputComponent, Validator] = backendComponentOf(input.ui_component);
   const {dispatch} = useContext(VulcanContext);
-  const {onChange, data, value, source, label, numOutputs} = input;
+  const {onChange, data, value, name, label, doc} = input;
 
   useEffect(() => {
     const errors = Validator({ data, value });
     if (errors.length > 0) {
       dispatch(
-        addValidationErrors(stepOfSource(source) || null, label, errors)
+        addValidationErrors(name, label, errors)
       );
     }
     // On unmount, remove all errors associated with the input
     return () => {
       dispatch(removeValidationErrors(errors));
     };
-  }, [dispatch, Validator, value, source, label, data]);
+  }, [dispatch, Validator, value, name, label, data]);
 
   return (
     <div className='view_item'>
       {!hideLabel ? (
-        <div className='item_name'>{input.label}</div>
+        <div className='item_name'>{label}</div>
       ) : null}
       <div className='item_view'>
-        <InputHelp doc={input.doc || ''}>
+        <InputHelp doc={doc || ''}>
           {/* Input components should absolutely never have access to the top level context,
               as inputs are frequently nested in unpredictable ways and have no guarantee
               of their own association with the top level context.  Better to make input
@@ -132,11 +132,10 @@ export default function UserInput({
               its interface correctly in all cases.
            */}
           <VulcanContext.Provider value={defaultContext}>
-            <InputComponent key={input.label}
+            <InputComponent key={label}
               onChange={onChange}
               data={data}
-              value={value}
-              numOutputs={numOutputs} />
+              value={value}/>
           </VulcanContext.Provider>
         </InputHelp>
       </div>

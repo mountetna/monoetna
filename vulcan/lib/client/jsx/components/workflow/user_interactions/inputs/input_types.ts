@@ -147,7 +147,7 @@ export function bindInputSpecification(
 
   const outputDataKeyMap = useMemo( () => stepOutputMapping(config),
   [config]);
-  const value = useMemo(() => stepOutputData(stepName, outputDataKeyMap, buffered, params, ui_contents),
+  const value = useMemo(() => stepOutputData(stepName, outputDataKeyMap, buffered, params, ui_contents, config['default']),
   [stepName, buffered, outputDataKeyMap, params, ui_contents]);
 
   return {
