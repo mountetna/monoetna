@@ -1,8 +1,8 @@
 import React, {useEffect} from 'react';
-import {WithInputParams} from './input_types';
-import {some, withDefault} from '../../../../selectors/maybe';
+import {WithInputParams} from '../input_types';
+import {some, withDefault} from '../../../../../selectors/maybe';
 import { PickFileOrFolder, PickBucket } from 'etna-js/components/metis_exploration';
-import {useSetsDefault} from './useSetsDefault';
+import {useSetsDefault} from '../useSetsDefault';
 import { Grid } from '@material-ui/core';
 
 declare const CONFIG: {[key: string]: any};
@@ -13,7 +13,7 @@ function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: With
     allowFiles: boolean
     }, metisPathType, metisPathType
   >) {
-  const value = useSetsDefault({bucket: '', path: '', type: null}, props.value, onChange);
+  const value = useSetsDefault({bucket: '', path: '', type: null}, props.value, onChange, 'target');
 
   function updateKeyToVal(key: 'bucket' | 'path' | 'type', val: string | null, fullValues = {...value}) {
     // console.log('setting ', key, ' to ', val)
@@ -21,7 +21,7 @@ function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: With
     if (newValue[key] != val) {
       // only push when different than current
       newValue[key] = val as any
-      onChange(some(newValue))
+      onChange({target: some(newValue)})
     }
   }
 

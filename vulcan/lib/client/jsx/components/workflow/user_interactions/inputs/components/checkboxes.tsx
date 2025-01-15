@@ -8,7 +8,7 @@ import {useSetsDefault} from '../useSetsDefault';
 
 export default function CheckboxesInput({data, onChange, ...props}: WithInputParams<{}, string[], StringOptions>) {
   const options = useMemoized(flattenStringOptions, data);
-  const value = useSetsDefault(options, props.value.picked, onChange);
+  const value = useSetsDefault(options, props.value, onChange, 'picked');
 
   const handleClickOption = useCallback(
     (option: string) => {

@@ -11,7 +11,7 @@ import LowPriorityIcon from '@material-ui/icons/LowPriority';
 import DragHandleIcon from '@material-ui/icons/DragHandle';
 import Typography from '@material-ui/core/Typography';
 import {some} from '../../../../../selectors/maybe';
-import SelectAutocompleteInput from '../select_autocomplete';
+import SelectAutocompleteInput from '../components/select_autocomplete';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 import {arrayLevels, checkboxPiece} from './user_input_pieces';
 

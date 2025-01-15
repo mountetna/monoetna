@@ -8,7 +8,7 @@ import {some} from '../../../../selectors/maybe';
 import {useMemoized} from '../../../../selectors/workflow_selectors';
 import {joinNesting} from './monoids';
 import {useSetsDefault} from './useSetsDefault';
-import SelectAutocompleteInput from './select_autocomplete';
+import SelectAutocompleteInput from './components/select_autocomplete';
 
 function getPath(options: OptionSet, leaf: string): string[] {
   for (let [key, value] of Object.entries(options)) {

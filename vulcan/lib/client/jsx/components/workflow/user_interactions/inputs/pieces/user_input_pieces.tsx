@@ -6,7 +6,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import Slider from '@material-ui/core/Slider';
 import StringInput from '../components/string';
 import BooleanInput from '../components/boolean';
-import SelectAutocompleteInput from '../select_autocomplete';
+import SelectAutocompleteInput from '../components/select_autocomplete';
 import FloatInput from '../components/float';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';

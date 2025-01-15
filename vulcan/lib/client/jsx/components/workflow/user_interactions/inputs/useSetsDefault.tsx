@@ -1,10 +1,16 @@
 import {Maybe, some, withDefault} from '../../../../selectors/maybe';
 import {useEffect} from 'react';
 
-export function useSetsDefault<T>(_default: T, value: Maybe<T>, onChange: (v: Maybe<T>) => void) {
+export function useSetsDefault<T>(_default: T, value: Maybe<T>, onChange: (v: Maybe<T>) => void, key: string) {
   useEffect(() => {
-    if (!value) onChange(some(_default));
-  }, [_default, onChange, value]);
+    if (!value) {
+      onChange({[key]: some(_default)});
+    } else if (!(key in value)) {
+      const newVals = {...value};
+      newVals[key] = some(_default);
+      onChange(newVals);
+    }
+  }, [_default, onChange, value, key]);
 
-  return withDefault(value, _default);
+  return key in value ? withDefault(value[key], _default) : _default;
 }

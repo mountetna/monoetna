@@ -6,7 +6,7 @@ import {selectDefaultString} from '../monoids';
 import { TextField } from '@material-ui/core';
 
 export default function StringInput({onChange, label, minWidth, data, ...props}: WithInputParams<{label?: string, minWidth?: number}, string, string>) {
-  const value = useSetsDefault(selectDefaultString(data), props.value.value, onChange);
+  const value = useSetsDefault(selectDefaultString(data), props.value, onChange, 'value');
   
   return (
     <div style={{paddingTop: label ? 8 : 0}}>

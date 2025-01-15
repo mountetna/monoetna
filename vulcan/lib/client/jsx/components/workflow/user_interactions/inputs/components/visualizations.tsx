@@ -658,7 +658,7 @@ function VisualizationUI(
   const preset = useMemo(() => data && 'optional' in data && 'preset' in data['optional'] ? data['optional']['preset'] : undefined, [data]);
   const hide = useMemo(() => preset && Object.keys(preset), [preset]);
   const defaultValue = whichDefaults(setPlotType, preset, defaults, redefaults, input_sets);
-  const value = useSetsDefault(defaultValue, props.value.plot_setup, onChange);
+  const value = useSetsDefault(defaultValue, props.value, onChange, 'plot_setup');
   const [expandedDrawers, setExpandedDrawers] = useState(['primary features']);
   const plotType =
     value && value['plot_type'] ? (value['plot_type'] as string) : null;

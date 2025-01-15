@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {DataEnvelope, WithInputParams} from './input_types';
-import {maybeOfNullable, some, withDefault} from '../../../../selectors/maybe';
-import {flattenStringOptions, StringOptions} from './monoids';
-import {useMemoized} from '../../../../selectors/workflow_selectors';
-import {useSetsDefault} from './useSetsDefault';
+import {DataEnvelope, WithInputParams} from '../input_types';
+import {maybeOfNullable, some, withDefault} from '../../../../../selectors/maybe';
+import {flattenStringOptions, StringOptions} from '../monoids';
+import {useMemoized} from '../../../../../selectors/workflow_selectors';
+import {useSetsDefault} from '../useSetsDefault';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import {debounce} from 'lodash';
@@ -102,7 +102,7 @@ export default function SelectAutocompleteInput({
   const [data_use, suggestion] = useMemoized(pullRecommendation, data);
 
   const options_in = useMemoized(flattenStringOptions, data_use);
-  const value = useSetsDefault(null, props.value, onChange);
+  const value = useSetsDefault(null, props.value, onChange, 'picked');
   const disp_label = useMemo(() => {
     return suggestion ? suggestion : label;
   }, [suggestion, label]);
@@ -170,7 +170,7 @@ export default function SelectAutocompleteInput({
     (event: any, e: string | null) => {
       onChangeOverride
         ? onChangeOverride(event, e)
-        : onChange(maybeOfNullable(e));
+        : onChange({picked: maybeOfNullable(e)});
     },
     [onChangeOverride, onChange]
   );
