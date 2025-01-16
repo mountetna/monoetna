@@ -728,5 +728,94 @@ class Polyphemus
       Polyphemus.instance.setup_ssh
     end
   end
-end
 
+class RunJob < Etna::Command
+    include WithEtnaClients
+
+    def execute(job_name, config_id, version_number)
+      # Retrieve the config from polyphemus
+      # We need to use the db here to get the decrypted secrets
+      config = Polyphemus::Config.current.where(
+        config_id: config_id,
+        version_number: version_number
+      ).first
+
+      runtime_config = Polyphemus::RuntimeConfig.where(
+        config_id: config_id,
+      ).first
+
+      # Instantiate the job and run it
+      # Dynamically load the job class from the job_name
+      job = Kernel.const_get("#{job_name}_job".camelize.to_sym)
+      job.new(config, runtime_config)
+      job.execute
+    end
+
+  end
+
+  class GetRuntimeMetadata < Etna::Command
+    include WithEtnaClients
+
+    def execute(run_id, workflow_json, output)
+
+      # We need to fetch the project name
+      run = Polyphemus::Run.where(
+        run_id: run_id
+      ).first
+
+      config = Polyphemus::Config.current.where(
+        config_id: run.config_id,
+        version_number: run.version_number
+      ).first
+      
+      # Parse the workflow_json and just extract status
+      workflow_data = JSON.parse(workflow_json)
+      status = workflow_data["status"]
+      updates = {
+        orchestrator_metadata: status,
+        output: output
+      }
+      polyphemus_client.update_run(config.project_name, run_id, updates)
+    end
+
+  end
+
+  class IntervalScheduler < Etna::Command
+    include WithLogger
+  
+    usage 'Continuously polls elibile runtime configs and submits Argo workflows' 
+  
+    def execute
+      eligible_runtime_configs = Polyphemus::RuntimeConfig.eligible_runtime_configs
+      logger.info("Found #{eligible_runtime_configs.count} eligible runtime configs for scheduling...")
+
+      eligible_runtime_configs.each do |runtime_config|
+
+          config = Polyphemus::Config.current.where(
+            config_id: runtime_config.config_id,
+          ).first
+
+        logger.info("Submitting workflow #{config.workflow_name}, for project: #{config.project_name}, workflow_type: #{config.workflow_type}, config_id: #{runtime_config.config_id}...")
+          # Build command with proper escaping
+          workflow_path = "/app/workflows/argo/#{config.workflow_type}/workflow.yaml".shellescape
+          cmd = [
+            "argo", "submit",
+            "-f", workflow_path,
+            "-p", "config_id=#{config.config_id}",
+            "-p", "version_number=#{config.version_number}"
+          ]
+
+          # Execute command and capture output using Open3
+          begin
+            stdout, stderr, status = Open3.capture3(*cmd)
+          rescue StandardError => e
+            raise Etna::Error, "Failed to submit Argo workflow: #{e}"
+          end
+
+          unless status.success?
+            raise Etna::Error, "Failed to submit Argo workflow: #{stderr}"
+          end
+        end
+    end
+  end
+end

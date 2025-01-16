@@ -1,13 +1,12 @@
-require_relative '../etls/redcap/redcap_etl_script_runner'
-
 class Polyphemus
-  class RedcapJob < Polyphemus::Job
+  class RedcapLoaderManifest < Polyphemus::WorkflowManifest
+
     class << self
       def as_json
         {
-          name: "redcap",
+          name: 'redcap',
           schema: Redcap::Loader.to_schema,
-          params: {
+          runtime_params: {
             mode: [ {
               value: 'default',
               default: true,
@@ -28,10 +27,6 @@ class Polyphemus
           secrets: [ :redcap_tokens ]
         }
       end
-
-      def should_run?
-        true
-      end
     end
 
     def validate
@@ -46,33 +41,11 @@ class Polyphemus
       request_params[param_name] =~ /\A#{pattern}(,\s*#{pattern})*\z/
     end
 
-    def run
-      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
-        project_name: request_params[:project_name],
-        model_names: request_params[:model_names],
-        redcap_tokens: request_params[:redcap_tokens],
-        dateshift_salt: Polyphemus.instance.config(:dateshift_salt).to_s,
-        redcap_host: Polyphemus.instance.config(:redcap)[:host],
-        magma_host: Polyphemus.instance.config(:magma)[:host],
-        mode: request_params[:mode],
-        config: request_params[:config]
-      )
-
-      magma_client = Etna::Clients::Magma.new(
-        token: token,
-        host: Polyphemus.instance.config(:magma)[:host])
-
-      redcap_etl.run(magma_client: magma_client, commit: commit?, logger: $stdout)
-    end
-
     private
 
     def array_or_string_param(param, allowed_values=["all"])
       request_params[param].is_a?(Array) || allowed_values.include?(request_params[param])
     end
 
-    def commit?
-      !!request_params[:commit]
-    end
   end
 end
