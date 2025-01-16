@@ -1,4 +1,38 @@
 class Polyphemus
   class RuntimeConfig < Sequel::Model(:runtime_configs)
+    include WithLogger
+
+    # TODO: maybe move the scheduling logic to CronWorkflows
+    def self.eligible_runtime_configs
+
+      eligible_runtime_configs = []
+
+      # Get all runtime configs where interval is not null/none - runtime configs initiated as empty when configs are created
+      runtime_configs = self.exclude(run_interval: nil).all
+
+      runtime_configs.select do |runtime_config|
+     
+        config = Polyphemus::Config.current.where(
+          config_id: runtime_config.config_id,
+        ).first
+
+        run = Polyphemus::Run.where(
+            config_id: config.config_id,
+        ).last
+        
+        continue if run.orchestrator_metadata.nil?
+        
+        if run.is_finished?
+          if run.is_succeeded?
+            # Check if enough time has elapsed since last run based on interval
+            time_since_last_run = Time.now - DateTime.parse(run.finished_at).to_time
+            if time_since_last_run >= runtime_config.run_interval
+              eligible_runtime_configs << runtime_config
+            end
+          end
+        end
+      end
+      eligible_runtime_configs
+    end
   end
 end

@@ -783,24 +783,39 @@ class RunJob < Etna::Command
   class IntervalScheduler < Etna::Command
     include WithLogger
   
-    usage 'Continuously polls run_metadata for new entries and submits Argo workflows based on run_interval.'
+    usage 'Continuously polls elibile runtime configs and submits Argo workflows' 
   
     def execute
-      loop do
-        Polyphemus::RuntimeConfig.eligible_interval_configs.each do |entry|
-          config_id = entry[:config_id]
-          version_number = entry[:version_number]
-          run_interval = entry[:run_interval]
-          logger.info("Found new entry: config_id=#{config_id}, version=#{version_number}, run_interval=#{run_interval}")
+      eligible_runtime_configs = Polyphemus::RuntimeConfig.eligible_runtime_configs
+      logger.info("Found #{eligible_runtime_configs.count} eligible runtime configs for scheduling...")
+
+      eligible_runtime_configs.each do |runtime_config|
+
+          config = Polyphemus::Config.current.where(
+            config_id: runtime_config.config_id,
+          ).first
+
+        logger.info("Submitting workflow #{config.workflow_name}, for project: #{config.project_name}, workflow_type: #{config.workflow_type}, config_id: #{runtime_config.config_id}...")
+          # Build command with proper escaping
+          workflow_path = "/app/workflows/argo/#{config.workflow_type}/workflow.yaml".shellescape
           cmd = [
             "argo", "submit",
-            "-f", WORKFLOW_PATH,
-            "-p", "config_id=#{config_id}",
-            "-p", "version=#{version_number}"
-          ].join(" ")
+            "-f", workflow_path,
+            "-p", "config_id=#{config.config_id}",
+            "-p", "version_number=#{config.version_number}"
+          ]
+
+          # Execute command and capture output using Open3
+          begin
+            stdout, stderr, status = Open3.capture3(*cmd)
+          rescue StandardError => e
+            raise Etna::Error, "Failed to submit Argo workflow: #{e}"
+          end
+
+          unless status.success?
+            raise Etna::Error, "Failed to submit Argo workflow: #{stderr}"
+          end
         end
-      end
     end
   end
 end
-
