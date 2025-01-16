@@ -551,6 +551,13 @@ export function stepOutputData(
   return values;
 };
 
+export function stepHasBeenOutput(
+  stepName: string,
+  status: WorkspaceStatus,
+) {
+  return (stepName in status.params) || (stepName in status.ui_contents);
+}
+
 export function pendingUIInputStepReady(
   step: string,
   status: VulcanState['status'],

@@ -33,6 +33,7 @@ import Button from '@material-ui/core/Button';
 import {FormControlLabel, Grid, Switch} from '@material-ui/core';
 import { Workspace } from '../api_types';
 import { DataEnvelope } from '../components/ui_components';
+import { stepHasBeenOutput } from '../selectors/workflow_selectors';
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(
@@ -79,7 +80,8 @@ export function WithBufferedInputs({
   const {stateRef, state} = useContext(VulcanContext);
   const valuesRef = useRef({} as DataEnvelope<Maybe<any>>);
   const [values, setValuesState] = useState(valuesRef.current);
-  const hasValues = Object.keys(values).length > 0;
+  // We must assume a newly rendered UI might be filled in automatically with a valid default, even if the user has not touched it. 
+  const hasNewValues = Object.keys(values).length > 0 || !stepHasBeenOutput(stepName, stateRef.current.status);
 
   const cancelValueUpdates: any = useCallback(() => {
     // // eslint-disable-next-line
@@ -150,7 +152,7 @@ export function WithBufferedInputs({
     }
   }
 
-  const commit_reset_buttons = hasValues ? (
+  const commit_reset_buttons = hasNewValues ? (
     <div className='reset-or-commit-inputs'>
       <Button onClick={cancelValueUpdates} disabled={!!state.pollingState}>
         Reset
@@ -191,7 +193,7 @@ export function WithBufferedInputs({
   ) : null;
 
   const controls_below =
-    isPassableUIStep(stepName, stateRef.current.workspace) || hasValues ? (
+    isPassableUIStep(stepName, stateRef.current.workspace) || hasNewValues ? (
       <Grid container style={{width: 'auto'}} justifyContent='flex-end'>
         {autopass_switch}
         {commit_reset_buttons}
