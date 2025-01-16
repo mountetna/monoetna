@@ -29,10 +29,11 @@ export default function UserInput({
 }) {
   const [InputComponent, Validator] = backendComponentOf(input.ui_component);
   const {dispatch} = useContext(VulcanContext);
-  const {onChange, data, value, name, label, doc} = input;
+  const {onChange, data, value, name, label, doc, valueKeyMap} = input;
 
   useEffect(() => {
-    const errors = Validator({ data, value });
+    const firstValueKey = Object.keys(valueKeyMap)[0]
+    const errors = Validator({ data, value: value[firstValueKey] });
     if (errors.length > 0) {
       dispatch(
         addValidationErrors(name, label, errors)

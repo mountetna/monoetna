@@ -75,18 +75,19 @@ export const components = {} as {[k: string]: [
   InputBackendComponent<any, any, any>,
   InputValidator<any, any>,
   string[],
+  string[],
   string | undefined
 ]};
 function configureComponent<Value, DataElement>(
   type: InputType,
   component: InputBackendComponent<any, Value, DataElement>,
   validator: InputValidator<Value, DataElement>,
-  outputNames: string[],
+  outputInternalNames: string[],
   inputNames: string[],
   optionalInputName?: string
 ) {
   if (type in components) throw new Error(`Duplicate definition for ${type}`);
-  components[type] = [component, validator, inputNames, optionalInputName];
+  components[type] = [component, validator, outputInternalNames, inputNames, optionalInputName];
 }
 configureComponent(INPUT_TYPES.STRING, StringInput, NotEmptyValidator, ['value'], []);
 configureComponent(INPUT_TYPES.FLOAT, FloatInput, NotEmptyValidator, ['value'], []);

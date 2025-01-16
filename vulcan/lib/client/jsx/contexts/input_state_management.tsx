@@ -22,7 +22,6 @@ import {
   setAutoPassStep,
   VulcanAction
 } from '../actions/vulcan_actions';
-import {stepOutputData, stepOutputMapping} from '../selectors/workflow_selectors';
 import {
   mapSome,
   Maybe,
@@ -83,22 +82,11 @@ export function WithBufferedInputs({
   const hasValues = Object.keys(values).length > 0;
 
   const cancelValueUpdates: any = useCallback(() => {
-    if (stateRef.current.workspace!=null) {
-      const config = (stateRef.current.workspace as Workspace).vulcan_config[stepName];
-      const origValue = stepOutputData(
-        stepName,
-        stepOutputMapping(config),
-        {},
-        stateRef.current.status.params,
-        stateRef.current.status.ui_contents,
-        config['default'])
-
-        // // eslint-disable-next-line
-        setValues(origValue);
-        // // @ts-ignore
-        // // eslint-disable-next-line
-    }
-  }, [setValues, stepName, stateRef.current.workspace, stateRef.current.status.params, stateRef.current.status.ui_contents]);
+    // // eslint-disable-next-line
+    setValues({});
+    // // @ts-ignore
+    // // eslint-disable-next-line
+  }, [setValues]);
 
   const setValues: any = useCallback<typeof defaultBufferedInputs.setValues>(
     (values) => {
@@ -254,11 +242,11 @@ export function useInputStateManagement(
     typeof defaultInputStateManagement.commitSessionInputChanges
   >(
     (stepName, inputs) => {
-      // Set ui_contents in status
-      dispatch(setUIValues(inputs, stepName))
       // Validate current input set, ending here if not valid
       if (!validateInputs(stepName)) return false;
-      // Push for this step only
+      // Push to params/ui_contents in status
+      dispatch(setUIValues(inputs, stepName))
+      // Push to compute server
       requestPoll(true, false, stepName);
       return true;
     },

@@ -33,6 +33,8 @@ export interface BoundInputSpecification<Value = unknown, DataElement = unknown>
   onChange(v: Maybe<Value>, destructure?: boolean): void;
 
   data?: DataEnvelope<DataElement> | undefined | null;
+
+  valueKeyMap: ReturnType<typeof stepOutputMapping>
 }
 
 export function getParamUISpecifications(
@@ -155,6 +157,7 @@ export function bindInputSpecification(
     onChange(v: {[k:string]: Maybe<unknown>}) {
       setValues(v);
     },
+    valueKeyMap: outputDataKeyMap
   };
 }
 

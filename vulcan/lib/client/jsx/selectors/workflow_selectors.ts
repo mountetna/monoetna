@@ -538,17 +538,15 @@ export function stepOutputData(
   _default: any
 ) {
   const values: {[k: string]: Maybe<any>} = {};
-  if (_default != null && !Array.isArray(_default)) {
-    _default = [_default]
-  }
   Object.entries(keyMap).forEach( ([internal, external], index) => {
     // internal = the value names known to the ui_component definition
     // external = the file or param name mapping to that value element
+    const _def = index==0 ? _default : undefined;
     values[internal] = internal in buffered ? 
       buffered[internal] :
       stepName in params ?
-      params[stepName][external] || _default[index] || null:
-      ui_contents[stepName][external] || _default[index] || null
+      params[stepName][external] || _def || null :
+      ui_contents[stepName][external] || _def || null
   });
   return values;
 };
