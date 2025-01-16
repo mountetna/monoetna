@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {DataEnvelope, WithInputParams} from './input_types';
+import {WithInputParams} from './input_types';
 import {maybeOfNullable, some, withDefault} from '../../../../selectors/maybe';
 import {flattenStringOptions, StringOptions} from './monoids';
 import {useMemoized} from '../../../../selectors/workflow_selectors';
@@ -7,7 +7,7 @@ import {useSetsDefault} from './useSetsDefault';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import {useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
-import { pullRecommendation } from './select_autocomplete'
+import { pullRecommendation } from './components/select_autocomplete'
 
 // Compared to select_autocomplete, also filter selected options
 function filterOptions(query: string, opts: string[], value: string[]) {

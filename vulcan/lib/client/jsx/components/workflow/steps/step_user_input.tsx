@@ -1,14 +1,14 @@
 import React, {useContext, useMemo} from 'react';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import UserInput from '../user_interactions/inputs/user_input';
-import {WorkflowStep} from '../../../api_types';
+import {WorkspaceStep} from '../../../api_types';
 import {
   bindInputSpecification,
   BoundInputSpecification,
   getInputSpecifications,
   InputSpecification
 } from '../user_interactions/inputs/input_types';
-import {useWorkflow} from '../../../contexts/workflow_context';
+import {useWorkspace} from '../../../contexts/workspace_context';
 import {
   BufferedInputsContext,
   WithBufferedInputs
@@ -22,24 +22,26 @@ function StepUserInputInner({
   hideLabel: boolean;
 }) {
   const {state} = useContext(VulcanContext);
-  const {status, session, data} = state;
-  const {workflow} = useWorkflow();
-  const {inputs, setInputs} = useContext(BufferedInputsContext);
+  const {status} = state;
+  const {workspace} = useWorkspace();
+  const {values, setValues} = useContext(BufferedInputsContext);
 
   const stepInputs: BoundInputSpecification[] = useMemo(
     () =>
       specs.map((spec) =>
         bindInputSpecification(
           spec,
-          workflow,
-          status,
-          session,
-          data,
-          inputs,
-          setInputs
+          workspace.steps,
+          workspace.vulcan_config,
+          status.last_params,
+          status.file_contents,
+          status.params,
+          status.ui_contents,
+          values,
+          setValues
         )
       ),
-    [specs, workflow, status, session, data, inputs, setInputs]
+    [specs, workspace, status, values, setValues]
   );
 
   return (
@@ -55,14 +57,14 @@ export default function StepUserInput({
   step,
   hideLabel = true
 }: {
-  step: WorkflowStep;
+  step: WorkspaceStep;
   hideLabel: boolean;
 }) {
   const {dispatch, commitSessionInputChanges} = useContext(VulcanContext);
-  const {workflow} = useWorkflow();
+  const {workspace} = useWorkspace();
   const specs = useMemo(
-    () => getInputSpecifications(step, workflow),
-    [step, workflow]
+    () => getInputSpecifications(step, workspace),
+    [step, workspace]
   );
 
   return (

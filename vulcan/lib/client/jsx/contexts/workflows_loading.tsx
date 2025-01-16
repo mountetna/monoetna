@@ -7,12 +7,14 @@ export function useWorkflowsLoading(
     key: string,
     dispatch: Dispatch<VulcanAction>,
     getWorkflows: typeof defaultApiHelpers.getWorkflows,
-    showErrors: typeof defaultApiHelpers.showErrors) {
+    showErrors: typeof defaultApiHelpers.showErrors,
+    projectName: string
+) {
 
     useEffect(() => {
         const cancellable = new Cancellable();
 
-        showErrors(cancellable.race(getWorkflows())
+        showErrors(cancellable.race(getWorkflows(projectName))
             .then(({result, cancelled}) => {
                 if (result && !cancelled) dispatch(setWorkflows(result.workflows));
             }));

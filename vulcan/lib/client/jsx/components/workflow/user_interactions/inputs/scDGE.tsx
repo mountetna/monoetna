@@ -9,8 +9,8 @@ import {useSetsDefault} from './useSetsDefault';
 import {some} from '../../../../selectors/maybe';
 import {joinNesting, StringOptions} from './monoids';
 import {useMemoized} from '../../../../selectors/workflow_selectors';
-import {MultiselectPiece, dropdownPiece} from './user_input_pieces';
-import {subsetDataFramePiece} from './subsetDataFrame_piece';
+import {MultiselectPiece, dropdownPiece} from './pieces/user_input_pieces';
+import {subsetDataFramePiece} from './pieces/subsetDataFrame_piece';
 import {Button} from '@material-ui/core';
 
 /*

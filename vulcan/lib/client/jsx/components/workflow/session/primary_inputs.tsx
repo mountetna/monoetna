@@ -1,8 +1,6 @@
 import React, {
   useState,
-  useCallback,
   useContext,
-  useEffect,
   useMemo
 } from 'react';
 
@@ -10,26 +8,16 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import {
   inputGroupName,
-  mergeInputsWithDefaults
 } from '../../../selectors/workflow_selectors';
-import InputGroup from './input_group';
+import PrimaryInputGroup from './primary_input_group';
 import {
-  bindInputSpecification,
-  BoundInputSpecification,
-  DataEnvelope,
-  getInputSpecifications
+  getParamUISpecifications,
+  InputSpecification
 } from '../user_interactions/inputs/input_types';
-import {useWorkflow} from '../../../contexts/workflow_context';
-import {Maybe, maybeOfNullable} from '../../../selectors/maybe';
-import {
-  BufferedInputsContext,
-  WithBufferedInputs
-} from '../../../contexts/input_state_management';
 import Collapse from '@material-ui/core/Collapse';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import IconButton from '@material-ui/core/IconButton';
@@ -46,58 +34,35 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-function PrimaryInputsInner() {
+export default function PrimaryInputs() {
   const {state} = useContext(VulcanContext);
-  const {inputs, setInputs} = useContext(BufferedInputsContext);
-  const {session} = state;
-  const {workflow} = useWorkflow();
-
-  // Ensure defaults are set.
-  useEffect(() => {
-    let withDefaults: DataEnvelope<Maybe<any>> = mergeInputsWithDefaults(
-      workflow.inputs,
-      session.inputs,
-      inputs
-    );
-
-    if (Object.keys(withDefaults).length > 0) {
-      setInputs((inputs) => ({...inputs, ...withDefaults}));
-    }
-  }, [inputs, session.inputs, setInputs, workflow.inputs]);
+  const {workspace} = state;
+  if (!workspace) return null;
 
   const inputSpecifications = useMemo(
-    () => getInputSpecifications(Object.entries(workflow.inputs), workflow),
-    [workflow]
+    () => getParamUISpecifications(workspace),
+    [workspace]
   );
 
   let groupedInputs = useMemo(() => {
     return inputSpecifications.reduce((result, spec) => {
-      let groupName = inputGroupName(spec.name) || 'Inputs';
+      let groupName = inputGroupName(spec.name) || 'Config Inputs';
       result[groupName] = result[groupName] || [];
-      result[groupName].push(
-        bindInputSpecification(
-          spec,
-          workflow,
-          state.status,
-          state.session,
-          state.data,
-          inputs,
-          setInputs
-        )
-      );
+      result[groupName].push(spec);
       return result;
-    }, {} as {[k: string]: BoundInputSpecification[]});
+    }, {} as {[k: string]: InputSpecification[]});
   }, [
-    inputSpecifications,
-    inputs,
-    setInputs,
-    state.data,
-    state.session,
-    state.status,
-    workflow
+    inputSpecifications
   ]);
 
-  const [expanded, setExpanded] = useState('');
+  const [expanded, setExpanded] = useState([] as string[]);
+  function toggleExpanded(groupName: string) {
+    if (expanded.includes(groupName)) {
+      setExpanded(expanded.filter(val => val != groupName));
+    } else {
+      setExpanded(expanded.concat(groupName))
+    }
+  }
 
   const [open, setOpen] = useState(false);
 
@@ -113,7 +78,7 @@ function PrimaryInputsInner() {
         onClick={() => setOpen(!open)}
       >
         <Grid item>
-          <Typography variant='h6'>Primary Inputs</Typography>
+          <Typography variant='h6'>Config Params</Typography>
         </Grid>
         <Grid item>
           <IconButton size='small'>
@@ -130,11 +95,9 @@ function PrimaryInputsInner() {
           .sort()
           .map((groupName, index) => {
             return (
-              <InputGroup
-                expanded={expanded == groupName}
-                select={() =>
-                  setExpanded(expanded == groupName ? '' : groupName)
-                }
+              <PrimaryInputGroup
+                expanded={expanded.includes(groupName)}
+                select={() => toggleExpanded(groupName)}
                 groupName={groupName.split('_').slice(1).join(' ')}
                 key={index}
                 inputs={groupedInputs[groupName]}
@@ -143,19 +106,5 @@ function PrimaryInputsInner() {
           })}
       </Collapse>
     </Card>
-  );
-}
-
-export default function PrimaryInputs() {
-  const {commitSessionInputChanges, dispatch} = useContext(VulcanContext);
-
-  return (
-    <WithBufferedInputs
-      commitSessionInputChanges={commitSessionInputChanges}
-      dispatch={dispatch}
-      stepName={null}
-    >
-      <PrimaryInputsInner />
-    </WithBufferedInputs>
   );
 }

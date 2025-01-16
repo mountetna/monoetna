@@ -6,6 +6,7 @@ import {
 import {isSome, withDefault} from '../../../../../selectors/maybe';
 import {isNullish} from '../../../../../selectors/workflow_selectors';
 
+// Todo: Assess removal when re-connecting excel-editor components.  Seems very similar to all_inner_values_not_empty_validator.
 const _AllInnerKeysNotNullValidator = (
   input: ValidationInputSpecification<DataEnvelope<any>, DataEnvelope<any>>
 ): string[] => {
