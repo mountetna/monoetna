@@ -158,6 +158,21 @@ module Etna
         end
       end
 
+      class TailBucketRequest < Struct.new(:project_name, :bucket_name, :type, :folder_id, :batch_start, :batch_end, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+
+        def to_h
+          # The :project_name comes in from Polyphemus as a symbol value,
+          #   we need to make sure it's a string because it's going
+          #   in the URL.
+          super().compact.transform_values(&:to_s)
+        end
+      end
+
       class FindRequest < Struct.new(:project_name, :bucket_name, :limit, :offset, :params, :hide_paths, keyword_init: true)
         include JsonSerializableStruct
 
@@ -219,25 +234,99 @@ module Etna
         end
       end
 
-      class FoldersResponse
-        attr_reader :raw
-
-        def initialize(raw = {})
-          @raw = raw
+      class TailNode < Etna::Clients::Response
+        def initialize(tail, raw = {})
+          super(raw)
+          @tail = tail
         end
 
+        def parent?
+          @raw[:type] == 'parent'
+        end
+
+        def folder?
+          @raw[:type] == 'folder'
+        end
+
+        def file?
+          @raw[:type] == 'file'
+        end
+
+        params :id, :node_name, :parent_id, :file_hash, :updated_at
+
+        def as_file
+          {
+            file_name: node_name,
+            file_hash: file_hash,
+            updated_at: updated_at,
+            file_path: file_path,
+            folder_id: parent_id,
+            project_name: @tail.project_name,
+            bucket_name: @tail.bucket_name,
+          }
+        end
+
+        def parent_path
+          return nil if !parent_id
+
+          if !@tail.paths[parent_id]
+            parent = @tail.parents[parent_id]
+            @tail.paths[parent_id] = parent.file_path
+          end
+
+          return @tail.paths[parent_id]
+        end
+
+        def file_path
+          [ parent_path, node_name ].compact.join('/')
+        end
+      end
+
+      class TailResponse < Etna::Clients::Response
+        attr_reader :project_name, :bucket_name, :paths, :parents
+
+
+        def initialize(project_name, bucket_name, raw = {})
+          super(raw)
+
+          @paths = {}
+
+          @parents = {}
+
+          @project_name = project_name
+          @bucket_name = bucket_name
+
+          @nodes = []
+          raw.each do |raw_node|
+            node = TailNode.new(self, raw_node)
+            if node.parent?
+              @parents[node.id] = node
+            else
+              @nodes.push(node)
+            end
+          end
+        end
+
+        def folders
+          @nodes.filter_map do |node|
+            Folder.new(node.as_folder) if node.folder?
+          end
+        end
+
+        def files
+          @nodes.filter_map do |node|
+            File.new(node.as_file) if node.file?
+          end
+        end
+      end
+
+      class FoldersResponse < Etna::Clients::Response
         def folders
           Folders.new(raw[:folders])
         end
       end
 
-      class FilesResponse
-        attr_reader :raw
-
-        def initialize(raw = {})
-          @raw = raw
-        end
-
+      class FilesResponse < Etna::Clients::Response
         def files
           Files.new(raw[:files])
         end
@@ -253,37 +342,19 @@ module Etna
         end
       end
 
-      class Files
-        attr_reader :raw
-
-        def initialize(raw = {})
-          @raw = raw
-        end
-
+      class Files < Etna::Clients::Response
         def all
           raw.map { |file| File.new(file) }
         end
       end
 
-      class Folders
-        attr_reader :raw
-
-        def initialize(raw = {})
-          @raw = raw
-        end
-
+      class Folders < Etna::Clients::Response
         def all
           raw.map { |folder| Folder.new(folder) }
         end
       end
 
-      class File
-        attr_reader :raw
-
-        def initialize(raw = {})
-          @raw = raw
-        end
-
+      class File < Etna::Clients::Response
         def with_containing_folder(folder)
           folder_path = folder.is_a?(Folder) ? folder.folder_path : folder
           File.new({}.update(self.raw).update({
@@ -291,17 +362,7 @@ module Etna
           }))
         end
 
-        def file_path
-          raw[:file_path]
-        end
-
-        def project_name
-          raw[:project_name]
-        end
-
-        def bucket_name
-          raw[:bucket_name]
-        end
+        params :file_path, :project_name, :bucket_name, :file_name, :size, :file_hash, :folder_id
 
         def download_path
           raw[:download_url].nil? ?
@@ -313,58 +374,29 @@ module Etna
           raw[:download_url] || ''
         end
 
-        def file_name
-          raw[:file_name]
-        end
-
         def updated_at
           time = raw[:updated_at]
           time.nil? ? nil : Time.parse(time)
         end
 
-        def size
-          raw[:size]
+        def as_magma_file_attribute
+          {
+            path: as_metis_url,
+            original_filename: file_name || ::File.basename(file_path)
+          }
         end
 
-        def file_hash
-          raw[:file_hash]
-        end
-
-        def folder_id
-          raw[:folder_id]
+        def as_metis_url
+          "metis://#{project_name}/#{bucket_name}/#{file_path}"
         end
       end
 
-      class Folder
-        attr_reader :raw
-
-        def initialize(raw = {})
-          @raw = raw
-        end
-
-        def folder_path
-          raw[:folder_path]
-        end
-
-        def folder_name
-          raw[:folder_name]
-        end
-
-        def bucket_name
-          raw[:bucket_name]
-        end
-
-        def project_name
-          raw[:project_name]
-        end
+      class Folder < Etna::Clients::Response
+        params :folder_path, :folder_name, :bucket_name, :project_name, :id
 
         def updated_at
           time = raw[:updated_at]
           time.nil? ? nil : Time.parse(time)
-        end
-
-        def id
-          raw[:id]
         end
       end
 
@@ -392,12 +424,7 @@ module Etna
         end
       end
 
-      class UploadResponse
-        attr_reader :raw
-        def initialize(raw = {})
-          @raw = raw
-        end
-
+      class UploadResponse < Etna::Clients::Response
         def current_byte_position
           raw['current_byte_position'].to_i
         end
