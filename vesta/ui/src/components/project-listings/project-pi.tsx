@@ -64,9 +64,24 @@ export default function ProjectPI({
                     position: 'relative',
                     '& > *': {
                         width: '100%',
-                        minWidth: '100%',
                         height: '100%',
-                        minHeight: '100%',
+                    },
+                    '& img': {
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        opacity: imageLoaded ? 1 : 0,
+                        transition: theme.transitions.create(
+                            ['opacity'],
+                            {
+                                easing: theme.transitions.easing.swell,
+                                duration: theme.transitions.duration.swell,
+                            },
+                        ),
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center',
                     },
                 }}
             >
@@ -95,19 +110,6 @@ export default function ProjectPI({
                         width={41}
                         height={41}
                         onLoad={() => setImageLoaded(true)}
-                        style={{
-                            opacity: imageLoaded ? 1 : 0,
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            transition: theme.transitions.create(
-                                ['opacity'],
-                                {
-                                    easing: theme.transitions.easing.swell,
-                                    duration: theme.transitions.duration.swell,
-                                },
-                            ),
-                        }}
                     />
                 }
             </Box>

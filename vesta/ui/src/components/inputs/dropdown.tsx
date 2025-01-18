@@ -192,5 +192,5 @@ export default function Dropdown({
 }
 
 const Popup = styled(Box)`
-  z-index: 1;
+  z-index: 10;
 `;
