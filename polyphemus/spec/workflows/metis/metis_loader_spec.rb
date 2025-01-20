@@ -4,7 +4,7 @@ describe Metis::Loader do
   end
 
   def labors_config(scripts, bucket_name="pics", autolink=true)
-    {
+    JSON.parse({
       project_name: "labors",
       config: {
         bucket_name: bucket_name,
@@ -15,7 +15,7 @@ describe Metis::Loader do
           }
         }
       }
-    }
+    }.to_json)
   end
   context 'files' do
     it 'matches tails to files' do

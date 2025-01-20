@@ -56,6 +56,10 @@ module Etna
       #   attribute_names:  "all"
       # }
       def retrieve(retrieval_request = RetrievalRequest.new)
+        if retrieval_request.is_a?(Hash)
+          retrieval_request = RetrievalRequest.new(retrieval_request)
+        end
+
         json = nil
         @etna_client.post('/retrieve', retrieval_request) do |res|
           json = JSON.parse(res.body)
@@ -126,10 +130,10 @@ module Etna
         end
 
         def flat_records
-          project = @client.retrieve({
+          project = @client.retrieve(
             project_name: @update_request.project_name,
             hide_templates: false
-          })
+          )
 
           flat_records = {}
           revisions.each do |model_name, records|

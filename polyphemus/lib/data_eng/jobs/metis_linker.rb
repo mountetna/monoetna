@@ -10,81 +10,71 @@ class MetisLinkerJob < Polyphemus::ETLJob
     @workflow_version = config['version_number']
   end
 
-  def pre
+  def project_name
+    @config['project_name']
+  end
+
+  def bucket_name
+    @config['config']['bucket_name']
+  end
+
+  def pre(context)
+    context[:start_time] = fetch_last_scan
+    context[:end_time] = Time.now.to_i
     true
   end
 
   # Process method containing the main File Discovery ETL logic
-  def process
+  def process(context)
     last_scan = fetch_last_scan
 
-    rules = gnomon_client.rules(config[:project_name])[:rules]
+    rules = gnomon_client.project_rules(project_name).rules
 
-    models = magma_client.retrieve(
-      project_name: project_name,
-      model_name: 'all',
-      record_names: [], attribute_names: "all"
-    )
+    models = magma_client.retrieve(project_name: project_name)
 
-    tail = metis.tail(
+    tail = metis_client.tail_bucket(Etna::Clients::Metis::TailBucketRequest.new(
         project_name: project_name,
         bucket_name: bucket_name,
         type: 'files',
-        batch_start: ran_at,
-        batch_end: Time.now
-    )
+        batch_start: context[:start_time],
+        batch_end: context[:end_time]
+    ))
 
     update = Metis::Loader.new(config, rules, {}, models).update_for(tail, metis_client)
 
-    magma_client.update(update)
+    magma_client.update_json(update, page_size=100)
   end
 
   # Post-condition method to update the number of files to update in the DB
-  def post
+  def post(context)
+    polyphemus_client.update_run(project_name, run_id, {
+      name: workflow_name,
+      config_id: @workflow_config_id,
+      version_number: @workflow_version,
+      state: {
+        start_time: context[:start_time],
+        end_time: context[:end_time]
+      }
+    })
   end
 
   private
-
-  def project_name
-    @config[:project_name]
-  end
 
   def collect_tails
   end
 
   # Fetch the last_scan timestamp from the pipeline state using Polyphemus client
   def fetch_last_scan
-    run = polyphemus_client.get_run(run_id)
-    run.state[:last_scan] ? Time.parse(run.state[:last_scan]) : Time.at(0) # Default to epoch if not found
-  rescue StandardError => e
-    puts "Error fetching pipeline state: #{e.message}"
-    Time.at(0)
-  end
-
-  # Fetch files from SFTP that are newer than last_scan using regex
-  def fetch_files_from_sftp(last_scan)
-    files = []
-    entries = @sftp_client.list_directory(config[:sftp_directory])
-
-    entries.each do |entry|
-      next if entry[:name] == '.' || entry[:name] == '..'
-
-      full_path = File.join(config[:sftp_directory], entry[:name])
-      next unless file_matches_criteria?(entry, last_scan)
-
-      md5 = @sftp_client.calculate_md5(full_path)
-      files << [full_path, md5] if md5 != 'error'
+    response = polyphemus_client.get_previous_state(
+     project_name,
+     @workflow_config_id,
+     @workflow_version,
+     state: [:end_time]
+    )
+    if response[:error]
+      logger.warn("Error fetching previous state: #{response[:error]}")
+      raise StandardError, response[:error]
     end
-    files
-  rescue StandardError => e
-    puts "Error fetching files from SFTP: #{e.message}"
-    raise
-  end
-
-  # Check if the file matches the required criteria
-  def file_matches_criteria?(entry, last_scan)
-    matches_type = entry[:longname] =~ @regex
-    newer_than_last_scan = Time.at(entry[:attributes].mtime) > last_scan
-    matches_type && newer_than_last_scan
+    response["end_time"]
   end
 end

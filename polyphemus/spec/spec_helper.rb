@@ -22,6 +22,7 @@ require_relative "../lib/polyphemus"
 require_relative "../lib/data_eng/jobs/sftp_file_discovery"
 require_relative "../lib/data_eng/jobs/sftp_metis_uploader"
 require_relative "../lib/data_eng/jobs/sftp_c4_uploader"
+require_relative "../lib/data_eng/jobs/metis_linker"
 
 #setup_base_vcr(__dir__)
 
@@ -221,7 +222,7 @@ def stub_magma_update(project_name = nil)
   end
 end
 
-def stub_metis_setup
+def stub_metis_routes
   route_payload = JSON.generate([
     { :method => "GET", :route => "/:project_name/list_all_folders/:bucket_name", :name => "folder_list_all_folders", :params => ["project_name", "bucket_name"] },
     { :method => "GET", :route => "/:project_name/list/:bucket_name/*folder_path", :name => "folder_list", :params => ["project_name", "bucket_name", "folder_path"] },
@@ -232,15 +233,18 @@ def stub_metis_setup
     { :method => "POST", :route => "/authorize/upload", :name => "upload_authorize", :params => ["project_name", "bucket_name", "file_path"] },
     { :method => "POST", :route => "/:project_name/upload/:bucket_name/*file_path", :name => "upload_upload", :params => ["project_name", "bucket_name", "file_path"] },
     { :method => "POST", :route => "/:project_name/find/:bucket_name", :name => "bucket_find", :params => ["project_name", "bucket_name"] },
+    { :method => "POST", :route => '/:project_name/tail/:bucket_name', :name => 'bucket_tail', :params => ["project_name", "bucket_name"] }
   ])
   stub_request(:options, METIS_HOST).
     to_return({
     status: 200,
-    headers: {
-      'Content-Type': "application/json",
-    },
+    headers: { 'Content-Type': "application/json" },
     body: route_payload,
   })
+end
+
+def stub_metis_setup
+  stub_metis_routes
   stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RELEASE_BUCKET}/)
     .to_return({
       status: 200,
