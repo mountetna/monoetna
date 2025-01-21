@@ -136,6 +136,7 @@ export const OUTPUT_TYPES = {
 };
 
 export const dontDownloadForOutputTypes = ['default', OUTPUT_TYPES.LINK]
+export const dataAndUrlForOutputTypes = [OUTPUT_TYPES.PLOT, OUTPUT_TYPES.PNG]
 
 export const OUTPUTS = {
   default: LinkOutput,

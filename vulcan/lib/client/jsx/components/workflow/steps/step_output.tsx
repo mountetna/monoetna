@@ -1,7 +1,7 @@
 import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {dontDownloadForOutputTypes, OUTPUT_TYPES, OUTPUTS} from '../../ui_components';
+import {dataAndUrlForOutputTypes, dontDownloadForOutputTypes, OUTPUTS} from '../../ui_components';
 
 import StepName from './step_name';
 
@@ -10,8 +10,9 @@ import {WorkspaceStep} from '../../../api_types';
 
 export default function StepOutput({step}: {step: WorkspaceStep}) {
   let {state} = useContext(VulcanContext);
-  const vulcan_config = state.workspace?.vulcan_config || {};
-  const stepStatus = statusOfStep(step, state.status);
+  let {workspace, status} = state;
+  const vulcan_config = workspace?.vulcan_config || {};
+  const stepStatus = statusOfStep(step, status);
   const uiOutput = uiComponentOfStep(step.name, vulcan_config);
 
   if (!stepStatus || !uiOutput) return null;
@@ -19,13 +20,13 @@ export default function StepOutput({step}: {step: WorkspaceStep}) {
 
   let data;
   if (dontDownloadForOutputTypes.includes(stepType)) {
-    data = stepInputDataUrls(step, state.status);
+    data = stepInputDataUrls(step, status);
   } else {
-    data = stepInputDataRaw(step, state.status, state.data, state.session);
+    data = stepInputDataRaw(step, status.last_params, status.file_contents);
   }
 
   let url;
-  if ([OUTPUT_TYPES.PLOT, OUTPUT_TYPES.PNG].includes(stepType)) {
+  if (dataAndUrlForOutputTypes.includes(stepType)) {
     url = stepInputDataUrls(step, state.status);
   }
 

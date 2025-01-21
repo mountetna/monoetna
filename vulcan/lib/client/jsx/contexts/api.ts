@@ -23,6 +23,9 @@ import { paramValuesToRaw } from '../selectors/workflow_selectors';
 import { isSome } from '../selectors/maybe';
 
 export const defaultApiHelpers = {
+  vulcanPath(endpoint: string): string {
+    return `${CONFIG.vulcan_host}${endpoint}`
+  }
   showErrors<T>(work: Promise<T>): Promise<T> {
     work.catch((e) => {
       console.error(e);
@@ -385,6 +388,7 @@ export function useApi(
   // );
 
   return {
+    vulcanPath,
     showErrors,
     //getData,
     createWorkflow,

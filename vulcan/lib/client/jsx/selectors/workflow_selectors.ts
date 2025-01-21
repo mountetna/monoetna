@@ -31,6 +31,7 @@ import {
   withDefault
 } from './maybe';
 import { components, dontDownloadForOutputTypes, DataEnvelope } from '../components/ui_components';
+import { defaultApiHelpers } from '../contexts/api';
 
 export function pick<T extends DataEnvelope<any>, K extends keyof T>(obj: T, keys: K[]) {
   return Object.fromEntries(
@@ -383,22 +384,18 @@ export const uiComponentOfStep = (step: string, vulcan_config: VulcanConfig) => 
 
 export const stepInputDataUrls = (
   step: WorkspaceStep,
-  status: VulcanState['status']
+  projectName: VulcanState['projectName'],
+  workspaceId: VulcanState['workspaceId'],
+  vulcanPath: typeof defaultApiHelpers.vulcanPath
 ): {[k: string]: string} => {
-  // Pull out any previous step's output data link that is a required
-  //   input into this UI step.
+  // Parse input files of the step into a direct download url.
   const result: {[k: string]: string} = {};
-  step.input.forEach((input) => {
-    const [stepName, outputKey] = splitSource(input.source);
 
-    if (stepName != null) {
-      const stepStatus = statusOfStep(stepName, status);
-
-      if (stepStatus && stepStatus.downloads) {
-        result[input.id] = stepStatus.downloads[outputKey];
-      }
-    }
-  });
+  if (!!step.input.files) {
+    step.input.files.forEach((file) => {
+      result[file] = vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/file/direct/${file}`)
+    });
+  }
 
   return result;
 };
