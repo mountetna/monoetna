@@ -10,6 +10,7 @@ Sequel.migration do
       drop_column :status
       drop_column :output
       drop_column :run_interval
+      add_column :updated_at, DateTime
     end
   end
 
@@ -21,6 +22,7 @@ Sequel.migration do
       add_column :status, String
       add_column :output, String
       add_column :run_interval, Integer
+      drop_column :updated_at
     end
 
     rename_table :configs, :etl_configs

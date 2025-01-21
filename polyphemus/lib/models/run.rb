@@ -2,14 +2,17 @@ class Polyphemus
   class Run < Sequel::Model(:runs)
 
     def started_at
+      return nil unless self.orchestrator_metadata
       self.orchestrator_metadata['startedAt']
     end
 
     def finished_at
+      return nil unless self.orchestrator_metadata
       self.orchestrator_metadata['finishedAt']
     end
 
     def status
+      return nil unless self.orchestrator_metadata
       self.orchestrator_metadata['phase']
     end
 

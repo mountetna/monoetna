@@ -1,5 +1,6 @@
 require_relative 'controller'
 require_relative '../../data_eng/workflow_manifests/manifest'
+require_relative '../../data_eng/argo_workflow_manager'
 
 class WorkflowController < Polyphemus::Controller
 
@@ -18,6 +19,8 @@ class WorkflowController < Polyphemus::Controller
       version_number: 1,
       config: {},
       secrets: {},
+      created_at: Time.now,
+      updated_at: Time.now
     )
     success_json(config.as_json)
   end
@@ -48,12 +51,15 @@ class WorkflowController < Polyphemus::Controller
           end.join("\n")
         }"
       end
-
+      # Here we created a brand new config object, since we have new config values
       update[:version_number] = config.version_number + 1
-
+      update[:updated_at] = Time.now
+      update[:created_at] = Time.now
       new_config = Polyphemus::Config.create(config.as_json.merge(update).merge(secrets: config.secrets))
       return success_json(new_config)
     else
+      # Here we just update the existing config object
+      update[:updated_at] = Time.now
       config.update(update)
     end
 
@@ -222,27 +228,12 @@ class WorkflowController < Polyphemus::Controller
     errors = manifest.validate_runtime_config(@params[:config])
     raise Etna::BadRequest, errors.join(', ') if errors.any?
 
-    # Build command with proper escaping
-    workflow_path = "/app/workflows/argo/#{@params[:workflow_type]}/workflow.yaml".shellescape
-    cmd = [
-      "argo", "submit",
-      "-f", workflow_path,
-      "-p", "config_id=#{config.config_id}",
-      "-p", "version_number=#{config.version_number}"
-    ]
-
-    # Execute command and capture output using Open3
     begin
-      stdout, stderr, status = Open3.capture3(*cmd)
+      run = Polyphemus::ArgoWorkflowManager.submit_workflow(config)
     rescue StandardError => e
-      raise Etna::Error, "Failed to submit Argo workflow: #{e}"
+      raise Etna::BadRequest, "Failed to submit Argo workflow: #{e.message}"
     end
-
-    unless status.success?
-      raise Etna::Error, "Failed to submit Argo workflow: #{stderr}"
-    end
-
-    success_json(msg: stdout, status: status)
+    success_json(run.as_json)
   end
 
   def revisions
@@ -252,6 +243,47 @@ class WorkflowController < Polyphemus::Controller
     ).reverse_order(:version_number).all
 
     success_json(etl_configs.map(&:to_revision))
+  end
+
+  def status
+    # Get all unique workflows created by the user (unique workflow_names)
+    configs = Polyphemus::Config.current.where(project_name: @params[:project_name]).select(:config_id, :workflow_type, :workflow_name).distinct(:workflow_name).all
+    statuses = []
+
+    configs.each do |config|
+      # Get the latest run for this config
+      # All workflows that have been launched should have a run object
+      run = Polyphemus::Run.where(config_id: config.config_id).order(Sequel.desc(:updated_at)).first
+
+      # No run object means the workflow has not been launched yet
+      if run.nil?
+        statuses << {
+          workflow_type: config.workflow_type,
+          workflow_name: config.workflow_name,
+          pipeline_state: nil,
+          pipeline_started_at: nil
+        }
+      else
+        if run.is_finished?
+          statuses << {
+            workflow_type: config.workflow_type,
+            workflow_name: config.workflow_name,
+            pipeline_state: run.status,
+            pipeline_finished_at: run.finished_at
+            }
+        else
+          # If there is no run, we need to check the argo workflow status
+          status, started_at = Polyphemus::ArgoWorkflowManager.get_workflow_status(config)
+          statuses << {
+            workflow_type: config.workflow_type,
+            workflow_name: config.workflow_name,
+            pipeline_state: status,
+            pipeline_started_at: started_at
+          }
+        end
+      end
+    end
+    success_json(statuses)
   end
 
 end

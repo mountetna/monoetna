@@ -33,6 +33,8 @@ describe WorkflowController do
       expect(config.workflow_name).to eq('my workflow name')
       expect(config.workflow_type).to eq('test-workflow')
       expect(config.config_id).to eq(1)
+      expect(config.created_at).to be_within(3.second).of(Time.now)
+      expect(config.updated_at).to be_within(3.second).of(Time.now)
     end
 
     it 'rejects invalid workflow types' do
@@ -55,13 +57,14 @@ describe WorkflowController do
         config: some_config
       )
       expect(last_response.status).to eq(200)
-      config = Polyphemus::Config.last
+      first_config = Polyphemus::Config.last
       # Contains the updated config
-      expect(config.config).to eq(some_config)
+      expect(first_config.config).to eq(some_config)
       # Contains the same config_id
-      expect(config.config_id).to eq(json_body[:config_id])
+      expect(first_config.config_id).to eq(json_body[:config_id])
       # Contains a new version number
-      expect(config.version_number).to eq(2)
+      expect(first_config.version_number).to eq(2)
+
 
       another_config = { 'test_key' => 'update 2' }
       json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
@@ -70,11 +73,12 @@ describe WorkflowController do
         config: another_config
       )
       expect(last_response.status).to eq(200)
-      config = Polyphemus::Config.last
-      expect(config.config_id).to eq(json_body[:config_id])
-      expect(config.config).to eq(another_config)
-      expect(config.version_number).to eq(3)
-
+      second_config = Polyphemus::Config.last
+      expect(second_config.config_id).to eq(json_body[:config_id])
+      expect(second_config.config).to eq(another_config)
+      expect(second_config.version_number).to eq(3)
+      expect(second_config.updated_at).to_not eq(first_config.updated_at)
+      expect(second_config.created_at).to_not eq(first_config.created_at)
     end
 
     it 'rejects an invalid config' do
@@ -101,9 +105,9 @@ describe WorkflowController do
         secrets: some_secret
       )
       expect(last_response.status).to eq(200)
-      config = Polyphemus::Config.last
-      expect(config.secrets).to eq(some_secret)
-      expect(config.version_number).to eq(1)
+      the_config = Polyphemus::Config.last
+      expect(the_config.secrets).to eq(some_secret)
+      expect(the_config.version_number).to eq(1)
 
       another_secret = { 'test_secret' => 'update 2' }
       json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
@@ -112,10 +116,12 @@ describe WorkflowController do
         secrets: another_secret
       )
       expect(last_response.status).to eq(200)
-      config = Polyphemus::Config.last
-      expect(config.config_id).to eq(json_body[:config_id])
-      expect(config.secrets).to eq(another_secret)
-      expect(config.version_number).to eq(1)
+      updated_config = Polyphemus::Config.last
+      expect(updated_config.config_id).to eq(json_body[:config_id])
+      expect(updated_config.secrets).to eq(another_secret)
+      expect(updated_config.version_number).to eq(1)
+      expect(updated_config.created_at).to eq(the_config.created_at)
+      expect(updated_config.updated_at).to_not eq(the_config.updated_at)
     end
 
     it 'rejects unknown secrets' do
@@ -504,40 +510,188 @@ context '#revisions' do
     end
   end
 
-  context 'runs a workflow once' do
+  context 'running a workflow once' do
     before do
       create_workflow_with_configs
     end
 
-    it 'successfully launches the correct command' do
+    it 'successfully runs a workflow' do
       config = Polyphemus::Config.current.where(project_name: 'labors', config_id: json_body[:config_id]).first
-      allow(Open3).to receive(:capture3).and_return(["workflow submitted", "", double(success?: true)])
+      
+      # Stub argo client command
+      workflow_output = "Workflow Name: simple-two-jobs-ktm4g\nWorkflow UID: de6df0ed-b32c-4707-814f-11c323b0687b\n"
+      allow(Open3).to receive(:capture3).and_return([workflow_output, "", double(success?: true)])
       json_post("/api/workflows/labors/runtime_configs/run_once/#{config.config_id}", 
         workflow_type: "test-workflow",
         config: { commit: true }
       )
 
       expect(last_response.status).to eq(200)
-      expect(Open3).to have_received(:capture3).with(
+      expect(Polyphemus::Run.last.name).to eq("simple-two-jobs-ktm4g")
+      expect(Polyphemus::Run.last.run_id).to eq("de6df0ed-b32c-4707-814f-11c323b0687b")
+
+      workflow_path = "/app/workflows/argo/test-workflow/workflow.yaml".shellescape
+      cmd = [
         "argo", "submit",
-        "-f", "/app/workflows/argo/test-workflow/workflow.yaml",
+        "-f", workflow_path,
         "-p", "config_id=#{config.config_id}",
-        "-p", "version_number=#{config.version_number}"
-      )
+        "-p", "version_number=#{config.version_number}",
+        "-o", "yaml",
+        "|", "grep", "-m2", "-E", "name:|uid:",
+        "|", "awk", 'NR==1 {print "Workflow Name: " $2} NR==2 {print "Workflow UID: " $2}'
+      ]
+      expect(Open3).to have_received(:capture3).with(cmd.join(" "))
     end
 
     it 'fails when workflow submission fails' do
       # If we don't mock anything this will fail since there is no workflow.yaml for test-workflow.yaml
       config = Polyphemus::Config.current.where(project_name: 'labors', config_id: json_body[:config_id]).first
+      allow(Open3).to receive(:capture3).and_return(["", "Command failed", double(success?: false)])
       json_post("/api/workflows/labors/runtime_configs/run_once/#{config.config_id}", 
         workflow_type: "test-workflow",
         config: { commit: true }
       )
 
-      expect(last_response.status).to eq(500)
-      expect(json_body[:error]).to eq("Failed to submit Argo workflow: No such file or directory - argo")
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq("Failed to submit Argo workflow: Command failed")
     end
 
   end
 
+  context 'status' do
+
+    it 'returns the status of a workflow that has completed' do
+
+      config_id = Polyphemus::Config.next_id
+
+      config_1 = Polyphemus::Config.create(
+        project_name: 'labors',
+        workflow_name: 'my-cat-ingestion',
+        workflow_type: 'cat-ingestion',
+        config_id: config_id,
+        version_number: 1,
+        config: {"some_key" => "some_value"},
+        secrets: {},
+        created_at: '2025-01-16T12:00:00Z',
+        updated_at: '2025-01-16T12:00:00Z'
+      )
+
+      config_2 = Polyphemus::Config.create(
+        project_name: 'labors',
+        workflow_name: 'my-cat-ingestion',
+        workflow_type: 'cat-ingestion',
+        config_id: config_id,
+        version_number: 2,
+        config: {"some_key" => "some_value_2"},
+        secrets: {},
+        created_at: '2025-01-18T12:00:00Z',
+        updated_at: '2025-01-18T12:00:00Z'
+      )
+
+      runtime_config_1 = Polyphemus::RuntimeConfig.create(
+        config_id: config_id,
+        run_interval: 1000,
+        config:{commit: true} 
+      )
+
+      # Create a run for the first version
+      Polyphemus::Run.create(
+        run_id: "hello-there-1",
+        config_id: config_id,
+        version_number: config_1.version_number,
+        name: 'my-cat-ingestion-1000',
+        orchestrator_metadata: {
+            'startedAt' => '2025-01-16T12:00:00Z',
+            'finishedAt' => '2025-01-16T12:20:00Z',
+            'phase' => 'Succeeded'
+          }
+      )
+
+      # Create a run for the second version
+      Polyphemus::Run.create(
+        run_id: "hello-there-2",
+        config_id: config_id,
+        version_number: config_2.version_number,
+        name: 'my-cat-ingestion-2000',
+        orchestrator_metadata: {
+            'startedAt' => '2025-01-18T12:00:00Z',
+            'finishedAt' => '2025-01-18T12:20:00Z',
+            'phase' => 'Succeeded'
+          }
+      )
+
+      auth_header(:editor)
+      get("/api/workflows/labors/status")
+      expect(last_response.status).to eq(200)
+
+      # Make sure the second version of the config is used (we use the latest run)
+      expect(json_body.count).to eq(1)
+      expect(json_body[0][:workflow_name]).to eq("my-cat-ingestion")
+      expect(json_body[0][:workflow_type]).to eq("cat-ingestion")
+      expect(json_body[0][:pipeline_state]).to eq("Succeeded")
+      # This should be the most recent run from version 2
+      expect(json_body[0][:pipeline_finished_at]).to eq("2025-01-18T12:20:00Z")
+    end
+
+    it 'fetches the status of a workflow that has not completed' do
+
+      config_2 = Polyphemus::Config.create(
+        project_name: 'labors',
+        workflow_name: 'my-cat-ingestion-2',
+        workflow_type: 'cat-ingestion',
+        config_id: Polyphemus::Config.next_id,
+        version_number: 1,
+        config: {},
+        secrets: {},
+      )
+
+      runtime_config_2 = Polyphemus::RuntimeConfig.create(
+        config_id: config_2.config_id,
+        run_interval: 1000
+      )
+
+      # Create a run for the second config, but workflow is not finished (no orchestrator metadata)
+      Polyphemus::Run.create(
+        run_id: "hello-there-2",
+        config_id: config_2.config_id,
+        version_number: config_2.version_number,
+        name: 'my-cat-ingestion21000',
+      )
+      
+      # Mock the get_workflow_status method to return a running status
+      workflow_json = '{"metadata":{"name":"my-cat-ingestion-2"},"status":{"phase":"Running","startedAt":"2025-01-13T20:58:09Z","finishedAt":"2025-01-15T20:58:09Z"}}'
+      allow(Open3).to receive(:capture3).and_return([workflow_json, "", double(success?: true)])
+
+      auth_header(:editor)
+      get("/api/workflows/labors/status")
+      expect(last_response.status).to eq(200)
+
+      expect(json_body.count).to eq(1)
+      expect(json_body[0][:workflow_name]).to eq("my-cat-ingestion-2")
+      expect(json_body[0][:workflow_type]).to eq("cat-ingestion")
+      expect(json_body[0][:pipeline_state]).to eq("Running")
+      expect(json_body[0][:pipeline_started_at]).to eq("2025-01-13T20:58:09Z")
+    end
+
+    it 'returns a nil status when the workflow hasnt been run yet' do
+      config_2 = Polyphemus::Config.create(
+        project_name: 'labors',
+        workflow_name: 'my-cat-ingestion-2',
+        workflow_type: 'cat-ingestion',
+        config_id: Polyphemus::Config.next_id,
+        version_number: 1,
+        config: {},
+        secrets: {},
+      )
+
+      auth_header(:editor)
+      get("/api/workflows/labors/status")
+      expect(last_response.status).to eq(200)
+      expect(json_body.count).to eq(1)
+      expect(json_body[0][:workflow_name]).to eq("my-cat-ingestion-2")
+      expect(json_body[0][:workflow_type]).to eq("cat-ingestion")
+      expect(json_body[0][:pipeline_state]).to be_nil
+      expect(json_body[0][:pipeline_started_at]).to be_nil
+    end
+  end
 end

@@ -55,9 +55,6 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
 
   def post(context)
     polyphemus_client.update_run(@project_name, run_id, {
-      name: workflow_name,
-      config_id: @workflow_config_id,
-      version_number: @workflow_version,
       state: {
         num_files_to_update: context[:num_files_to_update],
         files_to_update_path: context[:files_to_update_path],

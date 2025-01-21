@@ -8,6 +8,7 @@ require_relative 'helpers'
 require_relative 'data_processing/xml_dsl'
 require_relative 'data_processing/magma_dsl'
 require_relative 'data_processing/flow_jo_dsl'
+require_relative 'data_eng/argo_workflow_manager'
 require_relative 'ipi/process_rna_seq_output'
 
 require_relative 'etls/redcap/redcap_etl_script_runner'
@@ -783,39 +784,27 @@ class RunJob < Etna::Command
   class IntervalScheduler < Etna::Command
     include WithLogger
   
-    usage 'Continuously polls elibile runtime configs and submits Argo workflows' 
+    usage 'Continuously polls eligible runtime configs and submits Argo workflows' 
+
+    SLEEP_INTERVAL = 60 * 5 # 5 Minutes
   
     def execute
-      eligible_runtime_configs = Polyphemus::RuntimeConfig.eligible_runtime_configs
-      logger.info("Found #{eligible_runtime_configs.count} eligible runtime configs for scheduling...")
-
-      eligible_runtime_configs.each do |runtime_config|
-
-          config = Polyphemus::Config.current.where(
-            config_id: runtime_config.config_id,
-          ).first
-
-        logger.info("Submitting workflow #{config.workflow_name}, for project: #{config.project_name}, workflow_type: #{config.workflow_type}, config_id: #{runtime_config.config_id}...")
-          # Build command with proper escaping
-          workflow_path = "/app/workflows/argo/#{config.workflow_type}/workflow.yaml".shellescape
-          cmd = [
-            "argo", "submit",
-            "-f", workflow_path,
-            "-p", "config_id=#{config.config_id}",
-            "-p", "version_number=#{config.version_number}"
-          ]
-
-          # Execute command and capture output using Open3
-          begin
-            stdout, stderr, status = Open3.capture3(*cmd)
-          rescue StandardError => e
-            raise Etna::Error, "Failed to submit Argo workflow: #{e}"
+      loop do
+        begin
+          eligible_runtime_configs = Polyphemus::RuntimeConfig.eligible_runtime_configs
+          logger.info("Found #{eligible_runtime_configs.count} eligible runtime configs for scheduling...")
+          eligible_runtime_configs.each do |runtime_config|
+            config = Polyphemus::Config.current.where(
+              config_id: runtime_config.config_id,
+            ).first
+            Polyphemus::ArgoWorkflowManager.submit_workflow(config)
+            sleep SLEEP_INTERVAL
           end
-
-          unless status.success?
-            raise Etna::Error, "Failed to submit Argo workflow: #{stderr}"
-          end
+        rescue StandardError => e
+          logger.error("Error in scheduler loop: #{e}")
+          sleep SLEEP_INTERVAL
         end
+      end
     end
   end
 end
