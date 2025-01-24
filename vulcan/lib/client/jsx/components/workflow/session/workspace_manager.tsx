@@ -9,14 +9,15 @@ import * as _ from 'lodash';
 // import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
 
-// import Dialog from '@material-ui/core/Dialog';
-// import DialogTitle from '@material-ui/core/DialogTitle';
-// import DialogActions from '@material-ui/core/DialogActions';
-// import DialogContent from '@material-ui/core/DialogContent';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Button from '@material-ui/core/Button';
 import {makeStyles} from '@material-ui/core/styles';
-// import Autocomplete from '@material-ui/lab/Autocomplete';
 
-// import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 // import {pushLocation} from 'etna-js/actions/location_actions';
 
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
@@ -28,7 +29,8 @@ import Tooltip from '@material-ui/core/Tooltip';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import {
   clearCommittedStepPending,
-  clearRunTriggers
+  clearRunTriggers,
+  setWorkspace
 } from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
@@ -36,9 +38,8 @@ import OutputFeed from './output_feed';
 import { workflowName } from '../../../selectors/workflow_selectors';
 import {useWorkspace} from '../../../contexts/workspace_context';
 // import {json_get} from 'etna-js/utils/fetch';
-// import useUserHooks from '../../useUserHooks';
-// import Button from '@material-ui/core/Button';
-// import Tag from '../../tag';
+import useUserHooks from '../../useUserHooks';
+import Tag from '../../dashboard/tag';
 
 // import RevisionHistory from 'etna-js/components/revision-history';
 
@@ -77,22 +78,23 @@ export default function WorkspaceManager() {
     showErrors,
     requestPoll,
     cancelPolling,
+    updateWorkspace,
     // updateFigure,
     // createFigure,
     // clearLocalSession
   } = useContext(VulcanContext);
   const {workflow, workspace, workspaceId, hasPendingEdits, complete} = useWorkspace();
-  // const {canEdit, guest} = useUserHooks();
+  const {canEdit, guest} = useUserHooks();
 
   // const [modalIsOpen, setIsOpen] = useState(false);
   const {status, workQueueable: committedStepPending} = state;
 
-  // const [tags, setTags] = useState<string[]>(workspace.tags || []);
-  // const [openTagEditor, setOpenTagEditor] = useState(false);
+  const [tags, setTags] = useState<string[]>(workspace.tags || []);
+  const [openTagEditor, setOpenTagEditor] = useState(false);
   // const [openRevisions, setOpenRevisions] = useState<boolean | null>(null);
-  const [localTitle, setLocalTitle] = useState(workspace.title);
+  const [localTitle, setLocalTitle] = useState(workspace.name);
 
-  // const invoke = useActionInvoker();
+  const invoke = useActionInvoker();
 
   const classes = useStyles();
 
@@ -201,13 +203,37 @@ export default function WorkspaceManager() {
   //   [dispatch, session, requestPoll]
   // );
 
-  // // ToDo when have updateWorkspace API
-  // const handleSaveNewTitle
-  // const handleSaveNewTags
+  const handleUpdateWorkspace = useCallback((title?: string, tags?: string[]) => {
+    // ToDo: Handle this update from the api return instead, to be sure we stay accurate
+    const newWorkspace = {...workspace}
+    if (!!title && !_.isEqual(title, workspace.name)) {
+      newWorkspace['name'] = title;
+    }
+    if (!!tags && !_.isEqual(tags, workspace.tags)) {
+      newWorkspace['tags'] = tags;
+    }
+    showErrors(
+      updateWorkspace(workspace.project as string, workspaceId as number, title, tags)
+        // .then((workspaceResponse) => {
+        //   dispatch(setWorkspace(workspaceResponse, workspaceResponse.project));
+        // })
+        .then(() => {
+          dispatch(setWorkspace(newWorkspace, newWorkspace.project as string));
+        })
+    );
+  }, [workspace.project, workspaceId])
 
-  // const handleCloseEditTags = useCallback(() => {
-  //   setOpenTagEditor(false);
-  // }, []);
+  const handleCloseEditTags = useCallback(() => {
+    setOpenTagEditor(false);
+  }, []);
+
+  function togglePublicTag() {
+    if (tags.includes('public')) {
+      setTags(tags.filter((v)=>v!='public'));
+    } else {
+      setTags([...tags, 'public']);
+    }
+  }
 
   const running = state.pollingState > 0;
   const disableRunButton =
@@ -257,14 +283,12 @@ export default function WorkspaceManager() {
   //   viewingRevision
   // ]);
 
-  // // ToDo Later: once we allow updateWorkspace or copyWorkspace.
-  // const editor = useMemo(() => canEdit(workspace), [
-  //   workspace,
-  //   canEdit
-  // ]);
+  const editor = useMemo(() => canEdit(workspace), [
+    workspace,
+    canEdit
+  ]);
 
-  // // ToDo Later: once we allow updateWorkspace.
-  // const isPublic = useMemo(() => (tags || []).includes('public'), [tags]);
+  const isPublic = useMemo(() => (tags || []).includes('public'), [tags]);
 
   if (!workflow_name || !workspace) return null;
 
@@ -279,23 +303,34 @@ export default function WorkspaceManager() {
         >
           <Link href={`/${workspace.project}`}>{workspace.project}</Link>
           <Typography>{workflow.name}</Typography>
-          <Tooltip title={localTitle || ''}>
-            <TextField
-              fullWidth
-              value={localTitle}
-              margin='none'
-              InputProps={{
-                disableUnderline: true,
-                inputProps: {
-                  className: classes.titleText
-                }
-              }}
-              variant='standard'
-              onChange={(e) => setLocalTitle(e.target.value)}
-              placeholder='Untitled'
-            />
-          </Tooltip>
-          {/* titleChanged && <Button> for saving once have updateWorkspace */}
+          {editor ? (
+            <>
+              <TextField
+                fullWidth
+                value={localTitle}
+                margin='none'
+                InputProps={{
+                  disableUnderline: true,
+                  inputProps: {
+                    className: classes.titleText
+                  }
+                }}
+                variant='standard'
+                onChange={(e) => setLocalTitle(e.target.value)}
+                placeholder='Untitled'
+              />
+              {localTitle != workspace.name && <FlatButton
+                  className='header-btn-name-save'
+                  icon='save'
+                  label='Save'
+                  title='Save Workspace Title'
+                  onClick={handleUpdateWorkspace(localTitle, undefined)}
+                />}
+            </>
+          ) : (
+            <Typography>{workspace.name}</Typography>
+          )
+          }
         </Breadcrumbs>
         {/* {workflow.vignette && (
           <React.Fragment>
@@ -333,16 +368,8 @@ export default function WorkspaceManager() {
             disabled={disableRunButton}
           />
         )}
-        {/* editor ? (
+        {editor ?
           <>
-            <FlatButton
-              className='header-btn save'
-              icon='save'
-              label='Save'
-              title='Save current workflow parameters to current figure'
-              onClick={saveSession}
-              disabled={!canSave}
-            />
             <FlatButton
               className='header-btn public-private'
               icon={`${isPublic ? 'lock' : 'unlock'}`}
@@ -350,8 +377,11 @@ export default function WorkspaceManager() {
               title={`Make the current figure ${
                 isPublic ? 'private' : 'public'
               }`}
-              onClick={() => setTags(isPublic ? [] : ['public'])}
-              disabled={guest(workspace.project)}
+              onClick={() => {
+                togglePublicTag();
+                handleUpdateWorkspace(undefined, tags);
+              }}
+              disabled={guest(workspace.project || '')}
             />
             <FlatButton
               className='header-btn edit-tags'
@@ -360,35 +390,6 @@ export default function WorkspaceManager() {
               title='Edit tags'
               onClick={() => setOpenTagEditor(true)}
             />
-            <FlatButton
-              className='header-btn edit-tags'
-              icon='history'
-              label='Revisions'
-              title='Revisions'
-              onClick={() => setOpenRevisions(true)}
-            />
-            {openRevisions != null && (
-              <RevisionHistory
-                open={openRevisions}
-                onClose={() => setOpenRevisions(false)}
-                revisionDoc={({
-                  inputs,
-                  title,
-                  tags,
-                  dependencies
-                }: VulcanRevision) =>
-                  JSON.stringify({inputs, title, tags, dependencies}, null, 2)
-                }
-                update={loadRevision}
-                getRevisions={() =>
-                  json_get(
-                    `/api/${workspace.project}/figure/${figure.figure_id}/revisions`
-                  )
-                }
-              />
-            )}
-            // ToDo Later: If choose to allow workspaces to pull from a different commit, or updated container
-            <AdvancedSessionControls session={session} figure={figure} />
             <Dialog
               maxWidth='md'
               open={openTagEditor}
@@ -426,11 +427,62 @@ export default function WorkspaceManager() {
                 />
               </DialogContent>
               <DialogActions>
+                <Button onClick={() => handleUpdateWorkspace(undefined, tags)} color='primary'>
+                  Save Tags
+                </Button>
                 <Button onClick={handleCloseEditTags} color='primary'>
                   Close
                 </Button>
               </DialogActions>
             </Dialog>
+          </> : <FlatButton
+            className='header-btn copy'
+            icon='copy'
+            label='Copy'
+            title='Copy current workflow parameters to new figure'
+            disabled={true}
+            onClick={() => {}}
+          />
+        }
+        {/* editor ? (
+          <>
+            <FlatButton
+              className='header-btn save'
+              icon='save'
+              label='Save'
+              title='Save current workflow parameters to current figure'
+              onClick={saveSession}
+              disabled={!canSave}
+            />
+            <FlatButton
+              className='header-btn edit-tags'
+              icon='history'
+              label='Revisions'
+              title='Revisions'
+              onClick={() => setOpenRevisions(true)}
+            />
+            {openRevisions != null && (
+              <RevisionHistory
+                open={openRevisions}
+                onClose={() => setOpenRevisions(false)}
+                revisionDoc={({
+                  inputs,
+                  title,
+                  tags,
+                  dependencies
+                }: VulcanRevision) =>
+                  JSON.stringify({inputs, title, tags, dependencies}, null, 2)
+                }
+                update={loadRevision}
+                getRevisions={() =>
+                  json_get(
+                    `/api/${workspace.project}/figure/${figure.figure_id}/revisions`
+                  )
+                }
+              />
+            )}
+            // ToDo Later: If choose to allow workspaces to pull from a different commit, or updated container
+            <AdvancedSessionControls session={session} figure={figure} />
           </>
         ) : (
           <FlatButton

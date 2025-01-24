@@ -1,6 +1,6 @@
 import {setStatus, setWorkflow, setWorkflows, VulcanAction} from '../actions/vulcan_actions';
 import {workflowsResponse} from './fixtures/workflows-response';
-import {statusWithoutDownloads} from './fixtures/status-without-downloads';
+import {statusCompleted} from './fixtures/status';
 import {
     defaultFigure,
     defaultSessionStatusResponse,

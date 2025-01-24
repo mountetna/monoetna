@@ -13,6 +13,7 @@ import {
   inputUINames,
   upcomingStepNames,
   vulcanConfigFromRaw,
+  workflowByIdFromWorkflows,
 } from '../selectors/workflow_selectors';
 import {mapSome, Maybe, some, withDefault} from '../selectors/maybe';
 
@@ -154,11 +155,8 @@ export default function VulcanReducer(
         pollingState: Math.max(state.pollingState + action.delta, 0)
       };
     case 'SET_WORKFLOW':
-      const workflowProjects = action.workflow.projects;
-      if (
-        !workflowProjects.includes("all") && // CHECK ME!!!!!
-          !workflowProjects.includes(action.projectName)
-      ) {
+      const workflowProject = action.workflow.project;
+      if (!["all", action.projectName].includes(workflowProject)) {
         return state;
       }
 
@@ -173,7 +171,12 @@ export default function VulcanReducer(
       };
     case 'SET_WORKSPACE':
       const workspaceProject = action.workspace.project;
-      if (workspaceProject!=action.projectName) {
+      if (!workspaceProject) {
+        // attempt to fill project
+        const workflow = workflowByIdFromWorkflows(action.workspace.workflow_id, state.workflows);
+        action.workspace.project = workflow?.project
+      } else if (workspaceProject!=action.projectName) {
+        // Reject if somehow current project doesn't match the workspace project
         return state;
       }
 

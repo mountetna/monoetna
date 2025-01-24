@@ -57,7 +57,7 @@ export const defaultWorkspaceStep: WorkspaceStep = {
 export interface Workflow {
   id: number | null;
   name: string;
-  projects: string[];
+  project: string;
   branch: string;
   repo_remote_url: string;
   created_at: number;
@@ -74,7 +74,7 @@ export interface Workflow {
 export const defaultWorkflow: Workflow = {
   id: null,
   name: '',
-  projects: [],
+  project: '',
   branch: '',
   repo_remote_url: '',
   created_at: 0,
@@ -85,7 +85,7 @@ export const defaultWorkflow: Workflow = {
 interface WorkspaceMinusInconsistent {
   workspace_id: number | null;
   workflow_id: number | null;
-  project: string;
+  project?: string;
   steps: {[k: string]: WorkspaceStep};
   dag: string[];
   last_config?: {[k: string]: any};
@@ -93,7 +93,7 @@ interface WorkspaceMinusInconsistent {
   vignette?: string;
   thumbnails?: string[];
   author?: string;
-  title?: string;
+  name?: string;
   tags: string[];
 }
 
@@ -108,7 +108,6 @@ export interface WorkspaceRaw extends WorkspaceMinusInconsistent {
 export const defaultWorkspace: Workspace = {
   workspace_id: null,
   workflow_id: null,
-  project: '',
   vulcan_config: {},
   steps: {},
   dag: [],
