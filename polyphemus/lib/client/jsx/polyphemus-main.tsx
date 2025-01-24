@@ -1,16 +1,14 @@
 import React, {useState, useEffect, useCallback, useContext} from 'react';
 import {json_get} from 'etna-js/utils/fetch';
-import {getDocuments} from 'etna-js/api/magma_api';
+import {getModels} from 'etna-js/api/magma_api';
+import {MagmaContext} from 'etna-js/contexts/magma-context';
 
 import Typography from '@material-ui/core/Typography';
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
-import { WorkflowConfigRow, WorkflowConfig } from './workflow/workflow-config';
-import WorkflowCreate from './workflow/workflow-create';
-import {Workflow, Job} from './polyphemus';
-
+import CircularProgress from '@material-ui/core/CircularProgress';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -20,8 +18,11 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import Paper from '@material-ui/core/Paper';
 
+import { WorkflowConfig } from './workflow/workflow-config';
+import WorkflowStatusRow from './workflow/workflow-status';
+import WorkflowCreate from './workflow/workflow-create';
+import {Workflow, Job, Status} from './polyphemus';
 import {runTime} from './workflow/run-state';
-import {MagmaContext} from 'etna-js/contexts/magma-context';
 
 const useStyles = makeStyles((theme) => ({
   workflows: {
@@ -29,12 +30,17 @@ const useStyles = makeStyles((theme) => ({
   },
   workflow_list: {
     border: '1px solid #ccc',
-    height: 'calc(100vh - 160px)',
-    marginBottom: '5px'
+    height: 'calc(100vh - 125px)'
   },
   title: {
-    padding: '15px',
+    padding: '10px 0px',
+    display: 'flex',
+    alignItems: 'center',
     color: 'black'
+  },
+  breadcrumb: {
+    padding: '0px 10px',
+    flex: '1 1 auto'
   },
   link: {
     color: theme.palette.primary.main,
@@ -46,6 +52,7 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [runtimeConfigs, setRuntimeConfigs] = useState<{ [ config_id: string ]: RuntimeConfig }>({});
   const [jobs, setJobs] = useState<Job[] | null>(null);
+  const [statuses, setStatuses] = useState<Status[]>([]);
   const [create, setCreate] = useState(false);
   const {models, setModels} = useContext(MagmaContext);
 
@@ -63,97 +70,55 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
 
   const classes = useStyles();
 
+  const updateStatus = () => json_get(`/api/workflows/${project_name}/status`).then(setStatuses);
+
   useEffect( () => {
-    const updateWorkflows = () => {
-      json_get(`/api/workflows/${project_name}/configs`).then(
-        new_workflows => {
-          const newWorkflows = workflows.map(
-            workflow => {
-              const new_workflow = new_workflows.find( (e:Workflow) => e.config_id == workflow.config_id );
-              if (new_workflow) {
-                const { ran_at, run_interval, status } = new_workflow;
-
-                workflow = { ...workflow, ran_at, run_interval, status };
-              }
-
-              return workflow
-            }
-          );
-
-          setWorkflows(newWorkflows);
-        }
-      );
-    };
-
-    const interval = setInterval(updateWorkflows, 30000);
+    const interval = setInterval(updateStatus, 30000);
 
     return () => clearInterval(interval);
-  }, [workflows]);
+  }, []);
 
   useEffect(() => {
     json_get('/api/workflows').then(setJobs);
-    json_get(`/api/workflows/${project_name}/configs`).then(setWorkflows);
-    json_get(`/api/workflows/${project_name}/runtime_configs`).then(
-      (runtimes:RuntimeConfig[]) => setRuntimeConfigs(
-        Object.fromEntries(runtimes.map(runtime => [ runtime.config_id, runtime ]))
-      )
-    );
-
-    getDocuments(
-      {
-        project_name,
-        model_name: 'all',
-        record_names: [],
-        attribute_names: 'all'
-      },
-      fetch
-    )
-      .then(({models}) => setModels(models))
-      .catch((e) => console.log({e}));
+    updateStatus();
+    getModels(project_name).then(({models}) => setModels(models));
   }, []);
-
-  const collator = new Intl.Collator(undefined, {
-    numeric: true,
-    sensitivity: 'base'
-  });
-
 
   const [order, setOrder] = useState< 'desc' | 'asc' | undefined>('asc');
   const [orderBy, setOrderBy] = useState('Job Type');
-  const [selected, setSelected] = useState<number|null>(null);
+  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow|null>(null);
+  const [ loading, setLoading ] = useState(false);
 
-  const selectedWorkflow = workflows.find( e => e.config_id === selected );
+  const selectWorkflow = (config_id) => {
+    setLoading(true);
+    json_get(`/api/workflows/${project_name}/configs/${config_id}`).then(
+      workflow => {
+        setSelectedWorkflow(workflow);
+        setLoading(false);
+      }
+    );
+  }
 
   const headCells = [
     {
       id: 'Job Type',
       align: 'left' as const,
-      key: 'workflow'
+      key: 'workflow_type'
     },
     {
       id: 'Name',
       align: 'left' as const,
-      key: 'name'
+      key: 'workflow_name'
     },
     {
       id: 'Last Status',
       align: 'right' as const,
-      key: 'status'
+      key: 'pipeline_state'
     },
     {
-      id: 'Last Ran',
+      id: 'Last Completed',
       align: 'right' as const,
-      key: 'ran_at'
-    },
-    {
-      id: 'Next Run',
-      align: 'right' as const,
-      compare: (a:Workflow,b:Workflow) => runTime(a.ran_at,a.run_interval).localeCompare(runTime(b.ran_at,b.run_interval))
-    },
-    {
-      id: 'Run State',
-      align: 'right' as const,
-      compare: (a:Workflow,b:Workflow) => a.run_interval - b.run_interval
+      key: 'pipeline_finished_at'
     }
   ];
 
@@ -182,25 +147,38 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
     <Grid id='polyphemus-main'>
       {!jobs ? null : (
         <Grid className={classes.workflows} item xs={12}>
-          <Breadcrumbs className={classes.title}>
-            <Typography>
-              {project_name}
-            </Typography>
-            {
-              selected
-              ? <Typography className={classes.link} onClick={ () => setSelected(null) }>data loaders</Typography>
-              : <Typography>data loaders</Typography>
-            }
-            {
-              selected ? <Typography>{ selectedWorkflow?.name }</Typography> : null
-            }
-          </Breadcrumbs>
+          <Grid className={classes.title}>
+            <Breadcrumbs className={classes.breadcrumb}>
+              <Typography>
+                {project_name}
+              </Typography>
+              {
+                selectedWorkflow
+                ? <Typography className={classes.link} onClick={ () => selectWorkflow(null) }>data loaders</Typography>
+                : <Typography>data loaders</Typography>
+              }
+              {
+                selectedWorkflow ? <Typography>{ selectedWorkflow?.name }</Typography> : null
+              }
+            </Breadcrumbs>
+            <Button onClick={() => setCreate(true)}>Add Loader</Button>
+            <WorkflowCreate
+              project_name={project_name}
+              open={create}
+              onClose={() => setCreate(false)}
+              onCreate={addWorkflow}
+              jobs={jobs}
+            />
+          </Grid>
           {
-            selected && selectedWorkflow
+            loading 
+            ? <CircularProgress size={24}/>
+            : selectedWorkflow
             ? <WorkflowConfig
                 workflow={selectedWorkflow}
+                status={ statuses.find(status => status.config_id == selectedWorkflow.config_id) }
                 onUpdate={addWorkflow}
-                job={jobs.find((j) => j.name == selectedWorkflow?.workflow_type)}
+                job={jobs.find((j) => j.name == selectedWorkflow.workflow_type)}
               />
             : <>
               <TableContainer className={classes.workflow_list}>
@@ -222,30 +200,18 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {workflows
+                    {statuses
                       .sort((a, b) => compareBy(a, b))
-                      .map((workflow: Workflow) => (
-                        <WorkflowConfigRow
-                          key={workflow.workflow_name}
-                          workflow={workflow}
-                          runtimeConfig={ runtimeConfigs[workflow.config_id] }
-                          onClick={ () => setSelected(workflow.config_id) }
-                          job={jobs.find((j) => j.name == workflow.workflow_type)}
+                      .map((status: Status) => (
+                        <WorkflowStatusRow
+                          key={status.workflow_name}
+                          status={status}
+                          onClick={ () => selectWorkflow(status.config_id) }
                         />
                       ))}
                   </TableBody>
                 </Table>
               </TableContainer>
-              <Grid>
-                <Button onClick={() => setCreate(true)}>Add Loader</Button>
-                <WorkflowCreate
-                  project_name={project_name}
-                  open={create}
-                  onClose={() => setCreate(false)}
-                  onCreate={addWorkflow}
-                  jobs={jobs}
-                />
-              </Grid>
             </>
           }
         </Grid>

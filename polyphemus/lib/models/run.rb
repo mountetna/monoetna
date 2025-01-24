@@ -23,6 +23,7 @@ class Polyphemus
 
     def is_succeeded?
       self.status == 'Succeeded'
+    end
 
     def self.last_for_config(config_id)
       Polyphemus::Run.where(

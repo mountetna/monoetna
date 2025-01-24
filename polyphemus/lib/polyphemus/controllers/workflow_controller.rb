@@ -245,42 +245,36 @@ class WorkflowController < Polyphemus::Controller
   def status
     # Get all unique workflows created by the user (unique workflow_names)
     configs = Polyphemus::Config.current.where(project_name: @params[:project_name]).select(:config_id, :workflow_type, :workflow_name).distinct(:workflow_name).all
-    statuses = []
 
-    configs.each do |config|
+    statuses = configs.map do |config|
       # Get the latest run for this config
       # All workflows that have been launched should have a run object
-      run = Polyphemus::Run.where(config_id: config.config_id).order(Sequel.desc(:updated_at)).first
+      run, prev_run = Polyphemus::Run.where(config_id: config.config_id).order(Sequel.desc(:updated_at)).limit(2).all
 
-      # No run object means the workflow has not been launched yet
-      if run.nil?
-        statuses << {
+      status = {
           workflow_type: config.workflow_type,
           workflow_name: config.workflow_name,
+          config_id: config.config_id,
           pipeline_state: nil,
-          pipeline_started_at: nil
-        }
+          pipeline_finished_at: nil
+      }
+
+      # No run object means the workflow has not been launched yet
+      next status unless run
+
+      if run.is_finished?
+        next status.merge(
+          pipeline_state: run.status,
+          pipeline_finished_at: run.finished_at
+        )
       else
-        if run.is_finished?
-          statuses << {
-            workflow_type: config.workflow_type,
-            workflow_name: config.workflow_name,
-            pipeline_state: run.status,
-            pipeline_finished_at: run.finished_at
-            }
-        else
-          # If there is no run, we need to check the argo workflow status
-          status, started_at = Polyphemus::ArgoWorkflowManager.get_workflow_status(config)
-          statuses << {
-            workflow_type: config.workflow_type,
-            workflow_name: config.workflow_name,
-            pipeline_state: status,
-            pipeline_started_at: started_at
-          }
-        end
+        # If there is no run, we need to check the argo workflow status
+        next status.merge(
+         pipeline_finished_at: (prev_run && prev_run.is_finished?) ? prev_run.finished_at : nil,
+         pipeline_state: Polyphemus::ArgoWorkflowManager.get_workflow_status(config)
+        )
       end
     end
     success_json(statuses)
   end
-
 end

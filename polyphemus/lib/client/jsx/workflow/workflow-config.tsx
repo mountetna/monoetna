@@ -3,8 +3,6 @@ import React, {useState, useCallback} from 'react';
 import 'regenerator-runtime/runtime';
 import {json_post} from 'etna-js/utils/fetch';
 
-import TableRow from '@material-ui/core/TableRow';
-import TableCell from '@material-ui/core/TableCell';
 import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -30,13 +28,12 @@ import SecretsPane from './secrets-pane';
 import {formatTime, runTime, runDesc} from './run-state';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
-import {Workflow, Job} from '../polyphemus';
+import {Workflow, Status, Job} from '../polyphemus';
 
 const StatusIcon = ({status}: {status: string}) => {
   let IconComponent: any;
   if (status == 'completed') IconComponent = CheckIcon;
   else if (status == 'message') IconComponent = ErrorIcon;
-  else if (status == 'pending') IconComponent = ScheduleIcon;
   else return null;
 
   return <IconComponent size='small' />;
@@ -63,13 +60,6 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: '15px',
     height: 'calc(100vh - 160px)'
   },
-  workflowrow: {
-    marginBottom: '15px',
-    cursor: 'pointer',
-    '&:hover': {
-      background: '#eee'
-    }
-  },
   savebar: {
     justifyContent: 'space-between'
   },
@@ -95,49 +85,22 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export const WorkflowConfigRow = ({
-  workflow,
-  runtimeConfig,
-  status,
-  params,
-  output,
-  run_interval,
-  ran_at,
-  job,
-  onClick
-}:{ workflow: Workflow; runtimeConfig: RuntimeConfig; job: Job | undefined; onClick: Function}) => {
-  const [mode, setMode] = useState<string | null>(null);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-
-  const { workflow_name } = workflow;
-
-  const classes: any = useStyles();
-
-  return (
-    <TableRow className={classes.workflowrow} onClick={ onClick as React.MouseEventHandler<HTMLTableRowElement>}>
-      <TableCell>{job?.name}</TableCell>
-      <TableCell>{workflow_name}</TableCell>
-      <TableCell align="right">{status || 'none'}</TableCell>
-      <TableCell align="right">{ran_at ? formatTime(ran_at) : 'never'}</TableCell>
-      <TableCell align="right">{runTime(ran_at, run_interval)}</TableCell>
-      <TableCell align="right">{runDesc(run_interval)}</TableCell>
-    </TableRow>
-  );
-};
-
 export const WorkflowConfig = ({
   workflow,
+  status,
   job,
   onUpdate
 }:{
   workflow: Workflow;
+  status: Status;
   job: Job | undefined;
   onUpdate: Function
 }) => {
   const [mode, setMode] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  const { project_name, config_id, config, secrets } = workflow;
 
   const clearMessages = useCallback(() => {
     setMessage('');
@@ -186,7 +149,7 @@ export const WorkflowConfig = ({
                 </Grid>
                 <Grid item className={classes.values}>
                   <Typography>
-                    {ran_at ? formatTime(ran_at) : 'never'}
+                    ran_at
                   </Typography>
                 </Grid>
               </Grid>
@@ -201,10 +164,10 @@ export const WorkflowConfig = ({
                   container
                 >
                   <Grid item>
-                    <StatusIcon status={status} />
+                    <StatusIcon status={status.pipeline_state} />
                   </Grid>
                   <Grid item>
-                    <Typography>{status || 'none'}</Typography>
+                    <Typography>{status.pipeline_state || 'never run'}</Typography>
                   </Grid>
                 </Grid>
               </Grid>
@@ -213,7 +176,7 @@ export const WorkflowConfig = ({
                   <Typography>Next Run</Typography>
                 </Grid>
                 <Grid item className={classes.values}>
-                  <Typography>{runTime(ran_at, run_interval)} </Typography>
+                  interval
                 </Grid>
               </Grid>
             </Grid>

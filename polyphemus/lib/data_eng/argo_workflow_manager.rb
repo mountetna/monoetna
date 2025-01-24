@@ -53,12 +53,12 @@ class Polyphemus
       logger.info("Argo command: #{cmd.join(" ")}")
 
       stdout, stderr, status = Open3.capture3(cmd.join(" "))
-      if status.success?
-        workflow_data = JSON.parse(stdout)
-        return workflow_data["status"]["phase"], workflow_data["status"]["startedAt"]
-      else
-        raise Etna::Error, stderr
-      end
+
+      raise Etna::Error, stderr unless status.success?
+
+      workflow_data = JSON.parse(stdout)
+
+      return workflow_data["status"]["phase"]
     end
 
     module_function :submit_workflow, :get_workflow_status
