@@ -45,7 +45,7 @@ export default function WorkspaceCreateButtonModal({
   projectName: string;
   workflow: Workflow | null;
 }) {
-  if (!workflow || !workflow.id) return;
+  if (!workflow || !workflow.id) return null;
   const classes = useStyles();
   const invoke = useActionInvoker();
   let {state,
@@ -53,7 +53,6 @@ export default function WorkspaceCreateButtonModal({
     createWorkspace
   } = useContext(VulcanContext);
 
-  const [branch, setBranch] = useState('main');
   const [workspaceName, setWorkspaceName] = useState('');
   const [open, setOpen] = useState(false);
 
@@ -103,23 +102,10 @@ export default function WorkspaceCreateButtonModal({
             <Grid item>
               <TextField
                 value={workspaceName}
-                multiline
                 label="Workspace Name"
                 helperText="You will be able to change this later."
                 InputLabelProps={{ shrink: true }}
                 onChange={(event) => setWorkspaceName(event.target.value)}
-                size="small"
-              />
-            </Grid>
-            <Grid item>
-              {/* ToDo: This should be a drop-down based on options given by the back-end */}
-              <TextField
-                value={branch}
-                multiline
-                label="Workflow branch"
-                error={branch===''}
-                InputLabelProps={{ shrink: true }}
-                onChange={(event) => setBranch(event.target.value)}
                 size="small"
               />
             </Grid>

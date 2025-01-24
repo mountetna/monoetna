@@ -105,7 +105,7 @@ export default function WorkspacesGrid({
       if (!workspace.workspace_id) return;
       const newTitle = prompt(
         'Please enter a new workspace title',
-        workspace.title || ''
+        workspace.name || ''
       );
 
       if (!newTitle) return;
@@ -159,7 +159,7 @@ export default function WorkspacesGrid({
 
       const regex = new RegExp(searchString, 'i');
       return (
-        workspace.title?.match(regex) ||
+        workspace.name?.match(regex) ||
         workspace.author?.match(regex) ||
         workflowByIdFromWorkflows(workspace.workflow_id, allWorkflows)?.name.match(regex)
       );

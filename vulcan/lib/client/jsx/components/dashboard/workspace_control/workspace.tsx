@@ -173,7 +173,7 @@ const WorkspaceCard = ({
 
   const [defaultImage, image] = workspaceImage(workflow, workspace);
 
-  const title = workspace.title ? workspace.title : workflow ? `unnamed-${workflow.name}` : 'unnamed-workspace'
+  const title = workspace.name ? workspace.name : workflow ? `unnamed-${workflow.name}` : 'unnamed-workspace'
 
   return (
     <Card className={classes.workspace}>

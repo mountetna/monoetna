@@ -255,8 +255,8 @@ export default function WorkspaceManager() {
 
   // // ToDo Later: once we allow updateWorkspace.
   // const titleChanged = useMemo(() => {
-  //   return localTitle !== workspace.title;
-  // }, [workspace.title, localTitle]);
+  //   return localTitle !== workspace.name;
+  // }, [workspace.name, localTitle]);
 
   // // ToDo Later: once we allow updateWorkspace.
   // const tagsChanged = useMemo(() => {

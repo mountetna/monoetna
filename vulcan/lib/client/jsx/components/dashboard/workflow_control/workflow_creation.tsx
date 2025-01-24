@@ -103,7 +103,6 @@ export default function WorkflowCreateButtonModal({projectName}: {
             <Grid item>
               <TextField
                 value={workflowName}
-                multiline
                 label="Workflow Name"
                 error={workflowNameError}
                 helperText={workflowNameError ? 'Workflow name already exists for this project' : ''}
@@ -115,7 +114,6 @@ export default function WorkflowCreateButtonModal({projectName}: {
             <Grid item>
               <TextField
                 value={repoUrl}
-                multiline
                 label="Workflow URL"
                 placeholder="github.com/<org>/<repo>"
                 InputLabelProps={{ shrink: true }}
