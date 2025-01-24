@@ -3,7 +3,7 @@ Sequel.migration do
     create_table(:revisions) do
       primary_key :id
       foreign_key :workspace_id, :workspaces
-      json :params, null: false
+      json :params, null: false # contains ui and snakemake params?
       String :message, null: false
       DateTime :created_at, null: false
       DateTime :updated_at, null: false

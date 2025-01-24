@@ -287,58 +287,34 @@ class TestRemoteServerManager < Vulcan::RemoteManager
   end
 end
 
-def create_temp_file(file_name)
-  file = Tempfile.new([file_name, '.txt'])
-  file_name_ext = "#{file_name}.txt"
-  file.write("This is a test file, with content 1")
-  file.rewind
-  File.rename(file.path, File.join(File.dirname(file.path), file_name_ext))
-  Rack::Test::UploadedFile.new(File.join(File.dirname(file.path), file_name_ext), 'text/plain')
-end
 
-def create_poem_1
-  file = Tempfile.new(['poem', '.txt'])
-  file_name = 'poem.txt'
-  text = <<~TEXT
+
+def poem_1_text
+  <<~TEXT
     In the realm of the midnight sky,
     Where stars whisper and comets fly,
     A moonlit dance, a celestial show,
     Unfolding secrets we yearn to know.
   TEXT
-  file.write(text)
-  file.rewind
-  # Rename the temporary file to the desired filename
-  File.rename(file.path, File.join(File.dirname(file.path), file_name))
-  # Create the UploadedFile object using the renamed file path
-  Rack::Test::UploadedFile.new(File.join(File.dirname(file.path), file_name), 'text/plain')
 end
 
-def create_poem_2
-  file = Tempfile.new(['poem_2', '.txt'])
-  file_name = 'poem_2.txt'
-  text = <<~TEXT
+def poem_2_text
+  <<~TEXT
     A brook babbles secrets to the stones,
     Tales of ancient earth, of forgotten bones.
     Sunbeams filter through the emerald canopy,
     Painting dappled dreams, a verdant tapestry.
   TEXT
-  file.write(text)
-  file.rewind
-  # Rename the temporary file to the desired filename
-  File.rename(file.path, File.join(File.dirname(file.path), file_name))
-  # Create the UploadedFile object using the renamed file path
-  Rack::Test::UploadedFile.new(File.join(File.dirname(file.path), file_name), 'text/plain')
 end
 
 def write_files_to_workspace(workspace_id)
   # The first step in the test workflow involves the UI writing files to the workspace
   auth_header(:editor)
-  poem_1 = create_poem_1
-  poem_2 = create_poem_2
   request = {
-    files: [poem_1, poem_2]
+    "poem.txt" => poem_1_text,
+    "poem_2.txt" => poem_2_text
   }
-  post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request, 'CONTENT_TYPE' => 'multipart/form-data')
+  post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
   expect(last_response.status).to eq(200)
 end
 

@@ -5,7 +5,7 @@ require_relative "./../../path"
 require_relative './../../remote_manager'
 require_relative './../../snakemake_remote_manager'
 require_relative './../../snakemake_command'
-require_relative './../../snakemake_utils'
+require_relative './../../snakemake_inference'
 
 
 class VulcanV2Controller < Vulcan::Controller
@@ -159,9 +159,8 @@ class VulcanV2Controller < Vulcan::Controller
         )
       end
       available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" }
-      targets = workspace.find_buildable_targets(request_params.keys.map(&:to_s), available_files)
       command = Vulcan::Snakemake::CommandBuilder.new
-      command.targets = targets
+      command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(workspace.target_mapping, request_params.keys.map(&:to_s), available_files)
       command.options = {
         config_path: config.path,
         profile_path: Vulcan::Path.profile_dir(workspace.path),
@@ -172,7 +171,7 @@ class VulcanV2Controller < Vulcan::Controller
         {
           config_id: config.id,
           scheduled: jobs_to_run,
-          downstream: Vulcan::Snakemake::Utils.find_affected_downstream_jobs(workspace.dag, jobs_to_run)
+          downstream: Vulcan::Snakemake::Inference.find_affected_downstream_jobs(workspace.dag, jobs_to_run)
         }
     )
     rescue => e
@@ -199,9 +198,8 @@ class VulcanV2Controller < Vulcan::Controller
       # Build snakemake command
       available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" },
       params = @remote_manager.read_json_file(config.path).keys
-      targets = workspace.find_buildable_targets(params, available_files)
       command = Vulcan::Snakemake::CommandBuilder.new
-      command.targets = targets
+      command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(workspace.target_mapping, params, available_files)
       command.options = {
         config_path: config.path,
         profile_path: Vulcan::Path.profile_dir(workspace.path),
@@ -246,14 +244,13 @@ class VulcanV2Controller < Vulcan::Controller
   def write_files
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
-    raise Etna::BadRequest.new("Unsupported Content-Type: #{request.content_type}")  unless @request.content_type.start_with?('multipart/form-data')
-    files = @params[:files] || []
-    raise Etna:BadRequest.new("No files provided" ) if files.empty?
+    files = @params || {}
+    raise Etna::BadRequest.new("No files provided") if files.empty?
+
     begin
-      files.each do |file|
-        content = file[:tempfile].read()
+      files.each do |file_name, content|
         output_path = Vulcan::Path.workspace_output_path(workspace.path)
-        @remote_manager.write_file("#{output_path}#{file[:filename]}", content)
+        @remote_manager.write_file("#{output_path}#{file_name}", content)
       end
     rescue => e
       Vulcan.instance.logger.log_error(e)
