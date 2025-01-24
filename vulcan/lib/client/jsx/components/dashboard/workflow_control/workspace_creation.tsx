@@ -54,12 +54,14 @@ export default function WorkspaceCreateButtonModal({
   } = useContext(VulcanContext);
 
   const [workspaceName, setWorkspaceName] = useState('');
+  const [branch, setBranch] = useState('main');
+  const [repoVersion, setRepoVersion] = useState('')
   const [open, setOpen] = useState(false);
 
   const handleCreateWorkspace = useCallback(() => {
     if (!workflow || !workflow.id) return;
     // ToDo: UI needed for branch / commit choice!
-    const newSession = showErrors(createWorkspace(projectName, workflow.id, branch, workspaceName))
+    const newSession = showErrors(createWorkspace(projectName, workflow.id, workspaceName, branch, repoVersion))
     invoke(
       pushLocation(
         `/${projectName}/${workflow.name}/${newSession.workspace_id}`
@@ -102,10 +104,36 @@ export default function WorkspaceCreateButtonModal({
             <Grid item>
               <TextField
                 value={workspaceName}
-                label="Workspace Name"
+                label='Workspace Name'
                 helperText="You will be able to change this later."
                 InputLabelProps={{ shrink: true }}
                 onChange={(event) => setWorkspaceName(event.target.value)}
+                size="small"
+              />
+            </Grid>
+            <Grid item>
+              {/* ToDo: This could be a drop-down based on options given by the back-end */}
+              <TextField
+                value={branch}
+                multiline
+                label='Workflow branch'
+                helperText='Ex: master or main'
+                error={branch===''}
+                InputLabelProps={{ shrink: true }}
+                onChange={(event) => setBranch(event.target.value)}
+                size="small"
+              />
+            </Grid>
+            <Grid item>
+              {/* ToDo: This could be a drop-down based on options given by the back-end */}
+              <TextField
+                value={repoVersion}
+                multiline
+                label='Workflow Version'
+                helperText='Commit SHA or Tag'
+                error={repoVersion===''}
+                InputLabelProps={{ shrink: true }}
+                onChange={(event) => setRepoVersion(event.target.value)}
                 size="small"
               />
             </Grid>

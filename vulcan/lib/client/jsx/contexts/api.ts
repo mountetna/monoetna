@@ -48,7 +48,7 @@ export const defaultApiHelpers = {
   getWorkflows(projectName: string): Promise<WorkflowsResponse> {
     return new Promise(() => null);
   },
-  createWorkspace(projectName: string, workflowId: number, branch: string, workspaceName: string): Promise<Response | Workspace> {
+  createWorkspace(projectName: string, workflowId: number, workspaceName: string, branch: string, git_version: string): Promise<Response | Workspace> {
     return new Promise(() => null);
   },
   getWorkspaces(projectName: string): Promise<WorkspacesResponse> {
@@ -203,14 +203,14 @@ export function useApi(
   //   [vulcanGet]
   // );
 
-  const createWorkspace = useCallback((projectName: string, workflowId: number, branch: string, workspaceName: string): Promise<Response | Workspace> => {
+  const createWorkspace = useCallback((projectName: string, workflowId: number, workspaceName: string, branch: string, git_version: string): Promise<Response | Workspace> => {
     return vulcanPost(
       vulcanPath(`/api/v2/${projectName}/workspace/create`),
       {
         workflow_id: workflowId,
         branch: branch,
         workspace_name: workspaceName,
-        git_version: "v1",
+        git_version: git_version,
       }).then(handleFetchSuccess).catch(handleFetchError);
   }, [vulcanPost, vulcanPath]);
 
