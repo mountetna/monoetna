@@ -109,6 +109,10 @@ GEM
     multipart-post (2.1.1)
     net-http-persistent (4.0.5)
       connection_pool (~> 2.2)
+    net-scp (4.0.0)
+      net-ssh (>= 2.6.5, < 8.0.0)
+    net-sftp (4.0.0)
+      net-ssh (>= 5.0.0, < 8.0.0)
     net-ssh (6.1.0)
     nio4r (2.5.8)
     nokogiri (1.13.6)
@@ -228,6 +232,8 @@ DEPENDENCIES
   mini_magick
   multipart-post
   net-http-persistent
+  net-scp
+  net-sftp
   net-ssh
   nokogiri
   pg
