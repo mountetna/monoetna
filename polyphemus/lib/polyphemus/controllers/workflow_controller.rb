@@ -149,6 +149,24 @@ class WorkflowController < Polyphemus::Controller
     success_json(run.as_json)
   end
 
+  def run_output
+    run = Polyphemus::Run.where(
+      run_id: @params[:run_id]
+    ).first
+
+    raise Etna::NotFound, "No such run #{@params[:run_id]}" unless run
+    success_json(output: run.output)
+  end
+
+  def runs
+    runs = Polyphemus::Run.where(
+      config_id: @params[:config_id]
+    ).all
+
+    raise Etna::NotFound, "No such config #{@params[:config_id]}" if runs.empty?
+    success_json(runs: runs.map(&:summary_hash))
+  end
+
   def get_previous_state
     require_params(:config_id, :version_number, :state)
     run = Polyphemus::Run.where(

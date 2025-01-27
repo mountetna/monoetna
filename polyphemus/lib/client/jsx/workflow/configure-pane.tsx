@@ -146,7 +146,7 @@ const ConfigurePane = ({
           {showRevisions != null && (
             <RevisionHistory
               getRevisions={() =>
-                json_get(`/api/workflow/${project_name}/revisions/${config_id}`)
+                json_get(`/api/workflows/${project_name}/revisions/${config_id}`)
               }
               open={showRevisions}
               dateField='created_at'

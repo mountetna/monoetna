@@ -33,7 +33,7 @@ import {Workflow, Status, Job} from '../polyphemus';
 const StatusIcon = ({status}: {status: string}) => {
   let IconComponent: any;
   if (status == 'completed') IconComponent = CheckIcon;
-  else if (status == 'message') IconComponent = ErrorIcon;
+  else if (status == 'error') IconComponent = ErrorIcon;
   else return null;
 
   return <IconComponent size='small' />;
@@ -88,19 +88,25 @@ const useStyles = makeStyles((theme) => ({
 export const WorkflowConfig = ({
   workflow,
   status,
+  runtime,
   job,
-  onUpdate
+  onUpdateWorkflow,
+  onUpdateRuntime,
 }:{
   workflow: Workflow;
+  runtime: Runtime;
   status: Status;
   job: Job | undefined;
-  onUpdate: Function
+  onUpdateWorkflow: Function
+  onUpdateRuntime: Function
 }) => {
   const [mode, setMode] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
   const { project_name, config_id, config, secrets } = workflow;
+
+  const { run_interval, config: params={} } = runtime;
 
   const clearMessages = useCallback(() => {
     setMessage('');
@@ -117,9 +123,22 @@ export const WorkflowConfig = ({
   const [_, postUpdate] = useAsyncWork(
     function postUpdate(update: any) {
       clearMessages();
-      return json_post(`/api/workflow/${project_name}/update/${config_id}`, update)
+      return json_post(`/api/workflows/${project_name}/update/${config_id}`, update)
         .then((workflow) => {
-          onUpdate(workflow);
+          onUpdateWorkflow(workflow);
+          setMessage('Saved!');
+        })
+        .catch((r) => r.then(({error}: {error: string}) => setError(error)));
+    },
+    {cancelWhenChange: []}
+  );
+
+  const [__, postRuntimeUpdate] = useAsyncWork(
+    function postRuntimeUpdate(update: any) {
+      clearMessages();
+      return json_post(`/api/workflows/${project_name}/runtime_configs/update/${config_id}`, update)
+        .then((runtime) => {
+          onUpdateRuntime(runtime);
           setMessage('Saved!');
         })
         .catch((r) => r.then(({error}: {error: string}) => setError(error)));
@@ -145,11 +164,11 @@ export const WorkflowConfig = ({
               </Grid>
               <Grid direction='row' className={classes.statusline} container>
                 <Grid container className={classes.title} item>
-                  <Typography>Last Ran</Typography>
+                  <Typography>Last Completed</Typography>
                 </Grid>
                 <Grid item className={classes.values}>
                   <Typography>
-                    ran_at
+                    { status.pipeline_finished_at || 'never run'}
                   </Typography>
                 </Grid>
               </Grid>
@@ -169,14 +188,6 @@ export const WorkflowConfig = ({
                   <Grid item>
                     <Typography>{status.pipeline_state || 'never run'}</Typography>
                   </Grid>
-                </Grid>
-              </Grid>
-              <Grid direction='row' className={classes.statusline} container>
-                <Grid container className={classes.title} item>
-                  <Typography>Next Run</Typography>
-                </Grid>
-                <Grid item className={classes.values}>
-                  interval
                 </Grid>
               </Grid>
             </Grid>
@@ -222,12 +233,12 @@ export const WorkflowConfig = ({
         <RunPane
           selected={mode}
           run_interval={run_interval}
-          update={postUpdate}
+          update={postRuntimeUpdate}
           config={config}
           params={params}
-          param_opts={job ? job.params : null}
+          param_opts={job ? job.runtime_params : null}
         />
-        <RemovePane selected={mode} update={postUpdate} />
+        <RemovePane selected={mode} update={postRuntimeUpdate} />
         <LogsPane selected={mode} config_id={config_id} name={name} project_name={project_name} />
         <SecretsPane
           selected={mode}

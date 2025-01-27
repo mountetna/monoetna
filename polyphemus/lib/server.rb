@@ -39,7 +39,9 @@ class Polyphemus
     get '/api/workflows', action: 'workflow#get_workflows'
     get '/api/workflows/:project_name/revisions/:config_id', action: 'workflow#revisions', auth: { user: { can_view?: :project_name } }
 
+    get '/api/workflows/:project_name/runs/:config_id', action: 'workflow#runs', auth: { user: { can_edit?: :project_name } }
     get '/api/workflows/:project_name/run/:run_id', action: 'workflow#get_run', auth: { user: { can_view?: :project_name } }
+    get '/api/workflows/:project_name/run/output/:run_id', action: 'workflow#run_output', auth: { user: { can_view?: :project_name } }
     post '/api/workflows/:project_name/run/update/:run_id', action: 'workflow#update_run', auth: { user: { can_edit?: :project_name } }
     post '/api/workflows/:project_name/run/previous/:config_id', action: 'workflow#get_previous_state', auth: { user: { can_edit?: :project_name } }
 

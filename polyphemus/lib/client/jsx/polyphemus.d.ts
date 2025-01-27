@@ -5,7 +5,7 @@ export type EtnaError = {
 export type Job = {
   name: string;
   schema: any;
-  params: any;
+  runtime_params: any;
   secrets: any;
 };
 
@@ -19,6 +19,12 @@ export type Workflow = {
   secrets: any;
   created_at: string;
 };
+
+export type Runtime = {
+  config_id: number;
+  params: any;
+  run_interval: number;
+}
 
 export type Status = {
   workflow_type: string;

@@ -12,6 +12,6 @@ Sequel.migration do
   # TO think about: maybe foreign key to configs.config_id
 
   down do
-    drop_table(:run_metadata)
+    drop_table(:runtime_configs)
   end
 end

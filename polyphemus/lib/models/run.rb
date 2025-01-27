@@ -31,9 +31,23 @@ class Polyphemus
       ).reverse(:created_at).first
     end
 
+    def summary_hash
+      {
+        run_id: run_id,
+        version_number: version_number,
+        config_id: config_id,
+        status: status,
+        created_at: created_at,
+        finished_at: finished_at
+      }
+    end
+
     def status
       "complete"
     end
+
+    def output
+      "Output"
+    end
   end
 end
-  

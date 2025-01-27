@@ -27,13 +27,13 @@ const WorkflowCreate = ({
   onCreate: Function;
   jobs: Job[];
 }) => {
-  const [job_name, setJobName] = useState('');
-  const [job_type, setJobType] = useState('');
+  const [workflow_name, setWorkflowName] = useState('');
+  const [workflow_type, setWorkflowType] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const reset = () => {
-    setJobName('');
-    setJobType('');
+    setWorkflowName('');
+    setWorkflowType('');
     setError(null);
   };
 
@@ -43,7 +43,7 @@ const WorkflowCreate = ({
   };
 
   const createJob = () =>
-    json_post(`/api/workflow/${project_name}/create`, {name: job_name, job_type})
+    json_post(`/api/workflows/${project_name}/create`, {workflow_name, workflow_type})
       .then((workflow) => {
         onCreate(workflow);
         close();
@@ -62,15 +62,15 @@ const WorkflowCreate = ({
             autoFocus
             margin='dense'
             label='Loader Name'
-            value={job_name}
-            onChange={(e) => setJobName(e.target.value as string)}
+            value={workflow_name}
+            onChange={(e) => setWorkflowName(e.target.value as string)}
           />
         </FormControl>
         <FormControl fullWidth>
           <InputLabel>Job Type</InputLabel>
           <Select
-            value={job_type}
-            onChange={(e) => setJobType(e.target.value as string)}
+            value={workflow_type}
+            onChange={(e) => setWorkflowType(e.target.value as string)}
           >
             {jobs.map(({name}) => (
               <MenuItem key={name} value={name}>
@@ -81,7 +81,7 @@ const WorkflowCreate = ({
         </FormControl>
       </DialogContent>
       <DialogActions>
-        {job_name && job_type && (
+        {workflow_name && workflow_type && (
           <Button onClick={createJob} color='primary'>
             Create
           </Button>

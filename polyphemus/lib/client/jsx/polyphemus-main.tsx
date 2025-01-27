@@ -21,7 +21,7 @@ import Paper from '@material-ui/core/Paper';
 import { WorkflowConfig } from './workflow/workflow-config';
 import WorkflowStatusRow from './workflow/workflow-status';
 import WorkflowCreate from './workflow/workflow-create';
-import {Workflow, Job, Status} from './polyphemus';
+import {Workflow, Runtime, Job, Status} from './polyphemus';
 import {runTime} from './workflow/run-state';
 
 const useStyles = makeStyles((theme) => ({
@@ -49,24 +49,20 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const PolyphemusMain = ({project_name}: {project_name: string}) => {
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
-  const [runtimeConfigs, setRuntimeConfigs] = useState<{ [ config_id: string ]: RuntimeConfig }>({});
   const [jobs, setJobs] = useState<Job[] | null>(null);
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [create, setCreate] = useState(false);
   const {models, setModels} = useContext(MagmaContext);
 
-  const addWorkflow = (workflow: Workflow) => {
-    let index = workflows.findIndex((e) => e.config_id == workflow.config_id);
-    let new_workflows =
-      index == -1
-        ? workflows.concat(workflow)
-        : workflow.run_interval == -2
-        ? workflows.filter((e, i) => i != index)
-        : workflows.map((e, i) => (i == index ? workflow : e));
-
-    setWorkflows(new_workflows);
+  const updateWorkflow = (workflow: Workflow) => {
+    setSelectedWorkflow(workflow);
+    updateStatus();
   };
+  const updateRuntime = (runtime: Runtime) => {
+    setSelectedRuntime(runtime);
+    updateStatus();
+  };
+
 
   const classes = useStyles();
 
@@ -87,10 +83,22 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
   const [order, setOrder] = useState< 'desc' | 'asc' | undefined>('asc');
   const [orderBy, setOrderBy] = useState('Job Type');
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow|null>(null);
+  const [selectedRuntime, setSelectedRuntime] = useState<Runtime>({});
   const [ loading, setLoading ] = useState(false);
+
+  const deselectWorkflow = () => {
+    setSelectedRuntime({});
+    setSelectedWorkflow(null);
+  }
 
   const selectWorkflow = (config_id) => {
     setLoading(true);
+    json_get(`/api/workflows/${project_name}/runtime_configs/${config_id}`).then(
+      runtime => {
+        setSelectedRuntime(runtime)
+      }
+    );
+
     json_get(`/api/workflows/${project_name}/configs/${config_id}`).then(
       workflow => {
         setSelectedWorkflow(workflow);
@@ -154,11 +162,11 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
               </Typography>
               {
                 selectedWorkflow
-                ? <Typography className={classes.link} onClick={ () => selectWorkflow(null) }>data loaders</Typography>
+                ? <Typography className={classes.link} onClick={ () => deselectWorkflow(null) }>data loaders</Typography>
                 : <Typography>data loaders</Typography>
               }
               {
-                selectedWorkflow ? <Typography>{ selectedWorkflow?.name }</Typography> : null
+                selectedWorkflow ? <Typography>{ selectedWorkflow?.workflow_name }</Typography> : null
               }
             </Breadcrumbs>
             <Button onClick={() => setCreate(true)}>Add Loader</Button>
@@ -166,7 +174,7 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
               project_name={project_name}
               open={create}
               onClose={() => setCreate(false)}
-              onCreate={addWorkflow}
+              onCreate={updateWorkflow}
               jobs={jobs}
             />
           </Grid>
@@ -176,8 +184,10 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
             : selectedWorkflow
             ? <WorkflowConfig
                 workflow={selectedWorkflow}
-                status={ statuses.find(status => status.config_id == selectedWorkflow.config_id) }
-                onUpdate={addWorkflow}
+                runtime={selectedRuntime}
+                status={ statuses.find(status => status.config_id == selectedWorkflow.config_id) || {} }
+                onUpdateWorkflow={updateWorkflow}
+                onUpdateRuntime={updateRuntime}
                 job={jobs.find((j) => j.name == selectedWorkflow.workflow_type)}
               />
             : <>
