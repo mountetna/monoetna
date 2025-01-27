@@ -41,13 +41,5 @@ class Polyphemus
         finished_at: finished_at
       }
     end
-
-    def status
-      "complete"
-    end
-
-    def output
-      "Output"
-    end
   end
 end
