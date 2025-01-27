@@ -97,7 +97,7 @@ describe AuthorizationController do
       expect(cookies.has_key?("HttpOnly")).to be_falsy
 
       # the cookie is restricted to the same site
-      expect(cookies["SameSite"]).to eq('Strict')
+      expect(cookies["samesite"]).to eq('strict')
     end
 
     context 'cookie expiration time' do

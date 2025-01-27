@@ -28,7 +28,7 @@ import SecretsPane from './secrets-pane';
 import {formatTime, runTime, runDesc} from './run-state';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
-import {Workflow, Status, Job} from '../polyphemus';
+import {Workflow, Status, Job, Runtime} from '../polyphemus';
 
 const StatusIcon = ({status}: {status: string}) => {
   let IconComponent: any;
@@ -147,7 +147,7 @@ export const WorkflowConfig = ({
   );
 
   return (
-    <Card className={classes.workflow} elevation={0} key={workflow}>
+    <Card className={classes.workflow} elevation={0} key={workflow.config_id}>
       <CardContent>
         <CardActions>
           <Grid direction='row' container>
@@ -177,7 +177,7 @@ export const WorkflowConfig = ({
                   <Typography>Last Status</Typography>
                 </Grid>
                 <Grid
-                  className={`${classes.values} ${classes[status]}`}
+                  className={`${classes.values} ${classes[status.pipeline_state]}`}
                   direction='row'
                   item
                   container
@@ -241,7 +241,7 @@ export const WorkflowConfig = ({
           param_opts={job ? job.runtime_params : null}
         />
         <RemovePane selected={mode} update={postRuntimeUpdate} />
-        <LogsPane selected={mode} config_id={config_id} name={name} project_name={project_name} />
+        <LogsPane selected={mode} config_id={config_id} project_name={project_name} />
         <SecretsPane
           selected={mode}
           update={postUpdate}

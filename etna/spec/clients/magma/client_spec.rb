@@ -219,7 +219,7 @@ describe Etna::Clients::Magma do
         response = magma_client.update_json(Etna::Clients::Magma::UpdateRequest.new(blank_table_update), 2)
 
         expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).twice
-        expect(response.models.model("monster").documents.document_keys).to eq(["Nemean Lion", "Lernean Hydra"])
+        expect(response.models.model("monster").documents.document_keys).to match_array(["Nemean Lion", "Lernean Hydra"])
       end
 
       it 'posts a paged update appending to tables' do

@@ -6,7 +6,7 @@ import {makeStyles} from '@material-ui/core/styles';
 
 import {formatTime, runTime, runDesc} from './run-state';
 
-import {Workflow, Job} from '../polyphemus';
+import {Status, Job} from '../polyphemus';
 
 const useStyles = makeStyles((theme) => ({
   workflowrow: {

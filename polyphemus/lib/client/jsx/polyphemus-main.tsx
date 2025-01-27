@@ -52,7 +52,15 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
   const [jobs, setJobs] = useState<Job[] | null>(null);
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [create, setCreate] = useState(false);
+  const [order, setOrder] = useState< 'desc' | 'asc' | undefined>('asc');
+  const [orderBy, setOrderBy] = useState('Job Type');
+  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow|null>(null);
+  const [selectedRuntime, setSelectedRuntime] = useState<Runtime|null>(null);
+  const [ loading, setLoading ] = useState(false);
+
   const {models, setModels} = useContext(MagmaContext);
+
+  const updateStatus = () => json_get(`/api/workflows/${project_name}/status`).then(setStatuses);
 
   const updateWorkflow = (workflow: Workflow) => {
     setSelectedWorkflow(workflow);
@@ -66,8 +74,6 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
 
   const classes = useStyles();
 
-  const updateStatus = () => json_get(`/api/workflows/${project_name}/status`).then(setStatuses);
-
   useEffect( () => {
     const interval = setInterval(updateStatus, 30000);
 
@@ -80,18 +86,12 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
     getModels(project_name).then(({models}) => setModels(models));
   }, []);
 
-  const [order, setOrder] = useState< 'desc' | 'asc' | undefined>('asc');
-  const [orderBy, setOrderBy] = useState('Job Type');
-  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow|null>(null);
-  const [selectedRuntime, setSelectedRuntime] = useState<Runtime>({});
-  const [ loading, setLoading ] = useState(false);
-
   const deselectWorkflow = () => {
-    setSelectedRuntime({});
+    setSelectedRuntime(null);
     setSelectedWorkflow(null);
   }
 
-  const selectWorkflow = (config_id) => {
+  const selectWorkflow = (config_id:number) => {
     setLoading(true);
     json_get(`/api/workflows/${project_name}/runtime_configs/${config_id}`).then(
       runtime => {
@@ -143,9 +143,7 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
     (a, b) => {
       const dir = (order == 'asc' ? 1 : -1);
       const comp = (orderCell
-        ? (orderCell.compare
-          ? orderCell.compare(a, b)
-          : (a[ orderCell.key ] || '').localeCompare(b[ orderCell.key ] || ''))
+        ? (a[ orderCell.key ] || '').localeCompare(b[ orderCell.key ] || '')
         : 0) || a.workflow_name.localeCompare(b.workflow_name);
       return dir * comp;
     }, [ orderBy, order ]
@@ -162,7 +160,7 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
               </Typography>
               {
                 selectedWorkflow
-                ? <Typography className={classes.link} onClick={ () => deselectWorkflow(null) }>data loaders</Typography>
+                ? <Typography className={classes.link} onClick={ () => deselectWorkflow() }>data loaders</Typography>
                 : <Typography>data loaders</Typography>
               }
               {
@@ -184,8 +182,8 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
             : selectedWorkflow
             ? <WorkflowConfig
                 workflow={selectedWorkflow}
-                runtime={selectedRuntime}
-                status={ statuses.find(status => status.config_id == selectedWorkflow.config_id) || {} }
+                runtime={(selectedRuntime || {}) as Runtime}
+                status={ (statuses.find(status => status.config_id == selectedWorkflow.config_id) || {}) as Status }
                 onUpdateWorkflow={updateWorkflow}
                 onUpdateRuntime={updateRuntime}
                 job={jobs.find((j) => j.name == selectedWorkflow.workflow_type)}

@@ -18,6 +18,7 @@ import {EditorState} from '@codemirror/state';
 import {gutter, lineNumbers} from '@codemirror/view';
 import CodeMirror from 'rodemirror';
 import {lintGutter} from '@codemirror/lint';
+import {Run} from '../polyphemus';
 
 import ErrorBoundary from 'etna-js/components/error_boundary';
 
@@ -58,11 +59,11 @@ const extensions = [
   lintGutter()
 ];
 
-const Run = ({run, project_name}) => {
+const RunRow = ({run, project_name} : { run: Run; project_name: string; }) => {
   const classes = useStyles();
   const { run_id, created_at, config_id, version_number, status, finished_at } = run;
   const [ showOutput, setShowOutput ] = useState(false);
-  const [ output, setOutput ] = useState(null);
+  const [ output, setOutput ] = useState<string|null>(null);
   const toggleOutput = useCallback(() => {
     if (showOutput) {
       setShowOutput(false);
@@ -87,7 +88,7 @@ const Run = ({run, project_name}) => {
         <Collapse in={ showOutput }>
           <div className={classes.editor}>
             <ErrorBoundary>
-              <CodeMirror extensions={extensions} value={output} />
+              <CodeMirror extensions={extensions} value={output || ''} />
             </ErrorBoundary>
           </div>
           {output && (
@@ -107,17 +108,15 @@ const Run = ({run, project_name}) => {
 const LogsPane = ({
   selected,
   config_id,
-  name,
   project_name
 }: {
   selected: string | null;
   config_id: number;
-  name: string;
   project_name: string;
 }) => {
   const classes = useStyles();
   const [output, setOutput] = useState('');
-  const [runs, setRuns] = useState([]);
+  const [runs, setRuns] = useState<Run[]>([]);
 
   useEffect(() => {
     json_get(`/api/workflows/${project_name}/runs/${config_id}`).then(({runs}) =>
@@ -143,7 +142,7 @@ const LogsPane = ({
           <TableBody>
           {
             runs.map(
-              run => <Run project_name={project_name} key={run.run_id} run={run}/>
+              run => <RunRow project_name={project_name} key={run.run_id} run={run}/>
             )
           }
           </TableBody>

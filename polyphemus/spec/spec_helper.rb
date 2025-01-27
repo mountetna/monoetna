@@ -12,7 +12,7 @@ require "simplecov"
 SimpleCov.start
 
 require "yaml"
-#require "etna/spec/vcr"
+require "etna/spec/vcr"
 
 require "fileutils"
 require "timecop"
@@ -24,7 +24,7 @@ require_relative "../lib/data_eng/jobs/sftp_metis_uploader"
 require_relative "../lib/data_eng/jobs/sftp_c4_uploader"
 require_relative "../lib/data_eng/jobs/metis_linker"
 
-#setup_base_vcr(__dir__)
+setup_base_vcr(__dir__)
 
 Polyphemus.instance.configure(YAML.load(File.read("config.yml")))
 

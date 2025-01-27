@@ -156,14 +156,14 @@ const Param = ({
   return null;
 };
 
-const paramsWithDefaults = (params, param_opts) => {
+const paramsWithDefaults = (params: any, param_opts: any) => {
   let newParams = {...params};
   Object.entries(param_opts).forEach(
-    ([param_name,opts]) => {
+    ([param_name, opts]) => {
       if (param_name in newParams) return;
       if (!Array.isArray(opts)) return;
 
-      const defaultOption = opts.find((o) => o.default);
+      const defaultOption: any = opts.find((o) => o.default);
 
       if (defaultOption) {
         newParams[param_name] = defaultOption.value;

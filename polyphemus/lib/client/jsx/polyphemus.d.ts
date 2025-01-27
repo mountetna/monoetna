@@ -22,9 +22,18 @@ export type Workflow = {
 
 export type Runtime = {
   config_id: number;
-  params: any;
+  config: any;
   run_interval: number;
-}
+};
+
+export type Run = {
+  run_id: number;
+  created_at: string;
+  config_id: number;
+  version_number: number;
+  status: string;
+  finished_at: string;
+};
 
 export type Status = {
   workflow_type: string;
