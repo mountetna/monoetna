@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import * as _ from 'lodash';
+import {json_post} from 'etna-js/utils/fetch';
 
 import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -29,6 +30,14 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     flex: '0 0 200px'
+  },
+  completed: {
+    color: 'green',
+    paddingLeft: '0.5rem'
+  },
+  error: {
+    paddingLeft: '0.5rem',
+    color: 'red'
   },
   params: {
     flex: '1 1 auto'
@@ -165,6 +174,8 @@ const paramsWithDefaults = (params, param_opts) => {
 }
 
 const RunPane = ({
+  project_name,
+  config_id,
   run_interval,
   update,
   params,
@@ -172,6 +183,8 @@ const RunPane = ({
   selected,
   config
 }: {
+  project_name: string;
+  config_id: number;
   run_interval: number;
   params: any;
   param_opts: any;
@@ -182,12 +195,15 @@ const RunPane = ({
   const [runIntervalTime, setRunIntervalTime] = useState(getRunIntervalTime(run_interval));
   const [newParams, setParams] = useState<any>({});
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [ranOnce, setRanOnce] = useState(false)
 
   useEffect(() => setParams(paramsWithDefaults(params, param_opts)), [params, param_opts]);
   useEffect(() => setRunIntervalTime(getRunIntervalTime(run_interval)), [run_interval]);
 
   const reset = useCallback(() => {
-      setError('')
+      setError('');
+      setMessage('');
       setRunIntervalTime(getRunIntervalTime(run_interval));
       setParams(paramsWithDefaults(params, param_opts));
     }, [params, param_opts]
@@ -216,12 +232,12 @@ const RunPane = ({
   }, [nonBooleanParamOpts, param_opts, newParams]);
 
   const savePayload = useCallback(() => {
-    return {run_interval: runIntervalTime, params: newParams};
+    return {run_interval: runIntervalTime, config: newParams};
   }, [runIntervalTime, newParams]);
 
   const formChanged = useMemo(() => {
-    console.log({ sp: savePayload(), np: { params: paramsWithDefaults(params, param_opts), run_interval } });
-    return !_.isEqual(savePayload(), { params: paramsWithDefaults(params, param_opts), run_interval: getRunIntervalTime(run_interval) });
+    console.log({ sp: savePayload(), np: { config: paramsWithDefaults(params, param_opts), run_interval } });
+    return !_.isEqual(savePayload(), { config: paramsWithDefaults(params, param_opts), run_interval: getRunIntervalTime(run_interval) });
   }, [savePayload, params, param_opts]);
 
   console.log({nonBooleanParamOpts, newParams, param_opts});
@@ -259,9 +275,26 @@ const RunPane = ({
               </span>
             </Tooltip>
           </Grid>
-          {(error) && (
-            <Grid item >
-              <Typography style={{color: 'green', paddingLeft: '0.5rem'}}>{error}</Typography>
+          <Grid item>
+            <Tooltip title={ ranOnce ? 'Already ran' : !formValid ? 'Missing values' : '' }>
+              <span>
+                <Button
+                  disabled={ !formValid || ranOnce}
+                  onClick={() => {
+                    setRanOnce(true);
+                    json_post(`/api/workflows/${project_name}/runtime_configs/run_once/${config_id}`, { config: newParams })
+                      .then((run) => setMessage('Launched!'))
+                      .catch((r) => r.then(({error}: {error: string}) => setError(error)));
+                  }}
+                >
+                  Run Once
+                </Button>
+              </span>
+            </Tooltip>
+          </Grid>
+          {(error || message) && (
+            <Grid item className={error ? classes.error : classes.completed}>
+              <Typography>{error || message}</Typography>
             </Grid>
           )}
         </Grid>

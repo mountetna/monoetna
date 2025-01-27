@@ -227,7 +227,7 @@ class WorkflowController < Polyphemus::Controller
   end
 
   def run_once
-    require_params(:config_id, :workflow_type)
+    require_param(:config)
     config = Polyphemus::Config.current.where(
           project_name: @params[:project_name],
           config_id: @params[:config_id]
@@ -235,11 +235,11 @@ class WorkflowController < Polyphemus::Controller
 
     raise Etna::NotFound, "Cannot find a config for project #{@params[:project_name]} with config_id #{@params[:config_id]}" unless config 
 
-    unless Polyphemus::WorkflowManifest.from_workflow_name(@params[:workflow_type])
-      raise Etna::BadRequest, "There is no such workflow type #{@params[:workflow_type]}"
+    unless Polyphemus::WorkflowManifest.from_workflow_name(config.workflow_type)
+      raise Etna::BadRequest, "There is no such workflow type #{config.workflow_type}"
     end
 
-    manifest = Polyphemus::WorkflowManifest.from_workflow_name(@params[:workflow_type])
+    manifest = Polyphemus::WorkflowManifest.from_workflow_name(config.workflow_type)
     errors = manifest.validate_runtime_config(@params[:config])
     raise Etna::BadRequest, errors.join(', ') if errors.any?
 

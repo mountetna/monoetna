@@ -232,6 +232,8 @@ export const WorkflowConfig = ({
         />
         <RunPane
           selected={mode}
+          config_id={config_id}
+          project_name={project_name}
           run_interval={run_interval}
           update={postRuntimeUpdate}
           config={config}
