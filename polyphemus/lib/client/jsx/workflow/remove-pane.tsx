@@ -16,7 +16,7 @@ const RemovePane = ({update,selected}:{update:Function,selected:string|null}) =>
   return <WorkflowPane mode='remove' selected={selected}>
     <WorkflowPaneHeader title='Disable this loader?'>
       <Grid item container className={ classes.confirm }>
-        <Button onClick={ () => update({ run_interval: -2 }) }>Remove</Button>
+      <Button onClick={ () => update({ disabled: true }) }>Remove</Button>
       </Grid>
     </WorkflowPaneHeader>
   </WorkflowPane>;

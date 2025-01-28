@@ -203,14 +203,14 @@ describe WorkflowController do
 
     it 'returns the most recent config when version is not specified' do
       auth_header(:editor)
-      post("/api/workflows/labors/configs/#{json_body[:config_id]}")
+      get("/api/workflows/labors/configs/#{json_body[:config_id]}")
       expect(last_response.status).to eq(200)
       expect(json_body[:version_number]).to eq(3)
     end
 
     it 'returns a config by id and version' do
       auth_header(:editor)
-      post("/api/workflows/labors/configs/#{json_body[:config_id]}", version: 1)
+      get("/api/workflows/labors/configs/#{json_body[:config_id]}?version=1")
       expect(last_response.status).to eq(200)
       expect(json_body[:version_number]).to eq(1)
     end
@@ -490,7 +490,7 @@ context '#revisions' do
       config_id_that_doesnt_exit = 10000
       get("/api/workflows/labors/runtime_configs/#{config_id_that_doesnt_exit}")
       expect(last_response.status).to eq(404)
-      expect(json_body[:error]).to eq('No runtime config found for config_id 10000.') 
+      expect(json_body[:error]).to eq('No such config 10000') 
     end
 
     it 'retrieves existing run metadata' do
@@ -668,7 +668,9 @@ context '#revisions' do
       expect(json_body[0][:workflow_name]).to eq("my-cat-ingestion-2")
       expect(json_body[0][:workflow_type]).to eq("cat-ingestion")
       expect(json_body[0][:pipeline_state]).to eq("Running")
-      expect(json_body[0][:pipeline_started_at]).to eq("2025-01-13T20:58:09Z")
+      # When argo is still running, we use the previous run's finished_at
+      # In this case there is only one run, so it should be nil
+      expect(json_body[0][:pipeline_finished_at]).to be_nil
     end
 
     it 'returns a nil status when the workflow hasnt been run yet' do
@@ -689,7 +691,7 @@ context '#revisions' do
       expect(json_body[0][:workflow_name]).to eq("my-cat-ingestion-2")
       expect(json_body[0][:workflow_type]).to eq("cat-ingestion")
       expect(json_body[0][:pipeline_state]).to be_nil
-      expect(json_body[0][:pipeline_started_at]).to be_nil
+      expect(json_body[0][:pipeline_finished_at]).to be_nil
     end
   end
 end

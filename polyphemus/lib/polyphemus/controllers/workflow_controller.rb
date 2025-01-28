@@ -228,7 +228,7 @@ class WorkflowController < Polyphemus::Controller
 
     return success_json(runtime_config.as_json) if runtime_config
 
-    raise Etna::NotFound("No such config #{@params[:config_id]}")
+    raise Etna::NotFound, "No such config #{@params[:config_id]}"
   end
 
   def run_once
