@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export const EtlPaneHeader = ({
+export const WorkflowPaneHeader = ({
   title,
   children
 }: {
@@ -46,7 +46,7 @@ export const EtlPaneHeader = ({
   );
 };
 
-const EtlPane = ({
+const WorkflowPane = ({
   mode,
   selected,
   children
@@ -64,4 +64,4 @@ const EtlPane = ({
   );
 };
 
-export default EtlPane;
+export default WorkflowPane;

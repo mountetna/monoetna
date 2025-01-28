@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import {makeStyles} from '@material-ui/core/styles';
-import EtlPane, { EtlPaneHeader } from './etl-pane';
+import WorkflowPane, { WorkflowPaneHeader } from './workflow-pane';
 
 const useStyles = makeStyles( theme => ({
   confirm: {
@@ -13,13 +13,13 @@ const useStyles = makeStyles( theme => ({
 const RemovePane = ({update,selected}:{update:Function,selected:string|null}) => {
   const classes = useStyles();
 
-  return <EtlPane mode='remove' selected={selected}>
-    <EtlPaneHeader title='Disable this loader?'>
+  return <WorkflowPane mode='remove' selected={selected}>
+    <WorkflowPaneHeader title='Disable this loader?'>
       <Grid item container className={ classes.confirm }>
         <Button onClick={ () => update({ run_interval: -2 }) }>Remove</Button>
       </Grid>
-    </EtlPaneHeader>
-  </EtlPane>;
+    </WorkflowPaneHeader>
+  </WorkflowPane>;
 };
 
 export default RemovePane;

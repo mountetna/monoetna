@@ -14,7 +14,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 
 import ConfigScript from './config-script';
-import EtlPane, {EtlPaneHeader} from './etl-pane';
+import WorkflowPane, {WorkflowPaneHeader} from './workflow-pane';
 import RedcapForm from './redcap-form';
 import MetisForm from './metis-form';
 import RevisionHistory from 'etna-js/components/revision-history';
@@ -80,8 +80,8 @@ const ConfigurePane = ({
     : editedConfig != config;
 
   return (
-    <EtlPane mode='configure' selected={selected}>
-      <EtlPaneHeader title='Configuration'>
+    <WorkflowPane mode='configure' selected={selected}>
+      <WorkflowPaneHeader title='Configuration'>
         {showSave && (
           <Grid spacing={1} container className={classes.savebar}>
             <Grid item>
@@ -146,7 +146,7 @@ const ConfigurePane = ({
           {showRevisions != null && (
             <RevisionHistory
               getRevisions={() =>
-                json_get(`/api/etl/${project_name}/revisions/${config_id}`)
+                json_get(`/api/workflows/${project_name}/revisions/${config_id}`)
               }
               open={showRevisions}
               dateField='created_at'
@@ -162,7 +162,7 @@ const ConfigurePane = ({
             />
           )}
         </Grid>
-      </EtlPaneHeader>
+      </WorkflowPaneHeader>
       {!JobForm || showJson ? (
         <ConfigScript
           script={editedScript}
@@ -177,7 +177,7 @@ const ConfigurePane = ({
           update={setEditedConfig}
         />
       )}
-    </EtlPane>
+    </WorkflowPane>
   );
 };
 

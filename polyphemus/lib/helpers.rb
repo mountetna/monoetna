@@ -23,6 +23,12 @@ module WithEtnaClients
       host: Polyphemus.instance.config(:magma, environment)[:host])
   end
 
+  def gnomon_client(logger: nil)
+    @gnomon_client ||= Etna::Clients::Gnomon.new(
+        token: token,
+      host: Polyphemus.instance.config(:magma, environment)[:host])
+  end
+
   def metis_client
     @metis_client ||= Etna::Clients::Metis.new(
       token: token,

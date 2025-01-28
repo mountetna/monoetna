@@ -80,7 +80,7 @@ module Etna
 
       hmac_params = {
         method: request.request_method,
-        host: request.host,
+        host: application.host,
         path: request.path,
 
         expiration: etna_param(request, :expiration) || DateTime.now.iso8601,

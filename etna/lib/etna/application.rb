@@ -174,6 +174,14 @@ module Etna::Application
     ENV["APP_NAME"] || self.class.name.snake_case.split(/::/).last
   end
 
+  def host
+    URI(url).host
+  end
+
+  def url
+    config(id.to_sym)[:host]
+  end
+
   def find_descendents(klass)
     ObjectSpace.each_object(Class).select do |k|
       k < klass

@@ -87,7 +87,7 @@ end
 def stub_retrieve(request, response)
   stub_request(:post, "https://magma.test/retrieve").
     with(
-      body: request.to_json
+      body: request
      ).to_return(
        status: 200, body: response.to_json, headers: {}
      )
@@ -101,7 +101,7 @@ def stub_models(project, models)
         model_name: "all",
         attribute_names: [],
         record_names: []
-      }.to_json
+      }
      ).to_return(
        status: 200, body: {
          models: models.map{ |m| [ m, {} ] }.to_h

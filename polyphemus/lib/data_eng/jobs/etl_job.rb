@@ -43,11 +43,12 @@ class Polyphemus
       context = {}
       if pre(context)
         process(context)
-        post(context)
       end
-      context
-    rescue StandardError => e
+    rescue Exception => e
       raise e
+    ensure
+      post(context)
+      return context
     end
   end
 end
