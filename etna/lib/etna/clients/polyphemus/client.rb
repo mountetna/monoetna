@@ -93,7 +93,8 @@ module Etna
         payload = {
           config_id: updates[:config_id],
           runtime_config: updates[:runtime_config],
-          run_interval: updates[:run_interval]
+          run_interval: updates[:run_interval],
+          disabled: updates[:disabled]
         }.compact          
 
         json = nil

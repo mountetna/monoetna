@@ -22,6 +22,13 @@ class WorkflowController < Polyphemus::Controller
       created_at: Time.now,
       updated_at: Time.now
     )
+
+    Polyphemus::RuntimeConfig.create(
+      config_id: config.config_id,
+      created_at: Time.now,
+      updated_at: Time.now
+    )
+
     success_json(config.as_json)
   end
 
@@ -178,6 +185,7 @@ class WorkflowController < Polyphemus::Controller
     ).first
 
     raise Etna::NotFound, "Cannot find a config for project #{@params[:project_name]} with config_id #{@params[:config_id]}" unless config 
+    raise Etna::NotFound, "No runtime config found for config_id #{@params[:config_id]}" unless runtime_config
 
     if @params[:config]
         manifest = Polyphemus::WorkflowManifest.from_workflow_name(config.workflow_type)
@@ -190,15 +198,11 @@ class WorkflowController < Polyphemus::Controller
         run_id: @params[:run_id],
         run_interval: @params[:run_interval],
         config: @params[:config],
+        disabled: @params[:disabled],
         updated_at: Time.now
       }.compact
 
-    if runtime_config
-        runtime_config.update(update_columns)
-    else
-        runtime_config = Polyphemus::RuntimeConfig.create(update_columns.merge(created_at: Time.now))
-    end
-
+    runtime_config.update(update_columns)
     success_json(runtime_config.as_json)
   end
 

@@ -42,6 +42,14 @@ describe WorkflowController do
       json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'not a workflow')
       expect(last_response.status).to eq(422)
     end
+
+    it 'creates a runtime config when a workflow is created' do
+      auth_header(:editor)
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test-workflow')
+      expect(last_response.status).to eq(200)
+      expect(Polyphemus::RuntimeConfig.count).to eq(1)
+      expect(Polyphemus::RuntimeConfig.last.config_id).to eq(json_body[:config_id])
+    end
   end
 
   context 'config updates' do
@@ -441,23 +449,12 @@ context '#revisions' do
       create_workflow_with_configs
     end
 
-    it 'creates new runtime config' do
-      config = {:commit  => true }
-      json_post("/api/workflows/labors/runtime_configs/update/#{json_body[:config_id]}",
-        config: config,
-        run_interval: 60
-      )
-      expect(last_response.status).to eq(200)
-      expect(json_body[:created_at] != nil)
-      expect(json_body[:config]).to eq(config)
-      expect(json_body[:run_interval]).to eq(60)
-    end
-
     it 'updates existing runtime config' do
       config = {:commit  => true }
       json_post("/api/workflows/labors/runtime_configs/update/#{json_body[:config_id]}",
         config: config,
-        run_interval: 60
+        run_interval: 60, 
+        disabled: true
       )
       expect(last_response.status).to eq(200)
 
@@ -470,6 +467,7 @@ context '#revisions' do
       expect(last_response.status).to eq(200)
       expect(json_body[:config]).to eq(new_config)
       expect(json_body[:run_interval]).to eq(120)
+      expect(json_body[:disabled]).to eq(true)
     end
 
     it 'raises an error when the runtime config is invalid' do

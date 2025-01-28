@@ -17,7 +17,7 @@ spec:
           - -c
         args:
           - |
-            bin/run_job {{inputs.parameters.job}} {{inputs.parameters.config_id}} {{inputs.parameters.version_number}}
+            bin/polyphemus/run_job {{inputs.parameters.job}} {{inputs.parameters.config_id}} {{inputs.parameters.version_number}}
         env:
           - name: KUBE_ID
             value: "{{workflow.uid}}"

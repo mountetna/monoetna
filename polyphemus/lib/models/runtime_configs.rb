@@ -8,7 +8,7 @@ class Polyphemus
       eligible_runtime_configs = []
 
       # Get all runtime configs where interval is not null/none - runtime configs initiated as empty when configs are created
-      runtime_configs = self.exclude(run_interval: nil).all
+      runtime_configs = self.exclude(disabled: true).exclude(run_interval: nil).all
 
       runtime_configs.select do |runtime_config|
      

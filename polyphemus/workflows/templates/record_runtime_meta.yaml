@@ -12,4 +12,4 @@ spec:
         args:
           - |
             # Ensure Argo CLI is available in the image or install it here
-            bin/get_runtime_metadata {{workflow.id}} "$(argo get --output=json {{workflow.name}} -n {{workflow.namespace}})" "$(argo logs {{workflow.name}})"
+            bin/polyphemus/get_runtime_metadata {{workflow.id}} "$(argo get --output=json {{workflow.name}} -n {{workflow.namespace}})" "$(argo logs {{workflow.name}})"
