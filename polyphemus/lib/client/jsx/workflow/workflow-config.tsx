@@ -3,8 +3,6 @@ import React, {useState, useCallback} from 'react';
 import 'regenerator-runtime/runtime';
 import {json_post} from 'etna-js/utils/fetch';
 
-import TableRow from '@material-ui/core/TableRow';
-import TableCell from '@material-ui/core/TableCell';
 import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -21,7 +19,7 @@ import ScheduleIcon from '@material-ui/icons/Schedule';
 import Grid from '@material-ui/core/Grid';
 import Chip from '@material-ui/core/Chip';
 
-import EtlButton from './etl-button';
+import WorkflowButton from './workflow-button';
 import RunPane from './run-pane';
 import ConfigurePane from './configure-pane';
 import RemovePane from './remove-pane';
@@ -30,13 +28,12 @@ import SecretsPane from './secrets-pane';
 import {formatTime, runTime, runDesc} from './run-state';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
-import {Etl, Job} from '../polyphemus';
+import {Workflow, Status, Job, Runtime} from '../polyphemus';
 
 const StatusIcon = ({status}: {status: string}) => {
   let IconComponent: any;
   if (status == 'completed') IconComponent = CheckIcon;
-  else if (status == 'message') IconComponent = ErrorIcon;
-  else if (status == 'pending') IconComponent = ScheduleIcon;
+  else if (status == 'error') IconComponent = ErrorIcon;
   else return null;
 
   return <IconComponent size='small' />;
@@ -58,17 +55,10 @@ const useStyles = makeStyles((theme) => ({
   heading: {
     borderBottom: '1px solid #ccc'
   },
-  etl: {
+  workflow: {
     border: '1px solid #ccc',
     marginBottom: '15px',
     height: 'calc(100vh - 160px)'
-  },
-  etlrow: {
-    marginBottom: '15px',
-    cursor: 'pointer',
-    '&:hover': {
-      background: '#eee'
-    }
   },
   savebar: {
     justifyContent: 'space-between'
@@ -95,55 +85,28 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export const EtlConfigRow = ({
-  project_name,
-  name,
-  config,
+export const WorkflowConfig = ({
+  workflow,
   status,
-  secrets,
-  params,
-  output,
-  run_interval,
-  ran_at,
+  runtime,
   job,
-  onClick
-}: Etl & {job: Job | undefined; onClick: Function}) => {
+  onUpdateWorkflow,
+  onUpdateRuntime,
+}:{
+  workflow: Workflow;
+  runtime: Runtime;
+  status: Status;
+  job: Job | undefined;
+  onUpdateWorkflow: Function
+  onUpdateRuntime: Function
+}) => {
   const [mode, setMode] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const classes: any = useStyles();
+  const { project_name, config_id, config, secrets } = workflow;
 
-  return (
-    <TableRow className={classes.etlrow} onClick={ onClick as React.MouseEventHandler<HTMLTableRowElement>}>
-      <TableCell>{job?.name}</TableCell>
-      <TableCell>{name}</TableCell>
-      <TableCell align="right">{status || 'none'}</TableCell>
-      <TableCell align="right">{ran_at ? formatTime(ran_at) : 'never'}</TableCell>
-      <TableCell align="right">{runTime(ran_at, run_interval)}</TableCell>
-      <TableCell align="right">{runDesc(run_interval)}</TableCell>
-    </TableRow>
-  );
-};
-
-export const EtlConfig = ({
-  project_name,
-  etl,
-  name,
-  config_id,
-  config,
-  status,
-  secrets,
-  params,
-  output,
-  run_interval,
-  ran_at,
-  job,
-  onUpdate
-}: Etl & {job: Job | undefined; onUpdate: Function}) => {
-  const [mode, setMode] = useState<string | null>(null);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const { run_interval, config: params={} } = runtime;
 
   const clearMessages = useCallback(() => {
     setMessage('');
@@ -160,9 +123,22 @@ export const EtlConfig = ({
   const [_, postUpdate] = useAsyncWork(
     function postUpdate(update: any) {
       clearMessages();
-      return json_post(`/api/etl/${project_name}/update/${config_id}`, update)
-        .then((etl) => {
-          onUpdate(etl);
+      return json_post(`/api/workflows/${project_name}/update/${config_id}`, update)
+        .then((workflow) => {
+          onUpdateWorkflow(workflow);
+          setMessage('Saved!');
+        })
+        .catch((r) => r.then(({error}: {error: string}) => setError(error)));
+    },
+    {cancelWhenChange: []}
+  );
+
+  const [__, postRuntimeUpdate] = useAsyncWork(
+    function postRuntimeUpdate(update: any) {
+      clearMessages();
+      return json_post(`/api/workflows/${project_name}/runtime_configs/update/${config_id}`, update)
+        .then((runtime) => {
+          onUpdateRuntime(runtime);
           setMessage('Saved!');
         })
         .catch((r) => r.then(({error}: {error: string}) => setError(error)));
@@ -171,7 +147,7 @@ export const EtlConfig = ({
   );
 
   return (
-    <Card className={classes.etl} elevation={0} key={etl}>
+    <Card className={classes.workflow} elevation={0} key={workflow.config_id}>
       <CardContent>
         <CardActions>
           <Grid direction='row' container>
@@ -188,11 +164,11 @@ export const EtlConfig = ({
               </Grid>
               <Grid direction='row' className={classes.statusline} container>
                 <Grid container className={classes.title} item>
-                  <Typography>Last Ran</Typography>
+                  <Typography>Last Completed</Typography>
                 </Grid>
                 <Grid item className={classes.values}>
                   <Typography>
-                    {ran_at ? formatTime(ran_at) : 'never'}
+                    { status.pipeline_finished_at || 'never run'}
                   </Typography>
                 </Grid>
               </Grid>
@@ -201,25 +177,17 @@ export const EtlConfig = ({
                   <Typography>Last Status</Typography>
                 </Grid>
                 <Grid
-                  className={`${classes.values} ${classes[status]}`}
+                  className={`${classes.values} ${classes[status.pipeline_state]}`}
                   direction='row'
                   item
                   container
                 >
                   <Grid item>
-                    <StatusIcon status={status} />
+                    <StatusIcon status={status.pipeline_state} />
                   </Grid>
                   <Grid item>
-                    <Typography>{status || 'none'}</Typography>
+                    <Typography>{status.pipeline_state || 'never run'}</Typography>
                   </Grid>
-                </Grid>
-              </Grid>
-              <Grid direction='row' className={classes.statusline} container>
-                <Grid container className={classes.title} item>
-                  <Typography>Next Run</Typography>
-                </Grid>
-                <Grid item className={classes.values}>
-                  <Typography>{runTime(ran_at, run_interval)} </Typography>
                 </Grid>
               </Grid>
             </Grid>
@@ -231,21 +199,21 @@ export const EtlConfig = ({
               alignItems='center'
               xs={3}
             >
-              <EtlButton selected={mode} mode='run' onClick={toggleMode}>
+              <WorkflowButton selected={mode} mode='run' onClick={toggleMode}>
                 <PlayArrowIcon />
-              </EtlButton>
-              <EtlButton selected={mode} mode='logs' onClick={toggleMode}>
+              </WorkflowButton>
+              <WorkflowButton selected={mode} mode='logs' onClick={toggleMode}>
                 <LibraryBooksIcon />
-              </EtlButton>
-              <EtlButton selected={mode} mode='configure' onClick={toggleMode}>
+              </WorkflowButton>
+              <WorkflowButton selected={mode} mode='configure' onClick={toggleMode}>
                 <SettingsIcon />
-              </EtlButton>
-              <EtlButton selected={mode} mode='secrets' onClick={toggleMode}>
+              </WorkflowButton>
+              <WorkflowButton selected={mode} mode='secrets' onClick={toggleMode}>
                 <LockIcon />
-              </EtlButton>
-              <EtlButton selected={mode} mode='remove' onClick={toggleMode}>
+              </WorkflowButton>
+              <WorkflowButton selected={mode} mode='remove' onClick={toggleMode}>
                 <DeleteIcon />
-              </EtlButton>
+              </WorkflowButton>
             </Grid>
           </Grid>
         </CardActions>
@@ -264,14 +232,16 @@ export const EtlConfig = ({
         />
         <RunPane
           selected={mode}
+          config_id={config_id}
+          project_name={project_name}
           run_interval={run_interval}
-          update={postUpdate}
+          update={postRuntimeUpdate}
           config={config}
           params={params}
-          param_opts={job ? job.params : null}
+          param_opts={job ? job.runtime_params : null}
         />
-        <RemovePane selected={mode} update={postUpdate} />
-        <LogsPane selected={mode} config_id={config_id} name={name} project_name={project_name} />
+        <RemovePane selected={mode} update={postRuntimeUpdate} />
+        <LogsPane selected={mode} config_id={config_id} project_name={project_name} />
         <SecretsPane
           selected={mode}
           update={postUpdate}

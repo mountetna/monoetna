@@ -64,7 +64,10 @@ module Etna
       uri = URI(
         application.config(:auth_redirect).chomp('/') + '/login'
       )
-      uri.query = URI.encode_www_form(refer: request.url)
+      refer = URI(
+        application.url + request.fullpath
+      )
+      uri.query = URI.encode_www_form(refer: refer)
       Etna::Redirect(request).to(uri.to_s)
     end
 
@@ -147,7 +150,7 @@ module Etna
       # Now expect the standard headers
       hmac_params = {
         method: request.request_method,
-        host: request.host,
+        host: application.host,
         path: request.path,
 
         expiration: etna_param(request, :expiration),

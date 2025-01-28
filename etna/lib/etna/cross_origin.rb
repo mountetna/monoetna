@@ -27,7 +27,7 @@ module Etna
     end
 
     def origin_allowed?(request)
-      subdomain(URI.parse(header(request, :origin)).host) == subdomain(request.host)
+      subdomain(URI.parse(header(request, :origin)).host) == subdomain(Etna::Application.instance.host)
     end
 
     def actual_response(request)

@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import * as _ from 'lodash';
+import {json_post} from 'etna-js/utils/fetch';
 
 import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -11,11 +12,10 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import {makeStyles} from '@material-ui/core/styles';
-import EtlPane, {EtlPaneHeader} from './etl-pane';
+import WorkflowPane, {WorkflowPaneHeader} from './workflow-pane';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {
-  RUN_ONCE,
   RUN_NEVER,
   RUN_INTERVAL,
   getRunState,
@@ -30,6 +30,14 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     flex: '0 0 200px'
+  },
+  completed: {
+    color: 'green',
+    paddingLeft: '0.5rem'
+  },
+  error: {
+    paddingLeft: '0.5rem',
+    color: 'red'
   },
   params: {
     flex: '1 1 auto'
@@ -65,13 +73,9 @@ const DefaultSelect = ({
 }) => {
   const defaultOption = opts.find((o) => o.default);
 
-  useEffect(() => {
-    if (defaultOption) update(name, defaultOption.value);
-  }, [defaultOption]);
-
   return (
     <Select
-      value={value || ''}
+      value={value ? value : defaultOption ? defaultOption.value : ''}
       onChange={(e) => update(name, e.target.value as string)}
     >
       {opts.map((opt) => (
@@ -152,7 +156,26 @@ const Param = ({
   return null;
 };
 
+const paramsWithDefaults = (params: any, param_opts: any) => {
+  let newParams = {...params};
+  Object.entries(param_opts).forEach(
+    ([param_name, opts]) => {
+      if (param_name in newParams) return;
+      if (!Array.isArray(opts)) return;
+
+      const defaultOption: any = opts.find((o) => o.default);
+
+      if (defaultOption) {
+        newParams[param_name] = defaultOption.value;
+      }
+    }
+  );
+  return newParams;
+}
+
 const RunPane = ({
+  project_name,
+  config_id,
   run_interval,
   update,
   params,
@@ -160,6 +183,8 @@ const RunPane = ({
   selected,
   config
 }: {
+  project_name: string;
+  config_id: number;
   run_interval: number;
   params: any;
   param_opts: any;
@@ -167,20 +192,24 @@ const RunPane = ({
   selected: string | null;
   config: any;
 }) => {
-  const [runState, setRunState] = useState(getRunState(run_interval));
   const [runIntervalTime, setRunIntervalTime] = useState(getRunIntervalTime(run_interval));
   const [newParams, setParams] = useState<any>({});
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [ranOnce, setRanOnce] = useState(false)
 
-  useEffect(() => setParams(params), [params]);
+  useEffect(() => setParams(paramsWithDefaults(params, param_opts)), [params, param_opts]);
+  useEffect(() => setRunIntervalTime(getRunIntervalTime(run_interval)), [run_interval]);
 
-  const runValue = () => runState == RUN_INTERVAL ? runIntervalTime : runState;
-  const reset = () => {
-    setError('')
-    setRunState(getRunState(run_interval));
-    setRunIntervalTime(getRunIntervalTime(run_interval));
-    setParams(params);
-  };
+  const reset = useCallback(() => {
+      setError('');
+      setMessage('');
+      setRunIntervalTime(getRunIntervalTime(run_interval));
+      setParams(paramsWithDefaults(params, param_opts));
+    }, [params, param_opts]
+  );
+
+  useEffect( () => reset(), []);
 
   const classes = useStyles();
 
@@ -192,33 +221,31 @@ const RunPane = ({
   }, [param_opts]);
 
   const formValid = useMemo(() => {
-    return (
-      (_.isEqual(nonBooleanParamOpts, Object.keys(newParams).sort()) ||
-        _.isEqual(
-          Object.keys(param_opts).sort(),
-          Object.keys(newParams).sort()
-        )) &&
-      Object.values(newParams).every(
-        (v) => v != null && v !== '' && !_.isEqual(v, [])
-      )
+    const newParamOpts = Object.keys(newParams).sort();
+    const nonBoolFilled = _.isEqual(nonBooleanParamOpts, newParamOpts);
+    const allFilled = _.isEqual(Object.keys(param_opts).sort(), newParamOpts);
+    const noneEmpty = Object.values(newParams).every(
+      (v) => v != null && v !== '' && !_.isEqual(v, [])
     );
+
+    return (nonBoolFilled || allFilled) && noneEmpty;
   }, [nonBooleanParamOpts, param_opts, newParams]);
 
   const savePayload = useCallback(() => {
-    return {run_interval: runValue(), params: newParams};
-  }, [runValue, newParams]);
+    return {run_interval: runIntervalTime, config: newParams};
+  }, [runIntervalTime, newParams]);
 
   const formChanged = useMemo(() => {
-    console.log({ sp: savePayload(), np: { params, run_interval } });
-    return !_.isEqual(savePayload(), { params, run_interval });
-  }, [savePayload, params]);
+    console.log({ sp: savePayload(), np: { config: paramsWithDefaults(params, param_opts), run_interval } });
+    return !_.isEqual(savePayload(), { config: paramsWithDefaults(params, param_opts), run_interval: getRunIntervalTime(run_interval) });
+  }, [savePayload, params, param_opts]);
 
   console.log({nonBooleanParamOpts, newParams, param_opts});
   console.log({formChanged, formValid});
 
   return (
-    <EtlPane mode='run' selected={selected}>
-      <EtlPaneHeader title='Run'>
+    <WorkflowPane mode='run' selected={selected}>
+      <WorkflowPaneHeader title='Run'>
         <Grid className={classes.runbar} spacing={1} container alignItems='center'>
           <Grid item>
             <Tooltip title={ !formValid ? 'Missing values' : !formChanged ? 'No changes' : '' }>
@@ -226,11 +253,10 @@ const RunPane = ({
                 <Button
                   disabled={ !formChanged || !formValid }
                   onClick={() => {
-                    setError('')
-                    // Simple error checking, but could use a more robust system if more validations come up!
-                    if (runState == RUN_INTERVAL && runIntervalTime < 300) {
+                    if (runIntervalTime && runIntervalTime < 300) {
                       setError('Run interval cannot be less than 300 seconds.')
                     } else {
+                      setError('');
                       update(savePayload());
                     }
                   }}
@@ -249,44 +275,49 @@ const RunPane = ({
               </span>
             </Tooltip>
           </Grid>
-          {(error) && (
-            <Grid item >
-              <Typography style={{color: 'green', paddingLeft: '0.5rem'}}>{error}</Typography>
+          <Grid item>
+            <Tooltip title={ ranOnce ? 'Already ran' : !formValid ? 'Missing values' : '' }>
+              <span>
+                <Button
+                  disabled={ !formValid || ranOnce}
+                  onClick={() => {
+                    setRanOnce(true);
+                    json_post(`/api/workflows/${project_name}/runtime_configs/run_once/${config_id}`, { config: newParams })
+                      .then((run) => setMessage('Launched!'))
+                      .catch((r) => r.then(({error}: {error: string}) => setError(error)));
+                  }}
+                >
+                  Run Once
+                </Button>
+              </span>
+            </Tooltip>
+          </Grid>
+          {(error || message) && (
+            <Grid item className={error ? classes.error : classes.completed}>
+              <Typography>{error || message}</Typography>
             </Grid>
           )}
         </Grid>
-      </EtlPaneHeader>
+      </WorkflowPaneHeader>
       <Grid spacing={1} container alignItems='center'>
         <Grid className={classes.title} item>
           <Typography>Interval</Typography>
         </Grid>
-        <Grid item xs={3}>
-          <Select
-            value={runState}
-            onChange={(e) => setRunState(parseInt(e.target.value as string))}
-          >
-            <MenuItem value={RUN_ONCE}>Once</MenuItem>
-            <MenuItem value={RUN_NEVER}>Never</MenuItem>
-            <MenuItem value={RUN_INTERVAL}>Every</MenuItem>
-          </Select>
+        <Grid item xs={4}>
+          {' '}
+          <TextField
+            size='small'
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position='end'>{'seconds (300 minimum, 0 to disable)'}</InputAdornment>
+              )
+            }}
+            value={runIntervalTime}
+            onChange={(e) => {
+              setRunIntervalTime(parseInt(e.target.value as string || '0'));
+            }}
+          />
         </Grid>
-        {runState == RUN_INTERVAL && (
-          <Grid item xs={4}>
-            {' '}
-            <TextField
-              size='small'
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end'>{'seconds (300 minimum)'}</InputAdornment>
-                )
-              }}
-              value={runIntervalTime}
-              onChange={(e) => {
-                setRunIntervalTime(parseInt(e.target.value as string));
-              }}
-            />
-          </Grid>
-        )}
       </Grid>
       <Grid spacing={1} container alignItems='flex-start'>
         <Grid className={classes.title} item>
@@ -320,7 +351,7 @@ const RunPane = ({
             ))}
         </Grid>
       </Grid>
-    </EtlPane>
+    </WorkflowPane>
   );
 };
 

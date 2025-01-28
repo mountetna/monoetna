@@ -195,15 +195,6 @@ FactoryBot.define do
   end
 end
 
-
-class Rack::Test::Session
-  alias_method :real_default_env, :default_env
-
-  def default_env
-    real_default_env.merge('HTTPS' => 'on')
-  end
-end
-
 module Rack::Test::Methods
   def build_rack_mock_session
     Rack::MockSession.new(app, JANUS_HOST)
