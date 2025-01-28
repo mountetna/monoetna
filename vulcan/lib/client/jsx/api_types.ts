@@ -6,10 +6,11 @@ export const RUN = {
   UI_OUTPUT: 'ui-outputs/'
 };
 
-export const defaultWorkflowsResponse = [] as Workflow[];
+export const defaultWorkflowsResponse = [] as WorkflowServer[];
 
 export type WorkflowsResponse = typeof defaultWorkflowsResponse;
 // export type ProjectWorkflowsResponse = typeof defaultWorkflowsResponse;
+export type WorkflowCreateResponse = {'workflow_id': number, 'workflow_name': string};
 
 // export interface StepInput {
 //   id: string;
@@ -54,71 +55,96 @@ export const defaultWorkspaceStep: WorkspaceStep = {
 //   default?: any | null;
 // }
 
+export type WorkflowServer = {
+  id: number,
+  project_name: string,
+  name: string,
+  repo_remot_url: string,
+  created_at: number,
+  updated_at: number,
+}
+
 export interface Workflow {
   id: number | null;
   name: string;
   project: string;
-  branch: string;
   repo_remote_url: string;
-  created_at: number;
-  updated_at: number;
+  created_at: string;
+  updated_at: string;
   vignette?: string;
   image?: string;
   authors?: string[];
-  displayName?: string;
-  description?: string;
-  tags?: string[];
-  lastModified?: string;
 }
 
 export const defaultWorkflow: Workflow = {
   id: null,
   name: '',
   project: '',
-  branch: '',
   repo_remote_url: '',
-  created_at: 0,
-  updated_at: 0,
-  tags: []
+  created_at: '0',
+  updated_at: '0',
 };
+
+export type CreateWorkspaceResponse = {
+  workspace_id: number,
+  workflow_id: number,
+  vulcan_config: VulcanConfigRaw,
+  dag: string[]
+}
 
 interface WorkspaceMinusInconsistent {
   workspace_id: number | null;
   workflow_id: number | null;
-  project?: string;
-  steps: {[k: string]: WorkspaceStep};
+  name: string;
+  user_email: string;
+  path: string;
+  tags: string[];
   dag: string[];
-  last_config?: {[k: string]: any};
-  last_job_status?: {[k: string]: StatusStringFine};
+  created_at?: string;
+  updated_at?: string;
+  project?: string;
+  last_config: {[k: string]: any} | null;
+  last_job_status: {[k: string]: StatusStringFine} | null;
   vignette?: string;
   thumbnails?: string[];
-  author?: string;
-  name?: string;
-  tags: string[];
 }
 
 export interface Workspace extends WorkspaceMinusInconsistent {
   vulcan_config: VulcanConfig;
+  steps: {[k: string]: WorkspaceStep};
 }
 
 export interface WorkspaceRaw extends WorkspaceMinusInconsistent {
-  vulcan_config: VulcanConfigElement[]
+  vulcan_config: VulcanConfigElement[];
+  target_mapping: {[k: string]: WorkspaceStep};
 }
 
 export const defaultWorkspace: Workspace = {
   workspace_id: null,
   workflow_id: null,
   vulcan_config: {},
-  steps: {},
+  name: '',
+  user_email: '',
+  path: '',
+  tags: [],
   dag: [],
+  created_at: '',
+  updated_at: '',
+  steps: {},
   last_config: {},
   last_job_status: {},
-  tags: [],
 };
 
-export type Workspaces = Workspace[]
+export type WorkspaceResponse = Pick<WorkspaceRaw,
+  'workspace_id'
+  | 'workflow_id'
+  | 'vulcan_config'
+  | 'dag'
+  | 'last_config'
+  | 'last_job_status'
+>
 
-export type WorkspacesResponse = {workspaces: Workspaces}
+export type WorkspacesResponse = {workspaces: Workspace[]}
 
 export interface FileContentResponse {
   filename: string;

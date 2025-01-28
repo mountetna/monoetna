@@ -16,7 +16,8 @@ import {
   MultiFileContentResponse,
   MultiFileContent,
   RunStatus,
-  StatusStringBroaden
+  StatusStringBroaden,
+  WorkspaceRaw
 } from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {
@@ -112,6 +113,17 @@ export function workspaceById(
   return state.workspaces.find((w) => workspaceId(w) === id);
 }
 
+export function workspaceFromRaw(raw: WorkspaceRaw): Workspace {
+  const vulcanConfig = vulcanConfigFromRaw(raw.vulcan_config);
+  const intWorkspace: any = {...raw};
+  delete intWorkspace['target_mapping']
+  return {
+    ...intWorkspace,
+    steps: {...raw.target_mapping},
+    vulcan_config: vulcanConfig
+  };
+}
+
 export function compSetName(content: VulcanConfigElement) {
   // configUI
   if (!!content.output && !!content.output.params) {
@@ -145,7 +157,7 @@ export function paramValuesFromRaw(param_values: Workspace['last_config'], works
 export function paramValuesToRaw(params: WorkspaceStatus['params']): FlatParams {
   let output = {} as {[k: string]: any};
   Object.values(params).forEach(vals => {
-    output = {...output, unMaybe(vals)};
+    output = {...output, ...unMaybe(vals)};
   })
   return output;
 }

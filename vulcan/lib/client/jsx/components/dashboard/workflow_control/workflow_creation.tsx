@@ -93,10 +93,10 @@ export default function WorkflowCreateButtonModal({projectName}: {
           maxWidth='xl'
         >
         <DialogTitle>
-          Add Workflow to project
+          Add a Workflow to this project
         </DialogTitle>
         <DialogContent className={classes.dialog}>
-          <Grid container>
+          <Grid container direction='column'>
             <Grid item>
               <Typography className={classes.helpdoc}>Please designate a valid github repo, and give the workflow a name.</Typography>
             </Grid>
@@ -137,7 +137,8 @@ export default function WorkflowCreateButtonModal({projectName}: {
           </Tooltip>
           <Tooltip title='Cancel'>
             <Button
-              onClick={() => {handleClose}}
+              className={classes.propagateButton}
+              onClick={handleClose}
               startIcon={<CancelIcon/>}
               color='secondary'
               variant='contained'

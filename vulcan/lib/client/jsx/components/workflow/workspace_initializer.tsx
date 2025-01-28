@@ -9,13 +9,14 @@ import {
   workflowByName,
   allFilesToBuffer,
   filesReturnToMultiFileContent,
-  updateStepStatusesFromRunStatus
+  updateStepStatusesFromRunStatus,
+  workspaceFromRaw
 } from '../../selectors/workflow_selectors';
 
 import WorkspaceManager from './session/workspace_manager';
 import StepsList from './steps/steps_list';
 import { paramValuesToRaw } from '../../selectors/workflow_selectors';
-import { defaultWorkspaceStatus, FileContentResponse, Workspace, WorkspaceStatus } from '../../api_types';
+import { defaultWorkspaceStatus, FileContentResponse, Workspace, WorkspaceRaw, WorkspaceStatus } from '../../api_types';
 import {
   setWorkflow,
   setAutoPassStep,
@@ -81,15 +82,11 @@ export default function WorkspaceInitializer({
     if (!!workflow) dispatch(setWorkflow(workflow, projectName));
     
     // workspace 
-    const workspaceRaw: Workspace = yield* runPromise(showErrors(getWorkspace(projectName, workspaceId)));
+    const workspaceRaw: WorkspaceRaw = yield* runPromise(showErrors(getWorkspace(projectName, workspaceId)));
     if (!('workspace_id' in workspaceRaw)) {
       console.log("workspaceRaw is not a workspace");
     }
-    const vulcanConfig = vulcanConfigFromRaw(workspaceRaw.vulcan_config);
-    const workspace = {
-      ...workspaceRaw,
-      vulcan_config: vulcanConfig
-    };
+    const workspace = workspaceFromRaw(workspaceRaw);
     
     const status = defaultWorkspaceStatus;
     // step statuses
