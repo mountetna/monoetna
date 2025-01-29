@@ -300,22 +300,18 @@ module Etna
 
       private
 
+      def verify_mode
+        @ignore_ssl ? OpenSSL::SSL::VERIFY_NONE : OpenSSL::SSL::VERIFY_PEER
+      end
+
       def request(uri, data)
-        if block_given?
-          verify_mode = @ignore_ssl ?
-            OpenSSL::SSL::VERIFY_NONE :
-            OpenSSL::SSL::VERIFY_PEER
-          Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
+        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
+          if block_given?
             http.request(data) do |response|
               api_error_check!(response)
               yield response
             end
-          end
-        else
-          verify_mode = @ignore_ssl ?
-            OpenSSL::SSL::VERIFY_NONE :
-            OpenSSL::SSL::VERIFY_PEER
-          Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
+          else
             response = http.request(data)
             api_error_check!(response)
             return response
