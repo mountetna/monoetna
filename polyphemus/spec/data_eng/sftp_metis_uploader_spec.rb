@@ -50,6 +50,7 @@ describe SFTPMetisUploaderJob do
   }
 
   def create_files_to_update_csv
+    Dir.mktmpdir(run_id, "/tmp/#{run_id}")
     CSV.open(run_record[:state][:files_to_update_path], "wb") do |csv|
       csv << ["path", "modified_time"]
       sftp_files.each do |file|
