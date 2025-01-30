@@ -21,6 +21,7 @@ class Polyphemus
               commit: 'boolean'
             },
             secrets: [:sftp_host, :sftp_user, :sftp_password, :sftp_port]
+            workflow_path: '/app/workflows/argo/cat/workflow.yaml'
           }
         end
       end
