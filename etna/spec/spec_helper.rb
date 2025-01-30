@@ -1,6 +1,7 @@
 require 'yaml'
 require 'logger'
 require 'simplecov'
+require 'rack'
 require 'rack/test'
 require 'bundler'
 require 'securerandom'
@@ -23,6 +24,11 @@ setup_base_vcr(__dir__)
 
 def setup_app(server, layer=nil, config={ test: {} })
   Yabeda.reset!
+
+  application = Etna::Application.find(server)
+
+  config[:test].update( application.id.to_sym => { host: 'http://example.org' })
+
   Etna::Application.find(server).configure(config)
   Rack::Builder.new do
     use Etna::ParseBody
@@ -95,7 +101,7 @@ def stub_metis_setup
     {:method=>"POST", :route=>"/authorize/upload", :name=>"upload_authorize", :params=>["project_name", "bucket_name", "file_path"]},
     {:method=>"POST", :route=>"/:project_name/upload/:bucket_name/*file_path", :name=>"upload_upload", :params=>["project_name", "bucket_name", "file_path"]},
     {:method=>"DELETE", :route=>"/:project_name/file/remove/:bucket_name/*file_path", :name=>"file_remove", :params=>["project_name", "bucket_name", "file_path"]},
-    
+
   ])
 
   stub_request(:options, METIS_HOST).
@@ -194,6 +200,46 @@ def stub_upload_file(params={})
   })
 end
 
+def stub_metis_get_file_count(projects=nil)
+  if projects.nil?
+    stub_request(:get, %r!#{METIS_HOST}/api/stats/files!)
+    .to_return({
+      status: 200,
+      body: {}.to_json
+    })
+  else
+    query = projects.map do |name|
+      "projects%5B%5D=#{name}"
+    end.join('&')
+
+    stub_request(:get, %r!#{METIS_HOST}/api/stats/files?#{projects}!)
+    .to_return({
+      status: 200,
+      body: {}.to_json
+    })
+  end
+end
+
+def stub_metis_get_byte_count(projects=nil)
+  if projects.nil?
+    stub_request(:get, %r!#{METIS_HOST}/api/stats/bytes!)
+    .to_return({
+      status: 200,
+      body: {}.to_json
+    })
+  else
+    query = projects.map do |name|
+      "projects%5B%5D=#{name}"
+    end.join('&')
+
+    stub_request(:get, %r!#{METIS_HOST}/api/stats/bytes?#{projects}!)
+    .to_return({
+      status: 200,
+      body: {}.to_json
+    })
+  end
+end
+
 def stub_janus_setup
   stub_request(:post, %r!#{JANUS_HOST}/api/tokens/generate!)
     .to_return({
@@ -233,6 +279,26 @@ def stub_janus_setup
     .to_return({
       status: 302
     })
+end
+
+def stub_janus_get_project_stats(projects=nil)
+  if projects.nil?
+    stub_request(:get, %r!#{JANUS_HOST}/api/stats/projects!)
+    .to_return({
+      status: 200,
+      body: {}.to_json
+    })
+  else
+    query = projects.map do |name|
+      "projects%5B%5D=#{name}"
+    end.join('&')
+
+    stub_request(:get, %r!#{JANUS_HOST}/api/stats/projects?#{projects}!)
+    .to_return({
+      status: 200,
+      body: {}.to_json
+    })
+  end
 end
 
 def stub_magma_models(models)
@@ -328,6 +394,7 @@ def configure_etna_yml
           janus: { etis: "https://janus.development.local" },
           timur: { etis: "https://timur.development.local" },
           polyphemus: { etis: "https://polyphemus.development.local" },
+          polyphemus: { host: "https://polyphemus.development.local" },
           auth_redirect: "https://janus.development.local",
           ignore_ssl: false,
       }

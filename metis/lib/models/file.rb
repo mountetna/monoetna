@@ -69,7 +69,7 @@ class Metis
     def self.upload_url(request, project_name, bucket_name, file_path, user)
       hmac_url(
         method: 'POST',
-        host: request.host,
+        host: Metis.instance.host,
         path: Metis::Server.route_path(
           request,
           :upload,
@@ -85,7 +85,7 @@ class Metis
     def self.download_url(request, project_name, bucket_name, file_path)
       hmac_url(
         method: 'GET',
-        host: request.host,
+        host: Metis.instance.host,
         path: Metis::Server.route_path(
           request,
           :download,

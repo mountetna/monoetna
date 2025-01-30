@@ -132,6 +132,14 @@ module Etna
           @raw
         end
       end
+
+      class GetStatsRequest < Struct.new(:project_names, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+      end
     end
   end
 end

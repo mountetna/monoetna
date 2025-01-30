@@ -30,6 +30,8 @@
     :search_path: [ public ]
   :janus:
     :host: https://janus.test
+  :metis:
+    :host: https://metis.test
 
 :development:
   :timur:
