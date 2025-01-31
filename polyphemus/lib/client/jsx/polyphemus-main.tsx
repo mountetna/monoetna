@@ -1,16 +1,14 @@
 import React, {useState, useEffect, useCallback, useContext} from 'react';
 import {json_get} from 'etna-js/utils/fetch';
-import {getDocuments} from 'etna-js/api/magma_api';
+import {getModels} from 'etna-js/api/magma_api';
+import {MagmaContext} from 'etna-js/contexts/magma-context';
 
 import Typography from '@material-ui/core/Typography';
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
-import { EtlConfigRow, EtlConfig } from './etl/etl-config';
-import EtlCreate from './etl/etl-create';
-import {Etl, Job} from './polyphemus';
-
+import CircularProgress from '@material-ui/core/CircularProgress';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -20,21 +18,29 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import Paper from '@material-ui/core/Paper';
 
-import {runTime} from './etl/run-state';
-import {MagmaContext} from 'etna-js/contexts/magma-context';
+import { WorkflowConfig } from './workflow/workflow-config';
+import WorkflowStatusRow from './workflow/workflow-status';
+import WorkflowCreate from './workflow/workflow-create';
+import {Workflow, Runtime, Job, Status} from './polyphemus';
+import {runTime} from './workflow/run-state';
 
 const useStyles = makeStyles((theme) => ({
-  etls: {
+  workflows: {
     minWidth: '800px'
   },
-  etl_list: {
+  workflow_list: {
     border: '1px solid #ccc',
-    height: 'calc(100vh - 160px)',
-    marginBottom: '5px'
+    height: 'calc(100vh - 125px)'
   },
   title: {
-    padding: '15px',
+    padding: '10px 0px',
+    display: 'flex',
+    alignItems: 'center',
     color: 'black'
+  },
+  breadcrumb: {
+    padding: '0px 10px',
+    flex: '1 1 auto'
   },
   link: {
     color: theme.palette.primary.main,
@@ -43,111 +49,84 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const PolyphemusMain = ({project_name}: {project_name: string}) => {
-  const [etls, setEtls] = useState<Etl[]>([]);
   const [jobs, setJobs] = useState<Job[] | null>(null);
+  const [statuses, setStatuses] = useState<Status[]>([]);
   const [create, setCreate] = useState(false);
+  const [order, setOrder] = useState< 'desc' | 'asc' | undefined>('asc');
+  const [orderBy, setOrderBy] = useState('Job Type');
+  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow|null>(null);
+  const [selectedRuntime, setSelectedRuntime] = useState<Runtime|null>(null);
+  const [ loading, setLoading ] = useState(false);
+
   const {models, setModels} = useContext(MagmaContext);
 
-  const addEtl = (etl: Etl) => {
-    let index = etls.findIndex((e) => e.config_id == etl.config_id);
-    let new_etls =
-      index == -1
-        ? etls.concat(etl)
-        : etl.run_interval == -2
-        ? etls.filter((e, i) => i != index)
-        : etls.map((e, i) => (i == index ? etl : e));
+  const updateStatus = () => json_get(`/api/workflows/${project_name}/status`).then(setStatuses);
 
-    setEtls(new_etls);
+  const updateWorkflow = (workflow: Workflow) => {
+    setSelectedWorkflow(workflow);
+    updateStatus();
   };
+  const updateRuntime = (runtime: Runtime) => {
+    setSelectedRuntime(runtime);
+    updateStatus();
+  };
+
 
   const classes = useStyles();
 
   useEffect( () => {
-    const updateEtls = () => {
-      json_get(`/api/etl/${project_name}/configs`).then(
-        new_etls => {
-          const newEtls = etls.map(
-            etl => {
-              const new_etl = new_etls.find( (e:Etl) => e.config_id == etl.config_id );
-              if (new_etl) {
-                const { ran_at, run_interval, status } = new_etl;
-
-                etl = { ...etl, ran_at, run_interval, status };
-              }
-
-              return etl
-            }
-          );
-
-          setEtls(newEtls);
-        }
-      );
-    };
-
-    const interval = setInterval(updateEtls, 30000);
+    const interval = setInterval(updateStatus, 30000);
 
     return () => clearInterval(interval);
-  }, [etls]);
-
-  useEffect(() => {
-    json_get('/api/etl/jobs').then(setJobs);
-    json_get(`/api/etl/${project_name}/configs`).then(setEtls);
-
-    getDocuments(
-      {
-        project_name,
-        model_name: 'all',
-        record_names: [],
-        attribute_names: 'all'
-      },
-      fetch
-    )
-      .then(({models}) => setModels(models))
-      .catch((e) => console.log({e}));
   }, []);
 
-  const collator = new Intl.Collator(undefined, {
-    numeric: true,
-    sensitivity: 'base'
-  });
+  useEffect(() => {
+    json_get('/api/workflows').then(setJobs);
+    updateStatus();
+    getModels(project_name).then(({models}) => setModels(models));
+  }, []);
 
+  const deselectWorkflow = () => {
+    setSelectedRuntime(null);
+    setSelectedWorkflow(null);
+  }
 
-  const [order, setOrder] = useState< 'desc' | 'asc' | undefined>('asc');
-  const [orderBy, setOrderBy] = useState('Job Type');
-  const [selected, setSelected] = useState<number|null>(null);
+  const selectWorkflow = (config_id:number) => {
+    setLoading(true);
+    json_get(`/api/workflows/${project_name}/runtime_configs/${config_id}`).then(
+      runtime => {
+        setSelectedRuntime(runtime)
+      }
+    );
 
-  const selectedEtl = etls.find( e => e.config_id === selected );
+    json_get(`/api/workflows/${project_name}/configs/${config_id}`).then(
+      workflow => {
+        setSelectedWorkflow(workflow);
+        setLoading(false);
+      }
+    );
+  }
 
   const headCells = [
     {
       id: 'Job Type',
       align: 'left' as const,
-      key: 'etl'
+      key: 'workflow_type'
     },
     {
       id: 'Name',
       align: 'left' as const,
-      key: 'name'
+      key: 'workflow_name'
     },
     {
       id: 'Last Status',
       align: 'right' as const,
-      key: 'status'
+      key: 'pipeline_state'
     },
     {
-      id: 'Last Ran',
+      id: 'Last Completed',
       align: 'right' as const,
-      key: 'ran_at'
-    },
-    {
-      id: 'Next Run',
-      align: 'right' as const,
-      compare: (a:Etl,b:Etl) => runTime(a.ran_at,a.run_interval).localeCompare(runTime(b.ran_at,b.run_interval))
-    },
-    {
-      id: 'Run State',
-      align: 'right' as const,
-      compare: (a:Etl,b:Etl) => a.run_interval - b.run_interval
+      key: 'pipeline_finished_at'
     }
   ];
 
@@ -164,10 +143,8 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
     (a, b) => {
       const dir = (order == 'asc' ? 1 : -1);
       const comp = (orderCell
-        ? (orderCell.compare
-          ? orderCell.compare(a, b)
-          : (a[ orderCell.key ] || '').localeCompare(b[ orderCell.key ] || ''))
-        : 0) || a.name.localeCompare(b.name);
+        ? (a[ orderCell.key ] || '').localeCompare(b[ orderCell.key ] || '')
+        : 0) || a.workflow_name.localeCompare(b.workflow_name);
       return dir * comp;
     }, [ orderBy, order ]
   );
@@ -175,29 +152,44 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
   return (
     <Grid id='polyphemus-main'>
       {!jobs ? null : (
-        <Grid className={classes.etls} item xs={12}>
-          <Breadcrumbs className={classes.title}>
-            <Typography>
-              {project_name}
-            </Typography>
-            {
-              selected
-              ? <Typography className={classes.link} onClick={ () => setSelected(null) }>data loaders</Typography>
-              : <Typography>data loaders</Typography>
-            }
-            {
-              selected ? <Typography>{ selectedEtl?.name }</Typography> : null
-            }
-          </Breadcrumbs>
+        <Grid className={classes.workflows} item xs={12}>
+          <Grid className={classes.title}>
+            <Breadcrumbs className={classes.breadcrumb}>
+              <Typography>
+                {project_name}
+              </Typography>
+              {
+                selectedWorkflow
+                ? <Typography className={classes.link} onClick={ () => deselectWorkflow() }>data loaders</Typography>
+                : <Typography>data loaders</Typography>
+              }
+              {
+                selectedWorkflow ? <Typography>{ selectedWorkflow?.workflow_name }</Typography> : null
+              }
+            </Breadcrumbs>
+            <Button onClick={() => setCreate(true)}>Add Loader</Button>
+            <WorkflowCreate
+              project_name={project_name}
+              open={create}
+              onClose={() => setCreate(false)}
+              onCreate={updateWorkflow}
+              jobs={jobs}
+            />
+          </Grid>
           {
-            selected && selectedEtl
-            ? <EtlConfig
-                {...selectedEtl}
-                onUpdate={addEtl}
-                job={jobs.find((j) => j.name == selectedEtl?.etl)}
+            loading 
+            ? <CircularProgress size={24}/>
+            : selectedWorkflow
+            ? <WorkflowConfig
+                workflow={selectedWorkflow}
+                runtime={(selectedRuntime || {}) as Runtime}
+                status={ (statuses.find(status => status.config_id == selectedWorkflow.config_id) || {}) as Status }
+                onUpdateWorkflow={updateWorkflow}
+                onUpdateRuntime={updateRuntime}
+                job={jobs.find((j) => j.name == selectedWorkflow.workflow_type)}
               />
             : <>
-              <TableContainer className={classes.etl_list}>
+              <TableContainer className={classes.workflow_list}>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
@@ -216,29 +208,18 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {etls
+                    {statuses
                       .sort((a, b) => compareBy(a, b))
-                      .map((etl: Etl) => (
-                        <EtlConfigRow
-                          key={etl.name}
-                          {...etl}
-                          onClick={ () => setSelected(etl.config_id) }
-                          job={jobs.find((j) => j.name == etl.etl)}
+                      .map((status: Status) => (
+                        <WorkflowStatusRow
+                          key={status.workflow_name}
+                          status={status}
+                          onClick={ () => selectWorkflow(status.config_id) }
                         />
                       ))}
                   </TableBody>
                 </Table>
               </TableContainer>
-              <Grid>
-                <Button onClick={() => setCreate(true)}>Add Loader</Button>
-                <EtlCreate
-                  project_name={project_name}
-                  open={create}
-                  onClose={() => setCreate(false)}
-                  onCreate={addEtl}
-                  jobs={jobs}
-                />
-              </Grid>
             </>
           }
         </Grid>

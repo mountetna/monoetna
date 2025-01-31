@@ -22,7 +22,7 @@ module Etna
         include JsonSerializableStruct
       end
 
-      class UpdateRequest < Struct.new(:revisions, :project_name, :dry_run, keyword_init: true)
+      class UpdateRequest < Struct.new(:revisions, :project_name, :dry_run, :autolink, keyword_init: true)
         include JsonSerializableStruct
         include MultipartSerializableNestedHash
 
@@ -159,6 +159,12 @@ module Etna
         def models
           Models.new(raw['models'])
         end
+
+        def update(response)
+          response.models.each do |model_name, model|
+            models.update( model_name, model )
+          end
+        end
       end
 
       class UpdateModelResponse < RetrievalResponse
@@ -219,6 +225,12 @@ module Etna
           Model.new(raw[model_key.to_s])
         end
 
+        def each
+          model_keys.each do |model_key|
+            yield model_key, model(model_key)
+          end
+        end
+
         def all
           raw.values.map { |r| Model.new(r) }
         end
@@ -227,6 +239,20 @@ module Etna
           raw_update = {}
           raw_update[other.name] = other.raw
           Models.new({}.update(raw).update(raw_update))
+        end
+
+        def update(model_name, model)
+          raw[ model_name.to_s ] ||= {}
+          raw[ model_name.to_s ]["template"] = model.template.raw
+          raw[ model_name.to_s ]["documents"] ||= {}
+          raw[ model_name.to_s ]["documents"].update(model.documents.raw)
+        end
+
+        def is_table?(model_name)
+          parent_model_name = self.model(model_name)&.template&.parent
+          parent_model = self.model(parent_model_name)
+          parent_attribute = parent_model&.template&.attributes&.attribute(model_name)
+          parent_attribute&.attribute_type == 'table'
         end
 
         # Can look up reciprocal links by many means.  At minimum, a source model or model name must be provided,
@@ -238,7 +264,7 @@ module Etna
             attribute: model&.template&.attributes&.attribute(link_attribute_name),
             link_model: self.model(attribute&.link_model_name)
         )
-          return nil if model.nil? || model.name.nil?
+          return nil if model.nil?
 
           return link_model&.template&.attributes&.all&.find { |a| a.name == link_attribute_name } if link_attribute_name
 
