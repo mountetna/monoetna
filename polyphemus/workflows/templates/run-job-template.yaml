@@ -10,14 +10,17 @@ spec:
         parameters:
           - name: job
           - name: config_id
+          - name: version_number
       container:
-        image: base_etna
+        image: etnaagent/polyphemus:production
+        imagePullSecrets: 
+          - name: hub.docker.com
         command:
           - sh
           - -c
         args:
           - |
-            bin/polyphemus/run_job {{inputs.parameters.job}} {{inputs.parameters.config_id}} {{inputs.parameters.version_number}}
+             /app/bin/polyphemus run_job {{inputs.parameters.job}} {{inputs.parameters.config_id}} {{inputs.parameters.version_number}}
         env:
           - name: KUBE_ID
             value: "{{workflow.uid}}"

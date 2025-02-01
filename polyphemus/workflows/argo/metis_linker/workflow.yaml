@@ -5,7 +5,9 @@ metadata:
   namespace: argo
 spec:
   entrypoint: metis-linker
-  onExit: write-run_metadata
+  onExit: record-runtime-meta
+  imagePullSecrets:
+    - name: hub.docker.com
   templates:
     - name: metis-linker
       steps:
@@ -16,12 +18,17 @@ spec:
             arguments:
               parameters:
                 - name: job
-                  value: metis_linker
+                  value: "metis_linker"
                 - name: config_id
-                  value: "{{inputs.parameters.config_id}}"
+                  value: "{{workflow.parameters.config_id}}"
                 - name: version_number
-                  value: "{{inputs.parameters.version_number}}"
+                  value: "{{workflow.parameters.version_number}}"
     - name: record-runtime-meta
-      templateRef:
-        name: record-runtime-meta-template
-        template: record-runtime-meta
+      container:
+        image: etnaagent/polyphemus:production
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            /app/bin/polyphemus get_runtime_metadata "{{workflow.uid}}" \
+            '$(argo get --output=json {{workflow.name}} -n {{workflow.namespace}})' \
+            '$(argo logs {{workflow.name}})'

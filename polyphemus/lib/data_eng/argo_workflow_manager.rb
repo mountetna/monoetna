@@ -2,7 +2,7 @@ require_relative '../helpers'
 
 class Polyphemus
   module ArgoWorkflowManager
-    extend WithLogger
+    include WithLogger
 
     def submit_workflow(config)
       # Build command with proper escaping
