@@ -10,7 +10,7 @@ class Polyphemus
       workflow_path = manifest.workflow_path.shellescape
       cmd = [
         "argo", "submit",
-        "-f", workflow_path,
+         workflow_path,
         "-p", "config_id=#{config.config_id}",
         "-p", "version_number=#{config.version_number}",
         # The commands below are to fetch the workflow name and uid

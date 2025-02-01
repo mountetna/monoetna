@@ -733,6 +733,13 @@ class Polyphemus
 class RunJob < Etna::Command
     include WithEtnaClients
 
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
+    end
+
     def execute(job_name, config_id, version_number)
       # Retrieve the config from polyphemus
       # We need to use the db here to get the decrypted secrets
@@ -756,6 +763,13 @@ class RunJob < Etna::Command
 
   class GetRuntimeMetadata < Etna::Command
     include WithEtnaClients
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
+    end
 
     def execute(run_id, workflow_json, output)
 
@@ -787,6 +801,13 @@ class RunJob < Etna::Command
     usage 'Continuously polls eligible runtime configs and submits Argo workflows' 
 
     SLEEP_INTERVAL = 60 * 5 # 5 Minutes
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
+    end
   
     def execute
       loop do

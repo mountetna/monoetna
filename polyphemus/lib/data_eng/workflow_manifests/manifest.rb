@@ -39,6 +39,10 @@ class Polyphemus
         as_json[:runtime_params]
       end
 
+      def workflow_path
+        as_json[:workflow_path]
+      end
+
       def validate_runtime_config(params)
         errors = []
         params.each do |param, value|
