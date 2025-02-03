@@ -1,6 +1,7 @@
 require 'yaml'
 require 'logger'
 require 'simplecov'
+require 'rack'
 require 'rack/test'
 require 'bundler'
 require 'securerandom'
@@ -23,6 +24,11 @@ setup_base_vcr(__dir__)
 
 def setup_app(server, layer=nil, config={ test: {} })
   Yabeda.reset!
+
+  application = Etna::Application.find(server)
+
+  config[:test].update( application.id.to_sym => { host: 'http://example.org' })
+
   Etna::Application.find(server).configure(config)
   Rack::Builder.new do
     use Etna::ParseBody
@@ -388,6 +394,7 @@ def configure_etna_yml
           janus: { etis: "https://janus.development.local" },
           timur: { etis: "https://timur.development.local" },
           polyphemus: { etis: "https://polyphemus.development.local" },
+          polyphemus: { host: "https://polyphemus.development.local" },
           auth_redirect: "https://janus.development.local",
           ignore_ssl: false,
       }

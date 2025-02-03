@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: run-job-template
+  namespace: argo
+spec:
+  templates:
+    - name: run-job
+      inputs:
+        parameters:
+          - name: job
+          - name: config_id
+      container:
+        image: base_etna
+        command:
+          - sh
+          - -c
+        args:
+          - |
+            bin/polyphemus/run_job {{inputs.parameters.job}} {{inputs.parameters.config_id}} {{inputs.parameters.version_number}}
+        env:
+          - name: KUBE_ID
+            value: "{{workflow.uid}}"
+          - name: WORKFLOW_NAME 
+            value: "{{workflow.name}}"
