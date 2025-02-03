@@ -276,7 +276,7 @@ describe WorkflowController do
       auth_header(:editor)
       get('/api/workflows')
       expect(last_response.status).to eq(200)
-      expect(json_body.map(&:keys)).to all(satisfy { |v| !v.empty? && (v - [:name, :schema, :secrets, :runtime_params]).empty? })
+      expect(json_body.map(&:keys)).to all(satisfy { |v| !v.empty? && (v - [:name, :schema, :secrets, :runtime_params, :workflow_path]).empty? })
     end
   end
 
@@ -523,17 +523,16 @@ context '#revisions' do
         workflow_type: "test-workflow",
         config: { commit: true }
       )
-
       expect(last_response.status).to eq(200)
       expect(Polyphemus::Run.last.name).to eq("simple-two-jobs-ktm4g")
       expect(Polyphemus::Run.last.run_id).to eq("de6df0ed-b32c-4707-814f-11c323b0687b")
 
-      workflow_path = "/app/workflows/argo/test-workflow/workflow.yaml".shellescape
       cmd = [
         "argo", "submit",
-        "-f", workflow_path,
+         TestManifest.as_json[:workflow_path],
         "-p", "config_id=#{config.config_id}",
         "-p", "version_number=#{config.version_number}",
+        "-n", "argo",
         "-o", "yaml",
         "|", "grep", "-m2", "-E", "name:|uid:",
         "|", "awk", 'NR==1 {print "Workflow Name: " $2} NR==2 {print "Workflow UID: " $2}'

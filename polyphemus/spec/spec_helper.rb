@@ -618,7 +618,8 @@ class TestManifest < Polyphemus::WorkflowManifest
       secrets: [:test_secret],
       runtime_params: {
         commit: 'boolean'
-      }
+      },
+      workflow_path: '/some/path/test-workflow.yaml'
     }
     end
 end

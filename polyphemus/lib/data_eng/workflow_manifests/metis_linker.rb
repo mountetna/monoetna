@@ -9,7 +9,8 @@ class Polyphemus
         schema: Metis::Loader.to_schema,
         runtime_params: {
           commit: 'boolean'
-        }
+        },
+        workflow_path: '/app/workflows/argo/metis_linker/workflow.yaml'
       }
     end
 
