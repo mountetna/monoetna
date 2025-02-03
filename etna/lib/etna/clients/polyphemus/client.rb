@@ -33,6 +33,85 @@ module Etna
             yield res
         end
       end
+
+      def get_config(project_name, config_id, version_number)
+        json = nil
+        @etna_client.post("/api/workflows/#{project_name}/configs/#{config_id}", version_number: version_number) do |res|
+          json = JSON.parse(res.body)
+        end
+        json
+      end
+
+      def get_runtime_config(project_name, config_id)
+        json = nil
+        @etna_client.get("/api/workflows/#{project_name}/runtime_configs/#{config_id}") do |res|
+          json = JSON.parse(res.body)
+        end
+        json
+      end
+
+      def update_run(project_name, run_id, updates)
+        payload = {
+          run_id: run_id,
+          workflow_name: updates[:workflow_name],
+          name: updates[:name],
+          config_id: updates[:config_id], 
+          version_number: updates[:version_number],
+          state: updates[:state],
+          orchestrator_metadata: updates[:orchestrator_metadata],
+          output: updates[:output],
+          append_output: updates[:append_output]
+        }.compact
+
+        json = nil
+        @etna_client.post("/api/workflows/#{project_name}/run/update/#{run_id}", payload) do |res|
+          json = JSON.parse(res.body)
+        end
+        json
+      end
+
+      def get_run(project_name, run_id)
+        json = nil
+        @etna_client.get("/api/workflows/#{project_name}/run/#{run_id}") do |res|
+          json = JSON.parse(res.body)
+        end
+        json
+      end
+
+      def get_previous_state(project_name, config_id, version_number, state: [])
+        json = nil
+        @etna_client.post("/api/workflows/#{project_name}/run/previous/#{config_id}",
+          version_number: version_number,
+          state: state
+        ) do |res|
+          json = JSON.parse(res.body)
+        end
+        json
+      end
+
+      def update_runtime_config(project_name, config_id, updates)
+        payload = {
+          config_id: updates[:config_id],
+          runtime_config: updates[:runtime_config],
+          run_interval: updates[:run_interval],
+          disabled: updates[:disabled]
+        }.compact          
+
+        json = nil
+        @etna_client.post("/api/workflows/#{project_name}/runtime_config/#{config_id}", payload) do |res|
+          json = JSON.parse(res.body)
+        end
+        json
+      end
+
+      def get_run_metadata(project_name, config_id)
+        json = nil
+        @etna_client.get("/api/workflows/#{project_name}/runtime_config/#{config_id}") do |res|
+          json = JSON.parse(res.body)
+        end
+        json
+      end
+
     end
   end
 end

@@ -1,4 +1,6 @@
 require "net/ssh"
+require "net/scp"
+require "tempfile"
 
 module Etna
   class RemoteSSH
@@ -33,6 +35,19 @@ module Etna
       output = ssh.exec!(cmd)
       raise RemoteSSHError.new("LFTP get failure: #{output}") unless 0 == output.exitstatus
       yield remote_filename if block_given?
+    end
+
+    def file_upload(remote_path, content)
+      begin
+        Tempfile.create do |temp_file|
+          temp_file.binmode
+          temp_file.write(content)
+          temp_file.flush
+          ssh.scp.upload!(temp_file.path, remote_path)
+        end
+      rescue StandardError => e
+        raise RemoteSSHError.new("File upload failed: #{e.message}")
+      end
     end
   end
 end
