@@ -2,7 +2,7 @@ require_relative '../helpers'
 
 class Polyphemus
   module ArgoWorkflowManager
-    include WithLogger
+    extend WithLogger
 
     def submit_workflow(config)
       # Build command with proper escaping
@@ -13,6 +13,7 @@ class Polyphemus
          workflow_path,
         "-p", "config_id=#{config.config_id}",
         "-p", "version_number=#{config.version_number}",
+        "-n", "argo",
         # The commands below are to fetch the workflow name and uid
         "-o", "yaml",
         "|", "grep", "-m2", "-E", "name:|uid:",
