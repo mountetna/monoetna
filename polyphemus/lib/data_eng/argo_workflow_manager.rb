@@ -9,15 +9,15 @@ class Polyphemus
       manifest = Polyphemus::WorkflowManifest.from_workflow_name(config.workflow_type)
       workflow_path = manifest.workflow_path.shellescape
       cmd = [
-        "argo", "submit",
-         workflow_path,
-        "-p", "config_id=#{config.config_id}",
-        "-p", "version_number=#{config.version_number}",
-        "-n", "argo",
-        # The commands below are to fetch the workflow name and uid
-        "-o", "yaml",
-        "|", "grep", "-m2", "-E", "name:|uid:",
-        "|", "awk", 'NR==1 {print "Workflow Name: " $2} NR==2 {print "Workflow UID: " $2}'
+        "argo submit",
+        workflow_path,
+        "-p config_id=#{config.config_id}",
+        "-p version_number=#{config.version_number}", 
+        "-n argo",
+        "-o yaml",
+        "| grep -m2 -E 'name:|uid:'",
+        "| sed 's/name:/Workflow Name:/'",
+        "| sed 's/uid:/Workflow UID:/'"
       ]
 
       logger.info("Submitting workflow #{config.workflow_name}, for project: #{config.project_name}, workflow_type: #{config.workflow_type}, config_id: #{config.config_id}...")

@@ -529,13 +529,14 @@ context '#revisions' do
 
       cmd = [
         "argo", "submit",
-         TestManifest.as_json[:workflow_path],
+         TestManifest.as_json[:workflow_path].shellescape,
         "-p", "config_id=#{config.config_id}",
         "-p", "version_number=#{config.version_number}",
         "-n", "argo",
         "-o", "yaml",
-        "|", "grep", "-m2", "-E", "name:|uid:",
-        "|", "awk", 'NR==1 {print "Workflow Name: " $2} NR==2 {print "Workflow UID: " $2}'
+        "|", "grep", "-m2", "-E", "'name:|uid:'",
+        "|", "sed", "s/name:/Workflow Name:/",
+        "|", "sed", "s/uid:/Workflow UID:/"
       ]
       expect(Open3).to have_received(:capture3).with(cmd.join(" "))
     end
