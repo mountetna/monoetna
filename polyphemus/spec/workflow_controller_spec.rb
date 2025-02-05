@@ -535,8 +535,8 @@ context '#revisions' do
         "-n argo",
         "-o yaml",
         "| grep -m2 -E 'name:|uid:'",
-        "| sed s/name:/Workflow Name:/",
-        "| sed s/uid:/Workflow UID:/"
+        "| sed 's/name:/Workflow Name:/'",
+        "| sed 's/uid:/Workflow UID:/'"
       ]
       expect(Open3).to have_received(:capture3).with(cmd.join(" "))
     end
