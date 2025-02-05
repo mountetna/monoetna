@@ -528,15 +528,15 @@ context '#revisions' do
       expect(Polyphemus::Run.last.run_id).to eq("de6df0ed-b32c-4707-814f-11c323b0687b")
 
       cmd = [
-        "argo", "submit",
-         TestManifest.as_json[:workflow_path].shellescape,
-        "-p", "config_id=#{config.config_id}",
-        "-p", "version_number=#{config.version_number}",
-        "-n", "argo",
-        "-o", "yaml",
-        "|", "grep", "-m2", "-E", "'name:|uid:'",
-        "|", "sed", "s/name:/Workflow Name:/",
-        "|", "sed", "s/uid:/Workflow UID:/"
+        "argo submit",
+        TestManifest.as_json[:workflow_path].shellescape,
+        "-p config_id=#{config.config_id}",
+        "-p version_number=#{config.version_number}", 
+        "-n argo",
+        "-o yaml",
+        "| grep -m2 -E 'name:|uid:'",
+        "| sed s/name:/Workflow Name:/",
+        "| sed s/uid:/Workflow UID:/"
       ]
       expect(Open3).to have_received(:capture3).with(cmd.join(" "))
     end
