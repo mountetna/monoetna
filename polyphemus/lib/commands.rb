@@ -755,8 +755,8 @@ class RunJob < Etna::Command
       # Instantiate the job and run it
       # Dynamically load the job class from the job_name
       job = Kernel.const_get("#{job_name}_job".camelize.to_sym)
-      job.new(config, runtime_config)
-      job.execute
+      j = job.new(config, runtime_config)
+      j.execute
     end
 
   end
