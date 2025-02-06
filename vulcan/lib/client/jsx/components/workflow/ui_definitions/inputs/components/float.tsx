@@ -1,0 +1,76 @@
+import React, {useCallback, useState} from 'react';
+import {WithInputParams} from '../../input_types';
+import {some} from '../../../../../selectors/maybe';
+import {useSetsDefault} from '../../useSetsDefault';
+import {TextField} from '@material-ui/core';
+
+function parseIntBetter(s: string) {
+  const parsed = parseInt(s, 10);
+  return parsed + '' == s ? parsed : NaN;
+}
+
+function from_num(num: number | null) {
+  return num == null ? '' : num.toString();
+}
+
+export function NumberInput(
+  {
+    onChange,
+    label,
+    minWidth,
+    data,
+    ...props
+  }: WithInputParams<
+    {label?: string; minWidth?: number},
+    number | null,
+    number | null
+  >,
+  block_decimal = false
+) {
+  const value = useSetsDefault(0, props.value, onChange, 'value'); // Had to replace selectDefaultNumber(data) with 0 due how the component can be cleared.  NaN was not an option because of cross-language conversion.
+  const [inputState, setInputState] = useState({
+    text: from_num(value),
+    hasError: false
+  });
+  const onNewFloat = useCallback(
+    (event: any) => {
+      const parser = block_decimal ? parseIntBetter : Number;
+      const parsed = parser(event.target.value);
+      if (isNaN(parsed)) {
+        setInputState({text: event.target.value, hasError: true});
+        onChange({value: [null]});
+      } else {
+        setInputState({text: event.target.value, hasError: false});
+        onChange({value: some(parsed)});
+      }
+    },
+    [onChange]
+  ); // todo: better typing for event
+
+  return (
+    <div style={{paddingTop: label ? 8 : 0}}>
+      <TextField
+        value={inputState.text}
+        label={label}
+        error={inputState.hasError}
+        onChange={onNewFloat}
+        size='small'
+        style={{minWidth: minWidth || 200}}
+      />
+    </div>
+  );
+}
+
+export default function FloatInput({
+  onChange,
+  label,
+  minWidth,
+  data,
+  ...props
+}: WithInputParams<
+  {label?: string; minWidth?: number},
+  number | null,
+  number | null
+>) {
+  return NumberInput({onChange, label, minWidth, data, ...props});
+}

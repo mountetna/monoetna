@@ -26,7 +26,7 @@ import {
 } from '../api_types';
 import { paramValuesToRaw, workspacesFromResponse } from '../selectors/workflow_selectors';
 import { isSome } from '../selectors/maybe';
-import { val_wrap } from '../components/workflow/user_interactions/inputs/pieces/user_input_pieces';
+import { val_wrap } from '../components/workflow/ui_definitions/inputs/pieces/user_input_pieces';
 
 export const defaultApiHelpers = {
   vulcanPath(endpoint: string): string {

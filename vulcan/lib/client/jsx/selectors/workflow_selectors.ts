@@ -25,7 +25,7 @@ import {
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {
   WorkspaceStepGroup
-} from '../components/workflow/user_interactions/inputs/input_types';
+} from '../components/workflow/ui_definitions/input_types';
 import {useMemo} from 'react';
 import {
   isSome,

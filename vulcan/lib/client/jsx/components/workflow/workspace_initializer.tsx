@@ -14,8 +14,8 @@ import {
   workspaceFromRaw
 } from '../../selectors/workflow_selectors';
 
-import WorkspaceManager from './session/workspace_manager';
-import StepsList from './steps/steps_list';
+import WorkspaceManager from './workspace_manager';
+import StepsList from './steps_list';
 import { defaultWorkspaceStatus, FileContentResponse, Workspace, WorkspaceRaw, WorkspaceStatus } from '../../api_types';
 import {
   setWorkflow,

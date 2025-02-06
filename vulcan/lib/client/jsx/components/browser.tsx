@@ -11,11 +11,9 @@ interface Props {
 }
 
 export default function Browser({
-  workflow_name,
   project_name,
   workspace_id
 }: {
-  workflow_name: string;
   project_name: string;
   workspace_id: number;
 }) {
@@ -28,7 +26,6 @@ export default function Browser({
   return (
     <main className='vulcan-browser browser'>
       <WorkspaceInitializer
-        workflowName={workflow_name}
         workspaceId={workspace_id}
         projectName={project_name}
       />
