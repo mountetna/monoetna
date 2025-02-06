@@ -39,6 +39,8 @@ export default function PrimaryInputs() {
   const {workspace} = state;
   if (!workspace) return null;
 
+  const previousParams = Object.keys(state.status.last_params).length==0;
+
   const inputSpecifications = useMemo(
     () => getParamUISpecifications(workspace),
     [workspace]
@@ -46,7 +48,7 @@ export default function PrimaryInputs() {
 
   let groupedInputs = useMemo(() => {
     return inputSpecifications.reduce((result, spec) => {
-      let groupName = inputGroupName(spec.name) || 'Config Inputs';
+      let groupName = inputGroupName(spec.name) || 'Ungrouped';
       result[groupName] = result[groupName] || [];
       result[groupName].push(spec);
       return result;
@@ -55,7 +57,7 @@ export default function PrimaryInputs() {
     inputSpecifications
   ]);
 
-  const [expanded, setExpanded] = useState([] as string[]);
+  const [expanded, setExpanded] = useState(previousParams ? Object.keys(groupedInputs) : [] as string[]);
   function toggleExpanded(groupName: string) {
     if (expanded.includes(groupName)) {
       setExpanded(expanded.filter(val => val != groupName));
@@ -64,7 +66,7 @@ export default function PrimaryInputs() {
     }
   }
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(previousParams);
 
   const classes = useStyles();
 
@@ -98,7 +100,7 @@ export default function PrimaryInputs() {
               <PrimaryInputGroup
                 expanded={expanded.includes(groupName)}
                 select={() => toggleExpanded(groupName)}
-                groupName={groupName.split('_').slice(1).join(' ')}
+                groupName={groupName.replace(/^\d__/,'').replace('_',' ')}
                 key={index}
                 inputs={groupedInputs[groupName]}
               />
