@@ -3,7 +3,7 @@ import React, {useContext, useEffect} from 'react';
 import 'regenerator-runtime/runtime';
 import {VulcanContext} from '../contexts/vulcan_context';
 
-import WorkspaceInitializer from './workflow/workspace_initializer';
+import WorkspaceInitializer from './workspace/workspace_initializer';
 
 interface Props {
   workflowName: string;

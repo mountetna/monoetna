@@ -23,7 +23,7 @@ import Grid from '@material-ui/core/Grid';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import {Workflow, Workspace} from '../../../api_types';
-import useUserHooks from '../../useUserHooks';
+import useUserHooks from '../../../contexts/useUserHooks';
 
 import Tag from '../tag';
 import { workflowName } from '../../../selectors/workflow_selectors';

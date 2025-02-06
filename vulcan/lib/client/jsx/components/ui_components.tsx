@@ -1,35 +1,35 @@
 import {InputType} from 'etna-js/utils/input_types';
 export {InputType, DataEnvelope} from 'etna-js/utils/input_types';
-import BooleanInput from "./workflow/ui_definitions/inputs/components/boolean";
-import CheckboxesInput from "./workflow/ui_definitions/inputs/components/checkboxes";
-import { AnnotationEditorInput, DataTransformationInput } from "./workflow/ui_definitions/inputs/data_transformation";
-import FloatInput from "./workflow/ui_definitions/inputs/components/float";
-import { InputBackendComponent, InputValidator } from "./workflow/ui_definitions/input_types";
-import IntegerInput from "./workflow/ui_definitions/inputs/components/integer";
-import { MetisFileInput, MetisFolderInput } from "./workflow/ui_definitions/inputs/components/metis_items";
-import MultipleInput from "./workflow/ui_definitions/inputs/multiple_input";
-import MultiselectStringInput from "./workflow/ui_definitions/inputs/components/multiselect_string";
-import NestedSelectAutocompleteInput from "./workflow/ui_definitions/inputs/nested_select_autocomplete";
-import NestedSelectAutocompleteMultiPickInput from "./workflow/ui_definitions/inputs/nested_select_autocomplete_multi_choice";
-import DiffExpSC from "./workflow/ui_definitions/inputs/scDGE";
-import SelectAutocompleteInput from "./workflow/ui_definitions/inputs/components/select_autocomplete";
-import SelectAutocompleteMultiPickInput from "./workflow/ui_definitions/inputs/select_autocomplete_multi_choice";
-import SingleDropdownMulticheckbox from "./workflow/ui_definitions/inputs/single_dropdown_multicheckbox";
-import StringInput from "./workflow/ui_definitions/inputs/components/string";
-import { AnyDittoSeq, AnyPlotly, BarPlotly, DittoBarPlot, DittoDimPlot, DittoPlot, DittoScatterPlot, ScatterPlotly, YPlotly } from "./workflow/ui_definitions/inputs/components/visualizations";
+import BooleanInput from "./workspace/ui_definitions/inputs/components/boolean";
+import CheckboxesInput from "./workspace/ui_definitions/inputs/components/checkboxes";
+import { AnnotationEditorInput, DataTransformationInput } from "./workspace/ui_definitions/inputs/data_transformation";
+import FloatInput from "./workspace/ui_definitions/inputs/components/float";
+import { InputBackendComponent, InputValidator } from "./workspace/ui_definitions/input_types";
+import IntegerInput from "./workspace/ui_definitions/inputs/components/integer";
+import { MetisFileInput, MetisFolderInput } from "./workspace/ui_definitions/inputs/components/metis_items";
+import MultipleInput from "./workspace/ui_definitions/inputs/multiple_input";
+import MultiselectStringInput from "./workspace/ui_definitions/inputs/components/multiselect_string";
+import NestedSelectAutocompleteInput from "./workspace/ui_definitions/inputs/nested_select_autocomplete";
+import NestedSelectAutocompleteMultiPickInput from "./workspace/ui_definitions/inputs/nested_select_autocomplete_multi_choice";
+import DiffExpSC from "./workspace/ui_definitions/inputs/scDGE";
+import SelectAutocompleteInput from "./workspace/ui_definitions/inputs/components/select_autocomplete";
+import SelectAutocompleteMultiPickInput from "./workspace/ui_definitions/inputs/select_autocomplete_multi_choice";
+import SingleDropdownMulticheckbox from "./workspace/ui_definitions/inputs/single_dropdown_multicheckbox";
+import StringInput from "./workspace/ui_definitions/inputs/components/string";
+import { AnyDittoSeq, AnyPlotly, BarPlotly, DittoBarPlot, DittoDimPlot, DittoPlot, DittoScatterPlot, ScatterPlotly, YPlotly } from "./workspace/ui_definitions/inputs/components/visualizations";
 
-import AllInnerKeysNotNullValidator from "./workflow/ui_definitions/inputs/validators/all_inner_keys_not_null_validator";
-import AllInnerValuesNotEmptyValidator from "./workflow/ui_definitions/inputs/validators/all_inner_values_not_empty_validator";
-import AllOutputValuesNotEmptyValidator, { AllOutputValuesNotEmptyAllowingEmptyArrayValidator } from "./workflow/ui_definitions/inputs/validators/all_output_values_not_empty_validator";
-import AnnotationEditorValidator from "./workflow/ui_definitions/inputs/validators/annotation_editor_validator";
-import { MetisFileValidator, MetisFolderValidator, MetisPathValidator } from "./workflow/ui_definitions/inputs/validators/metis_path_validators";
-import { NotEmptyValidator, StronglyNotEmptyValidator } from "./workflow/ui_definitions/inputs/validators/not_empty_validator";
-import PlusSubsetValidator from "./workflow/ui_definitions/inputs/validators/PlusSubsetValidator";
+import AllInnerKeysNotNullValidator from "./workspace/ui_definitions/inputs/validators/all_inner_keys_not_null_validator";
+import AllInnerValuesNotEmptyValidator from "./workspace/ui_definitions/inputs/validators/all_inner_values_not_empty_validator";
+import AllOutputValuesNotEmptyValidator, { AllOutputValuesNotEmptyAllowingEmptyArrayValidator } from "./workspace/ui_definitions/inputs/validators/all_output_values_not_empty_validator";
+import AnnotationEditorValidator from "./workspace/ui_definitions/inputs/validators/annotation_editor_validator";
+import { MetisFileValidator, MetisFolderValidator, MetisPathValidator } from "./workspace/ui_definitions/inputs/validators/metis_path_validators";
+import { NotEmptyValidator, StronglyNotEmptyValidator } from "./workspace/ui_definitions/inputs/validators/not_empty_validator";
+import PlusSubsetValidator from "./workspace/ui_definitions/inputs/validators/PlusSubsetValidator";
 
-import LinkOutput from './workflow/ui_definitions/outputs/link';
-import { PlotlyOutput, PlotOutput, PngOutput } from './workflow/ui_definitions/outputs/plot';
-import ConsignmentOutput from './workflow/ui_definitions/outputs/consignment';
-import RawOutput from './workflow/ui_definitions/outputs/raw';
+import LinkOutput from './workspace/ui_definitions/outputs/link';
+import { PlotlyOutput, PlotOutput, PngOutput } from './workspace/ui_definitions/outputs/plot';
+import ConsignmentOutput from './workspace/ui_definitions/outputs/consignment';
+import RawOutput from './workspace/ui_definitions/outputs/raw';
 
 /*
 Inputs: For Input_Feed, can produce an output, tracked as a step by snakemake

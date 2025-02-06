@@ -40,7 +40,7 @@ import OutputFeed from './output_feed';
 import { allFilesToBuffer, filesReturnToMultiFileContent, uiContentsFromFiles, workflowName } from '../../selectors/workflow_selectors';
 import {useWorkspace} from '../../contexts/workspace_context';
 // import {json_get} from 'etna-js/utils/fetch';
-import useUserHooks from '../useUserHooks';
+import useUserHooks from '../../contexts/useUserHooks';
 import Tag from '../dashboard/tag';
 import Grid from '@material-ui/core/Grid';
 import {runPromise, useAsync} from 'etna-js/utils/cancellable_helpers';
