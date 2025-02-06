@@ -25,6 +25,7 @@ class WorkflowController < Polyphemus::Controller
 
     Polyphemus::RuntimeConfig.create(
       config_id: config.config_id,
+      run_interval: 0,
       created_at: Time.now,
       updated_at: Time.now
     )
@@ -179,7 +180,7 @@ class WorkflowController < Polyphemus::Controller
     run = Polyphemus::Run.where(
       config_id: @params[:config_id],
       version_number: @params[:version_number]
-    ).order(Sequel.desc(:created_at)).first
+    ).exclude(state: nil).order(Sequel.desc(:created_at)).first
 
     raise Etna::NotFound, "No such run for config_id #{@params[:config_id]} and version_number #{@params[:version_number]}" unless run
 

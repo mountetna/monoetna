@@ -378,38 +378,6 @@ class Polyphemus
     end
   end
 
-  class RunEtlJob < Etna::Command
-    def execute
-      job_config = Polyphemus::EtlConfig.next_to_run
-
-      return if !job_config
-
-      puts "Running #{job_config.project_name}/#{job_config.name} with params #{job_config.params}"
-
-      begin
-        output = StringIO.new
-
-        old_stdout = $stdout
-        $stdout = output
-
-        job_config.run!
-      rescue Exception => e
-        STDOUT.puts e.message
-        STDOUT.puts e.backtrace
-        job_config.set_error!(e)
-      ensure
-        $stdout = old_stdout
-      end
-    end
-
-    def setup(config)
-      super
-      Polyphemus.instance.setup_logger
-      Polyphemus.instance.setup_db
-      Polyphemus.instance.setup_sequel
-    end
-  end
-
   class GetMetisFolders < Etna::Command
     include WithEtnaClients
 
@@ -730,7 +698,7 @@ class Polyphemus
     end
   end
 
-class RunJob < Etna::Command
+  class RunJob < Etna::Command
     include WithEtnaClients
 
     def setup(config)
@@ -755,8 +723,11 @@ class RunJob < Etna::Command
       # Instantiate the job and run it
       # Dynamically load the job class from the job_name
       job = Kernel.const_get("#{job_name}_job".camelize.to_sym)
-      j = job.new(config, runtime_config)
-      j.execute
+
+      job.new(
+        config.as_json,
+        runtime_config.as_json
+      ).execute
     end
 
   end

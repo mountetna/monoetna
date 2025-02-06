@@ -20,7 +20,7 @@ class Polyphemus
       to_hash.map do |key,value|
         case key
         when :secrets
-          next [ key, secrets.map do |skey, secret|
+          next [ key.to_s, secrets.map do |skey, secret|
             [ skey, secret.to_s.empty? ? '' : '***' ]
           end.to_h ]
         when :id
@@ -28,17 +28,17 @@ class Polyphemus
         else
           case value
           when Time
-            next [ key, value.iso8601 ]
+            next [ key.to_s, value.iso8601 ]
           end
 
-          next [ key, value ]
+          next [ key.to_s, value ]
         end
       end.compact.to_h
     end
 
     def with_status
       as_json.merge(
-        status: status
+        'status' => status
       )
     end
 
@@ -52,14 +52,14 @@ class Polyphemus
 
     def status
       { 
-        run_interval: runtime_config.run_interval,
-        status: last_run&.status || "never run",
-        last_run: last_run&.created_at&.iso8601 || "never run"
+        'run_interval' => runtime_config.run_interval,
+        'status' => last_run&.status || "never run",
+        'last_run' => last_run&.created_at&.iso8601 || "never run"
       }
     end
 
     def to_revision
-      as_json.slice(:config, :created_at, :version_number, :comment)
+      as_json.slice('config', 'created_at', 'version_number', 'comment')
     end
 
   end

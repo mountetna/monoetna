@@ -2,6 +2,7 @@ require_relative 'etl_job'
 
 class MetisLinkerJob < Polyphemus::ETLJob
   include WithEtnaClients
+  include WithLogger
 
   def initialize(config, runtime_config)
     @config = config
@@ -65,16 +66,16 @@ class MetisLinkerJob < Polyphemus::ETLJob
 
   # Fetch the last_scan timestamp from the pipeline state using Polyphemus client
   def fetch_last_scan
-    response = polyphemus_client.get_previous_state(
-     project_name,
-     @workflow_config_id,
-     @workflow_version,
-     state: [:end_time]
-    )
-    if response[:error]
-      logger.warn("Error fetching previous state: #{response[:error]}")
-      raise StandardError, response[:error]
+    begin
+      response = polyphemus_client.get_previous_state(
+       project_name,
+       @workflow_config_id,
+       @workflow_version,
+       state: [:end_time]
+      )
+      return response['end_time']
+    rescue Etna::Error => e
+      return 1
     end
-    response["end_time"]
   end
 end

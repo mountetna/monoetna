@@ -94,10 +94,6 @@ describe MetisLinkerJob do
       body: tail.to_json,
       headers: { 'Content-Type': "application/json" },
     )
-    stub_request(:post, "https://polyphemus.test/api/workflows/labors/run/previous/1").to_return(
-      body: { end_time: Time.now.iso8601 }.to_json,
-      headers: { 'Content-Type': "application/json" },
-    )
     stub_request(:get, "https://magma.test/gnomon/labors/rules").to_return(
       body: { rules: rules }.to_json,
       headers: { 'Content-Type': "application/json" }
@@ -106,12 +102,34 @@ describe MetisLinkerJob do
       body: { models: models }.to_json,
       headers: { 'Content-Type': "application/json" }
     )
+    stub_magma_update_dry_run
 
     stub_request(:post, "#{POLYPHEMUS_HOST}/api/workflows/labors/run/update/#{run_id}").to_return(body: "{}")
   end
 
   context 'linking' do
     it 'successfully links records' do
+      stub_request(:post, "https://polyphemus.test/api/workflows/labors/run/previous/1").to_return(
+        body: { end_time: Time.now.iso8601 }.to_json,
+        headers: { 'Content-Type': "application/json" },
+      )
+
+      job = MetisLinkerJob.new(config, runtime_config)
+
+      expect{
+        context = job.execute
+      }.not_to raise_error
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+      expect(WebMock).to have_requested(:post, /#{POLYPHEMUS_HOST}\/api\/workflows\/labors\/run\/update/)
+    end
+
+    it 'successfully links records the first time it is run' do
+      stub_request(:post, "https://polyphemus.test/api/workflows/labors/run/previous/1").to_return(
+        status: 404,
+        body: { error: "No such run for config_id 1 and version_number 1" }.to_json,
+        headers: { 'Content-Type': "application/json" },
+      )
+
       job = MetisLinkerJob.new(config, runtime_config)
 
       expect{
