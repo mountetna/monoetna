@@ -150,7 +150,7 @@ export default function ParamInputs() {
     inputSpecifications
   ]);
 
-  const [expanded, setExpanded] = useState(previousParams ? Object.keys(groupedInputs) : [] as string[]);
+  const [expanded, setExpanded] = useState(previousParams || Object.keys(groupedInputs).length==1 ? Object.keys(groupedInputs) : [] as string[]);
   function toggleExpanded(groupName: string) {
     if (expanded.includes(groupName)) {
       setExpanded(expanded.filter(val => val != groupName));
