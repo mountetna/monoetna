@@ -20,13 +20,13 @@ const useStyles = makeStyles((theme) => ({
     color: 'green'
   },
   [STATUS.RUNNING]: {
-    color: 'gray'
+    color: 'black'
   },
   [STATUS.PENDING]: {
     color: 'gray'
   },
   [STATUS.UPCOMING]: {
-    color: 'gray'
+    color: 'black'
   },
   [STATUS.ERROR]: {
     color: 'red'
