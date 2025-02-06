@@ -21,10 +21,12 @@ import {
   WorkspacesResponse,
   WorkspaceRaw,
   WorkflowCreateResponse,
-  CreateWorkspaceResponse
+  CreateWorkspaceResponse,
+  WorkspacesResponseRaw
 } from '../api_types';
-import { paramValuesToRaw } from '../selectors/workflow_selectors';
+import { paramValuesToRaw, workspacesFromResponse } from '../selectors/workflow_selectors';
 import { isSome } from '../selectors/maybe';
+import { val_wrap } from '../components/workflow/user_interactions/inputs/pieces/user_input_pieces';
 
 export const defaultApiHelpers = {
   vulcanPath(endpoint: string): string {
@@ -108,17 +110,6 @@ export function useApi(
     }).then(checkStatus);
   }, []);
 
-  const vulcanPostReturn = useCallback((endpoint: string, params: Object) => {
-    return fetch(endpoint, {
-      method: 'POST',
-      credentials: 'include',
-      headers: headers('json'),
-      body: JSON.stringify({
-        ...params
-      })
-    }).then(checkStatus).then(parseJSON as () => any);
-  }, []);
-
   const rawVulcanGet = useCallback((endpoint: string) => {
     return fetch(endpoint, {
       method: 'GET',
@@ -187,7 +178,7 @@ export function useApi(
   }, [vulcanGet, vulcanPath]);
 
   const createWorkflow = useCallback((projectName: string, repoUrl: string, workflowName: string): Promise<WorkflowCreateResponse> => {
-    return vulcanPostReturn(
+    return vulcanPost(
       vulcanPath(`/api/v2/${projectName}/workflows/create`),
       {
         project_name: projectName,
@@ -197,7 +188,7 @@ export function useApi(
   }, [vulcanPost, vulcanPath]);
 
   const createWorkspace = useCallback((projectName: string, workflowId: number, workspaceName: string, branch: string, git_version: string): Promise<CreateWorkspaceResponse> => {
-    return vulcanPostReturn(
+    return vulcanPost(
       vulcanPath(`/api/v2/${projectName}/workspace/create`),
       {
         workflow_id: workflowId,
@@ -209,7 +200,8 @@ export function useApi(
 
   const getWorkspaces = useCallback(
     (projectName: string): Promise<WorkspacesResponse> => {
-      return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace`));
+      return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace`))
+        .then((val) => workspacesFromResponse(val));
   }, [vulcanGet, vulcanPath]);
 
   const getWorkspace = useCallback(
@@ -240,39 +232,36 @@ export function useApi(
   }, [vulcanGet, vulcanPath]);
 
   const writeFiles = useCallback(
-    (projectName: string, workspaceId: number, content: MultiFileContent) => {
-      content = Array.isArray(content) ? content : [content]
+    (projectName: string, workspaceId: number, files_content: MultiFileContent) => {
       return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/file/write`),
-        {
-          files: content
-        });
+        files_content
+      );
   }, [vulcanPost, vulcanPath]);
 
   const readFiles = useCallback(
     (projectName: string, workspaceId: number, fileNames: string[]): Promise<MultiFileContentResponse> => {
-      return vulcanGetWithParams(
+      return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/file/read`),
         {
           file_names: fileNames
         });
-  }, [vulcanGetWithParams, vulcanPath]);
+  }, [vulcanPost, vulcanPath]);
 
   const setConfig = useCallback(
     (projectName: string, workspaceId: number, params: FlatParams): Promise<Response | AccountingReturn> => {
       return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/config`),
-        params
+        {params: params}
       );
   }, [vulcanPost, vulcanPath]);
 
   const postUIValues = useCallback(
-    (projectName: string, workspaceId: number, status: WorkspaceStatus, step: string | null): Promise<Response | AccountingReturn> => {
+    (projectName: string, workspaceId: number, status: WorkspaceStatus, step: string): Promise<Response | AccountingReturn> => {
       // Only ever per a single 'step'.
-      // Assume the values have already been validated.      
-
+      // Can assume the values have already been validated.
       // If a "inputUI", send targeted file outputs
-      if (step!=null) {
+      if (step in status.ui_contents) {
         let filesContent: MultiFileContent = {};
         if (! (step in status.ui_contents)) {
           return Promise.reject(
@@ -293,12 +282,12 @@ export function useApi(
         writeFiles(
           projectName,
           workspaceId,
-          filesContent
+          {...filesContent}
         )
       }
 
       // Send params to request new accounting
-      const params_use = step === null ? paramValuesToRaw(status.params) : status.last_params;
+      const params_use = step in status.params ? paramValuesToRaw(status.params) : status.last_params;
       return setConfig(
         projectName,
         workspaceId,

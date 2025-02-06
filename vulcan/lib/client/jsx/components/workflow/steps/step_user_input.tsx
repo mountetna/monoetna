@@ -31,7 +31,7 @@ function StepUserInputInner({
       specs.map((spec) =>
         bindInputSpecification(
           spec,
-          workspace.steps,
+          // workspace.steps,
           workspace.vulcan_config,
           status.last_params,
           status.file_contents,
@@ -41,7 +41,7 @@ function StepUserInputInner({
           setValues
         )
       ),
-    [specs, workspace, status, values, setValues]
+    [specs, workspace.vulcan_config, status.last_params, status.file_contents, status.params, status.ui_contents, values, setValues]
   );
 
   return (

@@ -1,16 +1,21 @@
-import React, {useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import 'regenerator-runtime/runtime';
 
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
 
-import {Workflow} from '../../api_types';
+import {Workflow, WorkspacesResponse} from '../../api_types';
 import WorkflowsCarousel from './workflows_carousel';
 import WorkspacesGrid from './workspace_control/workspaces_grid';
 import WorkspacesControls from './workspace_control/workspaces_controls';
 import WorkflowControls from './workflow_control/workflow_controls';
 import ProjectHeader from 'etna-js/components/project-header';
+import { setProject, setWorkflows, setWorkspaces } from '../../actions/vulcan_actions';
+import { runPromise, useAsync } from 'etna-js/utils/cancellable_helpers';
+import { VulcanContext } from '../../contexts/vulcan_context';
+import { workflowId } from '../../selectors/workflow_selectors';
+
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -38,6 +43,18 @@ export default function Dashboard({project_name}: {project_name: string}) {
   const [searchString, setSearchString] = useState('');
   const [tags, setTags] = useState<string[]>(['public']);
 
+  let {state} = useContext(VulcanContext);
+  const {workflows, workspaces} = useMemo(() => {
+    return state
+  }, [state.workflows, state.workspaces])
+
+  function trim_workspaces_to_project(wflows, p_name, wpaces) {
+    const projectWorkflowIds = wflows.filter(w => w.project_name == p_name).map(w => w.id)
+    return wpaces.filter((w) => projectWorkflowIds.includes(w.workflow_id))
+  }
+  const projectWorkspaces = useMemo(() => trim_workspaces_to_project(workflows, project_name, workspaces),
+  [workflows, workspaces, project_name]);
+
   return (
     <main className='vulcan-dashboard'>
       <Grid container direction='column'>
@@ -56,6 +73,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
             <WorkflowControls
               workflow={selectedWorkflow}
               project_name={project_name}
+              workspaces={workspaces}
             />
           </Grid>
         </Grid>
@@ -88,8 +106,8 @@ export default function Dashboard({project_name}: {project_name: string}) {
           workflowId={selectedWorkflow?.id}
           tags={tags}
           searchString={searchString}
-          setSearchString={setSearchString}
-          setTags={setTags}
+          allWorkflows={workflows}
+          allWorkspaces={projectWorkspaces}
         />
       </Grid>
     </main>

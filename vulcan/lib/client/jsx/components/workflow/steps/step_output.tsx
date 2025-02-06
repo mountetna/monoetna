@@ -11,11 +11,12 @@ import {WorkspaceStep} from '../../../api_types';
 export default function StepOutput({step}: {step: WorkspaceStep}) {
   let {state} = useContext(VulcanContext);
   let {workspace, status} = state;
-  const vulcan_config = workspace?.vulcan_config || {};
+  if (!workspace?.vulcan_config) return null;
+  const vulcan_config = workspace.vulcan_config;
   const stepStatus = statusOfStep(step, status);
   const uiOutput = uiComponentOfStep(step.name, vulcan_config);
 
-  if (!stepStatus || !uiOutput) return null;
+  if (!uiOutput) return null;
   const stepType = uiOutput in OUTPUTS ? uiOutput : 'default';
 
   let data;

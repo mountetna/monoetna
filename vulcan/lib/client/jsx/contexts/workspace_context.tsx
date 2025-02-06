@@ -1,6 +1,6 @@
 import React, {useContext, useMemo} from 'react';
 import {VulcanContext} from './vulcan_context';
-import {defaultWorkflow, defaultWorkspace} from '../api_types';
+import { defaultWorkflow, defaultWorkspace, StepStatus } from '../api_types';
 
 export function useWorkspace() {
   const {state} = useContext(VulcanContext);
@@ -12,7 +12,7 @@ export function useWorkspace() {
   const hasPendingEdits = state.bufferedSteps.length > 0;
 
   const complete = useMemo(
-    () => Object.keys(stepsStatus).length > 0 && Object.values(stepsStatus).every(({step}) => step.status === 'complete'),
+    () => !!stepsStatus && Object.keys(stepsStatus).length > 0 && Object.values(stepsStatus).every(({step}) => step.status === 'complete'),
     [stepsStatus]
   );
 

@@ -31,18 +31,17 @@ const collator = new Intl.Collator(undefined, {
   numeric: true, sensitivity: 'base'
 });
 
-function PrimaryInputInner({input, key}: {
+function PrimaryInputInner({input}: {
   input: InputSpecification;
-  key: number;
 }) {
   const {state} = useContext(VulcanContext);
   const {status, workspace} = state;
-  if (!workspace) return null;
+  if (!workspace || !workspace.vulcan_config) return null;
   const {values, setValues} = useContext(BufferedInputsContext);
 
   const bound = useMemo(() => bindInputSpecification(
       input,
-      workspace.steps,
+      // workspace.steps,
       workspace.vulcan_config,
       status.last_params,
       status.file_contents,
@@ -54,16 +53,16 @@ function PrimaryInputInner({input, key}: {
       input,
       values,
       setValues,
-      workspace.steps,
+      // workspace.steps,
       workspace.vulcan_config,
       status.last_params,
       status.file_contents,
+      status.params,
       workspace
     ])
 
   return <UserInput
     input={bound}
-    key={key}
   />
 }
 
@@ -92,10 +91,10 @@ export default function PrimaryInputGroup({inputs, groupName, select, expanded}:
             commitSessionInputChanges={commitSessionInputChanges}
             dispatch={dispatch}
             stepName={input.name}
+            key={index}
           >
             <PrimaryInputInner
               input={input}
-              key={index}
             />
           </WithBufferedInputs>
         );

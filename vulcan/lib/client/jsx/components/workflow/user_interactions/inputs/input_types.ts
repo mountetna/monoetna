@@ -117,7 +117,7 @@ export function getInputSpecifications(
 
 export function bindInputSpecification(
   input: InputSpecification,
-  workspace_steps: Workspace['steps'],
+  // workspace_steps: Workspace['steps'],
   vulcan_config: VulcanConfig,
   last_params: WorkspaceStatus['last_params'],
   file_contents: WorkspaceStatus['file_contents'],
@@ -128,27 +128,22 @@ export function bindInputSpecification(
 ): BoundInputSpecification {
   
   const stepName = input.name;
-  const step = stepOfName(stepName, workspace_steps, vulcan_config);
+  const step = stepOfName(stepName, 
+    // workspace_steps,
+    vulcan_config);
   // ToDo: Surface an error instead
   if (!step) return;
   const config = vulcan_config[stepName];
 
-  const inputDataKeyMap = useMemo( () => stepInputMapping(config),
-  [config]);
-  const inputDataRaw = useMemo( () => stepInputDataRaw(step, last_params, file_contents),
-  [step, last_params, file_contents])
-  const inputData = useMemo(() => {
-    const data: {[k: string]: any} = {};
-    Object.keys(inputDataKeyMap).forEach( (name) => {
-      data[name] = inputDataRaw[inputDataKeyMap[name]];
-    })
-    return data;
-  }, [inputDataKeyMap, inputDataRaw])
+  const inputDataKeyMap = stepInputMapping(config);
+  const inputDataRaw = stepInputDataRaw(step, last_params, file_contents);
+  const inputData: {[k: string]: any} = {};
+  Object.keys(inputDataKeyMap).forEach( (name) => {
+    inputData[name] = inputDataRaw[inputDataKeyMap[name]];
+  })
 
-  const outputDataKeyMap = useMemo( () => stepOutputMapping(config),
-  [config]);
-  const value = useMemo(() => stepOutputData(stepName, outputDataKeyMap, buffered, params, ui_contents, config['default']),
-  [stepName, buffered, outputDataKeyMap, params, ui_contents]);
+  const outputDataKeyMap = stepOutputMapping(config);
+  const value = stepOutputData(stepName, outputDataKeyMap, buffered, params, ui_contents, config['default']);
 
   return {
     ...input,

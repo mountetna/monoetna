@@ -14,6 +14,7 @@ import CancelIcon from '@material-ui/icons/Cancel';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
+import { updateWorkflowsWorkspaces } from '../../../actions/vulcan_actions';
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
@@ -47,6 +48,7 @@ export default function WorkflowCreateButtonModal({projectName}: {
   const [open, setOpen] = useState(false);
 
   let {state,
+    dispatch,
     showErrors,
     getWorkflows,
     createWorkflow
@@ -68,6 +70,7 @@ export default function WorkflowCreateButtonModal({projectName}: {
       setWorkflowName('');
       setRepoUrl('');
       setWorkflowNameError(false);
+      dispatch(updateWorkflowsWorkspaces());
     };
   }, [projectName, getWorkflows, createWorkflow]);
 

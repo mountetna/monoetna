@@ -17,7 +17,10 @@ import {
   MultiFileContent,
   RunStatus,
   StatusStringBroaden,
-  WorkspaceRaw
+  WorkspaceRaw,
+  WorkspaceResponse,
+  WorkspaceMinimalRaw,
+  WorkspaceMinimal
 } from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {
@@ -113,13 +116,27 @@ export function workspaceById(
   return state.workspaces.find((w) => workspaceId(w) === id);
 }
 
-export function workspaceFromRaw(raw: WorkspaceRaw): Workspace {
+export function workspacesFromResponse(val: {workspaces: WorkspaceMinimalRaw[]}): {workspaces: WorkspaceMinimal[]} {
+  const workspaces = val.workspaces;
+  return {
+    workspaces: workspaces.map((raw) => {
+      const intWorkspace: any = {...raw};
+      delete intWorkspace['workspace_path']
+      return {
+        ...intWorkspace,
+        name: intWorkspace['workspace_name']
+      };
+    })
+  }
+}
+
+export function workspaceFromRaw(raw: WorkspaceRaw | WorkspaceResponse): Workspace {
   const vulcanConfig = vulcanConfigFromRaw(raw.vulcan_config);
   const intWorkspace: any = {...raw};
-  delete intWorkspace['target_mapping']
+  // delete intWorkspace['target_mapping']
   return {
     ...intWorkspace,
-    steps: {...raw.target_mapping},
+    // steps: {...raw.target_mapping},
     vulcan_config: vulcanConfig
   };
 }
@@ -175,9 +192,14 @@ export function uiContentsFromFiles(workspace: Workspace, file_contents?: Worksp
     const fileData: DataEnvelope<Maybe<any>> = {};
     step_files.forEach(f => {
       if (f in file_contents) {
-        fileData[f] = null;
+        let content = file_contents[f]
+        if (typeof content === 'string') {
+          // Files end up with "\n" left at the end
+          content = content.trim()
+        }
+        fileData[f] = some(content);
       } else {
-        fileData[f] = some(file_contents[f]);
+        fileData[f] = null;
       }
     })
     return [setName, fileData]
@@ -253,7 +275,7 @@ export function uiNamesToBufferData(
   const workspace = !!given && 'workspace' in given ? given.workspace : given;
   if (!workspace) return [];
   // All inputUIs
-  let uiNames: string[] = inputUINames(workspace);
+  let uiNames = inputUINames(workspace);
   // Some outputUIs (based on the ui_component used)
   for (const out of outputUINames(workspace)) {
     if (!dontDownloadForOutputTypes.includes(workspace.vulcan_config[out].ui_component)) uiNames.push(out);
@@ -264,14 +286,19 @@ export function uiNamesToBufferData(
 export function allFilesToBuffer(
   given: VulcanState | VulcanState['workspace']
 ): string[] {
+  // Targets: inputs & outputs of inputUIs and inputs of select outputUIs
   const workspace = !!given && 'workspace' in given ? given.workspace : given;
   if (!workspace) return [];
   const {vulcan_config} = workspace;
 
   let inputFiles: string[] = [];
-  for (let step in uiNamesToBufferData(workspace)) {
-    inputFiles = inputFiles.concat(vulcan_config[step].output?.files as string[]);
-  }
+  const uiNames = uiNamesToBufferData(workspace);
+  uiNames.forEach((step) => {
+    inputFiles = inputFiles.concat(vulcan_config[step].input?.files as string[]);
+    if (!!vulcan_config[step].output?.files) {
+      inputFiles = inputFiles.concat(vulcan_config[step].output.files);
+    }
+  })
   return uniqueValues(inputFiles);
 }
 
@@ -288,7 +315,7 @@ export function shouldDownloadOutput(
 
 export function filesReturnToMultiFileContent(filesContent: MultiFileContentResponse): MultiFileContent {
   const output: MultiFileContent = {};
-  filesContent.forEach(f => {
+  filesContent.files.forEach(f => {
     output[f.filename] = parseIfCan(f.content)
   });
   return output;
@@ -298,6 +325,7 @@ export function updateStepStatusesFromRunStatus(stepStatusReturns: RunStatus, st
   const newStepStatus = {...stepStatusCurrent};
   const newCompletions = [] as string[];
   Object.entries(stepStatusReturns).forEach(([stepName, statusFine]) => {
+    if (stepName=="all") return
     if (newStepStatus[stepName].statusFine==statusFine) return
     const statusBroad = StatusStringBroaden(statusFine);
     newStepStatus[stepName]['status'] = statusBroad;
@@ -311,10 +339,10 @@ export function updateStepStatusesFromRunStatus(stepStatusReturns: RunStatus, st
 
 export function stepOfName(
   stepName: string,
-  workspace_steps: Workspace['steps'],
+  // workspace_steps: Workspace['steps'],
   vulcan_config: VulcanConfig
 ): WorkspaceStep | undefined {
-  if (stepName in workspace_steps) return workspace_steps[stepName];
+  // if (stepName in workspace_steps) return workspace_steps[stepName];
   if (stepName in vulcan_config) {
     const step_conf = vulcan_config[stepName];
     return {
@@ -325,6 +353,15 @@ export function stepOfName(
       label: step_conf.display || stepName,
       ui_component: step_conf.ui_component,
       doc: step_conf.doc
+    }
+  } else {
+    return {
+      name: stepName,
+      label: stepName,
+      input: {},
+      output: {},
+      ui_component: undefined,
+      doc: ''
     }
   }
 }
@@ -570,21 +607,36 @@ export function stepHasBeenOutput(
 export function pendingUIInputStepReady(
   step: string,
   status: VulcanState['status'],
-  workspace: Workspace,
-  data: VulcanState['data']
+  workspace: Workspace
 ) {
   return (
     inputUINames(workspace).includes(step) &&
-    pendingStepNames(workspace, status).includes(step) &&
-    workspace.vulcan_config[step].input?.files?.every((id) => id in data)
+    pendingStepNames(workspace, status).concat(upcomingStepNames(workspace, status)).includes(step) &&
+    workspace.vulcan_config[step].input?.files?.every((id) => id in status.file_contents)
   );
 }
 
-function stepNamesOfStatus(
-  targetStatus: StatusString,
+export function outputUIsWithInputsReady(
+  workspace: Workspace,
+  status: VulcanState['status']
+): WorkspaceStep[] {
+  return (
+    outputUINames(workspace).filter((step: string) => 
+      workspace.vulcan_config[step].input?.files?.every((id) => id in status.file_contents)
+    ).map((step: string) => stepOfName(step, workspace.vulcan_config) as WorkspaceStep)
+  );
+}
+
+export function stepNamesOfStatus(
+  targetStatus: StatusString | StatusString[],
   workspace: Workspace,
   status: WorkspaceStatus
 ): string[] {
+  if (Array.isArray(targetStatus)) {
+    return workspace.dag.filter(
+      (step) => targetStatus.includes(statusOfStep(step, status)?.status)
+    );
+  }
   return workspace.dag.filter(
     (step) => statusOfStep(step, status)?.status === targetStatus
   );
@@ -627,6 +679,10 @@ export function hasRunningSteps(status: VulcanState['status']): boolean {
   return Object.values(status.steps).filter((s) => s.status == 'running').length > 0;
 }
 
+export function hasScheduledSteps(status: VulcanState['status']): boolean {
+  return Object.values(status.steps).filter((s) => ['running', 'upcoming'].includes(s.status)).length > 0;
+}
+
 export const inputGroupName = (name: string) => {
   let groupName = name.split('__')[0];
   if (groupName === name) return null;
@@ -635,7 +691,7 @@ export const inputGroupName = (name: string) => {
 };
 
 export function groupUiSteps(uiStepNames: string[], workspace: Workspace): WorkspaceStepGroup[] {
-  const uiSteps = pickToArray(workspace.steps, uiStepNames);
+  const uiSteps = pickToArray(workspace.vulcan_config, uiStepNames);
   const map: {[k: string]: WorkspaceStepGroup} = {};
   const result: WorkspaceStepGroup[] = [];
 

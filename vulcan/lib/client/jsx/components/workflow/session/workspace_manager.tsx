@@ -30,16 +30,22 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 import {
   clearCommittedStepPending,
   clearRunTriggers,
-  setWorkspace
+  setWorkspace,
+  removeSync,
+  updateFiles,
 } from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 // import Vignette from '../vignette';
-import { workflowName } from '../../../selectors/workflow_selectors';
+import { allFilesToBuffer, filesReturnToMultiFileContent, uiContentsFromFiles, workflowName } from '../../../selectors/workflow_selectors';
 import {useWorkspace} from '../../../contexts/workspace_context';
 // import {json_get} from 'etna-js/utils/fetch';
 import useUserHooks from '../../useUserHooks';
 import Tag from '../../dashboard/tag';
+import Grid from '@material-ui/core/Grid';
+import {runPromise, useAsync} from 'etna-js/utils/cancellable_helpers';
+import { MultiFileContentResponse, WorkspaceStatus } from '../../../api_types';
+import { VulcanState } from '../../../reducers/vulcan_reducer';
 
 // import RevisionHistory from 'etna-js/components/revision-history';
 
@@ -79,20 +85,27 @@ export default function WorkspaceManager() {
     requestPoll,
     cancelPolling,
     updateWorkspace,
+    getFileNames,
+    readFiles,
     // updateFigure,
     // createFigure,
     // clearLocalSession
   } = useContext(VulcanContext);
   const {workflow, workspace, workspaceId, hasPendingEdits, complete} = useWorkspace();
   const {canEdit, guest} = useUserHooks();
+  console.log({state});
 
   // const [modalIsOpen, setIsOpen] = useState(false);
-  const {status, workQueueable: committedStepPending} = state;
+  const {status, workQueueable: committedStepPending, projectName} = state;
 
   const [tags, setTags] = useState<string[]>(workspace.tags || []);
   const [openTagEditor, setOpenTagEditor] = useState(false);
   // const [openRevisions, setOpenRevisions] = useState<boolean | null>(null);
   const [localTitle, setLocalTitle] = useState(workspace.name);
+
+  useEffect(() => {
+    setLocalTitle(workspace.name);
+  }, [workspace.name])
 
   const invoke = useActionInvoker();
 
@@ -102,8 +115,41 @@ export default function WorkspaceManager() {
   // const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
   // const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
-  const run = useCallback(() => {
-    showErrors(requestPoll(false,true));
+  useAsync(function* () {
+    if (status.to_sync.length > 0) {
+      // Push files / params to compute server for  step
+      const pushStep = [...status.to_sync][0]
+      requestPoll(state, true, false, pushStep);
+      dispatch(removeSync(pushStep));
+    }
+  }, [status.to_sync])
+
+  useAsync(function* () {
+    if (state.update_files && !!workspaceId) {
+      // Push files / params to compute server for  step
+      const fileNamesRaw: {files: string[]} = yield* runPromise(showErrors(getFileNames(projectName, workspaceId)));
+      const fileNames = fileNamesRaw.files;
+      const update = {
+        output_files: fileNames,
+        file_contents: {},
+        ui_contents: {}
+      }
+      const fileGrabs = allFilesToBuffer(workspace).filter(f => fileNames.includes(f));
+      if (fileGrabs.length > 0) {
+        const filesContentRaw: MultiFileContentResponse = yield* runPromise(readFiles(projectName, workspaceId, fileGrabs))
+        const filesContent = filesReturnToMultiFileContent(filesContentRaw);
+        update['file_contents'] = filesContent;
+        update['ui_contents'] = uiContentsFromFiles(workspace, filesContent);
+      } else {
+        update['file_contents'] = {};
+        update['ui_contents'] = uiContentsFromFiles(workspace);
+      }
+      dispatch(updateFiles(update))
+    }
+  }, [state.update_files, workspaceId])
+
+  const run = useCallback((_state: VulcanState) => {
+    showErrors(requestPoll(_state,false,true));
     dispatch(clearCommittedStepPending());
     // ToDo: Additional accounting per completed steps!
   }, [requestPoll, dispatch, showErrors]);
@@ -213,15 +259,15 @@ export default function WorkspaceManager() {
       newWorkspace['tags'] = tags;
     }
     showErrors(
-      updateWorkspace(workspace.project as string, workspaceId as number, title, tags)
+      updateWorkspace(projectName, workspaceId as number, title, tags)
         // .then((workspaceResponse) => {
         //   dispatch(setWorkspace(workspaceResponse, workspaceResponse.project));
         // })
         .then(() => {
-          dispatch(setWorkspace(newWorkspace, newWorkspace.project as string));
+          dispatch(setWorkspace(newWorkspace, projectName));
         })
     );
-  }, [workspace.project, workspaceId])
+  }, [projectName, workspaceId])
 
   const handleCloseEditTags = useCallback(() => {
     setOpenTagEditor(false);
@@ -235,7 +281,7 @@ export default function WorkspaceManager() {
     }
   }
 
-  const running = state.pollingState > 0;
+  const running = useMemo(() => state.pollingState > 0, [state.pollingState]);
   const disableRunButton =
     complete || running || (hasPendingEdits && !committedStepPending);
 
@@ -243,7 +289,7 @@ export default function WorkspaceManager() {
   useEffect(() => {
     if (state.triggerRun.length > 0) {
       dispatch(clearRunTriggers(state.triggerRun));
-      run();
+      run(state);
     }
   }, [state.triggerRun, dispatch, run]);
 
@@ -301,32 +347,36 @@ export default function WorkspaceManager() {
             li: classes.title
           }}
         >
-          <Link href={`/${workspace.project}`}>{workspace.project}</Link>
+          <Link href={`/${workflow.project_name}`}>{workflow.project_name}</Link>
           <Typography>{workflow.name}</Typography>
           {editor ? (
-            <>
-              <TextField
-                fullWidth
-                value={localTitle}
-                margin='none'
-                InputProps={{
-                  disableUnderline: true,
-                  inputProps: {
-                    className: classes.titleText
-                  }
-                }}
-                variant='standard'
-                onChange={(e) => setLocalTitle(e.target.value)}
-                placeholder='Untitled'
-              />
-              {localTitle != workspace.name && <FlatButton
+            <Grid container direction='row'>
+              <Grid item>
+                <TextField
+                  fullWidth
+                  value={localTitle}
+                  margin='none'
+                  InputProps={{
+                    disableUnderline: true,
+                    inputProps: {
+                      className: classes.titleText
+                    }
+                  }}
+                  variant='standard'
+                  onChange={(e) => setLocalTitle(e.target.value)}
+                  placeholder='Untitled'
+                />
+              </Grid>
+              {localTitle != workspace.name && <Grid item xs={2}>
+                <FlatButton
                   className='header-btn-name-save'
                   icon='save'
                   label='Save'
                   title='Save Workspace Title'
-                  onClick={handleUpdateWorkspace(localTitle, undefined)}
-                />}
-            </>
+                  onClick={() => handleUpdateWorkspace(localTitle, undefined)}
+                />
+              </Grid>}
+            </Grid>
           ) : (
             <Typography>{workspace.name}</Typography>
           )
@@ -364,7 +414,7 @@ export default function WorkspaceManager() {
             icon='play'
             label='Run'
             title='Run workflow'
-            onClick={run}
+            onClick={() => run(state)}
             disabled={disableRunButton}
           />
         )}
@@ -381,7 +431,7 @@ export default function WorkspaceManager() {
                 togglePublicTag();
                 handleUpdateWorkspace(undefined, tags);
               }}
-              disabled={guest(workspace.project || '')}
+              disabled={guest(projectName || '')}
             />
             <FlatButton
               className='header-btn edit-tags'

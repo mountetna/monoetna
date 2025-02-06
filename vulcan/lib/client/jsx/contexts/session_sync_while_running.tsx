@@ -8,7 +8,7 @@ import {runPromise, useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
 import {Maybe} from '../selectors/maybe';
 
 export const defaultSessionSyncHelpers = {
-  requestPoll(post = false, startWork = false, submittingStep?: string | null): Promise<unknown> {
+  requestPoll(state: VulcanState, post = false, startWork = false, submittingStep?: string | null): Promise<unknown> {
     return Promise.resolve();
   }, cancelPolling() {
   }
@@ -24,9 +24,9 @@ function updateFromPostUIAccounting(
   status: WorkspaceStatus,
   submittingStep: string | null
 ) {
-  if (submittingStep === null) {
-    dispatch(setLastConfig(paramValuesToRaw(status.params)))
-  }
+  // if (submittingStep === null) {
+  //   dispatch(setLastConfig(paramValuesToRaw(status.params)))
+  // }
   dispatch(useUIAccounting(response, submittingStep));
 }
 
@@ -45,7 +45,6 @@ function updateFromRunStatus(
 }
 
 export function useSessionSyncWhileRunning(
-  state: MutableRefObject<VulcanState>,
   showErrors: typeof defaultApiHelpers.showErrors,
   requestRun: typeof defaultApiHelpers.requestRun,
   pullRunStatus: typeof defaultApiHelpers.pullRunStatus,
@@ -66,16 +65,19 @@ export function useSessionSyncWhileRunning(
     For non post requests, the inputs are sent but work is not scheduled.
     After that, it continues to poll until all steps are not running.
   */
-  const {projectName, workspace, workspaceId, status} = state.current;
-  let {configId, runId} = state.current;
   
   const [requestPoll, cancelPolling] = useAsyncCallback(function* (
+    state: VulcanState,
     post = false,
     startWork = false,
     submittingStep?: string | null,
   ) {
+    const {projectName, workspaceId, status} = state;
+    let {configId, runId} = state;
+
     dispatch(startPolling());
-    if (!workspace || !workspaceId || !configId) {
+    if (!workspaceId) {
+      console.log("Skipping post or work, no workspace_id")
       return;
     }
 
@@ -91,20 +93,27 @@ export function useSessionSyncWhileRunning(
     }
 
     if (startWork) {
+      if (!configId) {
+        console.log("Skipping work, no configId")
+        return;
+      }
       const response2: RunReturn = yield* runPromise(showErrors(requestRun(projectName,workspaceId,configId)));
       updateFromRunRequest(response2, dispatch);
       runId = response2.run_id;
     }
 
-    while (hasRunningSteps(state.current.status)) {
-      yield delay(3000);
-      if (!runId) return;
+    while (hasRunningSteps(state.status)) {
+      yield delay(1000);
+      if (!runId) {
+        console.log("Skipping polling, no runId")
+        return;
+      }
       const response: RunStatus = yield* runPromise(showErrors(pullRunStatus(projectName,workspaceId,runId)));
       // Notably, after the first submission, changes in hash that occur do not have authority
       // to clear stale inputs.
       updateFromRunStatus(response, dispatch);
     }
-  }, [dispatch, pullRunStatus, postUIValues, state], () => {
+  }, [dispatch, pullRunStatus, postUIValues], () => {
     dispatch(finishPolling());
   });
   

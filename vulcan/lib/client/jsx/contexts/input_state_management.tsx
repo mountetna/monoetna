@@ -246,10 +246,8 @@ export function useInputStateManagement(
     (stepName, inputs) => {
       // Validate current input set, ending here if not valid
       if (!validateInputs(stepName)) return false;
-      // Push to params/ui_contents in status
+      // Push to params/ui_contents in status, and mark step as needing to by sync'd to server by workspace-manager
       dispatch(setUIValues(inputs, stepName))
-      // Push to compute server
-      requestPoll(true, false, stepName);
       return true;
     },
     [dispatch, requestPoll, validateInputs]

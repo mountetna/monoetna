@@ -11,11 +11,14 @@ import {
 import {
   allUIStepNames,
   inputUINames,
+  stepOutputMapping,
+  uiContentsFromFiles,
   upcomingStepNames,
   vulcanConfigFromRaw,
   workflowByIdFromWorkflows,
 } from '../selectors/workflow_selectors';
 import {mapSome, Maybe, some, withDefault} from '../selectors/maybe';
+import { pick } from 'lodash';
 
 export type DownloadedData = any; // TODO: improve typing here.
 export type DownloadedStepDataMap = {[k: string]: DownloadedData};
@@ -52,6 +55,10 @@ export const defaultVulcanState = {
   configId: defaultId,
   runId: defaultId,
   status: defaultStatus, // Only filled input/outputs in here
+
+  // Simple triggers for a re-pull of...
+  update_workflows: true, // workflows, workspaces, and workspace
+  update_files: false, // ui-related files needed for the workspace-manager
 
   // MAYBE: So that users can preview from their local storage before triggering the vulcan workspace to match it
   // Not used yet
@@ -105,13 +112,15 @@ function useAccounting(
 
     // Clear ui_content knowledge, output_files knowledge, and downloaded output file content
     // (May still exist in workspace, but we will assume it's stale.)
-    if (!!workspace.steps[step]?.output?.files) {
-      for (let output in workspace.steps[step].output.files) delete newStatus.file_contents[output];
-      newStatus.output_files.filter(name => !workspace.steps[step]?.output?.files?.includes(name));
-      if (staleUISteps.includes(step)) {
-        newStatus.ui_contents[step] = Object.fromEntries(Object.keys(newStatus.ui_contents[step]).map(k => [k, null]));
-      }
-    }
+    // if (!!workspace.steps[step]?.output?.files) {
+    //   for (let output in workspace.steps[step].output.files) delete newStatus.file_contents[output];
+    //   newStatus.output_files.filter(name => !workspace.steps[step]?.output?.files?.includes(name));
+    //   if (staleUISteps.includes(step)) {
+    //     newStatus.ui_contents[step] = Object.fromEntries(Object.keys(newStatus.ui_contents[step]).map(k => [k, null]));
+    //   }
+    // }
+    newStatus.output_files = [];
+    newStatus.ui_contents = uiContentsFromFiles(workspace);
 
     // Update steps' statuses
     delete newStatus.steps[step].error;
@@ -123,7 +132,8 @@ function useAccounting(
     ...state,
     status: newStatus,
     workQueueable: upcomingStepNames(workspace, newStatus).length > 0,
-    configId: action.accounting.config_id
+    configId: action.accounting.config_id,
+    update_files: true
   };
 }
 
@@ -134,28 +144,28 @@ export default function VulcanReducer(
   state = state || defaultVulcanState;
 
   switch (action.type) {
-    case 'SET_PROJECT':
-      return {
-        ...state,
-        projectName: action.project
-      };
-    case 'SET_WORKFLOWS':
-      return {
-        ...state,
-        workflows: action.workflows
-      };
-    case 'SET_WORKSPACES':
-      return {
-        ...state,
-        workspaces: action.workspaces
-      };
+    // case 'SET_PROJECT':
+    //   return {
+    //     ...state,
+    //     projectName: action.project
+    //   };
+    // case 'SET_WORKFLOWS':
+    //   return {
+    //     ...state,
+    //     workflows: action.workflows
+    //   };
+    // case 'SET_WORKSPACES':
+    //   return {
+    //     ...state,
+    //     workspaces: action.workspaces
+    //   };
     case 'MODIFY_POLLING':
       return {
         ...state,
         pollingState: Math.max(state.pollingState + action.delta, 0)
       };
     case 'SET_WORKFLOW':
-      const workflowProject = action.workflow.project;
+      const workflowProject = action.workflow.project_name;
       if (!["all", action.projectName].includes(workflowProject)) {
         return state;
       }
@@ -170,15 +180,16 @@ export default function VulcanReducer(
         workspaceId: action.workspaceId
       };
     case 'SET_WORKSPACE':
-      const workspaceProject = action.workspace.project;
-      if (!workspaceProject) {
-        // attempt to fill project
-        const workflow = workflowByIdFromWorkflows(action.workspace.workflow_id, state.workflows);
-        action.workspace.project = workflow?.project
-      } else if (workspaceProject!=action.projectName) {
-        // Reject if somehow current project doesn't match the workspace project
-        return state;
-      }
+      // // ToDo: Ensure Project
+      // const workspaceProject = action.workspace.project;
+      // if (!workspaceProject) {
+      //   // attempt to fill project
+      //   const workflow = workflowByIdFromWorkflows(action.workspace.workflow_id, state.workflows);
+      //   action.workspace.project = workflow?.project
+      // } else if (workspaceProject!=action.projectName) {
+      //   // Reject if somehow current project doesn't match the workspace project
+      //   return state;
+      // }
 
       return {
         ...state,
@@ -187,6 +198,18 @@ export default function VulcanReducer(
           vulcan_config: vulcanConfigFromRaw(action.workspace.vulcan_config)
         }
       };
+    case 'UPDATE_WORKFLOWS_AND_WORKSPACES':
+      return {
+        ...state,
+        update_workflows: true
+      }
+    case 'SET_WORKFLOWS_AND_WORKSPACES':
+      const updates = pick(action.updates, ['workflows', 'workspaces', 'workspace'])
+      return {
+        ...state,
+        ...updates,
+        update_workflows: false
+      }
     case 'SET_FULL_WORKSPACE_STATUS':
       if (state.workspaceId !== action.workspace.workspace_id) {
         console.warn('Cannot update to show workspace of the wrong id.');
@@ -221,10 +244,20 @@ export default function VulcanReducer(
       // ToDo once cache'ing: Also assess if 'stale' inputs can be filled in with versions matching sent setup.
       return useAccounting(state, action);
     case 'SET_STATUS_FROM_STATUSES':
+      if (!action.statusReturns) {
+        console.log("empty data")
+      }
       // Arrive here from polling return
       const newStepStatus = {...state.status.steps};
       const newCompletions = {...state.newStepCompletions};
       Object.entries(action.statusReturns).forEach(([stepName, statusFine]) => {
+        if (!(stepName in newStepStatus)) {
+          newStepStatus[stepName] = {
+            name: stepName,
+            status: 'pending',
+            statusFine: 'NOT STARTED'
+          }
+        }
         if (newStepStatus[stepName].statusFine==statusFine) return
         const statusBroad = StatusStringBroaden(statusFine);
         newStepStatus[stepName]['status'] = statusBroad;
@@ -241,7 +274,8 @@ export default function VulcanReducer(
         ...state,
         status: newStatus,
         workQueueable: upcomingStepNames(state.workspace as Workspace, newStatus).length > 0,
-        newStepCompletions: newCompletions
+        newStepCompletions: newCompletions,
+        update_files: newCompletions.length > 0
       };
 
     case 'SET_BUFFERED_INPUT':
@@ -311,8 +345,8 @@ export default function VulcanReducer(
       if (
         !currentWorkspace ||
         action.storage.workspace.workflow_id !== currentWorkspace.workflow_id ||
-        action.storage.workspace.workspace_id !== currentWorkspace.workspace_id ||
-        action.storage.workspace.project !== currentWorkspace.project
+        action.storage.workspace.workspace_id !== currentWorkspace.workspace_id //||
+        // action.storage.workspace.project !== currentWorkspace.project
       ) {
         console.warn(
           'Cannot update session from cookie: project name, workflow id, or workspace id do not match.',
@@ -358,6 +392,20 @@ export default function VulcanReducer(
         return state;
       }
 
+      if (!state.workspace || !state.workspace.vulcan_config || !(action.stepName in state.workspace.vulcan_config)) {
+        return state;
+      }
+
+      // Map elements from ui-intenal keys to external keys
+      const newValues = {}
+      const mapping = stepOutputMapping(state.workspace.vulcan_config[action.stepName])
+      Object.entries(mapping).forEach(
+        ([internal, external]) => {
+          newValues[external] = action.values[internal]
+        }
+      )
+
+      // Set in status
       if (allUIStepNames(state).includes(action.stepName)) {
         return {
           ...state,
@@ -365,8 +413,9 @@ export default function VulcanReducer(
             ...state.status,
             ui_contents: {
               ...state.status.ui_contents,
-              [action.stepName]: action.values
-            }
+              [action.stepName]: newValues
+            },
+            to_sync: state.status.to_sync.concat(action.stepName),
           }
         };
       } else {
@@ -376,11 +425,32 @@ export default function VulcanReducer(
             ...state.status,
             params: {
               ...state.status.params,
-              [action.stepName]: action.values
-            }
+              [action.stepName]: newValues
+            },
+            to_sync: state.status.to_sync.concat(action.stepName),
           }
         };
-      }
+      };
+
+    case 'REMOVE_SYNC':
+      return {
+        ...state,
+        status: {
+          ...state.status,
+          to_sync: state.status.to_sync.filter(s => s!=action.stepName),
+        }
+      };
+
+    case 'UPDATE_FILES':
+      return {
+        ...state,
+        status: {
+          ...state.status,
+          ...action.statusUpdates,
+          ui_contents: uiContentsFromFiles(state.workspace as Workspace, action.statusUpdates.file_contents)
+        },
+        update_files: false
+      };
 
     case 'ADD_VALIDATION_ERRORS':
       return {

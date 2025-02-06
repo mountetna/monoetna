@@ -37,7 +37,7 @@ const ROUTES = [
   },
   {
     name: 'workspace',
-    template: ':project_name/:workflow_name/:workspace_id',
+    template: ':project_name/workspace/:workspace_id',
     component: Browser,
     mode: 'workflow'
   },

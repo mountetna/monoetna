@@ -16,7 +16,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {WorkflowsResponse, Workspace, Workspaces} from '../../../api_types';
+import {Workflow, WorkflowsResponse, Workspace, Workspaces} from '../../../api_types';
 import WorkspaceCard from './workspace';
 import Grid from '@material-ui/core/Grid';
 import { workflowByIdFromWorkflows } from '../../../selectors/workflow_selectors';
@@ -32,47 +32,26 @@ export default function WorkspacesGrid({
   workflowId,
   tags,
   searchString,
-  setSearchString,
-  setTags
+  allWorkflows,
+  allWorkspaces
 }: {
   project_name: string;
   workflowId?: number | null;
   tags?: string[];
   searchString?: string;
-  setSearchString: Function;
-  setTags: Function;
+  allWorkflows: Workflow[];
+  allWorkspaces: Workspace[];
 }) {
   const {
     showErrors,
-    getWorkspaces,
-    getWorkflows,
-    createWorkspace,
     updateWorkspace,
     deleteWorkspace
   } = useContext(VulcanContext);
 
-  const [allWorkflows, setAllWorkflows] = useState<WorkflowsResponse>([]);
-  const [allWorkspaces, setAllWorkspaces] = useState<Workspaces>([]);
-  const [filteredWorkspaces, setFilteredWorkspaces] = useState<Workspaces>([]);
+  if (!allWorkspaces) return null;
+  const [filteredWorkspaces, setFilteredWorkspaces] = useState<Workspace[]>(allWorkspaces);
 
   const classes = useStyles();
-
-  useEffect(() => {
-    showErrors(
-      getWorkspaces(
-        project_name
-      ).then(({workspaces}: {workspaces: Workspaces}) =>
-        setAllWorkspaces(workspaces)
-      )
-    );
-    showErrors(
-      getWorkflows(
-        project_name
-      ).then((workflows: WorkflowsResponse) =>
-        setAllWorkflows(workflows)
-      )
-    );
-  }, []);
 
   // const handleOnCopy = useCallback(
   //   (figure: VulcanFigureSession) => {
@@ -120,8 +99,6 @@ export default function WorkspacesGrid({
 
             return oldWorkspace;
           });
-
-          setAllWorkspaces(updated);
         })
       );
     },
@@ -136,7 +113,6 @@ export default function WorkspacesGrid({
           const updated = allWorkspaces.filter((oldWorkspace) => {
             return oldWorkspace.workspace_id !== workspace.workspace_id;
           });
-          setAllWorkspaces(updated);
         })
       );
     },
@@ -160,7 +136,7 @@ export default function WorkspacesGrid({
       const regex = new RegExp(searchString, 'i');
       return (
         workspace.name?.match(regex) ||
-        workspace.author?.match(regex) ||
+        workspace.user_email?.match(regex) ||
         workflowByIdFromWorkflows(workspace.workflow_id, allWorkflows)?.name.match(regex)
       );
     },

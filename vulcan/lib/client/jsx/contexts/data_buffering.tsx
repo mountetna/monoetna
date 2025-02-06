@@ -26,10 +26,10 @@ export function useDataBuffering(
         for (let outputName of workspace.steps[step].output.files) {
           if (outputName in Object.keys(status.file_contents)) continue;
           if (!shouldDownloadOutput(workspace, outputName)) continue;
-
+          console.log(`Downloading ${outputName}`);
           const downloaded: MultiFileContentResponse = yield* runAttempts(() => readFiles(projectName, workspaceId, [outputName]));
 
-          dispatch(setFileContent(outputName, parseIfCan(downloaded[0]['content'])));
+          dispatch(setFileContent(outputName, parseIfCan(downloaded.files[0]['content'])));
           return;
         }
       }

@@ -6,7 +6,7 @@ export const RUN = {
   UI_OUTPUT: 'ui-outputs/'
 };
 
-export const defaultWorkflowsResponse = [] as WorkflowServer[];
+export const defaultWorkflowsResponse = [] as Workflow[];
 
 export type WorkflowsResponse = typeof defaultWorkflowsResponse;
 // export type ProjectWorkflowsResponse = typeof defaultWorkflowsResponse;
@@ -59,7 +59,7 @@ export type WorkflowServer = {
   id: number,
   project_name: string,
   name: string,
-  repo_remot_url: string,
+  repo_remote_url: string,
   created_at: number,
   updated_at: number,
 }
@@ -67,7 +67,7 @@ export type WorkflowServer = {
 export interface Workflow {
   id: number | null;
   name: string;
-  project: string;
+  project_name: string;
   repo_remote_url: string;
   created_at: string;
   updated_at: string;
@@ -79,7 +79,7 @@ export interface Workflow {
 export const defaultWorkflow: Workflow = {
   id: null,
   name: '',
-  project: '',
+  project_name: '',
   repo_remote_url: '',
   created_at: '0',
   updated_at: '0',
@@ -90,6 +90,22 @@ export type CreateWorkspaceResponse = {
   workflow_id: number,
   vulcan_config: VulcanConfigRaw,
   dag: string[]
+}
+
+interface WorkspaceMinimalMinusInconsistent {
+  workspace_id: number | null;
+  workflow_id: number | null;
+  user_email: string;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+}
+export interface WorkspaceMinimal extends WorkspaceMinimalMinusInconsistent {
+  name: string;
+}
+export interface WorkspaceMinimalRaw extends WorkspaceMinimalMinusInconsistent {
+  workspace_name: string;
+  workspace_path: string;
 }
 
 interface WorkspaceMinusInconsistent {
@@ -111,12 +127,12 @@ interface WorkspaceMinusInconsistent {
 
 export interface Workspace extends WorkspaceMinusInconsistent {
   vulcan_config: VulcanConfig;
-  steps: {[k: string]: WorkspaceStep};
+  // steps: {[k: string]: WorkspaceStep};
 }
 
 export interface WorkspaceRaw extends WorkspaceMinusInconsistent {
   vulcan_config: VulcanConfigElement[];
-  target_mapping: {[k: string]: WorkspaceStep};
+  // target_mapping: {[k: string]: WorkspaceStep};
 }
 
 export const defaultWorkspace: Workspace = {
@@ -130,28 +146,29 @@ export const defaultWorkspace: Workspace = {
   dag: [],
   created_at: '',
   updated_at: '',
-  steps: {},
+  // steps: {},
   last_config: {},
   last_job_status: {},
 };
 
-export type WorkspaceResponse = Pick<WorkspaceRaw,
-  'workspace_id'
-  | 'workflow_id'
-  | 'vulcan_config'
-  | 'dag'
-  | 'last_config'
-  | 'last_job_status'
->
+// export type WorkspaceResponse = Pick<WorkspaceRaw,
+//   'workspace_id'
+//   | 'workflow_id'
+//   | 'vulcan_config'
+//   | 'dag'
+//   | 'last_config'
+//   | 'last_job_status'
+// >
 
-export type WorkspacesResponse = {workspaces: Workspace[]}
+export type WorkspacesResponseRaw = {workspaces: WorkspaceMinimalRaw[]}
+export type WorkspacesResponse = {workspaces: WorkspaceMinimal[]}
 
 export interface FileContentResponse {
   filename: string;
   content: string;
 }
 
-export type MultiFileContentResponse = FileContentResponse[]
+export type MultiFileContentResponse = {files: FileContentResponse[]}
 
 export interface MultiFileContent {
   [filename: string]: any;
@@ -271,6 +288,7 @@ export const defaultWorkspaceStatus = {
   last_params: {} as {[k: string]: any},
   params: {} as {[k: string]: {[k: string]: Maybe<any>}}, // top key = 'param1/param2/...paramN' if many from 1; innner keys = param output's keys.
   ui_contents: {} as {[k: string]: {[k: string]: Maybe<any>}}, // top key = name defined in vulcan config (matches step name in dag); inner keys = file outputs' filenames
+  to_sync: [] as string[], // ''=params, filled strings == file names to send
 }
 
 export type WorkspaceStatus = typeof defaultWorkspaceStatus;

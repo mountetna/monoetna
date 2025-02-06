@@ -14,7 +14,6 @@ import {makeStyles} from '@material-ui/core/styles';
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {Workflow} from '../../api_types';
 import WorkflowCard from './card';
-
 const useStyles = makeStyles((theme) => ({
   workflows: {
     width: '100%',
@@ -39,7 +38,7 @@ export default function WorkflowsCarousel({
   const {workflows} = state;
 
   // v2: workflows are already retrieved in a project specific context
-  const projectWorkflows = workflows
+  const projectWorkflows = !!workflows
     ? workflows
     : [];
 
@@ -49,7 +48,7 @@ export default function WorkflowsCarousel({
   });
   const sortedWorkflows = useMemo(() => {
     return projectWorkflows.sort((a, b) =>
-      collator.compare(a.displayName || a.name, b.displayName || b.name)
+      collator.compare(a.name, b.name)
     );
   }, [projectWorkflows]);
 

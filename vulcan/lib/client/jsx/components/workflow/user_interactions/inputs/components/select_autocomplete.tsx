@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {DataEnvelope, WithInputParams} from '../input_types';
 import {maybeOfNullable, some, withDefault} from '../../../../../selectors/maybe';
-import {flattenStringOptions, StringOptions} from '../monoids';
+import {StringOptions} from '../monoids';
 import {useMemoized} from '../../../../../selectors/workflow_selectors';
 import {useSetsDefault} from '../useSetsDefault';
 import TextField from '@material-ui/core/TextField';
@@ -100,7 +100,7 @@ export default function SelectAutocompleteInput({
   */
   const [data_use, suggestion] = useMemoized(pullRecommendation, data);
 
-  const options_in = useMemoized(flattenStringOptions, data_use);
+  const options_in: string[] = data_use.options ? data_use.options : [];
   const value = useSetsDefault(null, props.value, onChange, 'picked');
   const disp_label = useMemo(() => {
     return suggestion ? suggestion : label;

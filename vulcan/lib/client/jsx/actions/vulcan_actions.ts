@@ -17,20 +17,16 @@ function actionObject<T extends string, P>(type: T, payload: P): {type: T} & P {
   return {...payload, type};
 }
 
-export function setProject(project: string) {
-  return actionObject('SET_PROJECT', {project});
-}
-
-export function setWorkflows(workflows: WorkflowsResponse) {
-  return actionObject('SET_WORKFLOWS', {workflows});
-}
-
-export function setWorkspaces(workspaces: Workspaces) {
-  return actionObject('SET_WORKSPACES', {workspaces});
-}
-
 export function setWorkflow(workflow: Workflow, projectName: string) {
   return actionObject('SET_WORKFLOW', {workflow, projectName});
+}
+
+export function setWorkflowsWorkspaces(updates: any) {
+  return actionObject('SET_WORKFLOWS_AND_WORKSPACES', {updates});
+}
+
+export function updateWorkflowsWorkspaces() {
+  return actionObject('UPDATE_WORKFLOWS_AND_WORKSPACES', {});
 }
 
 export function setWorkspaceId(workspaceId: Workspace['workspace_id']) {
@@ -75,7 +71,7 @@ export function useUIAccounting(
 export function setStatusFromStatuses(
   statusReturns: RunStatus
 ) {
-  return actionObject('SET_STATUS_FROM_STATUSES', {statusReturns, submittingStep});
+  return actionObject('SET_STATUS_FROM_STATUSES', {statusReturns});
 }
 
 export function setFileContent(fileName: string, fileData: any) {
@@ -122,6 +118,14 @@ export function finishPolling() {
   return actionObject('MODIFY_POLLING', {delta: -1});
 }
 
+export function removeSync(stepName: string) {
+  return actionObject('REMOVE_SYNC', {stepName});
+}
+
+export function updateFiles(statusUpdates: Pick<WorkspaceStatus, 'output_files' | 'file_contents' | 'ui_contents'>) {
+  return actionObject('UPDATE_FILES', {statusUpdates});
+}
+
 export function setBufferedInput(step: string | null) {
   return actionObject('SET_BUFFERED_INPUT', {step});
 }
@@ -155,10 +159,9 @@ export function clearCommittedStepPending() {
 }
 
 export type VulcanAction =
-  | ReturnType<typeof setProject>
-  | ReturnType<typeof setWorkflows>
-  | ReturnType<typeof setWorkspaces>
   | ReturnType<typeof setWorkflow>
+  | ReturnType<typeof setWorkflowsWorkspaces>
+  | ReturnType<typeof updateWorkflowsWorkspaces>
   | ReturnType<typeof setWorkspace>
   | ReturnType<typeof setWorkspaceId>
   | ReturnType<typeof setFullWorkspaceState>
@@ -173,9 +176,10 @@ export type VulcanAction =
   | ReturnType<typeof setFilesContent>
   | ReturnType<typeof setWorkspaceFiles>
   | ReturnType<typeof setUIValues>
-  // | ReturnType<typeof removeDownloads>
   | ReturnType<typeof startPolling>
   | ReturnType<typeof finishPolling>
+  | ReturnType<typeof removeSync>
+  | ReturnType<typeof updateFiles>
   | ReturnType<typeof addValidationErrors>
   | ReturnType<typeof removeValidationErrors>
   | ReturnType<typeof setBufferedInput>

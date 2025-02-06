@@ -92,10 +92,10 @@ const workspaceStyles = makeStyles((theme) => ({
   }
 }));
 
-const authorInitials = ({author}: Workspace) => {
-  if (!author) return '';
+const authorInitials = ({user_email}: Workspace) => {
+  if (!user_email) return '';
 
-  let names = author.split(/\s+/).filter((n: string) => /^[A-Z]/.test(n));
+  let names = user_email.split("@")[0].split(/[^a-zA-Z]+/).map((n: string) => n.toUpperCase());
   return names.length > 1
     ? [names[0][0], names[names.length - 1][0]].join('')
     : names[0][0];
@@ -218,7 +218,7 @@ const WorkspaceCard = ({
           className={classes.content}
         >
           <Grid item xs={1}>
-            <Tooltip title={workspace.author || ''}>
+            <Tooltip title={workspace.user_email || ''}>
               <Avatar className={classes.author}>
                 {authorInitials(workspace)}
               </Avatar>
