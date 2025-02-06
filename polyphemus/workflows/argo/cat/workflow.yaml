@@ -47,12 +47,38 @@ spec:
                   value: "{{workflow.parameters.config_id}}"
                 - name: version_number
                   value: "{{workflow.parameters.version_number}}"
+    # TODO: figure out a way to abstract all the container logic
     - name: record-runtime-meta
       container:
         image: etnaagent/polyphemus:production
         command: ["/bin/sh", "-c"]
         args:
           - |
-            /app/bin/polyphemus get_runtime_metadata "{{workflow.uid}}" \
+            echo "password: $DB_PASSWORD" > /app/db-password; cat /app/db-password; cp /run/config/*.yml /app; /app/bin/polyphemus get_runtime_metadata "{{workflow.uid}}" \
             '$(argo get --output=json {{workflow.name}} -n {{workflow.namespace}})' \
             '$(argo logs {{workflow.name}})'
+        env:
+          - name: KUBE_ID
+            value: "{{workflow.uid}}"
+          - name: WORKFLOW_NAME 
+            value: "{{workflow.name}}"
+          - name: APP_NAME
+            value: polyphemus
+          - name: POLYPHEMUS_ENV
+            value: production
+          - name: ETNA__PRODUCTION_FILE
+            value: /run/config/env.yml
+          - name: ETNA__PRODUCTION__DB_FILE
+            value: /app/db-password
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: workflows-polyphemus-app-secrets
+                key: db-password
+        volumeMounts:
+          - name: config-volume
+            mountPath: /run/config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: workflows-polyphemus-app-config
