@@ -2,7 +2,7 @@ import React, {useContext, useEffect} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
-import PrimaryInputs from './primary_inputs';
+import ParamInputs from './param_inputs';
 import StepError from '../steps/step_error';
 import {
   completedStepNames,
@@ -36,7 +36,7 @@ export default function InputFeed() {
 
   return (
     <div className='session-input-feed'>
-      <PrimaryInputs />
+      <ParamInputs />
       {groupedSteps.map((s, index) => (
         <StepUserInputWrapper key={index} group={s} />
       ))}
