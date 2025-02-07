@@ -3,7 +3,7 @@ import React, {useContext} from 'react';
 import {VulcanContext} from '../../../../contexts/vulcan_context';
 import AnimatedClock from './animated_clock';
 import {WorkspaceStep} from '../../../../api_types';
-import {labelOfStepOrGroupedStep, statusStringOfStepOrGroupedStep} from '../../../../selectors/workflow_selectors';
+import {statusStringOfStepOrGroupedStep} from '../../../../selectors/workflow_selectors';
 import {STATUS} from '../../../../api_types';
 import {WorkspaceStepGroup} from '../../ui_definitions/input_types';
 import {makeStyles} from '@material-ui/core/styles';
@@ -52,12 +52,11 @@ const StepIcon = ({
   const classes = useStyles();
   if (!workflow) return null;
   const statusStr = statusStringOfStepOrGroupedStep(step, state.workspace, status);
-  const label = labelOfStepOrGroupedStep(step);
   let icon_config = icons[statusStr] || icons[STATUS.PENDING];
 
   let IconComponent:IconClass = STATUS.RUNNING === statusStr ? AnimatedClock : icon_config.icon;
 
-  return <Tooltip title={label}>
+  return <Tooltip title={statusStr}>
     <IconComponent className={`${classes[ statusStr ]} ${classes.icon}`}/>
   </Tooltip>;
 };
