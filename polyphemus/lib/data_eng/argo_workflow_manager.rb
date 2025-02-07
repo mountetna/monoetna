@@ -48,15 +48,15 @@ class Polyphemus
       end
     end
 
-    def get_workflow_status(config)
+    def get_workflow_status(run)
       cmd = [
         "argo", "get",
         "--output=json",
-        config.workflow_name,
+        run.name,
         "-n", "argo"
       ]
 
-      logger.info("Getting Argo workflow status for #{config.workflow_name}")
+      logger.info("Getting Argo workflow status for #{run.name}")
       logger.info("Argo command: #{cmd.join(" ")}")
 
       stdout, stderr, status = Open3.capture3(cmd.join(" "))

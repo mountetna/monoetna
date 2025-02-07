@@ -293,9 +293,12 @@ class WorkflowController < Polyphemus::Controller
         )
       else
         # If there is no run, we need to check the argo workflow status
+        # If a job has started, and hasn't written to the run object yet, we will have no run object.
+        # So we use the previous run's status to be safe
+        prev_run_finished = prev_run && prev_run.is_finished?
         next status.merge(
-         pipeline_finished_at: (prev_run && prev_run.is_finished?) ? prev_run.finished_at : nil,
-         pipeline_state: Polyphemus::ArgoWorkflowManager.get_workflow_status(config)
+         pipeline_state: prev_run_finished ? Polyphemus::ArgoWorkflowManager.get_workflow_status(prev_run) : nil,
+         pipeline_finished_at: prev_run_finished ? prev_run.finished_at : nil,
         )
       end
     end
