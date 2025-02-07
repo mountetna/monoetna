@@ -20,6 +20,7 @@ import {Workflow, WorkflowsResponse, Workspace, Workspaces} from '../../../api_t
 import WorkspaceCard from './workspace';
 import Grid from '@material-ui/core/Grid';
 import { workflowByIdFromWorkflows } from '../../../selectors/workflow_selectors';
+import { updateWorkflowsWorkspaces } from '../../../actions/vulcan_actions';
 
 const useStyles = makeStyles((theme) => ({
   workspaces: {
@@ -45,7 +46,8 @@ export default function WorkspacesGrid({
   const {
     showErrors,
     updateWorkspace,
-    deleteWorkspace
+    deleteWorkspace,
+    dispatch
   } = useContext(VulcanContext);
 
   if (!allWorkspaces) return null;
@@ -108,15 +110,14 @@ export default function WorkspacesGrid({
   const handleOnRemove = useCallback(
     (workspace: Workspace) => {
       if (!workspace.workspace_id) return;
-      showErrors(
-        deleteWorkspace(project_name, workspace.workspace_id).then(() => {
-          const updated = allWorkspaces.filter((oldWorkspace) => {
-            return oldWorkspace.workspace_id !== workspace.workspace_id;
-          });
-        })
+      const doDelete = confirm(
+        'This action will permanently delete this workspace its files, a non-reversible action.'
       );
+      if (!doDelete) return
+      showErrors(deleteWorkspace(project_name, workspace.workspace_id));
+      dispatch(updateWorkflowsWorkspaces());
     },
-    [showErrors, deleteWorkspace, project_name, allWorkspaces]
+    [dispatch, showErrors, deleteWorkspace, project_name, allWorkspaces]
   );
 
   const hasTag = useCallback(

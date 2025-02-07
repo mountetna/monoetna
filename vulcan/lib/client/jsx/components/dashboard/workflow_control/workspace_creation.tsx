@@ -188,6 +188,7 @@ export default function WorkspaceCreateButtonModal({
           </Tooltip>
           <Tooltip title='Cancel'>
             <Button
+              className={classes.propagateButton}
               onClick={() => setOpen(false)}
               startIcon={<CancelIcon/>}
               color='secondary'

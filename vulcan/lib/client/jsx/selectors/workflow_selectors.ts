@@ -124,7 +124,7 @@ export function workspacesFromResponse(val: {workspaces: WorkspaceMinimalRaw[]})
       delete intWorkspace['workspace_path']
       return {
         ...intWorkspace,
-        name: intWorkspace['workspace_name']
+        name: intWorkspace['name']
       };
     })
   }

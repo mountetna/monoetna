@@ -116,10 +116,10 @@ export default function Card({workflow, onClick, selected}) {
           </div>
         </div>
         <div className={classes.row}>
-          <div className={classes.value}>{workflow.repo_remote_url}</div>
+          <div className={classes.value}>{workflow.repo_remote_url.replace(/^https:\/\//,'')}</div>
         </div>
         <div className={classes.row}>
-          <div className={classes.value}>{workflow.updated_at}</div>
+          <div className={classes.value}>{'Added: '+workflow.created_at.split(' ')[0]}</div>
         </div>
       </div>
     </div>

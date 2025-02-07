@@ -91,19 +91,16 @@ export type CreateWorkspaceResponse = {
   dag: string[]
 }
 
-interface WorkspaceMinimalMinusInconsistent {
+interface WorkspaceMinimal {
   workspace_id: number | null;
   workflow_id: number | null;
   user_email: string;
   tags: string[];
   created_at: string;
   updated_at: string;
-}
-export interface WorkspaceMinimal extends WorkspaceMinimalMinusInconsistent {
   name: string;
 }
-export interface WorkspaceMinimalRaw extends WorkspaceMinimalMinusInconsistent {
-  workspace_name: string;
+export interface WorkspaceMinimalRaw extends WorkspaceMinimal {
   workspace_path: string;
 }
 
