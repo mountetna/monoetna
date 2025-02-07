@@ -91,8 +91,8 @@ describe MetisLinkerJob do
     ENV['KUBE_ID'] = run_id
     stub_metis_routes
     stub_request(:post, "https://metis.test/labors/tail/pics").to_return(
-      body: tail.to_json,
-      headers: { 'Content-Type': "application/json" },
+      body: tail.map(&:to_json).join("\n"),
+      headers: { 'Content-Type': "application/x-json-stream" }
     )
     stub_request(:get, "https://magma.test/gnomon/labors/rules").to_return(
       body: { rules: rules }.to_json,
