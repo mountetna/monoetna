@@ -297,7 +297,7 @@ class WorkflowController < Polyphemus::Controller
         # So we use the previous run's status to be safe
         prev_run_finished = prev_run && prev_run.is_finished?
         next status.merge(
-         pipeline_state: prev_run_finished ? Polyphemus::ArgoWorkflowManager.get_workflow_status(prev_run) : nil,
+         pipeline_state: prev_run_finished ? Polyphemus::ArgoWorkflowManager.get_workflow_status(prev_run) : "Running",
          pipeline_finished_at: prev_run_finished ? prev_run.finished_at : nil,
         )
       end

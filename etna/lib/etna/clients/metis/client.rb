@@ -28,7 +28,7 @@ module Etna
           tail_bucket_request.project_name,
           tail_bucket_request.bucket_name,
           @etna_client.bucket_tail(tail_bucket_request.to_h).split("\n").map do |line|
-            JSON.parse(line)
+            JSON.parse(line, symbolize_names: true)
           end
         )
       end
