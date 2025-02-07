@@ -135,7 +135,7 @@ export default function GroupedStepUI({
   const {status} = state;
 
   const allInnerStatus = useMemo(
-    () => group.steps.map((step) => statusOfStep(step, status)),
+    () => group.steps.map((step) => statusOfStep(step, status, state.workspace)),
     [group, status]
   );
   const allStepsComplete = useMemo(

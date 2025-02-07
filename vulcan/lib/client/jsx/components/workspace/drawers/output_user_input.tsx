@@ -13,7 +13,7 @@ export default function OutputUI({step}: {step: WorkspaceStep}) {
   let {workspace, status} = state;
   if (!workspace?.vulcan_config) return null;
   const vulcan_config = workspace.vulcan_config;
-  const stepStatus = statusOfStep(step, status);
+  const stepStatus = statusOfStep(step, status, workspace);
   const uiOutput = uiComponentOfStep(step.name, vulcan_config);
 
   if (!uiOutput) return null;

@@ -349,7 +349,6 @@ export function stepOfName(
       name: stepName,
       input: step_conf.input || {},
       output: step_conf.output || {},
-      vulcan_config: true,
       label: step_conf.display || stepName,
       ui_component: step_conf.ui_component,
       doc: step_conf.doc
@@ -377,21 +376,25 @@ export function stepOfName(
 
 export function statusOfStep(
   step: string | WorkspaceStep,
-  status: VulcanState['status']
+  status: VulcanState['status'],
+  workspace: VulcanState['workspace']
 ): StepStatus | undefined {
   const stepName = typeof step === 'string' ? step : step.name;
-  return (stepName in status.steps) ? status.steps[stepName] : undefined;
+  return (stepName in status.steps) ? status.steps[stepName] :
+    // outputUIs that won't be tracked as a step...
+    workspace!=null && outputUINamesWithInputsReady(workspace, status).includes(stepName) ?
+    {name: stepName, status: 'complete', statusFine: 'COMPLETED'} : undefined;
 }
 
 export function statusStringOfStepOrGroupedStep(
   step: WorkspaceStep | WorkspaceStepGroup,
-  workflow: Workflow,
+  workspace: VulcanState['workspace'],
   status: VulcanState['status']
 ) {
   if ('steps' in step) {
     let statusStr = null as string | null;
     for (let innerStep of step.steps) {
-      let stepStatus = statusOfStep(innerStep.name, status);
+      let stepStatus = statusOfStep(innerStep.name, status, workspace);
 
       if (!stepStatus) {
         return STATUS.PENDING;
@@ -404,7 +407,7 @@ export function statusStringOfStepOrGroupedStep(
     return statusStr || STATUS.COMPLETE;
   }
 
-  return statusOfStep(step, status)?.status || STATUS.PENDING;
+  return statusOfStep(step, status, workspace)?.status || STATUS.PENDING;
 }
 
 export function labelOfStepOrGroupedStep(
@@ -616,14 +619,25 @@ export function pendingUIInputStepReady(
   );
 }
 
+export function outputUINamesWithInputsReady(
+  workspace: VulcanState['workspace'],
+  status: VulcanState['status']
+): string[] {
+  if (!workspace) return []
+  return (
+    outputUINames(workspace).filter((step: string) => 
+      workspace.vulcan_config[step].input?.files?.every((id) => id in status.file_contents)
+    )
+  );
+}
+
 export function outputUIsWithInputsReady(
   workspace: Workspace,
   status: VulcanState['status']
 ): WorkspaceStep[] {
   return (
-    outputUINames(workspace).filter((step: string) => 
-      workspace.vulcan_config[step].input?.files?.every((id) => id in status.file_contents)
-    ).map((step: string) => stepOfName(step, workspace.vulcan_config) as WorkspaceStep)
+    outputUINamesWithInputsReady(workspace, status)
+    .map((step: string) => stepOfName(step, workspace.vulcan_config) as WorkspaceStep)
   );
 }
 

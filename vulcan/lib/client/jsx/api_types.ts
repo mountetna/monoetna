@@ -23,7 +23,6 @@ export interface WorkspaceStep {
   name: string;
   input: InputOutputConfig;
   output: InputOutputConfig;
-  vulcan_config?: boolean;
   label?: string;
   ui_component?: string;
   doc?: string;

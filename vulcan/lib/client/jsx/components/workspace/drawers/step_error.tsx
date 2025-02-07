@@ -6,7 +6,7 @@ import {WorkspaceStep} from '../../../api_types';
 
 export default function StepError({step}: {step: WorkspaceStep}) {
   let {state} = useContext(VulcanContext);
-  const stepStatus = statusOfStep(step, state.status);
+  const stepStatus = statusOfStep(step, state.status, state.workspace);
 
   if (!stepStatus) return null;
 

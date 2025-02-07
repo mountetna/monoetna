@@ -51,7 +51,7 @@ const StepIcon = ({
   const {workflow, status} = state;
   const classes = useStyles();
   if (!workflow) return null;
-  const statusStr = statusStringOfStepOrGroupedStep(step, workflow, status);
+  const statusStr = statusStringOfStepOrGroupedStep(step, state.workspace, status);
   const label = labelOfStepOrGroupedStep(step);
   let icon_config = icons[statusStr] || icons[STATUS.PENDING];
 
