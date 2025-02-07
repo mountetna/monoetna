@@ -82,6 +82,7 @@ export default function WorkflowCreateButtonModal({projectName}: {
     <>
       <Tooltip title='Add Workflow'>
         <Button
+          className={classes.button}
           onClick={() => setOpen(true)}
           startIcon={<AddIcon/>}
           color='primary'

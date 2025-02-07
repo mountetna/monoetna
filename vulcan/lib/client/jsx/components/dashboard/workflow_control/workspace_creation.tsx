@@ -49,7 +49,7 @@ export default function WorkspaceCreateButtonModal({
   workspaces,
 }: {
   projectName: string;
-  workflow: VulcanState['workflow'];
+  workflow: VulcanState['workflow'] | null;
   workspaces: VulcanState['workspaces'];
 }) {
   if (!workflow || !workflow.id) return null;
@@ -92,6 +92,7 @@ export default function WorkspaceCreateButtonModal({
     <>
       <Tooltip title='Create Workspace'>
         <Button
+          className={classes.button}
           disabled={!workflow}
           onClick={() => {
             setWorkspaceName(defaultName);

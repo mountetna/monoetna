@@ -24,7 +24,7 @@ export default function WorkflowControls({
   workspaces,
 }: {
   project_name: string;
-  workflow: VulcanState['workflow'];
+  workflow: VulcanState['workflow'] | null;
   workspaces: VulcanState['workspaces'];
 }) {
   const classes = useStyles();
@@ -33,7 +33,6 @@ export default function WorkflowControls({
   return (
     <Grid
       container
-      spacing={2}
     >
       <Grid item>
         <WorkflowCreateButtonModal projectName={project_name}/>
