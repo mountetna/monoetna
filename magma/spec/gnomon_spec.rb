@@ -557,7 +557,6 @@ describe GnomonController do
       )
     end
   end
-  end
 end
 
 describe Magma::Gnomon::Identifier do

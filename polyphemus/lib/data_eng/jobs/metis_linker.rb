@@ -31,7 +31,7 @@ class MetisLinkerJob < Polyphemus::ETLJob
 
     rules = gnomon_client.project_rules(project_name).rules
 
-    models = magma_client.retrieve(project_name: project_name)
+    project_def = magma_client.retrieve(project_name: project_name)
 
     tail = metis_client.tail_bucket(Etna::Clients::Metis::TailBucketRequest.new(
         project_name: project_name,
@@ -41,7 +41,7 @@ class MetisLinkerJob < Polyphemus::ETLJob
         batch_end: context[:end_time]
     ))
 
-    update = Metis::Loader.new(config, rules, {}, models).update_for(tail, metis_client)
+    update = Metis::Loader.new(config, rules, {}, project_def.models).update_for(tail, metis_client)
 
     magma_client.update_json(update, page_size=100)
   end
