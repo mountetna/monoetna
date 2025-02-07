@@ -20,8 +20,8 @@ class MetisLinkerJob < Polyphemus::ETLJob
   end
 
   def pre(context)
-    context[:start_time] = fetch_last_scan
-    context[:end_time] = Time.now.to_i
+    context[:start_time] = Time.at(fetch_last_scan).to_datetime.iso8601
+    context[:end_time] = Time.now.to_datetime.iso8601
     true
   end
 
@@ -73,9 +73,9 @@ class MetisLinkerJob < Polyphemus::ETLJob
        @workflow_version,
        state: [:end_time]
       )
-      return response['end_time']
+      return response['end_time'].to_i
     rescue Etna::Error => e
-      return 1
+      return 0
     end
   end
 end

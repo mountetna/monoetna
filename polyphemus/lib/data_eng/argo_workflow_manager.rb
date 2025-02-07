@@ -61,7 +61,7 @@ class Polyphemus
 
       stdout, stderr, status = Open3.capture3(cmd.join(" "))
 
-      raise Etna::Error, stderr unless status.success?
+      return "invalid" unless status.success?
 
       workflow_data = JSON.parse(stdout)
 

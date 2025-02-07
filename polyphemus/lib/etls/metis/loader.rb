@@ -22,7 +22,7 @@ module Metis
         :blank_table
 
       def model
-        @config.model_defs.model(model_name)
+        @config.model_defs.models.model(model_name)
       end
 
       def model_name
@@ -43,7 +43,7 @@ module Metis
       end
 
       def is_table?
-        @config.model_defs.is_table?(model_name)
+        @config.model_defs.models.is_table?(model_name)
       end
 
       def file_update(update, tail)
