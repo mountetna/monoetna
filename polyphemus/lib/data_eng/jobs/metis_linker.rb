@@ -20,8 +20,8 @@ class MetisLinkerJob < Polyphemus::ETLJob
   end
 
   def pre(context)
-    context[:start_time] = fetch_last_scan
-    context[:end_time] = Time.now.to_i
+    context[:start_time] = Time.at(fetch_last_scan).to_datetime.iso8601
+    context[:end_time] = Time.now.to_datetime.iso8601
     true
   end
 
@@ -31,7 +31,7 @@ class MetisLinkerJob < Polyphemus::ETLJob
 
     rules = gnomon_client.project_rules(project_name).rules
 
-    models = magma_client.retrieve(project_name: project_name)
+    project_def = magma_client.retrieve(project_name: project_name)
 
     tail = metis_client.tail_bucket(Etna::Clients::Metis::TailBucketRequest.new(
         project_name: project_name,
@@ -41,7 +41,7 @@ class MetisLinkerJob < Polyphemus::ETLJob
         batch_end: context[:end_time]
     ))
 
-    update = Metis::Loader.new(config, rules, {}, models).update_for(tail, metis_client)
+    update = Metis::Loader.new(config, rules, {}, project_def.models).update_for(tail, metis_client)
 
     magma_client.update_json(update, page_size=100)
   end
@@ -73,9 +73,9 @@ class MetisLinkerJob < Polyphemus::ETLJob
        @workflow_version,
        state: [:end_time]
       )
-      return response['end_time']
+      return response['end_time'].to_i
     rescue Etna::Error => e
-      return 1
+      return 0
     end
   end
 end
