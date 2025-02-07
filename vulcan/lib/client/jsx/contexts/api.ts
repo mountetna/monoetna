@@ -107,7 +107,9 @@ export function useApi(
       body: JSON.stringify({
         ...params
       })
-    }).then(checkStatus);
+    }).then(checkStatus)
+    .then(handleFetchSuccess)
+    .catch(handleFetchError);;
   }, []);
 
   const rawVulcanGet = useCallback((endpoint: string) => {
