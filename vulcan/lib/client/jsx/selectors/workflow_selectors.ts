@@ -697,9 +697,9 @@ export function hasScheduledSteps(status: VulcanState['status']): boolean {
   return Object.values(status.steps).filter((s) => ['running', 'upcoming'].includes(s.status)).length > 0;
 }
 
-export const inputGroupName = (name: string) => {
-  let groupName = name.split('__')[0];
-  if (groupName === name) return null;
+export const inputGroupName = (label: string) => {
+  let groupName = label.split('__')[0];
+  if (groupName === label) return null;
 
   return groupName;
 };

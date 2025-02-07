@@ -141,7 +141,9 @@ export default function ParamInputs() {
 
   let groupedInputs = useMemo(() => {
     return inputSpecifications.reduce((result, spec) => {
-      let groupName = inputGroupName(spec.name) || 'Ungrouped';
+      let groupName = inputGroupName(spec.label);
+      if (groupName != null) {spec.label = spec.label.replace(`${groupName}__`, '')}
+      groupName = groupName || 'Ungrouped';
       result[groupName] = result[groupName] || [];
       result[groupName].push(spec);
       return result;
