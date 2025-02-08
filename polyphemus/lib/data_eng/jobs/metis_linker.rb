@@ -1,4 +1,5 @@
 require_relative 'etl_job'
+require_relative '../../etls/metis/loader'
 
 class MetisLinkerJob < Polyphemus::ETLJob
   include WithEtnaClients

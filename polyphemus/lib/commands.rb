@@ -742,7 +742,7 @@ class Polyphemus
       Polyphemus.instance.setup_sequel
     end
 
-    def execute(run_id, workflow_json, output)
+    def execute(run_id, workflow_json, raw_output)
 
       # We need to fetch the project name
       run = Polyphemus::Run.where(
@@ -757,6 +757,11 @@ class Polyphemus
       # Parse the workflow_json and just extract status
       workflow_data = JSON.parse(workflow_json)
       status = workflow_data["status"]
+      name = workflow_data.dig("metadata","name")
+
+      # remove control characters and workflow name from output logs
+      output = raw_output.gsub(/\e\[\d+m/,'').gsub(/^#{name}\w*: /,'')
+
       updates = {
         orchestrator_metadata: status,
         output: output
