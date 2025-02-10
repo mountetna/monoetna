@@ -41,10 +41,11 @@ class VulcanV2Controller < Vulcan::Controller
   def list_workflows
     success_json(
       workflows: Vulcan::WorkflowV2.where(
-         @params[:project_name])
+        project_name: @params[:project_name]
       ).all.map do |w|
         w.to_hash
       end
+    )
   end
 
   def update_workflow
@@ -74,6 +75,7 @@ class VulcanV2Controller < Vulcan::Controller
           target_mapping: @snakemake_manager.generate_target_mapping(workspace_dir, config),
           path: workspace_dir,
           user_email: @user.email,
+          git_version: @escaped_params[:git_version],
           created_at: Time.now,
           updated_at: Time.now
         )
@@ -93,9 +95,7 @@ class VulcanV2Controller < Vulcan::Controller
 
   def list_workspaces
     success_json(
-      workspaces: Vulcan::Workspace.where(
-        user_email: @user.email,
-      ).all.map do |w|
+      workspaces: Vulcan::Workspace.all.map do |w|
         w.to_hash
       end
     )
@@ -104,7 +104,6 @@ class VulcanV2Controller < Vulcan::Controller
   def get_workspace
     workspace = Vulcan::Workspace.first(
       id: @params[:workspace_id],
-      user_email: @user.email
     )
     unless workspace
       msg = "Workspace for project: #{@params[:project_name]} does not exist."
@@ -122,15 +121,11 @@ class VulcanV2Controller < Vulcan::Controller
       job_id_hash = @snakemake_manager.parse_log_for_slurm_ids(last_run.log_path)
       slurm_status = @snakemake_manager.query_sacct(last_run.slurm_run_uuid, job_id_hash)
     end
-
-    response = {
-      workspace_id: workspace.id,
-      workflow_id: workspace.workflow_id,
+    response = workspace.to_hash.merge({
       vulcan_config: @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace.path)),
-      dag: workspace.dag,
       last_config: last_config ? @remote_manager.read_json_file(last_config.path) : nil,
       last_job_status: last_run ? slurm_status : nil
-    }
+    })
     success_json(response)
   end
 
