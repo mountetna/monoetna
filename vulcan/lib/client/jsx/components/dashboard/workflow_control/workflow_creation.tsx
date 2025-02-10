@@ -61,12 +61,11 @@ export default function WorkflowCreateButtonModal({projectName}: {
     if (current_names.includes(workflowName)) {
       setWorkflowNameError(true);
     } else {
-      if (!repoUrl.startsWith('http')) {
-        setRepoUrl('https://' + repoUrl);
-      }
       showErrors(
         createWorkflow(
-          projectName, repoUrl, workflowName
+          projectName,
+          repoUrl.startsWith('http') ? repoUrl : 'https://' + repoUrl,
+          workflowName
         )
       );
       setOpen(false);
