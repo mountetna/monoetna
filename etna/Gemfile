@@ -36,6 +36,7 @@ gem "curb"
 gem "net-ssh"
 gem "net-scp"
 gem "net-sftp"
+gem 'connection_pool'
 gem "rsync", "~> 1.0", ">= 1.0.9"
 gem "json_schemer"
 

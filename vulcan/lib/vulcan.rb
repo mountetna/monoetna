@@ -2,7 +2,7 @@ require_relative 'commands'
 require_relative 'storage'
 require_relative 'orchestration'
 require_relative 'dependency_manager'
-require_relative './ssh_connection_pool'
+require_relative 'ssh_connection_pool'
 
 class Vulcan
   include Etna::Application

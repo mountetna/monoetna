@@ -9,6 +9,7 @@ Sequel.migration do
       String :name, null: false
       String :user_email, null: false
       String :path, null: false
+      String :git_version, null: false
       column :tags, 'text[]'
       column :dag, 'text[]'
 

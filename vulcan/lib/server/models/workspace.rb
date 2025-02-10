@@ -6,12 +6,13 @@ class Vulcan
     def to_hash
       {
         workspace_id: id,
-        workspace_name: name,
+        name: name,
         workflow_id: workflow_id,
-        workflow_name: workflow.name,
+        workflow_name: workflow_v2.name,
         user_email: user_email,
         tags: tags,
         workspace_path: path,
+        git_version: git_version,
         created_at: created_at,
         updated_at: updated_at
       }

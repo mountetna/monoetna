@@ -5,9 +5,8 @@ class Vulcan
     def to_hash
         {
           id: id,
-          projects: projects,
+          project_name: project_name,
           name: name,
-          branch: branch,
           repo_remote_url: repo_remote_url,
           created_at: created_at,
           updated_at: updated_at
