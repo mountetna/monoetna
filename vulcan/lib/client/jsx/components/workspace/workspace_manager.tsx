@@ -6,7 +6,7 @@ import React, {
   useMemo
 } from 'react';
 import * as _ from 'lodash';
-// import ReactModal from 'react-modal';
+import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
 
 import Dialog from '@material-ui/core/Dialog';
@@ -37,6 +37,7 @@ import {
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 // import Vignette from '../vignette';
+import VulcanHelp from './ui_help';
 import { allFilesToBuffer, filesReturnToMultiFileContent, uiContentsFromFiles, workflowName } from '../../selectors/workflow_selectors';
 import {useWorkspace} from '../../contexts/workspace_context';
 // import {json_get} from 'etna-js/utils/fetch';
@@ -96,6 +97,7 @@ export default function WorkspaceManager() {
   console.log({state});
 
   // const [modalIsOpen, setIsOpen] = useState(false);
+  const [vulcanHelpIsOpen, setVulcanHelpIsOpen] = useState(false);
   const {status, workQueueable: committedStepPending, projectName} = state;
 
   const [tags, setTags] = useState<string[]>(workspace.tags || []);
@@ -382,6 +384,22 @@ export default function WorkspaceManager() {
           )
           }
         </Breadcrumbs>
+        <React.Fragment>
+          <FlatButton
+            icon='book'
+            className='header-btn vignette'
+            label='Vulcan'
+            onClick={() => setVulcanHelpIsOpen(true)}
+          />
+          <ReactModal
+            isOpen={vulcanHelpIsOpen}
+            onRequestClose={() => setVulcanHelpIsOpen(false)}
+            style={modalStyles}
+            contentLabel='Vignette'
+          >
+            <VulcanHelp/>
+          </ReactModal>
+        </React.Fragment>
         {/* {workflow.vignette && (
           <React.Fragment>
             <FlatButton
