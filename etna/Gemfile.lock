@@ -218,7 +218,6 @@ DEPENDENCIES
   addressable (~> 2.8.1)
   aspera-cli (>= 4.1.0)
   concurrent-ruby
-  connection_pool (~> 2.2)
   curb
   daru
   database_cleaner (= 1.8.5)
