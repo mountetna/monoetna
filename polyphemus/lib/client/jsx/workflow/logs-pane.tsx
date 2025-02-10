@@ -19,6 +19,7 @@ import {gutter, lineNumbers} from '@codemirror/view';
 import CodeMirror from 'rodemirror';
 import {lintGutter} from '@codemirror/lint';
 import {Run} from '../polyphemus';
+import {formatTime} from './run-state';
 
 import ErrorBoundary from 'etna-js/components/error_boundary';
 
@@ -80,8 +81,8 @@ const RunRow = ({run, project_name} : { run: Run; project_name: string; }) => {
       <TableCell>{run_id}</TableCell>
       <TableCell>{version_number}</TableCell>
       <TableCell>{status}</TableCell>
-      <TableCell>{created_at}</TableCell>
-      <TableCell>{finished_at}</TableCell>
+      <TableCell>{formatTime(created_at)}</TableCell>
+      <TableCell>{formatTime(finished_at)}</TableCell>
     </TableRow>
     <TableRow>
       <TableCell colSpan={5} className={classes.output_view}>
