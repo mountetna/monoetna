@@ -13,6 +13,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import {makeStyles} from '@material-ui/core/styles';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {pushLocation} from 'etna-js/actions/location_actions';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
@@ -20,9 +21,7 @@ import {CreateWorkspaceResponse, Workflow, Workspace} from '../../../api_types';
 import { VulcanContext } from '../../../contexts/vulcan_context';
 import { runPromise, useAsyncCallback } from 'etna-js/utils/cancellable_helpers';
 import { VulcanState } from '../../../reducers/vulcan_reducer';
-import { includesClassNamePredicate } from '../../../test_utils/rendered';
-import { workspaceId, workflowId } from '../../../selectors/workflow_selectors';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import LoadingIcon from '../loading_icon';
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
@@ -62,13 +61,15 @@ export default function WorkspaceCreateButtonModal({
 
   const [workspaceName, setWorkspaceName] = useState('');
   const [branch, setBranch] = useState('main');
-  const [repoVersion, setRepoVersion] = useState('')
+  const [repoVersion, setRepoVersion] = useState({version: '', lastUsed: 'never'})
   const [open, setOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const [handleCreateWorkspace] = useAsyncCallback(function* () {
     if (!workflow || !workflow.id) return;
-    // ToDo: UI needed for branch / commit choice!
-    const newSession: CreateWorkspaceResponse = yield* runPromise(showErrors(createWorkspace(projectName, workflow.id, workspaceName, branch, repoVersion)))
+    setCreating(true);
+    const newSession: CreateWorkspaceResponse = yield* runPromise(showErrors(createWorkspace(projectName, workflow.id, workspaceName, branch, repoVersion.version)))
+    setCreating(false);
     invoke(
       pushLocation(
         `/${projectName}/workspace/${newSession.workspace_id}`
@@ -80,13 +81,50 @@ export default function WorkspaceCreateButtonModal({
     return workflow ? workflow.name : ''
   }, [workflow])
 
-  // const pastVersions = useMemo(() => {
-  //   return [
-  //     ...new Set(workspaces
-  //     .filter((w: Workspace) => {w.workflow_id == workflow.id})
-  //     .map((w: Workspace) => w.git_version))
-  //   ];
-  // }, [workflow, workspaces])
+  const pastVersions: {version: string, lastUsed: string}[] = useMemo(() => {
+    const wspaces: Workspace[] = workspaces.filter((w: Workspace) => w.workflow_id == workflow.id);
+    const versions = [...new Set(wspaces.map((w: Workspace) => w.git_version) as string[])]
+    return versions.map((version) => {
+      const used = wspaces.filter((w: Workspace) => w.git_version == version).map((w: Workspace) => w.created_at.split(' ')[0])
+      return {
+        version: version,
+        // ToDo: better selection of latest!
+        lastUsed: used[used.length-1]
+      }
+    })
+  }, [workflow, workspaces])
+
+  const versionUI = <Autocomplete
+    freeSolo
+    value={repoVersion}
+    options={[...pastVersions, {version: '', lastUsed: 'never'}]}
+    renderInput={(params: any) => (
+      <TextField
+        {...params}
+        label='Workflow Version'
+        helperText='Commit SHA or Tag'
+        error={repoVersion.version===''}
+        InputLabelProps={{shrink: true}}
+        size="small"
+      />
+    )}
+    getOptionLabel={(option) => option.version}
+    renderOption={
+      (option: typeof repoVersion, state: object) => {
+      return <Tooltip title={'last used: ' + option.lastUsed} placement='right'>
+        <Typography>
+          {option.version}
+        </Typography>
+      </Tooltip>
+    }}
+    filterOptions={(options: typeof pastVersions, state: any) => {
+      let regex = new RegExp(state.inputValue);
+      return options.filter((o) => regex.test(o.version) && o.version!='');
+    }}
+    onChange={(e: any, v: {version: string, lastUsed: string} | string | null) => {
+      if (v != null && typeof v === 'object') setRepoVersion(v);
+    }}
+  />
 
   return (
     <>
@@ -141,36 +179,7 @@ export default function WorkspaceCreateButtonModal({
               />
             </Grid>
             <Grid item>
-              {/* ToDo: This could be a drop-down based on options given by the back-end */}
-              <TextField
-                label='Workflow Version'
-                helperText='Commit SHA or Tag'
-                error={repoVersion===''}
-                InputLabelProps={{ shrink: true }}
-                onChange={(event) => setRepoVersion(event.target.value)}
-                size="small"
-              />
-              {/* <Autocomplete
-                fullWidth
-                freeSolo
-                value={repoVersion}
-                options={pastVersions}
-                renderInput={(params: any) => (
-                  <TextField
-                    label='Workflow Version'
-                    helperText='Commit SHA or Tag'
-                    error={repoVersion===''}
-                    InputLabelProps={{shrink: true}}
-                    variant='outlined'
-                    size="small"
-                  />
-                )}
-                filterOptions={(options: string[], state: any) => {
-                  let regex = new RegExp(state.inputValue);
-                  return options.filter((o) => regex.test(o));
-                }}
-                onChange={(e: any, v: string | null) => {setRepoVersion(v==null ? '' : v)}}
-              /> */}
+              {versionUI}
             </Grid>
           </Grid>
         </DialogContent>
@@ -179,7 +188,7 @@ export default function WorkspaceCreateButtonModal({
             <Button
               className={classes.propagateButton}
               onClick={handleCreateWorkspace}
-              startIcon={<SaveIcon/>}
+              startIcon={creating ? <LoadingIcon/> : <SaveIcon/>}
               color='primary'
               variant='contained'
             >

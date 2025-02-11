@@ -99,6 +99,7 @@ interface WorkspaceMinimal {
   created_at: string;
   updated_at: string;
   name: string;
+  git_version: string;
 }
 export interface WorkspaceMinimalRaw extends WorkspaceMinimal {
   workspace_path: string;
@@ -112,7 +113,8 @@ interface WorkspaceMinusInconsistent {
   path: string;
   tags: string[];
   dag: string[];
-  created_at?: string;
+  git_version: string;
+  created_at: string;
   updated_at?: string;
   project?: string;
   last_config: {[k: string]: any} | null;
