@@ -158,6 +158,7 @@ export default function WorkspaceCreateButtonModal({
             <Grid item>
               <TextField
                 value={workspaceName}
+                fullWidth
                 label='Workspace Name'
                 helperText="You will be able to change this later."
                 InputLabelProps={{ shrink: true }}
@@ -169,7 +170,7 @@ export default function WorkspaceCreateButtonModal({
               {/* ToDo: This could be a drop-down based on options given by the back-end */}
               <TextField
                 value={branch}
-                multiline
+                fullWidth
                 label='Workflow branch'
                 helperText='Ex: master or main'
                 error={branch===''}
