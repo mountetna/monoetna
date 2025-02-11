@@ -42,7 +42,7 @@ class MetisLinkerJob < Polyphemus::ETLJob
         batch_end: context[:end_time]
     ))
 
-    update = Metis::Loader.new(config, rules, {}, project_def.models).update_for(tail, metis_client)
+    params = runtime_config['config'] || {}
 
     loader = Metis::Loader.new(config, rules, params, project_def.models)
 
