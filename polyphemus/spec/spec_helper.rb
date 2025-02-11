@@ -312,6 +312,14 @@ def stub_upload_file(params = {})
     })
 end
 
+def stub_authorize_downloads
+  stub_request(:post, /#{METIS_HOST}\/authorize\/download/).to_return do |request|
+    params = JSON.parse(request.body, symbolize_names: true)
+    url = "#{METIS_HOST}/#{params[:project_name]}/download/#{params[:bucket_name]}/#{params[:file_path]}"
+    { body: {download_url: url}.to_json, status: 200, headers: { 'Content-Type': "application/json" } }
+  end
+end
+
 def stub_download_file(params = {})
   stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/download\/#{ params[:file] || '' }/)
     .to_return({
