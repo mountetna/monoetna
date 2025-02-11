@@ -82,7 +82,7 @@ const RunRow = ({run, project_name} : { run: Run; project_name: string; }) => {
       <TableCell>{version_number}</TableCell>
       <TableCell>{status}</TableCell>
       <TableCell>{formatTime(created_at)}</TableCell>
-      <TableCell>{formatTime(finished_at)}</TableCell>
+      <TableCell>{finished_at ? formatTime(finished_at) : 'never run'}</TableCell>
     </TableRow>
     <TableRow>
       <TableCell colSpan={5} className={classes.output_view}>
@@ -142,7 +142,7 @@ const LogsPane = ({
           </TableHead>
           <TableBody>
           {
-            runs.map(
+            runs.sort( (a,b) => a.created_at.localeCompare(b.created_at)).map(
               run => <RunRow project_name={project_name} key={run.run_id} run={run}/>
             )
           }

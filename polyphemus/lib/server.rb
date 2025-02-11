@@ -33,7 +33,6 @@ class Polyphemus
     post '/api/workflows/:project_name/update/:config_id', action: 'workflow#update', auth: { user: { can_edit?: :project_name } }, log_redact_keys: [ :secrets ]
 
     get '/api/workflows/:project_name/configs/:config_id', action: 'workflow#list_by_id', auth: { user: { can_edit?: :project_name } }
-    get '/api/workflows/:project_name/configs', action: 'workflow#list', auth: { user: { can_view?: :project_name } }
     post '/api/workflows/configs', action: 'workflow#list_all', auth: { user: { is_supereditor?: :true } }
 
     get '/api/workflows', action: 'workflow#get_workflows'

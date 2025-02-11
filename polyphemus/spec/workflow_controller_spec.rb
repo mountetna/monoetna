@@ -150,37 +150,7 @@ describe WorkflowController do
 
   end
 
-  context 'list configs' do
-    it 'returns a list of the most recent configs for a project' do
-        auth_header(:editor)
-        # Create one workflow config object
-        json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test-workflow')
-        expect(last_response.status).to eq(200)
-        some_config = { 'test_key' => 'update 1' }
-        json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
-          workflow_name: 'my workflow name',
-          workflow_type: 'test-workflow',
-          config: some_config
-        ) 
-        # Create another
-        json_post('/api/workflows/labors/create', workflow_name: 'my 2nd workflow name', workflow_type: 'test-workflow')
-        expect(last_response.status).to eq(200)
-        some_config = { 'test_key' => 'update 1' }
-        json_post("/api/workflows/labors/update/#{json_body[:config_id]}",
-          workflow_name: 'my workflow name',
-          workflow_type: 'test-workflow',
-          config: some_config
-        )
-      auth_header(:editor)
-      get('/api/workflows/labors/configs')
-      expect(last_response.status).to eq(200)
-      expect(json_body.length).to eq(2)
-    end
-
-  end
-
   context 'retrieve a config' do
-
     before do
       auth_header(:editor)
       json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test-workflow')
@@ -599,10 +569,15 @@ context '#revisions' do
         version_number: config_1.version_number,
         name: 'my-cat-ingestion-1000',
         orchestrator_metadata: {
-            'startedAt' => '2025-01-16T12:00:00Z',
-            'finishedAt' => '2025-01-16T12:20:00Z',
-            'phase' => 'Succeeded'
+          'startedAt' => '2025-01-16T12:00:00Z',
+          'nodes' => {
+            'steps-node' => {
+              'finishedAt' => '2025-01-16T12:20:00Z',
+              'phase' => 'Succeeded',
+              'type' => 'Steps'
+            }
           }
+        }
       )
 
       # Create a run for the second version
@@ -612,10 +587,15 @@ context '#revisions' do
         version_number: config_2.version_number,
         name: 'my-cat-ingestion-2000',
         orchestrator_metadata: {
-            'startedAt' => '2025-01-18T12:00:00Z',
-            'finishedAt' => '2025-01-18T12:20:00Z',
-            'phase' => 'Succeeded'
+          'startedAt' => '2025-01-18T12:00:00Z',
+          'nodes' => {
+            'steps-node' => {
+              'finishedAt' => '2025-01-18T12:20:00Z',
+              'phase' => 'Succeeded',
+              'type' => 'Steps'
+            }
           }
+        }
       )
 
       auth_header(:editor)
@@ -626,7 +606,7 @@ context '#revisions' do
       expect(json_body.count).to eq(1)
       expect(json_body[0][:workflow_name]).to eq("my-cat-ingestion")
       expect(json_body[0][:workflow_type]).to eq("cat-ingestion")
-      expect(json_body[0][:pipeline_state]).to eq("Succeeded")
+      expect(json_body[0][:pipeline_state]).to eq("succeeded")
       # This should be the most recent run from version 2
       expect(json_body[0][:pipeline_finished_at]).to eq("2025-01-18T12:20:00Z")
     end
@@ -667,7 +647,7 @@ context '#revisions' do
       expect(json_body.count).to eq(1)
       expect(json_body[0][:workflow_name]).to eq("my-cat-ingestion-2")
       expect(json_body[0][:workflow_type]).to eq("cat-ingestion")
-      expect(json_body[0][:pipeline_state]).to eq("Running")
+      expect(json_body[0][:pipeline_state]).to eq("running")
       # When argo is still running, we use the previous run's finished_at
       # In this case there is only one run, so it should be nil
       expect(json_body[0][:pipeline_finished_at]).to be_nil
