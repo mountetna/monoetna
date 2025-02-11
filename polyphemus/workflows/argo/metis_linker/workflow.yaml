@@ -26,6 +26,7 @@ spec:
     - name: record-runtime-meta
       container:
         image: etnaagent/polyphemus:production
+        imagePullPolicy: Always
         command: ["/bin/sh", "-c"]
         args:
           - |

@@ -15,6 +15,7 @@ spec:
           - name: version_number
       container:
         image: etnaagent/polyphemus:production
+        imagePullPolicy: Always
         imagePullSecrets: 
           - name: hub.docker.com
         command:
