@@ -760,7 +760,7 @@ class Polyphemus
       name = workflow_data.dig("metadata","name")
 
       # remove control characters and workflow name from output logs
-      output = raw_output.gsub(/\e\[\d+m/,'').gsub(/^#{name}\w*: /,'')
+      output = raw_output.gsub(/\e\[\d+m/,'').gsub(/^#{name}[\-\w]*: /,'')
 
       updates = {
         orchestrator_metadata: status,
