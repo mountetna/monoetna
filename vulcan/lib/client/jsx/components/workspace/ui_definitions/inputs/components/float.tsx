@@ -19,6 +19,7 @@ export function NumberInput(
     label,
     minWidth,
     data,
+    defaultValue,
     ...props
   }: WithInputParams<
     {label?: string; minWidth?: number},
@@ -27,7 +28,7 @@ export function NumberInput(
   >,
   block_decimal = false
 ) {
-  const value = useSetsDefault(0, props.value, onChange, 'value'); // Had to replace selectDefaultNumber(data) with 0 due how the component can be cleared.  NaN was not an option because of cross-language conversion.
+  const value = useSetsDefault(defaultValue || 0, props.value, onChange, 'value'); // Had to replace selectDefaultNumber(data) with 0 due how the component can be cleared.  NaN was not an option because of cross-language conversion.
   const [inputState, setInputState] = useState({
     text: from_num(value),
     hasError: false
@@ -66,11 +67,12 @@ export default function FloatInput({
   label,
   minWidth,
   data,
+  defaultValue,
   ...props
 }: WithInputParams<
   {label?: string; minWidth?: number},
   number | null,
   number | null
 >) {
-  return NumberInput({onChange, label, minWidth, data, ...props});
+  return NumberInput({onChange, label, minWidth, data, defaultValue, ...props});
 }

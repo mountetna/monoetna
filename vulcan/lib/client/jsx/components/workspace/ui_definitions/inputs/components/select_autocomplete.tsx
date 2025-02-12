@@ -74,6 +74,7 @@ function determineHelperText(
 
 export default function SelectAutocompleteInput({
   data,
+  defaultValue,
   label,
   minWidth,
   maxOptions = 100,
@@ -101,7 +102,7 @@ export default function SelectAutocompleteInput({
   const options_in: string[] = data.options;
   const suggestion = pullRecommendation(data);
 
-  const value = useSetsDefault(null, props.value, onChange, 'picked');
+  const value = useSetsDefault(defaultValue || null, props.value, onChange, 'picked');
   const disp_label = useMemo(() => {
     return suggestion ? suggestion : label;
   }, [suggestion, label]);

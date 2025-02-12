@@ -6,9 +6,9 @@ import {flattenStringOptions, StringOptions} from '../../monoids';
 import {useMemoized} from '../../../../../selectors/workflow_selectors';
 import {useSetsDefault} from '../../useSetsDefault';
 
-export default function CheckboxesInput({data, onChange, ...props}: WithInputParams<{}, string[], StringOptions>) {
+export default function CheckboxesInput({data, defaultValue, onChange, ...props}: WithInputParams<{}, string[], StringOptions>) {
   const options = useMemoized(flattenStringOptions, data);
-  const value = useSetsDefault(options, props.value, onChange, 'picked');
+  const value = useSetsDefault(defaultValue || options, props.value, onChange, 'picked');
 
   const handleClickOption = useCallback(
     (option: string) => {

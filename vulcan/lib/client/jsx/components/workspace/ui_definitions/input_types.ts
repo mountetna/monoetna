@@ -34,7 +34,9 @@ export interface BoundInputSpecification<Value = unknown, DataElement = unknown>
 
   data?: DataEnvelope<DataElement> | undefined | null;
 
-  valueKeyMap: ReturnType<typeof stepOutputMapping>
+  valueKeyMap: ReturnType<typeof stepOutputMapping>;
+
+  defaultValue?: any;
 }
 
 export function getParamUISpecifications(
@@ -143,7 +145,7 @@ export function bindInputSpecification(
   })
 
   const outputDataKeyMap = stepOutputMapping(config);
-  const value = stepOutputData(stepName, outputDataKeyMap, buffered, params, ui_contents, config['default']);
+  const value = stepOutputData(stepName, outputDataKeyMap, buffered, params, ui_contents);
 
   return {
     ...input,
@@ -152,7 +154,8 @@ export function bindInputSpecification(
     onChange(v: {[k:string]: Maybe<unknown>}) {
       setValues(v);
     },
-    valueKeyMap: outputDataKeyMap
+    valueKeyMap: outputDataKeyMap,
+    defaultValue: config['default']
   };
 }
 
@@ -173,7 +176,7 @@ export type WithInputParams<
   onChange: (v: Maybe<Value>, destructure?: boolean) => void;
   value: Maybe<Value>;
   data: DataEnvelope<DataElement> | undefined | null;
-  numOutputs?: number;
+  defaultValue?: any;
 };
 
 export interface ValidationInputSpecification<
