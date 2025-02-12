@@ -32,8 +32,8 @@ import {Workflow, Status, Job, Runtime} from '../polyphemus';
 
 const StatusIcon = ({status}: {status: string}) => {
   let IconComponent: any;
-  if (status == 'completed') IconComponent = CheckIcon;
-  else if (status == 'error') IconComponent = ErrorIcon;
+  if (status == 'succeeded') IconComponent = CheckIcon;
+  else if (status == 'failed') IconComponent = ErrorIcon;
   else return null;
 
   return <IconComponent size='small' />;
