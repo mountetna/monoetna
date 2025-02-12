@@ -2,8 +2,8 @@ import React, {useContext, useEffect, useState} from 'react';
 
 import markdown from 'etna-js/utils/markdown';
 
-import {VulcanContext} from '../../contexts/vulcan_context';
-import {workflowByName} from '../../selectors/workflow_selectors';
+import {VulcanContext} from '../../../contexts/vulcan_context';
+import {workflowByName} from '../../../selectors/workflow_selectors';
 
 export default function Vignette({workflowName}: {workflowName: string}) {
   let {state} = useContext(VulcanContext);

@@ -72,7 +72,6 @@ function StepUIInner({
       specs.map((spec) =>
         bindInputSpecification(
           spec,
-          // workspace.steps,
           workspace.vulcan_config,
           status.last_params,
           status.file_contents,

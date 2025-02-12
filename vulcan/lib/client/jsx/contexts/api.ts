@@ -60,7 +60,7 @@ export const defaultApiHelpers = {
   getWorkspaces(projectName: string): Promise<WorkspacesResponse> {
     return new Promise(() => null);
   },
-  getWorkspace(projectName: string, workspaceId: number): Promise<Response | WorkspaceRaw> {
+  getWorkspace(projectName: string, workspaceId: number): Promise<WorkspaceRaw> {
     return new Promise(() => null);
   },
   updateWorkspace(projectName: string, workspaceId: number, name?: string, tags?: string[]): Promise<Workspace> {
@@ -128,27 +128,6 @@ export function useApi(
         .catch(handleFetchError);
     },
     [rawVulcanGet]
-  );
-
-  const rawVulcanGetWithParams = useCallback((endpoint: string, params: Object) => {
-    return fetch(endpoint, {
-      method: 'GET',
-      credentials: 'include',
-      headers: headers('json'),
-      body: JSON.stringify({
-        ...params
-      })
-    });
-  }, []);
-
-  const vulcanGetWithParams = useCallback(
-    (endpoint: string, params: Object) => {
-      return rawVulcanGetWithParams(endpoint, params)
-        .then(checkStatus)
-        .then(handleFetchSuccess)
-        .catch(handleFetchError);
-    },
-    [rawVulcanGetWithParams]
   );
 
   const vulcanDelete = useCallback((endpoint: string) => {

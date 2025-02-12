@@ -11,10 +11,7 @@ import WorkspacesGrid from './workspace_control/workspaces_grid';
 import WorkspacesControls from './workspace_control/workspaces_controls';
 import WorkflowControls from './workflow_control/workflow_controls';
 import ProjectHeader from 'etna-js/components/project-header';
-import { setProject, setWorkflows, setWorkspaces } from '../../actions/vulcan_actions';
-import { runPromise, useAsync } from 'etna-js/utils/cancellable_helpers';
 import { VulcanContext } from '../../contexts/vulcan_context';
-import { workflowId } from '../../selectors/workflow_selectors';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -95,7 +92,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
             <WorkspacesControls
               setSearchString={setSearchString}
               setTags={setTags}
-              project_name={project_name}
+              workspaces={projectWorkspaces}
               tags={tags}
               searchString={searchString}
             />

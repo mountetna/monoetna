@@ -64,7 +64,6 @@ function ParamInputIndividual({input}: {
 
   const bound = useMemo(() => bindInputSpecification(
       input,
-      // workspace.steps,
       workspace.vulcan_config,
       status.last_params,
       status.file_contents,
@@ -76,7 +75,6 @@ function ParamInputIndividual({input}: {
       input,
       values,
       setValues,
-      // workspace.steps,
       workspace.vulcan_config,
       status.last_params,
       status.file_contents,

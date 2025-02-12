@@ -26,6 +26,8 @@ export interface WorkspaceStep {
   label?: string;
   ui_component?: string;
   doc?: string;
+  // for stepInputs where a default may come in from the vulcan_config
+  default?: any;
 }
 
 export const defaultWorkspaceStep: WorkspaceStep = {
@@ -64,7 +66,7 @@ export type WorkflowServer = {
 }
 
 export interface Workflow {
-  id: number | null;
+  id: number | null; // null to indicate stubbage
   name: string;
   project_name: string;
   repo_remote_url: string;
@@ -72,7 +74,6 @@ export interface Workflow {
   updated_at: string;
   vignette?: string;
   image?: string;
-  authors?: string[];
 }
 
 export const defaultWorkflow: Workflow = {
@@ -91,18 +92,23 @@ export type CreateWorkspaceResponse = {
   dag: string[]
 }
 
-interface WorkspaceMinimal {
+// WorkspaceMinimal matches the content returned when listing many workspaces with getWorkspace*s*
+// Workspace matches the content returned when listing one workspace with getWorkspace
+export interface WorkspaceMinimal {
   workspace_id: number | null;
+  name: string;
+  workflow_name: string;
   workflow_id: number | null;
   user_email: string;
   tags: string[];
+  git_version: string;
+  dag: string[];
   created_at: string;
   updated_at: string;
-  name: string;
-  git_version: string;
 }
 export interface WorkspaceMinimalRaw extends WorkspaceMinimal {
-  workspace_path: string;
+  // ToDo: Clean up if stable, not returned by this path!
+  // workspace_path: string;
 }
 
 interface WorkspaceMinusInconsistent {
@@ -110,22 +116,21 @@ interface WorkspaceMinusInconsistent {
   workflow_id: number | null;
   name: string;
   user_email: string;
-  path: string;
+  workspace_path: string;
   tags: string[];
   dag: string[];
   git_version: string;
   created_at: string;
-  updated_at?: string;
-  project?: string;
+  updated_at: string;
   last_config: {[k: string]: any} | null;
   last_job_status: {[k: string]: StatusStringFine} | null;
-  vignette?: string;
-  thumbnails?: string[];
 }
 
 export interface Workspace extends WorkspaceMinusInconsistent {
   vulcan_config: VulcanConfig;
-  // steps: {[k: string]: WorkspaceStep};
+  project?: string;
+  vignette?: string;
+  thumbnails?: string[];
 }
 
 export interface WorkspaceRaw extends WorkspaceMinusInconsistent {
@@ -136,15 +141,15 @@ export interface WorkspaceRaw extends WorkspaceMinusInconsistent {
 export const defaultWorkspace: Workspace = {
   workspace_id: null,
   workflow_id: null,
-  vulcan_config: {},
   name: '',
   user_email: '',
-  path: '',
+  workspace_path: '',
   tags: [],
   dag: [],
+  git_version: '',
+  vulcan_config: {},
   created_at: '',
   updated_at: '',
-  // steps: {},
   last_config: {},
   last_job_status: {},
 };

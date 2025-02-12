@@ -18,7 +18,6 @@ import {
   RunStatus,
   StatusStringBroaden,
   WorkspaceRaw,
-  WorkspaceResponse,
   WorkspaceMinimalRaw,
   WorkspaceMinimal
 } from '../api_types';
@@ -106,37 +105,26 @@ export function workflowByIdFromWorkflows(
   return id ? workflows.find((w) => workflowId(w) === id) : defaultWorkflow;
 }
 
-export const workspaceId = (workspace: Workspace | null | undefined) =>
-  workspace && workspace.workspace_id ? workspace.workspace_id : null
-
-export function workspaceById(
-  id: any,
-  state: VulcanState
-): Workspace | undefined {
-  return state.workspaces.find((w) => workspaceId(w) === id);
-}
-
 export function workspacesFromResponse(val: {workspaces: WorkspaceMinimalRaw[]}): {workspaces: WorkspaceMinimal[]} {
-  const workspaces = val.workspaces;
-  return {
-    workspaces: workspaces.map((raw) => {
-      const intWorkspace: any = {...raw};
-      delete intWorkspace['workspace_path']
-      return {
-        ...intWorkspace,
-        name: intWorkspace['name']
-      };
-    })
-  }
+  return val;
+  // ToDo: Clean up if stable, not returned by this path!
+  // const workspaces = val.workspaces;
+  // return {
+  //   workspaces: workspaces.map((raw) => {
+  //     const intWorkspace: any = {...raw};
+  //     delete intWorkspace['workspace_path']
+  //     return {
+  //       ...intWorkspace,
+  //     };
+  //   })
+  // }
 }
 
-export function workspaceFromRaw(raw: WorkspaceRaw | WorkspaceResponse): Workspace {
+export function workspaceFromRaw(raw: WorkspaceRaw): Workspace {
   const vulcanConfig = vulcanConfigFromRaw(raw.vulcan_config);
   const intWorkspace: any = {...raw};
-  // delete intWorkspace['target_mapping']
   return {
     ...intWorkspace,
-    // steps: {...raw.target_mapping},
     vulcan_config: vulcanConfig
   };
 }
@@ -365,15 +353,6 @@ export function stepOfName(
   }
 }
 
-// export function stepOfStatus(
-//   stepStatus: StepStatus | string,
-//   workspace: Workspace
-// ): WorkflowStep | undefined {
-//   const stepName =
-//     typeof stepStatus === 'string' ? stepStatus : stepStatus.name;
-//   return workspace.steps[0].find((s) => s.name === stepName);
-// }
-
 export function statusOfStep(
   step: string | WorkspaceStep,
   status: VulcanState['status'],
@@ -590,7 +569,8 @@ export function stepOutputData(
   Object.entries(keyMap).forEach( ([internal, external], index) => {
     // internal = the value names known to the ui_component definition
     // external = the file or param name mapping to that value element
-    const _def = index==0 ? _default : undefined;
+    console.log("value setting")
+    const _def = index==0 ? [_default] : undefined;
     values[internal] = internal in buffered ? 
       buffered[internal] :
       stepName in params ?
@@ -648,11 +628,11 @@ export function stepNamesOfStatus(
 ): string[] {
   if (Array.isArray(targetStatus)) {
     return workspace.dag.filter(
-      (step) => targetStatus.includes(statusOfStep(step, status)?.status)
+      (step) => targetStatus.includes(statusOfStep(step, status, workspace)?.status as StatusString)
     );
   }
   return workspace.dag.filter(
-    (step) => statusOfStep(step, status)?.status === targetStatus
+    (step) => statusOfStep(step, status, workspace)?.status === targetStatus
   );
 }
 export function completedStepNames(workspace: Workspace, status: WorkspaceStatus): string[] {

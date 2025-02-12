@@ -2,7 +2,7 @@ import React, {useContext, useState, useEffect, useMemo} from 'react';
 import Icon from 'etna-js/components/icon';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
-import {completedUiOutputSteps, stepOfName} from '../../selectors/workflow_selectors';
+import {outputUIsWithInputsReady, stepOfName} from '../../selectors/workflow_selectors';
 import {useWorkspace} from '../../contexts/workspace_context';
 import { WorkspaceStep } from '../../api_types';
 import StepIconName from './drawers/step_elements/step_icon_name';
@@ -10,19 +10,19 @@ import StepIconName from './drawers/step_elements/step_icon_name';
 export default function StepsList() {
   const [open, setOpen] = useState(false);
   const {state} = useContext(VulcanContext);
-  const {status} = state;
-  const {workspace} = useWorkspace();
-  if (!workspace.vulcan_config) return null;
+  const {status, workspace} = state;
 
   function handleToggle() {
     setOpen(!open);
   }
 
-  const outputs = useMemo(() => completedUiOutputSteps(workspace, status), [workspace, status]);
-  const hasCompletedOutputs = outputs.length === 0;
+  const hasCompletedOutputs = useMemo(() => {
+    if (!workspace) return false;
+    return outputUIsWithInputsReady(workspace, status).length > 0
+  }, [workspace, status]);
 
   useEffect(() => {
-    setOpen(hasCompletedOutputs || !!state.pollingState);
+    setOpen(!hasCompletedOutputs || !!state.pollingState);
   }, [state.pollingState, hasCompletedOutputs]);
 
   return (

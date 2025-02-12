@@ -121,12 +121,6 @@ export default function WorkspaceInitializer({
 
     dispatch(setFullWorkspaceState(workspace, status));
 
-    // // workflow
-    // const workflow = workflowByIdFromWorkflows(workspace.workflow_id, state.workflows);
-    // console.log("Setting workflow")
-    // if (!!workflow) dispatch(setWorkflow(workflow, projectName));
-    // console.log({state})
-
     // // Auto-pass for fully-defaulted params
     // if (workspace.vignette?.includes('Primary inputs are skippable') && !workspace.last_job_status) {
     //   dispatch(setAutoPassStep(null));

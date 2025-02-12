@@ -37,7 +37,7 @@ import {
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 // import Vignette from '../vignette';
-import VulcanHelp from './ui_help';
+import VulcanHelp from './drawers/vulcan_help';
 import { allFilesToBuffer, filesReturnToMultiFileContent, uiContentsFromFiles, workflowName } from '../../selectors/workflow_selectors';
 import {useWorkspace} from '../../contexts/workspace_context';
 // import {json_get} from 'etna-js/utils/fetch';

@@ -1,23 +1,16 @@
 import React, {
-  useCallback,
-  useContext,
-  useState,
-  useEffect,
   useMemo
 } from 'react';
 import 'regenerator-runtime/runtime';
 
 import Grid from '@material-ui/core/Grid';
-import ImageList from '@material-ui/core/ImageList';
-import ImageListItem from '@material-ui/core/ImageListItem';
 import TextField from '@material-ui/core/TextField';
 import {makeStyles} from '@material-ui/core/styles';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import SearchIcon from '@material-ui/icons/Search';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
-import {VulcanContext} from '../../../contexts/vulcan_context';
-import {Workspaces} from '../../../api_types';
+import {WorkspaceMinimal} from '../../../api_types';
 import Tag from '../tag';
 
 const useStyles = makeStyles((theme) => ({
@@ -33,44 +26,31 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function WorkspacesControls({
-  project_name,
+  workspaces,
   setSearchString,
   setTags,
   tags,
   searchString
 }: {
-  project_name: string;
+  workspaces: WorkspaceMinimal[];
   setSearchString: Function;
   setTags: Function;
   tags?: string[];
   searchString?: string;
 }) {
-  const {showErrors, getWorkspaces} = useContext(VulcanContext);
-
-  const [allWorkspaces, setAllWorkspaces] = useState<Workspaces>([]);
-
-  useEffect(() => {
-    showErrors(
-      getWorkspaces(
-        project_name
-      ).then(({workspaces}: {workspaces: Workspaces}) =>
-        setAllWorkspaces(workspaces)
-      )
-    );
-  }, []);
 
   const classes = useStyles();
 
   const allTags = useMemo(() => {
     return [
       ...new Set(
-        allWorkspaces.reduce(
+        workspaces.reduce(
           (acc: string[], f) => acc.concat(f.tags || []),
           ['public']
         )
       )
     ];
-  }, [allWorkspaces]);
+  }, [workspaces]);
 
   return (
     <Grid item container className={classes.controls} spacing={6}>

@@ -22,9 +22,10 @@ export function useWorkspaceWorkflowLoading(
                 update['workspaces'] = (yield* runPromise(showErrors(getWorkspaces(projectName)))).workspaces
                 update['workflows'] = (yield* runPromise(showErrors(getWorkflows(projectName)))).workflows
             }
-            if (!!projectName && !!workspaceId) {
-                update['workspace'] = (yield* runPromise(showErrors(getWorkspace(projectName, workspaceId)))).workspace
-            }
+            // We WANT to rely on the workspace_initializer for this part!
+            // if (!!projectName && !!workspaceId) {
+            //     update['workspace'] = (yield* runPromise(showErrors(getWorkspace(projectName, workspaceId))))
+            // }
             if (Object.keys(update).length > 0) {
                 dispatch(setWorkflowsWorkspaces(update));
             }

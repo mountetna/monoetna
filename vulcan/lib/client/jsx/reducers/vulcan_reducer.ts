@@ -4,9 +4,9 @@ import {
   Workspace,
   AccountingReturn,
   defaultWorkspaceStatus,
-  Workspaces,
   defaultWorkflow,
-  StatusStringBroaden
+  StatusStringBroaden,
+  WorkspaceMinimal
 } from '../api_types';
 import {
   allUIStepNames,
@@ -15,34 +15,18 @@ import {
   uiContentsFromFiles,
   upcomingStepNames,
   vulcanConfigFromRaw,
-  workflowByIdFromWorkflows,
 } from '../selectors/workflow_selectors';
-import {mapSome, Maybe, some, withDefault} from '../selectors/maybe';
+import {Maybe, withDefault} from '../selectors/maybe';
 import { pick } from 'lodash';
 
 export type DownloadedData = any; // TODO: improve typing here.
 export type DownloadedStepDataMap = {[k: string]: DownloadedData};
 
 const defaultWorkflows = [] as WorkflowsResponse;
-const defaultWorkspaces = [] as Workspaces;
+const defaultWorkspaces = [] as WorkspaceMinimal[];
 const defaultWorkspace = null as Workspace | null;
 const defaultId = null as number | null;
 const defaultStatus = defaultWorkspaceStatus;
-const defaultFiles = [] as string[];
-const defaultData: DownloadedStepDataMap = {};
-// const defaultInputs: SessionStatusResponse['session']['inputs'] = {};
-// export const defaultSession: SessionStatusResponse['session'] = {
-//   project_name: '',
-//   workflow_id: null,
-//   key: '',
-//   inputs: {},
-//   reference_figure_id: null
-// };
-// const defaultFigure: VulcanFigure = {
-//   figure_id: null,
-//   inputs: {},
-//   id: null
-// };
 const defaultValidationErrors: [string | null, string, string[]][] = [];
 
 export const defaultVulcanState = {
@@ -105,20 +89,12 @@ function useAccounting(
   const staleUISteps = staleSteps.filter(name => inputUINames(state).includes(name))
   const submittingStep: string | null = withDefault(action.submittingStep, null);
 
-  for (let [step, stepStatus] of Object.entries(newStatus.steps)) {
+  for (let step of Object.keys(newStatus.steps)) {
     // The submitting step is pushing a new value from the client up, thus
     // it should not have its input made stale.
     if (step === submittingStep || !staleSteps.includes(step)) continue;
 
-    // Clear ui_content knowledge, output_files knowledge, and downloaded output file content
-    // (May still exist in workspace, but we will assume it's stale.)
-    // if (!!workspace.steps[step]?.output?.files) {
-    //   for (let output in workspace.steps[step].output.files) delete newStatus.file_contents[output];
-    //   newStatus.output_files.filter(name => !workspace.steps[step]?.output?.files?.includes(name));
-    //   if (staleUISteps.includes(step)) {
-    //     newStatus.ui_contents[step] = Object.fromEntries(Object.keys(newStatus.ui_contents[step]).map(k => [k, null]));
-    //   }
-    // }
+    // Clear ui_content knowledge, output_files knowledge. It will fill back in later via 'update_files: true' below.
     newStatus.output_files = [];
     newStatus.ui_contents = uiContentsFromFiles(workspace);
 

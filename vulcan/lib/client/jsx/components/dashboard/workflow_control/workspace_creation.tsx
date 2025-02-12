@@ -17,7 +17,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {pushLocation} from 'etna-js/actions/location_actions';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {CreateWorkspaceResponse, Workflow, Workspace} from '../../../api_types';
+import {CreateWorkspaceResponse, Workflow, Workspace, WorkspaceMinimal} from '../../../api_types';
 import { VulcanContext } from '../../../contexts/vulcan_context';
 import { runPromise, useAsyncCallback } from 'etna-js/utils/cancellable_helpers';
 import { VulcanState } from '../../../reducers/vulcan_reducer';
@@ -82,10 +82,11 @@ export default function WorkspaceCreateButtonModal({
   }, [workflow])
 
   const pastVersions: {version: string, lastUsed: string}[] = useMemo(() => {
-    const wspaces: Workspace[] = workspaces.filter((w: Workspace) => w.workflow_id == workflow.id);
-    const versions = [...new Set(wspaces.map((w: Workspace) => w.git_version) as string[])]
+    const wspaces: WorkspaceMinimal[] = workspaces.filter((w: WorkspaceMinimal) => w.workflow_id == workflow.id);
+    const versions = [...new Set(wspaces.map((w: WorkspaceMinimal) => w.git_version) as string[])]
     return versions.map((version) => {
-      const used = wspaces.filter((w: Workspace) => w.git_version == version).map((w: Workspace) => w.created_at.split(' ')[0])
+      const used = wspaces.filter((w: WorkspaceMinimal) => w.git_version == version)
+        .map((w: WorkspaceMinimal) => w.created_at.split(' ')[0])
       return {
         version: version,
         // ToDo: better selection of latest!
@@ -123,8 +124,18 @@ export default function WorkspaceCreateButtonModal({
     }}
     onChange={(e: any, v: {version: string, lastUsed: string} | string | null) => {
       if (v != null && typeof v === 'object') setRepoVersion(v);
+      if (typeof v === 'string' && v != '') {
+        const match = pastVersions.filter(p => p.version==v);
+        if (match.length>0) {
+          setRepoVersion(match[0]);
+        } else {
+          setRepoVersion({version: v, lastUsed: 'never'});
+        }
+      }
     }}
   />
+
+  console.log({repoVersion})
 
   return (
     <>
