@@ -145,7 +145,7 @@ export function compSetName(content: VulcanConfigElement) {
 export function vulcanConfigFromRaw(config: VulcanConfig | VulcanConfigRaw) {
   // Transforms it from array to object, using compSetNames as keys
   if (!Array.isArray(config)) return config;
-  return Object.fromEntries(config.map(content => [compSetName(content), content]));
+  return Object.fromEntries(config.map(content => [compSetName(content), {...content, label: content.display}]));
 }
 
 export function paramValuesFromRaw(param_values: Workspace['last_config'], workspace: Workspace): WorkspaceStatus['params'] {
@@ -569,7 +569,6 @@ export function stepOutputData(
   Object.entries(keyMap).forEach( ([internal, external], index) => {
     // internal = the value names known to the ui_component definition
     // external = the file or param name mapping to that value element
-    console.log("value setting")
     const _def = index==0 ? [_default] : undefined;
     values[internal] = internal in buffered ? 
       buffered[internal] :
@@ -648,27 +647,6 @@ export function upcomingStepNames(workspace: Workspace, status: VulcanState['sta
   return stepNamesOfStatus('upcoming', workspace, status);
 }
 
-export function completedSteps(workspace: Workspace, status: WorkspaceStatus): WorkspaceStep[] {
-  return pickToArray(workspace.steps, completedStepNames(workspace, status));
-}
-export function pendingSteps(workspace: Workspace, status: VulcanState['status']): WorkspaceStep[] {
-  return pickToArray(workspace.steps, pendingStepNames(workspace, status));
-}
-export function erroredSteps(workspace: Workspace, status: VulcanState['status']): WorkspaceStep[] {
-  return pickToArray(workspace.steps, erroredStepNames(workspace, status));
-}
-
-export function completedUiOutputSteps(
-  workspace: Workspace,
-  status: VulcanState['status']
-): WorkspaceStep[] {
-  const uiOutputSteps = outputUINames(workspace);
-  const completedUIOutputStepNames = completedStepNames(workspace, status).filter(
-    (step) => uiOutputSteps.includes(step)
-  );
-  return pickToArray(workspace.steps, completedUIOutputStepNames);
-}
-
 export function hasRunningSteps(status: VulcanState['status']): boolean {
   return Object.values(status.steps).filter((s) => s.status == 'running').length > 0;
 }
@@ -695,7 +673,7 @@ export function groupUiSteps(uiStepNames: string[], workspace: Workspace): Works
 
     if (groupName == null) {
       result.push(
-        (map[step.name] = {label: step.label || step.name, steps: [step]})
+        (map[step.name] = {label: step.label || step.name, steps: [step as WorkspaceStep]})
       );
       return;
     }
@@ -704,7 +682,7 @@ export function groupUiSteps(uiStepNames: string[], workspace: Workspace): Works
       result.push((map[groupName] = {label: groupName, steps: []}));
     }
     const group = map[groupName];
-    group.steps.push(step);
+    group.steps.push(step as WorkspaceStep);
   });
 
   return result;

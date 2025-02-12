@@ -10,7 +10,7 @@ import {useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
 
 export function pullRecommendation<T extends DataEnvelope<any>>(
   data: T | null | undefined
-): [T | null | undefined, string | undefined] {
+): string | undefined {
   // Make the recommendation part of the autocomplete into the 'label' of renderInput
   if (data != null) {
     let data_use = {...data};
@@ -23,9 +23,9 @@ export function pullRecommendation<T extends DataEnvelope<any>>(
       suggestion = rec == null || rec == 'null' ? undefined : 'Recommendation: ' + rec;
       delete data_use['recommendation'];
     }
-    return [data_use, suggestion];
+    return suggestion;
   }
-  return [data, undefined];
+  return undefined;
 }
 
 function dispValue(value: string | null) {
@@ -98,16 +98,16 @@ export default function SelectAutocompleteInput({
   Creates a searchable dropdown selection input box from concatenated values of the 'data' hash.
   Special Case: If any data key is "recommendation", a line of text will display the values of this recommendation to the user.
   */
-  const [data_use, suggestion] = useMemoized(pullRecommendation, data);
+  const options_in: string[] = data.options;
+  const suggestion = pullRecommendation(data);
 
-  const options_in: string[] = data_use.options ? data_use.options : [];
   const value = useSetsDefault(null, props.value, onChange, 'picked');
   const disp_label = useMemo(() => {
     return suggestion ? suggestion : label;
   }, [suggestion, label]);
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [helperText, setHelperText] = useState(undefined as string | undefined);
-  const [inputState, setInputState] = React.useState(dispValue(value));
+  const [inputState, setInputState] = useState(dispValue(value));
   const [options, setOptionsFull] = useState({
     filtered: options_in,
     display: [...options_in].splice(0, maxOptions)
@@ -175,7 +175,7 @@ export default function SelectAutocompleteInput({
   );
 
   // ToDo: Replace with stubbing options_in + disabled + placeholder text to explain
-  if (0 === Object.keys(data_use || {}).length) return null;
+  if (0 === options_in.length) return null;
 
   return (
     <Autocomplete

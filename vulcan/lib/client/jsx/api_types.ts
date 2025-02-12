@@ -195,6 +195,7 @@ export type VulcanConfigElement = {
   name: string;
   display: string;
   ui_component: string;
+  label?: string;
   default?: any;
   doc?: string;
   input?: InputOutputConfig;

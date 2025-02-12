@@ -135,8 +135,6 @@ export default function WorkspaceCreateButtonModal({
     }}
   />
 
-  console.log({repoVersion})
-
   return (
     <>
       <Tooltip title='Create Workspace'>
