@@ -1,4 +1,4 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 
@@ -15,12 +15,13 @@ import {
   pickToArray
 } from '../../selectors/workflow_selectors';
 import GroupedStepUI from './drawers/step_user_input';
+import LoadingIcon from '../dashboard/loading_icon';
 
 export default function InputFeed() {
   // Shows stream of Inputs,
   //   as the session object updates.
   const {state} = useContext(VulcanContext);
-  const {workflow, workspace, status,} = state;
+  const {workflow, workspace, status, update_files} = state;
 
   if (!workflow.name || !workspace || !workspace.vulcan_config) return null;
 
@@ -32,14 +33,23 @@ export default function InputFeed() {
   );
   const groupedSteps = groupUiSteps(completed.concat(nextUiSteps), workspace);
 
+  const stepInputs = useMemo(() => {
+    return update_files ?
+      <div>
+        <LoadingIcon/>
+        Refreshing Files
+      </div> :
+      groupedSteps.map((s, index) => (
+        <GroupedStepUI key={index} group={s} />
+      ));
+  }, [update_files])
+
   // let errorSteps = pickToArray(workspace.steps, erroredStepNames(workspace, status));
 
   return (
     <div className='session-input-feed'>
       <ParamInputs />
-      {groupedSteps.map((s, index) => (
-        <GroupedStepUI key={index} group={s} />
-      ))}
+      {stepInputs}
       {/* {errorSteps.map((s, index) => (
         <StepError key={index} step={s} />
       ))} */}
