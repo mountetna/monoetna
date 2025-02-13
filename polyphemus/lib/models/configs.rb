@@ -36,6 +36,12 @@ class Polyphemus
       end.compact.to_h
     end
 
+    def with_secrets
+      as_json.merge(
+        'secrets' => secrets.to_h
+      )
+    end
+
     def runtime_config
       @runtime_config ||= Polyphemus::RuntimeConfig.for_config(config_id)
     end

@@ -720,12 +720,21 @@ class Polyphemus
         config_id: config_id,
       ).first
 
+      @token = janus_client.generate_token(
+          'task',
+          signed_nonce: nil,
+          project_name: config.project_name
+      )
+
+      # reset janus_client so it uses task token
+      @janus_client = nil
+
       # Instantiate the job and run it
       # Dynamically load the job class from the job_name
       job = Kernel.const_get("#{job_name}_job".camelize.to_sym)
 
       job.new(
-        config.as_json,
+        config.with_secrets,
         runtime_config.as_json
       ).execute
     end

@@ -122,9 +122,12 @@ FactoryBot.define do
     to_create(&:save)
   end
 
-  # factory :etl_config, class: Polyphemus::EtlConfig do
-  #   to_create(&:save)
-  #end
+  factory :config, class: Polyphemus::Config do
+     to_create(&:save)
+  end
+  factory :runtime_config, class: Polyphemus::RuntimeConfig do
+     to_create(&:save)
+  end
 end
 
 def json_body
