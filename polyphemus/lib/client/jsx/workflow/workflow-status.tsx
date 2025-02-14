@@ -31,7 +31,7 @@ const WorkflowStatus = ({
       <TableCell>{workflow_type}</TableCell>
       <TableCell>{workflow_name}</TableCell>
       <TableCell align="right">{pipeline_state || 'never run'}</TableCell>
-      <TableCell align="right">{pipeline_finished_at ? formatTime(pipeline_finished_at) : 'never'}</TableCell>
+      <TableCell align="right">{pipeline_finished_at ? formatTime(pipeline_finished_at) : 'never run'}</TableCell>
     </TableRow>
   );
 };

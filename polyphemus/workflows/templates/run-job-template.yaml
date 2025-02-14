@@ -15,6 +15,7 @@ spec:
           - name: version_number
       container:
         image: etnaagent/polyphemus:production
+        imagePullPolicy: Always
         imagePullSecrets: 
           - name: hub.docker.com
         command:
@@ -23,7 +24,7 @@ spec:
         args:
         # Refactor this once we sort out how to use file secrets in the argo namespace
           - |
-            echo "password: $DB_PASSWORD" > /app/db-password; cat /app/db-password; cp /run/config/*.yml /app; /app/bin/polyphemus run_job {{inputs.parameters.job}} {{inputs.parameters.config_id}} {{inputs.parameters.version_number}}
+            echo "password: $DB_PASSWORD" > /app/db-password; cp /run/config/*.yml /app; /app/bin/polyphemus run_job {{inputs.parameters.job}} {{inputs.parameters.config_id}} {{inputs.parameters.version_number}}
         env:
           - name: KUBE_ID
             value: "{{workflow.uid}}"

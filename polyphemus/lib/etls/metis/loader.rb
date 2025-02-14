@@ -106,7 +106,7 @@ module Metis
             file_contents << chunk
           end
 
-          head, *rows = CSV.parse(file_contents, col_sep: table_separator(file))
+          head, *rows = CSV.parse(StringIO.new(file_contents, 'r:bom|utf-8'), col_sep: table_separator(file))
           data = Daru::DataFrame.rows(rows, order: head.map(&:to_sym))
 
           if !data.any? || data.ncols < 2
@@ -254,6 +254,8 @@ module Metis
         @raw_config[:project_name]
       end
     end
+
+    attr_reader :config
 
     def initialize(config = {}, rules = {}, params = {}, model_defs={})
       @config = Config.new(

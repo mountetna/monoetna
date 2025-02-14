@@ -36,9 +36,9 @@ class Polyphemus
       end.compact.to_h
     end
 
-    def with_status
+    def with_secrets
       as_json.merge(
-        'status' => status
+        'secrets' => secrets.to_h
       )
     end
 
@@ -48,14 +48,6 @@ class Polyphemus
 
     def last_run
       @last_run ||= Polyphemus::Run.last_for_config(config_id)
-    end
-
-    def status
-      { 
-        'run_interval' => runtime_config.run_interval,
-        'status' => last_run&.status || "never run",
-        'last_run' => last_run&.created_at&.iso8601 || "never run"
-      }
     end
 
     def to_revision
