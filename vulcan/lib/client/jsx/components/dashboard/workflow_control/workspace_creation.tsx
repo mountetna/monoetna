@@ -17,9 +17,9 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {pushLocation} from 'etna-js/actions/location_actions';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {CreateWorkspaceResponse, Workflow, Workspace, WorkspaceMinimal} from '../../../api_types';
+import {WorkspaceMinimal} from '../../../api_types';
 import { VulcanContext } from '../../../contexts/vulcan_context';
-import { runPromise, useAsyncCallback } from 'etna-js/utils/cancellable_helpers';
+import { useAsyncCallback } from 'etna-js/utils/cancellable_helpers';
 import { VulcanState } from '../../../reducers/vulcan_reducer';
 import LoadingIcon from '../loading_icon';
 
@@ -68,13 +68,24 @@ export default function WorkspaceCreateButtonModal({
   const [handleCreateWorkspace] = useAsyncCallback(function* () {
     if (!workflow || !workflow.id) return;
     setCreating(true);
-    const newSession: CreateWorkspaceResponse = yield* runPromise(showErrors(createWorkspace(projectName, workflow.id, workspaceName, branch, repoVersion.version)))
-    setCreating(false);
-    invoke(
-      pushLocation(
-        `/${projectName}/workspace/${newSession.workspace_id}`
-      )
-    );
+    showErrors(createWorkspace(projectName, workflow.id, workspaceName, branch, repoVersion.version))
+    .then((newSession) => {
+      setCreating(false);
+      invoke(
+        pushLocation(
+          `/${projectName}/workspace/${newSession.workspace_id}`
+        )
+      );
+    })
+    .catch((e) => {
+      setCreating(false)
+      // ToDo: Make use of error to highlight when the user gets their branch or version wrong.
+      // if (e[0].includes(`branch ${branch} not found`)) {
+      //   setBranchError(true)
+      // } else if (e[0].includes('did not match any file(s) known to git')) {
+      //   setVersionError(true)
+      // }
+    })
   }, [invoke, projectName, workflow, workspaceName, branch, repoVersion]);
 
   const defaultName = useMemo(() => {
