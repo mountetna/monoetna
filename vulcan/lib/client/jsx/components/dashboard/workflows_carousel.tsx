@@ -14,7 +14,6 @@ import {makeStyles} from '@material-ui/core/styles';
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {Workflow} from '../../api_types';
 import WorkflowCard from './card';
-
 const useStyles = makeStyles((theme) => ({
   workflows: {
     width: '100%',
@@ -38,10 +37,9 @@ export default function WorkflowsCarousel({
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
 
-  const projectWorkflows = workflows
-    ? workflows.filter(({projects}: {projects?: string[] | null}) =>
-        projects?.includes(project_name)
-      )
+  // v2: workflows are already retrieved in a project specific context
+  const projectWorkflows = !!workflows
+    ? workflows
     : [];
 
   const collator = new Intl.Collator(undefined, {
@@ -50,7 +48,7 @@ export default function WorkflowsCarousel({
   });
   const sortedWorkflows = useMemo(() => {
     return projectWorkflows.sort((a, b) =>
-      collator.compare(a.displayName || a.name, b.displayName || b.name)
+      collator.compare(a.name, b.name)
     );
   }, [projectWorkflows]);
 
@@ -60,7 +58,7 @@ export default function WorkflowsCarousel({
 
   const handleOnSelectWorkflow = useCallback(
     (workflow: Workflow) => {
-      if (workflow.name === selectedWorkflow?.name) {
+      if (workflow.id === selectedWorkflow?.id) {
         setSelectedWorkflow(null);
       } else {
         setSelectedWorkflow(workflow);
@@ -78,7 +76,7 @@ export default function WorkflowsCarousel({
         return (
           <Grid item key={index}>
             <WorkflowCard
-              selected={selectedWorkflow?.name === workflow.name}
+              selected={selectedWorkflow?.id === workflow.id}
               workflow={workflow}
               onClick={() => handleOnSelectWorkflow(workflow)}
             />
