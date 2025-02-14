@@ -1,7 +1,6 @@
 import React, {
   useContext,
   useState,
-  useCallback,
   useMemo
 } from 'react';
 
@@ -26,7 +25,6 @@ import Typography from '@material-ui/core/Typography';
 import Collapse from '@material-ui/core/Collapse';
 import IconButton from '@material-ui/core/IconButton';
 import Grid from '@material-ui/core/Grid';
-import {makeStyles} from '@material-ui/core/styles';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
@@ -37,23 +35,7 @@ import {
   BufferedInputsContext,
   WithBufferedInputs
 } from '../../../contexts/input_state_management';
-
-const useStyles = makeStyles((theme) => ({
-  card: {
-    borderRadius: 0,
-    border: '1px solid #eee'
-  },
-  error: {
-    border: '1px solid red'
-  },
-  label: {
-    paddingLeft: '5px'
-  },
-  header: {
-    cursor: 'pointer',
-    padding: '10px'
-  }
-}));
+import { useInputFeedStyles } from '../input_feed';
 
 function StepUIInner({
   specs,
@@ -142,13 +124,12 @@ export default function GroupedStepUI({
     [allInnerStatus]
   );
   const [open, setOpen] = useState(!allStepsComplete);
-  const toggleInputs = useCallback(() => setOpen(!open), [setOpen, open]);
 
   const hasValidationErrors = group.steps.some((step) =>
     state.validationErrors.some(([stepName]) => stepName === step.name)
   );
 
-  const classes = useStyles();
+  const classes = useInputFeedStyles();
 
   const label = labelOfStepOrGroupedStep(group);
 
@@ -168,7 +149,7 @@ export default function GroupedStepUI({
         className={classes.header}
         justifyContent='space-between'
         container
-        onClick={toggleInputs}
+        onClick={() => setOpen(!open)}
       >
         <Grid item container style={{width: 'auto'}}>
           <StepIcon step={group} />

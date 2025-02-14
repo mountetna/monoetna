@@ -34,7 +34,7 @@ export default function StepsList() {
       <div className='steps-list-wrapper'>
         {!workspace ? null :workspace.dag.map((step, index) => (
           <div key={index} className='step'>
-            <StepIconName step={stepOfName(step, workspace.vulcan_config) as WorkspaceStep}/>
+            <StepIconName step={stepOfName(step, workspace.vulcan_config)}/>
           </div>
         ))}
       </div>

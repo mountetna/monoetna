@@ -329,7 +329,7 @@ export function stepOfName(
   stepName: string,
   // workspace_steps: Workspace['steps'],
   vulcan_config: VulcanConfig
-): WorkspaceStep | undefined {
+): WorkspaceStep {
   // if (stepName in workspace_steps) return workspace_steps[stepName];
   if (stepName in vulcan_config) {
     const step_conf = vulcan_config[stepName];
@@ -614,7 +614,7 @@ export function outputUIsWithInputsReady(
 ): WorkspaceStep[] {
   return (
     outputUINamesWithInputsReady(workspace, file_contents)
-    .map((step: string) => stepOfName(step, workspace.vulcan_config) as WorkspaceStep)
+    .map((step: string) => stepOfName(step, workspace.vulcan_config))
   );
 }
 

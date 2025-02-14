@@ -12,10 +12,29 @@ import {
   pendingStepNames,
   uiComponentOfStep,
   stepNamesOfStatus,
-  pickToArray
+  pickToArray,
+  stepOfName
 } from '../../selectors/workflow_selectors';
 import GroupedStepUI from './drawers/step_user_input';
 import LoadingIcon from '../dashboard/loading_icon';
+import { makeStyles } from '@material-ui/core/styles';
+
+export const useInputFeedStyles = makeStyles((theme) => ({
+  card: {
+    borderRadius: 0,
+    border: '1px solid #eee'
+  },
+  error: {
+    border: '1px solid red'
+  },
+  label: {
+    paddingLeft: '5px'
+  },
+  header: {
+    cursor: 'pointer',
+    padding: '10px'
+  }
+}));
 
 export default function InputFeed() {
   // Shows stream of Inputs,
@@ -44,15 +63,15 @@ export default function InputFeed() {
       ));
   }, [update_files])
 
-  // let errorSteps = pickToArray(workspace.steps, erroredStepNames(workspace, status));
+  let errorSteps = erroredStepNames(workspace, status).map((step) => stepOfName(step, workspace.vulcan_config));
 
   return (
     <div className='session-input-feed'>
       <ParamInputs />
       {stepInputs}
-      {/* {errorSteps.map((s, index) => (
+      {errorSteps.map((s, index) => (
         <StepError key={index} step={s} />
-      ))} */}
+      ))}
     </div>
   );
 }

@@ -130,11 +130,8 @@ export function bindInputSpecification(
 ): BoundInputSpecification {
   
   const stepName = input.name;
-  const step = stepOfName(stepName, 
-    // workspace_steps,
-    vulcan_config);
+  const step = stepOfName(stepName, vulcan_config);
   // ToDo: Surface an error instead
-  if (!step) return;
   const config = vulcan_config[stepName];
 
   const inputDataKeyMap = stepInputMapping(config);
