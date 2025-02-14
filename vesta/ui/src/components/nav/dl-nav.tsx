@@ -135,6 +135,12 @@ export default function DLNav({
                 onClick={handleClickNavLink}
                 typography={linkTypography}
             />
+            <NavLink
+                text='Legacy Version'
+                href={'https://datalibraryarchive.ucsf.edu/'}
+                onClick={handleClickNavLink}
+                typography={linkTypography}
+            />
         </Box>
     )
 }
