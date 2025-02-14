@@ -16,6 +16,10 @@ module Etna
       @hmac = @request.env['etna.hmac']
     end
 
+    def application
+      Etna::Application.instance
+    end
+
     def log(line)
       @logger.warn(request_msg(line))
     end
@@ -86,7 +90,7 @@ Subject: #{subject}
 #{content}
 MESSAGE_END
 
-      unless @server.send(:application).test?
+      unless application.test?
         Net::SMTP.start('smtp.ucsf.edu') do |smtp|
           smtp.send_message message, 'noreply@janus', to_email
         end
@@ -108,7 +112,7 @@ MESSAGE_END
     def route_url(name, params={})
       path = route_path(name,params)
       return nil unless path
-      @request.scheme + '://' + @request.host + path
+      @request.scheme + '://' + application.host + path
     end
 
     # methods for returning a view
@@ -134,7 +138,7 @@ MESSAGE_END
 
     def config_hosts
       [:janus, :magma, :timur, :metis, :vulcan, :polyphemus, :gnomon].map do |host|
-        [ :"#{host}_host", @server.send(:application).config(host)&.dig(:host) ]
+        [ :"#{host}_host", application.config(host)&.dig(:host) ]
       end.to_h.compact
     end
 

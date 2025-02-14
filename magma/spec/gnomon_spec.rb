@@ -517,11 +517,13 @@ describe GnomonController do
   end
 
   context 'rules API' do
-    it 'lists all of the rules for each requested project' do
+    before(:each) do
       grammar = create_grammar(version_number: 1, config: {})
       grammar2 = create_grammar(version_number: 2, config: VALID_GRAMMAR_CONFIG)
       grammar3 = create_grammar(project_name: 'toils', version_number: 1, config: VALID_GRAMMAR_CONFIG)
+    end
 
+    it 'lists all of the rules for each requested project' do
       auth_header(:superuser)
       post('/gnomon/rules', project_names: [ 'labors', 'toils' ])
       expect(last_response.status).to eq(200)
@@ -539,6 +541,19 @@ describe GnomonController do
          victim: "^(LABORS)(-)(LION|HYDRA)(-)(V|H)(\\d+)(-)(S|C)(\\d+)$",
          village: "^(LABORS)(-)(LION|HYDRA)(-)(V|H)(\\d+)$"
        }
+      )
+    end
+
+    it 'lists all of the rules for a given project' do
+      auth_header(:viewer)
+      get('/gnomon/labors/rules')
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:rules]).to eq(
+       labor: "^(The Nemean Lion|The Lernean Hydra)$",
+       project: "^(The Twelve Labors of Hercules)$",
+       victim: "^(LABORS)(-)(LION|HYDRA)(-)(V|H)(\\d+)(-)(S|C)(\\d+)$",
+       village: "^(LABORS)(-)(LION|HYDRA)(-)(V|H)(\\d+)$"
       )
     end
   end

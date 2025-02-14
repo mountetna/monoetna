@@ -14,12 +14,24 @@ module WithEtnaClients
   end
 
   def token
-    Polyphemus.instance.config(:polyphemus, environment)[:token]
+    @token || Polyphemus.instance.config(:polyphemus, environment)[:token]
+  end
+
+  def janus_client
+    @janus_client ||= Etna::Clients::Janus.new(
+      token: token,
+      host: Polyphemus.instance.config(:janus, environment)[:host])
   end
 
   def magma_client
     @magma_client ||= Etna::Clients::Magma.new(
       token: token,
+      host: Polyphemus.instance.config(:magma, environment)[:host])
+  end
+
+  def gnomon_client(logger: nil)
+    @gnomon_client ||= Etna::Clients::Gnomon.new(
+        token: token,
       host: Polyphemus.instance.config(:magma, environment)[:host])
   end
 
@@ -32,6 +44,13 @@ module WithEtnaClients
   def metis_client=(client)
     @metis_client = client if Polyphemus.instance.test?
   end
+
+  def polyphemus_client
+    @polyphemus_client ||= Etna::Clients::Polyphemus.new(
+      token: token,
+      host: Polyphemus.instance.config(:polyphemus, environment)[:host])
+  end
+
 end
 
 module WithLogger
