@@ -20,10 +20,10 @@ export default function OutputFeed() {
         <LoadingIcon/>
         Refreshing Files
       </div> :
-      outputUIsWithInputsReady(workspace, status).map((s, index) => (
+      outputUIsWithInputsReady(workspace, status.file_contents).map((s, index) => (
         <OutputUI key={index} step={s}/>
       ));
-  }, [workspace, status, update_files]);
+  }, [workspace, status.file_contents, update_files]);
 
   return (
     <div className="session-output-feed">

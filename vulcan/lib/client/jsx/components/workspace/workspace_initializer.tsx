@@ -3,20 +3,16 @@ import * as _ from 'lodash';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {
-  uiContentsFromFiles,
   paramValuesFromRaw,
-  vulcanConfigFromRaw,
   workflowByIdFromWorkflows,
-  allFilesToBuffer,
   paramValuesToRaw,
-  filesReturnToMultiFileContent,
   updateStepStatusesFromRunStatus,
   workspaceFromRaw
 } from '../../selectors/workflow_selectors';
 
 import WorkspaceManager from './workspace_manager';
 import StepsList from './steps_list';
-import { defaultWorkspaceStatus, FileContentResponse, Workspace, WorkspaceRaw, WorkspaceStatus } from '../../api_types';
+import { defaultWorkspaceStatus } from '../../api_types';
 import {
   setWorkflow,
   setAutoPassStep,
@@ -24,7 +20,6 @@ import {
 } from '../../actions/vulcan_actions';
 import {
   defaultStepStatus,
-  MultiFileContentResponse,
 } from '../../api_types';
 import {runPromise, useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
 
@@ -40,8 +35,6 @@ export default function WorkspaceInitializer({
     dispatch,
     showErrors,
     getWorkspace,
-    getFileNames,
-    readFiles
   } = useContext(VulcanContext);
 
   // For now, we will ALWAYS initialize form the state of the workspace on c4
@@ -76,56 +69,37 @@ export default function WorkspaceInitializer({
   // );
 
   const [initializeFromWorkspace] = useAsyncCallback(function* () {
-    // workspace 
-    const workspaceRaw: WorkspaceRaw = yield* runPromise(showErrors(getWorkspace(projectName, workspaceId)));
-    if (!('workspace_id' in workspaceRaw)) {
-      console.log("workspaceRaw is not a workspace");
-    }
-    const workspace = workspaceFromRaw(workspaceRaw);
+    // workspace
+    showErrors(getWorkspace(projectName, workspaceId))
+    .then((workspaceRaw) => {
+      const workspace = workspaceFromRaw(workspaceRaw);
 
-    const status = defaultWorkspaceStatus;
-    // step statuses
-    const defaultStepStatuses = Object.fromEntries(workspace.dag.map(
-      stepName => [stepName, defaultStepStatus]
-    ))
-    status['steps'] = !!workspace.last_job_status ?
-      updateStepStatusesFromRunStatus(workspace.last_job_status, defaultStepStatuses).newStepStatus :
-      defaultStepStatuses;
+      const status = defaultWorkspaceStatus;
+      
+      // step statuses
+      const defaultStepStatuses = Object.fromEntries(workspace.dag.map(
+        stepName => [stepName, defaultStepStatus]
+      ))
+      status['steps'] = !!workspace.last_job_status ?
+        updateStepStatusesFromRunStatus(workspace.last_job_status, defaultStepStatuses).newStepStatus :
+        defaultStepStatuses;
 
-    // paramUIs
-    const param_vals = paramValuesFromRaw(workspace.last_config, workspace);
-    status['last_params'] = !!workspace.last_config ?
-      workspace.last_config :
-      paramValuesToRaw(param_vals)
-    status['params'] = param_vals
+      // paramUIs
+      const param_vals = paramValuesFromRaw(workspace.last_config, workspace);
+      status['last_params'] = !!workspace.last_config ?
+        workspace.last_config :
+        paramValuesToRaw(param_vals)
+      status['params'] = param_vals
+      
+      // Send it, with the true here triggering files to be updated in a next render
+      dispatch(setFullWorkspaceState(workspace, status, true));
 
-    // File pulls & inputUIs
-    const fileNamesRaw: {files: string[]} = yield* runPromise(showErrors(getFileNames(projectName, workspaceId)));
-    const fileNames = fileNamesRaw.files;
-    if (!Array.isArray(fileNames)) {
-      console.log("fileNames is not an array");
-    }
-    status['output_files'] = fileNames;
-    const fileGrabs = allFilesToBuffer(workspace).filter(f => fileNames.includes(f));
-    if (fileGrabs.length > 0) {
-      const filesContentRaw: MultiFileContentResponse = yield* runPromise(readFiles(projectName, workspaceId, fileGrabs))
-      if (!Array.isArray(filesContentRaw.files)) {
-        console.log("filesContentRaw is not an array");
-      }
-      const filesContent = filesReturnToMultiFileContent(filesContentRaw);
-      status['file_contents'] = filesContent;
-      status['ui_contents'] = uiContentsFromFiles(workspace, filesContent);
-    } else {
-      status['ui_contents'] = uiContentsFromFiles(workspace);
-    }
-
-    dispatch(setFullWorkspaceState(workspace, status));
-
-    // // Auto-pass for fully-defaulted params
-    // if (workspace.vignette?.includes('Primary inputs are skippable') && !workspace.last_job_status) {
-    //   dispatch(setAutoPassStep(null));
-    // }
-  }, [state, projectName, workspaceId, dispatch]);
+      // // Auto-pass for fully-defaulted params
+      // if (workspace.vignette?.includes('Primary inputs are skippable') && !workspace.last_job_status) {
+      //   dispatch(setAutoPassStep(Object.keys(param_vals)));
+      // }
+    })
+  }, [projectName, workspaceId, dispatch]);
 
   useEffect(() => {
     if (state.workspace==null) {

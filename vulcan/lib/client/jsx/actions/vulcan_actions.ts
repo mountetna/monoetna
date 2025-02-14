@@ -2,8 +2,6 @@ import {
   AccountingReturn,
   VulcanStorage,
   Workflow,
-  WorkflowsResponse,
-  Workspaces,
   Workspace,
   WorkspaceStatus,
   WorkspaceRaw,
@@ -37,8 +35,8 @@ export function setWorkspace(workspace: Workspace | WorkspaceRaw, projectName: s
   return actionObject('SET_WORKSPACE', {workspace, projectName});
 }
 
-export function setFullWorkspaceState(workspace: Workspace, status: WorkspaceStatus) {
-  return actionObject('SET_FULL_WORKSPACE_STATUS', {workspace, status});
+export function setFullWorkspaceState(workspace: Workspace, status: WorkspaceStatus, update_files: boolean) {
+  return actionObject('SET_FULL_WORKSPACE_STATUS', {workspace, status, update_files});
 }
 
 export function setStateFromStorage(storage: VulcanStorage) {
@@ -122,7 +120,7 @@ export function removeSync(stepName: string) {
   return actionObject('REMOVE_SYNC', {stepName});
 }
 
-export function updateFiles(statusUpdates: Pick<WorkspaceStatus, 'output_files' | 'file_contents' | 'ui_contents'>) {
+export function updateFiles(statusUpdates: Pick<WorkspaceStatus, 'output_files' | 'file_contents'>) {
   return actionObject('UPDATE_FILES', {statusUpdates});
 }
 

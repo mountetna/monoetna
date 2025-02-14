@@ -193,7 +193,8 @@ export default function VulcanReducer(
       return {
         ...state,
         workspace: {...action.workspace},
-        status: {...action.status}
+        status: {...action.status},
+        update_files: action.update_files,
       }
     case 'SET_CONFIG_ID':
       return {

@@ -31,21 +31,17 @@ import {
   clearCommittedStepPending,
   clearRunTriggers,
   setWorkspace,
-  removeSync,
-  updateFiles,
 } from '../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 // import Vignette from '../vignette';
 import VulcanHelp from './drawers/vulcan_help';
-import { allFilesToBuffer, filesReturnToMultiFileContent, uiContentsFromFiles, workflowName } from '../../selectors/workflow_selectors';
+import { workflowName } from '../../selectors/workflow_selectors';
 import {useWorkspace} from '../../contexts/workspace_context';
 // import {json_get} from 'etna-js/utils/fetch';
 import useUserHooks from '../../contexts/useUserHooks';
 import Tag from '../dashboard/tag';
 import Grid from '@material-ui/core/Grid';
-import {runPromise, useAsync} from 'etna-js/utils/cancellable_helpers';
-import { MultiFileContentResponse, WorkspaceStatus } from '../../api_types';
 import { VulcanState } from '../../reducers/vulcan_reducer';
 
 // import RevisionHistory from 'etna-js/components/revision-history';
@@ -117,47 +113,12 @@ export default function WorkspaceManager() {
   // const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
   // const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
-  useAsync(function* () {
-    if (status.to_sync.length > 0) {
-      // Push files / params to compute server for  step
-      const pushStep = [...status.to_sync][0]
-      requestPoll(state, true, false, pushStep);
-      dispatch(removeSync(pushStep));
-    }
-  }, [status.to_sync])
-
-  useAsync(function* () {
-    if (state.update_files && !!workspaceId) {
-      // Push files / params to compute server for  step
-      const fileNamesRaw: {files: string[]} = yield* runPromise(showErrors(getFileNames(projectName, workspaceId)));
-      const fileNames = fileNamesRaw.files;
-      const update = {
-        output_files: fileNames,
-        file_contents: {},
-        ui_contents: {}
-      }
-      const fileGrabs = allFilesToBuffer(workspace).filter(f => fileNames.includes(f));
-      if (fileGrabs.length > 0) {
-        const filesContentRaw: MultiFileContentResponse = yield* runPromise(readFiles(projectName, workspaceId, fileGrabs))
-        const filesContent = filesReturnToMultiFileContent(filesContentRaw);
-        update['file_contents'] = filesContent;
-        update['ui_contents'] = uiContentsFromFiles(workspace, filesContent);
-      } else {
-        update['file_contents'] = {};
-        update['ui_contents'] = uiContentsFromFiles(workspace);
-      }
-      dispatch(updateFiles(update))
-    }
-  }, [state.update_files, workspaceId])
-
   const run = useCallback((_state: VulcanState) => {
     showErrors(requestPoll(_state,false,true));
     dispatch(clearCommittedStepPending());
-    // ToDo: Additional accounting per completed steps!
   }, [requestPoll, dispatch, showErrors]);
   const stop = useCallback(() => {
     cancelPolling()
-    // ToDo: Additional accounting per completed steps!
   }, [cancelPolling]);
 
   // ToDo Later: once we figure out revisions.

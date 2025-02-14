@@ -8,6 +8,7 @@ import {defaultInputStateManagement, useInputStateManagement} from './input_stat
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {defaultConfirmationHelpers, useConfirmation} from './confirmation';
 import { useWorkspaceWorkflowLoading } from './workspace_worksflow_loading';
+import { useFileBuffering } from './file_buffering';
 
 export const defaultContext = {
   state: defaultVulcanState as VulcanState,
@@ -76,12 +77,13 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
 
     const localSessionHelpers = withOverrides(useLocalSessionStorage(state, props), props);
     const apiHelpers = withOverrides(useApi(invoker), props);
-    const {showErrors, readFiles, getWorkflows, getWorkspaces, getWorkspace, requestRun, pullRunStatus, postUIValues} = apiHelpers;
+    const {showErrors, readFiles, getWorkflows, getWorkspaces, getWorkspace, requestRun, pullRunStatus, postUIValues, getFileNames} = apiHelpers;
     const sessionSyncHelpers = withOverrides(
       useSessionSyncWhileRunning(showErrors, requestRun, pullRunStatus, postUIValues, dispatch),
       props
     );
     useWorkspaceWorkflowLoading(JSON.stringify(props.params), dispatch, getWorkflows, getWorkspaces, getWorkspace, showErrors, state.projectName, state.workspaceId, state.update_workflows);
+    useFileBuffering(state, dispatch, showErrors, getFileNames, readFiles)
     const confirmationHelpers = withOverrides(useConfirmation(), props);
     const inputHelpers = useInputStateManagement(invoker, dispatch, sessionSyncHelpers.requestPoll, stateRef);
 

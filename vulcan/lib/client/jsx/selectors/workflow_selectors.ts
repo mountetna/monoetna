@@ -169,7 +169,7 @@ export function paramValuesToRaw(params: WorkspaceStatus['params']): FlatParams 
 
 export function uiContentsFromFiles(workspace: Workspace, file_contents?: WorkspaceStatus['file_contents']): WorkspaceStatus['ui_contents'] {
   const {vulcan_config} = workspace;
-  if (!file_contents) {
+  if (!file_contents || Object.keys(file_contents).length<1) {
     return Object.fromEntries(allUIStepNames(workspace).map(setName => [
       setName,
       Object.fromEntries((vulcan_config[setName].output?.files as string[]).map(f => [f, null]))
@@ -361,7 +361,7 @@ export function statusOfStep(
   const stepName = typeof step === 'string' ? step : step.name;
   return (stepName in status.steps) ? status.steps[stepName] :
     // outputUIs that won't be tracked as a step...
-    workspace!=null && outputUINamesWithInputsReady(workspace, status).includes(stepName) ?
+    workspace!=null && outputUINamesWithInputsReady(workspace, status.file_contents).includes(stepName) ?
     {name: stepName, status: 'complete', statusFine: 'COMPLETED'} : undefined;
 }
 
@@ -598,22 +598,22 @@ export function pendingUIInputStepReady(
 
 export function outputUINamesWithInputsReady(
   workspace: VulcanState['workspace'],
-  status: VulcanState['status']
+  file_contents: WorkspaceStatus['file_contents']
 ): string[] {
   if (!workspace) return []
   return (
     outputUINames(workspace).filter((step: string) => 
-      workspace.vulcan_config[step].input?.files?.every((id) => id in status.file_contents)
+      workspace.vulcan_config[step].input?.files?.every((id) => id in file_contents)
     )
   );
 }
 
 export function outputUIsWithInputsReady(
   workspace: Workspace,
-  status: VulcanState['status']
+  file_contents: WorkspaceStatus['file_contents']
 ): WorkspaceStep[] {
   return (
-    outputUINamesWithInputsReady(workspace, status)
+    outputUINamesWithInputsReady(workspace, file_contents)
     .map((step: string) => stepOfName(step, workspace.vulcan_config) as WorkspaceStep)
   );
 }

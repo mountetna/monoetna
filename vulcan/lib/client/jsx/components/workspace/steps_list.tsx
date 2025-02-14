@@ -18,8 +18,8 @@ export default function StepsList() {
 
   const hasCompletedOutputs = useMemo(() => {
     if (!workspace) return false;
-    return outputUIsWithInputsReady(workspace, status).length > 0
-  }, [workspace, status]);
+    return outputUIsWithInputsReady(workspace, status.file_contents).length > 0
+  }, [workspace, status.file_contents]);
 
   useEffect(() => {
     setOpen(!hasCompletedOutputs || !!state.pollingState);
