@@ -1,4 +1,4 @@
-import React, {useReducer, createContext, useRef, useState, useCallback} from 'react';
+import React, {createContext, useRef, useState, useCallback} from 'react';
 import VulcanReducer, {defaultVulcanState, VulcanState} from '../reducers/vulcan_reducer';
 import {VulcanAction} from '../actions/vulcan_actions';
 import {defaultSessionStorageHelpers, useLocalSessionStorage} from './session_storage';
@@ -7,8 +7,7 @@ import {defaultSessionSyncHelpers, useSessionSyncWhileRunning} from './session_s
 import {defaultInputStateManagement, useInputStateManagement} from './input_state_management';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {defaultConfirmationHelpers, useConfirmation} from './confirmation';
-import { useWorkspaceWorkflowLoading } from './workspace_worksflow_loading';
-import { useFileBuffering } from './file_buffering';
+import { useWorkspacesWorkflowLoading } from './workspace_worksflow_loading';
 
 export const defaultContext = {
   state: defaultVulcanState as VulcanState,
@@ -64,6 +63,7 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
       return result;
     }, [props.logActions]);
 
+    // Inject data coming from the URL to state.
     if (!!props.params && 'project_name' in props.params && state.projectName!=props.params.project_name) {
       const newResult = {...stateRef.current, projectName: props.params.project_name as string};
       stateRef.current = newResult;
@@ -77,13 +77,12 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
 
     const localSessionHelpers = withOverrides(useLocalSessionStorage(state, props), props);
     const apiHelpers = withOverrides(useApi(invoker), props);
-    const {showErrors, readFiles, getWorkflows, getWorkspaces, getWorkspace, requestRun, pullRunStatus, postUIValues, getFileNames} = apiHelpers;
+    const {showErrors, readFiles, getWorkflows, getWorkspaces, requestRun, pullRunStatus, postUIValues, getFileNames} = apiHelpers;
     const sessionSyncHelpers = withOverrides(
       useSessionSyncWhileRunning(showErrors, requestRun, pullRunStatus, postUIValues, dispatch),
       props
     );
-    useWorkspaceWorkflowLoading(JSON.stringify(props.params), dispatch, getWorkflows, getWorkspaces, getWorkspace, showErrors, state.projectName, state.workspaceId, state.update_workflows);
-    useFileBuffering(state, dispatch, showErrors, getFileNames, readFiles)
+    useWorkspacesWorkflowLoading(state.update_workflows, dispatch, getWorkflows, getWorkspaces, showErrors, state.projectName);
     const confirmationHelpers = withOverrides(useConfirmation(), props);
     const inputHelpers = useInputStateManagement(invoker, dispatch, sessionSyncHelpers.requestPoll, stateRef);
 

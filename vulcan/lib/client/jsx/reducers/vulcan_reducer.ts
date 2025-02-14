@@ -1,6 +1,6 @@
 import {VulcanAction} from '../actions/vulcan_actions';
 import {
-  WorkflowsResponse,
+  Workflow,
   Workspace,
   AccountingReturn,
   defaultWorkspaceStatus,
@@ -19,10 +19,7 @@ import {
 import {Maybe, withDefault} from '../selectors/maybe';
 import { pick } from 'lodash';
 
-export type DownloadedData = any; // TODO: improve typing here.
-export type DownloadedStepDataMap = {[k: string]: DownloadedData};
-
-const defaultWorkflows = [] as WorkflowsResponse;
+const defaultWorkflows = [] as Workflow[];
 const defaultWorkspaces = [] as WorkspaceMinimal[];
 const defaultWorkspace = null as Workspace | null;
 const defaultId = null as number | null;
@@ -34,15 +31,20 @@ export const defaultVulcanState = {
   workflows: defaultWorkflows,
   workflow: defaultWorkflow,
   workspaces: defaultWorkspaces,
+  workspace: defaultWorkspace,
   workspaceId: defaultId,
-  workspace: defaultWorkspace, // All possible input/outputs defined in here
   configId: defaultId,
   runId: defaultId,
+
+  // rule/step statuses, ui&param contents per local, file&param contents per server 
   status: defaultStatus, // Only filled input/outputs in here
 
-  // Simple triggers for a re-pull of...
-  update_workflows: true, // workflows, workspaces, and workspace
+  // Trigger re-pull via useEffect inside vulcan_context
+  update_workflows: true,
   update_files: false, // ui-related files needed for the workspace-manager
+
+  // Trigger send to server
+  pushSteps: [] as string[],
 
   // MAYBE: So that users can preview from their local storage before triggering the vulcan workspace to match it
   // Not used yet
@@ -55,11 +57,14 @@ export const defaultVulcanState = {
 
   // Step marked for auto-passing by user
   autoPassSteps: [] as (string | null)[],
+
+  // Request Run and trigger polling state
   triggerRun: [] as (string | null)[],
+  pollingState: 0,
   
   validationErrors: defaultValidationErrors,
-  
-  pollingState: 0,
+
+  // Not used yet
   newStepCompletions: [] as string[]
 };
 
@@ -373,7 +378,7 @@ export default function VulcanReducer(
         return state;
       }
 
-      // Map elements from ui-intenal keys to external keys
+      // Map elements from ui-intenal keys to external keys (param and filenames)
       const newValues = {}
       const mapping = stepOutputMapping(state.workspace.vulcan_config[action.stepName])
       Object.entries(mapping).forEach(
@@ -382,40 +387,24 @@ export default function VulcanReducer(
         }
       )
 
-      // Set in status
-      if (allUIStepNames(state).includes(action.stepName)) {
-        return {
-          ...state,
-          status: {
-            ...state.status,
-            ui_contents: {
-              ...state.status.ui_contents,
-              [action.stepName]: newValues
-            },
-            to_sync: state.status.to_sync.concat(action.stepName),
-          }
-        };
-      } else {
-        return {
-          ...state,
-          status: {
-            ...state.status,
-            params: {
-              ...state.status.params,
-              [action.stepName]: newValues
-            },
-            to_sync: state.status.to_sync.concat(action.stepName),
-          }
-        };
+      // Set in status, and mark for sending to the server
+      const statusElement = allUIStepNames(state).includes(action.stepName) ? 'ui_contents' : 'params';
+      return {
+        ...state,
+        pushSteps: state.pushSteps.concat(action.stepName),
+        status: {
+          ...state.status,
+          [statusElement]: {
+            ...state.status[statusElement],
+            [action.stepName]: newValues
+          },
+        }
       };
 
     case 'REMOVE_SYNC':
       return {
         ...state,
-        status: {
-          ...state.status,
-          to_sync: state.status.to_sync.filter(s => s!=action.stepName),
-        }
+        pushSteps: state.pushSteps.filter(s => s!=action.stepName)
       };
 
     case 'UPDATE_FILES':

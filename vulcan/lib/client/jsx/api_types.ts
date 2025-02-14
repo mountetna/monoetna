@@ -6,7 +6,7 @@ export const RUN = {
   UI_OUTPUT: 'ui-outputs/'
 };
 
-export const defaultWorkflowsResponse = [] as Workflow[];
+export const defaultWorkflowsResponse = {} as {workflows: Workflow[]};
 
 export type WorkflowsResponse = typeof defaultWorkflowsResponse;
 // export type ProjectWorkflowsResponse = typeof defaultWorkflowsResponse;
@@ -292,7 +292,6 @@ export const defaultWorkspaceStatus = {
   last_params: {} as {[k: string]: any},
   params: {} as {[k: string]: {[k: string]: Maybe<any>}}, // top key = 'param1/param2/...paramN' if many from 1; innner keys = param output's keys.
   ui_contents: {} as {[k: string]: {[k: string]: Maybe<any>}}, // top key = name defined in vulcan config (matches step name in dag); inner keys = file outputs' filenames
-  to_sync: [] as string[], // ''=params, filled strings == file names to send
 }
 
 export type WorkspaceStatus = typeof defaultWorkspaceStatus;

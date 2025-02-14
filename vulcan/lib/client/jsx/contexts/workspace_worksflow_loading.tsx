@@ -3,32 +3,29 @@ import {setWorkflowsWorkspaces, VulcanAction} from '../actions/vulcan_actions';
 import {defaultApiHelpers} from './api';
 import { runPromise, useAsync } from 'etna-js/utils/cancellable_helpers';
 
-export function useWorkspaceWorkflowLoading(
-    key: string,
+export function useWorkspacesWorkflowLoading(
+    run_update: boolean,
     dispatch: Dispatch<VulcanAction>,
     getWorkflows: typeof defaultApiHelpers.getWorkflows,
     getWorkspaces: typeof defaultApiHelpers.getWorkspaces,
-    getWorkspace: typeof defaultApiHelpers.getWorkspace,
     showErrors: typeof defaultApiHelpers.showErrors,
     projectName: string | undefined,
-    workspaceId: number | null,
-    run_update: boolean
 ) {
 
     useAsync(function* () {
         if (run_update) {
             const update = {};
             if (!!projectName) {
-                update['workspaces'] = (yield* runPromise(showErrors(getWorkspaces(projectName)))).workspaces
-                update['workflows'] = (yield* runPromise(showErrors(getWorkflows(projectName)))).workflows
-            }
-            // We WANT to rely on the workspace_initializer for this part!
-            // if (!!projectName && !!workspaceId) {
-            //     update['workspace'] = (yield* runPromise(showErrors(getWorkspace(projectName, workspaceId))))
-            // }
-            if (Object.keys(update).length > 0) {
-                dispatch(setWorkflowsWorkspaces(update));
+                showErrors(getWorkspaces(projectName))
+                .then((workspacesReturn) => {
+                    update['workspaces'] = workspacesReturn.workspaces;
+                    showErrors(getWorkflows(projectName))
+                    .then((workflowsReturn) => {
+                        update['workflows'] = workflowsReturn.workflows
+                        dispatch(setWorkflowsWorkspaces(update));
+                    })
+                })
             }
         }
-    }, [key, dispatch, showErrors, getWorkspace, getWorkflows, getWorkspaces, projectName, workspaceId, run_update]);
+    }, [run_update, dispatch, getWorkflows, getWorkspaces, showErrors, projectName]);
 }

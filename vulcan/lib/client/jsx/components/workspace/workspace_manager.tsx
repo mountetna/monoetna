@@ -43,6 +43,7 @@ import useUserHooks from '../../contexts/useUserHooks';
 import Tag from '../dashboard/tag';
 import Grid from '@material-ui/core/Grid';
 import { VulcanState } from '../../reducers/vulcan_reducer';
+import { useDataSync } from './data_sync';
 
 // import RevisionHistory from 'etna-js/components/revision-history';
 
@@ -82,6 +83,7 @@ export default function WorkspaceManager() {
     requestPoll,
     cancelPolling,
     updateWorkspace,
+    postUIValues,
     getFileNames,
     readFiles,
     // updateFigure,
@@ -104,6 +106,8 @@ export default function WorkspaceManager() {
   useEffect(() => {
     setLocalTitle(workspace.name);
   }, [workspace.name])
+
+  useDataSync(state, dispatch, showErrors, getFileNames, readFiles, postUIValues);
 
   const invoke = useActionInvoker();
 

@@ -1,23 +1,35 @@
-import {Dispatch} from 'react';
-import {updateFiles, VulcanAction} from '../actions/vulcan_actions';
-import {defaultApiHelpers} from './api';
-import {VulcanState} from '../reducers/vulcan_reducer';
-import {allFilesToBuffer, filesReturnToMultiFileContent} from '../selectors/workflow_selectors';
-import {useAsync} from 'etna-js/utils/cancellable_helpers';
-import { MultiFileContent } from '../api_types';
+import {Dispatch, useEffect} from 'react';
+import {removeSync, updateFiles, useUIAccounting, VulcanAction} from '../../actions/vulcan_actions';
+import {defaultApiHelpers} from '../../contexts/api';
+import {VulcanState} from '../../reducers/vulcan_reducer';
+import {allFilesToBuffer, filesReturnToMultiFileContent} from '../../selectors/workflow_selectors';
+import { MultiFileContent } from '../../api_types';
 
 const imageExtRegEx = /\.(png|tiff?|jpe?g|bmp|svg|gif|webp)$/
 
-export function useFileBuffering(
+export function useDataSync(
     state: VulcanState,
     dispatch: Dispatch<VulcanAction>,
     showErrors: typeof defaultApiHelpers.showErrors,
     getFileNames: typeof defaultApiHelpers.getFileNames,
     readFiles: typeof defaultApiHelpers.readFiles,
+    postUIValues: typeof defaultApiHelpers.postUIValues,
 ) {
-  const {update_files, workspace, workspaceId, projectName} = state;
+  const {update_files, workspace, workspaceId, projectName, status, pushSteps} = state;
 
-  useAsync(function* () {
+  useEffect(() => {
+    if (pushSteps.length > 0 && !!workspaceId) {
+      // Push files / params to compute server for step
+      const pushStep = [...pushSteps][0]
+      showErrors(postUIValues(projectName,workspaceId,status,pushStep))
+      .then((accountingResponse) => {
+        dispatch(useUIAccounting(accountingResponse, pushStep));
+        dispatch(removeSync(pushStep));
+      })
+    }
+  }, [pushSteps, postUIValues])
+
+  useEffect(() => {
     if (update_files && !!workspaceId && !!projectName) {
       console.log("Using data buffering")
       let update = {output_files: [] as string[], file_contents: {} as {[k: string]: any}};
@@ -28,7 +40,9 @@ export function useFileBuffering(
         let filesContent: MultiFileContent = {};
           
         const filesReady = allFilesToBuffer(workspace).filter(f => fileNames.includes(f));
-        if (filesReady.length > 0) {
+        if (filesReady.length == 0) {
+          dispatch(updateFiles(update));
+        } else {
           // Stub images
           const images = filesReady.filter(f => imageExtRegEx.test(f));
           if (images.length > 0) {
@@ -53,5 +67,5 @@ export function useFileBuffering(
         }
       })
     }
-  }, [update_files, workspaceId, projectName]);
+  }, [update_files, workspaceId, projectName, getFileNames, readFiles]);
 }

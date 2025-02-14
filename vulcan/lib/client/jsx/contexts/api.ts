@@ -78,16 +78,16 @@ export const defaultApiHelpers = {
   readFiles(projectName: string, workspaceId: number, fileNames: string[]): Promise<MultiFileContentResponse> {
     return new Promise(() => null);
   },
-  setConfig(projectName: string, workspaceId: number, params: FlatParams): Promise<Response | AccountingReturn> {
+  setConfig(projectName: string, workspaceId: number, params: FlatParams): Promise<AccountingReturn> {
     return new Promise(() => null);
   },
-  postUIValues(projectName: string, workspaceId: number, status: WorkspaceStatus, steps: string | null): Promise<Response | AccountingReturn> {
+  postUIValues(projectName: string, workspaceId: number, status: WorkspaceStatus, steps: string | null): Promise<AccountingReturn> {
     return new Promise(() => null);
   },
-  requestRun(projectName: string, workspaceId: number, configId: number): Promise<Response | RunReturn> {
+  requestRun(projectName: string, workspaceId: number, configId: number): Promise<RunReturn> {
     return new Promise(() => null);
   },
-  pullRunStatus(projectName: string, workspaceId: number, runId: number): Promise<Response | RunStatus> {
+  pullRunStatus(projectName: string, workspaceId: number, runId: number): Promise<RunStatus> {
     return new Promise(() => null);
   }
 };
@@ -230,7 +230,7 @@ export function useApi(
   }, [vulcanPost, vulcanPath]);
 
   const setConfig = useCallback(
-    (projectName: string, workspaceId: number, params: FlatParams): Promise<Response | AccountingReturn> => {
+    (projectName: string, workspaceId: number, params: FlatParams): Promise<AccountingReturn> => {
       return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/config`),
         {params: params}
@@ -238,7 +238,7 @@ export function useApi(
   }, [vulcanPost, vulcanPath]);
 
   const postUIValues = useCallback(
-    (projectName: string, workspaceId: number, status: WorkspaceStatus, step: string): Promise<Response | AccountingReturn> => {
+    (projectName: string, workspaceId: number, status: WorkspaceStatus, step: string): Promise<AccountingReturn> => {
       // Only ever per a single 'step'.
       // Can assume the values have already been validated.
       // If a "inputUI", send targeted file outputs
@@ -281,14 +281,14 @@ export function useApi(
   );
 
   const requestRun = useCallback(
-    (projectName: string, workspaceId: number, configId: number): Promise<Response | RunReturn> => {
+    (projectName: string, workspaceId: number, configId: number): Promise<RunReturn> => {
       return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/run/${configId}`), {}
       );
   }, [vulcanPost, vulcanPath]);
 
   const pullRunStatus = useCallback(
-    (projectName: string, workspaceId: number, runId: number): Promise<Response | RunStatus> => {
+    (projectName: string, workspaceId: number, runId: number): Promise<RunStatus> => {
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/run/${runId}`))
   }, [vulcanGet, vulcanPath]);
 
