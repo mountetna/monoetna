@@ -84,7 +84,7 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
     );
     useWorkspacesWorkflowLoading(state.update_workflows, dispatch, getWorkflows, getWorkspaces, showErrors, state.projectName);
     const confirmationHelpers = withOverrides(useConfirmation(), props);
-    const inputHelpers = useInputStateManagement(invoker, dispatch, sessionSyncHelpers.requestPoll, stateRef);
+    const inputHelpers = useInputStateManagement(invoker, dispatch, stateRef);
 
     return (<VulcanContext.Provider value={{
       state,

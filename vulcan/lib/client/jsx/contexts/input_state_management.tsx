@@ -213,7 +213,6 @@ export function WithBufferedInputs({
 export function useInputStateManagement(
   invoke: ReturnType<typeof useActionInvoker>,
   dispatch: Dispatch<VulcanAction>,
-  requestPoll: typeof defaultSessionSyncHelpers.requestPoll,
   stateRef: MutableRefObject<VulcanState>
 ): typeof defaultInputStateManagement {
   const getErrors = useCallback(
@@ -250,7 +249,7 @@ export function useInputStateManagement(
       dispatch(setUIValues(inputs, stepName))
       return true;
     },
-    [dispatch, requestPoll, validateInputs]
+    [dispatch, validateInputs]
   );
 
   return {

@@ -100,7 +100,7 @@ export const workflowId = (workflow: Workflow | null | undefined) =>
 
 export function workflowByIdFromWorkflows(
   id: Workspace['workflow_id'],
-  workflows: WorkflowsResponse
+  workflows: Workflow[]
 ): Workflow | undefined {
   return id ? workflows.find((w) => workflowId(w) === id) : defaultWorkflow;
 }
