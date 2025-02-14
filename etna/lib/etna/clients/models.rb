@@ -12,7 +12,7 @@ module Etna
       end
 
       def initialize(raw = {})
-        @raw = raw
+        @raw = raw || {}
       end
     end
   end

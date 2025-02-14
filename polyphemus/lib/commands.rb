@@ -720,12 +720,21 @@ class Polyphemus
         config_id: config_id,
       ).first
 
+      @token = janus_client.generate_token(
+          'task',
+          signed_nonce: nil,
+          project_name: config.project_name
+      )
+
+      # reset janus_client so it uses task token
+      @janus_client = nil
+
       # Instantiate the job and run it
       # Dynamically load the job class from the job_name
       job = Kernel.const_get("#{job_name}_job".camelize.to_sym)
 
       job.new(
-        config.as_json,
+        config.with_secrets,
         runtime_config.as_json
       ).execute
     end
@@ -742,7 +751,7 @@ class Polyphemus
       Polyphemus.instance.setup_sequel
     end
 
-    def execute(run_id, workflow_json, output)
+    def execute(run_id, workflow_json, raw_output)
 
       # We need to fetch the project name
       run = Polyphemus::Run.where(
@@ -757,6 +766,11 @@ class Polyphemus
       # Parse the workflow_json and just extract status
       workflow_data = JSON.parse(workflow_json)
       status = workflow_data["status"]
+      name = workflow_data.dig("metadata","name")
+
+      # remove control characters and workflow name from output logs
+      output = raw_output.gsub(/\e\[\d+m/,'').gsub(/^#{name}[\-\w]*: /,'')
+
       updates = {
         orchestrator_metadata: status,
         output: output

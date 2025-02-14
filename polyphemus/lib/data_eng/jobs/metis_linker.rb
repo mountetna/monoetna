@@ -1,4 +1,5 @@
 require_relative 'etl_job'
+require_relative '../../etls/metis/loader'
 
 class MetisLinkerJob < Polyphemus::ETLJob
   include WithEtnaClients
@@ -41,9 +42,29 @@ class MetisLinkerJob < Polyphemus::ETLJob
         batch_end: context[:end_time]
     ))
 
-    update = Metis::Loader.new(config, rules, {}, project_def.models).update_for(tail, metis_client)
+    params = runtime_config['config'] || {}
 
-    magma_client.update_json(update, page_size=100)
+    loader = Metis::Loader.new(config, rules, params, project_def.models)
+
+    update = loader.update_for(tail, metis_client)
+
+    response = magma_client.update_json(update, page_size=100)
+
+    summary = <<EOT
+===============================
+Upload Summary : #{context[:start_time]} -> #{context[:end_time]} 
+Models: #{response.models.model_keys.join(', ')}
+Committed to Magma: #{!loader.config.dry_run?}
+Autolinked Parent Identifiers: #{loader.config.autolink?}
+EOT
+
+    response.models.each do |model_name, model|
+      summary += "#{model_name} records updated: #{model.documents.document_keys.join(', ')}\n"
+    end
+
+    summary += "==============================="
+
+    puts summary
   end
 
   # Post-condition method to update the number of files to update in the DB

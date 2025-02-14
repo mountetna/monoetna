@@ -81,7 +81,10 @@ describe MetisLinkerJob do
 
   let(:runtime_config) {
     {
-      "commit" => true
+      'config' => {
+        "commit" => true
+      },
+      'run_interval' => 0
     }
   }
   let(:run_id) { "1234567890" }
@@ -119,7 +122,9 @@ describe MetisLinkerJob do
       expect{
         context = job.execute
       }.not_to raise_error
-      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).with(
+        body: hash_including(dry_run: false)
+      )
       expect(WebMock).to have_requested(:post, /#{POLYPHEMUS_HOST}\/api\/workflows\/labors\/run\/update/)
     end
 
