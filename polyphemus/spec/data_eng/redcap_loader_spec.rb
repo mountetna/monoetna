@@ -30,6 +30,7 @@ describe RedcapLoaderJob do
       ENV['KUBE_ID'] = run_id
       ENV['TOKEN'] = TEST_TOKEN
       stub_magma_models
+      copy_redcap_project
       stub_redcap_data(:essential_data)
       stub_request(:post, "#{POLYPHEMUS_HOST}/api/workflows/test/run/update/#{run_id}").to_return(body: "{}")
       job = create_job( config, runtime_config )
