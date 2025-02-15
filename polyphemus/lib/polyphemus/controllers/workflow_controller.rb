@@ -94,11 +94,6 @@ class WorkflowController < Polyphemus::Controller
     success_json(config.as_json)
   end
 
-  def list
-    configs = Polyphemus::Config.current.where(project_name: @params[:project_name]).all
-    success_json(configs.map(&:with_status))
-  end
-
   def list_all
     if @params[:workflow_type] && !Polyphemus::WorkflowManifest.from_workflow_name(@params[:workflow_type])
       raise Etna::BadRequest, "There is no such workflow type #{@params[:workflow_type]}"
@@ -295,10 +290,9 @@ class WorkflowController < Polyphemus::Controller
         # If there is no run, we need to check the argo workflow status
         # If a job has started, and hasn't written to the run object yet, we will have no run object.
         # So we use the previous run's status to be safe
-        prev_run_finished = prev_run && prev_run.is_finished?
         next status.merge(
-         pipeline_state: prev_run_finished ? Polyphemus::ArgoWorkflowManager.get_workflow_status(prev_run) : "Running",
-         pipeline_finished_at: prev_run_finished ? prev_run.finished_at : nil,
+          pipeline_state: "running",
+          pipeline_finished_at: prev_run&.is_finished? ? prev_run.finished_at : nil,
         )
       end
     end

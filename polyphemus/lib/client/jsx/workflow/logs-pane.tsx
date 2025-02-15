@@ -19,6 +19,7 @@ import {gutter, lineNumbers} from '@codemirror/view';
 import CodeMirror from 'rodemirror';
 import {lintGutter} from '@codemirror/lint';
 import {Run} from '../polyphemus';
+import {formatTime} from './run-state';
 
 import ErrorBoundary from 'etna-js/components/error_boundary';
 
@@ -80,8 +81,8 @@ const RunRow = ({run, project_name} : { run: Run; project_name: string; }) => {
       <TableCell>{run_id}</TableCell>
       <TableCell>{version_number}</TableCell>
       <TableCell>{status}</TableCell>
-      <TableCell>{created_at}</TableCell>
-      <TableCell>{finished_at}</TableCell>
+      <TableCell>{formatTime(created_at)}</TableCell>
+      <TableCell>{finished_at ? formatTime(finished_at) : 'never run'}</TableCell>
     </TableRow>
     <TableRow>
       <TableCell colSpan={5} className={classes.output_view}>
@@ -141,7 +142,7 @@ const LogsPane = ({
           </TableHead>
           <TableBody>
           {
-            runs.map(
+            runs.sort( (a,b) => a.created_at.localeCompare(b.created_at)).map(
               run => <RunRow project_name={project_name} key={run.run_id} run={run}/>
             )
           }
