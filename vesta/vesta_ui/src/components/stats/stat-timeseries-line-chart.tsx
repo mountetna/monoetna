@@ -7,7 +7,7 @@ import { alpha, Breakpoint, Fade, useMediaQuery, useTheme } from '@mui/material'
 import ButtonBase from '@mui/material/ButtonBase';
 import { useParentSize } from '@visx/responsive'
 import { AnimatedLineSeries, XYChart, Tooltip, TooltipProvider } from '@visx/xychart';
-import { scaleTime } from '@visx/scale'
+import { scaleTime, scaleLinear } from '@visx/scale'
 import { ScaleTime } from '@visx/vendor/d3-scale'
 import Image from 'next/image';
 
@@ -159,7 +159,7 @@ function _StatTimeseriesLineChart({
         range: [0, chartContainerWidth],
     })
 
-    const showDayInAxis = ['month', 'week'].indexOf(timeWindowVal) >= 0 || filteredData.length <= 30
+    const showDayInAxis = ['month', 'week'].includes(timeWindowVal) || filteredData.length <= 30
 
     const numTicksWithDay = isMobile ? 3 : isTablet ? 3 : isDesktop ? 6 : 7
     const numTicksWODay = isMobile ? 3 : isTablet ? 3 : isDesktop ? 8 : 8
@@ -255,7 +255,10 @@ function _StatTimeseriesLineChart({
                         width={chartContainerWidth}
                         height={chartContainerHeight}
                         xScale={{ type: 'time' }}
-                        yScale={{ type: 'linear' }}
+                        yScale={{
+                            type: 'linear',
+                            range: [chartContainerHeight - paddingPx, paddingPx],
+                        }}
                         margin={{ top: 0, right: 0, bottom: -45, left: 0 }}
                     >
                         <AnimatedLineSeries
