@@ -390,8 +390,8 @@ def test_metis_files_etl_ingest_with_split_folder_name(mock_etna, mock_load, res
 @mock.patch('providers.etna.etna.etls.decorators.load_box_files_batch', side_effect=[mock_tail(), []])
 @mock.patch.object(EtnaHook, 'for_project', return_value=mock_etna_hook)
 @mock.patch.object(Variable, 'get', side_effect=[mock_var_get()])
-@mock.patch.object(Variable, 'set')
-def test_ingest_updates_cursor(mock_set, mock_get, mock_etna, mock_load, reset_db):
+@mock.patch.object(Variable, 'update')
+def test_ingest_updates_cursor(mock_update, mock_get, mock_etna, mock_load, reset_db):
 
     set_up_mocks()
 
@@ -452,8 +452,8 @@ def test_mark_ingested_updates_cursor(mock_get, reset_db):
 
 
 @mock.patch.object(Variable, 'get', side_effect=[mock_var_get()])
-@mock.patch.object(Variable, 'set')
-def test_update_cursor_saves_variable(mock_set, mock_get, reset_db):
+@mock.patch.object(Variable, 'update')
+def test_update_cursor_saves_variable(mock_update, mock_get, reset_db):
     set_up_mocks()
 
     box = Box(mock_box_hook)
@@ -464,7 +464,7 @@ def test_update_cursor_saves_variable(mock_set, mock_get, reset_db):
         '/file.txt': '1-2-3'
     }
     box.update_cursor()
-    mock_set.assert_called_with(
+    mock_update.assert_called_with(
         'box_ingest_cursor',
         {
             '/file.txt': '1-2-3'
