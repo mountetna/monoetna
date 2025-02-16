@@ -32,26 +32,21 @@ class UserController < Janus::Controller
     @janus_user = User[email: @user.email]
 
     raise Etna::Forbidden, 'User not found' unless @janus_user
-
     projects = @janus_user.permissions.map do |perm|
       # Don't use proj.to_hash because we don't necessarily want to send back
       #   all the information.
       {
         project_name: perm.project.project_name,
         project_name_full: perm.project.project_name_full,
+        project_type: perm.project.project_type,
         role: perm.role,
-        privileged: perm.privileged?,
-        resource: perm.project.resource,
-        requires_agreement: perm.project.requires_agreement,
-        cc_text: perm.project.cc_text,
+        privileged: perm.privileged?
       }
-    end.concat(Project.where(resource: true).all.map do |proj|
+    end.concat(Project.where(project_type: Project::PUBLIC_PROJECT_TYPES).all.map do |proj|
       {
         project_name: proj.project_name,
         project_name_full: proj.project_name_full,
-        resource: proj.resource,
-        requires_agreement: proj.requires_agreement,
-        cc_text: proj.cc_text,
+        project_type: proj.project_type
       }
     end).uniq do |proj|
       proj[:project_name]

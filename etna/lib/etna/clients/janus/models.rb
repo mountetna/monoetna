@@ -112,12 +112,8 @@ module Etna
           @raw[:permissions] || []
         end
 
-        def resource
-          !!@raw[:resource]
-        end
-
-        def requires_agreement
-          !!@raw[:requires_agreement]
+        def project_type
+          @raw[:project_type]
         end
       end
 
