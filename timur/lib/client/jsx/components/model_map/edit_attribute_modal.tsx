@@ -133,16 +133,18 @@ export default function EditAttributeModal({
             updateAttribute([['format_hint', e.target.value]])
           }
         />
-        <ModalSelect
-          id='edit-attribute-validation-type'
-          label='Validation Type'
-          value={validationType}
-          onChange={(value: string) => {
-            setValidationValue('');
-            setValidationType(value);
-          }}
-          options={VALIDATION_TYPES}
-        />
+        {attribute.attribute_type!='matrix' && (
+          <ModalSelect
+            id='edit-attribute-validation-type'
+            label='Validation Type'
+            value={validationType}
+            onChange={(value: string) => {
+              setValidationValue('');
+              setValidationType(value);
+            }}
+            options={VALIDATION_TYPES}
+          />
+        )}
         {validationType && (
           <ShrinkingLabelTextField
             id='edit-attribute-validation-value'
