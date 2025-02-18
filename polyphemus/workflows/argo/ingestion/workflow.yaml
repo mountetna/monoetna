@@ -1,15 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: cat-ingestion-workflow-
+  generateName: ingestion-workflow-
   namespace: argo
 spec:
-  entrypoint: cat-ingestion
+  entrypoint: ingestion
   onExit: record-runtime-meta
   imagePullSecrets:
     - name: hub.docker.com
   templates:
-    - name: cat-ingestion
+    - name: ingestion
       steps:
         - - name: file-discovery
             templateRef:

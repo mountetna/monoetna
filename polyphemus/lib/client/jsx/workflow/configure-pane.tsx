@@ -17,6 +17,7 @@ import ConfigScript from './config-script';
 import WorkflowPane, {WorkflowPaneHeader} from './workflow-pane';
 import RedcapForm from './redcap-form';
 import MetisForm from './metis-form';
+import IngestionForm from './ingestion-form';
 import RevisionHistory from 'etna-js/components/revision-history';
 import {json_get} from 'etna-js/utils/fetch';
 import {formatTime} from './run-state';
@@ -39,7 +40,8 @@ const FORMS: {
   [key: string]: any;
 } = {
   redcap: RedcapForm,
-  metis: MetisForm
+  metis: MetisForm,
+  ingestion: IngestionForm
 };
 
 const ConfigurePane = ({

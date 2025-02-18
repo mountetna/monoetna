@@ -108,4 +108,4 @@ end
 
 require_relative './metis_linker'
 require_relative './redcap_loader'
-#require_relative './cat_ingestion'
+require_relative './ingestion'
