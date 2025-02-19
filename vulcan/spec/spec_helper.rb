@@ -93,23 +93,27 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     FactoryBot.find_definitions
-    DatabaseCleaner.strategy = :transaction
+    # DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
 
-  # Note: I've had to comment out this code below to get long-ish running tests to work.
-  # This comes at the cost of auto_savepointing... which isn't a bottleneck for us (we don't have complicated nested
-  # transactions)
-  # I've also re-enabled  DatabaseCleaner.strategy = :transaction above
-
-  # config.around(:each) do |example|
+  config.around(:each) do |example|
     # Unfortunately, DatabaseCleaner + Sequel does not properly handle the auto_savepointing, which means that
     # exceptions handled in rescue blocks do not behave correctly in tests (where as they would be fine outside of
     # tests).  Thus, we are forced to manually handle the transaction wrapping of examples manually to set this option.
     # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
     #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
-  # Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
-  # end
+    
+    # Don't wrap long running tests in a transaction, as it will cause the tests to hang.
+    # Make sure to group tests that are long running in the same context.
+    if example.metadata[:long_running]
+      DatabaseCleaner.clean_with(:truncation)
+      example.run
+      DatabaseCleaner.clean_with(:truncation)
+    else
+      Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
+    end
+  end
 
   if ENV['RUN_E2E']=='1'
     config.filter_run e2e: true
@@ -285,6 +289,13 @@ class TestRemoteServerManager < Vulcan::RemoteManager
     command = Shellwords.join(["rm", "-r", "-f", dir])
     invoke_ssh_command(command)
   end
+
+  def tag_exists?(dir, tag)
+    command = "cd #{dir} && git tag -l #{tag}"
+    result = invoke_ssh_command(command)
+    !result[:stdout].strip.empty?
+  end
+
 end
 
 

@@ -1,5 +1,3 @@
-configfile: "config.yaml"
-
 rule summary:
     input:
         poem_count="output/count_poem.txt",

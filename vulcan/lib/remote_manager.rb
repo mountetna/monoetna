@@ -34,7 +34,7 @@ class Vulcan
     end
 
     def read_yaml_file(remote_file_path)
-      YAML.safe_load(read_file_to_memory(remote_file_path))
+      YAML.safe_load(read_file_to_memory(remote_file_path), permitted_classes: [Symbol])
     end
 
     def read_json_file(remote_file_path)

@@ -1,7 +1,0 @@
-poem: "output/poem.txt"
-poem_2: "output/poem_2.txt"
-count_bytes: true
-count_chars: false
-
-add: 2
-add_and_multiply_by: 3

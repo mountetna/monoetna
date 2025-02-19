@@ -162,8 +162,7 @@ class Vulcan
         # Therefore, we adopt a convention in the config.yaml - such that all input files
         # be defined starting with the string "output/". We can then create dummy files and run
         # our meta commands.
-
-        config_path = "#{Shellwords.escape(dir)}/config.yaml"
+        config_path = Vulcan::Path.default_snakemake_config(Shellwords.escape(dir))
         config = @remote_manager.read_yaml_file(config_path)
 
         # Identify input files and create them with "DUMMY FILE" content
@@ -179,7 +178,7 @@ class Vulcan
         end
 
         # Run snakemake --d3dag
-        dag_command = "cd #{Shellwords.escape(dir)} && snakemake --d3dag > rulegraph.json"
+        dag_command = "cd #{Shellwords.escape(dir)} && snakemake --configfile #{config_path} --d3dag > rulegraph.json"
         dag_output = @remote_manager.invoke_ssh_command(dag_command)
         if dag_output[:exit_status] != 0
           raise "Failed to generate DAG: #{dag_output[:stderr_or_info]}"

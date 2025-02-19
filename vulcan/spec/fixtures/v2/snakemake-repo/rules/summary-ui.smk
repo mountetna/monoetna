@@ -1,5 +1,3 @@
-configfile: "config.yaml"
-
 rule ui_job_one:
     input:
         "output/check.txt"

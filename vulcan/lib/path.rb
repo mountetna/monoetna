@@ -51,13 +51,16 @@ class Vulcan
       "#{path}/vulcan_config.yaml"
     end
 
-    def self.snakemake_config(path)
-      "#{path}/config.yaml"
+    def self.default_snakemake_config(path)
+      "#{path}/default-config.json"
     end
 
+    def self.workspace_config_dir(workspace_path)
+      "#{workspace_path}/configs/"
+    end
 
     def self.workspace_config_path(workspace_path, md5_hash)
-      "#{workspace_path}/configs/#{md5_hash}.json"
+      self.workspace_config_dir(workspace_path) + "#{md5_hash}.json"
     end
 
     def self.workspace_output_path(workspace_path)
