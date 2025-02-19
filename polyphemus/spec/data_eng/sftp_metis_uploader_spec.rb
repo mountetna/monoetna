@@ -1,4 +1,4 @@
-describe SFTPMetisUploaderJob do
+describe SftpMetisUploaderJob do
   include Rack::Test::Methods
   let(:config) {
     config = {
@@ -41,7 +41,7 @@ describe SFTPMetisUploaderJob do
       run_id: run_id,
       config_id: config["config_id"],
       version_number: config["version_number"],
-      state: {files_to_update_path: "/tmp/#{run_id}/#{SFTPFileDiscoveryJob::SFTP_FILES_TO_UPDATE_CSV}"},
+      state: {files_to_update_path: "/tmp/#{run_id}/#{SftpFileDiscoveryJob::SFTP_FILES_TO_UPDATE_CSV}"},
       orchestrator_metadata: {},
       output: nil,
       created_at: Time.now,
@@ -106,7 +106,7 @@ describe SFTPMetisUploaderJob do
       file_to_upload = "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/RA_DB2_SCC1_S32_L007_R1_001.fastq.gz"
       stub_upload_file_with_stream(file_to_upload, fake_stream)
 
-      job = SFTPMetisUploaderJob.new(TEST_TOKEN, config, runtime_config)
+      job = SftpMetisUploaderJob.new(TEST_TOKEN, config, runtime_config)
       context = job.execute
       expect(context[:failed_files]).to be_empty
       expect(captured_requests).to be_empty
@@ -125,9 +125,9 @@ describe SFTPMetisUploaderJob do
       # here we just force an streaming error to trigger an exception
       stub_upload_file_with_stream(file_to_upload, fake_stream, force_error: true)
 
-      job = SFTPMetisUploaderJob.new(TEST_TOKEN, config, runtime_config)
+      job = SftpMetisUploaderJob.new(TEST_TOKEN, config, runtime_config)
       context = job.execute
-      failed_files_path = "/tmp/1234567890/#{SFTPMetisUploaderJob::METIS_FAILED_FILES_CSV}"
+      failed_files_path = "/tmp/1234567890/#{SftpMetisUploaderJob::METIS_FAILED_FILES_CSV}"
       expect(File.exist?(failed_files_path)).to be_truthy
       expect(captured_requests[0][:state][:metis_num_failed_files]).to eq(1)
       expect(captured_requests[0][:state][:metis_failed_files_path]).to eq(failed_files_path)

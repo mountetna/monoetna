@@ -16,7 +16,7 @@ class Polyphemus
               path_to_write_files: { type: 'string' },
               bucket_name: { type: 'string' },
               metis_root_path: { type: 'string' },
-              c4_root_path: { type: 'string' }
+              deposit_root_path: { type: 'string' }
             }
           },
           runtime_params: {
