@@ -752,7 +752,10 @@ class Polyphemus
       Polyphemus.instance.setup_sequel
     end
 
-    def execute(run_id, workflow_json, raw_output)
+    def execute(run_id, workflow_name, workflow_namespace)
+
+      workflow_json = %x{ argo get --output=json #{workflow_name} -n #{workflow_namespace} }
+      raw_output = %x{ argo logs #{workflow_name} }
 
       # We need to fetch the project name
       run = Polyphemus::Run.where(
