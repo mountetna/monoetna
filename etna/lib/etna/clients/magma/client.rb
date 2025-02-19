@@ -62,7 +62,7 @@ module Etna
 
         json = nil
         @etna_client.post('/retrieve', retrieval_request) do |res|
-          json = JSON.parse(res.body)
+          json = safe_parse(res)
         end
 
         RetrievalResponse.new(json)
@@ -73,7 +73,7 @@ module Etna
       def query(query_request = QueryRequest.new)
         json = nil
         @etna_client.post('/query', query_request) do |res|
-          json = JSON.parse(res.body)
+          json = safe_parse(res)
         end
 
         QueryResponse.new(json)
@@ -83,7 +83,7 @@ module Etna
         json = nil
 
         @etna_client.multipart_post('/update', update_request.encode_multipart_content) do |res|
-          json = JSON.parse(res.body)
+          json = safe_parse(res)
         end
 
         UpdateResponse.new(json)
@@ -198,7 +198,7 @@ module Etna
         end
 
         @etna_client.post('/update', update_request) do |res|
-          json = JSON.parse(res.body)
+          json = safe_parse(res)
         end
 
         UpdateResponse.new(json)
@@ -207,7 +207,7 @@ module Etna
       def update_model(update_model_request = UpdateModelRequest.new)
         json = nil
         @etna_client.post('/update_model', update_model_request) do |res|
-          json = JSON.parse(res.body)
+          json = safe_parse(res)
         end
 
         UpdateModelResponse.new(json)
