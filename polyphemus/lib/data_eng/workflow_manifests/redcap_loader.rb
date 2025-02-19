@@ -24,7 +24,8 @@ class Polyphemus
             },
             commit: 'boolean'
           },
-          secrets: [ :redcap_tokens ]
+          secrets: [ :redcap_tokens ],
+          workflow_path: '/app/workflows/argo/redcap/workflow.yaml'
         }
       end
     end
