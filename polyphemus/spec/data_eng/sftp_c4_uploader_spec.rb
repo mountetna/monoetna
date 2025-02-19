@@ -87,7 +87,7 @@ describe SFTPC4UploaderJob do
         captured_requests = []
         stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
   
-        job = SFTPC4UploaderJob.new(config, runtime_config)
+        job = SFTPC4UploaderJob.new(TEST_TOKEN, config, runtime_config)
         context = job.execute
         expect(context[:failed_files]).to be_empty
         expect(captured_requests).to be_empty
@@ -101,7 +101,7 @@ describe SFTPC4UploaderJob do
         captured_requests = []
         stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
   
-        job = SFTPC4UploaderJob.new(config, runtime_config)
+        job = SFTPC4UploaderJob.new(TEST_TOKEN, config, runtime_config)
         context = job.execute
         failed_files_path = "/tmp/1234567890/#{SFTPC4UploaderJob::C4_FAILED_FILES_CSV}"
         expect(File.exist?(failed_files_path)).to be_truthy

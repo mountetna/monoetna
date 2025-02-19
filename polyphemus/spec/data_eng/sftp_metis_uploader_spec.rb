@@ -106,7 +106,7 @@ describe SFTPMetisUploaderJob do
       file_to_upload = "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/RA_DB2_SCC1_S32_L007_R1_001.fastq.gz"
       stub_upload_file_with_stream(file_to_upload, fake_stream)
 
-      job = SFTPMetisUploaderJob.new(config, runtime_config)
+      job = SFTPMetisUploaderJob.new(TEST_TOKEN, config, runtime_config)
       context = job.execute
       expect(context[:failed_files]).to be_empty
       expect(captured_requests).to be_empty
@@ -125,7 +125,7 @@ describe SFTPMetisUploaderJob do
       # here we just force an streaming error to trigger an exception
       stub_upload_file_with_stream(file_to_upload, fake_stream, force_error: true)
 
-      job = SFTPMetisUploaderJob.new(config, runtime_config)
+      job = SFTPMetisUploaderJob.new(TEST_TOKEN, config, runtime_config)
       context = job.execute
       failed_files_path = "/tmp/1234567890/#{SFTPMetisUploaderJob::METIS_FAILED_FILES_CSV}"
       expect(File.exist?(failed_files_path)).to be_truthy
