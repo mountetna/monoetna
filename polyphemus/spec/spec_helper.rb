@@ -182,27 +182,30 @@ def stub_magma_restricted_pools(base_model, restricted_pools)
                                 query: [base_model,
                                         ["timepoint", "patient", "restricted", "::true"],
                                         "::all", "#{base_model}_pool", "::identifier"] }))
-    .to_return({ body: {
-      'answer': restricted_pools.map { |p| [nil, p] },
-    }.to_json })
+    .to_return({
+      body: { 'answer': restricted_pools.map { |p| [nil, p] } }.to_json,
+      headers: { 'Content-Type': 'application/json' }
+    })
 end
 
 def stub_magma_all_pools(base_model, all_pools)
   stub_request(:post, "#{MAGMA_HOST}/query")
     .with(body: hash_including({ project_name: "mvir1",
                                  query: ["#{base_model}_pool", "::all", "::identifier"] }))
-    .to_return({ body: {
-      'answer': all_pools.map { |p| [nil, p] },
-    }.to_json })
+    .to_return({
+      body: { 'answer': all_pools.map { |p| [nil, p] } }.to_json,
+      headers: { 'Content-Type': 'application/json' }
+    })
 end
 
 def stub_magma_setup(patient_documents, use_json: false)
   stub_request(:post, "#{MAGMA_HOST}/retrieve")
     .with(body: hash_including({ project_name: "mvir1", model_name: "patient",
                                  attribute_names: ["name", "consent", "restricted"], record_names: "all" }))
-    .to_return({ body: {
-      'models': { 'patient': { 'documents': patient_documents } },
-    }.to_json })
+    .to_return({
+      body: { 'models': { 'patient': { 'documents': patient_documents } } }.to_json,
+      headers: { 'Content-Type': 'application/json' }
+    })
 
   use_json ? stub_magma_update_json : stub_magma_update("mvir1")
 end
@@ -363,7 +366,7 @@ end
 
 def stub_magma_models(fixture: "spec/fixtures/magma_test_models.json")
   stub_request(:post, "#{MAGMA_HOST}/retrieve")
-    .to_return({ body: File.read(fixture) })
+    .to_return({ body: File.read(fixture), headers: { 'Content-Type': 'application/json' }})
 end
 
 def stub_magma_update_json

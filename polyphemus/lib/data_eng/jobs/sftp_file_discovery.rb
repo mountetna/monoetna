@@ -8,7 +8,8 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
 
   SFTP_FILES_TO_UPDATE_CSV = "sftp_files_to_update.csv"
 
-  def initialize(config, runtime_config)
+  def initialize(token, config, runtime_config)
+    super
     @project_name = config['project_name']
     @sftp_client = SFTPClient.new(
       config["secrets"]["sftp_host"],

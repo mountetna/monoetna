@@ -64,7 +64,7 @@ describe SFTPFileDiscoveryJob do
           "initial_start_scan_time" => 1672531200, #Jan 1, 2023
         }
       }
-      job = SFTPFileDiscoveryJob.new(config, runtime_config)
+      job = SFTPFileDiscoveryJob.new(TEST_TOKEN, config, runtime_config)
       job.execute
       expect(captured_requests[0][:state][:start_time]).to eq(runtime_config["config"]["initial_start_scan_time"])
       expect(captured_requests[0][:state][:end_time]).to eq(runtime_config["config"]["initial_start_scan_time"] + runtime_config["config"]["interval"])
@@ -81,7 +81,7 @@ describe SFTPFileDiscoveryJob do
           "initial_start_scan_time" => 1672531200, #Jan 1, 2023
         }
       }
-      job = SFTPFileDiscoveryJob.new(config, runtime_config)
+      job = SFTPFileDiscoveryJob.new(TEST_TOKEN, config, runtime_config)
       job.execute
       expect(captured_requests[0][:state][:start_time]).to eq(runtime_config["config"]["initial_start_scan_time"])
       expect(captured_requests[0][:state][:end_time]).to be_within(5).of(Time.now.to_i)
@@ -110,7 +110,7 @@ describe SFTPFileDiscoveryJob do
     it "sends the proper run state to the db" do
       captured_requests = []
       stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
-      job = SFTPFileDiscoveryJob.new(config, runtime_config)
+      job = SFTPFileDiscoveryJob.new(TEST_TOKEN, config, runtime_config)
       job.execute
       expect(captured_requests[0][:state][:num_files_to_update]).to eq(11)
       expect(captured_requests[0][:state][:files_to_update_path]).to eq("/tmp/1234567890/#{SFTPFileDiscoveryJob::SFTP_FILES_TO_UPDATE_CSV}")
@@ -119,7 +119,7 @@ describe SFTPFileDiscoveryJob do
     it 'writes the files to update to a csv' do
       captured_requests = []
       stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
-      job = SFTPFileDiscoveryJob.new(config, runtime_config)
+      job = SFTPFileDiscoveryJob.new(TEST_TOKEN, config, runtime_config)
       job.execute
       expect(File.exist?(captured_requests[0][:state][:files_to_update_path])).to be_truthy
       expect(File.read(captured_requests[0][:state][:files_to_update_path])).to eq("path,modified_time\n" + sftp_files.map { |file| "#{file[:path]},#{file[:modified_time]}" }.join("\n") + "\n")
@@ -150,7 +150,7 @@ describe SFTPFileDiscoveryJob do
     it "fetches the last scan timestamp from the database" do
       captured_requests = []
       stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
-      job = SFTPFileDiscoveryJob.new(config, runtime_config)
+      job = SFTPFileDiscoveryJob.new(TEST_TOKEN, config, runtime_config)
       job.execute
       expect(captured_requests[0][:state][:start_time]).to eq(last_state["end_time"])
       expect(captured_requests[0][:state][:end_time]).to eq(last_state["end_time"] + 864000)

@@ -117,7 +117,7 @@ describe MetisLinkerJob do
         headers: { 'Content-Type': "application/json" },
       )
 
-      job = MetisLinkerJob.new(config, runtime_config)
+      job = MetisLinkerJob.new(TEST_TOKEN, config, runtime_config)
 
       expect{
         context = job.execute
@@ -135,7 +135,7 @@ describe MetisLinkerJob do
         headers: { 'Content-Type': "application/json" },
       )
 
-      job = MetisLinkerJob.new(config, runtime_config)
+      job = MetisLinkerJob.new(TEST_TOKEN, config, runtime_config)
 
       expect{
         context = job.execute

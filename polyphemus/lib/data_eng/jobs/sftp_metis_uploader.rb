@@ -8,7 +8,8 @@ class SFTPMetisUploaderJob < Polyphemus::ETLJob
 
   METIS_FAILED_FILES_CSV = "metis_failed_files.csv"
 
-  def initialize(config, runtime_config)
+  def initialize(token, config, runtime_config)
+    super
     @project_name = config['project_name']
     @sftp_client = SFTPClient.new(
       config["secrets"]["sftp_host"],
