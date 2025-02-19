@@ -30,7 +30,7 @@ spec:
             arguments:
               parameters:
                 - name: job
-                  value: sftp_c4_uploader
+                  value: sftp_deposit_uploader
                 - name: config_id
                   value: "{{workflow.parameters.config_id}}"
                 - name: version_number

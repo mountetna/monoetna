@@ -2,38 +2,64 @@ require_relative 'etl_job'
 require_relative 'common'
 require_relative '../clients/sftp_client'
 
-class SFTPFileDiscoveryJob < Polyphemus::ETLJob
+class SftpFileDiscoveryJob < Polyphemus::ETLJob
   include WithEtnaClients
   include WithLogger
 
   SFTP_FILES_TO_UPDATE_CSV = "sftp_files_to_update.csv"
 
-  def initialize(token, config, runtime_config)
-    super
-    @project_name = config['project_name']
-    @sftp_client = SFTPClient.new(
-      config["secrets"]["sftp_host"],
-      config["secrets"]["sftp_user"],
-      config["secrets"]["sftp_password"],
-    )
+  private
 
-    # Mandatory params
-    @workflow_config_id = config['config_id']
-    @workflow_version = config['version_number']
-    @path_to_write_files = config['config']['path_to_write_files']
-    @file_regex = config['config']['file_regex']
-    @sftp_root_dir = config['config']['sftp_root_dir']
-
-    # Runtime params
-    @initial_start_scan_time = runtime_config['config']['initial_start_scan_time']
-    @interval = runtime_config['config']['interval'] || nil
-    @restart_scan = runtime_config['config']['restart_scan']
+  def project_name
+    config['project_name']
   end
+
+  def workflow_config_id
+    config['config_id']
+  end
+
+  def workflow_version
+    config['version_number']
+  end
+
+  def file_regex
+    config['config']['file_regex']
+  end
+
+  def sftp_root_dir
+    config['config']['sftp_root_dir']
+  end
+
+  def path_to_write_files
+    config['config']['path_to_write_files']
+  end
+
+  def restart_scan?
+    !!runtime_config['config']['restart_scan']
+  end
+
+  def initial_start_scan_time
+    runtime_config['config']['initial_start_scan_time']
+  end
+
+  def override_interval
+    runtime_config['config']['override_interval'] || nil
+  end
+
+  def sftp_client
+    @sftp_client ||= SFTPClient.new(
+      config["secrets"]["sftp_ingest_host"],
+      config["secrets"]["sftp_ingest_user"],
+      config["secrets"]["sftp_ingest_password"],
+    )
+  end
+
+  public
 
   def pre(context)
     context[:start_time] = fetch_last_scan
-    if @interval
-      context[:end_time] = context[:start_time] + @interval
+    if override_interval
+      context[:end_time] = context[:start_time] + override_interval
     else
       context[:end_time] = Time.now.to_i
     end
@@ -42,20 +68,25 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
 
   def process(context)
     logger.info("Searching for files from #{context[:start_time]} to #{context[:end_time]}")
-    files_to_update = @sftp_client.search_files(@sftp_root_dir, @file_regex, context[:start_time], context[:end_time ])
+    files_to_update = sftp_client.search_files(
+      sftp_root_dir,
+      file_regex,
+      context[:start_time],
+      context[:end_time ]
+    )
     if files_to_update.empty?
       context[:num_files_to_update] = 0
       logger.info("No files found to update...")
     else
       context[:num_files_to_update] = files_to_update.size
-      writable_dir = build_pipeline_state_dir(@path_to_write_files, run_id)
+      writable_dir = build_pipeline_state_dir(path_to_write_files, run_id)
       context[:files_to_update_path] = write_csv(writable_dir, files_to_update)
       logger.info("Found #{files_to_update.size} files to update...")
     end
   end
 
   def post(context)
-    polyphemus_client.update_run(@project_name, run_id, {
+    polyphemus_client.update_run(project_name, run_id, {
       state: {
         num_files_to_update: context[:num_files_to_update],
         files_to_update_path: context[:files_to_update_path],
@@ -68,14 +99,15 @@ class SFTPFileDiscoveryJob < Polyphemus::ETLJob
   private
 
   def fetch_last_scan
-    if @restart_scan
-      logger.info("Restarting scan... at #{Time.at(@initial_start_scan_time).strftime('%Y-%m-%d %H:%M:%S')}")
-      @initial_start_scan_time
+    if restart_scan?
+      logger.info("Restarting scan... at #{Time.at(initial_start_scan_time).strftime('%Y-%m-%d %H:%M:%S')}")
+
+      return initial_start_scan_time
     else
       response = polyphemus_client.get_previous_state(
-       @project_name,
-       @workflow_config_id,
-       @workflow_version,
+       project_name,
+       workflow_config_id,
+       workflow_version,
        state: [:end_time]
       )
       if response[:error]

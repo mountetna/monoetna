@@ -83,7 +83,7 @@ const IngestionForm = ({
         metis_root_path
       </Grid>
       <Grid item container>
-        c4_root_path
+        deposit_root_path
       </Grid>
     </Grid>
   );
