@@ -26,6 +26,7 @@ class WorkflowController < Polyphemus::Controller
     Polyphemus::RuntimeConfig.create(
       config_id: config.config_id,
       run_interval: 0,
+      config: {},
       created_at: Time.now,
       updated_at: Time.now
     )
