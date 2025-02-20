@@ -13,6 +13,7 @@ module Etna
       @host = host
       @port = port
       @root = root
+      raise "RemoteSSH must have host, username and password" unless @host && @username && @password
     end
 
     def ssh

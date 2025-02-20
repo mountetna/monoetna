@@ -11,15 +11,16 @@ describe SftpFileDiscoveryJob do
     config = {
       "project_name" => "labors",
       "secrets" => {
-        "sftp_host" => "some-sftp-host", 
-        "sftp_user" => "user",
-        "sftp_password" => "password",
-        "sftp_port" => "22"
+        "sftp_ingest_host" => "some-sftp-host", 
+        "sftp_ingest_user" => "user",
+        "sftp_ingest_password" => "password",
+        "sftp_deposit_host" => "other-sftp-host", 
+        "sftp_deposit_user" => "user",
+        "sftp_deposit_password" => "password",
       },
       "config" => {
-        "file_regex" => "DSCOLAB(-|_).*",
-        "sftp_root_dir" => "SSD",
-        "path_to_write_files" => "/tmp/" 
+        "magic_string" => "LABORS",
+        "ingest_root_path" => "SSD"
       },
       "config_id" => "1",
       "version_number" => "1"
@@ -28,17 +29,17 @@ describe SftpFileDiscoveryJob do
 
   let(:sftp_files) {
     [
-      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB2_SCC1_S32_L007_R1_001.fastq.gz", modified_time: 1672876800 },
-      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB2_SCC1_S32_L007_I1_001.fastq.gz", modified_time: 1672876800 },
-      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB2_SCC1_S32_L007_I2_001.fastq.gz", modified_time: 1672876800 },
-      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB2_SCC1_S32_L007_R2_001.fastq.gz", modified_time: 1672876800 },
-      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_IPIMEL575-T1-CD45enriched-SCC1_S33_L007_R1_001.fastq.gz", modified_time: 1672876800 },
-      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_IPIMEL575-T1-CD45enriched-SCC1_S33_L007_I1_001.fastq.gz", modified_time: 1672876800 },
-      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_IPIMEL575-T1-CD45enriched-SCC1_S33_L007_I2_001.fastq.gz", modified_time: 1672876800 },
-      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_IPIMEL575-T1-CD45enriched-SCC1_S33_L007_R2_001.fastq.gz", modified_time: 1672876800 },
-      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB1_SCG1_S22_L008_R1_001.fastq.gz", modified_time: 1672876800 },
-      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB1_SCG1_S22_L008_I1_001.fastq.gz", modified_time: 1672876800 },
-      { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB1_SCG1_S22_L008_I2_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/ACMK02/LABORS_S1_R1_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/ACMK02/LABORS_S1_I1_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/ACMK02/LABORS_S1_I2_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/ACMK02/LABORS_S1_R2_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/ACMK02/LABORS_S2_R1_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/ACMK02/LABORS_S2_I1_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/ACMK02/LABORS_S2_I2_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/ACMK02/LABORS_S2_R2_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/ACMK02/LABORS_S3_R1_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/ACMK02/LABORS_S3_I1_001.fastq.gz", modified_time: 1672876800 },
+      { path: "SSD/ACMK02/LABORS_S3_I2_001.fastq.gz", modified_time: 1672876800 },
     ]
   }
 
@@ -119,19 +120,9 @@ describe SftpFileDiscoveryJob do
       stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
       job = create_job(config, runtime_config)
       job.execute
-      expect(captured_requests[0][:state][:num_files_to_update]).to eq(11)
-      expect(captured_requests[0][:state][:files_to_update_path]).to eq("/tmp/1234567890/#{SftpFileDiscoveryJob::SFTP_FILES_TO_UPDATE_CSV}")
+      expect(captured_requests[0][:state][:files_to_update].size).to eq(11)
+      expect(captured_requests[0][:state][:files_to_update]).to all(include(:path))
     end
-
-    it 'writes the files to update to a csv' do
-      captured_requests = []
-      stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
-      job = create_job(config, runtime_config)
-      job.execute
-      expect(File.exist?(captured_requests[0][:state][:files_to_update_path])).to be_truthy
-      expect(File.read(captured_requests[0][:state][:files_to_update_path])).to eq("path,modified_time\n" + sftp_files.map { |file| "#{file[:path]},#{file[:modified_time]}" }.join("\n") + "\n")
-    end 
-
   end
 
   context 'subsequent runs' do
@@ -163,5 +154,4 @@ describe SftpFileDiscoveryJob do
       expect(captured_requests[0][:state][:end_time]).to eq(last_state["end_time"] + 864000)
     end
   end
-
 end

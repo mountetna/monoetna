@@ -7,14 +7,16 @@ describe SftpDepositUploaderJob do
       config = {
         "project_name" => "labors",
         "secrets" => {
-          "sftp_host" => "some-sftp-host", 
-          "sftp_user" => "user",
-          "sftp_password" => "password",
-          "sftp_port" => "22"
+          "sftp_ingest_host" => "some-sftp-host", 
+          "sftp_ingest_user" => "user",
+          "sftp_ingest_password" => "password",
+          "sftp_deposit_host" => "other-sftp-host", 
+          "sftp_deposit_user" => "user",
+          "sftp_deposit_password" => "password"
         },
         "config" => {
-          "file_regex" => "LABORS(-|_).*",
-          "sftp_root_dir" => "SSD",
+          "magic_string" => "LABORS",
+          "ingest_root_path" => "SSD",
           "path_to_write_files" => "/tmp/",
           "bucket_name" => "deposit",
           "metis_root_path" => "files/some-sftp-host",
@@ -49,7 +51,9 @@ describe SftpDepositUploaderJob do
         run_id: run_id,
         config_id: config["config_id"],
         version_number: config["version_number"],
-        state: {files_to_update_path: "/tmp/#{run_id}/#{SftpFileDiscoveryJob::SFTP_FILES_TO_UPDATE_CSV}"},
+        state: {
+          files_to_update: sftp_files
+        },
         orchestrator_metadata: {},
         output: nil,
         created_at: Time.now,
@@ -57,16 +61,6 @@ describe SftpDepositUploaderJob do
       }
     }
   
-    def create_files_to_update_csv
-      FileUtils.mkdir_p("/tmp/#{run_id}")
-      CSV.open(run_record[:state][:files_to_update_path], "wb") do |csv|
-        csv << ["path", "modified_time"]
-        sftp_files.each do |file|
-          csv << [file[:path], file[:modified_time]]
-        end
-      end
-    end
-    
     before do
       ENV['TOKEN'] = TEST_TOKEN
       ENV['KUBE_ID'] = run_id
@@ -78,7 +72,6 @@ describe SftpDepositUploaderJob do
       let(:captured_requests) { [] }
 
       before do
-        create_files_to_update_csv
         stub_initial_sftp_connection
         stub_initial_ssh_connection
         stub_polyphemus_get_run(config["project_name"], run_id, run_record)
@@ -100,15 +93,16 @@ describe SftpDepositUploaderJob do
       end
   
       it 'fails to upload files' do
+        allow(Polyphemus.instance.logger).to receive(:warn)
+        expect(Polyphemus.instance.logger).to receive(:warn).with(/Failed to upload to deposit host other-sftp-host/)
+        expect(Polyphemus.instance.logger).to receive(:warn).with(/Found 1 failed files/)
+        expect(Polyphemus.instance.logger).to receive(:warn).with(/SSD.*LABORS_S1.fastq.gz/)
         stub_remote_ssh_file_upload(success: false)
 
         job = create_job(config, runtime_config)
         context = job.execute
 
-        failed_files_path = "/tmp/1234567890/#{SftpDepositUploaderJob::DEPOSIT_FAILED_FILES_CSV}"
-        expect(File.exist?(failed_files_path)).to be_truthy
         expect(captured_requests[0][:state][:deposit_num_failed_files]).to eq(1)
-        expect(captured_requests[0][:state][:deposit_failed_files_path]).to eq(failed_files_path)
       end
   
     end

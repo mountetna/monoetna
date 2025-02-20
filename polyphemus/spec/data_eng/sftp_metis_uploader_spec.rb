@@ -1,20 +1,25 @@
 describe SftpMetisUploaderJob do
   include Rack::Test::Methods
+
+  def create_job(config, runtime)
+    SftpMetisUploaderJob.new(TEST_TOKEN, config, runtime_config)
+  end
+
   let(:config) {
     config = {
       "project_name" => "labors",
       "secrets" => {
-        "sftp_host" => "some-sftp-host", 
-        "sftp_user" => "user",
-        "sftp_password" => "password",
-        "sftp_port" => "22"
+        "sftp_ingest_host" => "some-sftp-host", 
+        "sftp_ingest_user" => "user",
+        "sftp_ingest_password" => "password"
       },
       "config" => {
-        "file_regex" => "DSCOLAB(-|_).*",
-        "sftp_root_dir" => "SSD",
+        "magic_string" => "LABORS",
+        "ingest_root_path" => "SSD",
         "path_to_write_files" => "/tmp/",
-        "bucket_name" => "triage",
-        "metis_root_path" => "browse/waiting_room/fastq.ucsf.edu"
+        "bucket_name" => "deposit",
+        "metis_root_path" => "files/some-sftp-host",
+        "deposit_root_path" => "/labors/staging/polyphemus/ingest/some-sftp-host"
       },
       "config_id" => "1",
       "version_number" => "1"
@@ -25,7 +30,7 @@ describe SftpMetisUploaderJob do
   # TODO: eventually add mutliple files to test with, but running into stubbing and streaming errors
   let(:sftp_files) {
     [
-     { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/DSCOLAB_RA_DB2_SCC1_S32_L007_R1_001.fastq.gz", modified_time: 1672876800 },
+     { path: "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/LABORS_S1.fastq.gz", modified_time: 1672876800 },
     ]
   }
 
@@ -41,24 +46,15 @@ describe SftpMetisUploaderJob do
       run_id: run_id,
       config_id: config["config_id"],
       version_number: config["version_number"],
-      state: {files_to_update_path: "/tmp/#{run_id}/#{SftpFileDiscoveryJob::SFTP_FILES_TO_UPDATE_CSV}"},
+      state: {
+        files_to_update: sftp_files
+      },
       orchestrator_metadata: {},
       output: nil,
       created_at: Time.now,
       updated_at: Time.now
     }
   }
-
-  def create_files_to_update_csv
-    FileUtils.mkdir_p("/tmp/#{run_id}")
-    CSV.open(run_record[:state][:files_to_update_path], "wb") do |csv|
-      csv << ["path", "modified_time"]
-      sftp_files.each do |file|
-        csv << [file[:path], file[:modified_time]]
-      end
-    end
-  end
-
 
   let(:workflow_name){
     "workflow_name-2000"
@@ -73,6 +69,7 @@ describe SftpMetisUploaderJob do
   def stub_upload_file_with_stream(file_path, stream, force_error: false)
     next_blob_size = force_error ? stream.size * 100000: stream.size
     stub_upload_file(
+      file_path: config["config"]["metis_root_path"] + "/" + file_path,
       authorize_body: JSON.generate({
         url: "#{METIS_HOST}\/#{config["project_name"]}\/upload/#{config["config"]["metis_root_path"]}/#{file_path}",
       }),
@@ -85,52 +82,40 @@ describe SftpMetisUploaderJob do
   end
 
   context 'records to process' do
+    let(:captured_requests) { [] }
+    let(:file_to_upload) { "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/S1.fastq.gz" }
+    let(:fake_stream) { @fake_stream ||= StringIO.new("fake file content") }
 
     before do
-      create_files_to_update_csv
       stub_initial_sftp_connection
       stub_polyphemus_get_run(config["project_name"], run_id, run_record)
+      stub_sftp_client_download_as_stream(return_io: fake_stream)
+      stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
+      stub_metis_setup
+      stub_create_folder(bucket: config["config"]["bucket_name"], project: config["project_name"])
     end 
 
     it 'successfully uploads files' do
-      fake_stream = StringIO.new("fake file content")
-      stub_sftp_client_download_as_stream(return_io: fake_stream)
-
-      captured_requests = []
-      stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
-
-      # metis stubs
-      stub_metis_setup
-      stub_create_folder(bucket: config["config"]["bucket_name"], project: config["project_name"])
-      # these files have the DSCOLAB prefix removed
-      file_to_upload = "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/RA_DB2_SCC1_S32_L007_R1_001.fastq.gz"
       stub_upload_file_with_stream(file_to_upload, fake_stream)
 
-      job = SftpMetisUploaderJob.new(TEST_TOKEN, config, runtime_config)
+      job = create_job(config, runtime_config)
       context = job.execute
       expect(context[:failed_files]).to be_empty
       expect(captured_requests).to be_empty
     end
 
     it 'fails to upload files' do
-      fake_stream = StringIO.new("fake file content")
-      stub_sftp_client_download_as_stream(return_io: fake_stream)
-      captured_requests = []
-      stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
-
-      # metis stubs
-      stub_metis_setup
-      stub_create_folder(bucket: config["config"]["bucket_name"], project: config["project_name"])
-      file_to_upload = "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/RA_DB2_SCC1_S32_L007_R1_001.fastq.gz"
-      # here we just force an streaming error to trigger an exception
       stub_upload_file_with_stream(file_to_upload, fake_stream, force_error: true)
 
-      job = SftpMetisUploaderJob.new(TEST_TOKEN, config, runtime_config)
+      allow(Polyphemus.instance.logger).to receive(:warn)
+      expect(Polyphemus.instance.logger).to receive(:warn).with(/Failed to upload to metis/)
+      expect(Polyphemus.instance.logger).to receive(:warn).with(/Found 1 failed files/)
+      expect(Polyphemus.instance.logger).to receive(:warn).with(/SSD.*LABORS_S1.fastq.gz/)
+
+      job = create_job(config, runtime_config)
       context = job.execute
-      failed_files_path = "/tmp/1234567890/#{SftpMetisUploaderJob::METIS_FAILED_FILES_CSV}"
-      expect(File.exist?(failed_files_path)).to be_truthy
+
       expect(captured_requests[0][:state][:metis_num_failed_files]).to eq(1)
-      expect(captured_requests[0][:state][:metis_failed_files_path]).to eq(failed_files_path)
     end
   end
 
