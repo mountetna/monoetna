@@ -6,8 +6,6 @@ class SftpFileDiscoveryJob < Polyphemus::ETLJob
   include WithEtnaClients
   include WithLogger
 
-  SFTP_FILES_TO_UPDATE_CSV = "sftp_files_to_update.csv"
-
   private
 
   def project_name
@@ -22,16 +20,16 @@ class SftpFileDiscoveryJob < Polyphemus::ETLJob
     config['version_number']
   end
 
+  def magic_string
+    config['config']['magic_string']
+  end
+
   def file_regex
-    config['config']['file_regex']
+    Regexp.new("#{magic_string}(-|_).*")
   end
 
-  def sftp_root_dir
-    config['config']['sftp_root_dir']
-  end
-
-  def path_to_write_files
-    config['config']['path_to_write_files']
+  def ingest_root_path
+    config['config']['ingest_root_path']
   end
 
   def restart_scan?
@@ -43,7 +41,7 @@ class SftpFileDiscoveryJob < Polyphemus::ETLJob
   end
 
   def override_interval
-    runtime_config['config']['override_interval'] || nil
+    runtime_config['config']['override_interval']
   end
 
   def sftp_client
@@ -69,27 +67,20 @@ class SftpFileDiscoveryJob < Polyphemus::ETLJob
   def process(context)
     logger.info("Searching for files from #{context[:start_time]} to #{context[:end_time]}")
     files_to_update = sftp_client.search_files(
-      sftp_root_dir,
+      ingest_root_path,
       file_regex,
       context[:start_time],
       context[:end_time ]
     )
-    if files_to_update.empty?
-      context[:num_files_to_update] = 0
-      logger.info("No files found to update...")
-    else
-      context[:num_files_to_update] = files_to_update.size
-      writable_dir = build_pipeline_state_dir(path_to_write_files, run_id)
-      context[:files_to_update_path] = write_csv(writable_dir, files_to_update)
-      logger.info("Found #{files_to_update.size} files to update...")
-    end
+    logger.info("Found #{files_to_update.size} files to update...")
+    context[:files_to_update] = files_to_update
   end
 
   def post(context)
     polyphemus_client.update_run(project_name, run_id, {
       state: {
         num_files_to_update: context[:num_files_to_update],
-        files_to_update_path: context[:files_to_update_path],
+        files_to_update: context[:files_to_update],
         start_time: context[:start_time],
         end_time: context[:end_time]
       }
@@ -116,16 +107,5 @@ class SftpFileDiscoveryJob < Polyphemus::ETLJob
       end
       response["end_time"]
     end
-  end
-
-  def write_csv(dir_path, files_to_update)
-    filepath = File.join(dir_path, SFTP_FILES_TO_UPDATE_CSV)
-    CSV.open(filepath, "wb") do |csv|
-      csv << ["path", "modified_time"]
-      files_to_update.each do |file|
-        csv << [file[:path], file[:modified_time]]
-      end
-    end
-    filepath
   end
 end

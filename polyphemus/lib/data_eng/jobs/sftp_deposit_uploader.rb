@@ -20,8 +20,12 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
     config['version_number']
   end
 
-  def path_to_write_files
-    config['config']['path_to_write_files']
+  def magic_string
+    config['config']['magic_string']
+  end
+
+  def name_regex
+    Regexp.new("#{magic_string}(-|_)")
   end
 
   def deposit_root_path
@@ -57,9 +61,7 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
       raise "Run #{run_id} not found"
     end
 
-    context[:files_to_update] = CSV.foreach(run["state"]["files_to_update_path"], headers: true).map do |row|
-      { path: row['path'], modified_time: row['modified_time'].to_i }
-    end
+    context[:files_to_update] = run["state"]["files_to_update"].map(&:symbolize_keys)
 
     if context[:files_to_update].empty?
       logger.info("No new files to upload...")
@@ -89,7 +91,7 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
       end
 
       begin
-        deposit_path = File.join(deposit_root_path, remove_dscolab_prefix(sftp_path))
+        deposit_path = File.join(deposit_root_path, sftp_path.gsub(name_regex,''))
         remote_ssh.file_upload(deposit_path, file_stream)
       rescue Etna::RemoteSSH::RemoteSSHError => e
         logger.warn("Failed to upload to deposit host #{deposit_host}: #{deposit_path}. Error: #{e.message}")
@@ -100,23 +102,15 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
 
   def post(context)
     if context[:failed_files].any?
-      writable_dir = build_pipeline_state_dir(path_to_write_files, run_id)
-      context[:failed_files_path] = File.join(writable_dir, DEPOSIT_FAILED_FILES_CSV)
-
-      logger.warn("Writing failed files to #{context[:failed_files_path]}")
       logger.warn("Found #{context[:failed_files].size} failed files")
 
-      CSV.open(context[:failed_files_path], "wb") do |csv|
-        csv << ["path"]
-        context[:failed_files].each do |path|
-          csv << [path]
-        end
+      context[:failed_files].each do |file_path|
+        logger.warn(file_path)
       end
 
       polyphemus_client.update_run(project_name, run_id, {
         state: {
-          deposit_num_failed_files: context[:failed_files].size,
-          deposit_failed_files_path: context[:failed_files_path],
+          deposit_num_failed_files: context[:failed_files].size
         },
       })
     else

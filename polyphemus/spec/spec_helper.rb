@@ -307,7 +307,7 @@ def stub_create_folder(params = {})
 end
 
 def stub_upload_file(params = {})
-  stub_request(:post, /#{METIS_HOST}\/authorize\/upload/)
+  stub_request(:post, /#{METIS_HOST}\/authorize\/upload/).with(body: hash_including(file_path: params[:file_path] ))
     .to_return({
       status: params[:status] || 200,
       body: params[:authorize_body] || JSON.generate({}),

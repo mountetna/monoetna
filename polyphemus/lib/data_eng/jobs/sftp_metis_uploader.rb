@@ -23,6 +23,14 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
     config['version_number']
   end
 
+  def magic_string
+    config['config']['magic_string']
+  end
+
+  def name_regex
+    Regexp.new("#{magic_string}(-|_)")
+  end
+
   def bucket_name
     config['config']['bucket_name']
   end
@@ -33,10 +41,6 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
 
   def metis_root_path
     config['config']['metis_root_path']
-  end
-
-  def path_to_write_files
-    config['config']['path_to_write_files']
   end
 
   def sftp_client
@@ -51,19 +55,17 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
 
   def pre(context)
     run = polyphemus_client.get_run(project_name, run_id)
-    unless run
-        raise "Run #{run_id} not found"
-    end
-    context[:files_to_update] = CSV.foreach(run["state"]["files_to_update_path"], headers: true).map do |row|
-      { path: row['path'], modified_time: row['modified_time'].to_i }
-    end
+
+    raise "Run #{run_id} not found" unless run
+
+    context[:files_to_update] = run["state"]["files_to_update"].map(&:symbolize_keys)
 
     if context[:files_to_update].empty?
       logger.info("No new files to upload...")
       return false
-    else
-      return true
     end
+
+    return true
   end
 
   def process(context)
@@ -93,7 +95,7 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
           metis_uid: metis_uid,
         )
 
-        metis_path = File.join(metis_root_path, remove_dscolab_prefix(sftp_path))
+        metis_path = File.join(metis_root_path, sftp_path.gsub(name_regex,''))
         uploader.do_upload(
           Etna::Clients::Metis::MetisUploadWorkflow::StreamingIOUpload.new(
             readable_io: file_stream,
@@ -111,21 +113,15 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
 
   def post(context)
     if context[:failed_files].any?
-      writable_dir = build_pipeline_state_dir(path_to_write_files, run_id)
-      context[:failed_files_path] = File.join(writable_dir, METIS_FAILED_FILES_CSV)
-
-      logger.warn("Writing failed files to #{context[:failed_files_path]}")
       logger.warn("Found #{context[:failed_files].size} failed files")
-      CSV.open(context[:failed_files_path], "wb") do |csv|
-        csv << ["path"]
-        context[:failed_files].each do |path|
-        csv << [path]
-        end
+
+      context[:failed_files].each do |file_path|
+        logger.warn(file_path)
       end
+
       polyphemus_client.update_run(project_name, run_id, {
         state: {
-          metis_num_failed_files: context[:failed_files].size,
-          metis_failed_files_path: context[:failed_files_path],
+          metis_num_failed_files: context[:failed_files].size
         },
       })
     else
