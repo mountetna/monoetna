@@ -24,10 +24,6 @@ export default function EditAttributeModal({
   );
   const isArrayValidation = 'Array' === validationType;
 
-  useEffect(() => {
-    setUpdatedAttribute({...attribute})
-  }, [attribute])
-
   const handleOnSave = useCallback(() => {
     let params = {
       ...updatedAttribute,
@@ -63,6 +59,10 @@ export default function EditAttributeModal({
     setValidationType( attribute.validation ? attribute.validation.type : '');
     setValidationValue( attribute.validation ? attribute.validation.value : '');
   }, [attribute]);
+
+  useEffect(() => {
+    reset()
+  }, [attribute])
 
   const disabled = !updatedAttribute.attribute_name
 
