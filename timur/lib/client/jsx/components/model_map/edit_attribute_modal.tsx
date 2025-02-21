@@ -51,7 +51,8 @@ export default function EditAttributeModal({
     updatedAttribute,
     validationType,
     validationValue,
-    isArrayValidation
+    isArrayValidation,
+    onSave
   ]);
 
   const reset = useCallback(() => {
