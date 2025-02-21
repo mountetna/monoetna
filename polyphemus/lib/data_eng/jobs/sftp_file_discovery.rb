@@ -33,7 +33,7 @@ class SftpFileDiscoveryJob < Polyphemus::ETLJob
   end
 
   def restart_scan?
-    !!runtime_config['config']['restart_scan']
+    !!initial_start_scan_time
   end
 
   def initial_start_scan_time

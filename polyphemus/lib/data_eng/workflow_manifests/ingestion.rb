@@ -20,13 +20,14 @@ class Polyphemus
           runtime_params: {
             initial_start_scan_time: {
               type: 'integer', # unix timestamp
-              description: 'Scan start time, defaults to last completion'
+              description: 'Scan start time, defaults to last completion',
+              default: nil
             },
             override_interval: {
               type: 'integer',
-              description: 'Span in seconds, defaults to current time'
-            },
-            restart_scan: 'boolean'
+              description: 'Span in seconds, defaults to current time',
+              default: nil
+            }
           },
           secrets: [
             :sftp_deposit_host, :sftp_deposit_password, :sftp_deposit_user,

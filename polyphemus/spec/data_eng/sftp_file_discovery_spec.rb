@@ -67,7 +67,6 @@ describe SftpFileDiscoveryJob do
       stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
       runtime_config = {
         "config" => {
-          "restart_scan" => true,
           "override_interval" => 864000, # 10 days
           "initial_start_scan_time" => 1672531200, #Jan 1, 2023
         }
@@ -85,7 +84,6 @@ describe SftpFileDiscoveryJob do
       runtime_config = {
         "config" => {
           "interval" => nil,
-          "restart_scan" => true,
           "initial_start_scan_time" => 1672531200, #Jan 1, 2023
         }
       }
@@ -103,7 +101,6 @@ describe SftpFileDiscoveryJob do
     let(:runtime_config) {
       {
         "config" => {
-          "restart_scan" => true,
           "interval" => 864000, # 10 days
           "initial_start_scan_time" => 1672531200, #Jan 1, 2023
         }
@@ -132,9 +129,8 @@ describe SftpFileDiscoveryJob do
     let(:runtime_config) {
       {
         "config" => {
-          "restart_scan" => false,
           "override_interval" => 864000, # 10 days
-          "initial_start_scan_time" => 1672531200, #Jan 1, 2023
+          "initial_start_scan_time" => nil, #Jan 1, 2023
         }
       }
     }
