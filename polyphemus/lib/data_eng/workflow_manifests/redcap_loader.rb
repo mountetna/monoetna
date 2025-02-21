@@ -7,22 +7,33 @@ class Polyphemus
           name: 'redcap',
           schema: Redcap::Loader.to_schema,
           runtime_params: {
-            mode: [ {
-              value: 'default',
-              default: true,
-              description: 'update existing and append new records'
-            }, {
-              value: 'strict',
-              description: 'discard all existing records and append new records'
-            }, {
-              value: 'existing',
-              description: 'only update existing records'
-            } ],
+            mode: {
+              type: 'select',
+              default: 'append',
+              values: [
+                {
+                  value: 'append',
+                  description: 'update existing and append new records'
+                },
+                {
+                  value: 'strict',
+                  description: 'discard all existing records and append new records'
+                },
+                {
+                  value: 'existing',
+                  description: 'only update existing records'
+                }
+              ]
+            },
             model_names: {
               type: 'options',
-              value: 'model_names'
+              valuesFrom: 'model_names',
+              default: 'all'
             },
-            commit: 'boolean'
+            commit: {
+              type: 'boolean',
+              description: 'Commit results to Magma'
+            }
           },
           secrets: [ :redcap_tokens ],
           workflow_path: '/app/workflows/argo/redcap/workflow.yaml'
