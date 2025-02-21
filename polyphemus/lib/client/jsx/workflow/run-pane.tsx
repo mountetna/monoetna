@@ -104,51 +104,56 @@ const Param = ({
     return (
       <DefaultSelect value={value} opts={opts} name={name} update={update} />
     );
-  } else if (_.isObject(opts)) {
-    if (opts.type && opts.type === 'options' && opts.value === 'model_names') {
-      const modelNames = ['all'].concat(Object.keys(config).sort());
-      return (
-        <Autocomplete
-          multiple
-          fullWidth
-          id={name}
-          options={modelNames}
-          value={'' === value ? [] : (value as string)?.split(',') || []}
-          renderInput={(params) => <TextField {...params} variant='standard' />}
-          onChange={(e, v) => {
-            if (v.includes('all')) {
-              update(name, 'all');
-            } else {
-              update(name, v.join(','));
-            }
-          }}
-        />
-      );
-    } else {
-      return (
-        <TextField
-          size='small'
-          fullWidth
-          value={value == undefined ? '' : value}
-          onChange={(e) => update(name, e.target.value)}
-        />
-      );
-    }
-  } else if (opts == 'string') {
+  }
+
+  if (!_.isObject(opts)) opts = { type: opts };
+
+  if (opts.type === 'options' && opts.value === 'model_names') {
+    const modelNames = ['all'].concat(Object.keys(config).sort());
+    return (
+      <Autocomplete
+        multiple
+        fullWidth
+        id={name}
+        options={modelNames}
+        value={'' === value ? [] : (value as string)?.split(',') || []}
+        renderInput={(params) => <TextField {...params} variant='standard' />}
+        onChange={(e, v) => {
+          if (v.includes('all')) {
+            update(name, 'all');
+          } else {
+            update(name, v.join(','));
+          }
+        }}
+      />
+    );
+  } else if (opts.type == 'string') {
     return (
       <TextField
         size='small'
+        placeholder={opts.description}
         fullWidth
         value={value == undefined ? '' : value}
         onChange={(e) => update(name, e.target.value)}
       />
     );
-  } else if (opts == 'boolean') {
+  } else if (opts.type == 'boolean') {
     return (
       <Switch
         size='small'
         checked={value == undefined ? false : (value as boolean)}
         onChange={(e) => update(name, e.target.checked)}
+      />
+    );
+  } else if (opts.type == 'integer') {
+    return (
+      <TextField
+        size='small'
+        type='number'
+        placeholder={opts.description}
+        fullWidth
+        value={value == undefined ? '' : value}
+        onChange={(e) => update(name, e.target.value)}
       />
     );
   }

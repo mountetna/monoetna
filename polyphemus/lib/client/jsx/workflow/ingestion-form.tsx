@@ -6,29 +6,25 @@ import React, {
   useMemo
 } from 'react';
 import Grid from '@material-ui/core/Grid';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import Typography from '@material-ui/core/Typography';
-import Tooltip from '@material-ui/core/Tooltip';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-import IconButton from '@material-ui/core/IconButton';
-import Button from '@material-ui/core/Button';
-import AddIcon from '@material-ui/icons/Add';
-import DeleteIcon from '@material-ui/icons/Delete';
-import CopyIcon from '@material-ui/icons/FileCopy';
-import Pagination from '@material-ui/lab/Pagination';
-import Switch from '@material-ui/core/Switch';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
+import TextField from '@material-ui/core/TextField';
 
 import {makeStyles, Theme} from '@material-ui/core/styles';
 import {SchemaContext, SchemaProvider} from './schema-context';
 
+import {PickBucket} from 'etna-js/components/metis_exploration';
 import {Script, Job} from '../polyphemus';
 import AddModel from './add-model';
 
 export const useStyles = makeStyles((theme: Theme) => ({
 }));
+
+export type Config = {
+  bucket_name: string,
+  magic_string: string,
+  deposit_root_path: string,
+  metis_root_path: string,
+  ingest_root_path: string
+};
 
 const IngestionForm = ({
   config,
@@ -51,6 +47,8 @@ const IngestionForm = ({
 
   const bucket_name = config.bucket_name || '';
 
+  const { magic_string, metis_root_path, ingest_root_path, deposit_root_path } = config;
+
   const setBucket = useCallback(
     (bucket_name: string) => {
       let c = {...config, bucket_name };
@@ -62,28 +60,54 @@ const IngestionForm = ({
   return (
     <Grid container className={classes.form} direction='column'>
       <Grid item container>
-        regex
+        <Grid item xs={3} style={{paddingLeft:'10px'}}>Magic string</Grid>
+        <Grid item xs={9}>
+          <TextField
+            fullWidth
+            placeholder='Match string for target files'
+            onChange={(e) => update({ ...config, magic_string: e.target.value})}
+            value={magic_string}
+          />
+        </Grid>
       </Grid>
       <Grid item container>
-        root_dir
+        <Grid item xs={3} style={{paddingLeft:'10px'}}>Ingest root path</Grid>
+        <Grid item xs={9}>
+          <TextField
+            fullWidth
+            placeholder='Search path for files on ingest host'
+            onChange={(e) => update({ ...config, ingest_root_path: e.target.value})}
+            value={ingest_root_path}
+          />
+        </Grid>
       </Grid>
       <Grid item container>
-        file_regex
+        <Grid item xs={3} style={{paddingLeft:'10px'}}>Deposit root path</Grid>
+        <Grid item xs={9}>
+          <TextField
+            fullWidth
+            placeholder='Path to copy files onto deposit host'
+            onChange={(e) => update({ ...config, deposit_root_path: e.target.value})}
+            value={deposit_root_path}
+          />
+        </Grid>
       </Grid>
       <Grid item container>
-        sftp_root_dir
+        <Grid item xs={3} style={{paddingLeft:'10px'}}>Metis bucket</Grid>
+        <Grid item xs={9}>
+          <PickBucket setBucket={setBucket} project_name={project_name} bucket={bucket_name} label={null}/>
+        </Grid>
       </Grid>
       <Grid item container>
-        path_to_write_files
-      </Grid>
-      <Grid item container>
-        bucket_name
-      </Grid>
-      <Grid item container>
-        metis_root_path
-      </Grid>
-      <Grid item container>
-        deposit_root_path
+        <Grid item xs={3} style={{paddingLeft:'10px'}}>Metis root path</Grid>
+        <Grid item xs={9}>
+          <TextField
+            fullWidth
+            placeholder='Path to copy files onto Metis'
+            onChange={(e) => update({ ...config, metis_root_path: e.target.value})}
+            value={metis_root_path}
+          />
+        </Grid>
       </Grid>
     </Grid>
   );

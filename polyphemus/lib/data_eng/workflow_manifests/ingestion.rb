@@ -18,8 +18,14 @@ class Polyphemus
             }
           },
           runtime_params: {
-            initial_start_scan_time: 'integer', # unix timestamp
-            override_interval: 'integer',
+            initial_start_scan_time: {
+              type: 'integer', # unix timestamp
+              description: 'Scan start time, defaults to last completion'
+            },
+            override_interval: {
+              type: 'integer',
+              description: 'Span in seconds, defaults to current time'
+            },
             restart_scan: 'boolean'
           },
           secrets: [
