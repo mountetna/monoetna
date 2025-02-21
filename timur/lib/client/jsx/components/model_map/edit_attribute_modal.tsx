@@ -3,8 +3,6 @@ import React, {useState, useCallback, useEffect} from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-
 import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 import {Attribute} from '../../api/magma_api';
 import {SNAKE_CASE, COMMA_SEP, COMMA_SEP_WITH_SPACES, VALIDATION_TYPES} from '../../utils/edit_map';
@@ -53,21 +51,26 @@ export default function EditAttributeModal({
     updatedAttribute,
     validationType,
     validationValue,
-    isArrayValidation
+    isArrayValidation,
+    onSave
   ]);
 
   const reset = useCallback(() => {
     setUpdatedAttribute({...attribute});
     setValidationType( attribute.validation ? attribute.validation.type : '');
     setValidationValue( attribute.validation ? attribute.validation.value : '');
-  }, []);
+  }, [attribute]);
+
+  useEffect(() => {
+    reset()
+  }, [attribute])
 
   const disabled = !updatedAttribute.attribute_name
 
   const handleOnCancel = useCallback(() => {
     onClose();
     reset();
-  }, []);
+  }, [onClose, reset]);
 
   const updateAttribute = useCallback(
     (updatePairs: [string, string | boolean][]) => {
