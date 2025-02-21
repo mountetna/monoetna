@@ -16,6 +16,10 @@ import {Script, Job} from '../polyphemus';
 import AddModel from './add-model';
 
 export const useStyles = makeStyles((theme: Theme) => ({
+  form: {
+    height: 'calc(100vh - 375px)',
+    flexWrap: 'nowrap'
+  }
 }));
 
 export type Config = {
