@@ -57,7 +57,8 @@ type SelectParam = {
 
 type ComplexParam = {
   type: string;
-  value: string;
+  value?: string;
+  description?: string;
 };
 
 const DefaultSelect = ({
@@ -106,9 +107,12 @@ const Param = ({
     );
   }
 
-  if (!_.isObject(opts)) opts = { type: opts };
+  let options : ComplexParam;
 
-  if (opts.type === 'options' && opts.value === 'model_names') {
+  if (!_.isObject(opts)) options = { type: opts };
+  else options = opts as ComplexParam;
+
+  if (options.type === 'options' && options.value === 'model_names') {
     const modelNames = ['all'].concat(Object.keys(config).sort());
     return (
       <Autocomplete
@@ -127,17 +131,17 @@ const Param = ({
         }}
       />
     );
-  } else if (opts.type == 'string') {
+  } else if (options.type == 'string') {
     return (
       <TextField
         size='small'
-        placeholder={opts.description}
+        placeholder={options.description}
         fullWidth
         value={value == undefined ? '' : value}
         onChange={(e) => update(name, e.target.value)}
       />
     );
-  } else if (opts.type == 'boolean') {
+  } else if (options.type == 'boolean') {
     return (
       <Switch
         size='small'
@@ -145,12 +149,12 @@ const Param = ({
         onChange={(e) => update(name, e.target.checked)}
       />
     );
-  } else if (opts.type == 'integer') {
+  } else if (options.type == 'integer') {
     return (
       <TextField
         size='small'
         type='number'
-        placeholder={opts.description}
+        placeholder={options.description}
         fullWidth
         value={value == undefined ? '' : value}
         onChange={(e) => update(name, e.target.value)}
