@@ -81,6 +81,7 @@ describe SftpDepositUploaderJob do
       end 
   
       it 'successfully uploads files' do
+        stub_remote_ssh_mkdir_p
         stub_remote_ssh_file_upload(success: true)
   
         stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
@@ -97,6 +98,7 @@ describe SftpDepositUploaderJob do
         expect(Polyphemus.instance.logger).to receive(:warn).with(/Failed to upload to deposit host other-sftp-host/)
         expect(Polyphemus.instance.logger).to receive(:warn).with(/Found 1 failed files/)
         expect(Polyphemus.instance.logger).to receive(:warn).with(/SSD.*LABORS_S1.fastq.gz/)
+        stub_remote_ssh_mkdir_p
         stub_remote_ssh_file_upload(success: false)
 
         job = create_job(config, runtime_config)

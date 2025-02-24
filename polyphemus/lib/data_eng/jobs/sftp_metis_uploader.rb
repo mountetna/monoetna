@@ -58,7 +58,7 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
 
     raise "Run #{run_id} not found" unless run
 
-    context[:files_to_update] = run["state"]["files_to_update"].map(&:symbolize_keys)
+    context[:files_to_update] = (run.dig("state","files_to_update") || []).map(&:symbolize_keys) 
 
     if context[:files_to_update].empty?
       logger.info("No new files to upload...")

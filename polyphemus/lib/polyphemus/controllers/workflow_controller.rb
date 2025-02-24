@@ -128,6 +128,9 @@ class WorkflowController < Polyphemus::Controller
     end
 
     if run
+      if run.state
+        update_columns[:state] = run.state.merge(update_columns[:state] || {})
+      end
       run.update(update_columns)
     else
       # For new runs we still need config_id and version_number

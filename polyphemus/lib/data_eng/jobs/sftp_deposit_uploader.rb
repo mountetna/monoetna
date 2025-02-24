@@ -4,6 +4,7 @@ require_relative '../clients/sftp_client'
 
 class SftpDepositUploaderJob < Polyphemus::ETLJob
   include WithEtnaClients
+  include WithSlackNotifications
   include WithLogger
 
   DEPOSIT_FAILED_FILES_CSV = "deposit_failed_files.csv"
@@ -30,7 +31,7 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
 
   def deposit_root_path
     # Mandatory params
-    config['config']['deposit_root_path']
+    ::File.join('/', config['config']['deposit_root_path'] || '')
   end
 
   def sftp_client
@@ -45,12 +46,16 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
     config["secrets"]["sftp_deposit_host"]
   end
 
+  def ingest_host
+    config["secrets"]["sftp_ingest_host"]
+  end
+
   def remote_ssh
     @remote_ssh ||= Etna::RemoteSSH.new(
       host: deposit_host,
       username: config["secrets"]["sftp_deposit_user"],
       password: config["secrets"]["sftp_deposit_password"],
-      root: nil
+      root: deposit_root_path
     )
   end
 
@@ -61,7 +66,7 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
       raise "Run #{run_id} not found"
     end
 
-    context[:files_to_update] = run["state"]["files_to_update"].map(&:symbolize_keys)
+    context[:files_to_update] = (run.dig("state","files_to_update") || []).map(&:symbolize_keys) 
 
     if context[:files_to_update].empty?
       logger.info("No new files to upload...")
@@ -74,27 +79,23 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
   def process(context)
     context[:failed_files] = []
 
+    logger.info("Uploading #{context[:files_to_update].size} to #{deposit_host} at #{deposit_root_path}")
+
     context[:files_to_update].each do |file|
       sftp_path = file[:path]
       modified_time = file[:modified_time]
+      deposit_path = ::File.join(deposit_root_path, ingest_host, sftp_path.gsub(name_regex,''))
 
       begin
-        file_stream = sftp_client.download_as_stream(sftp_path)
-        if file_stream.nil?
-          logger.info("Failed to download #{sftp_path}")
-            context[:failed_files] << sftp_path
-          next
-        end
-      rescue StandardError => e
-        logger.info("Failed to download from sftp server, #{sftp_path}: #{e.message}")
-        next
-      end
-
-      begin
-        deposit_path = File.join(deposit_root_path, sftp_path.gsub(name_regex,''))
-        remote_ssh.file_upload(deposit_path, file_stream)
+        remote_ssh.lftp_get(
+          username: config["secrets"]["sftp_ingest_user"],
+          password: config["secrets"]["sftp_ingest_password"],
+          host: config["secrets"]["sftp_ingest_host"],
+          remote_filename: sftp_path,
+          local_filename: deposit_path
+        )
       rescue Etna::RemoteSSH::RemoteSSHError => e
-        logger.warn("Failed to upload to deposit host #{deposit_host}: #{deposit_path}. Error: #{e.message}")
+        logger.warn("Failed to upload to deposit host #{deposit_host}: #{sftp_path}. Error: #{e.message}")
         context[:failed_files] << sftp_path 
       end
     end
