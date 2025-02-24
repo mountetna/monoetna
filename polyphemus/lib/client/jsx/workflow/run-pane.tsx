@@ -47,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-type Value = undefined | string | boolean;
+type Value = undefined | string | boolean | number;
 
 type SelectParam = {
   value: string;
@@ -101,7 +101,7 @@ const Param = ({
   value: Value;
   options: ComplexParam;
   name: string;
-  update: (name: string, value: string | boolean) => void;
+  update: (name: string, value: Value) => void;
   config: any;
 }) => {
   if (options.type === 'options') {
@@ -160,7 +160,7 @@ const Param = ({
         placeholder={options.description}
         fullWidth
         value={value == undefined ? '' : value}
-        onChange={(e) => update(name, e.target.value)}
+        onChange={(e) => update(name, parseInt(e.target.value))}
       />
     );
   }

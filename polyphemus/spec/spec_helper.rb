@@ -632,7 +632,9 @@ class TestManifest < Polyphemus::WorkflowManifest
       },
       secrets: [:test_secret],
       runtime_params: {
-        commit: 'boolean'
+        commit: {
+          type: 'boolean'
+        }
       },
       workflow_path: '/some/path/test-workflow.yaml'
     }
@@ -717,12 +719,15 @@ def stub_initial_ssh_connection
   allow(Net::SSH).to receive(:start).and_return(ssh)
 end
 
+def stub_remote_ssh_mkdir_p(success: true)
+  allow_any_instance_of(Etna::RemoteSSH).to receive(:mkdir_p)
+end
 
 def stub_remote_ssh_file_upload(success: true)
   if success
-    allow_any_instance_of(Etna::RemoteSSH).to receive(:file_upload).and_return(true)
+    allow_any_instance_of(Etna::RemoteSSH).to receive(:lftp_get).and_return(true)
   else
-    allow_any_instance_of(Etna::RemoteSSH).to receive(:file_upload)
+    allow_any_instance_of(Etna::RemoteSSH).to receive(:lftp_get)
       .and_raise(Etna::RemoteSSH::RemoteSSHError.new("Simulated upload failure"))
   end
 end

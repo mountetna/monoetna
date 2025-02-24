@@ -94,18 +94,19 @@ class SftpFileDiscoveryJob < Polyphemus::ETLJob
       logger.info("Restarting scan... at #{Time.at(initial_start_scan_time).strftime('%Y-%m-%d %H:%M:%S')}")
 
       return initial_start_scan_time
-    else
+    end
+
+    begin
       response = polyphemus_client.get_previous_state(
-       project_name,
-       workflow_config_id,
-       workflow_version,
-       state: [:end_time]
+        project_name,
+        workflow_config_id,
+        workflow_version,
+        state: [:end_time]
       )
-      if response[:error]
-        logger.warn("Error fetching previous state: #{response[:error]}")
-        raise StandardError, response[:error]
-      end
-      response["end_time"]
+      response["end_time"].to_i
+    rescue Etna::Error => e
+      logger.warn("Error fetching previous state")
+      raise e
     end
   end
 end
