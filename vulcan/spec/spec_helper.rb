@@ -322,8 +322,13 @@ def write_files_to_workspace(workspace_id)
   # The first step in the test workflow involves the UI writing files to the workspace
   auth_header(:editor)
   request = {
-    "poem.txt" => poem_1_text,
-    "poem_2.txt" => poem_2_text
+    files: [{
+      filename: "poem.txt",
+      content: poem_1_text
+    }, {
+      filename: "poem_2.txt",
+      content: poem_2_text
+    }]
   }
   post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
   expect(last_response.status).to eq(200)
@@ -336,7 +341,7 @@ def remove_all_dirs
 end
 
 
-def check_jobs_status(job_names, max_attempts = 10, base_delay = 10)
+def check_jobs_status(job_names, max_attempts = 5, base_delay = 10)
   attempts = 0
 
   loop do

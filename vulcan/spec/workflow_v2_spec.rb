@@ -466,7 +466,10 @@ describe VulcanV2Controller do
       file_name = "test_file_name"
       content = "This is a test file, with content 1."
       request = {
-        file_name => content
+        files: [{
+          filename: file_name,
+          content: content
+        }]
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request)
       expect(last_response.status).to eq(200)
@@ -499,7 +502,12 @@ describe VulcanV2Controller do
     it 'requests a file from the workspace' do
       # Write a file to the workspace
       workspace_id = Vulcan::Workspace.all[0].id
-      request = {"test_file_name": "This is a test file, with content 1"}
+      request = {
+        files: [{
+          filename: "test_file_name",
+          content: "This is a test file, with content 1"
+        }]
+      }
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
       expect(last_response.status).to eq(200)
 
@@ -558,6 +566,27 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
     end
 
+    it 'alerts if snakemake is still running' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
+      request = {
+          params: {
+            count_bytes: true,
+            count_chars: false,
+            add: 2,
+            add_and_multiply_by: 4
+          }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      config_id = json_body[:config_id]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
+      expect(last_response.status).to eq(429)
+      expect(json_body[:error]).to eq("workflow is still running...")
+    end
+
+
     it 'can run the first step of a workflow' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
@@ -572,6 +601,7 @@ describe VulcanV2Controller do
         }
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      expect(last_response.status).to eq(200)
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
       run_id = json_body[:run_id]
       expect(last_response.status).to eq(200)
@@ -609,7 +639,7 @@ describe VulcanV2Controller do
       expect(json_body[:run_id]).to_not be_nil
       run_id = json_body[:run_id]
       # Make sure jobs are finished
-      check_jobs_status(["count", "arithmetic", "checker"]) do
+      check_jobs_status(["count", "arithmetic", "checker"], 5) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
       end
       # Outputs are created
@@ -624,7 +654,6 @@ describe VulcanV2Controller do
       expect(remote_manager.file_exists?(obj.log_path)).to be_truthy
     end
 
-
     it 'can run one step and then another' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
@@ -638,6 +667,7 @@ describe VulcanV2Controller do
       }
 
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      expect(last_response.status).to eq(200)
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
       expect(last_response.status).to eq(200)
       run_id = json_body[:run_id]
@@ -659,7 +689,7 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
       config_id = json_body[:config_id]
       # Sometimes snakemake still needs a minute to shut-down even though slurm reports the job as complete
-      run_workflow_with_retry do
+      run_workflow_with_retry(5) do
         post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       end
       expect(last_response.status).to eq(200)
@@ -700,18 +730,27 @@ describe VulcanV2Controller do
         }
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
+      config_id = json_body[:config_id]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       run_id = json_body[:run_id]
       check_jobs_status(["count", "arithmetic", "checker"]) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
       end
       expect(last_response.status).to eq(200)
 
-      # Next step involves writing files to the workspace 
-      request = {"test_file_name": "This is a test file, with content 1"}
+      # Next step involves UI steps - so we just simulate this by writing files to the workspace
+      request = {
+        files: [{
+          filename: "ui_job_one.txt",
+          content: "This is a test file, with content 1"
+        }, {
+          filename: "ui_job_two.txt",
+          content: "This is a test file, with content 2"
+        }]
+      }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request)
 
-      # Run the last job, send the same params as before
+      # Run the last job, send the same params as before (this is what the UI does)
       request = {
         params: {
           count_bytes: true,
@@ -720,8 +759,9 @@ describe VulcanV2Controller do
           add_and_multiply_by: 4
         }
       }
+
+      # The config has not changed - just the files
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      config_id = json_body[:config_id]
       run_workflow_with_retry do
         post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       end
@@ -751,26 +791,6 @@ describe VulcanV2Controller do
 
     end
 
-    it 'alerts if snakemake is still running' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      write_files_to_workspace(workspace.id)
-      request = {
-          params: {
-            count_bytes: true,
-            count_chars: false,
-            add: 2,
-            add_and_multiply_by: 4
-          }
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      config_id = json_body[:config_id]
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
-      expect(last_response.status).to eq(429)
-      expect(json_body[:error]).to eq("workflow is still running...")
-    end
-
   end
 
   context 'status checking', long_running: true do
@@ -790,14 +810,14 @@ describe VulcanV2Controller do
 
     end
 
-    it 'invokes the first step of a workflow' do
+    it 'checks the status of the first step of a workflow' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
       write_files_to_workspace(workspace.id)
       request = {
           params: {
-            count_bytes: true,
-            count_chars: false
+            count_bytes: false,
+            count_chars: true 
           }
       }
       # TODO: add a meta key that can switch profiles

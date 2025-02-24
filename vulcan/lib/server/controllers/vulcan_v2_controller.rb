@@ -201,7 +201,7 @@ class VulcanV2Controller < Vulcan::Controller
       end
 
       # Build snakemake command
-      available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" },
+      available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" }
       params = @remote_manager.read_yaml_file(config.path).keys
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(workspace.target_mapping, params, available_files)
@@ -249,13 +249,12 @@ class VulcanV2Controller < Vulcan::Controller
   def write_files
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
-    files = @params || {}
+    files = @params[:files] || {}
     raise Etna::BadRequest.new("No files provided") if files.empty?
-
     begin
-      files.each do |file_name, content|
+      files.each do |file|
         output_path = Vulcan::Path.workspace_output_path(workspace.path)
-        @remote_manager.write_file("#{output_path}#{file_name}", content)
+        @remote_manager.write_file("#{output_path}#{file[:filename]}", file[:content])
       end
     rescue => e
       Vulcan.instance.logger.log_error(e)
