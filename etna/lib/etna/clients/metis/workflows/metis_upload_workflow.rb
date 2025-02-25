@@ -197,6 +197,7 @@ module Etna
                 end
               end
             end
+            @last_bytes
           end
         end
       end

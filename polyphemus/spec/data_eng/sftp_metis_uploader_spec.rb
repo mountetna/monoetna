@@ -93,10 +93,19 @@ describe SftpMetisUploaderJob do
       stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
       stub_metis_setup
       stub_create_folder(bucket: config["config"]["bucket_name"], project: config["project_name"])
-    end 
+      
+      stub_request(
+        :get, "http://sftp//some-sftp-host/SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/"
+      ).with(
+        headers: { 'Authorization'=>'Basic dXNlcjpwYXNzd29yZA==' }
+      ).to_return(status: 200, body: sftp_files.map { |f|
+        "drwxrwxr-x    4 eurystheus     labors        32 Aug 26  2022 #{::File.basename(f[:path])}"
+      }.join("\n"), headers: {})
+    end
 
     it 'successfully uploads files' do
       stub_upload_file_with_stream(file_to_upload, fake_stream)
+      allow_any_instance_of(Etna::Filesystem::SftpFilesystem).to receive(:with_readable).and_yield(StringIO.new("A"*32))
 
       job = create_job(config, runtime_config)
       context = job.execute
@@ -105,7 +114,8 @@ describe SftpMetisUploaderJob do
     end
 
     it 'fails to upload files' do
-      stub_upload_file_with_stream(file_to_upload, fake_stream, force_error: true)
+      allow_any_instance_of(Etna::Filesystem::SftpFilesystem).to receive(:with_readable).and_yield(StringIO.new)
+      stub_upload_file_with_stream(file_to_upload, fake_stream)
 
       allow(Polyphemus.instance.logger).to receive(:warn)
       expect(Polyphemus.instance.logger).to receive(:warn).with(/Failed to upload to metis/)
