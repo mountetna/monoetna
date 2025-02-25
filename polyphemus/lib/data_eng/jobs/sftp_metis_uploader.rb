@@ -68,46 +68,41 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
     return true
   end
 
+  def metis_filesystem
+    Etna::Filesystem::Metis.new(
+      project_name: project_name,
+      bucket_name: bucket_name,
+      metis_client: metis_client,
+      root: metis_root_path
+    )
+  end
+
+  def ingest_filesystem
+    Etna::Filesystem::SftpFilesystem.new(
+      username: config["secrets"]["sftp_ingest_user"],
+      password: config["secrets"]["sftp_ingest_password"],
+      host: config["secrets"]["sftp_ingest_host"]
+    )
+  end
+
   def process(context)
     context[:failed_files] = []
 
-    context[:files_to_update].each do |file|
-      sftp_path = file[:path]
-      modified_time = file[:modified_time]
+    workflow = Etna::Clients::Metis::IngestMetisDataWorkflow.new(
+      metis_filesystem: metis_filesystem,
+      ingest_filesystem: ingest_filesystem,
+      logger: nil,
+    )
 
-      begin
-        file_stream = sftp_client.download_as_stream(sftp_path)
-        if file_stream.nil?
-          logger.info("Failed to download #{sftp_path}")
-          next
-        end
-      rescue StandardError => e
-        logger.info("Failed to download from sftp server, #{sftp_path}: #{e.message}")
-        context[:failed_files] << sftp_path
-        next
+    workflow.copy_files(context[:files_to_update].map do |file|
+      [ file[:path], file[:path].gsub(name_regex, '') ]
+    end) do |filename, success|
+      if success
+        context[:successful_files] << filename
+      else
+        logger.warn("Failed to upload to metis: #{filename}")
+        context[:failed_files] << filename
       end
-
-      begin
-        uploader = Etna::Clients::Metis::MetisUploadWorkflow.new(
-          metis_client: metis_client,
-          project_name: project_name,
-          bucket_name: bucket_name,
-          metis_uid: metis_uid,
-        )
-
-        metis_path = File.join(metis_root_path, sftp_path.gsub(name_regex,''))
-        uploader.do_upload(
-          Etna::Clients::Metis::MetisUploadWorkflow::StreamingIOUpload.new(
-            readable_io: file_stream,
-            size_hint: file_stream.size,
-          ),
-          metis_path
-        )
-      rescue StandardError => e
-        logger.warn("Failed to upload to metis: #{metis_path}. Error: #{e.message}")
-        context[:failed_files] << sftp_path 
-      end
-
     end
   end
 
