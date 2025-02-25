@@ -5,19 +5,20 @@ class MetisLinkerJob < Polyphemus::ETLJob
   include WithEtnaClients
   include WithLogger
 
-  def initialize(config, runtime_config)
-    @config = config
-    @runtime_config = runtime_config
-    @workflow_config_id = config['config_id']
-    @workflow_version = config['version_number']
+  def project_name
+    config['project_name']
   end
 
-  def project_name
-    @config['project_name']
+  def workflow_config_id
+    config['config_id']
+  end
+
+  def workflow_version
+    config['version_number']
   end
 
   def bucket_name
-    @config['config']['bucket_name']
+    config['config']['bucket_name']
   end
 
   def pre(context)
@@ -71,8 +72,8 @@ EOT
   def post(context)
     polyphemus_client.update_run(project_name, run_id, {
       name: workflow_name,
-      config_id: @workflow_config_id,
-      version_number: @workflow_version,
+      config_id: workflow_config_id,
+      version_number: workflow_version,
       state: {
         start_time: context[:start_time],
         end_time: context[:end_time]
@@ -90,8 +91,8 @@ EOT
     begin
       response = polyphemus_client.get_previous_state(
        project_name,
-       @workflow_config_id,
-       @workflow_version,
+       workflow_config_id,
+       workflow_version,
        state: [:end_time]
       )
       return response['end_time'].to_i

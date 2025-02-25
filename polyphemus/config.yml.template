@@ -71,7 +71,7 @@
     :restrict_bucket: restrict
   :polyphemus:
     :host: https://polyphemus.test
-    :token: something.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJmaXJzdCI6ImZpcnN0IiwibGFzdCI6Imxhc3QiLCJleHAiOjg2NDAxNjA4MTM2NjM1fQ==
+    :token: e30=.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJmaXJzdCI6ImZpcnN0IiwibGFzdCI6Imxhc3QiLCJleHAiOjg2NDAxNjA4MTM2NjM1fQ==
     # This is a development token and is safe to make public, does not leak anything about production or staging values
     # and cannot be used in a sensitive way.
     # This must be used for any test that stands up a service client (i.e. Etna::Clients::Magma).

@@ -51,19 +51,23 @@ class Polyphemus
             next
           end
           value_opts = runtime_params[param]
-          case value_opts
-          when Array
-            options = value_opts.map { |v| v[:value] }
+          case value_opts[:type]
+          when 'select'
+            options = value_opts[:values].map { |v| v[:value] }
             unless options.include?(value)
               errors.push("#{param} must be in: #{options.join(', ')}")
             end
-          when Hash
-            unless value.is_a?(String)
+          when 'options'
+            unless value.is_a?(String) || value_opts.has_key?(:default) && value == value_opts[:default]
               errors.push("#{param} must be a comma-separated string")
             end
           when 'string'
-            unless value.is_a?(String)
+            unless value.is_a?(String) || value_opts.has_key?(:default) && value == value_opts[:default]
               errors.push("#{param} must be a string")
+            end
+          when 'integer'
+            unless value.is_a?(Integer) || value_opts.has_key?(:default) && value == value_opts[:default]
+              errors.push("#{param} must be an integer")
             end
           when 'boolean'
             unless [true,false].include?(value)
@@ -108,4 +112,4 @@ end
 
 require_relative './metis_linker'
 require_relative './redcap_loader'
-#require_relative './cat_ingestion'
+require_relative './ingestion'

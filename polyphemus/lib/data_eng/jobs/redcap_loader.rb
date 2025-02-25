@@ -5,9 +5,8 @@ class RedcapLoaderJob < Polyphemus::ETLJob
   include WithEtnaClients
   include WithLogger
 
-  def initialize(config, runtime_config)
-    @config = config
-    @runtime_config = runtime_config
+  def initialize(token, config, runtime_config)
+    super
     @workflow_config_id = config['config_id']
     @workflow_version = config['version_number']
   end

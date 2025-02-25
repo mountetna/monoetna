@@ -6,6 +6,9 @@ class SFTPClient
     @username = username
     @password = password
     @port = port
+
+    raise "SFTPClient must have host, username and password" unless @host && @username && @password
+
     begin
       Net::SFTP.start(@host, @username, password: @password, port: @port) do |sftp|
         sftp.dir.entries('.')

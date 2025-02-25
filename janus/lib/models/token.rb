@@ -78,7 +78,7 @@ module Token
         payload[:perm] = payload[:perm].sub(/^[Aa]/) { |c| c == 'A' ? 'E' : 'e' }
       # permit supereditor
       elsif @janus_user.supereditor?
-        payload[:perm] = "e:#{project_name}"
+        payload[:perm] = "E:#{project_name}"
       end
 
       # Ensure the resulting permission is valid.

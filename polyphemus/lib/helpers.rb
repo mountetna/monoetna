@@ -31,7 +31,7 @@ module WithEtnaClients
 
   def gnomon_client(logger: nil)
     @gnomon_client ||= Etna::Clients::Gnomon.new(
-        token: token,
+      token: token,
       host: Polyphemus.instance.config(:magma, environment)[:host])
   end
 
@@ -49,6 +49,14 @@ module WithEtnaClients
     @polyphemus_client ||= Etna::Clients::Polyphemus.new(
       token: token,
       host: Polyphemus.instance.config(:polyphemus, environment)[:host])
+  end
+
+  def reset_clients!
+    @janus_client = nil
+    @magma_client = nil
+    @gnomon_client = nil
+    @metis_client = nil
+    @polyphemus_client = nil
   end
 
 end

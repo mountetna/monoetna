@@ -133,7 +133,7 @@ module Metis
           )
 
           data.vectors.to_a.each do |name|
-            data.delete name unless column_map.has_key?(name)
+            data.delete_vector name unless column_map.has_key?(name)
           end
 
           # Blank data equaling values_to_ignore by setting as nil

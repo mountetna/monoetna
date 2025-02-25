@@ -71,7 +71,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
   return (
     <Grid container direction='row' className={className}>
       <Grid item container alignItems='flex-end' style={{width: 'auto'}}>
-        <i className="fa fa-trash" aria-hidden="true" style={{padding:'3px 5px 10px 3px'}}/>
+        <i className="fa fa-trash" aria-hidden="true" style={{padding:'5px 5px 5px 3px'}}/>
       </Grid>
       <Grid item style={{flex: '1 1 auto'}}>
         <Autocomplete

@@ -1,106 +1,122 @@
 require_relative 'etl_job'
 require_relative 'common'
 require_relative '../clients/sftp_client'
+require 'securerandom'
 
-class SFTPMetisUploaderJob < Polyphemus::ETLJob
+class SftpMetisUploaderJob < Polyphemus::ETLJob
   include WithEtnaClients
   include WithLogger
 
   METIS_FAILED_FILES_CSV = "metis_failed_files.csv"
 
-  def initialize(config, runtime_config)
-    @project_name = config['project_name']
-    @sftp_client = SFTPClient.new(
-      config["secrets"]["sftp_host"],
-      config["secrets"]["sftp_user"],
-      config["secrets"]["sftp_password"],
-    )
+  private
 
-    # Mandatory params
-    @workflow_config_id = config['config_id']
-    @workflow_version = config['version_number']
-    @bucket_name = config['config']['bucket_name']
-    @metis_uid = config['config']['metis_uid']
-    @metis_root_path = config['config']['metis_root_path']
-    @path_to_write_files = config['config']['path_to_write_files']
+  def project_name
+    config['project_name']
   end
 
+  def workflow_config_id
+    config['config_id']
+  end
+
+  def workflow_version
+    config['version_number']
+  end
+
+  def magic_string
+    config['config']['magic_string']
+  end
+
+  def name_regex
+    Regexp.new("#{magic_string}(-|_)")
+  end
+
+  def bucket_name
+    config['config']['bucket_name']
+  end
+
+  def metis_uid
+    @metis_uid ||= SecureRandom.hex
+  end
+
+  def metis_root_path
+    config['config']['metis_root_path']
+  end
+
+  def sftp_client
+    @sftp_client ||= SFTPClient.new(
+      config["secrets"]["sftp_ingest_host"],
+      config["secrets"]["sftp_ingest_user"],
+      config["secrets"]["sftp_ingest_password"],
+    )
+  end
+
+  public
+
   def pre(context)
-    run = polyphemus_client.get_run(@project_name, run_id)
-    unless run
-        raise "Run #{run_id} not found"
-    end
-    context[:files_to_update] = CSV.foreach(run["state"]["files_to_update_path"], headers: true).map do |row|
-      { path: row['path'], modified_time: row['modified_time'].to_i }
-    end
+    run = polyphemus_client.get_run(project_name, run_id)
+
+    raise "Run #{run_id} not found" unless run
+
+    context[:files_to_update] = (run.dig("state","files_to_update") || []).map(&:symbolize_keys) 
 
     if context[:files_to_update].empty?
       logger.info("No new files to upload...")
       return false
-    else
-      return true
     end
+
+    return true
+  end
+
+  def metis_filesystem
+    Etna::Filesystem::Metis.new(
+      project_name: project_name,
+      bucket_name: bucket_name,
+      metis_client: metis_client,
+      root: metis_root_path
+    )
+  end
+
+  def ingest_filesystem
+    Etna::Filesystem::SftpFilesystem.new(
+      username: config["secrets"]["sftp_ingest_user"],
+      password: config["secrets"]["sftp_ingest_password"],
+      host: config["secrets"]["sftp_ingest_host"]
+    )
   end
 
   def process(context)
     context[:failed_files] = []
 
-    context[:files_to_update].each do |file|
-      sftp_path = file[:path]
-      modified_time = file[:modified_time]
+    workflow = Etna::Clients::Metis::IngestMetisDataWorkflow.new(
+      metis_filesystem: metis_filesystem,
+      ingest_filesystem: ingest_filesystem,
+      logger: nil,
+    )
 
-      begin
-        file_stream = @sftp_client.download_as_stream(sftp_path)
-        if file_stream.nil?
-          logger.info("Failed to download #{sftp_path}")
-          next
-        end
-      rescue StandardError => e
-        logger.info("Failed to download from sftp server, #{sftp_path}: #{e.message}")
-        context[:failed_files] << sftp_path
-        next
+    workflow.copy_files(context[:files_to_update].map do |file|
+      [ file[:path], file[:path].gsub(name_regex, '') ]
+    end) do |filename, success|
+      if success
+        context[:successful_files] << filename
+      else
+        logger.warn("Failed to upload to metis: #{filename}")
+        context[:failed_files] << filename
       end
-
-      begin
-        uploader = Etna::Clients::Metis::MetisUploadWorkflow.new(
-          metis_client: metis_client,
-          project_name: @project_name,
-          bucket_name: @bucket_name,
-          metis_uid: @metis_uid,
-        )
-        metis_path = File.join(@metis_root_path, remove_dscolab_prefix(sftp_path))
-        uploader.do_upload(
-          Etna::Clients::Metis::MetisUploadWorkflow::StreamingIOUpload.new(
-            readable_io: file_stream,
-            size_hint: file_stream.size,
-          ),
-          metis_path
-        )
-      rescue StandardError => e
-        logger.warn("Failed to upload to metis: #{metis_path}. Error: #{e.message}")
-        context[:failed_files] << sftp_path 
-      end
-
     end
   end
 
   def post(context)
     if context[:failed_files].any?
-      writable_dir = build_pipeline_state_dir(@path_to_write_files, run_id)
-      context[:failed_files_path] = File.join(writable_dir, METIS_FAILED_FILES_CSV)
-
-      logger.warn("Writing failed files to #{context[:failed_files_path]}")
       logger.warn("Found #{context[:failed_files].size} failed files")
-      CSV.open(context[:failed_files_path], "wb") do |csv|
-        csv << ["path"]
-        context[:failed_files].each do |path|
-        csv << [path]
-        end
+
+      context[:failed_files].each do |file_path|
+        logger.warn(file_path)
       end
-      polyphemus_client.update_run(@project_name, @run_id, {
+
+      polyphemus_client.update_run(project_name, run_id, {
         state: {
-          metis_num_failed_files: context[:failed_files].size,
-          metis_failed_files_path: context[:failed_files_path],
+          metis_num_failed_files: context[:failed_files].size
         },
       })
     else

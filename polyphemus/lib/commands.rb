@@ -726,14 +726,15 @@ class Polyphemus
           project_name: config.project_name
       )
 
-      # reset janus_client so it uses task token
-      @janus_client = nil
+      # reset clients so they use task token
+      reset_clients!
 
       # Instantiate the job and run it
       # Dynamically load the job class from the job_name
       job = Kernel.const_get("#{job_name}_job".camelize.to_sym)
 
       job.new(
+        @token,
         config.with_secrets,
         runtime_config.as_json
       ).execute
@@ -751,7 +752,10 @@ class Polyphemus
       Polyphemus.instance.setup_sequel
     end
 
-    def execute(run_id, workflow_json, raw_output)
+    def execute(run_id, workflow_name, workflow_namespace)
+
+      workflow_json = %x{ argo get --output=json #{workflow_name} -n #{workflow_namespace} }
+      raw_output = %x{ argo logs #{workflow_name} }
 
       # We need to fetch the project name
       run = Polyphemus::Run.where(

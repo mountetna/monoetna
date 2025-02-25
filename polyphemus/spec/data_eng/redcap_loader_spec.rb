@@ -1,6 +1,7 @@
 describe RedcapLoaderJob do
   def create_job(config, runtime_config)
     RedcapLoaderJob.new(
+      TEST_TOKEN,
       config,
       runtime_config
     )

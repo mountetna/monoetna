@@ -13,6 +13,7 @@ module Etna
       @host = host
       @port = port
       @root = root
+      raise "RemoteSSH must have host, username and password" unless @host && @username && @password
     end
 
     def ssh
@@ -25,8 +26,8 @@ module Etna
       raise RemoteSSHError.new("Unable to mkdir -p, #{output}") unless 0 == output.exitstatus
     end
 
-    def lftp_get(username:, password:, host:, remote_filename:, &block)
-      full_local_path = ::File.join(@root, host, remote_filename)
+    def lftp_get(username:, password:, host:, remote_filename:, local_filename:, &block)
+      full_local_path = local_filename
       full_local_dir = ::File.dirname(full_local_path)
       mkdir_p(full_local_dir)
 

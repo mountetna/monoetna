@@ -30,9 +30,7 @@ spec:
         command: ["/bin/sh", "-c"]
         args:
           - |
-            echo "password: $DB_PASSWORD" > /app/db-password; cp /run/config/*.yml /app; /app/bin/polyphemus get_runtime_metadata "{{workflow.uid}}" \
-            "$(argo get --output=json {{workflow.name}} -n {{workflow.namespace}})" \
-            "$(argo logs {{workflow.name}})"
+            echo "password: $DB_PASSWORD" > /app/db-password; cp /run/config/*.yml /app; /app/bin/polyphemus get_runtime_metadata "{{workflow.uid}}" "{{workflow.name}}" "{{workflow.namespace}}"
         env:
           - name: KUBE_ID
             value: "{{workflow.uid}}"
