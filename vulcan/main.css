@@ -2695,7 +2695,7 @@ input:focus {
     .plot-window .plotter-editor .ti-group .ti-input:focus {
       border-bottom: 1px solid forestgreen; }
 
-.workflow-manager {
+.workspace-manager {
   display: flex;
   height: 100%;
   font-family: "Open Sans", sans-serif; }

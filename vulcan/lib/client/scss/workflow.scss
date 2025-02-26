@@ -1,4 +1,4 @@
-.workflow-manager {
+.workspace-manager {
   display: flex;
   height: 100%;
   font-family: $body_font;
@@ -73,7 +73,7 @@
   }
 
   .steps-list-wrapper {
-    overflow-y: scroll;
+    overflow-y: auto;
   }
 
   .step {
