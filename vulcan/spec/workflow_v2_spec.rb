@@ -383,10 +383,11 @@ describe VulcanV2Controller do
       default_config_content = remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
       expected_config_content = default_config_content.merge(JSON.parse(request[:params].to_json))
       expect(json_body[:last_config]).to eq(expected_config_content.transform_keys(&:to_sym))
+      expect(json_body[:last_config_id]).to_not be_nil
       expect(json_body[:last_job_status]).to be_nil
       expect(json_body[:dag]).to_not be_nil
       expect(json_body[:vulcan_config]).to_not be_nil
-      expect(json_body[:last_job_status]).to be_nil
+      expect(json_body[:last_run_id]).to be_nil
     end
 
     it 'returns the last run and last config' do
@@ -426,7 +427,9 @@ describe VulcanV2Controller do
       default_config_content = remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
       expected_config_content = default_config_content.merge(JSON.parse(request_2[:params].to_json))
       expect(json_body[:last_config]).to eq(expected_config_content.transform_keys(&:to_sym))
+      expect(json_body[:last_config_id]).to_not be_nil
       expect(json_body[:last_job_status]).to_not be_nil
+      expect(json_body[:last_run_id]).to_not be_nil
       expect(json_body[:dag]).to_not be_nil
       expect(json_body[:vulcan_config]).to_not be_nil
     end
@@ -829,6 +832,83 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
       expect(json_body[:count]).to eq("NOT STARTED")
     end
+  end
+
+  context 'is running' do
+
+    before do
+      auth_header(:superuser)
+      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
+      auth_header(:editor)
+      request = {
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger",
+        branch: "main",
+        git_version: "v1"
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns false if snakemake is is not running' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/running")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:running]).to be_falsey
+    end
+
+    it 'returns true if snakemake is running' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
+      request = {
+          params: {
+            count_bytes: false,
+            count_chars: true 
+          }
+      }
+      # TODO: add a meta key that can switch profiles
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/running")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:running]).to be_truthy
+    end
+  end
+
+  context 'read image' do
+
+    before do
+      auth_header(:superuser)
+      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
+      auth_header(:editor)
+      request = {
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger",
+        branch: "main",
+        git_version: "v1"
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns the image' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_image_to_workspace(workspace.id)
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/image/read", {file_name: "image.png"})
+      expect(last_response.status).to eq(200)
+      expect(last_response.body).to eq("image content\n")
+    end
+
+    it 'raises an error if the file does not exist' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/image/read", {file_name: "does_not_exist.png"})
+      expect(last_response.status).to eq(422)
+    end
+    
   end
 
 end

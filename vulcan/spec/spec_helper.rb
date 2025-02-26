@@ -334,6 +334,18 @@ def write_files_to_workspace(workspace_id)
   expect(last_response.status).to eq(200)
 end
 
+def write_image_to_workspace(workspace_id)
+  auth_header(:editor)
+  request = {
+    files: [{
+      filename: "image.png",
+      content: "image content"
+    }]
+  }
+  post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
+  expect(last_response.status).to eq(200)
+end
+
 def remove_all_dirs
   remote_manager.rmdir(Vulcan::Path::WORKFLOW_BASE_DIR)
   remote_manager.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR)
@@ -367,7 +379,7 @@ def check_jobs_status(job_names, max_attempts = 5, base_delay = 10)
   end
 end
 
-def run_workflow_with_retry(max_attempts = 3, base_delay = 15)
+def run_workflow_with_retry(max_attempts = 5, base_delay = 15)
   attempts = 0
 
   loop do

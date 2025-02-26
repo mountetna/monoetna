@@ -62,7 +62,7 @@ class VulcanV2Controller < Vulcan::Controller
       workspace_dir = Vulcan::Path.workspace_dir(@escaped_params[:project_name], workspace_hash)
     begin
         @remote_manager.mkdir(workspace_dir)
-        @remote_manager.clone(workflow.repo_remote_url, @escaped_params[:branch], workspace_dir)
+        @remote_manager.clone(workflow.repo_remote_url, workspace_dir)
         @remote_manager.checkout_version(workspace_dir, @escaped_params[:git_version])
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
         @remote_manager.mkdir(Vulcan::Path.workspace_output_path(workspace_dir))
@@ -126,6 +126,8 @@ class VulcanV2Controller < Vulcan::Controller
       dag: workspace.dag,
       vulcan_config: @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace.path)),
       last_config: last_config ? @remote_manager.read_json_file(last_config.path) : nil,
+      last_config_id: last_config ? last_config.id : nil,
+      last_run_id: last_run ? last_run.id : nil,
       last_job_status: last_run ? slurm_status : nil
     })
     success_json(response)
@@ -273,7 +275,7 @@ class VulcanV2Controller < Vulcan::Controller
       content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
       {
         filename: file_name,
-        content: Base64.encode64(content)
+        content: content
       }
     end
     success_json({files: file_contents})
@@ -283,6 +285,28 @@ class VulcanV2Controller < Vulcan::Controller
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
     success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path))})
+  end
+
+  def read_image
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    raise Etna::BadRequest.new("Workspace not found") unless workspace
+    file_name = @params[:file_name] || []
+    raise Etna:BadRequest.new("No file provided" ) if file_name.nil? || file_name.empty?
+    output_path = Vulcan::Path.workspace_output_path(workspace.path)
+    unless @remote_manager.file_exists?("#{output_path}#{file_name}")
+      raise Etna::BadRequest.new("File not found")
+    end
+    content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
+    success(content, file_type="image/png")
+  end
+
+  def is_running
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    unless workspace
+      msg = "Workspace for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+    success_json({running: @snakemake_manager.snakemake_is_running?(workspace.path)})
   end
 
 end
