@@ -347,6 +347,33 @@ describe Metis::Loader do
       )
     end
 
+    it 'ignores columns left out of the column_map' do
+      config = labors_config([
+        {
+          "type": "data_frame",
+          "folder_path": "villages",
+          "file_match": "*.tsv",
+          "format": "tsv",
+          "blank_table": true,
+          "column_map": {
+            "name": "name",
+            "target_name": "target_name"
+          }
+        }
+      ])
+
+      update = Metis::Loader.new(config, rules, {}, model_std).update_for(
+        tail, metis
+      )
+
+      expect(update['revisions']).to eq(
+        'victim' => {
+          'LABORS-LION-H1-C1' => {
+          }
+        }
+      )
+    end
+
     context 'table attributes' do
       it 'blanks a table attribute' do
           config = labors_config(

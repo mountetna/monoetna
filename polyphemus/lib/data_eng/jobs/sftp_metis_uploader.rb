@@ -87,6 +87,7 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
 
   def process(context)
     context[:failed_files] = []
+    context[:successful_files] = []
 
     workflow = Etna::Clients::Metis::IngestMetisDataWorkflow.new(
       metis_filesystem: metis_filesystem,
@@ -107,18 +108,15 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
   end
 
   def post(context)
+    state_update = {}
     if context[:failed_files].any?
       logger.warn("Found #{context[:failed_files].size} failed files")
 
       context[:failed_files].each do |file_path|
         logger.warn(file_path)
       end
-
-      polyphemus_client.update_run(project_name, run_id, {
-        state: {
-          metis_num_failed_files: context[:failed_files].size
-        },
-      })
+      state_update[:metis_num_failed_files] = context[:failed_files].size
+      polyphemus_client.update_run(project_name, run_id, { state: state_update })
     else
       logger.info("No failed files found")
     end

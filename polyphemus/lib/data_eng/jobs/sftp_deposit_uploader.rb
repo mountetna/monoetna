@@ -78,6 +78,7 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
 
   def process(context)
     context[:failed_files] = []
+    context[:successful_files] = []
 
     logger.info("Uploading #{context[:files_to_update].size} to #{deposit_host} at #{deposit_root_path}")
 
@@ -94,6 +95,7 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
           remote_filename: sftp_path,
           local_filename: deposit_path
         )
+        context[:successful_files] << deposit_path
       rescue Etna::RemoteSSH::RemoteSSHError => e
         logger.warn("Failed to upload to deposit host #{deposit_host}: #{sftp_path}. Error: #{e.message}")
         context[:failed_files] << sftp_path 

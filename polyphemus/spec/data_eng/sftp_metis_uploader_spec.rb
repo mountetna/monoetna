@@ -84,7 +84,7 @@ describe SftpMetisUploaderJob do
   context 'records to process' do
     let(:captured_requests) { [] }
     let(:file_to_upload) { "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/S1.fastq.gz" }
-    let(:fake_stream) { @fake_stream ||= StringIO.new("fake file content") }
+    let(:fake_stream) { @fake_stream ||= StringIO.new("A"*32) }
 
     before do
       stub_initial_sftp_connection
@@ -128,5 +128,4 @@ describe SftpMetisUploaderJob do
       expect(captured_requests[0][:state][:metis_num_failed_files]).to eq(1)
     end
   end
-
 end

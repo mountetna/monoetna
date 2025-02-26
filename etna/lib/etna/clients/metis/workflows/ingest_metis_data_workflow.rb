@@ -25,7 +25,6 @@ module Etna
 
             logger&.info("Copying file #{src} (#{Etna::Formatting.as_size(ingest_filesystem.stat(src).size)})")
 
-            # For ingestion triage, just copy over the exact path + filename.
             begin
               copy_file(dest: dest, src: src, &block)
             rescue Exception => e
@@ -37,7 +36,7 @@ module Etna
         def copy_file(dest:, src:, &block)
           ingest_filesystem.with_readable(src, "r") do |io|
             metis_filesystem.do_streaming_upload(io, dest, ingest_filesystem.stat(src).size)
-            yield src, true if block_given?
+            yield dest, true if block_given?
           end
         end
       end
