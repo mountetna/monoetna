@@ -77,6 +77,16 @@ bin/polyphemus run_job <workflow> <job_name> <config_id> <version_number>
 Note: If you want to invoke the `SFTPFileDiscoveryJob`, in the workflow yaml, you must use the string `sftp_file_discovery`.
 Ex: 
 
+### Workflow templates
+
+You must run:
+
+```
+kubectl apply -f workflows/templates/run-job-template.yaml
+```
+
+if you make any changes to the `run-job-template.yaml` file.
+TODO: Make this less painful.
 
 ### ETL Jobs
 

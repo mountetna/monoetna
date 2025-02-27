@@ -404,6 +404,10 @@ module Etna
         include JsonSerializableStruct
       end
 
+      class AuthorizeDownloadRequest < Struct.new(:project_name, :bucket_name, :file_path, keyword_init: true)
+        include JsonSerializableStruct
+      end
+
       class UploadStartRequest < Struct.new(:file_size, :action, :metis_uid, :next_blob_size, :upload_path, :next_blob_hash, :reset, keyword_init: true)
         include JsonSerializableStruct
 
@@ -421,6 +425,12 @@ module Etna
 
         def encode_multipart_content(base_key = '')
           self.class.encode_multipart_content(to_h, base_key)
+        end
+      end
+
+      class DownloadResponse < Etna::Clients::Response
+        def download_url
+          raw['download_url']
         end
       end
 

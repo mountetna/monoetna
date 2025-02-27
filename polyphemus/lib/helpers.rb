@@ -14,7 +14,13 @@ module WithEtnaClients
   end
 
   def token
-    Polyphemus.instance.config(:polyphemus, environment)[:token]
+    @token || Polyphemus.instance.config(:polyphemus, environment)[:token]
+  end
+
+  def janus_client
+    @janus_client ||= Etna::Clients::Janus.new(
+      token: token,
+      host: Polyphemus.instance.config(:janus, environment)[:host])
   end
 
   def magma_client

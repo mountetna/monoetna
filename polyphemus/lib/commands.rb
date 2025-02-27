@@ -378,38 +378,6 @@ class Polyphemus
     end
   end
 
-  class RunEtlJob < Etna::Command
-    def execute
-      job_config = Polyphemus::EtlConfig.next_to_run
-
-      return if !job_config
-
-      puts "Running #{job_config.project_name}/#{job_config.name} with params #{job_config.params}"
-
-      begin
-        output = StringIO.new
-
-        old_stdout = $stdout
-        $stdout = output
-
-        job_config.run!
-      rescue Exception => e
-        STDOUT.puts e.message
-        STDOUT.puts e.backtrace
-        job_config.set_error!(e)
-      ensure
-        $stdout = old_stdout
-      end
-    end
-
-    def setup(config)
-      super
-      Polyphemus.instance.setup_logger
-      Polyphemus.instance.setup_db
-      Polyphemus.instance.setup_sequel
-    end
-  end
-
   class GetMetisFolders < Etna::Command
     include WithEtnaClients
 
@@ -730,8 +698,15 @@ class Polyphemus
     end
   end
 
-class RunJob < Etna::Command
+  class RunJob < Etna::Command
     include WithEtnaClients
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
+    end
 
     def execute(job_name, config_id, version_number)
       # Retrieve the config from polyphemus
@@ -745,11 +720,23 @@ class RunJob < Etna::Command
         config_id: config_id,
       ).first
 
+      @token = janus_client.generate_token(
+          'task',
+          signed_nonce: nil,
+          project_name: config.project_name
+      )
+
+      # reset janus_client so it uses task token
+      @janus_client = nil
+
       # Instantiate the job and run it
       # Dynamically load the job class from the job_name
       job = Kernel.const_get("#{job_name}_job".camelize.to_sym)
-      job.new(config, runtime_config)
-      job.execute
+
+      job.new(
+        config.with_secrets,
+        runtime_config.as_json
+      ).execute
     end
 
   end
@@ -757,7 +744,14 @@ class RunJob < Etna::Command
   class GetRuntimeMetadata < Etna::Command
     include WithEtnaClients
 
-    def execute(run_id, workflow_json, output)
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
+    end
+
+    def execute(run_id, workflow_json, raw_output)
 
       # We need to fetch the project name
       run = Polyphemus::Run.where(
@@ -772,6 +766,11 @@ class RunJob < Etna::Command
       # Parse the workflow_json and just extract status
       workflow_data = JSON.parse(workflow_json)
       status = workflow_data["status"]
+      name = workflow_data.dig("metadata","name")
+
+      # remove control characters and workflow name from output logs
+      output = raw_output.gsub(/\e\[\d+m/,'').gsub(/^#{name}[\-\w]*: /,'')
+
       updates = {
         orchestrator_metadata: status,
         output: output
@@ -787,6 +786,13 @@ class RunJob < Etna::Command
     usage 'Continuously polls eligible runtime configs and submits Argo workflows' 
 
     SLEEP_INTERVAL = 60 * 5 # 5 Minutes
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
+    end
   
     def execute
       loop do

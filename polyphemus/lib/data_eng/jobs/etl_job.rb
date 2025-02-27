@@ -44,11 +44,10 @@ class Polyphemus
       if pre(context)
         process(context)
       end
-    rescue Exception => e
-      raise e
-    ensure
       post(context)
       return context
+    rescue Exception => e
+      raise e
     end
   end
 end

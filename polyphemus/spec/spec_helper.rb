@@ -12,7 +12,7 @@ require "simplecov"
 SimpleCov.start
 
 require "yaml"
-require "etna/spec/vcr"
+#require "etna/spec/vcr"
 
 require "fileutils"
 require "timecop"
@@ -23,8 +23,9 @@ require_relative "../lib/data_eng/jobs/sftp_file_discovery"
 require_relative "../lib/data_eng/jobs/sftp_metis_uploader"
 require_relative "../lib/data_eng/jobs/sftp_c4_uploader"
 require_relative "../lib/data_eng/jobs/metis_linker"
+require_relative "../lib/data_eng/jobs/redcap_loader"
 
-setup_base_vcr(__dir__)
+#setup_base_vcr(__dir__)
 
 Polyphemus.instance.configure(YAML.load(File.read("config.yml")))
 
@@ -122,9 +123,12 @@ FactoryBot.define do
     to_create(&:save)
   end
 
-  # factory :etl_config, class: Polyphemus::EtlConfig do
-  #   to_create(&:save)
-  #end
+  factory :config, class: Polyphemus::Config do
+     to_create(&:save)
+  end
+  factory :runtime_config, class: Polyphemus::RuntimeConfig do
+     to_create(&:save)
+  end
 end
 
 def json_body
@@ -310,6 +314,14 @@ def stub_upload_file(params = {})
       status: params[:status] || 200,
       body: params[:upload_body] || JSON.generate({}),
     })
+end
+
+def stub_authorize_downloads
+  stub_request(:post, /#{METIS_HOST}\/authorize\/download/).to_return do |request|
+    params = JSON.parse(request.body, symbolize_names: true)
+    url = "#{METIS_HOST}/#{params[:project_name]}/download/#{params[:bucket_name]}/#{params[:file_path]}"
+    { body: {download_url: url}.to_json, status: 200, headers: { 'Content-Type': "application/json" } }
+  end
 end
 
 def stub_download_file(params = {})
@@ -618,7 +630,8 @@ class TestManifest < Polyphemus::WorkflowManifest
       secrets: [:test_secret],
       runtime_params: {
         commit: 'boolean'
-      }
+      },
+      workflow_path: '/some/path/test-workflow.yaml'
     }
     end
 end

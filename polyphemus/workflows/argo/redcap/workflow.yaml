@@ -1,53 +1,28 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: cat-ingestion-workflow-
+  generateName: redcap-loader-workflow-
   namespace: argo
 spec:
-  entrypoint: cat-ingestion
+  entrypoint: redcap-loader
   onExit: record-runtime-meta
   imagePullSecrets:
     - name: hub.docker.com
   templates:
-    - name: cat-ingestion
+    - name: redcap-loader
       steps:
-        - - name: file-discovery
+        - - name: redcap-loader
             templateRef:
               name: run-job-template
               template: run-job
             arguments:
               parameters:
                 - name: job
-                  value: sftp_file_discovery
+                  value: "redcap_loader"
                 - name: config_id
                   value: "{{workflow.parameters.config_id}}"
                 - name: version_number
                   value: "{{workflow.parameters.version_number}}"
-        - - name: c4-update
-            templateRef:
-              name: run-job-template
-              template: run-job
-            arguments:
-              parameters:
-                - name: job
-                  value: sftp_c4_uploader
-                - name: config_id
-                  value: "{{workflow.parameters.config_id}}"
-                - name: version_number
-                  value: "{{workflow.parameters.version_number}}"
-        - - name: metis-update
-            templateRef:
-              name: run-job-template
-              template: run-job
-            arguments:
-              parameters:
-                - name: job
-                  value: sftp_metis_uploader
-                - name: config_id
-                  value: "{{workflow.parameters.config_id}}"
-                - name: version_number
-                  value: "{{workflow.parameters.version_number}}"
-    # TODO: figure out a way to abstract all the container logic
     - name: record-runtime-meta
       container:
         image: etnaagent/polyphemus:production
@@ -56,8 +31,8 @@ spec:
         args:
           - |
             echo "password: $DB_PASSWORD" > /app/db-password; cp /run/config/*.yml /app; /app/bin/polyphemus get_runtime_metadata "{{workflow.uid}}" \
-            '$(argo get --output=json {{workflow.name}} -n {{workflow.namespace}})' \
-            '$(argo logs {{workflow.name}})'
+            "$(argo get --output=json {{workflow.name}} -n {{workflow.namespace}})" \
+            "$(argo logs {{workflow.name}})"
         env:
           - name: KUBE_ID
             value: "{{workflow.uid}}"

@@ -67,11 +67,11 @@ x-base-etna-services:
 
   'vesta_ui': &base-etna-ui # The JS UI
     build:
-      context: ./ui
+      context: ./vesta_ui
       dockerfile: ./Dockerfile.development
     volumes:
-      - ./ui/src:/app/src:delegated
-      - ./ui/public:/app/public:delegated
+      - ./vesta_ui/src:/app/src:delegated
+      - ./vesta_ui/public:/app/public:delegated
     depends_on:
       - 'vesta_app'
     environment:

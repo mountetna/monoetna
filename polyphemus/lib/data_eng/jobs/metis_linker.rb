@@ -1,7 +1,9 @@
 require_relative 'etl_job'
+require_relative '../../etls/metis/loader'
 
 class MetisLinkerJob < Polyphemus::ETLJob
   include WithEtnaClients
+  include WithLogger
 
   def initialize(config, runtime_config)
     @config = config
@@ -19,8 +21,8 @@ class MetisLinkerJob < Polyphemus::ETLJob
   end
 
   def pre(context)
-    context[:start_time] = fetch_last_scan
-    context[:end_time] = Time.now.to_i
+    context[:start_time] = Time.at(fetch_last_scan).to_datetime.iso8601
+    context[:end_time] = Time.now.to_datetime.iso8601
     true
   end
 
@@ -30,7 +32,7 @@ class MetisLinkerJob < Polyphemus::ETLJob
 
     rules = gnomon_client.project_rules(project_name).rules
 
-    models = magma_client.retrieve(project_name: project_name)
+    project_def = magma_client.retrieve(project_name: project_name)
 
     tail = metis_client.tail_bucket(Etna::Clients::Metis::TailBucketRequest.new(
         project_name: project_name,
@@ -40,9 +42,29 @@ class MetisLinkerJob < Polyphemus::ETLJob
         batch_end: context[:end_time]
     ))
 
-    update = Metis::Loader.new(config, rules, {}, models).update_for(tail, metis_client)
+    params = runtime_config['config'] || {}
 
-    magma_client.update_json(update, page_size=100)
+    loader = Metis::Loader.new(config, rules, params, project_def.models)
+
+    update = loader.update_for(tail, metis_client)
+
+    response = magma_client.update_json(update, page_size=100)
+
+    summary = <<EOT
+===============================
+Upload Summary : #{context[:start_time]} -> #{context[:end_time]} 
+Models: #{response.models.model_keys.join(', ')}
+Committed to Magma: #{!loader.config.dry_run?}
+Autolinked Parent Identifiers: #{loader.config.autolink?}
+EOT
+
+    response.models.each do |model_name, model|
+      summary += "#{model_name} records updated: #{model.documents.document_keys.join(', ')}\n"
+    end
+
+    summary += "==============================="
+
+    puts summary
   end
 
   # Post-condition method to update the number of files to update in the DB
@@ -65,16 +87,16 @@ class MetisLinkerJob < Polyphemus::ETLJob
 
   # Fetch the last_scan timestamp from the pipeline state using Polyphemus client
   def fetch_last_scan
-    response = polyphemus_client.get_previous_state(
-     project_name,
-     @workflow_config_id,
-     @workflow_version,
-     state: [:end_time]
-    )
-    if response[:error]
-      logger.warn("Error fetching previous state: #{response[:error]}")
-      raise StandardError, response[:error]
+    begin
+      response = polyphemus_client.get_previous_state(
+       project_name,
+       @workflow_config_id,
+       @workflow_version,
+       state: [:end_time]
+      )
+      return response['end_time'].to_i
+    rescue Etna::Error => e
+      return 0
     end
-    response["end_time"]
   end
 end

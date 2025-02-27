@@ -25,6 +25,7 @@ class WorkflowController < Polyphemus::Controller
 
     Polyphemus::RuntimeConfig.create(
       config_id: config.config_id,
+      run_interval: 0,
       created_at: Time.now,
       updated_at: Time.now
     )
@@ -91,11 +92,6 @@ class WorkflowController < Polyphemus::Controller
       ).first
     end
     success_json(config.as_json)
-  end
-
-  def list
-    configs = Polyphemus::Config.current.where(project_name: @params[:project_name]).all
-    success_json(configs.map(&:with_status))
   end
 
   def list_all
@@ -179,7 +175,7 @@ class WorkflowController < Polyphemus::Controller
     run = Polyphemus::Run.where(
       config_id: @params[:config_id],
       version_number: @params[:version_number]
-    ).order(Sequel.desc(:created_at)).first
+    ).exclude(state: nil).order(Sequel.desc(:created_at)).first
 
     raise Etna::NotFound, "No such run for config_id #{@params[:config_id]} and version_number #{@params[:version_number]}" unless run
 
@@ -292,9 +288,11 @@ class WorkflowController < Polyphemus::Controller
         )
       else
         # If there is no run, we need to check the argo workflow status
+        # If a job has started, and hasn't written to the run object yet, we will have no run object.
+        # So we use the previous run's status to be safe
         next status.merge(
-         pipeline_finished_at: (prev_run && prev_run.is_finished?) ? prev_run.finished_at : nil,
-         pipeline_state: Polyphemus::ArgoWorkflowManager.get_workflow_status(config)
+          pipeline_state: "running",
+          pipeline_finished_at: prev_run&.is_finished? ? prev_run.finished_at : nil,
         )
       end
     end

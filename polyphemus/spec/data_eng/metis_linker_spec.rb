@@ -81,7 +81,10 @@ describe MetisLinkerJob do
 
   let(:runtime_config) {
     {
-      "commit" => true
+      'config' => {
+        "commit" => true
+      },
+      'run_interval' => 0
     }
   }
   let(:run_id) { "1234567890" }
@@ -91,12 +94,8 @@ describe MetisLinkerJob do
     ENV['KUBE_ID'] = run_id
     stub_metis_routes
     stub_request(:post, "https://metis.test/labors/tail/pics").to_return(
-      body: tail.to_json,
-      headers: { 'Content-Type': "application/json" },
-    )
-    stub_request(:post, "https://polyphemus.test/api/workflows/labors/run/previous/1").to_return(
-      body: { end_time: Time.now.iso8601 }.to_json,
-      headers: { 'Content-Type': "application/json" },
+      body: tail.map(&:to_json).join("\n"),
+      headers: { 'Content-Type': "application/x-json-stream" }
     )
     stub_request(:get, "https://magma.test/gnomon/labors/rules").to_return(
       body: { rules: rules }.to_json,
@@ -106,12 +105,36 @@ describe MetisLinkerJob do
       body: { models: models }.to_json,
       headers: { 'Content-Type': "application/json" }
     )
+    stub_magma_update_dry_run
 
     stub_request(:post, "#{POLYPHEMUS_HOST}/api/workflows/labors/run/update/#{run_id}").to_return(body: "{}")
   end
 
   context 'linking' do
     it 'successfully links records' do
+      stub_request(:post, "https://polyphemus.test/api/workflows/labors/run/previous/1").to_return(
+        body: { end_time: Time.now.iso8601 }.to_json,
+        headers: { 'Content-Type': "application/json" },
+      )
+
+      job = MetisLinkerJob.new(config, runtime_config)
+
+      expect{
+        context = job.execute
+      }.not_to raise_error
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).with(
+        body: hash_including(dry_run: false)
+      )
+      expect(WebMock).to have_requested(:post, /#{POLYPHEMUS_HOST}\/api\/workflows\/labors\/run\/update/)
+    end
+
+    it 'successfully links records the first time it is run' do
+      stub_request(:post, "https://polyphemus.test/api/workflows/labors/run/previous/1").to_return(
+        status: 404,
+        body: { error: "No such run for config_id 1 and version_number 1" }.to_json,
+        headers: { 'Content-Type': "application/json" },
+      )
+
       job = MetisLinkerJob.new(config, runtime_config)
 
       expect{

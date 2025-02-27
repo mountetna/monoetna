@@ -19,9 +19,9 @@ class Polyphemus
 
         run = Polyphemus::Run.where(
             config_id: config.config_id,
-        ).last
+        ).order(:created_at).last
         
-        continue if run.orchestrator_metadata.nil?
+        next unless run&.orchestrator_metadata
         
         if run.is_finished?
           if run.is_succeeded?
