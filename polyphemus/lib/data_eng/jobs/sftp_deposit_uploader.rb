@@ -1,15 +1,12 @@
 require_relative 'etl_job'
 require_relative 'common'
-require 'securerandom'
 
-class SftpMetisUploaderJob < Polyphemus::ETLJob
+class SftpDepositUploaderJob < Polyphemus::ETLJob
   include WithEtnaClients
   include WithSlackNotifications
   include WithLogger
 
-  METIS_FAILED_FILES_CSV = "metis_failed_files.csv"
-
-  private
+  DEPOSIT_FAILED_FILES_CSV = "deposit_failed_files.csv"
 
   def project_name
     config['project_name']
@@ -31,16 +28,17 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
     Regexp.new("#{magic_string}(-|_)")
   end
 
-  def bucket_name
-    config['config']['bucket_name']
+  def deposit_root_path
+    # Mandatory params
+    ::File.join('/', config['config']['deposit_root_path'] || '')
   end
 
-  def metis_uid
-    @metis_uid ||= SecureRandom.hex
+  def deposit_host
+    config["secrets"]["sftp_deposit_host"]
   end
 
-  def metis_root_path
-    config['config']['metis_root_path']
+  def ingest_host
+    config["secrets"]["sftp_ingest_host"]
   end
 
   def ingest_host
@@ -55,12 +53,21 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
     config["secrets"]["notification_webhook_url"]
   end
 
-  public
+  def remote_ssh
+    @remote_ssh ||= Etna::RemoteSSH.new(
+      host: deposit_host,
+      username: config["secrets"]["sftp_deposit_user"],
+      password: config["secrets"]["sftp_deposit_password"],
+      root: deposit_root_path
+    )
+  end
 
   def pre(context)
     run = polyphemus_client.get_run(project_name, run_id)
 
-    raise "Run #{run_id} not found" unless run
+    unless run
+      raise "Run #{run_id} not found"
+    end
 
     context[:files_to_update] = (run.dig("state","files_to_update") || []).map(&:symbolize_keys) 
 
@@ -72,41 +79,29 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
     return true
   end
 
-  def metis_filesystem
-    Etna::Filesystem::Metis.new(
-      project_name: project_name,
-      bucket_name: bucket_name,
-      metis_client: metis_client,
-      root: metis_root_path
-    )
-  end
-
-  def ingest_filesystem
-    Etna::Filesystem::SftpFilesystem.new(
-      username: config["secrets"]["sftp_ingest_user"],
-      password: config["secrets"]["sftp_ingest_password"],
-      host: ingest_host
-    )
-  end
-
   def process(context)
     context[:failed_files] = []
     context[:successful_files] = []
 
-    workflow = Etna::Clients::Metis::IngestMetisDataWorkflow.new(
-      metis_filesystem: metis_filesystem,
-      ingest_filesystem: ingest_filesystem,
-      logger: nil,
-    )
+    logger.info("Uploading #{context[:files_to_update].size} to #{deposit_host} at #{deposit_root_path}")
 
-    workflow.copy_files(context[:files_to_update].map do |file|
-      [ file[:path], file[:path].gsub(name_regex, '') ]
-    end) do |filename, success|
-      if success
-        context[:successful_files] << filename
-      else
-        logger.warn("Failed to upload to metis: #{filename}")
-        context[:failed_files] << filename
+    context[:files_to_update].each do |file|
+      sftp_path = file[:path]
+      modified_time = file[:modified_time]
+      deposit_path = ::File.join(deposit_root_path, ingest_host, sftp_path.gsub(name_regex,''))
+
+      begin
+        remote_ssh.lftp_get(
+          username: config["secrets"]["sftp_ingest_user"],
+          password: config["secrets"]["sftp_ingest_password"],
+          host: ingest_host,
+          remote_filename: sftp_path,
+          local_filename: deposit_path
+        )
+        context[:successful_files] << deposit_path
+      rescue Etna::RemoteSSH::RemoteSSHError => e
+        logger.warn("Failed to upload to deposit host #{deposit_host}: #{sftp_path}. Error: #{e.message}")
+        context[:failed_files] << sftp_path 
       end
     end
   end
@@ -114,8 +109,8 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
   def post(context)
     msg =
       "Finished uploading #{context[:files_to_update].size} files " +
-      "from #{ingest_host} to Metis for #{project_name}. " +
-      "Please check #{metis_root_path} path in bucket #{bucket_name}."
+      "from #{ingest_host} to #{deposit_host} for #{project_name}. " +
+      "Please check #{deposit_root_path} path."
 
     msg += "\n" 
 
@@ -130,7 +125,7 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
 
       polyphemus_client.update_run(project_name, run_id, {
         state: {
-          metis_num_failed_files: context[:failed_files].size
+          deposit_num_failed_files: context[:failed_files].size
         },
       })
 
@@ -144,4 +139,3 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
     notify_slack(msg, channel: notification_channel, webhook_url: notification_webhook_url)
   end
 end
-
