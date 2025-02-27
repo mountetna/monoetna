@@ -11,7 +11,8 @@ describe SftpMetisUploaderJob do
       "secrets" => {
         "sftp_ingest_host" => "some-sftp-host", 
         "sftp_ingest_user" => "user",
-        "sftp_ingest_password" => "password"
+        "sftp_ingest_password" => "password",
+        "notification_webhook_url" => "https://deposit.slack.test/DEPOSIT/DEPOSIT"
       },
       "config" => {
         "magic_string" => "LABORS",
@@ -96,11 +97,13 @@ describe SftpMetisUploaderJob do
       
       stub_request(
         :get, "http://sftp//some-sftp-host/SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/"
-      ).with(
-        headers: { 'Authorization'=>'Basic dXNlcjpwYXNzd29yZA==' }
-      ).to_return(status: 200, body: sftp_files.map { |f|
-        "drwxrwxr-x    4 eurystheus     labors        32 Aug 26  2022 #{::File.basename(f[:path])}"
-      }.join("\n"), headers: {})
+      ).to_return(
+        body: sftp_files.map { |f|
+          "drwxrwxr-x    4 eurystheus     labors        32 Aug 26  2022 #{::File.basename(f[:path])}"
+        }.join("\n"),
+        headers: {}
+      )
+      stub_slack(config["secrets"]["notification_webhook_url"])
     end
 
     it 'successfully uploads files' do

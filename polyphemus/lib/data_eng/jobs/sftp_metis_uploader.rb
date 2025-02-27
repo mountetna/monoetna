@@ -1,10 +1,10 @@
 require_relative 'etl_job'
 require_relative 'common'
-require_relative '../clients/sftp_client'
 require 'securerandom'
 
 class SftpMetisUploaderJob < Polyphemus::ETLJob
   include WithEtnaClients
+  include WithSlackNotifications
   include WithLogger
 
   METIS_FAILED_FILES_CSV = "metis_failed_files.csv"
@@ -43,12 +43,16 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
     config['config']['metis_root_path']
   end
 
-  def sftp_client
-    @sftp_client ||= SFTPClient.new(
-      config["secrets"]["sftp_ingest_host"],
-      config["secrets"]["sftp_ingest_user"],
-      config["secrets"]["sftp_ingest_password"],
-    )
+  def ingest_host
+    config["secrets"]["sftp_ingest_host"]
+  end
+
+  def notification_channel
+    config["config"]["notification_channel"]
+  end
+
+  def notification_webhook_url
+    config["secrets"]["notification_webhook_url"]
   end
 
   public
@@ -81,7 +85,7 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
     Etna::Filesystem::SftpFilesystem.new(
       username: config["secrets"]["sftp_ingest_user"],
       password: config["secrets"]["sftp_ingest_password"],
-      host: config["secrets"]["sftp_ingest_host"]
+      host: ingest_host
     )
   end
 
@@ -108,18 +112,36 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
   end
 
   def post(context)
-    state_update = {}
+    msg =
+      "Finished uploading #{context[:files_to_update].size} files " +
+      "from #{ingest_host} to Metis for #{project_name}. " +
+      "Please check #{metis_root_path} path in bucket #{bucket_name}."
+
+    msg += "\n" 
+
+    if context[:successful_files].any?
+      msg += "Uploaded #{context[:successful_files].size} files:\n" +
+        context[:successful_files].join("\n")
+    end
+
     if context[:failed_files].any?
+      msg += "Failed #{context[:failed_files].size} files:\n" +
+        context[:failed_files].join("\n")
+
+      polyphemus_client.update_run(project_name, run_id, {
+        state: {
+          metis_num_failed_files: context[:failed_files].size
+        },
+      })
+
       logger.warn("Found #{context[:failed_files].size} failed files")
 
       context[:failed_files].each do |file_path|
         logger.warn(file_path)
       end
-      state_update[:metis_num_failed_files] = context[:failed_files].size
-      polyphemus_client.update_run(project_name, run_id, { state: state_update })
-    else
-      logger.info("No failed files found")
     end
+    
+    notify_slack(msg, channel: notification_channel, webhook_url: notification_webhook_url)
   end
 end
 

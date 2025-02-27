@@ -1,6 +1,5 @@
 require_relative 'etl_job'
 require_relative 'common'
-require_relative '../clients/sftp_client'
 
 class SftpDepositUploaderJob < Polyphemus::ETLJob
   include WithEtnaClients
@@ -34,20 +33,24 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
     ::File.join('/', config['config']['deposit_root_path'] || '')
   end
 
-  def sftp_client
-    @sftp_client ||= SFTPClient.new(
-      config["secrets"]["sftp_ingest_host"],
-      config["secrets"]["sftp_ingest_user"],
-      config["secrets"]["sftp_ingest_password"],
-    )
-  end
-
   def deposit_host
     config["secrets"]["sftp_deposit_host"]
   end
 
   def ingest_host
     config["secrets"]["sftp_ingest_host"]
+  end
+
+  def ingest_host
+    config["secrets"]["sftp_ingest_host"]
+  end
+
+  def notification_channel
+    config["config"]["notification_channel"]
+  end
+
+  def notification_webhook_url
+    config["secrets"]["notification_webhook_url"]
   end
 
   def remote_ssh
@@ -91,7 +94,7 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
         remote_ssh.lftp_get(
           username: config["secrets"]["sftp_ingest_user"],
           password: config["secrets"]["sftp_ingest_password"],
-          host: config["secrets"]["sftp_ingest_host"],
+          host: ingest_host,
           remote_filename: sftp_path,
           local_filename: deposit_path
         )
@@ -104,20 +107,35 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
   end
 
   def post(context)
-    if context[:failed_files].any?
-      logger.warn("Found #{context[:failed_files].size} failed files")
+    msg =
+      "Finished uploading #{context[:files_to_update].size} files " +
+      "from #{ingest_host} to #{deposit_host} for #{project_name}. " +
+      "Please check #{deposit_root_path} path."
 
-      context[:failed_files].each do |file_path|
-        logger.warn(file_path)
-      end
+    msg += "\n" 
+
+    if context[:successful_files].any?
+      msg += "Uploaded #{context[:successful_files].size} files:\n" +
+        context[:successful_files].join("\n")
+    end
+
+    if context[:failed_files].any?
+      msg += "Failed #{context[:failed_files].size} files:\n" +
+        context[:failed_files].join("\n")
 
       polyphemus_client.update_run(project_name, run_id, {
         state: {
           deposit_num_failed_files: context[:failed_files].size
         },
       })
-    else
-      logger.info("No failed files found")
+
+      logger.warn("Found #{context[:failed_files].size} failed files")
+
+      context[:failed_files].each do |file_path|
+        logger.warn(file_path)
+      end
     end
+    
+    notify_slack(msg, channel: notification_channel, webhook_url: notification_webhook_url)
   end
 end

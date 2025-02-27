@@ -1,10 +1,24 @@
 require 'etna/clients'
 require 'etna/environment_scoped'
 require 'shellwords'
+require 'net/http'
+require 'uri'
 
 module WithSlackNotifications
-  def notify_slack(message, messenger:self.class.name, channel:)
-    `/bin/post-to-slack.sh #{Shellwords.escape(messenger)} #{Shellwords.escape(channel)} #{Shellwords.escape(message)} || true`
+  def notify_slack(message, messenger: self.class.name, channel: nil, webhook_url: Polyphemus.instance.config(:slack_webhook_url))
+    uri = URI(webhook_url)
+    req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
+
+    req.body = {
+      channel: channel,
+      username: "Polyphemus",
+      text: message,
+      icon_emoji: ":polyphemus:"
+    }.compact.to_json
+
+    Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+      http.request(req)
+    end
   end
 end
 

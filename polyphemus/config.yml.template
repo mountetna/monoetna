@@ -92,6 +92,7 @@
   :redcap:
     :host: https://redcap.test
   :etl_secrets_key: A2345678901234567890123456789012
+  :slack_webhook_url: https://hooks.slack.test/services/BLAH/BLAH/randomkey
   :ingest:
     :filename_regex: oligo
     :sftp:

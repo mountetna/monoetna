@@ -11,6 +11,7 @@ class Polyphemus
 	    title: "Ingestion Loader",
             properties: {
               bucket_name: { type: 'string' },
+              notification_channel: { type: 'string' },
               magic_string: { type: 'string' },
               ingest_root_path: { type: 'string' },
               metis_root_path: { type: 'string' },
@@ -31,7 +32,8 @@ class Polyphemus
           },
           secrets: [
             :sftp_deposit_host, :sftp_deposit_password, :sftp_deposit_user,
-            :sftp_ingest_host, :sftp_ingest_password, :sftp_ingest_user
+            :sftp_ingest_host, :sftp_ingest_password, :sftp_ingest_user,
+            :notification_webhook_url
           ],
           workflow_path: '/app/workflows/argo/ingestion/workflow.yaml'
         }

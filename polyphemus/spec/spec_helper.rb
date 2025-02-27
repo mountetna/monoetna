@@ -731,3 +731,7 @@ def stub_remote_ssh_file_upload(success: true)
       .and_raise(Etna::RemoteSSH::RemoteSSHError.new("Simulated upload failure"))
   end
 end
+
+def stub_slack(hook_url=Polyphemus.instance.config(:slack_webhook_url))
+  stub_request(:post, hook_url)
+end

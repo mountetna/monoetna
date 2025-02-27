@@ -24,6 +24,7 @@ export const useStyles = makeStyles((theme: Theme) => ({
 
 export type Config = {
   bucket_name: string,
+  notification_channel: string,
   magic_string: string,
   deposit_root_path: string,
   metis_root_path: string,
@@ -51,7 +52,7 @@ const IngestionForm = ({
 
   const bucket_name = config.bucket_name || '';
 
-  const { magic_string, metis_root_path, ingest_root_path, deposit_root_path } = config;
+  const { notification_channel, magic_string, metis_root_path, ingest_root_path, deposit_root_path } = config;
 
   const setBucket = useCallback(
     (bucket_name: string) => {
@@ -71,6 +72,17 @@ const IngestionForm = ({
             placeholder='Match string for target files'
             onChange={(e) => update({ ...config, magic_string: e.target.value})}
             value={magic_string}
+          />
+        </Grid>
+      </Grid>
+      <Grid item container>
+        <Grid item xs={3} style={{paddingLeft:'10px'}}>Notification channel</Grid>
+        <Grid item xs={9}>
+          <TextField
+            fullWidth
+            placeholder='#channel to send notifications'
+            onChange={(e) => update({ ...config, notification_channel: e.target.value})}
+            value={notification_channel}
           />
         </Grid>
       </Grid>
