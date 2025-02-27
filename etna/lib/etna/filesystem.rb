@@ -459,6 +459,7 @@ module Etna
         cmd << authn
         cmd << "-o"
         cmd << "-"
+        cmd << "-s"
         cmd << "-N"
         cmd << url(file)
 
