@@ -34,7 +34,8 @@ export const REMOVABLE_ATTRIBUTE_TYPES = [
   'integer',
   'file',
   'image',
-  'file_collection'
+  'file_collection',
+  'matrix'
 ];
 
 export const EDITABLE_ATTRIBUTE_TYPES = [
