@@ -1,8 +1,7 @@
-describe SftpMetisUploaderJob do
+describe SftpDepositUploaderJob do
   include Rack::Test::Methods
-
-  def create_job(config, runtime)
-    SftpMetisUploaderJob.new(TEST_TOKEN, config, runtime_config)
+  def create_job(config, runtime_config)
+    SftpDepositUploaderJob.new(TEST_TOKEN, config, runtime_config)
   end
 
   let(:config) {
@@ -12,6 +11,9 @@ describe SftpMetisUploaderJob do
         "sftp_ingest_host" => "some-sftp-host", 
         "sftp_ingest_user" => "user",
         "sftp_ingest_password" => "password",
+        "sftp_deposit_host" => "other-sftp-host", 
+        "sftp_deposit_user" => "user",
+        "sftp_deposit_password" => "password",
         "notification_webhook_url" => "https://deposit.slack.test/DEPOSIT/DEPOSIT"
       },
       "config" => {
@@ -41,6 +43,10 @@ describe SftpMetisUploaderJob do
     }
   }
 
+  let(:workflow_name){
+    "workflow_name-2000"
+  }
+
   let(:run_id) { "1234567890" }
   let(:run_record) {
     {
@@ -57,78 +63,51 @@ describe SftpMetisUploaderJob do
     }
   }
 
-  let(:workflow_name){
-    "workflow_name-2000"
-  }
-  
   before do
-      ENV['TOKEN'] = TEST_TOKEN
-      ENV['KUBE_ID'] = run_id
-      ENV['WORKFLOW_NAME'] = workflow_name
-  end
-
-  def stub_upload_file_with_stream(file_path, stream, force_error: false)
-    next_blob_size = force_error ? stream.size * 100000: stream.size
-    stub_upload_file(
-      file_path: config["config"]["metis_root_path"] + "/" + file_path,
-      authorize_body: JSON.generate({
-        url: "#{METIS_HOST}\/#{config["project_name"]}\/upload/#{config["config"]["metis_root_path"]}/#{file_path}",
-      }),
-      upload_body: JSON.generate({
-        current_byte_position: 0,
-        next_blob_size: next_blob_size,
-      }),
-      project: config["project_name"],
-    )
+    ENV['TOKEN'] = TEST_TOKEN
+    ENV['KUBE_ID'] = run_id
+    ENV['WORKFLOW_NAME'] = workflow_name
   end
 
   context 'records to process' do
+
     let(:captured_requests) { [] }
-    let(:file_to_upload) { "SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/S1.fastq.gz" }
-    let(:fake_stream) { @fake_stream ||= StringIO.new("A"*32) }
 
     before do
       stub_initial_sftp_connection
+      stub_initial_ssh_connection
       stub_polyphemus_get_run(config["project_name"], run_id, run_record)
+      fake_stream = StringIO.new("fake file content")
       stub_sftp_client_download_as_stream(return_io: fake_stream)
       stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
-      stub_metis_setup
-      stub_create_folder(bucket: config["config"]["bucket_name"], project: config["project_name"])
-      
-      stub_request(
-        :get, "http://sftp//some-sftp-host/SSD/20240919_LH00416_0184_B22NF2WLT3/ACMK02/"
-      ).to_return(
-        body: sftp_files.map { |f|
-          "drwxrwxr-x    4 eurystheus     labors        32 Aug 26  2022 #{::File.basename(f[:path])}"
-        }.join("\n"),
-        headers: {}
-      )
       stub_slack(config["secrets"]["notification_webhook_url"])
-    end
+    end 
 
     it 'successfully uploads files' do
-      stub_upload_file_with_stream(file_to_upload, fake_stream)
-      allow_any_instance_of(Etna::Filesystem::SftpFilesystem).to receive(:with_readable).and_yield(StringIO.new("A"*32))
+      stub_remote_ssh_mkdir_p
+      stub_remote_ssh_file_upload(success: true)
+
+      stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
 
       job = create_job(config, runtime_config)
       context = job.execute
+
       expect(context[:failed_files]).to be_empty
       expect(captured_requests).to be_empty
     end
 
     it 'fails to upload files' do
-      allow_any_instance_of(Etna::Filesystem::SftpFilesystem).to receive(:with_readable).and_yield(StringIO.new)
-      stub_upload_file_with_stream(file_to_upload, fake_stream)
-
       allow(Polyphemus.instance.logger).to receive(:warn)
-      expect(Polyphemus.instance.logger).to receive(:warn).with(/Failed to upload to metis/)
+      expect(Polyphemus.instance.logger).to receive(:warn).with(/Failed to upload to deposit host other-sftp-host/)
       expect(Polyphemus.instance.logger).to receive(:warn).with(/Found 1 failed files/)
       expect(Polyphemus.instance.logger).to receive(:warn).with(/SSD.*LABORS_S1.fastq.gz/)
+      stub_remote_ssh_mkdir_p
+      stub_remote_ssh_file_upload(success: false)
 
       job = create_job(config, runtime_config)
       context = job.execute
 
-      expect(captured_requests[0][:state][:metis_num_failed_files]).to eq(1)
+      expect(captured_requests[0][:state][:deposit_num_failed_files]).to eq(1)
     end
   end
 end
