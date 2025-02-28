@@ -291,7 +291,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
       setPathArray(pathToArray('', basePath))
       setFetchContents([''])
     }
-  }, [bucket, reset])
+  }, [bucket])
 
   useEffect(() => {
     if (Object.keys(contentsSeen).length>0) { // Don't run at initialization
