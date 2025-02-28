@@ -431,14 +431,14 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
           </Grid> : null
           }
           {index!=0 ? null : <Grid item container alignItems='flex-end' style={{width: 'auto'}}>
-            <Tooltip title="Refresh Content Cache">
+            {/* <Tooltip title="Refresh Content Cache"> */}
               <IconButton
                 aria-label="Refresh Content Cache"
                 size="small"
                 onClick={() => setReset(true)}>
                 <AutorenewIcon/>
               </IconButton>
-            </Tooltip>
+            {/* </Tooltip> */}
           </Grid>
           }
         </Grid>
