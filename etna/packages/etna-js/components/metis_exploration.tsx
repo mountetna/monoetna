@@ -1,7 +1,11 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {metisPath} from 'etna-js/api/metis_api.js'
 import Autocomplete from '@material-ui/lab/Autocomplete';
-import { Grid, IconButton, TextField } from '@material-ui/core';
+import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
+import TextField from '@material-ui/core/TextField';
+import Tooltip from '@material-ui/core/Tooltip';
+import AutorenewIcon from '@material-ui/icons/Autorenew';
 import { json_get } from 'etna-js/utils/fetch';
 import SubdirectoryArrowRightIcon from '@material-ui/icons/SubdirectoryArrowRight';
 import AddIcon from '@material-ui/icons/Add';
@@ -176,6 +180,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   className?: string;
   disablePortal?: boolean;
 }) {
+  const [firstBucketPath, setFirstBucketPath] = useState([bucket,path]);
   const [pathArray, setPathArray] = useState(pathToArray(path, basePath));
   const [targetType, setTargetType] = useState(null as 'folder' | 'file' | null) // null = not yet determined
   const labelUse = label!==undefined ? label : allowFiles ? "File or Folder" : "Folder"
@@ -184,6 +189,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   const [firstRender, setFirstRender] = useState(true) // tracked so we can leave newly rendered dropdowns closed when not the user's focus
   const [fetchContents, setFetchContents] = useState([] as string[])
   const [fetching, setFetching] = useState(false)
+  const [reset, setReset] = useState(false);
 
   const pathInMetis = useCallback( (folderPath: string) => {
     return `${project_name}/list/${bucket}/${folderPath}`
@@ -285,7 +291,21 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
       setPathArray(pathToArray('', basePath))
       setFetchContents([''])
     }
-  }, [bucket])
+  }, [bucket, reset])
+
+  useEffect(() => {
+    if (Object.keys(contentsSeen).length>0) { // Don't run at initialization
+      setFirstRender(true)
+      setContentsSeen({})
+      setFetchContents([''])
+      if (bucket == firstBucketPath[0]) {
+        setPathArray(pathToArray(firstBucketPath[1], basePath));
+      } else {
+        setPathArray(pathToArray('', basePath));
+      }
+      if (reset) setReset(false); // Double-pass helps to fully clear
+    }
+  }, [reset])
 
   // Update main readout (path) whenever anything updates pathArray
   useEffect(() => {
@@ -409,6 +429,17 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
               <AddIcon/>
             </IconButton>
           </Grid> : null
+          }
+          {index!=0 ? null : <Grid item container alignItems='flex-end' style={{width: 'auto'}}>
+            <Tooltip title="Refresh Content Cache">
+              <IconButton
+                aria-label="Refresh Content Cache"
+                size="small"
+                onClick={() => setReset(true)}>
+                <AutorenewIcon/>
+              </IconButton>
+            </Tooltip>
+          </Grid>
           }
         </Grid>
       )
