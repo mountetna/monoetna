@@ -1,14 +1,44 @@
-import React from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import {autoColors} from 'etna-js/utils/colors';
 import PlotWithEffects from './plot_with_effects';
+import {VulcanContext} from '../../../../contexts/vulcan_context';
 
-export const PngOutput = ({url}) => {
+export const PngOutput = ({data}) => {
+  let {state, getImage} = useContext(VulcanContext);
+  let {workspace, projectName} = state;
+  const [urls, setUrls] = useState([]);
+  const [pulling, setPulling] = useState(false);
+
+  const pullImages = async (data) => {
+    if (!workspace) {
+      setPulling(false);
+      return
+    }
+    const imgs = Object.keys(data)
+    const newUrls = [];
+    for (let ind in imgs) {
+      const res = await getImage(projectName, workspace.workspace_id, imgs[ind]);
+      const imageBlob = await res.blob();
+      const url = URL.createObjectURL(imageBlob);
+      newUrls.push(url);
+    }
+    setUrls(newUrls);
+    setPulling(false);
+  }
+
+  useEffect(() => {
+    if (!pulling && Object.values(data).length > urls.length) {
+      setPulling(true);
+      pullImages(data);
+    }
+  }, [data, urls])
+
   return <React.Fragment>
-    {Object.values(url).map((url, ind) =>
-        <React.Fragment key={url}>
-          <img key={ind} src={url} width="800"/>
+    {urls.length == 0 ? null : urls.map((val, ind) => {
+      return <React.Fragment key={ind}>
+          <img src={val} width="800"/>
         </React.Fragment>
-    )}
+    })}
   </React.Fragment>
 }
 
@@ -81,13 +111,13 @@ export const PlotOutput = ({data, url}) => {
   const pngs = Object.fromEntries(
     Object.entries(data).filter(([key, val]) => {
       return typeof(val)=='string'
-    }).map( ([key, val]) => [key, url[key]])
+    })
   )
   Object.keys(pngs).forEach( (key) => {
     delete plotlys[key]
   })
   return <React.Fragment>
     {(Object.keys(plotlys).length>0) ? PlotlyOutput({data: plotlys}) : null}
-    {(Object.keys(pngs).length>0) ? PngOutput({url: pngs}) : null}
+    {(Object.keys(pngs).length>0) ? PngOutput({data: pngs}) : null}
   </React.Fragment>
 }

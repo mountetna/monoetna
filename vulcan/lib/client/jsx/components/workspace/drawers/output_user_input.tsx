@@ -13,7 +13,6 @@ export default function OutputUI({step}: {step: WorkspaceStep}) {
   let {workspace, status} = state;
   if (!workspace?.vulcan_config) return null;
   const vulcan_config = workspace.vulcan_config;
-  const stepStatus = statusOfStep(step, status, workspace);
   const uiOutput = uiComponentOfStep(step.name, vulcan_config);
 
   if (!uiOutput) return null;
@@ -21,14 +20,14 @@ export default function OutputUI({step}: {step: WorkspaceStep}) {
 
   let data;
   if (dontDownloadForOutputTypes.includes(stepType)) {
-    data = stepInputDataUrls(step, status);
+    data = step.input.files;
   } else {
     data = stepInputDataRaw(step, status.last_params, status.file_contents);
   }
 
   let url;
   if (dataAndUrlForOutputTypes.includes(stepType)) {
-    url = stepInputDataUrls(step, state.status);
+    url = step.input.files;
   }
 
   let OutputComponent = OUTPUTS[stepType];

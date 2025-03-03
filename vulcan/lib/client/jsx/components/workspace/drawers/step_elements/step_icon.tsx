@@ -57,7 +57,7 @@ const StepIcon = ({
   let IconComponent:IconClass = STATUS.RUNNING === statusStr ? AnimatedClock : icon_config.icon;
 
   return <Tooltip title={statusStr}>
-    <IconComponent className={`${classes[ statusStr ]} ${classes.icon}`}/>
+    <IconComponent className={`${classes[ statusStr ]} ${classes.icon} icon`}/>
   </Tooltip>;
 };
 

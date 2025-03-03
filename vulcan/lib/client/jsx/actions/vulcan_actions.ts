@@ -73,14 +73,6 @@ export function setStatusFromStatuses(
   return actionObject('SET_STATUS_FROM_STATUSES', {statusReturns, isRunning});
 }
 
-export function setFileContent(fileName: string, fileData: any) {
-  return actionObject('SET_FILE_CONTENT', {fileName, fileData});
-}
-
-export function setFilesContent(filesContent: MultiFileContent) {
-  return actionObject('SET_FILES_CONTENT', {filesContent});
-}
-
 export function setWorkspaceFiles(fileNames: string[]) {
   return actionObject('SET_WORKSPACE_FILES', {fileNames});
 }
@@ -153,6 +145,10 @@ export function checkCommittedStepPending(step: string | null) {
   return actionObject('CHECK_CHANGES_READY', {step});
 }
 
+export function clearRunning() {
+  return actionObject('CLEAR_RUNNING', {});
+}
+
 export function clearCommittedStepPending() {
   return actionObject('CLEAR_CHANGES_READY', {});
 }
@@ -171,8 +167,6 @@ export type VulcanAction =
   | ReturnType<typeof setLastConfig>
   | ReturnType<typeof useUIAccounting>
   | ReturnType<typeof setStatusFromStatuses>
-  | ReturnType<typeof setFileContent>
-  | ReturnType<typeof setFilesContent>
   | ReturnType<typeof setWorkspaceFiles>
   | ReturnType<typeof setUIValues>
   | ReturnType<typeof startPolling>
@@ -187,5 +181,6 @@ export type VulcanAction =
   | ReturnType<typeof clearAutoPassStep>
   | ReturnType<typeof setRunTrigger>
   | ReturnType<typeof clearRunTriggers>
+  | ReturnType<typeof clearRunning>
   | ReturnType<typeof checkCommittedStepPending>
   | ReturnType<typeof clearCommittedStepPending>

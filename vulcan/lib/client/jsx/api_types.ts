@@ -123,7 +123,9 @@ interface WorkspaceMinusInconsistent {
   created_at: string;
   updated_at: string;
   last_config: {[k: string]: any} | null;
+  last_config_id: number | null;
   last_job_status: {[k: string]: StatusStringFine} | null;
+  last_run_id: number | null;
 }
 
 export interface Workspace extends WorkspaceMinusInconsistent {
@@ -151,7 +153,9 @@ export const defaultWorkspace: Workspace = {
   created_at: '',
   updated_at: '',
   last_config: {},
+  last_config_id: null,
   last_job_status: {},
+  last_run_id: null,
 };
 
 // export type WorkspaceResponse = Pick<WorkspaceRaw,

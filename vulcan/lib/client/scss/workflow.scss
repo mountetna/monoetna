@@ -18,6 +18,7 @@
 
 .steps-list {
   padding-left: 10px;
+  padding-right: 10px;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -32,6 +33,18 @@
   &.open {
     .step {
       width: 300px;
+      transition: width 250ms ease-in-out;
+    }
+    title {
+      width: 100%;
+      transition: width 250ms ease-in-out;
+    }
+    .steps-list-header {
+      width: 100%;
+      transition: width 250ms ease-in-out;
+    }
+    .steps-list-subheader {
+      width: 100%;
       transition: width 250ms ease-in-out;
     }
   }
@@ -49,6 +62,27 @@
         margin-left: 15px;
       }
     }
+
+    .steps-list-subheader {
+      width: 40px;
+      transition: width 250ms ease-in-out;
+      .icon-grp-toggle {
+        margin-left: 15px;
+      }
+    }
+    title {
+      width: 0px;
+      overflow-x: hidden;
+      transition: width 250ms ease-in-out;
+    }
+    .icon {
+      padding-right: 10px;
+      transition: padding-right 250ms ease-in-out;
+    }
+  }
+
+  .steps-list-subheader {
+    padding-top: 2px;
   }
 
   .steps-list-header {

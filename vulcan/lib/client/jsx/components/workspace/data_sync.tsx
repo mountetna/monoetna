@@ -56,7 +56,7 @@ export function useDataSync(
             showErrors(readFiles(projectName, workspaceId, files))
             .then((filesContentRaw) => {
               update['file_contents'] = {
-                ...update['file_contents'],
+                ...filesContent,
                 ...filesReturnToMultiFileContent(filesContentRaw)
               }
               dispatch(updateFiles(update))

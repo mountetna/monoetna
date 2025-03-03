@@ -53,7 +53,7 @@ export default function InputFeed() {
   const groupedSteps = groupUiSteps(completed.concat(nextUiSteps), workspace);
 
   const stepInputs = useMemo(() => {
-    return update_files ?
+    return update_files && Object.keys(status.file_contents).length<1 ?
       <div>
         <LoadingIcon/>
         Refreshing Files
@@ -61,7 +61,7 @@ export default function InputFeed() {
       groupedSteps.map((s, index) => (
         <GroupedStepUI key={index} group={s} />
       ));
-  }, [update_files])
+  }, [update_files, status.file_contents])
 
   let errorSteps = erroredStepNames(workspace, status).map((step) => stepOfName(step, workspace.vulcan_config));
 

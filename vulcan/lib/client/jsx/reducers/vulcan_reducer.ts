@@ -199,6 +199,8 @@ export default function VulcanReducer(
         status: {...action.status},
         update_files: action.update_files,
         isRunning: action.isRunning,
+        configId: action.workspace.last_config_id,
+        runId: action.workspace.last_run_id,
       }
     case 'SET_CONFIG_ID':
       return {
@@ -229,32 +231,27 @@ export default function VulcanReducer(
         console.log("empty data")
       }
       // Arrive here from polling return
-      const newStepStatus = {...state.status.steps};
+      const newStepStatus = {};
       const newCompletions = [] as string[];
-      Object.entries(action.statusReturns).forEach(([stepName, statusFine]) => {
-        if (!(stepName in newStepStatus)) {
-          newStepStatus[stepName] = {
-            name: stepName,
-            status: 'pending',
-            statusFine: 'NOT STARTED'
-          }
-        }
-        if (newStepStatus[stepName].statusFine==statusFine) return
+      for (let [stepName, statusFine] of Object.entries(action.statusReturns)) {
         const statusBroad = StatusStringBroaden(statusFine);
-        newStepStatus[stepName]['status'] = statusBroad;
-        newStepStatus[stepName]['statusFine'] = statusFine;
-        if (statusBroad=='complete') {
+        newStepStatus[stepName] = {
+          name: stepName,
+          status: statusBroad,
+          statusFine: statusFine
+        }
+        if (statusBroad=='complete' && state.status.steps[stepName].status!='complete') {
           newCompletions.push(stepName);
         }
-      });
+      };
       const newStatus = {
         ...state.status,
-        steps: newStepStatus
+        steps: {...state.status.steps, ...newStepStatus}
       };
       return {
         ...state,
         isRunning: action.isRunning,
-        status: newStatus,
+        status: {...newStatus},
         workQueueable: upcomingStepNames(state.workspace as Workspace, newStatus).length > 0,
         update_files: newCompletions.length > 0
       };
@@ -296,30 +293,6 @@ export default function VulcanReducer(
         (val) => !action.steps.includes(val)
       );
       return {...state, triggerRun};
-
-    case 'SET_FILE_CONTENT':
-      return {
-        ...state,
-        status: {
-          ...state.status,
-          file_contents: {
-            ...state.status.file_contents,
-            [action.fileName]: action.fileData
-          }
-        }
-      };
-    
-    case 'SET_FILES_CONTENT':
-      return {
-        ...state,
-        status: {
-          ...state.status,
-          file_contents: {
-            ...state.status.file_contents,
-            ...action.filesContent
-          }
-        }
-      };
 
     case 'SET_STATE_FROM_STORAGE':
       const currentWorkspace = state.workspace;
@@ -449,6 +422,12 @@ export default function VulcanReducer(
         ...state,
         workQueueable: ready
       };
+
+    case 'CLEAR_RUNNING':
+      return {
+        ...state,
+        isRunning: false
+      }
 
     case 'CLEAR_CHANGES_READY':
       return {

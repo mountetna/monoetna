@@ -96,7 +96,7 @@ export function useSessionSyncWhileRunning(
     }
 
     while (isRunning) {
-      yield delay(1000);
+      yield delay(3000);
       if (!runId) {
         console.log("Skipping polling, no runId, ending polling")
         isRunning = true;

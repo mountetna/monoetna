@@ -78,6 +78,9 @@ export const defaultApiHelpers = {
   readFiles(projectName: string, workspaceId: number, fileNames: string[]): Promise<MultiFileContentResponse> {
     return new Promise(() => null);
   },
+  getImage(projectName: string, workspaceId: number, imageFile: string): Promise<Response> {
+    return new Promise(() => null);
+  },
   setConfig(projectName: string, workspaceId: number, params: FlatParams): Promise<AccountingReturn> {
     return new Promise(() => null);
   },
@@ -102,7 +105,8 @@ export function useApi(
     (endpoint: string) => `${CONFIG.vulcan_host}${endpoint}`,
     []
   );
-  const vulcanPost = useCallback((endpoint: string, params: Object) => {
+
+  const vulcanPostRaw = useCallback((endpoint: string, params: Object) => {
     return fetch(endpoint, {
       method: 'POST',
       credentials: 'include',
@@ -110,9 +114,14 @@ export function useApi(
       body: JSON.stringify({
         ...params
       })
-    }).then(checkStatus)
+    })
+  }, []);
+
+  const vulcanPost = useCallback((endpoint: string, params: Object) => {
+    return vulcanPostRaw(endpoint, params)
+    .then(checkStatus)
     .then(handleFetchSuccess)
-    .catch(handleFetchError);;
+    .catch(handleFetchError);
   }, []);
 
   const rawVulcanGet = useCallback((endpoint: string) => {
@@ -236,6 +245,15 @@ export function useApi(
         });
   }, [vulcanPost, vulcanPath]);
 
+  const getImage = useCallback(
+    (projectName: string, workspaceId: number, imageFile: string): Promise<Response> => {
+      return vulcanPostRaw(
+        vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/image/read`),
+        {
+          file_name: imageFile
+        });
+  }, [vulcanPost, vulcanPath]);
+
   const setConfig = useCallback(
     (projectName: string, workspaceId: number, params: FlatParams): Promise<AccountingReturn> => {
       return vulcanPost(
@@ -321,6 +339,7 @@ export function useApi(
     postUIValues,
     requestRun,
     getIsRunning,
-    pullRunStatus
+    pullRunStatus,
+    getImage
   };
 }

@@ -135,8 +135,8 @@ export const OUTPUT_TYPES = {
   RAW: 'raw'
 };
 
-export const dontDownloadForOutputTypes = ['default', OUTPUT_TYPES.LINK]
-export const dataAndUrlForOutputTypes = [OUTPUT_TYPES.PLOT, OUTPUT_TYPES.PNG]
+export const dontDownloadForOutputTypes = ['default', OUTPUT_TYPES.LINK];
+export const dataAndUrlForOutputTypes = [] as string[];
 
 export const OUTPUTS = {
   default: LinkOutput,

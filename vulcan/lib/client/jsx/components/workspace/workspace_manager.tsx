@@ -29,6 +29,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {
   clearCommittedStepPending,
+  clearRunning,
   clearRunTriggers,
   setWorkspace,
 } from '../../actions/vulcan_actions';
@@ -109,12 +110,11 @@ export default function WorkspaceManager() {
 
   useDataSync(state, dispatch, showErrors, getFileNames, readFiles, postUIValues);
 
-  // Requires lastConfigId!
-  // useEffect(() => {
-  //   if (state.isRunning && state.pollingState < 1) {
-  //     requestPoll(state, true);
-  //   }
-  // }, [state.isRunning, state.pollingState])
+  useEffect(() => {
+    if (state.configId && state.isRunning && state.pollingState < 1) {
+      requestPoll(state, true);
+    }
+  }, [state.isRunning, state.pollingState])
 
   const invoke = useActionInvoker();
 
@@ -130,6 +130,7 @@ export default function WorkspaceManager() {
   }, [requestPoll, dispatch, showErrors]);
   const stop = useCallback(() => {
     cancelPolling()
+    dispatch(clearRunning());
   }, [cancelPolling]);
 
   // ToDo Later: once we figure out revisions.
