@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 
 import Tooltip from '@material-ui/core/Tooltip';
 import Button from '@material-ui/core/Button';
@@ -64,6 +64,9 @@ export default function WorkspaceCreateButtonModal({
   const [repoVersion, setRepoVersion] = useState({version: '', lastUsed: 'never'})
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [versionText, setVersionText] = useState(repoVersion.version)
+  const [versionHelperText, setVersionHelperText] = useState('Commit SHA')
+  const [createTag, setCreateTag] = useState('Create Workspace')
 
   const [handleCreateWorkspace] = useAsyncCallback(function* () {
     if (!workflow || !workflow.id) return;
@@ -110,12 +113,21 @@ export default function WorkspaceCreateButtonModal({
     freeSolo
     value={repoVersion}
     options={[...pastVersions, {version: '', lastUsed: 'never'}]}
+    inputValue={versionText}
+    onInputChange={(event: any, value: string) => {
+      if (value != repoVersion.version) {
+        setVersionHelperText('Commit SHA, *Hit Enter/Return to use the current value*')
+      } else {
+        setVersionHelperText('Commit SHA')
+      }
+      setVersionText(value)
+    }}
     renderInput={(params: any) => (
       <TextField
         {...params}
         label='Workflow Version'
-        helperText='Commit SHA or Tag'
-        error={repoVersion.version===''}
+        helperText={versionHelperText}
+        error={repoVersion.version==='' || repoVersion.version != versionText}
         InputLabelProps={{shrink: true}}
         size="small"
       />
@@ -134,7 +146,10 @@ export default function WorkspaceCreateButtonModal({
       return options.filter((o) => regex.test(o.version) && o.version!='');
     }}
     onChange={(e: any, v: {version: string, lastUsed: string} | string | null) => {
-      if (v != null && typeof v === 'object') setRepoVersion(v);
+      if (v != null && typeof v === 'object') {
+        setVersionHelperText('Commit SHA');
+        setRepoVersion(v);
+      };
       if (typeof v === 'string' && v != '') {
         const match = pastVersions.filter(p => p.version==v);
         if (match.length>0) {
@@ -145,6 +160,17 @@ export default function WorkspaceCreateButtonModal({
       }
     }}
   />
+
+  useEffect(() => {
+    if (repoVersion.version === '') {
+      setCreateTag('Workflow Version not set')
+    } else if (repoVersion.version != versionText) {
+      setCreateTag('Workflow Version input in error sate')
+    } else if (createTag!='Create Workspace') {
+      setCreateTag('Create Workspace')
+    }
+  }, [repoVersion, versionText, createTag])
+  const disableCreate = createTag!='Create Workspace';
 
   return (
     <>
@@ -187,36 +213,25 @@ export default function WorkspaceCreateButtonModal({
               />
             </Grid>
             <Grid item>
-              {/* ToDo: This could be a drop-down based on options given by the back-end */}
-              <TextField
-                value={branch}
-                fullWidth
-                label='Workflow branch'
-                helperText='Ex: master or main'
-                error={branch===''}
-                InputLabelProps={{ shrink: true }}
-                onChange={(event) => setBranch(event.target.value)}
-                size="small"
-              />
-            </Grid>
-            <Grid item>
               {versionUI}
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Tooltip title='Create Workspace'>
+          <Tooltip title={createTag} placement='top'>
             <Button
               className={classes.propagateButton}
-              onClick={handleCreateWorkspace}
+              onClick={() => {
+                if (!disableCreate) handleCreateWorkspace()
+              }}
               startIcon={creating ? <LoadingIcon/> : <SaveIcon/>}
-              color='primary'
+              color={disableCreate ? 'secondary' : 'primary'}
               variant='contained'
             >
               Create Workspace
             </Button>
           </Tooltip>
-          <Tooltip title='Cancel'>
+          <Tooltip title='Cancel' placement='top'>
             <Button
               className={classes.propagateButton}
               onClick={() => setOpen(false)}
