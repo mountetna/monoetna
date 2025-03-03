@@ -190,6 +190,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   const [fetchContents, setFetchContents] = useState([] as string[])
   const [fetching, setFetching] = useState(false)
   const [reset, setReset] = useState(false);
+  const [reseting, setReseting] = useState(false);
 
   const pathInMetis = useCallback( (folderPath: string) => {
     return `${project_name}/list/${bucket}/${folderPath}`
@@ -233,7 +234,18 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
       const target = pathArray[pathArray.length-1]
       // without passing upwards to not trigger extraneous updates in parent component updates at page refresh
       if (target && target != '') {
-        useDetermineType(target, stripSlash(arrayToPath(containerPathArray, basePath)), true, false)
+        const newType = useDetermineType(target, stripSlash(arrayToPath(containerPathArray, basePath)), true, false)
+        // add + button if needed
+        if (firstRender && newType=='folder') {
+          const fullPath = stripSlash(arrayToPath(pathArray, basePath))
+          if (!pathSeen(fullPath)) {
+            fetchFolderContents(fullPath, (f) => {
+              if (contentUse(f, allowFiles).length > 0) {
+                setShowAddButton(pathArray.length-1);
+              }
+            })
+          }
+        }
       }
       if (target && target == '') {
         useType('folder', false)
@@ -255,19 +267,24 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   },
   [project_name, bucket, contentsSeen]);
 
+  function determineContentsNeeded(pathArray: string[]) {
+    let contentsNeeded = ['']
+    for (let i=1; i <= pathArray.length-1; i++) {
+      const thisPath = stripSlash(arrayToPath(pathArray.slice(0,i), basePath))
+      contentsNeeded.push(thisPath)
+    }
+    return contentsNeeded
+  }
+
   // Determine folder contents to grab at very start, or once first valid bucket given 
   useEffect( () => {
     if (bucket != '' && Object.keys(contentsSeen).length==0 && !fetching) {
-      let contentsNeeded = ['']
-      for (let i=1; i <= pathArray.length-1; i++) {
-        const thisPath = stripSlash(arrayToPath(pathArray.slice(0,i), basePath))
-        contentsNeeded.push(thisPath)
-      }
-      setFetchContents(contentsNeeded)
+      setFetchContents(determineContentsNeeded(pathArray))
     }
   }, [bucket])
 
   // Get contents of paths in fetchContents, one at a time.
+  // Note: Content fetching for a path-targeted folder always happens elsewhere
   useEffect( ()=>{
     if (fetchContents.length>0) {
       if (pathSeen(fetchContents[0])) {
@@ -275,11 +292,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
         setFetchContents(fetchContents.slice(1))
       } else if (!fetching) {
         setFetching(true)
-        if (path !='' && fetchContents[0]==path) {
-          fetchFolderContents(fetchContents[0], (f) => { if (contentUse(f, allowFiles).length > 0) setPathArray([...pathArray, '']) })
-        } else {
-          fetchFolderContents(fetchContents[0])
-        }
+        fetchFolderContents(fetchContents[0])
       }
     }
   }, [fetchContents, contentsSeen, pathArray])
@@ -290,22 +303,40 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
       setFirstRender(true)
       setPathArray(pathToArray('', basePath))
       setFetchContents([''])
+      setShowAddButton(-1);
     }
   }, [bucket])
 
+  // Reset when 'reset' button clicked
+  // clear contentsSeen, repopulate fetchContents, set pathArray to original if bucket was same
   useEffect(() => {
-    if (Object.keys(contentsSeen).length>0) { // Don't run at initialization
-      setFirstRender(true)
-      setContentsSeen({})
-      setFetchContents([''])
-      if (bucket == firstBucketPath[0]) {
-        setPathArray(pathToArray(firstBucketPath[1], basePath));
-      } else {
-        setPathArray(pathToArray('', basePath));
+    if (reset) {
+      const resetPathArray = pathToArray(firstBucketPath[1], basePath)
+      if (!reseting) { // Initial time through
+        setFirstRender(true);
+        setContentsSeen({});
+        setShowAddButton(-1);
+        if (bucket == firstBucketPath[0]) {
+          setReseting(true); // Rely on next renders to fetch contents
+          setPathArray(resetPathArray);
+          setFetchContents(determineContentsNeeded(resetPathArray));
+        } else {
+          setReset(false); // Done in this render
+          setPathArray(pathToArray('', basePath));
+          setFetchContents(['']);
+        }
+      } else { // next times through
+        if (fetchContents.length < 1) {
+          if (resetPathArray.length > 1 || resetPathArray[0]!='') {
+            const end = resetPathArray.length-1
+            updateTarget(resetPathArray[end], resetPathArray.slice(0,-1), end, false, false)
+          }
+          setReseting(false);
+          setReset(false);
+        }
       }
-      if (reset) setReset(false); // Double-pass helps to fully clear
     }
-  }, [reset])
+  }, [reset, reseting, fetchContents])
 
   // Update main readout (path) whenever anything updates pathArray
   useEffect(() => {
@@ -321,8 +352,8 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   }, [path]);
 
   // onChange for inners
-  const updateTarget = (newPath: string, currentPathSet: string[], depth: number) => {
-    setFirstRender(false)
+  const updateTarget = (newPath: string, currentPathSet: string[], depth: number, clearFirstRender = true, autoAddLevel = true) => {
+    if (clearFirstRender) setFirstRender(false)
     setShowAddButton(-1)
     
     // Also trim at the level just picked in case not actually the deepest
@@ -346,9 +377,15 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
       if (!pathSeen(targetPath)) {
         fetchFolderContents(targetPath, (f) => {
           if (contentUse(f, allowFiles).length > 0) {
-            nextPathSet = [...nextPathSet, '']
+            if (autoAddLevel) {
+              setPathArray([...nextPathSet, '']);
+            } else {
+              setPathArray(nextPathSet);
+              setShowAddButton(depth);
+            }
+          } else {
+            setPathArray(nextPathSet)
           }
-          setPathArray(nextPathSet)
         })
       } else {
         if (contentUse(contentsSeen[pathInMetis(targetPath)] as folderSummary, allowFiles).length > 0) {
