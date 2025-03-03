@@ -51,6 +51,11 @@ default: &default
     :database: vulcan_development
   :advisory_lock_file: /app/storage.lock
   :ignore_dependencies: false
+  :v2_ssh_config:
+    :host: vulcan_c4_env
+    :username: root
+    :password: root
+    :port: 22
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".

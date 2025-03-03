@@ -4,7 +4,7 @@ import {
   SessionStatusResponse,
   VulcanSession,
   Workflow,
-  WorkflowStep
+  WorkspaceStep
 } from '../api_types';
 import {ProviderProps, VulcanContextData} from '../contexts/vulcan_context';
 import {
@@ -204,7 +204,7 @@ export function createFakeBackend(
   }
 
   function gatherInputs(
-    step: WorkflowStep,
+    step: WorkspaceStep,
     session: VulcanSession,
     workflow: Workflow
   ): Maybe<DataEnvelope<any>> {
