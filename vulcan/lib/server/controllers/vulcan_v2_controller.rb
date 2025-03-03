@@ -62,12 +62,12 @@ class VulcanV2Controller < Vulcan::Controller
       workspace_dir = Vulcan::Path.workspace_dir(@escaped_params[:project_name], workspace_hash)
     begin
         @remote_manager.mkdir(workspace_dir)
-        @remote_manager.clone(workflow.repo_remote_url, @escaped_params[:branch], workspace_dir)
+        @remote_manager.clone(workflow.repo_remote_url, workspace_dir)
         @remote_manager.checkout_version(workspace_dir, @escaped_params[:git_version])
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
         @remote_manager.mkdir(Vulcan::Path.workspace_output_path(workspace_dir))
         @remote_manager.upload_dir(Vulcan::Path::SNAKEMAKE_UTILS_DIR, workspace_dir, true)
-        config = @remote_manager.read_yaml_file(Vulcan::Path.snakemake_config(workspace_dir))
+        config = @remote_manager.read_yaml_file(Vulcan::Path.default_snakemake_config(workspace_dir))
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
           name: @params[:workspace_name],
@@ -109,21 +109,25 @@ class VulcanV2Controller < Vulcan::Controller
       msg = "Workspace for project: #{@params[:project_name]} does not exist."
       raise Etna::BadRequest.new(msg)
     end
-    # Fetch the last run and last config
+    # Fetch the last run
     last_run = Vulcan::Run.where(workspace_id: workspace.id).order(Sequel.desc(:created_at)).first
-    last_config = last_run ? Vulcan::Config.where(workspace_id: workspace.id, id: last_run.config_id).first : nil
-    # If no runs exists, try searching for the last config
-    unless last_config
-      last_config = Vulcan::Config.where(workspace_id: workspace.id).order(Sequel.desc(:created_at)).first
-    end
-
     if last_run
       job_id_hash = @snakemake_manager.parse_log_for_slurm_ids(last_run.log_path)
       slurm_status = @snakemake_manager.query_sacct(last_run.slurm_run_uuid, job_id_hash)
     end
+    # Fetch the last config
+    # If we dont have a config associated with the last run, just grab the most recent config
+    last_config = last_run ? Vulcan::Config.where(workspace_id: workspace.id, id: last_run.config_id).first : nil
+    unless last_config
+      last_config = Vulcan::Config.where(workspace_id: workspace.id).order(Sequel.desc(:created_at)).first
+    end
+
     response = workspace.to_hash.merge({
+      dag: workspace.dag,
       vulcan_config: @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace.path)),
       last_config: last_config ? @remote_manager.read_json_file(last_config.path) : nil,
+      last_config_id: last_config ? last_config.id : nil,
+      last_run_id: last_run ? last_run.id : nil,
       last_job_status: last_run ? slurm_status : nil
     })
     success_json(response)
@@ -140,11 +144,15 @@ class VulcanV2Controller < Vulcan::Controller
     end
     begin
       request_params = @params[:params]
-      params_hash = Digest::MD5.hexdigest(request_params.to_json)
+      request_params_json = to_valid_json(request_params)
+      params_hash = Digest::MD5.hexdigest(request_params_json)
       config = Vulcan::Config.first(workspace_id: workspace.id, hash: params_hash)
       unless config
+        # We always overwrite the default config with the incoming params
+        default_config = @remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
+        config_values = JSON.parse(default_config.to_json).merge(JSON.parse(request_params_json))
         config_path = Vulcan::Path.workspace_config_path(workspace.path, params_hash)
-        @remote_manager.write_file(config_path, request_params.to_json)
+        @remote_manager.write_file(config_path, config_values.to_json)
         config = Vulcan::Config.create(
           workspace_id: workspace.id,
           path: config_path,
@@ -155,7 +163,11 @@ class VulcanV2Controller < Vulcan::Controller
       end
       available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" }
       command = Vulcan::Snakemake::CommandBuilder.new
-      command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(workspace.target_mapping, request_params.keys.map(&:to_s), available_files)
+      command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(
+        workspace.target_mapping,
+        request_params.keys.map(&:to_s),
+        available_files
+      )
       command.options = {
         config_path: config.path,
         profile_path: Vulcan::Path.profile_dir(workspace.path),
@@ -191,8 +203,8 @@ class VulcanV2Controller < Vulcan::Controller
       end
 
       # Build snakemake command
-      available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" },
-      params = @remote_manager.read_json_file(config.path).keys
+      available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" }
+      params = @remote_manager.read_yaml_file(config.path).keys
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(workspace.target_mapping, params, available_files)
       command.options = {
@@ -239,13 +251,12 @@ class VulcanV2Controller < Vulcan::Controller
   def write_files
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
-    files = @params || {}
+    files = @params[:files] || {}
     raise Etna::BadRequest.new("No files provided") if files.empty?
-
     begin
-      files.each do |file_name, content|
+      files.each do |file|
         output_path = Vulcan::Path.workspace_output_path(workspace.path)
-        @remote_manager.write_file("#{output_path}#{file_name}", content)
+        @remote_manager.write_file("#{output_path}#{file[:filename]}", file[:content])
       end
     rescue => e
       Vulcan.instance.logger.log_error(e)
@@ -264,7 +275,7 @@ class VulcanV2Controller < Vulcan::Controller
       content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
       {
         filename: file_name,
-        content: Base64.encode64(content)
+        content: content
       }
     end
     success_json({files: file_contents})
@@ -274,6 +285,28 @@ class VulcanV2Controller < Vulcan::Controller
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
     success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path))})
+  end
+
+  def read_image
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    raise Etna::BadRequest.new("Workspace not found") unless workspace
+    file_name = @params[:file_name] || []
+    raise Etna:BadRequest.new("No file provided" ) if file_name.nil? || file_name.empty?
+    output_path = Vulcan::Path.workspace_output_path(workspace.path)
+    unless @remote_manager.file_exists?("#{output_path}#{file_name}")
+      raise Etna::BadRequest.new("File not found")
+    end
+    content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
+    success(content, file_type="image/png")
+  end
+
+  def is_running
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    unless workspace
+      msg = "Workspace for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+    success_json({running: @snakemake_manager.snakemake_is_running?(workspace.path)})
   end
 
 end

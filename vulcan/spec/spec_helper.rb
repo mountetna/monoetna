@@ -93,23 +93,27 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     FactoryBot.find_definitions
-    DatabaseCleaner.strategy = :transaction
+    # DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
 
-  # Note: I've had to comment out this code below to get long-ish running tests to work.
-  # This comes at the cost of auto_savepointing... which isn't a bottleneck for us (we don't have complicated nested
-  # transactions)
-  # I've also re-enabled  DatabaseCleaner.strategy = :transaction above
-
-  # config.around(:each) do |example|
+  config.around(:each) do |example|
     # Unfortunately, DatabaseCleaner + Sequel does not properly handle the auto_savepointing, which means that
     # exceptions handled in rescue blocks do not behave correctly in tests (where as they would be fine outside of
     # tests).  Thus, we are forced to manually handle the transaction wrapping of examples manually to set this option.
     # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
     #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
-  # Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
-  # end
+    
+    # Don't wrap long running tests in a transaction, as it will cause the tests to hang.
+    # Make sure to group tests that are long running in the same context.
+    if example.metadata[:long_running]
+      DatabaseCleaner.clean_with(:truncation)
+      example.run
+      DatabaseCleaner.clean_with(:truncation)
+    else
+      Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
+    end
+  end
 
   if ENV['RUN_E2E']=='1'
     config.filter_run e2e: true
@@ -285,6 +289,13 @@ class TestRemoteServerManager < Vulcan::RemoteManager
     command = Shellwords.join(["rm", "-r", "-f", dir])
     invoke_ssh_command(command)
   end
+
+  def tag_exists?(dir, tag)
+    command = "cd #{dir} && git tag -l #{tag}"
+    result = invoke_ssh_command(command)
+    !result[:stdout].strip.empty?
+  end
+
 end
 
 
@@ -311,8 +322,25 @@ def write_files_to_workspace(workspace_id)
   # The first step in the test workflow involves the UI writing files to the workspace
   auth_header(:editor)
   request = {
-    "poem.txt" => poem_1_text,
-    "poem_2.txt" => poem_2_text
+    files: [{
+      filename: "poem.txt",
+      content: poem_1_text
+    }, {
+      filename: "poem_2.txt",
+      content: poem_2_text
+    }]
+  }
+  post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
+  expect(last_response.status).to eq(200)
+end
+
+def write_image_to_workspace(workspace_id)
+  auth_header(:editor)
+  request = {
+    files: [{
+      filename: "image.png",
+      content: "image content"
+    }]
   }
   post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
   expect(last_response.status).to eq(200)
@@ -325,7 +353,7 @@ def remove_all_dirs
 end
 
 
-def check_jobs_status(job_names, max_attempts = 10, base_delay = 10)
+def check_jobs_status(job_names, max_attempts = 5, base_delay = 10)
   attempts = 0
 
   loop do
@@ -351,7 +379,7 @@ def check_jobs_status(job_names, max_attempts = 10, base_delay = 10)
   end
 end
 
-def run_workflow_with_retry(max_attempts = 3, base_delay = 15)
+def run_workflow_with_retry(max_attempts = 5, base_delay = 15)
   attempts = 0
 
   loop do

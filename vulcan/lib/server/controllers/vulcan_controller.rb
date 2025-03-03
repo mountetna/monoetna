@@ -30,5 +30,27 @@ class Vulcan
     def token
       @token ||= @request.cookies[Vulcan.instance.config(:token_name)]
     end
+
+    # This recursively converts string booleans ("true"/"false") into actual boolean values.
+    def to_valid_json(obj_to_transform)
+      JSON.generate(recursive_transform(obj_to_transform))
+    end
+
+    # Helper method to recursively transform hash values.
+    def recursive_transform(value)
+      case value
+      when Hash
+        value.transform_values { |v| recursive_transform(v) }
+      when Array
+        value.map { |v| recursive_transform(v) }
+      when String
+        normalized = value.strip.downcase
+        return true if normalized == 'true'
+        return false if normalized == 'false'
+        value
+      else
+        value
+      end
+    end
   end
 end

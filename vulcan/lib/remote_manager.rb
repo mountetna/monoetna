@@ -34,7 +34,7 @@ class Vulcan
     end
 
     def read_yaml_file(remote_file_path)
-      YAML.safe_load(read_file_to_memory(remote_file_path))
+      YAML.safe_load(read_file_to_memory(remote_file_path), permitted_classes: [Symbol])
     end
 
     def read_json_file(remote_file_path)
@@ -111,8 +111,9 @@ class Vulcan
       out[:stdout].chomp == 'Directory exists.'
     end
 
-    def clone(repo, branch, target_dir)
-      command = Shellwords.join(['git', 'clone', '-b', branch, repo, target_dir])
+    def clone(repo, target_dir)
+      # For now we ignore branch and assume the default branch
+      command = Shellwords.join(['git', 'clone', repo, target_dir])
       invoke_ssh_command(command)
     end
 

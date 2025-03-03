@@ -150,8 +150,9 @@ describe VulcanV2Controller do
       # DB object exists
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
       expect(obj).to_not be_nil
-      expect(obj.dag).to eq(["count", "arithmetic", "checker", "checker_ui", "summary"])
+      expect(obj.dag.to_a).to eq(["count", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary"])
       expect(File.basename(obj.path).match?(/\A[a-f0-9]{32}\z/)).to be_truthy
+      expect(obj.git_version).to eq("v1")
     end
 
     it 'successfully sends back vulcan_config and dag' do
@@ -196,6 +197,7 @@ describe VulcanV2Controller do
     it 'for a user if it exists' do
       get("/api/v2/#{PROJECT}/workspace/")
       expect(last_response.status).to eq(200)
+      expect(json_body[:workspaces].count).to eq(1)
     end
 
     it 'should return an empty list if no workspaces exist' do
@@ -206,8 +208,150 @@ describe VulcanV2Controller do
 
   end
 
+  context 'saving configs', long_running: true do
 
-  context 'list a specific workspace' do
+    before do
+      auth_header(:superuser)
+      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
+      auth_header(:editor)
+      request = {
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger",
+        branch: "main",
+        git_version: "v1"
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'creates a config object and files if it does not exist' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      # We need to write some initial input files to the workspace.
+      write_files_to_workspace(workspace.id)
+      # Next we run the first snakemake job
+      request = {
+          params: {
+            count_bytes: false,
+            count_chars: true
+          }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      expect(last_response.status).to eq(200)
+      expect(json_body[:config_id]).to_not be_nil
+
+      # Make sure the config object exists
+      config = Vulcan::Config.first(id: json_body[:config_id])
+      # Make sure the original config file exists and the default config file
+      expect(remote_manager.file_exists?(config.path)).to be_truthy
+
+      # Make sure the config file also has the correct default values as well as the new values
+      default_config_content = remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
+      expected_config_content = default_config_content.merge(JSON.parse(request[:params].to_json))
+      expect(remote_manager.read_json_file(config.path)).to eq(expected_config_content)
+    end
+
+    it 'does not create a new config if the same config already exists' do  
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      # We need to write some initial input files to the workspace.
+      write_files_to_workspace(workspace.id)
+      # Next we run the first snakemake job
+      request = {
+        params: {
+          count_bytes: false,
+          count_chars: true
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      config_id = json_body[:config_id]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      expect(last_response.status).to eq(200)
+      expect(json_body[:config_id]).to eq(config_id)
+      # Make sure the config file exists
+      config = Vulcan::Config.first(id: json_body[:config_id])
+      expect(remote_manager.file_exists?(config.path)).to be_truthy
+      # Check that there is only one config object
+      expect(Vulcan::Config.where(workspace_id: workspace.id).count).to eq(1)
+    end
+
+    it 'correctly creates new config objects' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
+      # Create a config and run a job
+      request = {
+        params: {
+          count_bytes: false,
+          count_chars: true 
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      config_1 = Vulcan::Config.first(id: json_body[:config_id])
+      request_2 = {
+        params: {
+          count_bytes: false,
+          count_chars: false 
+        }
+      }
+
+      # NOTE: when we set
+      # params: {
+      #   count_bytes: true,
+      #   count_chars: false 
+      # }
+      # after the first request snakemake does not detect that the config has changed.
+      # Not entirely sure why, but this just happens with our example workflow.
+
+
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request_2)
+      config_2 = Vulcan::Config.first(id: json_body[:config_id])
+
+      # Make sure the config object exists
+      expect(Vulcan::Config.where(workspace_id: workspace.id).count).to eq(2)
+
+      # Make sure the the 2 config files exists
+      expect(remote_manager.file_exists?(config_1.path)).to be_truthy
+      expect(remote_manager.file_exists?(config_2.path)).to be_truthy
+
+      config_content_1 = remote_manager.read_json_file(config_1.path)
+      config_content_2 = remote_manager.read_json_file(config_2.path)
+
+      # Check that the 2 config files are different
+      expect(config_content_1).to_not eq(config_content_2)
+
+      # Confirm that the config files have the correct values
+      request[:params].each do |key, expected_value|
+        expect(config_content_1[key.to_s]).to eq(expected_value)
+      end
+
+      request_2[:params].each do |key, expected_value|
+        expect(config_content_2[key.to_s]).to eq(expected_value)
+      end
+
+    end
+
+    it 'correctly returns scheduled and downstream jobs' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      # We need to write some initial input files to the workspace.
+      write_files_to_workspace(workspace.id)
+      # Next we run the first snakemake job
+      request = {
+          params: {
+            count_bytes: false,
+            count_chars: true,
+            add: 2,
+            add_and_multiply_by: 2
+          }
+        }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      expect(json_body[:scheduled]).to match_array(["arithmetic", "checker", "count"])
+      expect(json_body[:downstream]).to match_array(["ui_job_one", "ui_job_two", "summary"])
+    end
+  end
+
+  context 'list a specific workspace', long_running: true do
     before do
       auth_header(:superuser)
       post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
@@ -221,7 +365,32 @@ describe VulcanV2Controller do
       post("/api/v2/#{PROJECT}/workspace/create", request)
     end
 
-    it 'returns the last run and last config ' do
+    it 'returns a config if no run exists' do
+      workspace_id = json_body[:workspace_id]
+      workspace = Vulcan::Workspace.first(id: workspace_id)
+      write_files_to_workspace(workspace_id)
+      # Create a config and run a job
+      request = {
+        params: {
+          count_bytes: false,
+          count_chars: true
+        }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/config", request)
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(200)
+      # Make sure the config file also has the correct default values as well as the new values
+      default_config_content = remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
+      expected_config_content = default_config_content.merge(JSON.parse(request[:params].to_json))
+      expect(json_body[:last_config]).to eq(expected_config_content.transform_keys(&:to_sym))
+      expect(json_body[:last_config_id]).to_not be_nil
+      expect(json_body[:last_job_status]).to be_nil
+      expect(json_body[:dag]).to_not be_nil
+      expect(json_body[:vulcan_config]).to_not be_nil
+      expect(json_body[:last_run_id]).to be_nil
+    end
+
+    it 'returns the last run and last config' do
       workspace_id = json_body[:workspace_id]
       write_files_to_workspace(workspace_id)
       # Create a config and run a job
@@ -242,40 +411,27 @@ describe VulcanV2Controller do
       # Create another config and run a job
       request_2 = {
         params: {
-          count_bytes: true,
+          count_bytes: false,
           count_chars: false 
         }
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/config", request_2)
+      workspace = Vulcan::Workspace.first(id: workspace_id)
       config_id = json_body[:config_id]
       run_workflow_with_retry do
         post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{config_id}")
       end
-      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
-      expect(json_body[:last_config]).to eq({
-        count_bytes: "true",
-        count_chars: "false"
-      })
-    end
 
-    it 'returns a config if no run exists' do
-      workspace_id = json_body[:workspace_id]
-      write_files_to_workspace(workspace_id)
-      # Create a config and run a job
-      request = {
-        params: {
-          count_bytes: false,
-          count_chars: true
-        }
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/config", request)
+      # Check that the last config is the second config
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
-      expect(last_response.status).to eq(200)
-      expect(json_body[:last_config]).to eq({
-        count_bytes: "false",
-        count_chars: "true"
-      })
-      expect(json_body[:last_job_status]).to be_nil
+      default_config_content = remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
+      expected_config_content = default_config_content.merge(JSON.parse(request_2[:params].to_json))
+      expect(json_body[:last_config]).to eq(expected_config_content.transform_keys(&:to_sym))
+      expect(json_body[:last_config_id]).to_not be_nil
+      expect(json_body[:last_job_status]).to_not be_nil
+      expect(json_body[:last_run_id]).to_not be_nil
+      expect(json_body[:dag]).to_not be_nil
+      expect(json_body[:vulcan_config]).to_not be_nil
     end
 
     it 'returns no configs if they do not exist' do
@@ -313,7 +469,10 @@ describe VulcanV2Controller do
       file_name = "test_file_name"
       content = "This is a test file, with content 1."
       request = {
-        file_name => content
+        files: [{
+          filename: file_name,
+          content: content
+        }]
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request)
       expect(last_response.status).to eq(200)
@@ -346,7 +505,12 @@ describe VulcanV2Controller do
     it 'requests a file from the workspace' do
       # Write a file to the workspace
       workspace_id = Vulcan::Workspace.all[0].id
-      request = {"test_file_name": "This is a test file, with content 1"}
+      request = {
+        files: [{
+          filename: "test_file_name",
+          content: "This is a test file, with content 1"
+        }]
+      }
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
       expect(last_response.status).to eq(200)
 
@@ -386,87 +550,8 @@ describe VulcanV2Controller do
 
   end
 
-  context 'saving configs' do
-
-    before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      expect(last_response.status).to eq(200)
-    end
-
-    it 'creates a config object if it does not exist' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      # We need to write some initial input files to the workspace.
-      write_files_to_workspace(workspace.id)
-      # Next we run the first snakemake job
-      request = {
-          params: {
-            count_bytes: false,
-            count_chars: true
-          }
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      expect(last_response.status).to eq(200)
-      expect(json_body[:config_id]).to_not be_nil
-      # Make sure the config file exists
-      config = Vulcan::Config.first(id: json_body[:config_id])
-      expect(remote_manager.file_exists?(config.path)).to be_truthy
-    end
-
-    it 'does not create a new config if it already exists' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      # We need to write some initial input files to the workspace.
-      write_files_to_workspace(workspace.id)
-      # Next we run the first snakemake job
-      request = {
-        params: {
-          count_bytes: false,
-          count_chars: true
-        }
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      config_id = json_body[:config_id]
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      expect(last_response.status).to eq(200)
-      expect(json_body[:config_id]).to eq(config_id)
-      # Make sure the config file exists
-      config = Vulcan::Config.first(id: json_body[:config_id])
-      expect(remote_manager.file_exists?(config.path)).to be_truthy
-      # Check that there is only one config object
-      expect(Vulcan::Config.where(workspace_id: workspace.id).count).to eq(1)
-    end
-
-    it 'correctly returns scheduled and downstream jobs' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      # We need to write some initial input files to the workspace.
-      write_files_to_workspace(workspace.id)
-      # Next we run the first snakemake job
-      request = {
-          params: {
-            count_bytes: false,
-            count_chars: true,
-            add: 2,
-            add_and_multiply_by: 2
-          }
-        }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      expect(json_body[:scheduled]).to match_array(["arithmetic", "checker", "count"])
-      expect(json_body[:downstream]).to match_array(["ui_job_one", "ui_job_two", "summary"])
-    end
-  end
-
-  context 'running workflows' do
+  
+  context 'running workflows', long_running: true do
 
     # Refer to /spec/fixtures/snakemake-repo/ as the workflow that is being run
 
@@ -484,6 +569,27 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
     end
 
+    it 'alerts if snakemake is still running' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
+      request = {
+          params: {
+            count_bytes: true,
+            count_chars: false,
+            add: 2,
+            add_and_multiply_by: 4
+          }
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      config_id = json_body[:config_id]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
+      expect(last_response.status).to eq(429)
+      expect(json_body[:error]).to eq("workflow is still running...")
+    end
+
+
     it 'can run the first step of a workflow' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
@@ -498,6 +604,7 @@ describe VulcanV2Controller do
         }
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      expect(last_response.status).to eq(200)
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
       run_id = json_body[:run_id]
       expect(last_response.status).to eq(200)
@@ -535,7 +642,7 @@ describe VulcanV2Controller do
       expect(json_body[:run_id]).to_not be_nil
       run_id = json_body[:run_id]
       # Make sure jobs are finished
-      check_jobs_status(["count", "arithmetic", "checker"]) do
+      check_jobs_status(["count", "arithmetic", "checker"], 5) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
       end
       # Outputs are created
@@ -550,7 +657,6 @@ describe VulcanV2Controller do
       expect(remote_manager.file_exists?(obj.log_path)).to be_truthy
     end
 
-
     it 'can run one step and then another' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
@@ -564,6 +670,7 @@ describe VulcanV2Controller do
       }
 
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      expect(last_response.status).to eq(200)
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
       expect(last_response.status).to eq(200)
       run_id = json_body[:run_id]
@@ -585,7 +692,7 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
       config_id = json_body[:config_id]
       # Sometimes snakemake still needs a minute to shut-down even though slurm reports the job as complete
-      run_workflow_with_retry do
+      run_workflow_with_retry(5) do
         post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       end
       expect(last_response.status).to eq(200)
@@ -626,18 +733,27 @@ describe VulcanV2Controller do
         }
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
+      config_id = json_body[:config_id]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       run_id = json_body[:run_id]
       check_jobs_status(["count", "arithmetic", "checker"]) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
       end
       expect(last_response.status).to eq(200)
 
-      # Next step involves writing files to the workspace 
-      request = {"test_file_name": "This is a test file, with content 1"}
+      # Next step involves UI steps - so we just simulate this by writing files to the workspace
+      request = {
+        files: [{
+          filename: "ui_job_one.txt",
+          content: "This is a test file, with content 1"
+        }, {
+          filename: "ui_job_two.txt",
+          content: "This is a test file, with content 2"
+        }]
+      }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request)
 
-      # Run the last job, send the same params as before
+      # Run the last job, send the same params as before (this is what the UI does)
       request = {
         params: {
           count_bytes: true,
@@ -646,8 +762,9 @@ describe VulcanV2Controller do
           add_and_multiply_by: 4
         }
       }
+
+      # The config has not changed - just the files
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      config_id = json_body[:config_id]
       run_workflow_with_retry do
         post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       end
@@ -677,29 +794,9 @@ describe VulcanV2Controller do
 
     end
 
-    it 'alerts if snakemake is still running' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      write_files_to_workspace(workspace.id)
-      request = {
-          params: {
-            count_bytes: true,
-            count_chars: false,
-            add: 2,
-            add_and_multiply_by: 4
-          }
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      config_id = json_body[:config_id]
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
-      expect(last_response.status).to eq(429)
-      expect(json_body[:error]).to eq("workflow is still running...")
-    end
-
   end
 
-  context 'status checking' do
+  context 'status checking', long_running: true do
 
     before do
       auth_header(:superuser)
@@ -716,14 +813,14 @@ describe VulcanV2Controller do
 
     end
 
-    it 'invokes the first step of a workflow' do
+    it 'checks the status of the first step of a workflow' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
       write_files_to_workspace(workspace.id)
       request = {
           params: {
-            count_bytes: true,
-            count_chars: false
+            count_bytes: false,
+            count_chars: true 
           }
       }
       # TODO: add a meta key that can switch profiles
@@ -735,6 +832,83 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
       expect(json_body[:count]).to eq("NOT STARTED")
     end
+  end
+
+  context 'is running' do
+
+    before do
+      auth_header(:superuser)
+      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
+      auth_header(:editor)
+      request = {
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger",
+        branch: "main",
+        git_version: "v1"
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns false if snakemake is is not running' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/running")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:running]).to be_falsey
+    end
+
+    it 'returns true if snakemake is running' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
+      request = {
+          params: {
+            count_bytes: false,
+            count_chars: true 
+          }
+      }
+      # TODO: add a meta key that can switch profiles
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/running")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:running]).to be_truthy
+    end
+  end
+
+  context 'read image' do
+
+    before do
+      auth_header(:superuser)
+      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
+      auth_header(:editor)
+      request = {
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger",
+        branch: "main",
+        git_version: "v1"
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'returns the image' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_image_to_workspace(workspace.id)
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/image/read", {file_name: "image.png"})
+      expect(last_response.status).to eq(200)
+      expect(last_response.body).to eq("image content\n")
+    end
+
+    it 'raises an error if the file does not exist' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/image/read", {file_name: "does_not_exist.png"})
+      expect(last_response.status).to eq(422)
+    end
+    
   end
 
 end

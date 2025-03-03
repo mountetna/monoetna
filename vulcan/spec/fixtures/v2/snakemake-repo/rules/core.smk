@@ -1,5 +1,3 @@
-configfile: "config.yaml"
-
 rule count:
     input:
         # Any jobs that use a config as input and are file paths, must make sure the config values

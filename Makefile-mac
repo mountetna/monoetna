@@ -19,13 +19,13 @@ build-dev-etna-images:
 	cd development-certs && docker build . -t development-certs
 	cd docker/development-psql && docker build . -t development-psql
 
-	# Apache
+	# # # Apache
 	echo "Building apache images..."
 	cd docker/etna-apache && docker build . -t etna-apache
 	cd docker/etna-apache-v2 && docker build . -t etna-apache-v2
 	cd edge-apache && docker build . -t edge-apache
 
-	# Etna base images
+	# # Etna base images
 	echo "Building etna images..."
 	cd docker/etna-base-dev && docker build . -t etna-base-dev
 	cd etna && docker build . -t etna
@@ -34,23 +34,6 @@ build-dev-etna-images:
 build-c4-dev-image:
 	# Build c4-env image for Vulcan
 	cd docker/vulcan_c4_env && docker build . -t vulcan_c4_env
-
-build-dev-airflow-images:
-	# Airflow
-	 echo "Building airflow images..."
-	 cd airflow-code-editor && docker build . -t airflow-code-editor
-	 cd etna/packages/etna-py && docker build . -t etna-py
-	 cd airflow && docker build . -t airflow
-
-build-dev-archimedes-images:
-	# Archimedes
-	 echo "Building archimedes images..."
-	 cd docker/archimedes-base && docker build . -t archimedes-base
-	 cd archimedes-r-base && docker build . -t archimedes-r-base # takes a really long time!
-	 cd docker/archimedes-node-base && docker build . -t archimedes-node-base
-	 cd archimedes && docker build . -t archimedes
-	 cd archimedes-r && docker build . -t archimedes-r
-	 cd archimedes-node && docker build . -t archimedes-node
 
 ### Project level targets ###
 
@@ -88,7 +71,7 @@ etna-remove:
 	cd etna && docker compose down
 
 etna-libs-ruby:
-	cd etna && docker compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bundle install
+	cd etna && docker compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bundle install # This doesnt work anymore
 
 etna-libs-js:
 	cd etna && docker compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'cd packages/etna-js && npm install'
