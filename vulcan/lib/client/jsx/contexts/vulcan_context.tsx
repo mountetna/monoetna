@@ -77,9 +77,9 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
 
     const localSessionHelpers = withOverrides(useLocalSessionStorage(state, props), props);
     const apiHelpers = withOverrides(useApi(invoker), props);
-    const {showErrors, readFiles, getWorkflows, getWorkspaces, requestRun, pullRunStatus, postUIValues, getFileNames} = apiHelpers;
+    const {showErrors, getWorkflows, getWorkspaces, requestRun, pullRunStatus, getIsRunning} = apiHelpers;
     const sessionSyncHelpers = withOverrides(
-      useSessionSyncWhileRunning(showErrors, requestRun, pullRunStatus, postUIValues, dispatch),
+      useSessionSyncWhileRunning(showErrors, requestRun, pullRunStatus, getIsRunning, dispatch),
       props
     );
     useWorkspacesWorkflowLoading(state.update_workflows, dispatch, getWorkflows, getWorkspaces, showErrors, state.projectName);

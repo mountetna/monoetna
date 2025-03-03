@@ -35,6 +35,7 @@ export default function WorkspaceInitializer({
     dispatch,
     showErrors,
     getWorkspace,
+    getIsRunning
   } = useContext(VulcanContext);
 
   // For now, we will ALWAYS initialize form the state of the workspace on c4
@@ -81,7 +82,7 @@ export default function WorkspaceInitializer({
         stepName => [stepName, defaultStepStatus]
       ))
       status['steps'] = !!workspace.last_job_status ?
-        updateStepStatusesFromRunStatus(workspace.last_job_status, defaultStepStatuses).newStepStatus :
+        updateStepStatusesFromRunStatus(workspace.last_job_status, defaultStepStatuses) :
         defaultStepStatuses;
 
       // paramUIs
@@ -90,14 +91,20 @@ export default function WorkspaceInitializer({
         workspace.last_config :
         paramValuesToRaw(param_vals)
       status['params'] = param_vals
-      
-      // Send it, with the true here triggering files to be updated in a next render
-      dispatch(setFullWorkspaceState(workspace, status, true));
 
-      // // Auto-pass for fully-defaulted params
-      // if (workspace.vignette?.includes('Primary inputs are skippable') && !workspace.last_job_status) {
-      //   dispatch(setAutoPassStep(Object.keys(param_vals)));
-      // }
+      // Check if running
+      showErrors(getIsRunning(projectName, workspaceId))
+      .then((isRunningReturn) => {
+        const isRunning = isRunningReturn['running']
+
+        // Send it, with the true here triggering files to be updated in a next render
+        dispatch(setFullWorkspaceState(workspace, status, true, isRunning));
+
+        // // Auto-pass for fully-defaulted params
+        // if (workspace.vignette?.includes('Primary inputs are skippable') && !workspace.last_job_status) {
+        //   dispatch(setAutoPassStep(Object.keys(param_vals)));
+        // }
+      })
     })
   }, [projectName, workspaceId, dispatch]);
 

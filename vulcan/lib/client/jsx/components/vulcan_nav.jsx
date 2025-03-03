@@ -129,7 +129,7 @@ function Logo() {
   const {state} = useContext(VulcanContext);
   const {workspace, status} = state;
 
-  let calculating = !!workspace ? hasRunningSteps(status) : null;
+  let calculating = !!workspace ? state.isRunning : null;
 
   return (
     <div id='vulcan-logo'>

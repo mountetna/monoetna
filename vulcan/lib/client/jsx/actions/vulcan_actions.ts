@@ -35,8 +35,8 @@ export function setWorkspace(workspace: Workspace | WorkspaceRaw, projectName: s
   return actionObject('SET_WORKSPACE', {workspace, projectName});
 }
 
-export function setFullWorkspaceState(workspace: Workspace, status: WorkspaceStatus, update_files: boolean) {
-  return actionObject('SET_FULL_WORKSPACE_STATUS', {workspace, status, update_files});
+export function setFullWorkspaceState(workspace: Workspace, status: WorkspaceStatus, update_files: boolean, isRunning: boolean ) {
+  return actionObject('SET_FULL_WORKSPACE_STATUS', {workspace, status, update_files, isRunning});
 }
 
 export function setStateFromStorage(storage: VulcanStorage) {
@@ -67,9 +67,10 @@ export function useUIAccounting(
 }
 
 export function setStatusFromStatuses(
-  statusReturns: RunStatus
+  statusReturns: RunStatus,
+  isRunning: boolean
 ) {
-  return actionObject('SET_STATUS_FROM_STATUSES', {statusReturns});
+  return actionObject('SET_STATUS_FROM_STATUSES', {statusReturns, isRunning});
 }
 
 export function setFileContent(fileName: string, fileData: any) {

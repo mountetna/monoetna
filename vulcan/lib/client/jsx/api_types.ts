@@ -187,6 +187,10 @@ export interface AccountingReturn {
   downstream: string[],
 }
 
+export interface isRunningReturn {
+  running: boolean
+}
+
 // export type VulcanConfig = VulcanConfigElement[]
 export type VulcanConfig = {[k: string]: VulcanConfigElement}
 export type VulcanConfigRaw = VulcanConfigElement[];

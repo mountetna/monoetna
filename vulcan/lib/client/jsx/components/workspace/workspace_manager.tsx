@@ -109,6 +109,13 @@ export default function WorkspaceManager() {
 
   useDataSync(state, dispatch, showErrors, getFileNames, readFiles, postUIValues);
 
+  // Requires lastConfigId!
+  // useEffect(() => {
+  //   if (state.isRunning && state.pollingState < 1) {
+  //     requestPoll(state, true);
+  //   }
+  // }, [state.isRunning, state.pollingState])
+
   const invoke = useActionInvoker();
 
   const classes = useStyles();
@@ -118,7 +125,7 @@ export default function WorkspaceManager() {
   // const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   const run = useCallback((_state: VulcanState) => {
-    showErrors(requestPoll(_state,false,true));
+    showErrors(requestPoll(_state,true));
     dispatch(clearCommittedStepPending());
   }, [requestPoll, dispatch, showErrors]);
   const stop = useCallback(() => {

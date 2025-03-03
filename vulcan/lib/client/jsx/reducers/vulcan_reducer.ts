@@ -35,6 +35,7 @@ export const defaultVulcanState = {
   workspaceId: defaultId,
   configId: defaultId,
   runId: defaultId,
+  isRunning: false,
 
   // rule/step statuses, ui&param contents per local, file&param contents per server 
   status: defaultStatus, // Only filled input/outputs in here
@@ -63,9 +64,6 @@ export const defaultVulcanState = {
   pollingState: 0,
   
   validationErrors: defaultValidationErrors,
-
-  // Not used yet
-  newStepCompletions: [] as string[]
 };
 
 export type VulcanState = Readonly<typeof defaultVulcanState>;
@@ -200,6 +198,7 @@ export default function VulcanReducer(
         workspace: {...action.workspace},
         status: {...action.status},
         update_files: action.update_files,
+        isRunning: action.isRunning,
       }
     case 'SET_CONFIG_ID':
       return {
@@ -231,7 +230,7 @@ export default function VulcanReducer(
       }
       // Arrive here from polling return
       const newStepStatus = {...state.status.steps};
-      const newCompletions = {...state.newStepCompletions};
+      const newCompletions = [] as string[];
       Object.entries(action.statusReturns).forEach(([stepName, statusFine]) => {
         if (!(stepName in newStepStatus)) {
           newStepStatus[stepName] = {
@@ -254,9 +253,9 @@ export default function VulcanReducer(
       };
       return {
         ...state,
+        isRunning: action.isRunning,
         status: newStatus,
         workQueueable: upcomingStepNames(state.workspace as Workspace, newStatus).length > 0,
-        newStepCompletions: newCompletions,
         update_files: newCompletions.length > 0
       };
 

@@ -22,7 +22,7 @@ import {
   WorkspaceRaw,
   WorkflowCreateResponse,
   CreateWorkspaceResponse,
-  WorkspacesResponseRaw
+  isRunningReturn
 } from '../api_types';
 import { paramValuesToRaw, workspacesFromResponse } from '../selectors/workflow_selectors';
 import { isSome } from '../selectors/maybe';
@@ -85,6 +85,9 @@ export const defaultApiHelpers = {
     return new Promise(() => null);
   },
   requestRun(projectName: string, workspaceId: number, configId: number): Promise<RunReturn> {
+    return new Promise(() => null);
+  },
+  getIsRunning(projectName: string, workspaceId: number): Promise<isRunningReturn> {
     return new Promise(() => null);
   },
   pullRunStatus(projectName: string, workspaceId: number, runId: number): Promise<RunStatus> {
@@ -287,6 +290,11 @@ export function useApi(
       );
   }, [vulcanPost, vulcanPath]);
 
+  const getIsRunning = useCallback(
+    (projectName: string, workspaceId: number): Promise<isRunningReturn> => {
+      return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/running`))
+  }, [vulcanGet, vulcanPath]);
+
   const pullRunStatus = useCallback(
     (projectName: string, workspaceId: number, runId: number): Promise<RunStatus> => {
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/run/${runId}`))
@@ -308,6 +316,7 @@ export function useApi(
     setConfig,
     postUIValues,
     requestRun,
+    getIsRunning,
     pullRunStatus
   };
 }

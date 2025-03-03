@@ -311,18 +311,14 @@ export function filesReturnToMultiFileContent(filesContent: MultiFileContentResp
 
 export function updateStepStatusesFromRunStatus(stepStatusReturns: RunStatus, stepStatusCurrent: WorkspaceStatus['steps']) {
   const newStepStatus = {...stepStatusCurrent};
-  const newCompletions = [] as string[];
   Object.entries(stepStatusReturns).forEach(([stepName, statusFine]) => {
     if (stepName=="all") return
     if (newStepStatus[stepName].statusFine==statusFine) return
     const statusBroad = StatusStringBroaden(statusFine);
     newStepStatus[stepName]['status'] = statusBroad;
     newStepStatus[stepName]['statusFine'] = statusFine;
-    if (statusBroad=='complete') {
-      newCompletions.push(stepName);
-    }
   });
-  return {newStepStatus, newCompletions}
+  return newStepStatus
 }
 
 export function stepOfName(

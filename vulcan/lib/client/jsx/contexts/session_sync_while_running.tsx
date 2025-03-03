@@ -8,7 +8,7 @@ import {runPromise, useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
 import {Maybe} from '../selectors/maybe';
 
 export const defaultSessionSyncHelpers = {
-  requestPoll(state: VulcanState, post = false, startWork = false, submittingStep?: string | null): Promise<unknown> {
+  requestPoll(state: VulcanState, startWork = false): Promise<unknown> {
     return Promise.resolve();
   }, cancelPolling() {
   }
@@ -39,16 +39,17 @@ function updateFromRunRequest(
 
 function updateFromRunStatus(
   response: RunStatus,
-  dispatch: Dispatch<VulcanAction>
+  dispatch: Dispatch<VulcanAction>,
+  isRunning: boolean,
 ) {
-  dispatch(setStatusFromStatuses(response));
+  dispatch(setStatusFromStatuses(response, isRunning));
 }
 
 export function useSessionSyncWhileRunning(
   showErrors: typeof defaultApiHelpers.showErrors,
   requestRun: typeof defaultApiHelpers.requestRun,
   pullRunStatus: typeof defaultApiHelpers.pullRunStatus,
-  postUIValues: typeof defaultApiHelpers.postUIValues,
+  getIsRunning: typeof defaultApiHelpers.getIsRunning,
   dispatch: Dispatch<VulcanAction>,
 ): typeof defaultSessionSyncHelpers {
   /*
@@ -68,28 +69,16 @@ export function useSessionSyncWhileRunning(
   
   const [requestPoll, cancelPolling] = useAsyncCallback(function* (
     state: VulcanState,
-    post = false,
     startWork = false,
-    submittingStep?: string | null,
   ) {
     const {projectName, workspaceId, status} = state;
     let {configId, runId} = state;
+    let isRunning = false;
 
     dispatch(startPolling());
     if (!workspaceId) {
       console.log("Skipping post or work, no workspace_id")
       return;
-    }
-
-    // First: Post UI selections
-    if (post) {
-      if (submittingStep===undefined) {
-        console.error('Cannot request posting of inputs without a submittingStep, bug in client');
-        return;
-      }
-      const response1: AccountingReturn = yield* runPromise(showErrors(postUIValues(projectName,workspaceId,status,submittingStep)));
-      updateFromPostUIAccounting(response1, dispatch,status,submittingStep)
-      configId = response1.config_id;
     }
 
     if (startWork) {
@@ -100,20 +89,27 @@ export function useSessionSyncWhileRunning(
       const response2: RunReturn = yield* runPromise(showErrors(requestRun(projectName,workspaceId,configId)));
       updateFromRunRequest(response2, dispatch);
       runId = response2.run_id;
+      isRunning = true;
+    } else {
+      const runningResponse = yield* runPromise(showErrors(getIsRunning(projectName,workspaceId)));
+      isRunning = runningResponse['running'];
     }
 
-    while (hasRunningSteps(state.status)) {
+    while (isRunning) {
       yield delay(1000);
       if (!runId) {
-        console.log("Skipping polling, no runId")
+        console.log("Skipping polling, no runId, ending polling")
+        isRunning = true;
         return;
       }
+      const runningResponse = yield* runPromise(showErrors(getIsRunning(projectName,workspaceId)));
+      isRunning = runningResponse['running'];
       const response: RunStatus = yield* runPromise(showErrors(pullRunStatus(projectName,workspaceId,runId)));
       // Notably, after the first submission, changes in hash that occur do not have authority
       // to clear stale inputs.
-      updateFromRunStatus(response, dispatch);
+      updateFromRunStatus(response, dispatch, isRunning);
     }
-  }, [dispatch, pullRunStatus, postUIValues], () => {
+  }, [dispatch, requestRun, getIsRunning, pullRunStatus], () => {
     dispatch(finishPolling());
   });
   
