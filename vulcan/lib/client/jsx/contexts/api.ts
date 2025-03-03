@@ -219,7 +219,11 @@ export function useApi(
     (projectName: string, workspaceId: number, files_content: MultiFileContent) => {
       return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/file/write`),
-        files_content
+        {files:
+          Object.entries(files_content).map(([name, contents]) => {
+            return {filename: name, content: contents}
+          })
+        }
       );
   }, [vulcanPost, vulcanPath]);
 
