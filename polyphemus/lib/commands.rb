@@ -8,6 +8,7 @@ require_relative 'helpers'
 require_relative 'data_processing/xml_dsl'
 require_relative 'data_processing/magma_dsl'
 require_relative 'data_processing/flow_jo_dsl'
+require_relative 'data_eng/argo_workflow_manager'
 require_relative 'ipi/process_rna_seq_output'
 
 require_relative 'etls/redcap/redcap_etl_script_runner'
@@ -377,38 +378,6 @@ class Polyphemus
     end
   end
 
-  class RunEtlJob < Etna::Command
-    def execute
-      job_config = Polyphemus::EtlConfig.next_to_run
-
-      return if !job_config
-
-      puts "Running #{job_config.project_name}/#{job_config.name} with params #{job_config.params}"
-
-      begin
-        output = StringIO.new
-
-        old_stdout = $stdout
-        $stdout = output
-
-        job_config.run!
-      rescue Exception => e
-        STDOUT.puts e.message
-        STDOUT.puts e.backtrace
-        job_config.set_error!(e)
-      ensure
-        $stdout = old_stdout
-      end
-    end
-
-    def setup(config)
-      super
-      Polyphemus.instance.setup_logger
-      Polyphemus.instance.setup_db
-      Polyphemus.instance.setup_sequel
-    end
-  end
-
   class GetMetisFolders < Etna::Command
     include WithEtnaClients
 
@@ -728,5 +697,124 @@ class Polyphemus
       Polyphemus.instance.setup_ssh
     end
   end
-end
 
+  class RunJob < Etna::Command
+    include WithEtnaClients
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
+    end
+
+    def execute(job_name, config_id, version_number)
+      # Retrieve the config from polyphemus
+      # We need to use the db here to get the decrypted secrets
+      config = Polyphemus::Config.current.where(
+        config_id: config_id,
+        version_number: version_number
+      ).first
+
+      runtime_config = Polyphemus::RuntimeConfig.where(
+        config_id: config_id,
+      ).first
+
+      @token = janus_client.generate_token(
+          'task',
+          signed_nonce: nil,
+          project_name: config.project_name
+      )
+
+      # reset clients so they use task token
+      reset_clients!
+
+      # Instantiate the job and run it
+      # Dynamically load the job class from the job_name
+      job = Kernel.const_get("#{job_name}_job".camelize.to_sym)
+
+      job.new(
+        @token,
+        config.with_secrets,
+        runtime_config.as_json
+      ).execute
+    end
+
+  end
+
+  class GetRuntimeMetadata < Etna::Command
+    include WithEtnaClients
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
+    end
+
+    def execute(run_id, workflow_name, workflow_namespace)
+
+      workflow_json = %x{ argo get --output=json #{workflow_name} -n #{workflow_namespace} }
+      raw_output = %x{ argo logs #{workflow_name} }
+
+      # We need to fetch the project name
+      run = Polyphemus::Run.where(
+        run_id: run_id
+      ).first
+
+      config = Polyphemus::Config.current.where(
+        config_id: run.config_id,
+        version_number: run.version_number
+      ).first
+      
+      # Parse the workflow_json and just extract status
+      workflow_data = JSON.parse(workflow_json)
+      status = workflow_data["status"]
+      name = workflow_data.dig("metadata","name")
+
+      # remove control characters and workflow name from output logs
+      output = raw_output.gsub(/\e\[\d+m/,'').gsub(/^#{name}[\-\w]*: /,'')
+
+      updates = {
+        orchestrator_metadata: status,
+        output: output
+      }
+      polyphemus_client.update_run(config.project_name, run_id, updates)
+    end
+
+  end
+
+  class IntervalScheduler < Etna::Command
+    include WithLogger
+  
+    usage 'Continuously polls eligible runtime configs and submits Argo workflows' 
+
+    SLEEP_INTERVAL = 60 * 5 # 5 Minutes
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
+    end
+  
+    def execute
+      loop do
+        begin
+          eligible_runtime_configs = Polyphemus::RuntimeConfig.eligible_runtime_configs
+          logger.info("Found #{eligible_runtime_configs.count} eligible runtime configs for scheduling...")
+          eligible_runtime_configs.each do |runtime_config|
+            config = Polyphemus::Config.current.where(
+              config_id: runtime_config.config_id,
+            ).first
+            Polyphemus::ArgoWorkflowManager.submit_workflow(config)
+            sleep SLEEP_INTERVAL
+          end
+        rescue StandardError => e
+          logger.error("Error in scheduler loop: #{e}")
+          sleep SLEEP_INTERVAL
+        end
+      end
+    end
+  end
+end

@@ -6,6 +6,8 @@
     :adapter: postgres
     :user: developer
     :password: password
+  :magma:
+    :host: https://magma.development.local
   :janus:
     :host: https://janus.development.local
   :host: https://magma.development.local

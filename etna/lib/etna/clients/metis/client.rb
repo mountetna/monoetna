@@ -23,6 +23,16 @@ module Etna
           @etna_client.folder_list_all_folders(list_all_folders_request.to_h))
       end
 
+      def tail_bucket(tail_bucket_request = TailBucketRequest.new)
+        TailResponse.new(
+          tail_bucket_request.project_name,
+          tail_bucket_request.bucket_name,
+          @etna_client.bucket_tail(tail_bucket_request.to_h).split("\n").map do |line|
+            JSON.parse(line, symbolize_names: true)
+          end
+        )
+      end
+
       def list_folder(list_folder_request = ListFolderRequest.new)
         if list_folder_request.folder_path != ''
           FoldersAndFilesResponse.new(
@@ -101,14 +111,34 @@ module Etna
 
       def download_file(file_or_url = File.new, &block)
         if file_or_url.instance_of?(File)
-          download_path =  file_or_url.download_path
+          download_url = file_or_url.download_url
+
+          if !download_url.present?
+            download = authorize_download(AuthorizeDownloadRequest.new(
+              project_name: file_or_url.project_name,
+              bucket_name: file_or_url.bucket_name,
+              file_path: file_or_url.file_path
+            ))
+            download_url = download.download_url
+          end
         else
-          download_path = file_or_url.sub(%r!^https://[^/]*?/!, '/')
+          download_url = file_or_url
         end
+
+        download_path = download_url.sub(%r!^https://[^/]*?/!, '/')
 
         @etna_client.get(download_path) do |response|
           response.read_body(&block)
         end
+      end
+
+      def authorize_download(authorize_download_request = AuthorizeDownloadRequest.new)
+        json = nil
+        @etna_client.post("/authorize/download", authorize_download_request) do |res|
+          json = JSON.parse(res.body)
+        end
+
+        DownloadResponse.new(json)
       end
 
       def file_metadata(file_or_url = File.new)

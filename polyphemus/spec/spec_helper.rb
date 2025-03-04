@@ -12,15 +12,20 @@ require "simplecov"
 SimpleCov.start
 
 require "yaml"
-require "etna/spec/vcr"
+#require "etna/spec/vcr"
 
 require "fileutils"
 require "timecop"
 
 require_relative "../lib/server"
 require_relative "../lib/polyphemus"
+require_relative "../lib/data_eng/jobs/sftp_file_discovery"
+require_relative "../lib/data_eng/jobs/sftp_metis_uploader"
+require_relative "../lib/data_eng/jobs/sftp_deposit_uploader"
+require_relative "../lib/data_eng/jobs/metis_linker"
+require_relative "../lib/data_eng/jobs/redcap_loader"
 
-setup_base_vcr(__dir__)
+#setup_base_vcr(__dir__)
 
 Polyphemus.instance.configure(YAML.load(File.read("config.yml")))
 
@@ -30,6 +35,7 @@ RESTRICT_BUCKET = Polyphemus.instance.config(:metis)[:restrict_bucket]
 MAGMA_HOST = Polyphemus.instance.config(:magma)[:host]
 REDCAP_HOST = Polyphemus.instance.config(:redcap)[:host]
 JANUS_HOST = Polyphemus.instance.config(:janus)[:host]
+POLYPHEMUS_HOST = Polyphemus.instance.config(:polyphemus)[:host]
 TEST_TOKEN = Polyphemus.instance.config(:polyphemus)[:token]
 
 PROJECT = "mvir1"
@@ -117,8 +123,11 @@ FactoryBot.define do
     to_create(&:save)
   end
 
-  factory :etl_config, class: Polyphemus::EtlConfig do
-    to_create(&:save)
+  factory :config, class: Polyphemus::Config do
+     to_create(&:save)
+  end
+  factory :runtime_config, class: Polyphemus::RuntimeConfig do
+     to_create(&:save)
   end
 end
 
@@ -173,27 +182,30 @@ def stub_magma_restricted_pools(base_model, restricted_pools)
                                 query: [base_model,
                                         ["timepoint", "patient", "restricted", "::true"],
                                         "::all", "#{base_model}_pool", "::identifier"] }))
-    .to_return({ body: {
-      'answer': restricted_pools.map { |p| [nil, p] },
-    }.to_json })
+    .to_return({
+      body: { 'answer': restricted_pools.map { |p| [nil, p] } }.to_json,
+      headers: { 'Content-Type': 'application/json' }
+    })
 end
 
 def stub_magma_all_pools(base_model, all_pools)
   stub_request(:post, "#{MAGMA_HOST}/query")
     .with(body: hash_including({ project_name: "mvir1",
                                  query: ["#{base_model}_pool", "::all", "::identifier"] }))
-    .to_return({ body: {
-      'answer': all_pools.map { |p| [nil, p] },
-    }.to_json })
+    .to_return({
+      body: { 'answer': all_pools.map { |p| [nil, p] } }.to_json,
+      headers: { 'Content-Type': 'application/json' }
+    })
 end
 
 def stub_magma_setup(patient_documents, use_json: false)
   stub_request(:post, "#{MAGMA_HOST}/retrieve")
     .with(body: hash_including({ project_name: "mvir1", model_name: "patient",
                                  attribute_names: ["name", "consent", "restricted"], record_names: "all" }))
-    .to_return({ body: {
-      'models': { 'patient': { 'documents': patient_documents } },
-    }.to_json })
+    .to_return({
+      body: { 'models': { 'patient': { 'documents': patient_documents } } }.to_json,
+      headers: { 'Content-Type': 'application/json' }
+    })
 
   use_json ? stub_magma_update_json : stub_magma_update("mvir1")
 end
@@ -217,7 +229,7 @@ def stub_magma_update(project_name = nil)
   end
 end
 
-def stub_metis_setup
+def stub_metis_routes
   route_payload = JSON.generate([
     { :method => "GET", :route => "/:project_name/list_all_folders/:bucket_name", :name => "folder_list_all_folders", :params => ["project_name", "bucket_name"] },
     { :method => "GET", :route => "/:project_name/list/:bucket_name/*folder_path", :name => "folder_list", :params => ["project_name", "bucket_name", "folder_path"] },
@@ -228,16 +240,18 @@ def stub_metis_setup
     { :method => "POST", :route => "/authorize/upload", :name => "upload_authorize", :params => ["project_name", "bucket_name", "file_path"] },
     { :method => "POST", :route => "/:project_name/upload/:bucket_name/*file_path", :name => "upload_upload", :params => ["project_name", "bucket_name", "file_path"] },
     { :method => "POST", :route => "/:project_name/find/:bucket_name", :name => "bucket_find", :params => ["project_name", "bucket_name"] },
+    { :method => "POST", :route => '/:project_name/tail/:bucket_name', :name => 'bucket_tail', :params => ["project_name", "bucket_name"] }
   ])
-
   stub_request(:options, METIS_HOST).
     to_return({
     status: 200,
-    headers: {
-      'Content-Type': "application/json",
-    },
+    headers: { 'Content-Type': "application/json" },
     body: route_payload,
   })
+end
+
+def stub_metis_setup
+  stub_metis_routes
   stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RELEASE_BUCKET}/)
     .to_return({
       status: 200,
@@ -293,7 +307,7 @@ def stub_create_folder(params = {})
 end
 
 def stub_upload_file(params = {})
-  stub_request(:post, /#{METIS_HOST}\/authorize\/upload/)
+  stub_request(:post, /#{METIS_HOST}\/authorize\/upload/).with(body: hash_including(file_path: params[:file_path] ))
     .to_return({
       status: params[:status] || 200,
       body: params[:authorize_body] || JSON.generate({}),
@@ -305,8 +319,16 @@ def stub_upload_file(params = {})
     })
 end
 
+def stub_authorize_downloads
+  stub_request(:post, /#{METIS_HOST}\/authorize\/download/).to_return do |request|
+    params = JSON.parse(request.body, symbolize_names: true)
+    url = "#{METIS_HOST}/#{params[:project_name]}/download/#{params[:bucket_name]}/#{params[:file_path]}"
+    { body: {download_url: url}.to_json, status: 200, headers: { 'Content-Type': "application/json" } }
+  end
+end
+
 def stub_download_file(params = {})
-  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/download/)
+  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/download\/#{ params[:file] || '' }/)
     .to_return({
       status: params[:status] || 200,
       body: params[:file_contents] || "",
@@ -344,7 +366,7 @@ end
 
 def stub_magma_models(fixture: "spec/fixtures/magma_test_models.json")
   stub_request(:post, "#{MAGMA_HOST}/retrieve")
-    .to_return({ body: File.read(fixture) })
+    .to_return({ body: File.read(fixture), headers: { 'Content-Type': 'application/json' }})
 end
 
 def stub_magma_update_json
@@ -524,9 +546,9 @@ def stub_watch_folders(folder_data = nil)
   end
 end
 
-def create_dummy_etl(opts)
-  create(:etl_config, {project_name: "labors", name: "Dummy ETL", config_id: 1, version_number: 1, config: { foo: 2 }, params: {}, secrets: {}, etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_NEVER}.merge(opts))
-end
+# def create_dummy_etl(opts)
+#   create(:etl_config, {project_name: "labors", name: "Dummy ETL", config_id: 1, version_number: 1, config: { foo: 2 }, params: {}, secrets: {}, etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_NEVER}.merge(opts))
+# end
 
 def remove_dummy_job
   Polyphemus::Job.list.delete(Polyphemus::DummyJob)
@@ -593,4 +615,123 @@ def create_metis_file(file_name, file_path, file_hash: SecureRandom.hex, updated
     project_name: project_name,
     folder_id: folder_id
   })
+end
+
+## Polyphemus V2
+
+class TestManifest < Polyphemus::WorkflowManifest
+    def self.as_json
+    {
+      name: 'test-workflow',
+      schema: {
+        type: 'object',
+        properties: {
+          test_key: { type: 'string' },
+        },
+        required: ['test_key'],
+      },
+      secrets: [:test_secret],
+      runtime_params: {
+        commit: {
+          type: 'boolean'
+        }
+      },
+      workflow_path: '/some/path/test-workflow.yaml'
+    }
+    end
+end
+
+# Polyphemus API Stubs
+def stub_polyphemus_get_last_state(project_name, config_id, version_number, last_state)
+  stub_request(:post, "#{POLYPHEMUS_HOST}/api/workflows/#{project_name}/run/previous/#{config_id}")
+    .to_return({
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: last_state.empty? ? {}.to_json : last_state.to_json
+    })
+end
+
+# Polyphemus API Stubs
+def stub_polyphemus_get_run(project_name, run_id, run_record)
+  stub_request(:get, "#{POLYPHEMUS_HOST}/api/workflows/#{project_name}/run/#{run_id}")
+    .to_return({
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: run_record.empty? ? {}.to_json : {
+        run_id: run_record[:run_id],
+        config_id: run_record[:config_id],
+        version_number: run_record[:version_number],
+        state: run_record[:state],
+        orchestrator_metadata: run_record[:orchestrator_metadata],
+        output: run_record[:output],
+        created_at: run_record[:created_at],
+        updated_at: run_record[:updated_at]
+      }.to_json
+    })
+end
+
+def stub_polyphemus_update_run(project_name, run_id, captured_requests)
+  stub_request(:post, "#{POLYPHEMUS_HOST}/api/workflows/#{project_name}/run/update/#{run_id}")
+    .with(
+      headers: {
+        'Content-Type' => 'application/json'
+      }
+    )
+    .to_return do |request|
+      captured_requests << JSON.parse(request.body, symbolize_names: true)
+      {
+        status: 200,
+        headers: { 'Content-Type' => 'application/json' },
+        body: { success: true }.to_json
+      }
+    end
+end
+
+
+# SFTP Server Stubs
+def stub_initial_sftp_connection
+  sftp = double('sftp')
+  dir = double('dir', entries: [])
+  allow(sftp).to receive(:dir).and_return(dir)
+  allow(Net::SFTP).to receive(:start).and_yield(sftp)
+end
+
+def stub_sftp_search_files(files_to_return)
+  allow_any_instance_of(SFTPClient).to receive(:search_files) do |_instance, remote_dir, pattern, last_scan, ignore_dirs|
+    files_to_return
+  end
+end
+
+def stub_sftp_client_download_as_stream(return_io: StringIO.new("fake file content"))
+  allow_any_instance_of(SFTPClient).to receive(:download_as_stream).and_return(return_io)
+end
+
+
+def stub_initial_ssh_connection
+  ssh = double('ssh')
+  scp = double('scp')
+  allow(ssh).to receive(:scp).and_return(scp)
+  allow(scp).to receive(:upload!).and_return(true)
+  allow(Net::SSH).to receive(:start).and_return(ssh)
+end
+
+def stub_remote_ssh_mkdir_p(success: true)
+  allow_any_instance_of(Etna::RemoteSSH).to receive(:mkdir_p)
+end
+
+def stub_remote_ssh_file_upload(success: true)
+  if success
+    allow_any_instance_of(Etna::RemoteSSH).to receive(:lftp_get).and_return(true)
+  else
+    allow_any_instance_of(Etna::RemoteSSH).to receive(:lftp_get)
+      .and_raise(Etna::RemoteSSH::RemoteSSHError.new("Simulated upload failure"))
+  end
+end
+
+def stub_slack(hook_url=Polyphemus.instance.config(:slack_webhook_url))
+  stub_request(:post, hook_url)
 end
