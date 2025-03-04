@@ -89,6 +89,8 @@ export default function EditAttributeModal({
     [updatedAttribute]
   );
 
+  const validation_length_limit = 2000;
+
   return (
     <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Edit Attribute' saveDisabled={disabled}>
         <ShrinkingLabelTextField
@@ -148,16 +150,29 @@ export default function EditAttributeModal({
             options={VALIDATION_TYPES}
           />
         )}
-        {validationType && (
+        {validationType && ( attribute.attribute_type!='matrix' || validationValue.length <= validation_length_limit ?
           <ShrinkingLabelTextField
             id='edit-attribute-validation-value'
             label={`Validation ${
-              isArrayValidation ? 'Array (comma-separated list)' : 'Regex'
+              isArrayValidation ?
+                attribute.attribute_type=='matrix' ?
+                  `Array (comma-separated list) -- UI length limit: ${validationValue.length} / 2000 characters` :
+                  'Array (comma-separated list)' :
+                'Regex'
             }`}
             value={validationValue}
-            onChange={(e: React.ChangeEvent<any>) =>
-              setValidationValue(e.target.value)
-            }
+            onChange={(e: React.ChangeEvent<any>) => {
+              if (e.target.value.length <= validation_length_limit) setValidationValue(e.target.value)
+            }}
+            pattern={isArrayValidation ? COMMA_SEP_WITH_SPACES : null}
+          /> :
+          <ShrinkingLabelTextField
+            id='edit-attribute-validation-value'
+            label={`Validation ${
+              isArrayValidation ? `Array (comma-separated list) -- UI length limit: ${validationValue.length} / 2000 characters` : 'Regex'
+            }`}
+            disabled
+            value={'Validation too long to edit here'}
             pattern={isArrayValidation ? COMMA_SEP_WITH_SPACES : null}
           />
         )}
