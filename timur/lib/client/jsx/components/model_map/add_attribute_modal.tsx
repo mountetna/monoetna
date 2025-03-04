@@ -92,8 +92,10 @@ export default function AddAttributeModal({onClose,open,onSave}: ModelModalParam
         {type=='matrix' && <ShrinkingLabelTextField
           id='attribute-validation'
           value={validation}
-          label='Feature Names (comma-separated list)'
-          onChange={(e: React.ChangeEvent<any>) => setValidation(e.target.value)}
+          label={`Feature Names (comma-separated list) -- UI length limit: ${validation.length} / 2000 characters`}
+          onChange={(e: React.ChangeEvent<any>) => {
+            setValidation(e.target.value.length <= 2000 ? e.target.value : '')
+          }}
           pattern={COMMA_SEP}
         />}
     </ModelActionsModal>
