@@ -13,7 +13,7 @@ export default function AddAttributeModal({onClose,open,onSave}: ModelModalParam
   const [validation, setValidation] = useState('');
 
   const handleOnSave = useCallback(() => {
-    const params = {
+    const params: {[k: string]: any} = {
       attribute_name: name,
       description,
       type,
