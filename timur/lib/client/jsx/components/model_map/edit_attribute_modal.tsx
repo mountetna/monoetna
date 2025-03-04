@@ -150,7 +150,7 @@ export default function EditAttributeModal({
             options={VALIDATION_TYPES}
           />
         )}
-        {validationType && ( attribute.attribute_type!='matrix' || validationValue.length <= validation_length_limit ?
+        {validationType && (
           <ShrinkingLabelTextField
             id='edit-attribute-validation-value'
             label={`Validation ${
@@ -160,19 +160,11 @@ export default function EditAttributeModal({
                   'Array (comma-separated list)' :
                 'Regex'
             }`}
-            value={validationValue}
+            disabled={validationValue.length > validation_length_limit}
+            value={validationValue.length <= validation_length_limit ? validationValue : 'Validation too long to edit here'}
             onChange={(e: React.ChangeEvent<any>) => {
               if (e.target.value.length <= validation_length_limit) setValidationValue(e.target.value)
             }}
-            pattern={isArrayValidation ? COMMA_SEP_WITH_SPACES : null}
-          /> :
-          <ShrinkingLabelTextField
-            id='edit-attribute-validation-value'
-            label={`Validation ${
-              isArrayValidation ? `Array (comma-separated list) -- UI length limit: ${validationValue.length} / 2000 characters` : 'Regex'
-            }`}
-            disabled
-            value={'Validation too long to edit here'}
             pattern={isArrayValidation ? COMMA_SEP_WITH_SPACES : null}
           />
         )}
