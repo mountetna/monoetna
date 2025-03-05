@@ -41,7 +41,6 @@
     CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
     NQIDAQAB
     -----END PUBLIC KEY-----
-  :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.development.local
   :etl_secrets_key: A2345678901234567890123456789012
@@ -88,7 +87,6 @@
     :password: password
     :search_path: [ public ]
   :log_file: /dev/stdout
-  :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.test
   :etl_secrets_key: A2345678901234567890123456789012
