@@ -10,23 +10,34 @@ export default function AddAttributeModal({onClose,open,onSave}: ModelModalParam
   const [description, setDescription] = useState('');
   const [type, setType] = useState('');
   const [group, setGroup] = useState('');
+  const [validation, setValidation] = useState('');
 
   const handleOnSave = useCallback(() => {
-    onSave({
+    const params: {[k: string]: any} = {
       attribute_name: name,
       description,
       type,
       attribute_group: group
-    });
-  }, [name, description, type, group]);
+    };
 
-  const disabled = !(name && type);
+    if (type=='matrix') {
+      params['validation'] = {
+        type: 'Array',
+        value: validation.split(',').map((s) => s.trim())
+      };
+    }
+
+    onSave(params);
+  }, [name, description, type, group, validation]);
+
+  const disabled = !(name && type) || (type=='matrix' && !validation);
 
   const reset = useCallback(() => {
     setName('');
     setDescription('');
     setType('');
     setGroup('');
+    setValidation('');
   }, []);
 
   const handleOnCancel = useCallback(() => {
@@ -43,7 +54,8 @@ export default function AddAttributeModal({onClose,open,onSave}: ModelModalParam
     'image',
     'file_collection',
     'float',
-    'integer'
+    'integer',
+    'matrix'
   ];
 
   return (
@@ -77,6 +89,15 @@ export default function AddAttributeModal({onClose,open,onSave}: ModelModalParam
           onChange={setType}
           options={attributeTypes}
         />
+        {type=='matrix' && <ShrinkingLabelTextField
+          id='attribute-validation'
+          value={validation}
+          label={`Feature Names (comma-separated list) -- UI length limit: ${validation.length} / 2000 characters`}
+          onChange={(e: React.ChangeEvent<any>) => {
+            setValidation(e.target.value.length <= 2000 ? e.target.value : '')
+          }}
+          pattern={COMMA_SEP}
+        />}
     </ModelActionsModal>
   );
 }
