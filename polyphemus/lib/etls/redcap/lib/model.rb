@@ -81,14 +81,14 @@ module Redcap
       @config[:identifier_fields] || []
     end
 
-    def identifier(record_id, identifier_fields: nil)
+    def identifier(*record_id, identifier_fields: nil)
       unless @magma_template.identifier.present?
         return [
             "::temp", *record_id, rand(36**8).to_s(36)
         ].compact.join('-')
       end
 
-      identifier_fields.present? ? identifier_fields.values.first : record_id
+      identifier_fields.present? ? identifier_fields.values.first : record_id.join
     end
 
     def patch(id, record)
