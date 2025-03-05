@@ -45,7 +45,6 @@ class RedcapLoaderJob < Polyphemus::ETLJob
       project_name: project_name,
       model_names: model_names,
       redcap_tokens: secrets['redcap_tokens'],
-      dateshift_salt: Polyphemus.instance.config(:dateshift_salt),
       redcap_host: Polyphemus.instance.config(:redcap)[:host],
       magma_host: Polyphemus.instance.config(:magma)[:host],
       mode: mode,
