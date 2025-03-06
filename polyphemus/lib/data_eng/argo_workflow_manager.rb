@@ -1,8 +1,9 @@
 require_relative '../helpers'
 require_relative './jobs/etl_job'
 require_relative './jobs/metis_linker'
+require_relative './jobs/redcap_loader'
 require_relative './jobs/sftp_file_discovery'
-require_relative './jobs/sftp_c4_uploader'
+require_relative './jobs/sftp_deposit_uploader'
 require_relative './jobs/sftp_metis_uploader'
 
 class Polyphemus

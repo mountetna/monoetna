@@ -41,7 +41,6 @@
     CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
     NQIDAQAB
     -----END PUBLIC KEY-----
-  :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.development.local
   :etl_secrets_key: A2345678901234567890123456789012
@@ -71,7 +70,7 @@
     :restrict_bucket: restrict
   :polyphemus:
     :host: https://polyphemus.test
-    :token: something.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJmaXJzdCI6ImZpcnN0IiwibGFzdCI6Imxhc3QiLCJleHAiOjg2NDAxNjA4MTM2NjM1fQ==
+    :token: e30=.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJmaXJzdCI6ImZpcnN0IiwibGFzdCI6Imxhc3QiLCJleHAiOjg2NDAxNjA4MTM2NjM1fQ==
     # This is a development token and is safe to make public, does not leak anything about production or staging values
     # and cannot be used in a sensitive way.
     # This must be used for any test that stands up a service client (i.e. Etna::Clients::Magma).
@@ -88,10 +87,10 @@
     :password: password
     :search_path: [ public ]
   :log_file: /dev/stdout
-  :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.test
   :etl_secrets_key: A2345678901234567890123456789012
+  :slack_webhook_url: https://hooks.slack.test/services/BLAH/BLAH/randomkey
   :ingest:
     :filename_regex: oligo
     :sftp:

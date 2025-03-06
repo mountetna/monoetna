@@ -27,6 +27,14 @@ module Etna
         token_will_expire?(0)
       end
 
+      def safe_parse(response)
+        if response['Content-Type'] == 'application/json'
+          return JSON.parse(response.body)
+        end
+
+        raise "Could not parse non-JSON response #{response.code} #{response.body} #{response.each_header.to_h}"
+      end
+
       def token_will_expire?(offset=3000)
         # offset in seconds
         # Will the user's token expire in the given amount of time?

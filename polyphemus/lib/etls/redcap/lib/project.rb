@@ -96,15 +96,10 @@ module Redcap
             model_name,
             model_config,
             magma_models.model(model_name.to_s).template,
-            template,
-            dateshift_salt
+            template
           )
         ]
       end.compact.to_h
-    end
-
-    def dateshift_salt
-      config[:dateshift_salt]
     end
   end
 end

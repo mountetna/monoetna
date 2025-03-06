@@ -5,9 +5,8 @@ class RedcapLoaderJob < Polyphemus::ETLJob
   include WithEtnaClients
   include WithLogger
 
-  def initialize(config, runtime_config)
-    @config = config
-    @runtime_config = runtime_config
+  def initialize(token, config, runtime_config)
+    super
     @workflow_config_id = config['config_id']
     @workflow_version = config['version_number']
   end
@@ -46,7 +45,6 @@ class RedcapLoaderJob < Polyphemus::ETLJob
       project_name: project_name,
       model_names: model_names,
       redcap_tokens: secrets['redcap_tokens'],
-      dateshift_salt: Polyphemus.instance.config(:dateshift_salt),
       redcap_host: Polyphemus.instance.config(:redcap)[:host],
       magma_host: Polyphemus.instance.config(:magma)[:host],
       mode: mode,

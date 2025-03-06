@@ -21,7 +21,7 @@ require_relative "../lib/server"
 require_relative "../lib/polyphemus"
 require_relative "../lib/data_eng/jobs/sftp_file_discovery"
 require_relative "../lib/data_eng/jobs/sftp_metis_uploader"
-require_relative "../lib/data_eng/jobs/sftp_c4_uploader"
+require_relative "../lib/data_eng/jobs/sftp_deposit_uploader"
 require_relative "../lib/data_eng/jobs/metis_linker"
 require_relative "../lib/data_eng/jobs/redcap_loader"
 
@@ -182,27 +182,30 @@ def stub_magma_restricted_pools(base_model, restricted_pools)
                                 query: [base_model,
                                         ["timepoint", "patient", "restricted", "::true"],
                                         "::all", "#{base_model}_pool", "::identifier"] }))
-    .to_return({ body: {
-      'answer': restricted_pools.map { |p| [nil, p] },
-    }.to_json })
+    .to_return({
+      body: { 'answer': restricted_pools.map { |p| [nil, p] } }.to_json,
+      headers: { 'Content-Type': 'application/json' }
+    })
 end
 
 def stub_magma_all_pools(base_model, all_pools)
   stub_request(:post, "#{MAGMA_HOST}/query")
     .with(body: hash_including({ project_name: "mvir1",
                                  query: ["#{base_model}_pool", "::all", "::identifier"] }))
-    .to_return({ body: {
-      'answer': all_pools.map { |p| [nil, p] },
-    }.to_json })
+    .to_return({
+      body: { 'answer': all_pools.map { |p| [nil, p] } }.to_json,
+      headers: { 'Content-Type': 'application/json' }
+    })
 end
 
 def stub_magma_setup(patient_documents, use_json: false)
   stub_request(:post, "#{MAGMA_HOST}/retrieve")
     .with(body: hash_including({ project_name: "mvir1", model_name: "patient",
                                  attribute_names: ["name", "consent", "restricted"], record_names: "all" }))
-    .to_return({ body: {
-      'models': { 'patient': { 'documents': patient_documents } },
-    }.to_json })
+    .to_return({
+      body: { 'models': { 'patient': { 'documents': patient_documents } } }.to_json,
+      headers: { 'Content-Type': 'application/json' }
+    })
 
   use_json ? stub_magma_update_json : stub_magma_update("mvir1")
 end
@@ -304,7 +307,7 @@ def stub_create_folder(params = {})
 end
 
 def stub_upload_file(params = {})
-  stub_request(:post, /#{METIS_HOST}\/authorize\/upload/)
+  stub_request(:post, /#{METIS_HOST}\/authorize\/upload/).with(body: hash_including(file_path: params[:file_path] ))
     .to_return({
       status: params[:status] || 200,
       body: params[:authorize_body] || JSON.generate({}),
@@ -363,7 +366,7 @@ end
 
 def stub_magma_models(fixture: "spec/fixtures/magma_test_models.json")
   stub_request(:post, "#{MAGMA_HOST}/retrieve")
-    .to_return({ body: File.read(fixture) })
+    .to_return({ body: File.read(fixture), headers: { 'Content-Type': 'application/json' }})
 end
 
 def stub_magma_update_json
@@ -629,7 +632,9 @@ class TestManifest < Polyphemus::WorkflowManifest
       },
       secrets: [:test_secret],
       runtime_params: {
-        commit: 'boolean'
+        commit: {
+          type: 'boolean'
+        }
       },
       workflow_path: '/some/path/test-workflow.yaml'
     }
@@ -714,12 +719,19 @@ def stub_initial_ssh_connection
   allow(Net::SSH).to receive(:start).and_return(ssh)
 end
 
+def stub_remote_ssh_mkdir_p(success: true)
+  allow_any_instance_of(Etna::RemoteSSH).to receive(:mkdir_p)
+end
 
 def stub_remote_ssh_file_upload(success: true)
   if success
-    allow_any_instance_of(Etna::RemoteSSH).to receive(:file_upload).and_return(true)
+    allow_any_instance_of(Etna::RemoteSSH).to receive(:lftp_get).and_return(true)
   else
-    allow_any_instance_of(Etna::RemoteSSH).to receive(:file_upload)
+    allow_any_instance_of(Etna::RemoteSSH).to receive(:lftp_get)
       .and_raise(Etna::RemoteSSH::RemoteSSHError.new("Simulated upload failure"))
   end
+end
+
+def stub_slack(hook_url=Polyphemus.instance.config(:slack_webhook_url))
+  stub_request(:post, hook_url)
 end

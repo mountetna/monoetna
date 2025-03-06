@@ -47,103 +47,104 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-type Value = undefined | string | boolean;
+type Value = undefined | string | boolean | number;
 
 type SelectParam = {
   value: string;
   description: string;
-  default?: boolean;
 };
 
 type ComplexParam = {
   type: string;
-  value: string;
+  values?: SelectParam[];
+  valuesFrom?: string;
+  description?: string;
+  default?: string;
 };
 
 const DefaultSelect = ({
   value,
-  opts,
+  opts=[],
+  defaultValue,
   name,
   update
 }: {
   value: Value;
-  opts: SelectParam[];
+  opts?: SelectParam[];
+  defaultValue: string | undefined;
   name: string;
   update: (name: string, value: string | boolean) => void;
 }) => {
-  const defaultOption = opts.find((o) => o.default);
-
   return (
     <Select
-      value={value ? value : defaultOption ? defaultOption.value : ''}
+      value={value ? value : defaultValue ? defaultValue : ''}
       onChange={(e) => update(name, e.target.value as string)}
     >
-      {opts.map((opt) => (
-        <MenuItem key={opt.value} value={opt.value}>
-          {`${opt.value}${opt.description ? ` - ${opt.description}` : ''}`}
-        </MenuItem>
-      ))}
+      {
+        opts.map( opt =>
+          <MenuItem key={opt.value} value={opt.value}>
+            {`${opt.value}${opt.description ? ` - ${opt.description}` : ''}`}
+          </MenuItem>
+        )
+      }
     </Select>
   );
 };
 
 const Param = ({
   value,
-  opts,
+  options,
   name,
   update,
   config
 }: {
   value: Value;
-  opts: SelectParam[] | ComplexParam | 'string' | 'boolean';
+  options: ComplexParam;
   name: string;
-  update: (name: string, value: string | boolean) => void;
+  update: (name: string, value: Value) => void;
   config: any;
 }) => {
-  if (Array.isArray(opts)) {
-    return (
-      <DefaultSelect value={value} opts={opts} name={name} update={update} />
-    );
-  } else if (_.isObject(opts)) {
-    if (opts.type && opts.type === 'options' && opts.value === 'model_names') {
-      const modelNames = ['all'].concat(Object.keys(config).sort());
-      return (
-        <Autocomplete
-          multiple
-          fullWidth
-          id={name}
-          options={modelNames}
-          value={'' === value ? [] : (value as string)?.split(',') || []}
-          renderInput={(params) => <TextField {...params} variant='standard' />}
-          onChange={(e, v) => {
-            if (v.includes('all')) {
-              update(name, 'all');
-            } else {
-              update(name, v.join(','));
-            }
-          }}
-        />
-      );
+  if (options.type === 'options') {
+    const { values, valuesFrom } = options;
+    let onChange: (e: any, v: string[]) => void;
+    let fillValues: string[];
+
+    if (valuesFrom === 'model_names') {
+      fillValues = ['all'].concat(Object.keys(config).sort());
+      onChange = (e, v) => update(name, v.includes('all') ? 'all' : v.join(','));
+    } else if (values) {
+      fillValues = values.map(v => v.value);
+      onChange = (e, v) => update(name, v.join(','));
     } else {
-      return (
-        <TextField
-          size='small'
-          fullWidth
-          value={value == undefined ? '' : value}
-          onChange={(e) => update(name, e.target.value)}
-        />
-      );
+      return null;
     }
-  } else if (opts == 'string') {
+
+    return (
+      <Autocomplete
+        multiple
+        fullWidth
+        id={name}
+        options={fillValues}
+        value={'' === value ? [] : (value as string)?.split(',') || []}
+        renderInput={(params) => <TextField {...params} variant='standard' />}
+        onChange={onChange}
+      />
+    );
+  } else if (options.type === 'select') {
+    return (
+      <DefaultSelect value={value} opts={options.values} name={name} update={update} defaultValue={options.default} />
+    );
+  } else if (options.type == 'string') {
     return (
       <TextField
         size='small'
+        placeholder={options.description}
         fullWidth
         value={value == undefined ? '' : value}
         onChange={(e) => update(name, e.target.value)}
       />
     );
-  } else if (opts == 'boolean') {
+  } else if (options.type == 'boolean') {
     return (
       <Switch
         size='small'
@@ -151,23 +152,30 @@ const Param = ({
         onChange={(e) => update(name, e.target.checked)}
       />
     );
+  } else if (options.type == 'integer') {
+    return (
+      <TextField
+        size='small'
+        type='number'
+        placeholder={options.description}
+        fullWidth
+        value={value == undefined ? '' : value}
+        onChange={(e) => update(name, parseInt(e.target.value))}
+      />
+    );
   }
 
   return null;
 };
 
-const paramsWithDefaults = (params: any, param_opts: any) => {
+const paramsWithDefaults = (params: any, param_opts: { [param_name: string]: ComplexParam }) => {
   let newParams = {...params};
   Object.entries(param_opts).forEach(
     ([param_name, opts]) => {
       if (param_name in newParams) return;
-      if (!Array.isArray(opts)) return;
 
-      const defaultOption: any = opts.find((o) => o.default);
-
-      if (defaultOption) {
-        newParams[param_name] = defaultOption.value;
-      }
+      if ('default' in opts) newParams[param_name] = opts.default;
+      else if (opts.type == 'boolean') newParams[param_name] = false;
     }
   );
   return newParams;
@@ -213,35 +221,26 @@ const RunPane = ({
 
   const classes = useStyles();
 
-  const nonBooleanParamOpts = useMemo(() => {
-    return Object.entries(param_opts)
-      .filter(([param, value]) => value !== 'boolean')
-      .map(([param, value]) => param)
-      .sort();
-  }, [param_opts]);
-
   const formValid = useMemo(() => {
-    const newParamOpts = Object.keys(newParams).sort();
-    const nonBoolFilled = _.isEqual(nonBooleanParamOpts, newParamOpts);
-    const allFilled = _.isEqual(Object.keys(param_opts).sort(), newParamOpts);
-    const noneEmpty = Object.values(newParams).every(
-      (v) => v != null && v !== '' && !_.isEqual(v, [])
-    );
+    const newParamOpts = Object.keys(paramsWithDefaults(newParams, param_opts)).sort();
+    const oldParamOpts = Object.keys(param_opts).sort();
 
-    return (nonBoolFilled || allFilled) && noneEmpty;
-  }, [nonBooleanParamOpts, param_opts, newParams]);
+    return _.isEqual(oldParamOpts, newParamOpts);
+  }, [param_opts, newParams]);
 
   const savePayload = useCallback(() => {
-    return {run_interval: runIntervalTime, config: newParams};
+    return {run_interval: runIntervalTime, config: paramsWithDefaults(newParams, param_opts) };
   }, [runIntervalTime, newParams]);
 
   const formChanged = useMemo(() => {
-    console.log({ sp: savePayload(), np: { config: paramsWithDefaults(params, param_opts), run_interval } });
-    return !_.isEqual(savePayload(), { config: paramsWithDefaults(params, param_opts), run_interval: getRunIntervalTime(run_interval) });
+    return !_.isEqual(
+      savePayload(),
+      {
+        config: paramsWithDefaults(params, param_opts),
+        run_interval: getRunIntervalTime(run_interval)
+      }
+    );
   }, [savePayload, params, param_opts]);
-
-  console.log({nonBooleanParamOpts, newParams, param_opts});
-  console.log({formChanged, formValid});
 
   return (
     <WorkflowPane mode='run' selected={selected}>
@@ -341,7 +340,7 @@ const RunPane = ({
                     config={config}
                     name={param_name}
                     value={newParams && (newParams[param_name] as Value)}
-                    opts={param_opts[param_name]}
+                    options={param_opts[param_name]}
                     update={(name, value) => {
                       setParams({...newParams, [name]: value});
                     }}

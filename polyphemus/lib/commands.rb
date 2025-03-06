@@ -656,31 +656,6 @@ class Polyphemus
     end
   end
 
-  class RunRedcapLoader < Etna::Command
-    include WithEtnaClientsByEnvironment
-    include WithLogger
-    usage 'run_redcap_loader <env> <project_name> <model_names> <redcap_tokens> [--mode] [--execute]'
-    boolean_flags << '--execute'
-    string_flags << '--mode'
-
-    def execute(env, project_name, model_names, redcap_tokens, mode: nil, execute: false)
-      @environ = environment(env)
-      @project_name = project_name
-
-      redcap_etl = RedcapEtlScriptRunner.new(
-        project_name: project_name,
-        model_names: "all" == model_names ? "all" : model_names.split(','),
-        mode: mode,
-        redcap_tokens: redcap_tokens.split(','),
-        dateshift_salt: Polyphemus.instance.config(:dateshift_salt, @environ.environment),
-        redcap_host: Polyphemus.instance.config(:redcap, @environ.environment)[:host],
-        magma_host: @environ.magma_client.host
-      )
-
-      redcap_etl.run(magma_client: @environ.magma_client, commit: execute)
-    end
-  end
-
   class Console < Etna::Command
     usage 'Open a console with a connected Polyphemus instance.'
 
@@ -726,14 +701,15 @@ class Polyphemus
           project_name: config.project_name
       )
 
-      # reset janus_client so it uses task token
-      @janus_client = nil
+      # reset clients so they use task token
+      reset_clients!
 
       # Instantiate the job and run it
       # Dynamically load the job class from the job_name
       job = Kernel.const_get("#{job_name}_job".camelize.to_sym)
 
       job.new(
+        @token,
         config.with_secrets,
         runtime_config.as_json
       ).execute
@@ -751,7 +727,10 @@ class Polyphemus
       Polyphemus.instance.setup_sequel
     end
 
-    def execute(run_id, workflow_json, raw_output)
+    def execute(run_id, workflow_name, workflow_namespace)
+
+      workflow_json = %x{ argo get --output=json #{workflow_name} -n #{workflow_namespace} }
+      raw_output = %x{ argo logs #{workflow_name} }
 
       # We need to fetch the project name
       run = Polyphemus::Run.where(
