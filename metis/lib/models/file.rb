@@ -135,6 +135,14 @@ class Metis
       end
     end
 
+    def self.total_size(query)
+      Metis::DataBlock.total_size(
+        id: Metis::File.where(
+          query
+        ).select_map(:data_block_id).uniq
+      )
+    end
+
     private
 
     def self.hmac_url(method:, host:, path:, user:  nil, expiration: 0)
