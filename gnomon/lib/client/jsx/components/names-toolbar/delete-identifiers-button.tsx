@@ -12,7 +12,7 @@ import { magmaPath } from 'etna-js/api/magma_api';
 
 
 
-const DeleteIdentifiersButton = ({ small, project_name, data, buttonText, className, refresh }: { small: boolean, className?: string, data: Array<any>, buttonText: string }) => {
+const DeleteIdentifiersButton = ({ small, project_name, data, buttonText, className, refresh }: { small: boolean, project_name: string, className?: string, data: Array<any>, buttonText: string, refresh: Function }) => {
     const [confirmation, setConfirmation] = useState('');
     const [confirmationError, setConfirmationError] = useState('');
     const [ message, setMessage ] = useState('');
@@ -29,7 +29,7 @@ const DeleteIdentifiersButton = ({ small, project_name, data, buttonText, classN
         }
       ).catch(
         (error) => error.then(
-          ({error}) => {
+          ({error}:{ error: string}) => {
             setConfirmation('');
             if (error.includes('confirmation')) setConfirmationError(error);
             else {

@@ -7,7 +7,14 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-export default function ConfirmationCodeModal({open, confirmation, confirmationError, onChange, onClose, onConfirm}:{ open: boolean, confirmation: string, onClose: Function, onConfirm: Function }) {
+export default function ConfirmationCodeModal({open, confirmation, confirmationError, onChange, onClose, onConfirm}:{
+  open: boolean,
+  confirmation: string,
+  confirmationError: string,
+  onClose: () => void,
+  onChange: (value: string) => void,
+  onConfirm: () => void
+}) {
   return (
     <Dialog
       open={open}
