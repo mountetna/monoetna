@@ -1,6 +1,6 @@
 import React from 'react';
 
-import ExportButton from '../names-toolbar/export-button';
+import DeleteButton from '../names-toolbar/delete-button';
 import NamesToolbar from '../names-toolbar/toolbar';
 
 
