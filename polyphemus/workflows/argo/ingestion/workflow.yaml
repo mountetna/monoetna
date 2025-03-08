@@ -36,8 +36,6 @@ spec:
                 - name: version_number
                   value: "{{workflow.parameters.version_number}}"
           - name: deposit-update
-            retryStrategy:
-              limit: "5"
             templateRef:
               name: run-job-template
               template: run-job
