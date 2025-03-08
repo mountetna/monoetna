@@ -18,11 +18,25 @@ require_relative '../../magma_record_etl'
 class Polyphemus
   class RedcapEtlScriptRunner < EtlScriptRunner
 
+    def self.modes
+      Polyphemus::RedcapLoaderManifest.as_json.dig(
+        :runtime_params, :mode, :values
+      ).map do |value|
+        value[:value]
+      end
+    end
+
+    def self.default_mode
+      Polyphemus::RedcapLoaderManifest.as_json.dig(
+        :runtime_params, :mode, :default
+      )
+    end
+
     attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :mode
 
     # Override initialize, user won't be passing in a filename directly as with other ETLs.
-    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, mode: 'default', config:, page_size: 20000)
-      raise "Mode must be \"default\", \"existing\", or \"strict\"." unless ['default', 'existing', 'strict'].include?(mode)
+    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, mode: Polyphemus::RedcapEtlScriptRunner.default_mode, config:, page_size: 20000)
+      raise "Mode must be one of #{Polyphemus::RedcapEtlScriptRunner.modes.join(", ")}." unless Polyphemus::RedcapEtlScriptRunner.modes.include?(mode)
       raise "Must provide at least one REDCap token." unless redcap_tokens && redcap_tokens.length > 0
 
       @file_path = File.join(File.dirname(__FILE__), 'projects', "#{project_name}.rb")
