@@ -33,8 +33,9 @@ class Magma
     get '/gnomon/:project_name/rules', action: 'gnomon#project_rules', auth: { user: { can_view?: :project_name } }
     get '/gnomon/:project_name', action: 'gnomon#get', auth: { user: { can_view?: :project_name } }
     get '/gnomon/:project_name/revisions', action: 'gnomon#revisions', auth: { user: { can_view?: :project_name } }
-    post '/gnomon/:project_name', action: 'gnomon#set', auth: { user: { is_admin?: :project_name } }
-    post '/gnomon/:project_name/increment/:rule_name/:identifier_root', action: 'gnomon#increment', auth: { user: { is_admin?: :project_name } }
+    post '/gnomon/:project_name/delete', action: 'gnomon#delete', auth: { user: { can_edit?: :project_name } }
+    post '/gnomon/:project_name', action: 'gnomon#set', auth: { user: { can_edit?: :project_name } }
+    post '/gnomon/:project_name/increment/:rule_name/:identifier_root', action: 'gnomon#increment', auth: { user: { can_edit?: :project_name } }
     get '/gnomon/:project_name/decompose/*identifier', action: 'gnomon#decompose', auth: { user: { can_view?: :project_name } }
     get '/gnomon/:project_name/list/:rule_name', action: 'gnomon#list', auth: { user: { can_view?: :project_name } }
     get '/gnomon/:project_name/rule/:rule_name', action: 'gnomon#rule', auth: { user: { can_view?: :project_name } }

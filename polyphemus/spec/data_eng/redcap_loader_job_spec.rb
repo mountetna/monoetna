@@ -20,7 +20,7 @@ describe RedcapLoaderJob do
     let(:runtime_config) do
       {
         'config' => {
-          'mode' => 'default',
+          'mode' => 'append',
           'model_names' => 'all'
         }
       }

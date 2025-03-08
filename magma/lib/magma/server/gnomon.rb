@@ -7,6 +7,31 @@ class GnomonController < Magma::Controller
     return success_json(grammar.to_hash)
   end
 
+  def delete
+    require_param(:identifiers)
+    identifiers = Magma::Gnomon::Identifier.where(
+      project_name: @params[:project_name],
+      identifier: @params[:identifiers]
+    ).select_map(:identifier)
+
+    unknown = @params[:identifiers] - identifiers
+
+    unless unknown.empty?
+      raise Etna::BadRequest, "Unknown identifier(s): #{unknown.join(', ')}"
+    end
+
+    confirmation = Digest::MD5.hexdigest(@params[:identifiers].join)
+
+    raise Etna::BadRequest, "Confirm deletion of #{@params[:identifiers].count} identifiers with code #{confirmation}" unless @params[:confirmation] == confirmation
+
+    Magma::Gnomon::Identifier.where(
+      project_name: @params[:project_name],
+      identifier: @params[:identifiers]
+    ).delete
+
+    success_json(success: "Deleted #{@params[:identifiers].count} identifiers")
+  end
+
   def set
     require_param(:config, :comment)
     old_grammar = Magma::Gnomon::Grammar.for_project(project_name)
