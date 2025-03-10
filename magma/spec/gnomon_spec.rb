@@ -34,7 +34,7 @@ describe GnomonController do
     grammar = create_grammar
 
     config = VALID_GRAMMAR_CONFIG
-    auth_header(:admin)
+    auth_header(:editor)
     json_post('/gnomon/labors', config: config, comment: 'eh')
 
     expect(last_response.status).to eq(200)
@@ -51,7 +51,7 @@ describe GnomonController do
     config = {
       text: "Some content"
     }
-    auth_header(:admin)
+    auth_header(:editor)
     json_post('/gnomon/labors', config: config, comment: 'eh')
 
     expect(last_response.status).to eq(422)
@@ -124,7 +124,7 @@ describe GnomonController do
   context 'counter API' do
     it 'throws exception with no grammar defined' do
       expect(Magma::Gnomon::Identifier.count).to eq(0)
-      auth_header(:admin)
+      auth_header(:editor)
       post('/gnomon/labors/increment/victim/LABORS-LION-H2-C')
       expect(last_response.status).to eq(422)
       expect(Magma::Gnomon::Identifier.count).to eq(0)
@@ -137,7 +137,7 @@ describe GnomonController do
 
       context 'generates the next identifier when' do
         it 'none exist' do
-          auth_header(:admin)
+          auth_header(:editor)
           post('/gnomon/labors/increment/victim/LABORS-LION-H2-C')
           expect(last_response.status).to eq(200)
           expect(last_response.body).to eq("1")
@@ -145,7 +145,7 @@ describe GnomonController do
 
         it 'does not create the identifier' do
           expect(Magma::Gnomon::Identifier.count).to eq(0)
-          auth_header(:admin)
+          auth_header(:editor)
           post('/gnomon/labors/increment/victim/LABORS-LION-H2-C')
           expect(last_response.status).to eq(200)
           expect(last_response.body).to eq("1")
@@ -154,7 +154,7 @@ describe GnomonController do
 
         it 'sequence exists' do
           identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
-          auth_header(:admin)
+          auth_header(:editor)
           post('/gnomon/labors/increment/victim/LABORS-LION-H2-C')
           expect(last_response.status).to eq(200)
           expect(last_response.body).to eq("2")
@@ -162,7 +162,7 @@ describe GnomonController do
 
         it 'sequence in other token value exists' do
           identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
-          auth_header(:admin)
+          auth_header(:editor)
           post('/gnomon/labors/increment/victim/LABORS-LION-H2-S')
           expect(last_response.status).to eq(200)
           expect(last_response.body).to eq("1")
@@ -170,7 +170,7 @@ describe GnomonController do
 
         it 'change in parent token counter' do
           identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
-          auth_header(:admin)
+          auth_header(:editor)
           post('/gnomon/labors/increment/victim/LABORS-LION-H1-C')
           expect(last_response.status).to eq(200)
           expect(last_response.body).to eq("1")
@@ -185,13 +185,13 @@ describe GnomonController do
         end
 
         it 'rule does not exist' do
-          auth_header(:admin)
+          auth_header(:editor)
           post('/gnomon/labors/increment/habitat/LABORS-MARSH')
           expect(last_response.status).to eq(422)
         end
 
         it 'identifier_root does not match rule' do
-          auth_header(:admin)
+          auth_header(:editor)
           post('/gnomon/labors/increment/victim/LABORS-LION-H2-Q')
           expect(last_response.status).to eq(422)
           post('/gnomon/labors/increment/victim/LABORS-PARROT-H')
@@ -200,7 +200,7 @@ describe GnomonController do
 
         it 'but does not create identifier' do
           expect(Magma::Gnomon::Identifier.count).to eq(0)
-          auth_header(:admin)
+          auth_header(:editor)
           post('/gnomon/labors/increment/victim/LABORS-LION-H2-Q')
           expect(last_response.status).to eq(422)
           expect(Magma::Gnomon::Identifier.count).to eq(0)
@@ -372,7 +372,7 @@ describe GnomonController do
   context 'generate API' do
 
     it 'throws exception when no grammar for project' do
-      auth_header(:admin)
+      auth_header(:editor)
       post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
       expect(last_response.status).to eq(422)
       expect(Magma::Gnomon::Identifier.count).to eq(0)
@@ -386,7 +386,7 @@ describe GnomonController do
       it 'creates the identifier' do
         identifier = "LABORS-LION-H2-C1"
         expect(Magma::Gnomon::Identifier.count).to eq(0)
-        auth_header(:admin)
+        auth_header(:editor)
         post("/gnomon/labors/generate/victim/#{identifier}")
 
         rules = {
@@ -406,7 +406,7 @@ describe GnomonController do
 
       it 'ignores identifiers that already exists' do
         identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
-        auth_header(:admin)
+        auth_header(:editor)
         post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
         expect(last_response.status).to eq(200)
         expect(json_body[:rules].size).to eq(4)
@@ -416,7 +416,7 @@ describe GnomonController do
 
       context 'throws exception when' do
         it 'invalid rule name provided' do
-          auth_header(:admin)
+          auth_header(:editor)
           post('/gnomon/labors/generate/alias/LABORS-LION-H2-C1')
           expect(last_response.status).to eq(422)
           expect(Magma::Gnomon::Identifier.count).to eq(0)
@@ -430,7 +430,7 @@ describe GnomonController do
         end
 
         it 'identifier does not match rule' do
-          auth_header(:admin)
+          auth_header(:editor)
           post('/gnomon/labors/generate/victim/LABORS-LION-H2-X1')
           expect(last_response.status).to eq(422)
           expect(Magma::Gnomon::Identifier.count).to eq(0)
@@ -439,10 +439,60 @@ describe GnomonController do
     end
   end
 
+  context 'delete identifiers' do
+    before(:each) do
+      @grammar = create_grammar(config: VALID_GRAMMAR_CONFIG)
+      identifier1 = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+      identifier2 = create_identifier("LABORS-LION-H2-C2", rule: 'victim', grammar: @grammar)
+      identifier3 = create_identifier("LABORS-LION-H3-C2", rule: 'victim', grammar: @grammar)
+
+    end
+
+    it 'allows deletion with confirmation' do
+      auth_header(:editor)
+      json_post('/gnomon/labors/delete',
+        identifiers: [
+          "LABORS-LION-H2-C1",
+          "LABORS-LION-H2-C2",
+          "LABORS-LION-H3-C2",
+        ],
+        confirmation: "df44036473e8537e83c267c86909bd23"
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(Magma::Gnomon::Identifier.count).to eq(0)
+    end
+
+    it 'refuses deletion without confirmation' do
+      auth_header(:editor)
+      post('/gnomon/labors/delete', identifiers: [
+        "LABORS-LION-H2-C1",
+        "LABORS-LION-H2-C2",
+        "LABORS-LION-H3-C2",
+      ])
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq("Confirm deletion of 3 identifiers with code df44036473e8537e83c267c86909bd23")
+      expect(Magma::Gnomon::Identifier.count).to eq(3)
+    end
+
+    it 'refuses deletion with an unknown identifier' do
+      auth_header(:editor)
+      post('/gnomon/labors/delete', identifiers: [
+        "LABORS-LION-H2-C1",
+        "LABORS-LOON-H2-C2",
+        "LABORS-LION-H3-C2",
+      ])
+
+      expect(last_response.status).to eq(422)
+      expect(Magma::Gnomon::Identifier.count).to eq(3)
+    end
+  end
+
   context 'bulk generate API' do
 
     it 'throws exception when no grammar for project' do
-      auth_header(:admin)
+      auth_header(:editor)
       json_post('/gnomon/labors/generate', names: [])
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('No grammar found for project labors.')
@@ -454,7 +504,7 @@ describe GnomonController do
       end
 
       it 'creates identifiers' do
-        auth_header(:admin)
+        auth_header(:editor)
         json_post("/gnomon/labors/generate", names: [
           {
             rule_name: 'village',
@@ -482,7 +532,7 @@ describe GnomonController do
 
       it 'ignores identifiers that already exists' do
         identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
-        auth_header(:admin)
+        auth_header(:editor)
         names = [{rule_name: 'victim', name: 'LABORS-LION-H2-C1'}]
         json_post('/gnomon/labors/generate', names: names)
         expect(last_response.status).to eq(200)
@@ -493,7 +543,7 @@ describe GnomonController do
 
       context 'throws exception when' do
         it 'invalid rule name provided' do
-          auth_header(:admin)
+          auth_header(:editor)
           json_post('/gnomon/labors/generate', names: [{ rule_name: 'alias', name: 'LABORS-LION-H2-C1'}])
           expect(last_response.status).to eq(422)
           expect(Magma::Gnomon::Identifier.count).to eq(0)
@@ -507,7 +557,7 @@ describe GnomonController do
         end
 
         it 'identifier does not match rule' do
-          auth_header(:admin)
+          auth_header(:editor)
           json_post('/gnomon/labors/generate', names: [{ rule_name: 'victim', name: 'LABORS-LION-H2-X1'}])
           expect(last_response.status).to eq(422)
           expect(Magma::Gnomon::Identifier.count).to eq(0)

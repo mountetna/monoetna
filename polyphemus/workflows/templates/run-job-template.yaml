@@ -8,6 +8,8 @@ metadata:
 spec:
   templates:
     - name: run-job
+      retryStrategy:
+        limit: 5
       inputs:
         parameters:
           - name: job
