@@ -31,7 +31,7 @@ const DeleteIdentifiersButton = ({ small, project_name, data, buttonText, classN
         (error) => error.then(
           ({error}:{ error: string}) => {
             setConfirmation('');
-            if (error.includes('confirmation')) setConfirmationError(error);
+            if (error.includes('Confirm')) setConfirmationError(error);
             else {
               setMessage(error.length > 100 ? `${error.substring(0,100)}...` : error);
               setMessageTitle('Deletion Failed');
