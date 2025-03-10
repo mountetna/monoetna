@@ -39,8 +39,8 @@ class Magma
     get '/gnomon/:project_name/decompose/*identifier', action: 'gnomon#decompose', auth: { user: { can_view?: :project_name } }
     get '/gnomon/:project_name/list/:rule_name', action: 'gnomon#list', auth: { user: { can_view?: :project_name } }
     get '/gnomon/:project_name/rule/:rule_name', action: 'gnomon#rule', auth: { user: { can_view?: :project_name } }
-    post '/gnomon/:project_name/generate/:rule_name/:identifier', action: 'gnomon#generate', auth: { user: { is_admin?: :project_name } }
-    post '/gnomon/:project_name/generate', action: 'gnomon#bulk_generate', auth: { user: { is_admin?: :project_name } }
+    post '/gnomon/:project_name/generate/:rule_name/:identifier', action: 'gnomon#generate', auth: { user: { can_edit?: :project_name } }
+    post '/gnomon/:project_name/generate', action: 'gnomon#bulk_generate', auth: { user: { can_edit?: :project_name } }
 
     get '/' do
       [ 200, {}, [ 'Magma is available.' ] ]

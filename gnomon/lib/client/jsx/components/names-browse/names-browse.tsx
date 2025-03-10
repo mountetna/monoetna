@@ -111,7 +111,7 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
         }
 
         allRules.forEach(ruleName => fetchNamesFromMagma(ruleName));
-    }, [allRules]);
+    }, [allRules.length]);
 
     useEffect( () => {
       fetchAllNames()

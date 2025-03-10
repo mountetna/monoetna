@@ -472,7 +472,7 @@ describe GnomonController do
       ])
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq("Missing confirmation code df44036473e8537e83c267c86909bd23")
+      expect(json_body[:error]).to eq("Confirm deletion of 3 identifiers with code df44036473e8537e83c267c86909bd23")
       expect(Magma::Gnomon::Identifier.count).to eq(3)
     end
 
