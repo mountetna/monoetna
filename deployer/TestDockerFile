@@ -1,4 +1,0 @@
-FROM busybox:latest
-ARG FILE
-RUN mkdir /$FILE
-RUN touch /$FILE/$FILE

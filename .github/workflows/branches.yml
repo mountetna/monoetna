@@ -6,7 +6,6 @@ on:
       - '*/*'
       - '*/*/*'
       - '!master'
-      - '!swarm/stacks'
       - '!production'
       - '!staging'
       - '!production-build'
@@ -25,7 +24,6 @@ jobs:
           - polyphemus
           - timur
           - etna
-          - deployer
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
