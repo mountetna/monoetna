@@ -12,15 +12,8 @@ class Polyphemus
       runtime_configs = self.exclude(disabled: true).exclude(run_interval: nil).all
 
       runtime_configs.select do |runtime_config|
-     
-        config = Polyphemus::Config.current.where(
-          config_id: runtime_config.config_id,
-        ).first
+        run = runtime_config.last_run
 
-        run = Polyphemus::Run.where(
-            config_id: config.config_id,
-        ).order(:created_at).last
-        
         next unless run&.orchestrator_metadata
         
         if run.is_finished?
@@ -34,6 +27,14 @@ class Polyphemus
         end
       end
       eligible_runtime_configs
+    end
+
+    def last_run
+      Polyphemus::Run.where(config_id: config_id).order(:created_at).last
+    end
+
+    def workflow_config
+      Polyphemus::Config.current.where(config_id: config_id).first
     end
 
     def self.for_config(config_id)
