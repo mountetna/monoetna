@@ -5,6 +5,10 @@ describe PlotsController do
     OUTER_APP
   end
 
+  before(:each) do
+    stub_event_log
+  end
+
   context '#get' do
     it 'must be a project viewer' do
       get_document(:plot, 1, :non_user)
