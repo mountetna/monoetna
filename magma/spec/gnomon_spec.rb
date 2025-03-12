@@ -13,6 +13,10 @@ describe GnomonController do
     OUTER_APP
   end
 
+  before(:each) do
+    stub_event_log
+  end
+
   it 'complains if there is no grammar' do
     auth_header(:viewer)
     get('/gnomon/labors')
