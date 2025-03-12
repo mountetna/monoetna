@@ -47,6 +47,8 @@
   :log_level: error
   :hold_file: tmp/test.hold
   :hold_interval: 10
+  :polyphemus:
+    :host: https://polyphemus.test
   :hmac_keys:
     :magma: haggis
   :storage:

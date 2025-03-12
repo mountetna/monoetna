@@ -20,6 +20,7 @@ describe UpdateController do
     stub_request(:post, /https:\/\/metis.test\/labors\/files\/copy?/).
       to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
     @project = create(:project, name: 'The Twelve Labors of Hercules')
+    stub_event_log
   end
 
   def update(revisions, user_type=:editor, params: {autolink: true})
