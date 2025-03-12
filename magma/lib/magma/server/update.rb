@@ -15,9 +15,7 @@ class UpdateController < Magma::Controller
 
     payload = payload.to_hash
 
-    Magma.instance.event_log(
-      project_name: @project_name,
-      user: @user,
+    event_log(
       event: 'update',
       message: "made updates to models: #{
         payload[:models].map do |model_name, model|

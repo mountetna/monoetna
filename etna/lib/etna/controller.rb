@@ -24,6 +24,13 @@ module Etna
       @logger.warn(request_msg(line))
     end
 
+    def event_log(params)
+      Etna::Application.instance.event_log({
+        project_name: @params[:project_name],
+        user: @user
+      }.compact.merge(params))
+    end
+
     def handle_error(e)
       case e
       when Etna::Error
