@@ -112,6 +112,21 @@ module Etna
         json
       end
 
+      def log(project_name:, user:, event:, message:, payload:, signatory:)
+        params = {
+          project_name: project_name,
+          user: user,
+          event: event,
+          message: message,
+          payload: payload,
+          signatory: signatory
+        }
+        json = nil
+        @etna_client.post("/api/log/#{project_name}", params) do |res|
+          json = JSON.parse(res.body)
+        end
+        json
+      end
     end
   end
 end
