@@ -196,9 +196,7 @@ class GnomonController < Magma::Controller
     end.compact
 
     if created_identifiers
-      Magma.instance.event_log(
-        project_name: project_name,
-        user: @user,
+      event_log(
         event: 'create_name',
         message: "created #{created_identifiers.count} identifiers",
         payload: {
@@ -279,9 +277,7 @@ class GnomonController < Magma::Controller
     result.update(existing: existing.uniq) unless existing.empty?
 
     unless created.empty?
-      Magma.instance.event_log(
-        project_name: project_name,
-        user: @user,
+      event_log(
         event: 'create_name',
         message: "created #{created.count} identifiers",
         payload: {
