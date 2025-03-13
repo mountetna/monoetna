@@ -62,8 +62,8 @@ class LogController < Polyphemus::Controller
     query = {
       application: @params[:application],
       project_name: @params[:project_name] == 'administration' ? @params[:project_names] : @params[:project_name],
-      user: @params[:user],
-      event: @params[:event],
+      user: @params[:user] ? Regexp.new(@params[:user]) : nil,
+      event: @params[:event] ? Regexp.new(@params[:event]) : nil,
       message: @params[:message] ? Regexp.new(@params[:message]) : nil,
       created_at: @params[:from] && @params[:to] ? DateTime.parse(@params[:from])..DateTime.parse(@params[:to]) : nil,
       hidden: false,
@@ -77,6 +77,8 @@ class LogController < Polyphemus::Controller
   end
 
   def payload
+    raise Etna::Forbidden unless @user.can_see_restricted?(@params[:project_name]) || @user.is_supereditor?
+
     log = Polyphemus::Log[@params[:log_id].to_i]
 
     raise Etna::NotFound, "No such log #{@params[:log_id]}" unless log
