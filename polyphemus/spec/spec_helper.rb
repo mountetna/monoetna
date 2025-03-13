@@ -16,6 +16,7 @@ require "yaml"
 
 require "fileutils"
 require "timecop"
+require "etna/spec/event_log"
 
 require_relative "../lib/server"
 require_relative "../lib/polyphemus"

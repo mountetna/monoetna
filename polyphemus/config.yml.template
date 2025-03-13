@@ -79,6 +79,8 @@
     :host: https://janus.test
   :timur:
     :host: https://timur.test
+  :hmac_keys:
+    :polyphemus: haggis
   :db:
     :adapter: postgres
     :host: polyphemus_db
