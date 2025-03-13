@@ -5,6 +5,31 @@ class LogController < Polyphemus::Controller
 
   def write
     require_params(:user, :event, :message)
+
+    if @params[:consolidate]
+      entry = Polyphemus::Log.where(
+        application: @hmac.id.to_s,
+        project_name: @params[:project_name],
+        user: @params[:user],
+        event: @params[:event],
+        message: @params[:message][0..MAX_MESSAGE_SIZE],
+        hidden: false,
+        created_at: (DateTime.now - 1)..(DateTime.now+1)
+      ).first
+
+      if entry
+        entry.payload = merge_payload(
+          entry.payload,
+          JSON.parse(@params[:payload].to_json, symbolize_names: false)
+        )
+        require 'pry'
+        binding.pry
+        entry.save
+
+        return success_json(log: entry.id)
+      end
+    end
+
     entry = Polyphemus::Log.create(
       application: @hmac.id,
       project_name: @params[:project_name],
@@ -18,6 +43,20 @@ class LogController < Polyphemus::Controller
 
     success_json(log: entry.id)
   end
+
+  private
+
+  def merge_payload(p1, p2)
+    p1.merge(p2) do |key, v1, v2|
+      if v1.is_a?(Array) and v2.is_a?(Array)
+        (v1 + v2)
+      else
+        v2
+      end
+    end
+  end
+
+  public
 
   def read
     query = {
