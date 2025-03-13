@@ -154,6 +154,15 @@ class UploadController < Metis::Controller
     upload_hash = upload.to_hash
     upload_hash[:file] = new_file.to_hash(request: @request)
 
+    event_log(
+      event: 'upload',
+      user: Etna::User.new(email: upload.author.split('|').first),
+      message: "uploaded files to #{upload.bucket.name}",
+      payload: {
+        files: [ new_file.file_path ]
+      },
+      consolidate: true
+    )
     return success_json(upload_hash)
   ensure
     upload.delete_with_partial!

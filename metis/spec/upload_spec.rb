@@ -13,6 +13,8 @@ describe UploadController do
     @metis_uid = Metis.instance.sign.uid
 
     set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}" if set_metis_uid
+
+    stub_event_log(:athena)
   end
 
   let(:set_metis_uid) { true }

@@ -34,6 +34,11 @@ class BucketController < Metis::Controller
       description: @params[:description],
       access: @params[:access]
     )
+
+    event_log(
+      event: 'create_bucket',
+      message: "created bucket #{@params[:bucket_name]}"
+    )
     success_json(bucket: bucket.to_hash)
   end
 
