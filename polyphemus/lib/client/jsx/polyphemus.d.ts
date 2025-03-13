@@ -9,6 +9,16 @@ export type Job = {
   secrets: any;
 };
 
+export type Log = {
+  id: number;
+  application: string;
+  project_name: string;
+  user: string;
+  event: string;
+  message: string;
+  created_at: string;
+};
+
 export type Workflow = {
   project_name: string;
   workflow_name: string;

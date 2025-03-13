@@ -25,10 +25,14 @@ module Etna
     end
 
     def event_log(params)
-      Etna::Application.instance.event_log({
-        project_name: @params[:project_name],
-        user: @user
-      }.compact.merge(params))
+      begin
+        Etna::Application.instance.event_log({
+          project_name: @params[:project_name],
+          user: @user
+        }.compact.merge(params))
+      rescue Exception => e
+        log("event_log failed with #{e.backtrace} #{e.message}")
+      end
     end
 
     def handle_error(e)

@@ -19,9 +19,6 @@ class Polyphemus
     # Return the app host configuration values
     get "/configuration", as: :configuration, action: "configuration#action", auth: { noauth: true }
 
-    get '/' do erb_view(:client) end
-    get '/:project_name' do erb_view(:client) end
-
     # Polyphemus API V2
 
     post '/api/workflows/:project_name/create', action: 'workflow#create', auth: { user: { can_edit?: :project_name } }
@@ -47,7 +44,10 @@ class Polyphemus
 
     post '/api/log/:project_name/write', action: 'log#write', auth: { hmac: true }
     post '/api/log/:project_name/read', action: 'log#read', auth: { user: { can_view?: :project_name } }
-    post '/api/log/:project_name/payload/:log_id', action: 'log#payload', auth: { user: { can_view?: :project_name, can_see_restricted?: :project_name } }
+    post '/api/log/:project_name/payload/:log_id', action: 'log#payload', auth: { user: { can_view?: :project_name } }
     post '/api/log/administration/hide/:log_id', action: 'log#hide', auth: { user: { is_supereditor?: true } }
+
+    get '/' do erb_view(:client) end
+    get '/*args' do erb_view(:client) end
   end
 end
