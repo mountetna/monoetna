@@ -8,16 +8,22 @@
     :password: password
   :metis:
     :host: https://metis.development.local
+    :hmac_key: haggis
   :timur:
     :host: https://timur.development.local
+    :hmac_key: haggis
   :vulcan:
     :host: https://vulcan.development.local
+    :hmac_key: haggis
   :polyphemus:
     :host: https://polyphemus.development.local
+    :hmac_key: haggis
   :gnomon:
     :host: https://gnomon.development.local
+    :hmac_key: haggis
   :janus:
     :host: https://janus.development.local
+    :hmac_key: haggis
   :auth_redirect: https://janus.development.local
   :pass_algo: sha256
   :pass_salt:
@@ -126,7 +132,10 @@
     -----END PUBLIC KEY-----
   :magma:
     :host: https://magma.test
+    :hmac_key: haggis
   :janus:
     :host: https://janus.test
+    :hmac_key: haggis
   :polyphemus:
     :host: https://polyphemus.test
+    :hmac_key: haggis
