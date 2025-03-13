@@ -5,6 +5,9 @@ describe WorkflowController do
     OUTER_APP
   end
 
+  before(:each) do
+    stub_event_log
+  end
 
   let(:run_id) { "argo_run_id_22" }
 

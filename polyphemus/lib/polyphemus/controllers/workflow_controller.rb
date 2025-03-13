@@ -31,6 +31,11 @@ class WorkflowController < Polyphemus::Controller
       updated_at: Time.now
     )
 
+    event_log(
+      event: 'create_workflow',
+      message: "created #{@params[:workflow_type]} workflow #{@params[:workflow_name]}"
+    )
+
     success_json(config.as_json)
   end
 
@@ -71,6 +76,11 @@ class WorkflowController < Polyphemus::Controller
       update[:updated_at] = Time.now
       config.update(update)
     end
+
+    event_log(
+      event: 'update_workflow',
+      message: "updated workflow #{config.workflow_name} to version #{update[:version_number]}"
+    )
 
     success_json(config.as_json)
   end
@@ -212,12 +222,12 @@ class WorkflowController < Polyphemus::Controller
     end
     
     update_columns = {
-        config_id: @params[:config_id],
-        run_interval: @params[:run_interval],
-        config: @params[:config],
-        disabled: @params[:disabled],
-        updated_at: Time.now
-      }.compact
+      config_id: @params[:config_id],
+      run_interval: @params[:run_interval],
+      config: @params[:config],
+      disabled: @params[:disabled],
+      updated_at: Time.now
+    }.compact
 
     runtime_config.update(update_columns)
     success_json(runtime_config.as_json)
@@ -253,6 +263,11 @@ class WorkflowController < Polyphemus::Controller
     rescue StandardError => e
       raise Etna::BadRequest, "Failed to submit Argo workflow: #{e.message}"
     end
+
+    event_log(
+      event: 'launch_workflow',
+      message: "ran workflow #{config.workflow_name}"
+    )
     success_json(run.as_json)
   end
 
