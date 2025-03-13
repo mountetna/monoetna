@@ -122,7 +122,7 @@ module Etna
           signatory: signatory
         }
         json = nil
-        @etna_client.post("/api/log/#{project_name}", params) do |res|
+        @etna_client.log_write(params) do |res|
           json = JSON.parse(res.body)
         end
         json

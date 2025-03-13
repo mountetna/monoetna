@@ -148,6 +148,7 @@ module Etna::Application
     @polyphemus_client ||= Etna::Clients::Polyphemus.new(
       token: nil,
       host: config(:polyphemus)[:host],
+      routes_available: true
     )
 
     @polyphemus_client.log(
