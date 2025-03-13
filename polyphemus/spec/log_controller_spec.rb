@@ -5,6 +5,16 @@ describe LogController do
     OUTER_APP
   end
 
+  def create_log(params)
+    create(:log, {
+      application: 'polyphemus',
+      project_name: 'labors',
+      user: 'eurystheus@twelve-labors.org',
+      event: 'update',
+      created_at: DateTime.now
+    }.merge(params))
+  end
+
   context '#write' do
     it 'creates a log' do
       msg = 'The Nemean Lion was slain'
@@ -22,15 +32,25 @@ describe LogController do
       expect(Polyphemus::Log.count).to eq(1)
       expect(Polyphemus::Log.first.message).to eq(msg)
     end
-  end
 
-  def create_log(params)
-    create(:log, {
-      application: 'polyphemus',
-      project_name: 'labors',
-      user: 'eurystheus@twelve-labors.org',
-      event: 'update'
-    }.merge(params))
+    it 'consolidates logs with matching entries from the past day' do
+      msg = 'The Nemean Lion was slain'
+      create_log(message: msg, payload: { victims: [ 'Leon' ] })
+      hmac_header
+      json_post(
+        '/api/log/labors/write',
+        user: 'eurystheus@twelve-labors.org',
+        event: 'update',
+        message: msg,
+        payload: {
+          victims: [ 'Outis', 'Aisopos' ]
+        },
+        consolidate: true
+      )
+      expect(last_response.status).to eq(200)
+      expect(Polyphemus::Log.count).to eq(1)
+      expect(Polyphemus::Log.first.payload['victims']).to eq(['Leon', 'Outis', 'Aisopos'])
+    end
   end
 
   context '#read' do
