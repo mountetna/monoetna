@@ -32,6 +32,8 @@
     :host: https://janus.test
   :metis:
     :host: https://metis.test
+  :polyphemus:
+    :host: https://polyphemus.test
 
 :development:
   :timur:

@@ -6,7 +6,7 @@ describe AdminController do
   end
 
   before(:each) do
-    stub_event_log('door')
+    stub_event_log(:door)
   end
 
   context '#projects' do
