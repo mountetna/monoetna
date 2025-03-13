@@ -10,20 +10,28 @@ default: &default
 :development:
   :magma:
     :host: https://magma.development.local
+    :hmac_key: haggis
   :rtemis:
     :host: https://rtemis.development.local
+    :hmac_key: haggis
   :metis:
     :host: https://metis.development.local
+    :hmac_key: haggis
   :janus:
     :host: https://janus.development.local
+    :hmac_key: haggis
   :vulcan:
     :host: https://vulcan.development.local
+    :hmac_key: haggis
   :polyphemus:
     :host: https://polyphemus.development.local
+    :hmac_key: haggis
   :gnomon:
     :host: https://gnomon.development.local
+    :hmac_key: haggis
   :timur:
     :host: https://timur.development.local
+    :hmac_key: haggis
   :auth_redirect: https://janus.development.local
   :token_algo: RS256
   :token_name: JANUS_DEV_TOKEN
@@ -53,12 +61,17 @@ default: &default
     :database: timur_test
   :magma:
     :host: https://magma.test
+    :hmac_key: haggis
   :rtemis:
     :host: https://rtemis.test
+    :hmac_key: haggis
   :metis:
     :host: https://metis.test
+    :hmac_key: haggis
   :polyphemus:
     :host: https://polyphemus.test
+    :hmac_key: haggis
+  :timur:
+    :host: https://timur.test
+    :hmac_key: haggis
   :log_file: /dev/stdout
-  :hmac_keys:
-    :timur: haggis

@@ -19,8 +19,6 @@
     :credentials:
       :aws_access_key_id: 'SOMEID'
       :aws_secret_access_key: 'someKey'
-  :hmac_keys:
-    :metis: haggis
   :db:
     :adapter: postgres
     :host: metis_db
@@ -30,24 +28,33 @@
     :search_path: [ public ]
   :janus:
     :host: https://janus.test
+    :hmac_key: haggis
   :metis:
     :host: https://metis.test
+    :hmac_key: haggis
   :polyphemus:
     :host: https://polyphemus.test
+    :hmac_key: haggis
 
 :development:
   :timur:
     :host: https://timur.development.local
+    :hmac_key: haggis
   :metis:
     :host: https://metis.development.local
+    :hmac_key: haggis
   :janus:
     :host: https://janus.development.local
+    :hmac_key: haggis
   :vulcan:
     :host: https://vulcan.development.local
+    :hmac_key: haggis
   :polyphemus:
     :host: https://polyphemus.development.local
+    :hmac_key: haggis
   :gnomon:
     :host: https://gnomon.development.local
+    :hmac_key: haggis
   :log_file: log/error.log
   :auth_redirect: https://janus.development.local
   :token_name: JANUS_DEV_TOKEN
@@ -57,9 +64,6 @@
   :token_life: 31536000
   :upload_expiration: 86400
   :download_expiration: 86400
-  :hmac_keys:
-    :metis: 35e7c8775406612c431b654663fed668
-    :magma: haggis
   :data_path: ./data
   :thumbnail_path: ./thumbs
   :rsa_public: |

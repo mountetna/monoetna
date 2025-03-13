@@ -8,13 +8,13 @@
     :password: password
   :magma:
     :host: https://magma.development.local
+    :hmac_key: haggis
   :janus:
     :host: https://janus.development.local
+    :hmac_key: haggis
   :host: https://magma.development.local
   :log_file: /dev/stdout
   :log_level: info
-  :hmac_keys:
-    :magma: haggis
   :storage:
     :provider: metis
     :host: metis.development.local
@@ -49,8 +49,10 @@
   :hold_interval: 10
   :polyphemus:
     :host: https://polyphemus.test
-  :hmac_keys:
-    :magma: haggis
+    :hmac_key: haggis
+  :magma:
+    :host: https://magma.test
+    :hmac_key: haggis
   :storage:
     :provider: metis
     :host: metis.test

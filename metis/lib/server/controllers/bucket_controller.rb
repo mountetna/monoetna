@@ -14,7 +14,7 @@ class BucketController < Metis::Controller
 
     raise Etna::BadRequest, 'Illegal bucket name' unless Metis::Bucket.valid_bucket_name?(@params[:bucket_name])
 
-    raise Etna::BadRequest, 'Invalid owner' unless Metis.instance.config(:hmac_keys).keys.include?(@params[:owner].to_sym)
+    raise Etna::BadRequest, 'Invalid owner' unless Metis.instance.config(@params[:owner].to_sym)&.key?(:hmac_key)
 
     raise Etna::BadRequest, 'Invalid access' unless Metis::Bucket.valid_access?(@params[:access])
 
