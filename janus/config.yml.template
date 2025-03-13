@@ -128,3 +128,5 @@
     :host: https://magma.test
   :janus:
     :host: https://janus.test
+  :polyphemus:
+    :host: https://polyphemus.test
