@@ -22,8 +22,6 @@ class LogController < Polyphemus::Controller
           entry.payload,
           JSON.parse(@params[:payload].to_json, symbolize_names: false)
         )
-        require 'pry'
-        binding.pry
         entry.save
 
         return success_json(log: entry.id)

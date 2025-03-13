@@ -63,7 +63,7 @@ const useStyles = makeStyles((theme) => ({
     background: 'rgba(155,86,255,0.33)'
   },
   magma: {
-    background: '#f78370'
+    background: '#cd4a34'
   },
   timur: {
     background: 'rgba(117,255,117,0.30)'
