@@ -59,4 +59,6 @@ default: &default
     :host: https://metis.test
   :polyphemus:
     :host: https://polyphemus.test
-  :log_file: /dev/null
+  :log_file: /dev/stdout
+  :hmac_keys:
+    :timur: haggis
