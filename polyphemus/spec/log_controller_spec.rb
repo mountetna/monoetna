@@ -62,7 +62,7 @@ describe LogController do
       post('/api/log/labors/read')
       expect(last_response.status).to eq(200)
       expect(json_body[:logs].map(&:keys)).to all(contain_exactly(
-        :application, :created_at, :event, :message, :project_name, :user
+        :application, :created_at, :event, :message, :project_name, :user, :id, :payload
       ))
     end
 
@@ -71,7 +71,7 @@ describe LogController do
       create_log(message: 'The Ceryneian Hind was captured.')
 
       auth_header(:privileged_editor)
-      post('/api/log/labors/read', message: 'Ceryneian', event: [ 'update', 'downdate' ])
+      post('/api/log/labors/read', message: 'Ceryneian', event: '(up|down)date')
       expect(last_response.status).to eq(200)
       expect(json_body[:logs].count).to eq(1)
       expect(json_body[:logs].first[:message]).to match(/Ceryneian/)

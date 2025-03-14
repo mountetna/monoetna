@@ -29,6 +29,7 @@ import IconButton from '@material-ui/core/IconButton';
 import Collapse from '@material-ui/core/Collapse';
 
 import {formatTime} from './workflow/run-state';
+import {CONFIG, Log} from './polyphemus';
 import { getItem } from 'etna-js/utils/cookies';
 import { parseToken } from 'etna-js/utils/janus';
 
@@ -92,7 +93,7 @@ const applications = [
   'vulcan'
 ];
 
-const LogRow = ({log, project_name, privileged}:{log: Log}) => {
+const LogRow = ({log, privileged}:{log: Log, privileged: boolean}) => {
   const [ showPayload, setShowPayload ] = useState(false);
   const [ payload, setPayload ] = useState(false);
   const loadPayload = useCallback( () => {
@@ -101,13 +102,13 @@ const LogRow = ({log, project_name, privileged}:{log: Log}) => {
       return;
     }
     if (!payload) {
-      json_post(`/api/log/${project_name}/payload/${log.id}`).then(
+      json_post(`/api/log/${log.project_name}/payload/${log.id}`).then(
         ({payload}) => setPayload(payload)
       );
     }
     setShowPayload(true);
   }, [payload, showPayload] );
-  const classes = useStyles();
+  const classes: any = useStyles();
   return <>
     <TableRow>
       <TableCell align="right">{formatTime(log.created_at)}</TableCell>
@@ -132,7 +133,7 @@ const LogRow = ({log, project_name, privileged}:{log: Log}) => {
 }
 
 const PolyphemusLogs = ({project_name}: {project_name: string}) => {
-  const classes = useStyles();
+  const classes: any = useStyles();
   const [order, setOrder] = useState< 'desc' | 'asc' | undefined>('asc');
   const [orderBy, setOrderBy] = useState('Job Type');
   const [logs, setLogs] = useState<Log[]>([]);
@@ -145,7 +146,7 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
   const [ filterFrom, setFilterFrom ] = useState('');
   const [ filterTo, setFilterTo ] = useState('');
 
-  const token = parseToken(getItem(CONFIG.token_name));
+  const token = parseToken(getItem(CONFIG.token_name) as string);
 
   const isAdmin = token.permissions['administration'] && (
     token.permissions.administration.role == 'administrator' ||
@@ -155,7 +156,7 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
   );
 
   const getLogs = useCallback(() => {
-    let params = {};
+    let params: any = {};
 
     if (filterUser) params.user = filterUser;
     if (filterEvent) params.event = filterEvent;
@@ -275,13 +276,13 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
               labelId='app-label'
               multiple
               value={filterApplications}
-              onChange={ e => setFilterApplications(e.target.value) }
+              onChange={ e => setFilterApplications(e.target.value as string[]) }
               input={<Input />}
               renderValue={
-                selected => <Grid>
+                (selected) => <Grid>
                   {
-                    selected.map(
-                      value => <Chip key={value} label={value} className={classes[value]} />
+                    (selected as string[]).map(
+                      (value: string) => <Chip key={value} label={value} className={classes[value]} />
                     )
                   }
                 </Grid>
@@ -319,7 +320,6 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
               .map((log: Log) => (
                 <LogRow
                   key={log.id}
-                  project_name={project_name}
                   log={log}
                   privileged={isPrivileged}
                 />

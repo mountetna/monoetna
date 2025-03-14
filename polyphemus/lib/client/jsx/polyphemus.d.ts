@@ -1,3 +1,5 @@
+declare var CONFIG: { [key: string]: string };
+
 export type EtnaError = {
   error: string;
 };
@@ -16,6 +18,7 @@ export type Log = {
   user: string;
   event: string;
   message: string;
+  payload: boolean;
   created_at: string;
 };
 
