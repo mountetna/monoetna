@@ -48,6 +48,7 @@ class Polyphemus
     post '/api/log/administration/hide/:log_id', action: 'log#hide', auth: { user: { is_supereditor?: true } }
 
     get '/' do erb_view(:client) end
-    get '/*args' do erb_view(:client) end
+    get '/:project_name' do erb_view(:client) end
+    get '/:project_name/*args' do erb_view(:client) end
   end
 end
