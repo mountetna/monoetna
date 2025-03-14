@@ -191,6 +191,20 @@ class GnomonController < Magma::Controller
       )
     end
 
+    created_identifiers = decomposition[:rules].map do |rule_name, rule|
+      existing_identifiers[rule[:name]] ? nil : { rule_name: rule_name, name: rule[:name] }
+    end.compact
+
+    if created_identifiers
+      event_log(
+        event: 'create_name',
+        message: "created #{created_identifiers.count} identifiers",
+        payload: {
+          identifiers: created_identifiers
+        }
+      )
+    end
+
     success_json(decomposition)
   end
 
@@ -261,6 +275,16 @@ class GnomonController < Magma::Controller
 
     result = { created: created }
     result.update(existing: existing.uniq) unless existing.empty?
+
+    unless created.empty?
+      event_log(
+        event: 'create_name',
+        message: "created #{created.count} identifiers",
+        payload: {
+          identifiers: created
+        }
+      )
+    end
 
     success_json(result)
   end

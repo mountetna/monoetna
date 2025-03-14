@@ -56,6 +56,11 @@ class AdminController < Janus::Controller
       permission.save
     end
 
+    event_log(
+      event: 'update_permission',
+      message: "changed #{@params[:email]} to #{@params.slice(:role,:affiliation,:privileged)}"
+    )
+
     @response.redirect("/#{@params[:project_name]}")
     @response.finish
   end
@@ -89,6 +94,11 @@ class AdminController < Janus::Controller
       permission.privileged = false
       permission.affiliation = @params[:affiliation]
       permission.save
+
+      event_log(
+        event: 'add_user',
+        message: "added user #{@email} with role #{@params[:role]}"
+      )
     end
 
     @response.redirect("/#{@params[:project_name]}")
@@ -138,6 +148,10 @@ class AdminController < Janus::Controller
         copy_project_template(magma_client) if template_project_name_provided?
       end if magma_client
 
+      event_log(
+        event: 'create_project',
+        message: "created #{@params[:project_name_full]}"
+      )
       Janus.instance.set_token_cookie(@response, refreshed_token)
     end
 
@@ -152,6 +166,12 @@ class AdminController < Janus::Controller
     raise Etna::BadRequest, "invalid contact email" if @params[:contact_email] && !valid_contact?
 
     @project.update(**update_payload)
+
+    event_log(
+      event: 'update_project',
+      message: "updated project settings",
+      payload: update_payload
+    )
 
     @project.refresh
 
@@ -198,6 +218,11 @@ class AdminController < Janus::Controller
 
     janus_user.set_guest_permissions!(project_name)
 
+    event_log(
+      event: 'cc_agreement',
+      message: "signed guest code of conduct agreement"
+    )
+
     if project.contact_email && project.contact_email.length > 0 && @params[:agreed]
       send_email(
         "Project Lead of #{project_name}",
@@ -220,6 +245,7 @@ class AdminController < Janus::Controller
       result[:requires_agreement] = !!@params[:requires_agreement] unless @params[:requires_agreement].nil?
       result[:cc_text] = @params[:cc_text] unless @params[:cc_text].nil?
       result[:contact_email] = @params[:contact_email].strip if valid_contact?
+      result[:project_name_full] = @params[:project_name_full] if @params[:project_name_full]&.present?
     end
   end
 

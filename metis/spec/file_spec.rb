@@ -13,6 +13,8 @@ describe FileController do
     @metis_uid = Metis.instance.sign.uid
 
     set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
+
+    stub_event_log(:athena)
   end
 
   after(:each) do

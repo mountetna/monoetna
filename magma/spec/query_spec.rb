@@ -2423,6 +2423,8 @@ describe QueryController do
     end
 
     it 'returns updated values' do
+      stub_event_log
+
       matrix = [
         [ 10, 10, 10, 10 ],
         [ 20, 20, 20, 20 ],

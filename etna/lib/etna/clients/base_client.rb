@@ -6,7 +6,7 @@ module Etna
   module Clients
     class BaseClient
       attr_reader :host, :token, :ignore_ssl
-      def initialize(host:, token:, ignore_ssl: false, logger: nil)
+      def initialize(host:, token:, ignore_ssl: false, logger: nil, routes_available: false)
         raise "#{self.class.name} client configuration is missing host." unless host
 
         @token = token
@@ -15,7 +15,7 @@ module Etna
         @etna_client = ::Etna::Client.new(
           host,
           token,
-          routes_available: false,
+          routes_available: routes_available,
           ignore_ssl: ignore_ssl,
           logger: logger)
         @host = host

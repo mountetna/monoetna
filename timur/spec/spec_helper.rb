@@ -12,6 +12,7 @@ require 'yaml'
 require 'factory_bot'
 require 'database_cleaner'
 require 'rack/test'
+require 'etna/spec/event_log'
 
 require_relative '../lib/server'
 require_relative '../lib/timur'

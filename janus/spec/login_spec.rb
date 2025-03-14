@@ -43,6 +43,7 @@ describe AuthorizationController do
 
       expect(last_response.status).to eq(200)
       expect(last_response.body).to match(/value='#{@refer}'/)
+      Timecop.return
     end
 
     it 'gets a simple form with out-of-date credentials' do
@@ -136,6 +137,7 @@ describe AuthorizationController do
 
         expect(cookies[Janus.instance.config(:token_name)]).not_to eq(token)
         expect(last_response.status).to eq(302)
+        Timecop.return
       end
     end
 

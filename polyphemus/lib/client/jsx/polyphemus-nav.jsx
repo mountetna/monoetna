@@ -53,7 +53,14 @@ const Logo = () => {
   );
 };
 
-const NavBar = ({user}) => <div id='nav'></div>;
+const NavBar = ({user}) => <div id='nav'>
+  {
+    location.pathname != '/' && <>
+      <div className='nav_item'><a href={`/${CONFIG.project_name}`}>Loaders</a></div>
+      <div className='nav_item'><a href={`/${CONFIG.project_name}/logs`}>Logs</a></div>
+    </>
+  }
+</div>;
 
 const PolyphemusNav = () => {
   let user = useReduxState((state) => selectUser(state));

@@ -71,8 +71,8 @@ const postUpdatePermission = (project_name, email, revision) =>
   });
 const postUpdateProject = (project_name, revision) =>
   json_post(`/api/admin/${project_name}/update`, revision);
-const postAddUser = (project_name, {email, name, role}) =>
-  json_post(`/api/admin/${project_name}/add_user`, {email, name, role});
+const postAddUser = (project_name, revision) =>
+  json_post(`/api/admin/${project_name}/add_user`, revision);
 
 const Permission = ({roles, editable, onSave, permission = {}, create}) => {
   const {user_email, user_name, role, affiliation, privileged} = permission;

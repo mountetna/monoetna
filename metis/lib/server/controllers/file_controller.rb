@@ -16,6 +16,14 @@ class FileController < Metis::Controller
 
     file.remove!
 
+    event_log(
+      event: 'remove_file',
+      message: "removed files in bucket #{@params[:bucket_name]}",
+      payload: {
+        files: [ @params[:file_path] ]
+      },
+      consolidate: true
+    )
     return success_json(response)
   end
 
@@ -29,6 +37,15 @@ class FileController < Metis::Controller
 
     file.protect!
 
+    event_log(
+      event: 'protect_file',
+      message: "protected files in bucket #{@params[:bucket_name]}",
+      payload: {
+        files: [ @params[:file_path] ]
+      },
+      consolidate: true
+    )
+
     success_json(files: [ file.to_hash(request: @request) ])
   end
 
@@ -41,6 +58,15 @@ class FileController < Metis::Controller
     raise Etna::BadRequest, 'File is not protected' unless file.read_only?
 
     file.unprotect!
+
+    event_log(
+      event: 'unprotect_file',
+      message: "unprotected files in bucket #{@params[:bucket_name]}",
+      payload: {
+        files: [ @params[:file_path] ]
+      },
+      consolidate: true
+    )
 
     success_json(files: [ file.to_hash(request: @request) ])
   end
@@ -139,6 +165,15 @@ class FileController < Metis::Controller
 
     return failure(422, errors: revision.errors) unless revision.valid?
 
+    event_log(
+      event: 'rename_file',
+      message: "renamed files in bucket #{@params[:bucket_name]}",
+      payload: {
+        files: [ { old_file_path: @params[:file_path], new_file_path: @params[:new_file_path] } ]
+      },
+      consolidate: true
+    )
+
     return success_json(files: [ revision.revise!.to_hash ])
   end
 
@@ -174,6 +209,15 @@ class FileController < Metis::Controller
     revision.validate
 
     return failure(422, errors: revision.errors) unless revision.valid?
+
+    event_log(
+      event: 'copy_file',
+      message: "copied files in bucket #{@params[:bucket_name]}",
+      payload: {
+        files: [ { old_file_path: @params[:file_path], new_file_path: @params[:new_file_path] } ]
+      },
+      consolidate: true
+    )
 
     return success_json(files: [ revision.revise!.to_hash(request: @request) ])
   end
@@ -219,6 +263,16 @@ class FileController < Metis::Controller
 
     return failure(422, errors: errors) unless errors.length == 0
 
+    event_log(
+      event: 'copy_file',
+      message: "bulk-copied files in buckets #{@params[:bucket_name]}",
+      payload: {
+        files: revisions.map do |revision|
+          { source: revision.source.mpath.path, dest: revision.dest.mpath.path }
+        end
+      },
+      consolidate: true
+    )
     # If we've gotten here, every revision looks good and we can execute them!
     return success_json(
       files: revisions.map(&:revise!).

@@ -5,6 +5,10 @@ describe AdminController do
     OUTER_APP
   end
 
+  before(:each) do
+    stub_event_log(:door)
+  end
+
   context '#projects' do
     before(:each) do
       user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')

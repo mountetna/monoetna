@@ -24,6 +24,17 @@ module Etna
       @logger.warn(request_msg(line))
     end
 
+    def event_log(params)
+      begin
+        Etna::Application.instance.event_log({
+          project_name: @params[:project_name],
+          user: @user
+        }.compact.merge(params))
+      rescue Exception => e
+        log("event_log failed with #{e.backtrace} #{e.message}")
+      end
+    end
+
     def handle_error(e)
       case e
       when Etna::Error
