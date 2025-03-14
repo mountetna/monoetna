@@ -141,6 +141,7 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
   const [ filterUser, setFilterUser ] = useState('');
   const [ filterEvent, setFilterEvent ] = useState('');
   const [ filterMessage, setFilterMessage ] = useState('');
+  const [ filterProjects, setFilterProjects ] = useState<string[]>([]);
   const [ filterFrom, setFilterFrom ] = useState('');
   const [ filterTo, setFilterTo ] = useState('');
 
@@ -164,20 +165,23 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
       params.from = filterFrom;
       params.to = filterTo;
     }
+    if (filterProjects.length && project_name == 'administration') {
+      params.project_names = filterProjects;
+    }
     json_post(
       `/api/log/${project_name}/read`,
       params
     ).then(({logs}) => setLogs(logs));
-  }, [ filterApplications, filterUser, filterEvent, filterMessage, filterFrom, filterTo ]);
+  }, [ filterApplications, filterUser, filterEvent, filterMessage, filterFrom, filterTo, filterProjects ]);
 
   useEffect(() => {
     getLogs();
   }, []);
 
   useEffect(() => {
-    const timeout = setTimeout(getLogs, 10000);
+    const timeout = setInterval(getLogs, 10000);
 
-    return () => clearTimeout(timeout);
+    return () => clearInterval(timeout);
   }, [getLogs]);
 
   const headCells = [
@@ -248,6 +252,9 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
           <TextField className={ classes.filter } placeholder='User' value={ filterUser } onChange={ e => setFilterUser(e.target.value) }/>
           <TextField className={ classes.filter } placeholder='Event' value={ filterEvent } onChange={ e => setFilterEvent(e.target.value) }/>
           <TextField className={ classes.filter } placeholder='Message' value={ filterMessage } onChange={ e => setFilterMessage(e.target.value) }/>
+          {
+            project_name == 'administration' && <TextField className={ classes.filter } placeholder='Projects (comma-separated)' value={ filterProjects } onChange={ e => setFilterProjects(e.target.value.split(',').filter(_=>_)) }/>
+          }
           <TextField className={classes.filter}
             label="From"
             type="date"
