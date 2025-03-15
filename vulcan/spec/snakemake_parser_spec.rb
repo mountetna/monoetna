@@ -3,7 +3,7 @@ describe Vulcan::Snakemake::TargetParser do
 
   let(:core_snakefile) { File.read('/app/spec/fixtures/v2/snakemake-repo/rules/core.smk') }
   let(:summary_snakefile) { File.read('/app/spec/fixtures/v2/snakemake-repo/rules/summary-ui.smk') }
-  let(:config_yaml) { YAML.load_file('/app/spec/fixtures/v2/snakemake-repo/config.yaml') }
+  let(:config_yaml) { YAML.load_file('/app/spec/fixtures/v2/snakemake-repo/default-config.json') }
   let(:parsed_core) do
     parser = Vulcan::Snakemake::TargetParser.new(core_snakefile, config_yaml)
     parser.parse
@@ -47,6 +47,7 @@ describe Vulcan::Snakemake::TargetParser do
   context 'summary snakefile' do
 
     it 'does not include targets from ui rules' do
+      require 'pry'; binding.pry
       expect(parsed_summary.keys).not_to include("output/ui_job_one.txt")
       expect(parsed_summary.keys).not_to include("output/ui_job_two.txt")
     end

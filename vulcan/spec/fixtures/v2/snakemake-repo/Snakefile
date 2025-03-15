@@ -3,4 +3,4 @@ include: "rules/summary-ui.smk"
 
 rule all:
     input:
-        "output/summary.txt"
+        "output/final.txt"

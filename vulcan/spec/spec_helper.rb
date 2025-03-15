@@ -379,7 +379,7 @@ def check_jobs_status(job_names, max_attempts = 5, base_delay = 10)
   end
 end
 
-def run_workflow_with_retry(max_attempts = 5, base_delay = 15)
+def run_with_retry(max_attempts = 5, base_delay = 15)
   attempts = 0
 
   loop do

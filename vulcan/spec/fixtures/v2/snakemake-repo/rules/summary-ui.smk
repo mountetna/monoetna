@@ -4,11 +4,15 @@ rule ui_job_one:
     output:
         "output/ui_job_one.txt"
         # Since this is a UI job, we just specify the input/output, so snakemake can infer the dag
+    params:
+        ui=True
 
 rule ui_job_two:
     output:
         "output/ui_job_two.txt"
         # Since this is a UI job, we just specify the output, so snakemake can infer the dag
+    params:
+        ui=True
 
 rule summary:
     input:
@@ -28,3 +32,22 @@ rule summary:
             f.write(f"Result of checker: {open(input.checker).read().strip()}\n")
             f.write(f"Result of UI job one: {open(input.ui_job_one).read().strip()}\n")
             f.write(f"Result of UI job two: {open(input.ui_job_two).read().strip()}\n")
+
+rule ui_summary:
+    input:
+        "output/ui_job_one.txt",
+        "output/ui_job_two.txt",
+        "output/summary.txt"
+    output:
+        "output/ui_summary.txt"
+    params:
+        ui=True
+
+rule final:
+    input:
+        "output/ui_summary.txt"
+    output:
+        "output/final.txt"
+    run:
+        with open(output[0], "w") as f:
+            f.write(f"This is the final job")
