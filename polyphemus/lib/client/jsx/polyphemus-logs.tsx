@@ -29,9 +29,12 @@ import IconButton from '@material-ui/core/IconButton';
 import Collapse from '@material-ui/core/Collapse';
 
 import {formatTime} from './workflow/run-state';
-import {CONFIG, Log} from './polyphemus';
+import {Log} from './polyphemus';
 import { getItem } from 'etna-js/utils/cookies';
 import { parseToken } from 'etna-js/utils/janus';
+
+declare var CONFIG: { [key: string]: string };
+
 
 const useStyles = makeStyles((theme) => ({
   title: {
