@@ -48,6 +48,8 @@ describe MetisShell do
         status: 200,
         body: @long_lived_token
       })
+
+    stub_event_log(:athena)
   end
 
   describe MetisShell do

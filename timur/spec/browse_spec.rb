@@ -5,6 +5,10 @@ describe BrowseController do
     OUTER_APP
   end
 
+  before(:each) do
+    stub_event_log
+  end
+
   DEFAULT_VIEW= {
     tabs: [
       {

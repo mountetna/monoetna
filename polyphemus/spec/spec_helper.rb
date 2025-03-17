@@ -16,6 +16,7 @@ require "yaml"
 
 require "fileutils"
 require "timecop"
+require "etna/spec/event_log"
 
 require_relative "../lib/server"
 require_relative "../lib/polyphemus"
@@ -50,6 +51,9 @@ AUTH_USERS = {
   superuser: {
     email: "zeus@twelve-labors.org", name: "Zeus", perm: "a:administration",
   },
+  supereditor: {
+    email: "iris@twelve-labors.org", name: "Iris", perm: "e:administration",
+  },
   administrator: {
     email: "hera@twelve-labors.org", name: "Hera", perm: "a:test", exp: 86401608136635,
   },
@@ -69,6 +73,15 @@ AUTH_USERS = {
 
 def auth_header(user_type)
   header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
+end
+
+def hmac_header(params={})
+  Etna::TestAuth.hmac_params({
+    id: 'polyphemus',
+    signature: 'valid'
+  }.merge(params)).each do |name, value|
+    header( name.to_s, value )
+  end
 end
 
 RSpec.configure do |config|
@@ -121,7 +134,12 @@ FactoryBot.define do
   factory :config, class: Polyphemus::Config do
      to_create(&:save)
   end
+
   factory :runtime_config, class: Polyphemus::RuntimeConfig do
+     to_create(&:save)
+  end
+
+  factory :log, class: Polyphemus::Log do
      to_create(&:save)
   end
 end

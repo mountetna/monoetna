@@ -5,6 +5,10 @@ describe UpdateModelController do
     OUTER_APP
   end
 
+  before(:each) do
+    stub_event_log
+  end
+
   context "requests from non-superusers" do
     it "rejects the requests" do
       auth_header(:editor)

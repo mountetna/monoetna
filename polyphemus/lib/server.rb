@@ -3,6 +3,7 @@ require "rack"
 
 require_relative "./polyphemus"
 require_relative "./polyphemus/controllers/configuration_controller"
+require_relative "./polyphemus/controllers/log_controller"
 require_relative './polyphemus/controllers/workflow_controller'
 
 class Polyphemus
@@ -17,15 +18,6 @@ class Polyphemus
 
     # Return the app host configuration values
     get "/configuration", as: :configuration, action: "configuration#action", auth: { noauth: true }
-
-    get "/:project_name/ingest/hosts", action: "ingest#list_hosts", auth: { user: { is_admin?: :project_name } }
-    # Get files associated with a directory, for ingest
-    get "/:project_name/ingest/list/:ingest_host/*folder_path", action: "ingest#list_dir", auth: { user: { is_admin?: :project_name } }, match_ext: true
-    # Add files in the folder to the ingest queue
-    post "/:project_name/ingest/enqueue/:ingest_host/*folder_path", action: "ingest#enqueue", auth: { user: { is_admin?: :project_name } }, match_ext: true
-
-    get '/' do erb_view(:client) end
-    get '/:project_name' do erb_view(:client) end
 
     # Polyphemus API V2
 
@@ -49,5 +41,14 @@ class Polyphemus
 
     post '/api/workflows/:project_name/runtime_configs/run_once/:config_id', action: 'workflow#run_once', auth: { user: { can_edit?: :project_name } }
     get '/api/workflows/:project_name/status', action: 'workflow#status', auth: { user: { can_edit?: :project_name } }
+
+    post '/api/log/:project_name/write', action: 'log#write', auth: { hmac: true }
+    post '/api/log/:project_name/read', action: 'log#read', auth: { user: { can_view?: :project_name } }
+    post '/api/log/:project_name/payload/:log_id', action: 'log#payload', auth: { user: { can_view?: :project_name } }
+    post '/api/log/administration/hide/:log_id', action: 'log#hide', auth: { user: { is_supereditor?: true } }
+
+    get '/' do erb_view(:client) end
+    get '/:project_name' do erb_view(:client) end
+    get '/:project_name/*args' do erb_view(:client) end
   end
 end

@@ -9,9 +9,22 @@ class UpdateController < Magma::Controller
 
     payload = load_revisions
 
-    return success_json(payload.to_hash) if success?
+    unless success?
+      return failure(422, errors: @errors)
+    end
 
-    return failure(422, errors: @errors)
+    payload = payload.to_hash
+
+    event_log(
+      event: 'update',
+      message: "made updates to models: #{
+        payload[:models].map do |model_name, model|
+          "#{model_name} (#{model[:documents].count})"
+        end.join(", ")
+      }",
+      payload: payload
+    )
+    return success_json(payload)
   end
 
   private
