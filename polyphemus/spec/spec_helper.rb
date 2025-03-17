@@ -19,11 +19,6 @@ require "timecop"
 
 require_relative "../lib/server"
 require_relative "../lib/polyphemus"
-require_relative "../lib/data_eng/jobs/sftp_file_discovery"
-require_relative "../lib/data_eng/jobs/sftp_metis_uploader"
-require_relative "../lib/data_eng/jobs/sftp_deposit_uploader"
-require_relative "../lib/data_eng/jobs/metis_linker"
-require_relative "../lib/data_eng/jobs/redcap_loader"
 
 #setup_base_vcr(__dir__)
 

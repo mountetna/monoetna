@@ -11,8 +11,6 @@ require_relative 'data_processing/flow_jo_dsl'
 require_relative 'data_eng/argo_workflow_manager'
 require_relative 'ipi/process_rna_seq_output'
 
-require_relative 'etls/redcap/redcap_etl_script_runner'
-
 class Polyphemus
   class Migrate < Etna::Command
     usage 'Run migrations for the current environment.'
