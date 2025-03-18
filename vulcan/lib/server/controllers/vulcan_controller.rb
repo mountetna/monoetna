@@ -8,12 +8,21 @@ class Vulcan
     def initialize(request, action = nil)
       super
       escaped_params
+      transform_array_values
     end
 
     private
 
     def escaped_params
       @escaped_params ||= @params.transform_values { |value| Shellwords.escape(value.to_s) }
+    end
+
+    def transform_array_values
+      @params.each do |key, value|
+        if value.is_a?(Array) && value.all?(&:empty?)
+          @params[key] = []
+        end
+      end
     end
 
     def config_json

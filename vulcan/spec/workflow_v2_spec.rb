@@ -20,6 +20,20 @@ describe VulcanV2Controller do
     remove_all_dirs
   end
 
+  def setup_workspace
+    auth_header(:superuser)
+    post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
+    auth_header(:editor)
+    request = {
+      workflow_id: json_body[:workflow_id],
+      workspace_name: "running-tiger",
+      branch: "main",
+      git_version: "v1"
+    }
+    post("/api/v2/#{PROJECT}/workspace/create", request)
+    expect(last_response.status).to eq(200)
+  end
+
   context 'ssh' do
     it 'should warn the user and start the API if we cannot establish a ssh connection' do
     end
@@ -150,7 +164,7 @@ describe VulcanV2Controller do
       # DB object exists
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
       expect(obj).to_not be_nil
-      expect(obj.dag.to_a).to eq(["count", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary"])
+      expect(obj.dag.to_a).to eq(["count", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
       expect(File.basename(obj.path).match?(/\A[a-f0-9]{32}\z/)).to be_truthy
       expect(obj.git_version).to eq("v1")
     end
@@ -181,17 +195,7 @@ describe VulcanV2Controller do
   context 'list all workspaces' do
 
     before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      expect(last_response.status).to eq(200)
+      setup_workspace
     end
 
     it 'for a user if it exists' do
@@ -211,17 +215,7 @@ describe VulcanV2Controller do
   context 'saving configs', long_running: true do
 
     before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      expect(last_response.status).to eq(200)
+      setup_workspace
     end
 
     it 'creates a config object and files if it does not exist' do
@@ -347,22 +341,13 @@ describe VulcanV2Controller do
         }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       expect(json_body[:scheduled]).to match_array(["arithmetic", "checker", "count"])
-      expect(json_body[:downstream]).to match_array(["ui_job_one", "ui_job_two", "summary"])
+      expect(json_body[:downstream]).to match_array(["ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
     end
   end
 
   context 'list a specific workspace', long_running: true do
     before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
+      setup_workspace
     end
 
     it 'returns a config if no run exists' do
@@ -418,7 +403,7 @@ describe VulcanV2Controller do
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/config", request_2)
       workspace = Vulcan::Workspace.first(id: workspace_id)
       config_id = json_body[:config_id]
-      run_workflow_with_retry do
+      run_with_retry do
         post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{config_id}")
       end
 
@@ -450,17 +435,7 @@ describe VulcanV2Controller do
     # TODO: add a file exists endpoint here, we don't want to re-run if the files exist
 
     before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      expect(last_response.status).to eq(200)
+      setup_workspace
     end
 
     it 'writes a file to the workspace' do
@@ -489,17 +464,7 @@ describe VulcanV2Controller do
   context 'read files' do
 
     before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      expect(last_response.status).to eq(200)
+      setup_workspace
     end
 
     it 'requests a file from the workspace' do
@@ -527,17 +492,7 @@ describe VulcanV2Controller do
   context 'get files' do
 
     before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      expect(last_response.status).to eq(200)
+      setup_workspace
     end
 
     it 'gets a list of files in the workspace' do
@@ -556,16 +511,74 @@ describe VulcanV2Controller do
     # Refer to /spec/fixtures/snakemake-repo/ as the workflow that is being run
 
     before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
+      setup_workspace
+    end
+
+    def write_file_to_workspace(original_request, workspace, file_name, content)
+      file_request = {
+        files: [{
+          filename: file_name,
+          content: content
+        }]
       }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", file_request)
+      expect(last_response.status).to eq(200)
+      config_request = original_request.merge(uiFilesSent: ["output/#{file_name}"])
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", config_request)
+      end
+    end
+
+    def run_entire_test_workflow(workspace)
+      auth_header(:editor)
+      write_files_to_workspace(workspace.id)
+
+      request_first_jobs = {
+        params: {
+          count_bytes: true,
+          count_chars: false,
+          add: 2,
+          add_and_multiply_by: 4
+        },
+        uiFilesSent: [],
+        paramsChanged: []
+      }
+
+      # Run the first 3 jobs
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request_first_jobs)
+      config_id = json_body[:config_id]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
+      run_id = json_body[:run_id]
+      check_jobs_status(["count", "arithmetic", "checker"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
+      expect(last_response.status).to eq(200)
+
+      # Next step involves UI steps - so we just simulate this by writing files to the workspace
+      write_file_to_workspace(request_first_jobs, workspace, "ui_job_one.txt", "This is a test file, with content 1")
+      write_file_to_workspace(request_first_jobs, workspace, "ui_job_two.txt", "This is a test file, with content 2")
+      config_id = json_body[:config_id]
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
+      end
+      expect(last_response.status).to eq(200)
+
+      # Make sure jobs have finished
+      run_id = json_body[:run_id]
+      check_jobs_status(["summary"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
+      expect(last_response.status).to eq(200)
+
+      write_file_to_workspace(request_first_jobs, workspace, "ui_summary.txt", "This is a test file, with content 3")
+      # Run the final job
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
+      end
+      run_id = json_body[:run_id]
+      check_jobs_status(["final"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
       expect(last_response.status).to eq(200)
     end
 
@@ -601,7 +614,9 @@ describe VulcanV2Controller do
         params: {
           count_bytes: false,
           count_chars: true
-        }
+        },
+        uiFilesSent: [],
+        paramsChanged: []
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       expect(last_response.status).to eq(200)
@@ -615,7 +630,7 @@ describe VulcanV2Controller do
       end
       # Outputs are created
       expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to  be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
       # Run objects exist
       obj = Vulcan::Run.first(id: run_id)
       expect(obj).to_not be_nil
@@ -634,7 +649,9 @@ describe VulcanV2Controller do
             count_chars: true,
             add: 2,
             add_and_multiply_by: 2
-        }
+        },
+        uiFilesSent: [],
+        paramsChanged: []
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
@@ -666,7 +683,9 @@ describe VulcanV2Controller do
         params: {
           count_bytes: false,
           count_chars: true
-        }
+        },
+        uiFilesSent: [],
+        paramsChanged: []
       }
 
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
@@ -686,13 +705,17 @@ describe VulcanV2Controller do
           count_chars: true,
           add: 2,
           add_and_multiply_by: 4
-        }
+        },
+        uiFilesSent: [],
+        paramsChanged: []
       }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      end
       expect(last_response.status).to eq(200)
       config_id = json_body[:config_id]
       # Sometimes snakemake still needs a minute to shut-down even though slurm reports the job as complete
-      run_workflow_with_retry(5) do
+      run_with_retry(5) do
         post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       end
       expect(last_response.status).to eq(200)
@@ -719,61 +742,8 @@ describe VulcanV2Controller do
     end
 
     it 'runs the entire workflow' do
-      auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
-      write_files_to_workspace(workspace.id)
-
-      # Run the first 3 jobs
-      request = {
-        params: {
-          count_bytes: true,
-          count_chars: false,
-          add: 2,
-          add_and_multiply_by: 4
-        }
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      config_id = json_body[:config_id]
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
-      run_id = json_body[:run_id]
-      check_jobs_status(["count", "arithmetic", "checker"]) do
-        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
-      end
-      expect(last_response.status).to eq(200)
-
-      # Next step involves UI steps - so we just simulate this by writing files to the workspace
-      request = {
-        files: [{
-          filename: "ui_job_one.txt",
-          content: "This is a test file, with content 1"
-        }, {
-          filename: "ui_job_two.txt",
-          content: "This is a test file, with content 2"
-        }]
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request)
-
-      # Run the last job, send the same params as before (this is what the UI does)
-      request = {
-        params: {
-          count_bytes: true,
-          count_chars: false,
-          add: 2,
-          add_and_multiply_by: 4
-        }
-      }
-
-      # The config has not changed - just the files
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      run_workflow_with_retry do
-        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
-      end
-      expect(last_response.status).to eq(200)
-      # Make sure jobs have finished
-      run_id = json_body[:run_id]
-      check_jobs_status(["summary"]) do
-        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
-      end
+      run_entire_test_workflow(workspace)
       expect(last_response.status).to eq(200)
 
       # Make sure files exist
@@ -782,35 +752,87 @@ describe VulcanV2Controller do
       expect(remote_manager.file_exists?("#{workspace.path}/output/check.txt")).to be_truthy
       expect(remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")).to be_truthy
       expect(remote_manager.file_exists?("#{workspace.path}/output/summary.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_summary.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/final.txt")).to be_truthy
 
-      # Make sure two run objects exist
+      # Make sure run objects exist
       runs = Vulcan::Run.all
-      expect(runs.count).to eq(2)
+      expect(runs.count).to eq(3)
 
       # Log file exists
       expect(remote_manager.file_exists?(runs[0].log_path)).to be_truthy
       expect(remote_manager.file_exists?(runs[1].log_path)).to be_truthy
+      expect(remote_manager.file_exists?(runs[2].log_path)).to be_truthy
       expect(runs[0].log_path).to_not eq(runs[1].log_path)
+      expect(runs[1].log_path).to_not eq(runs[2].log_path)
+      expect(runs[0].log_path).to_not eq(runs[2].log_path)
 
     end
 
+    it 'halts execution of a UI step after a param has changed' do
+      # Run entire workflow
+      workspace = Vulcan::Workspace.all[0]
+      run_entire_test_workflow(workspace)
+      # Now we go back and change the param of earlier job
+      request = {
+        params: {
+          count_bytes: true,
+          count_chars: false,
+          add: 4, # Changed from 2
+          add_and_multiply_by: 4
+        },
+        uiFilesSent: [],
+        paramsChanged: ["add"]
+      }
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      end
+      # Make sure that we removed all ui files
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_one.txt")).to be_falsey
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_falsey
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_summary.txt")).to be_falsey
+    end
+
+    it 'halts execution of a UI step after a UI step has changed' do
+      # Run entire workflow
+      workspace = Vulcan::Workspace.all[0]
+      run_entire_test_workflow(workspace)
+      request_first_jobs = {
+        params: {
+          count_bytes: true,
+          count_chars: false,
+          add: 2,
+          add_and_multiply_by: 4
+        },
+        uiFilesSent: [],
+        paramsChanged: []
+      }
+      write_file_to_workspace(request_first_jobs, workspace, "ui_job_one.txt", "This is a test file, with content haha")
+      # Next step involves UI steps - so we just simulate this by writing files to the workspace
+      # Change a file
+      ui_file_request = {
+        params: {
+          count_bytes: true,
+          count_chars: false,
+          add: 2,
+          add_and_multiply_by: 4
+        },
+        uiFilesSent: ["output/ui_job_one.txt"], # Do we want to include the output/ prefix?
+        paramsChanged: []
+      }
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", ui_file_request)
+      end
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_one.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_falsey
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_summary.txt")).to be_falsey
+    end
   end
 
   context 'status checking', long_running: true do
 
     before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      expect(last_response.status).to eq(200)
-
+      setup_workspace
     end
 
     it 'checks the status of the first step of a workflow' do
@@ -837,17 +859,7 @@ describe VulcanV2Controller do
   context 'is running' do
 
     before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      expect(last_response.status).to eq(200)
+      setup_workspace
     end
 
     it 'returns false if snakemake is is not running' do
@@ -880,17 +892,7 @@ describe VulcanV2Controller do
   context 'read image' do
 
     before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      expect(last_response.status).to eq(200)
+      setup_workspace
     end
 
     it 'returns the image' do

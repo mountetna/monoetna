@@ -143,6 +143,7 @@ class VulcanV2Controller < Vulcan::Controller
       raise Etna::BadRequest.new(msg)
     end
     begin
+      raise Etna::TooManyRequests.new("workflow is still running...") if @snakemake_manager.snakemake_is_running?(workspace.path)
       request_params = @params[:params]
       request_params_json = to_valid_json(request_params)
       params_hash = Digest::MD5.hexdigest(request_params_json)
@@ -161,6 +162,7 @@ class VulcanV2Controller < Vulcan::Controller
           updated_at: Time.now
         )
       end
+      @snakemake_manager.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged], workspace)
       available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" }
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(
@@ -174,13 +176,17 @@ class VulcanV2Controller < Vulcan::Controller
         dry_run: true,
       }
       jobs_to_run = @snakemake_manager.dry_run_snakemake(workspace.path, command.build)
+      jobs_to_run = Vulcan::Snakemake::Inference.filter_ui_targets(jobs_to_run, workspace.target_mapping)
       success_json(
         {
           config_id: config.id,
           scheduled: jobs_to_run,
-          downstream: Vulcan::Snakemake::Inference.find_affected_downstream_jobs(workspace.dag, jobs_to_run)
+          downstream: jobs_to_run.any? ? Vulcan::Snakemake::Inference.find_affected_downstream_jobs(workspace.dag, jobs_to_run) : []
         }
     )
+    rescue Etna::TooManyRequests => e
+      # Re-raise the TooManyRequests exception to avoid handling it as a BadRequest
+      raise e
     rescue => e
       Vulcan.instance.logger.log_error(e)
       raise Etna::BadRequest.new(e.message)
@@ -201,7 +207,6 @@ class VulcanV2Controller < Vulcan::Controller
         msg = "Config for workspace: #{workspace.path} does not exist."
         raise Etna::BadRequest.new(msg)
       end
-
       # Build snakemake command
       available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" }
       params = @remote_manager.read_yaml_file(config.path).keys
@@ -308,5 +313,7 @@ class VulcanV2Controller < Vulcan::Controller
     end
     success_json({running: @snakemake_manager.snakemake_is_running?(workspace.path)})
   end
+
+  private
 
 end

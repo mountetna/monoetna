@@ -217,6 +217,37 @@ class Vulcan
         id_to_label.values.each { |rule| visit.call(rule) unless visited[rule] }
         sorted_rules.reject { |rule| rule == "all" }
       end
+
+      def remove_existing_ui_targets(ui_files_written, params_changed, workspace)
+        # Please see the README for more details on the halting problem.
+        # TLDR; we need to delete UI step files for two cases:
+        # 1. The params have changed
+        # 2. New UI step files have been written
+
+        # Only proceed if there's a reason to check (either params changed or ui files were written)
+        return unless params_changed.any? || ui_files_written.any?
+
+        existing_ui_targets = Vulcan::Snakemake::Inference.ui_targets(workspace.target_mapping)
+          .select { |target| @remote_manager.file_exists?(File.join(workspace.path, target)) }
+
+        # We build a file dag so that we can only remove files that are downstream of the ui targets
+        file_dag = Vulcan::Snakemake::Inference.file_dag(workspace.target_mapping)
+
+        # Determine criteria for filtering based on whether params changed or ui files were sent
+        files_to_filter = if params_changed.any?
+                                Vulcan::Snakemake::Inference.find_targets_matching_params(workspace.target_mapping, params_changed)
+                              else
+                                ui_files_written
+                              end
+
+        filtered_dag = Vulcan::Snakemake::Inference.filter_upstream_files(file_dag, files_to_filter)
+        # Now we know which files are eligible for removal
+        targets_to_remove = existing_ui_targets.select { |target| filtered_dag.include?(target) }
+        targets_to_remove.each do |target|
+          Vulcan.instance.logger.info("Removing UI target: #{target}")
+          @remote_manager.rm_file(File.join(workspace.path, target))
+        end
+      end
     end
   end
 end

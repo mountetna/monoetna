@@ -10,7 +10,7 @@ class Vulcan
 
       def parse
         preprocess
-        @snakefile = filter_ui_rules
+        @snakefile
         parse_lines
         @targets  
       end
@@ -31,17 +31,6 @@ class Vulcan
             "config[\"#{key}\"]"  # Leave unchanged for other config variables
           end
         end
-      end
-
- 
-      # Removes rules that don't contain specified directives, like "ui rules"
-      def filter_ui_rules
-        directives = ["shell", "run", "script", "notebook", "wrapper", "cwl"]
-        rules = @snakefile.split(/(?=rule\s+\w+:)/)
-        filtered_rules = rules.select do |rule|
-          directives.any? { |directive| rule.include?(directive + ":") }
-        end
-        filtered_rules.join("\n")
       end
 
       # Parses each line of the preprocessed file content

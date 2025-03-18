@@ -3,7 +3,7 @@ describe Vulcan::Snakemake::TargetParser do
 
   let(:core_snakefile) { File.read('/app/spec/fixtures/v2/snakemake-repo/rules/core.smk') }
   let(:summary_snakefile) { File.read('/app/spec/fixtures/v2/snakemake-repo/rules/summary-ui.smk') }
-  let(:config_yaml) { YAML.load_file('/app/spec/fixtures/v2/snakemake-repo/config.yaml') }
+  let(:config_yaml) { YAML.load_file('/app/spec/fixtures/v2/snakemake-repo/default-config.json') }
   let(:parsed_core) do
     parser = Vulcan::Snakemake::TargetParser.new(core_snakefile, config_yaml)
     parser.parse
@@ -46,9 +46,10 @@ describe Vulcan::Snakemake::TargetParser do
 
   context 'summary snakefile' do
 
-    it 'does not include targets from ui rules' do
-      expect(parsed_summary.keys).not_to include("output/ui_job_one.txt")
-      expect(parsed_summary.keys).not_to include("output/ui_job_two.txt")
+    it 'includes params ui for ui job files' do
+      expect(parsed_summary["output/ui_job_one.txt"]["params"]).to include("ui")
+      expect(parsed_summary["output/ui_job_two.txt"]["params"]).to include("ui")
+      expect(parsed_summary["output/ui_summary.txt"]["params"]).to include("ui")
     end
 
     it 'correctly maps the targets with the inputs' do
@@ -57,6 +58,10 @@ describe Vulcan::Snakemake::TargetParser do
         "output/arithmetic.txt", "output/check.txt",
         "output/ui_job_one.txt", "output/ui_job_two.txt"
       )
+      expect(parsed_summary["output/ui_job_one.txt"]["inputs"]).to contain_exactly("output/check.txt")
+      expect(parsed_summary["output/ui_job_two.txt"]["inputs"]).to be_empty
+      expect(parsed_summary["output/ui_summary.txt"]["inputs"]).to contain_exactly("output/ui_job_one.txt", "output/ui_job_two.txt","output/summary.txt")
+      expect(parsed_summary["output/final.txt"]["inputs"]).to contain_exactly("output/ui_summary.txt")
     end
   end
 end
