@@ -14,6 +14,7 @@ require_relative 'lib/filter'
 
 require_relative '../etl_script_runner'
 require_relative '../../magma_record_etl'
+require_relative '../../data_eng/workflow_manifests/redcap_loader'
 
 class Polyphemus
   class RedcapEtlScriptRunner < EtlScriptRunner

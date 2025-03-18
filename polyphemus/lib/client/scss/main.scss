@@ -6,3 +6,24 @@
   height: 100%;
   width: 100%;
 }
+
+#nav {
+  flex-grow: 1;
+  .nav_item {
+    height: 100%;
+    display: inline-block;
+    font-size: 18px;
+    padding: 0px 25px;
+    text-transform: capitalize;
+
+    a {
+      color: gray;
+      cursor: pointer;
+      outline: 0;
+
+      &:hover {
+        color: $polyphemus-color;
+      }
+    }
+  }
+}

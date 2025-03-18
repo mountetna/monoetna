@@ -70,7 +70,6 @@ module Etna
         rd, wd = IO.pipe
 
         cmd = mkcommand(rd, wd, file, opts, size_hint: size_hint)
-        puts "in mkio: #{cmd}"
         pid = spawn(*cmd)
         q = Queue.new
 
