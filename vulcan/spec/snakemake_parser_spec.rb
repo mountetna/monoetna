@@ -46,10 +46,10 @@ describe Vulcan::Snakemake::TargetParser do
 
   context 'summary snakefile' do
 
-    it 'does not include targets from ui rules' do
-      require 'pry'; binding.pry
-      expect(parsed_summary.keys).not_to include("output/ui_job_one.txt")
-      expect(parsed_summary.keys).not_to include("output/ui_job_two.txt")
+    it 'includes params ui for ui job files' do
+      expect(parsed_summary["output/ui_job_one.txt"]["params"]).to include("ui")
+      expect(parsed_summary["output/ui_job_two.txt"]["params"]).to include("ui")
+      expect(parsed_summary["output/ui_summary.txt"]["params"]).to include("ui")
     end
 
     it 'correctly maps the targets with the inputs' do
@@ -58,6 +58,10 @@ describe Vulcan::Snakemake::TargetParser do
         "output/arithmetic.txt", "output/check.txt",
         "output/ui_job_one.txt", "output/ui_job_two.txt"
       )
+      expect(parsed_summary["output/ui_job_one.txt"]["inputs"]).to contain_exactly("output/check.txt")
+      expect(parsed_summary["output/ui_job_two.txt"]["inputs"]).to be_empty
+      expect(parsed_summary["output/ui_summary.txt"]["inputs"]).to contain_exactly("output/ui_job_one.txt", "output/ui_job_two.txt","output/summary.txt")
+      expect(parsed_summary["output/final.txt"]["inputs"]).to contain_exactly("output/ui_summary.txt")
     end
   end
 end

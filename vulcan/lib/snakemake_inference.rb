@@ -80,6 +80,17 @@ class Vulcan
         order
       end
 
+      def filter_ui_targets(jobs_to_run, target_mapping)
+        # There is a small snakemake bug, where if a rule runs and generates a file and then
+        # you quickly save a UI file - the timestamp in between the file might be too small
+        # and snakemake will try to schedule a UI job. This is unlikely to ever happen in prod,
+        # since by the time a config has run a UI file has been writte and run has been hit.
+        # However, we just remove the UI files here to be safe.
+
+        ui_targets = ui_targets(target_mapping)
+        jobs_to_run.reject { |job| ui_targets.include?(job) }
+      end
+
       private
 
       def dfs(file, files, visited, order)
@@ -102,7 +113,7 @@ class Vulcan
         target_mapping.reject { |target, requirements| requirements["params"].include?("ui") }
       end
 
-      module_function :find_affected_downstream_jobs, :find_buildable_targets, :match, :ui_targets, :file_dag, :find_targets_matching_params, :remove_ui_targets, :dfs, :filter_upstream_files
+      module_function :find_affected_downstream_jobs, :find_buildable_targets, :match, :ui_targets, :file_dag, :find_targets_matching_params, :remove_ui_targets, :dfs, :filter_upstream_files, :filter_ui_targets
     end
   end
 end

@@ -162,7 +162,7 @@ class VulcanV2Controller < Vulcan::Controller
           updated_at: Time.now
         )
       end
-      handle_halting_problem(@params, workspace)
+      @snakemake_manager.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged], workspace)
       available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" }
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(
@@ -176,6 +176,7 @@ class VulcanV2Controller < Vulcan::Controller
         dry_run: true,
       }
       jobs_to_run = @snakemake_manager.dry_run_snakemake(workspace.path, command.build)
+      jobs_to_run = Vulcan::Snakemake::Inference.filter_ui_targets(jobs_to_run, workspace.target_mapping)
       success_json(
         {
           config_id: config.id,
@@ -206,7 +207,6 @@ class VulcanV2Controller < Vulcan::Controller
         msg = "Config for workspace: #{workspace.path} does not exist."
         raise Etna::BadRequest.new(msg)
       end
-
       # Build snakemake command
       available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" }
       params = @remote_manager.read_yaml_file(config.path).keys
@@ -315,41 +315,5 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   private
-
-  def handle_halting_problem(params, workspace)
-    # Please see the README for more details on the halting problem.
-    # In essence we need to delete UI step files for two cases:
-    # 1. The params have changed
-    # 2. New UI step files have been written
-    # Snakemake will not proceed past a step if the files in the step do not exist.
-
-    ui_files_written = params[:uiFilesSent] # On last save
-    params_changed = params[:paramsChanged]
-    
-    # Only proceed if there's a reason to check (either params changed or ui files were written)
-    return unless params_changed.any? || ui_files_written.any?
-    
-    existing_ui_targets = Vulcan::Snakemake::Inference.ui_targets(workspace.target_mapping).
-    select { |target| @remote_manager.file_exists?(workspace.path + "/" + target) }
-
-    # We build a file dag so that we can only remove files that are downstream of the ui targets
-    file_dag = Vulcan::Snakemake::Inference.file_dag(workspace.target_mapping)
-    
-    # Determine criteria for filtering based on whether params changed or ui files were sent
-    existing_ui_targets = if params_changed.any?
-                 Vulcan::Snakemake::Inference.find_targets_matching_params(workspace.target_mapping, params_changed)
-               else
-                 existing_ui_targets
-               end
-    
-    filtered_dag = Vulcan::Snakemake::Inference.filter_upstream_files(file_dag, existing_ui_targets)
-    # Now we know which files are eligible for removal
-    targets_to_remove = existing_ui_targets.select { |target| filtered_dag.include?(target) }
-    targets_to_remove.each { |target| 
-      require 'pry'; binding.pry
-      Vulcan.instance.logger.info("Removing UI target: #{target}") # Log the target being removed
-      @remote_manager.rm_file(workspace.path + target) 
-    }
-  end
 
 end

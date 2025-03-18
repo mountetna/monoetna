@@ -521,8 +521,9 @@ describe VulcanV2Controller do
           content: content
         }]
       }
-      config_request = original_request.merge(uiFilesSent: [file_name])
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", file_request)
+      expect(last_response.status).to eq(200)
+      config_request = original_request.merge(uiFilesSent: ["output/#{file_name}"])
       run_with_retry do
         post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", config_request)
       end
@@ -532,7 +533,6 @@ describe VulcanV2Controller do
       auth_header(:editor)
       write_files_to_workspace(workspace.id)
 
-      # Run the first 3 jobs
       request_first_jobs = {
         params: {
           count_bytes: true,
@@ -543,6 +543,8 @@ describe VulcanV2Controller do
         uiFilesSent: [],
         paramsChanged: []
       }
+
+      # Run the first 3 jobs
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request_first_jobs)
       config_id = json_body[:config_id]
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
@@ -555,8 +557,9 @@ describe VulcanV2Controller do
       # Next step involves UI steps - so we just simulate this by writing files to the workspace
       write_file_to_workspace(request_first_jobs, workspace, "ui_job_one.txt", "This is a test file, with content 1")
       write_file_to_workspace(request_first_jobs, workspace, "ui_job_two.txt", "This is a test file, with content 2")
+      config_id = json_body[:config_id]
       run_with_retry do
-        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       end
       expect(last_response.status).to eq(200)
 
@@ -565,13 +568,18 @@ describe VulcanV2Controller do
       check_jobs_status(["summary"]) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
       end
+      expect(last_response.status).to eq(200)
+
       write_file_to_workspace(request_first_jobs, workspace, "ui_summary.txt", "This is a test file, with content 3")
       # Run the final job
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
+      end
       run_id = json_body[:run_id]
       check_jobs_status(["final"]) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
       end
-
+      expect(last_response.status).to eq(200)
     end
 
     it 'alerts if snakemake is still running' do
@@ -762,22 +770,9 @@ describe VulcanV2Controller do
     end
 
     it 'halts execution of a UI step after a param has changed' do
-      # This is a specific concern that for UI steps.
-      # Consider:
-      # Job A -> UI Step 1 -> Job B
-      # This happens after we've initial executed a UI step, say we've run the entire workflow.
-      # If the user changes the value of Job A, then the input to UI Step 1 has changed.
-      # We need to wait for the user to make a new selection in the UI step, and then halt execution.
-      # Otherwise, the way we invoke snakemake right now - it reconzies that UI step 1 files have changed, but 
-      # ui step rules (in snakefiles) have have nothing to run - so it will continue to run Job B.
-
-
-      # We do not know if this new input is compatible with the UI step, so we halt execution.
-
       # Run entire workflow
       workspace = Vulcan::Workspace.all[0]
       run_entire_test_workflow(workspace)
-      require 'pry'; binding.pry
       # Now we go back and change the param of earlier job
       request = {
         params: {
@@ -792,29 +787,28 @@ describe VulcanV2Controller do
       run_with_retry do
         post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       end
-      require 'pry'; binding.pry
-      config_id = json_body[:config_id]
       # Make sure that we removed all ui files
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_one.txt")).to be_falsey
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_falsey
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_summary.txt")).to be_falsey
-      # Make sure 
-
-      
     end
 
     it 'halts execution of a UI step after a UI step has changed' do
       # Run entire workflow
       workspace = Vulcan::Workspace.all[0]
       run_entire_test_workflow(workspace)
-      # Next step involves UI steps - so we just simulate this by writing files to the workspace
-      request = {
-        files: [{
-          filename: "ui_job_one.txt",
-          content: "This is a test file, with content haha"
-        }]
+      request_first_jobs = {
+        params: {
+          count_bytes: true,
+          count_chars: false,
+          add: 2,
+          add_and_multiply_by: 4
+        },
+        uiFilesSent: [],
+        paramsChanged: []
       }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request)
+      write_file_to_workspace(request_first_jobs, workspace, "ui_job_one.txt", "This is a test file, with content haha")
+      # Next step involves UI steps - so we just simulate this by writing files to the workspace
       # Change a file
       ui_file_request = {
         params: {
@@ -823,15 +817,16 @@ describe VulcanV2Controller do
           add: 2,
           add_and_multiply_by: 4
         },
-        uiFilesSent: ["ui_job_one.txt"],
+        uiFilesSent: ["output/ui_job_one.txt"], # Do we want to include the output/ prefix?
         paramsChanged: []
       }
       run_with_retry do
         post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", ui_file_request)
       end
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_one.txt")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_falsey
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_summary.txt")).to be_falsey
     end
-
-
   end
 
   context 'status checking', long_running: true do
