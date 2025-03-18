@@ -1,14 +1,13 @@
-import React, {useReducer, createContext, useRef, useState, useCallback} from 'react';
+import React, {createContext, useRef, useState, useCallback} from 'react';
 import VulcanReducer, {defaultVulcanState, VulcanState} from '../reducers/vulcan_reducer';
 import {VulcanAction} from '../actions/vulcan_actions';
 import {defaultSessionStorageHelpers, useLocalSessionStorage} from './session_storage';
 import {defaultApiHelpers, useApi} from './api';
-import {useWorkflowsLoading} from './workflows_loading';
-import {useDataBuffering} from './data_buffering';
-import {defaultSessionSyncHelpers, useSessionSync} from './session_sync';
+import {defaultSessionSyncHelpers, useSessionSyncWhileRunning} from './session_sync_while_running';
 import {defaultInputStateManagement, useInputStateManagement} from './input_state_management';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {defaultConfirmationHelpers, useConfirmation} from './confirmation';
+import { useWorkspacesWorkflowLoading } from './workspace_worksflow_loading';
 
 export const defaultContext = {
   state: defaultVulcanState as VulcanState,
@@ -64,17 +63,28 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
       return result;
     }, [props.logActions]);
 
+    // Inject data coming from the URL to state.
+    if (!!props.params && 'project_name' in props.params && state.projectName!=props.params.project_name) {
+      const newResult = {...stateRef.current, projectName: props.params.project_name as string};
+      stateRef.current = newResult;
+      setState(newResult);
+    }
+    if (!!props.params && 'workspace_id' in props.params && state.workspaceId!=props.params.workspace_id) {
+      const newResult = {...stateRef.current, workspaceId: Number(props.params.workspace_id) as number};
+      stateRef.current = newResult;
+      setState(newResult);
+    }
+
     const localSessionHelpers = withOverrides(useLocalSessionStorage(state, props), props);
     const apiHelpers = withOverrides(useApi(invoker), props);
-    const {showErrors, getData, getWorkflows, pollStatus, postInputs} = apiHelpers;
+    const {showErrors, getWorkflows, getWorkspaces, requestRun, pullRunStatus, getIsRunning} = apiHelpers;
     const sessionSyncHelpers = withOverrides(
-      useSessionSync(stateRef, showErrors, pollStatus, postInputs, dispatch),
+      useSessionSyncWhileRunning(showErrors, requestRun, pullRunStatus, getIsRunning, dispatch),
       props
     );
-    useDataBuffering(state, dispatch, showErrors, getData);
-    useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, showErrors);
+    useWorkspacesWorkflowLoading(state.update_workflows, dispatch, getWorkflows, getWorkspaces, showErrors, state.projectName);
     const confirmationHelpers = withOverrides(useConfirmation(), props);
-    const inputHelpers = useInputStateManagement(invoker, dispatch, sessionSyncHelpers.requestPoll, stateRef);
+    const inputHelpers = useInputStateManagement(invoker, dispatch, stateRef);
 
     return (<VulcanContext.Provider value={{
       state,
