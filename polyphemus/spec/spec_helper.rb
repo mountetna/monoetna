@@ -142,6 +142,10 @@ FactoryBot.define do
   factory :log, class: Polyphemus::Log do
      to_create(&:save)
   end
+
+  factory :run, class: Polyphemus::Run do
+     to_create(&:save)
+  end
 end
 
 def json_body
