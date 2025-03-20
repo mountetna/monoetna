@@ -10,6 +10,8 @@ export const COMMA_SEP_WITH_SPACES = '^[a-zA-Z0-9 ]*(,[a-zA-Z0-9 ]*)*$';
 
 export const VALIDATION_TYPES = ['Array', 'Regexp'];
 
+export const MATRIX_VALIDATION_TYPES = ['Array', 'CopyExternal'];
+
 export const EDITABLE_OPTIONS = [
     'description',
     'display_name',

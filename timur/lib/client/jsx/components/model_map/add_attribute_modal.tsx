@@ -1,7 +1,7 @@
 import React, {useState, useCallback, useEffect} from 'react';
 
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
-import {COMMA_SEP, SNAKE_CASE} from '../../utils/edit_map';
+import {COMMA_SEP, SNAKE_CASE, MATRIX_VALIDATION_TYPES} from '../../utils/edit_map';
 import ModalSelect from './modal_select';
 import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 
@@ -10,7 +10,8 @@ export default function AddAttributeModal({onClose,open,onSave}: ModelModalParam
   const [description, setDescription] = useState('');
   const [type, setType] = useState('');
   const [group, setGroup] = useState('');
-  const [validation, setValidation] = useState('');
+  const [validationValue, setValidationValue] = useState('');
+  const [validationType, setValidationType] = useState('CopyExternal');
 
   const handleOnSave = useCallback(() => {
     const params: {[k: string]: any} = {
@@ -22,22 +23,23 @@ export default function AddAttributeModal({onClose,open,onSave}: ModelModalParam
 
     if (type=='matrix') {
       params['validation'] = {
-        type: 'Array',
-        value: validation.split(',').map((s) => s.trim())
+        type: validationType,
+        value: validationValue.split(',').map((s) => s.trim())
       };
     }
 
     onSave(params);
-  }, [name, description, type, group, validation]);
+  }, [name, description, type, group, validationValue, validationType]);
 
-  const disabled = !(name && type) || (type=='matrix' && !validation);
+  const disabled = !(name && type) || (type=='matrix' && !validationValue);
 
   const reset = useCallback(() => {
     setName('');
     setDescription('');
     setType('');
     setGroup('');
-    setValidation('');
+    setValidationValue('');
+    setValidationType('CopyExternal');
   }, []);
 
   const handleOnCancel = useCallback(() => {
@@ -57,6 +59,11 @@ export default function AddAttributeModal({onClose,open,onSave}: ModelModalParam
     'integer',
     'matrix'
   ];
+
+  function updateValidationType(type) {
+    setValidationValue('');
+    setValidationType(type);
+  }
 
   return (
     <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Add Attribute' saveDisabled={disabled}>
@@ -89,12 +96,22 @@ export default function AddAttributeModal({onClose,open,onSave}: ModelModalParam
           onChange={setType}
           options={attributeTypes}
         />
+        {type=='matrix' && <ModalSelect
+          id='attribute-validation-type'
+          value={validationType}
+          label='Validation Type'
+          onChange={updateValidationType}
+          options={MATRIX_VALIDATION_TYPES}
+        />}
         {type=='matrix' && <ShrinkingLabelTextField
-          id='attribute-validation'
-          value={validation}
-          label={`Feature Names (comma-separated list) -- UI length limit: ${validation.length} / 2000 characters`}
+          id='attribute-validation-value'
+          value={validationValue}
+          label={validationType === 'Array' ? 
+            `Feature Names (comma-separated list) -- UI length limit: ${validationValue.length} / 2000 characters` :
+            'Copy Source: <project_name>, <model_name>, <attribute_name>'
+          }
           onChange={(e: React.ChangeEvent<any>) => {
-            setValidation(e.target.value.length <= 2000 ? e.target.value : '')
+            setValidationValue(e.target.value.length <= 2000 ? e.target.value : '')
           }}
           pattern={COMMA_SEP}
         />}
