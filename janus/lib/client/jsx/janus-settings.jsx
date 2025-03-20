@@ -13,6 +13,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import {makeStyles} from '@material-ui/core/styles';
 import { isSuperuser } from 'etna-js/utils/janus';
+import { Typography } from '@material-ui/core/Typography';
 
 const useStyles = makeStyles((theme) => ({
   text: {
@@ -103,6 +104,7 @@ const TaskTokenSettings = ({user}) => {
         disabled={ !project_name }>
         Copy Task Token
       </Button>
+      <Typography>"Task tokens receive a maximum permission level of 'editor'"</Typography>
     </div>
   </div>;
 };
