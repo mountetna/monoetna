@@ -102,7 +102,7 @@ describe SftpFileDiscoveryJob do
       {
         "config" => {
           "interval" => 864000, # 10 days
-          "initial_start_scan_time" => '2023-01-01T00:00:00'
+          "initial_start_scan_time" => '2023-01-01T00:00:00',
         }
       }
     }
@@ -152,6 +152,38 @@ describe SftpFileDiscoveryJob do
       job.execute
       expect(captured_requests[0][:state][:start_time]).to eq(last_state["end_time"])
       expect(captured_requests[0][:state][:end_time]).to eq(last_state["end_time"] + 864000)
+    end
+  end
+
+  context 'root path override' do
+
+    let(:override_root_path) { 'archive' }
+    let(:runtime_config) {
+      {
+        "config" => {
+          "interval" => 864000, # 10 days
+          "initial_start_scan_time" => '2023-01-01T00:00:00',
+          "override_root_path" => override_root_path
+        }
+      }
+    }
+
+    before do
+      stub_initial_sftp_connection
+      stub_sftp_search_files(sftp_files.map do |file|
+        file.merge(
+          path: file[:path].sub(/^SSD/, override_root_path)
+        )
+      end)
+    end
+
+    it "searches in an alternate path" do
+      captured_requests = []
+      stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
+      job = create_job(config, runtime_config)
+      job.execute
+      expect(captured_requests[0][:state][:files_to_update].size).to eq(11)
+      expect(captured_requests[0][:state][:files_to_update].map{|f| f[:path]}).to all(match(/^#{override_root_path}/))
     end
   end
 end

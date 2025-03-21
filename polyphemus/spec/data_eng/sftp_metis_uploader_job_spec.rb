@@ -2,7 +2,7 @@ describe SftpMetisUploaderJob do
   include Rack::Test::Methods
 
   def create_job(config, runtime)
-    SftpMetisUploaderJob.new(TEST_TOKEN, config, runtime_config)
+    SftpMetisUploaderJob.new(TEST_TOKEN, config, runtime)
   end
 
   let(:config) {
@@ -37,7 +37,9 @@ describe SftpMetisUploaderJob do
 
   let(:runtime_config) {
     {
-      "commit" => true,
+      'config' => {
+        "commit" => true,
+      }
     }
   }
 
@@ -140,6 +142,45 @@ describe SftpMetisUploaderJob do
 
       expect(context[:files_to_update]).to be_empty
       expect(captured_requests).to eq([])
+    end
+
+    context 'override root path' do
+      let(:override_root_path) { "archive" }
+      let(:alt_runtime_config) {
+        {
+          'config' => { 'commit' => true, 'override_root_path' => override_root_path } 
+        }
+      }
+      let(:alt_run_record) {
+        run_record.merge(
+          state: {
+            files_to_update: sftp_files.map do |file|
+              file.merge(
+                path: file[:path].sub(/^SSD/,override_root_path)
+              )
+            end
+          }
+        )
+      }
+
+      it 'skips already uploaded files in the original root path' do
+        stub_polyphemus_get_run(config["project_name"], run_id, alt_run_record)
+        allow_any_instance_of(Etna::Filesystem::SftpFilesystem).to receive(:with_readable).and_yield(StringIO.new("A"*32))
+
+        stub_polyphemus_get_last_state(
+          config["project_name"],
+          config["config_id"],
+          {
+            metis_successful_files: [ [ sftp_files.first[:path] ] ]
+          }
+        )
+
+        job = create_job(config, alt_runtime_config)
+        context = job.execute
+
+        expect(context[:files_to_update]).to be_empty
+        expect(captured_requests).to eq([])
+      end
     end
 
     it 'fails to upload files' do

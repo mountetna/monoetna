@@ -1,58 +1,19 @@
 require_relative 'etl_job'
-require_relative 'common'
+require_relative 'sftp_config'
 require 'securerandom'
 
 class SftpMetisUploaderJob < Polyphemus::ETLJob
   include WithEtnaClients
   include WithSlackNotifications
   include WithLogger
+  include WithSftpConfig
 
   METIS_FAILED_FILES_CSV = "metis_failed_files.csv"
 
   private
 
-  def project_name
-    config['project_name']
-  end
-
-  def workflow_config_id
-    config['config_id']
-  end
-
-  def workflow_version
-    config['version_number']
-  end
-
-  def magic_string
-    config['config']['magic_string']
-  end
-
-  def name_regex
-    Regexp.new("#{magic_string}(-|_)")
-  end
-
-  def bucket_name
-    config['config']['bucket_name']
-  end
-
   def metis_uid
     @metis_uid ||= SecureRandom.hex
-  end
-
-  def metis_root_path
-    config['config']['metis_root_path']
-  end
-
-  def ingest_host
-    config["secrets"]["sftp_ingest_host"]
-  end
-
-  def notification_channel
-    config["config"]["notification_channel"]
-  end
-
-  def notification_webhook_url
-    config["secrets"]["notification_webhook_url"]
   end
 
   public
@@ -164,7 +125,15 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
         state: [:metis_successful_files],
         collect: true
       )
-      return Set.new((response["metis_successful_files"] || []).flatten)
+
+      files = (response["metis_successful_files"] || []).flatten.map do |filename|
+        override_root_path ? [
+          filename,
+          filename.sub(/^#{raw_ingest_root_path}/, override_root_path)
+        ] : filename
+      end.flatten
+
+      return Set.new(files)
     rescue Etna::Error => e
       logger.warn("Error fetching previous state")
       raise e

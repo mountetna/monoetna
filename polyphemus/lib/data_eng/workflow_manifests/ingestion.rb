@@ -28,6 +28,11 @@ class Polyphemus
               type: 'integer',
               description: 'Span in seconds, defaults to current time',
               default: nil
+            },
+            override_root_path: {
+              type: 'string',
+              description: 'Override current ingest root path',
+              default: nil
             }
           },
           secrets: [

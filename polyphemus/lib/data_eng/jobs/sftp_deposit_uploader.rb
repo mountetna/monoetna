@@ -1,63 +1,19 @@
 require_relative 'etl_job'
-require_relative 'common'
+require_relative 'sftp_config'
 
 class SftpDepositUploaderJob < Polyphemus::ETLJob
   include WithEtnaClients
   include WithSlackNotifications
   include WithLogger
+  include WithSftpConfig
 
   DEPOSIT_FAILED_FILES_CSV = "deposit_failed_files.csv"
-
-  def project_name
-    config['project_name']
-  end
-
-  def workflow_config_id
-    config['config_id']
-  end
-
-  def workflow_version
-    config['version_number']
-  end
-
-  def magic_string
-    config['config']['magic_string']
-  end
-
-  def name_regex
-    Regexp.new("#{magic_string}(-|_)")
-  end
-
-  def deposit_root_path
-    # Mandatory params
-    ::File.join('/', config['config']['deposit_root_path'] || '')
-  end
-
-  def deposit_host
-    config["secrets"]["sftp_deposit_host"]
-  end
-
-  def ingest_host
-    config["secrets"]["sftp_ingest_host"]
-  end
-
-  def ingest_host
-    config["secrets"]["sftp_ingest_host"]
-  end
-
-  def notification_channel
-    config["config"]["notification_channel"]
-  end
-
-  def notification_webhook_url
-    config["secrets"]["notification_webhook_url"]
-  end
 
   def remote_ssh
     @remote_ssh ||= Etna::RemoteSSH.new(
       host: deposit_host,
-      username: config["secrets"]["sftp_deposit_user"],
-      password: config["secrets"]["sftp_deposit_password"],
+      username: deposit_user,
+      password: deposit_password,
       root: deposit_root_path
     )
   end
@@ -96,8 +52,8 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
 
       begin
         remote_ssh.lftp_get(
-          username: config["secrets"]["sftp_ingest_user"],
-          password: config["secrets"]["sftp_ingest_password"],
+          username: ingest_user,
+          password: ingest_password,
           host: ingest_host,
           remote_filename: sftp_path,
           local_filename: deposit_path
@@ -157,7 +113,14 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
         state: [:deposit_successful_files],
         collect: true
       )
-      return Set.new((response["deposit_successful_files"] || []).flatten)
+      files = (response["deposit_successful_files"] || []).flatten.map do |filename|
+        override_root_path ? [
+          filename,
+          filename.sub(/^#{raw_ingest_root_path}/, override_root_path)
+        ] : filename
+      end.flatten
+
+      return Set.new(files)
     rescue Etna::Error => e
       logger.warn("Error fetching previous state")
       raise e

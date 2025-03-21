@@ -38,7 +38,9 @@ describe SftpDepositUploaderJob do
 
   let(:runtime_config) {
     {
-      "commit" => true,
+      'config' => {
+        "commit" => true,
+      }
     }
   }
 
@@ -117,6 +119,46 @@ describe SftpDepositUploaderJob do
 
       expect(context[:files_to_update]).to be_empty
       expect(captured_requests).to eq([])
+    end
+
+    context 'override root path' do
+      let(:override_root_path) { "archive" }
+      let(:alt_runtime_config) {
+        {
+          'config' => { 'commit' => true, 'override_root_path' => override_root_path } 
+        }
+      }
+      let(:alt_run_record) {
+        run_record.merge(
+          state: {
+            files_to_update: sftp_files.map do |file|
+              file.merge(
+                path: file[:path].sub(/^SSD/,override_root_path)
+              )
+            end
+          }
+        )
+      }
+
+      it 'skips already uploaded files in the original root path' do
+        stub_polyphemus_get_run(config["project_name"], run_id, alt_run_record)
+        stub_remote_ssh_mkdir_p
+        stub_remote_ssh_file_upload(success: true)
+
+        stub_polyphemus_get_last_state(
+          config["project_name"],
+          config["config_id"],
+          {
+            deposit_successful_files: [ [ sftp_files.first[:path] ] ]
+          }
+        )
+
+        job = create_job(config, alt_runtime_config)
+        context = job.execute
+
+        expect(context[:files_to_update]).to be_empty
+        expect(captured_requests).to eq([])
+      end
     end
 
     it 'fails to upload files' do
