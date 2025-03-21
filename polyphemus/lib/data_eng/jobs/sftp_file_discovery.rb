@@ -1,54 +1,23 @@
 require_relative 'etl_job'
-require_relative 'common'
+require_relative 'sftp_config'
 require_relative '../clients/sftp_client'
 
 class SftpFileDiscoveryJob < Polyphemus::ETLJob
   include WithEtnaClients
   include WithLogger
+  include WithSftpConfig
 
   private
-
-  def project_name
-    config['project_name']
-  end
-
-  def workflow_config_id
-    config['config_id']
-  end
-
-  def workflow_version
-    config['version_number']
-  end
-
-  def magic_string
-    config['config']['magic_string']
-  end
-
-  def file_regex
-    Regexp.new("#{magic_string}(-|_).*")
-  end
-
-  def ingest_root_path
-    config['config']['ingest_root_path']
-  end
 
   def restart_scan?
     !!initial_start_scan_time
   end
 
-  def initial_start_scan_time
-    runtime_config['config']['initial_start_scan_time']
-  end
-
-  def override_interval
-    runtime_config['config']['override_interval']
-  end
-
   def sftp_client
     @sftp_client ||= SFTPClient.new(
-      config["secrets"]["sftp_ingest_host"],
-      config["secrets"]["sftp_ingest_user"],
-      config["secrets"]["sftp_ingest_password"],
+      ingest_host,
+      ingest_user,
+      ingest_password
     )
   end
 
@@ -91,16 +60,15 @@ class SftpFileDiscoveryJob < Polyphemus::ETLJob
 
   def fetch_last_scan
     if restart_scan?
-      logger.info("Restarting scan... at #{Time.at(initial_start_scan_time).strftime('%Y-%m-%d %H:%M:%S')}")
+      logger.info("Restarting scan... at #{initial_start_scan_time}")
 
-      return initial_start_scan_time
+      return DateTime.parse(initial_start_scan_time).to_i
     end
 
     begin
       response = polyphemus_client.get_previous_state(
         project_name,
         workflow_config_id,
-        workflow_version,
         state: [:end_time]
       )
       response["end_time"].to_i

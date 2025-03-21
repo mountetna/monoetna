@@ -68,13 +68,13 @@ describe SftpFileDiscoveryJob do
       runtime_config = {
         "config" => {
           "override_interval" => 864000, # 10 days
-          "initial_start_scan_time" => 1672531200, #Jan 1, 2023
+          "initial_start_scan_time" => '2023-01-01T00:00:00'
         }
       }
       job = create_job(config, runtime_config)
       job.execute
-      expect(captured_requests[0][:state][:start_time]).to eq(runtime_config["config"]["initial_start_scan_time"])
-      expect(captured_requests[0][:state][:end_time]).to eq(runtime_config["config"]["initial_start_scan_time"] + runtime_config["config"]["override_interval"])
+      expect(captured_requests[0][:state][:start_time]).to eq(DateTime.parse(runtime_config["config"]["initial_start_scan_time"]).to_i)
+      expect(captured_requests[0][:state][:end_time]).to eq(DateTime.parse(runtime_config["config"]["initial_start_scan_time"]).to_i + runtime_config["config"]["override_interval"])
     end
 
     it 'sets the end time to the current time if no interval is provided' do
@@ -84,12 +84,12 @@ describe SftpFileDiscoveryJob do
       runtime_config = {
         "config" => {
           "interval" => nil,
-          "initial_start_scan_time" => 1672531200, #Jan 1, 2023
+          "initial_start_scan_time" => '2023-01-01T00:00:00'
         }
       }
       job = create_job(config, runtime_config)
       job.execute
-      expect(captured_requests[0][:state][:start_time]).to eq(runtime_config["config"]["initial_start_scan_time"])
+      expect(captured_requests[0][:state][:start_time]).to eq(DateTime.parse(runtime_config["config"]["initial_start_scan_time"]).to_i)
       expect(captured_requests[0][:state][:end_time]).to be_within(5).of(Time.now.to_i)
     end
 
@@ -102,7 +102,7 @@ describe SftpFileDiscoveryJob do
       {
         "config" => {
           "interval" => 864000, # 10 days
-          "initial_start_scan_time" => 1672531200, #Jan 1, 2023
+          "initial_start_scan_time" => '2023-01-01T00:00:00',
         }
       }
     }
@@ -136,7 +136,11 @@ describe SftpFileDiscoveryJob do
     }
 
     before do
-      stub_polyphemus_get_last_state(config["project_name"], config["config_id"], config["version_number"], last_state)
+      stub_polyphemus_get_last_state(
+        config["project_name"],
+        config["config_id"],
+        last_state
+      )
       stub_initial_sftp_connection
       stub_sftp_search_files(sftp_files)
     end
@@ -148,6 +152,38 @@ describe SftpFileDiscoveryJob do
       job.execute
       expect(captured_requests[0][:state][:start_time]).to eq(last_state["end_time"])
       expect(captured_requests[0][:state][:end_time]).to eq(last_state["end_time"] + 864000)
+    end
+  end
+
+  context 'root path override' do
+
+    let(:override_root_path) { 'archive' }
+    let(:runtime_config) {
+      {
+        "config" => {
+          "interval" => 864000, # 10 days
+          "initial_start_scan_time" => '2023-01-01T00:00:00',
+          "override_root_path" => override_root_path
+        }
+      }
+    }
+
+    before do
+      stub_initial_sftp_connection
+      stub_sftp_search_files(sftp_files.map do |file|
+        file.merge(
+          path: file[:path].sub(/^SSD/, override_root_path)
+        )
+      end)
+    end
+
+    it "searches in an alternate path" do
+      captured_requests = []
+      stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
+      job = create_job(config, runtime_config)
+      job.execute
+      expect(captured_requests[0][:state][:files_to_update].size).to eq(11)
+      expect(captured_requests[0][:state][:files_to_update].map{|f| f[:path]}).to all(match(/^#{override_root_path}/))
     end
   end
 end

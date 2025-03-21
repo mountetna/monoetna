@@ -69,7 +69,7 @@ class LogController < Polyphemus::Controller
 
     logs = Polyphemus::Log.where(
       query
-    ).limit(100).all
+    ).order(Sequel.desc(:created_at)).limit(100).all
 
     success_json(logs: logs.map(&:to_report))
   end

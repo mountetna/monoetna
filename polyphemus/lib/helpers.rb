@@ -5,19 +5,30 @@ require 'net/http'
 require 'uri'
 
 module WithSlackNotifications
+  MESSAGE_SIZE=8000
+
+  def chunk_message(message)
+    return message.scan(/.{1,#{MESSAGE_SIZE}}/m)
+  end
+
   def notify_slack(message, messenger: self.class.name, channel: nil, webhook_url: Polyphemus.instance.config(:slack_webhook_url))
     uri = URI(webhook_url)
-    req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
 
-    req.body = {
-      channel: channel,
-      username: "Polyphemus",
-      text: message,
-      icon_emoji: ":polyphemus:"
-    }.compact.to_json
+    messages = chunk_message(message)
 
     Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-      http.request(req)
+      messages.each do |msg|
+        req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
+
+        req.body = {
+          channel: channel,
+          username: "Polyphemus",
+          text: msg,
+          icon_emoji: ":polyphemus:"
+        }.compact.to_json
+
+        http.request(req)
+      end
     end
   end
 end

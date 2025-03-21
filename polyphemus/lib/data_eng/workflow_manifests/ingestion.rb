@@ -20,13 +20,18 @@ class Polyphemus
           },
           runtime_params: {
             initial_start_scan_time: {
-              type: 'integer', # unix timestamp
+              type: 'datetime',
               description: 'Scan start time, defaults to last completion',
               default: nil
             },
             override_interval: {
               type: 'integer',
               description: 'Span in seconds, defaults to current time',
+              default: nil
+            },
+            override_root_path: {
+              type: 'string',
+              description: 'Override current ingest root path',
               default: nil
             }
           },
