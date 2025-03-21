@@ -11,29 +11,29 @@ describe WorkflowController do
 
   let(:run_id) { "argo_run_id_22" }
 
-  def create_workflow_with_configs
-    create(:config,
+  def create_workflow_with_configs(params={})
+    create(:config, {
       project_name: 'labors',
       secrets: {},
-      config_id: 1,
+      config_id: Polyphemus::Config.next_id,
       version_number: 2,
       workflow_name: 'my workflow name',
-      workflow_type: 'test-workflow',
+      workflow_type: 'test',
       config: { "test_key" => 'update 1' }
-    )
+    }.merge(params))
   end
 
   context 'config creation' do
     it 'initializes a workflow' do
       auth_header(:editor)
-      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test-workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test')
 
       expect(last_response.status).to eq(200)
       expect(Polyphemus::Config.count).to eq(1)
       config = Polyphemus::Config.last
 
       expect(config.workflow_name).to eq('my workflow name')
-      expect(config.workflow_type).to eq('test-workflow')
+      expect(config.workflow_type).to eq('test')
       expect(config.config_id).to eq(1)
       expect(config.created_at).to be_within(3.second).of(Time.now)
       expect(config.updated_at).to be_within(3.second).of(Time.now)
@@ -47,39 +47,41 @@ describe WorkflowController do
 
     it 'creates a runtime config when a workflow is created' do
       auth_header(:editor)
-      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test-workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test')
       expect(last_response.status).to eq(200)
+      expect(Polyphemus::Config.count).to eq(1)
       expect(Polyphemus::RuntimeConfig.count).to eq(1)
-      expect(Polyphemus::RuntimeConfig.last.config_id).to eq(config_id)
+      expect(Polyphemus::RuntimeConfig.last.config_id).to eq(Polyphemus::Config.last.config_id)
     end
   end
 
   context 'config updates' do
+    let(:config_id) { create_workflow_with_configs(version_number: 1).config_id }
 
     it 'correctly updates the config and version number' do
-      auth_header(:editor)
-      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test-workflow')
-      expect(last_response.status).to eq(200)
       some_config = { 'test_key' => 'update 1' }
+
+      auth_header(:editor)
       json_post("/api/workflows/labors/update/#{config_id}",
         workflow_name: 'my workflow name',
-        workflow_type: 'test-workflow',
+        workflow_type: 'test',
         config: some_config
       )
+
       expect(last_response.status).to eq(200)
+
+      expect(Polyphemus::Config.count).to eq(2)
+
       first_config = Polyphemus::Config.last
-      # Contains the updated config
       expect(first_config.config).to eq(some_config)
-      # Contains the same config_id
       expect(first_config.config_id).to eq(config_id)
-      # Contains a new version number
       expect(first_config.version_number).to eq(2)
 
 
       another_config = { 'test_key' => 'update 2' }
       json_post("/api/workflows/labors/update/#{config_id}",
         workflow_name: 'my workflow name',
-        workflow_type: 'test-workflow',
+        workflow_type: 'test',
         config: another_config
       )
       expect(last_response.status).to eq(200)
@@ -93,12 +95,13 @@ describe WorkflowController do
 
     it 'rejects an invalid config' do
       auth_header(:editor)
-      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test-workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test')
       expect(last_response.status).to eq(200)
+
       some_config = { 'not a valid key' => 'update 1' }
       json_post("/api/workflows/labors/update/#{config_id}",
         workflow_name: 'my workflow name',
-        workflow_type: 'test-workflow',
+        workflow_type: 'test',
         config: some_config
       )
       expect(last_response.status).to eq(422)
@@ -106,12 +109,12 @@ describe WorkflowController do
 
     it 'updates secrets and not the version number' do
       auth_header(:editor)
-      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test-workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test')
       expect(last_response.status).to eq(200)
       some_secret = { 'test_secret' => 'update 1' }
       json_post("/api/workflows/labors/update/#{config_id}",
         workflow_name: 'my workflow name',
-        workflow_type: 'test-workflow',
+        workflow_type: 'test',
         secrets: some_secret
       )
       expect(last_response.status).to eq(200)
@@ -122,7 +125,7 @@ describe WorkflowController do
       another_secret = { 'test_secret' => 'update 2' }
       json_post("/api/workflows/labors/update/#{config_id}",
         workflow_name: 'my workflow name',
-        workflow_type: 'test-workflow',
+        workflow_type: 'test',
         secrets: another_secret
       )
       expect(last_response.status).to eq(200)
@@ -136,38 +139,40 @@ describe WorkflowController do
 
     it 'rejects unknown secrets' do
       auth_header(:editor)
-      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test-workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test')
       expect(last_response.status).to eq(200)
       some_secret = { 'not_a_secret' => 'update 1' }
       json_post("/api/workflows/labors/update/#{config_id}",
         workflow_name: 'my workflow name',
-        workflow_type: 'test-workflow',
+        workflow_type: 'test',
         secrets: some_secret
       )
       config = Polyphemus::Config.last
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Secrets for test-workflow must be one of: test_secret')
+      expect(json_body[:error]).to eq('Secrets for test must be one of: test_secret')
       expect(config.secrets).to eq({})
     end
 
   end
 
   context 'retrieve a config' do
+    let(:config_id) { create_workflow_with_configs(version_number: 1).config_id }
+
     before do
       auth_header(:editor)
-      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test-workflow')
+      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test')
       expect(last_response.status).to eq(200)
       some_config = { 'test_key' => 'update 1' }
       json_post("/api/workflows/labors/update/#{config_id}",
         workflow_name: 'my workflow name',
-        workflow_type: 'test-workflow',
+        workflow_type: 'test',
         config: some_config
       )
       expect(last_response.status).to eq(200)
       another_config = { 'test_key' => 'update 2' }
       json_post("/api/workflows/labors/update/#{config_id}",
         workflow_name: 'my workflow name',
-        workflow_type: 'test-workflow',
+        workflow_type: 'test',
         config: another_config
       )
       expect(last_response.status).to eq(200)
@@ -194,7 +199,7 @@ describe WorkflowController do
       config = Polyphemus::Config.create(
         project_name: 'labors',
         workflow_name: 'my workflow name',
-        workflow_type: 'test-workflow',
+        workflow_type: 'test',
         config_id: Polyphemus::Config.next_id,
         version_number: 1,
         config: {},
@@ -203,7 +208,7 @@ describe WorkflowController do
       config = Polyphemus::Config.create(
         project_name: 'athena',
         workflow_name: 'my 2nd workflow name',
-        workflow_type: 'test-workflow',
+        workflow_type: 'test',
         config_id: Polyphemus::Config.next_id,
         version_number: 1,
         config: {},
@@ -220,7 +225,7 @@ describe WorkflowController do
       config = Polyphemus::Config.create(
         project_name: 'labors',
         workflow_name: 'my workflow name',
-        workflow_type: 'test-workflow',
+        workflow_type: 'test',
         config_id: Polyphemus::Config.next_id,
         version_number: 1,
         config: {},
@@ -236,7 +241,7 @@ describe WorkflowController do
         secrets: {},
       )
       auth_header(:superuser)
-      post('/api/workflows/configs', workflow_type: 'test-workflow')
+      post('/api/workflows/configs', workflow_type: 'test')
       expect(last_response.status).to eq(200)
       expect(json_body[:configs].length).to eq(1)
     end
@@ -252,26 +257,30 @@ describe WorkflowController do
     end
   end
 
-context '#revisions' do
+  context '#revisions' do
     it 'returns previous revisions for a workflow' do
-      auth_header(:editor)
-      json_post('/api/workflows/labors/create', workflow_name: 'my workflow name', workflow_type: 'test-workflow')
-      expect(last_response.status).to eq(200)
-      some_config = { 'test_key' => 'update 1' }
-      json_post("/api/workflows/labors/update/#{config_id}",
-        workflow_name: 'my workflow name',
-        workflow_type: 'test-workflow',
-        config: some_config
+      config = create_config(
+        workflow_name: 'my workflow name', workflow_type: 'test',
+        version_number: 1
       )
-      expect(last_response.status).to eq(200)
-      another_config = { 'test_key' => 'update 2' }
-      json_post("/api/workflows/labors/update/#{config_id}",
+      create_config(
         workflow_name: 'my workflow name',
-        workflow_type: 'test-workflow',
-        config: another_config
+        workflow_type: 'test',
+        version_number: 2,
+        config_id: config.config_id,
+        config: { 'test_key' => 'update 1' }
       )
+      create_config(
+        workflow_name: 'my workflow name',
+        workflow_type: 'test',
+        config_id: config.config_id,
+        version_number: 3,
+        config: { 'test_key' => 'update 2' }
+      )
+
       auth_header(:editor)
-      get("/api/workflows/labors/revisions/#{config_id}")
+      get("/api/workflows/labors/revisions/#{config.config_id}")
+
       expect(last_response.status).to eq(200)
       expect(json_body.length).to eq(3)
       expect(json_body[0][:version_number]).to eq(3)
@@ -333,6 +342,7 @@ context '#revisions' do
       additional_output = 'A serious error occurred.'
 
       # Create run metadata with initial output
+      auth_header(:editor)
       json_post("/api/workflows/labors/run/update/#{run_id}",
         config_id: config_id,
         version_number: 2,
@@ -342,6 +352,7 @@ context '#revisions' do
       expect(last_response.status).to eq(200)
 
       # Update with additional output
+      auth_header(:editor)
       json_post("/api/workflows/labors/run/update/#{run_id}",
         output: additional_output,
         append_output: true
@@ -349,7 +360,6 @@ context '#revisions' do
       expect(last_response.status).to eq(200)
       expect(json_body[:output]).to eq(initial_output + additional_output)
     end
-
   end
 
   context 'retrieve the workflow state' do
@@ -379,77 +389,107 @@ context '#revisions' do
   end
 
   context 'retrieve the previous workflow state' do
-    let(:config_id) { create_workflow_with_configs.config_id }
+    let(:config_id) {
+      config = create_workflow_with_configs(version_number: 1)
+      config.config_id
+    }
 
-    before do
-      the_state = {:some_state => "ya_hooo!", :another_state => "woohoo!"}
-      create(:run, 
+    def create_run(params)
+      create(:run,  {
         run_id: run_id,
         name: "test-workflow-1999",
         config_id: config_id,
-        version_number: 2,
-        state: the_state,
+        version_number: 1,
+        state: {},
         created_at: Time.now
-      )
+      }.merge(params))
     end
 
     it 'returns the specific state when a state is specified' do
-      state_to_retrieve = [:some_state]
-      post("/api/workflows/labors/run/previous/#{config_id}",
-        version_number: 2,
-        state: state_to_retrieve
-      )
+      create_run(state: { current_labor: "The Nemean Lion"})
+
+      auth_header(:editor)
+      post("/api/workflows/labors/run/previous/#{config_id}", state: [:current_labor])
       expect(last_response.status).to eq(200)
-      expect(json_body).to eq(:some_state => "ya_hooo!")
+      expect(json_body).to eq(:current_labor => "The Nemean Lion")
     end
 
-    it 'returns all previous states available' do
-      state_to_retrieve = [:some_state]
+    it 'returns all previous states available when requested' do
+      create_run(state: { current_labor: "The Nemean Lion" }, created_at: Time.now - 20)
+      create_run(state: { current_labor: "The Lernaean Hydra" }, created_at: Time.now, run_id: "argo_run_state_23")
+      auth_header(:editor)
       post("/api/workflows/labors/run/previous/#{config_id}",
-        version_number: 2,
-        state: state_to_retrieve
+        state: [:current_labor],
+        collect: true
       )
       expect(last_response.status).to eq(200)
-      expect(json_body).to eq(:some_state => "ya_hooo!")
+      expect(json_body).to eq(current_labor: [ "The Lernaean Hydra", "The Nemean Lion"])
     end
 
     it 'returns a previous state across version changes' do
+      create_run(state: { current_labor: "The Nemean Lion"})
+      create_workflow_with_configs(version_number: 2, config_id: config_id)
+
+      auth_header(:editor)
+      post("/api/workflows/labors/run/previous/#{config_id}", state: [:current_labor])
+      expect(last_response.status).to eq(200)
+      expect(json_body).to eq(:current_labor => "The Nemean Lion")
     end
 
     it 'returns a previous state even if the last state was nil' do
+      create_run(state: { current_labor: "The Nemean Lion" }, created_at: Time.now - 20)
+      create_run(state: nil, created_at: Time.now, run_id: "argo_run_state_23")
+
+      auth_header(:editor)
+      post("/api/workflows/labors/run/previous/#{config_id}", state: [:current_labor])
+      expect(last_response.status).to eq(200)
+      expect(json_body).to eq(:current_labor => "The Nemean Lion")
     end
 
     it 'returns a previous state if the last state was present but lacking the requested keys' do
+      create_run(state: { current_labor: "The Nemean Lion" }, created_at: Time.now - 20)
+      create_run(state: {}, created_at: Time.now, run_id: "argo_run_state_23")
+
+      auth_header(:editor)
+      post("/api/workflows/labors/run/previous/#{config_id}", state: [:current_labor])
+      expect(last_response.status).to eq(200)
+      expect(json_body).to eq(:current_labor => "The Nemean Lion")
     end
 
-    it 'raises an error when a state is not found' do
+    it 'returns nil when a state key is not found' do
+      create_run(state: { current_labor: "The Nemean Lion" }, created_at: Time.now - 20)
+      create_run(state: { current_labor: "The Lernaean Hydra" }, created_at: Time.now, run_id: "argo_run_state_23")
+
+      auth_header(:editor)
       post("/api/workflows/labors/run/previous/#{config_id}",
-        version_number: 2,
-        state: [:some_state_that_doesnt_exist, :another_state_that_doesnt_exist]
+        state: [:monster, :current_labor]
       )
-      expect(last_response.status).to eq(404)
-      expect(json_body[:error]).to eq("Requested state keys some_state_that_doesnt_exist, another_state_that_doesnt_exist not found in run.state")
+      expect(last_response.status).to eq(200)
+      expect(json_body).to eq(current_labor: "The Lernaean Hydra", monster: nil)
     end
-
   end
 
   context 'runtime configs updates' do
-    let(:config_id) { create_workflow_with_configs.config_id }
+    let(:config_id) {
+      config, *_ = create_workflow(
+        workflow_name: 'my-cat-ingestion',
+        run_interval: 0,
+        runtime_config: {commit: true},
+        run_start: '2025-01-16T12:00:00Z',
+        run_stop: '2025-01-16T12:20:00Z'
+      )
+
+      config.config_id
+    }
 
     it 'updates existing runtime config' do
-      config = {:commit  => true }
-      json_post("/api/workflows/labors/runtime_configs/update/#{config_id}",
-        config: config,
-        run_interval: 60, 
-        disabled: true
-      )
-      expect(last_response.status).to eq(200)
-
       # Update metadata
       new_config = {:commit  => false}
+      auth_header(:editor)
       json_post("/api/workflows/labors/runtime_configs/update/#{config_id}",
         config: new_config,
-        run_interval: 120
+        run_interval: 120,
+        disabled: true
       )
       expect(last_response.status).to eq(200)
       expect(json_body[:config]).to eq(new_config)
@@ -459,6 +499,7 @@ context '#revisions' do
 
     it 'raises an error when the runtime config is invalid' do
       config = {:not_a_valid_param  => "not a boolean" }
+      auth_header(:editor)
       json_post("/api/workflows/labors/runtime_configs/update/#{config_id}",
         config: config,
       )
@@ -469,27 +510,31 @@ context '#revisions' do
   end
 
   context 'retrieving runtime configs' do
-    let(:config_id) { create_workflow_with_configs.config_id }
+    let(:config_id) { 
+      config, *_ = create_workflow(
+        workflow_name: 'my-cat-ingestion',
+        run_interval: 0,
+        runtime_config: {commit: true},
+        run_start: '2025-01-16T12:00:00Z',
+        run_stop: '2025-01-16T12:20:00Z'
+      )
+
+      config.config_id
+    }
 
     it 'raises an error when runtime config does not exist' do
       config_id_that_doesnt_exit = 10000
+      auth_header(:editor)
       get("/api/workflows/labors/runtime_configs/#{config_id_that_doesnt_exit}")
       expect(last_response.status).to eq(404)
       expect(json_body[:error]).to eq('No such config 10000') 
     end
 
-    it 'retrieves existing run metadata' do
-      a_config = {:commit  => true }
-      json_post("/api/workflows/labors/runtime_configs/update/#{config_id}",
-        config: a_config,
-        run_interval: 120
-      )
-      expect(last_response.status).to eq(200)
-      
-      # Retrieve and verify
+    it 'retrieves existing runtime config metadata' do
+      auth_header(:editor)
       get("/api/workflows/labors/runtime_configs/#{config_id}")
       expect(last_response.status).to eq(200)
-      expect(json_body[:config]).to eq(a_config)
+      expect(json_body[:config]).to eq(commit: true)
     end
   end
 
@@ -502,8 +547,9 @@ context '#revisions' do
       # Stub argo client command
       workflow_output = "Workflow Name: simple-two-jobs-ktm4g\nWorkflow UID: de6df0ed-b32c-4707-814f-11c323b0687b\n"
       allow(Open3).to receive(:capture3).and_return([workflow_output, "", double(success?: true)])
+      auth_header(:editor)
       json_post("/api/workflows/labors/runtime_configs/run_once/#{config.config_id}", 
-        workflow_type: "test-workflow",
+        workflow_type: "test",
         config: { commit: true }
       )
       expect(last_response.status).to eq(200)
@@ -528,8 +574,9 @@ context '#revisions' do
       # If we don't mock anything this will fail since there is no workflow.yaml for test-workflow.yaml
       config = Polyphemus::Config.current.where(project_name: 'labors', config_id: config_id).first
       allow(Open3).to receive(:capture3).and_return(["", "Command failed", double(success?: false)])
+      auth_header(:editor)
       json_post("/api/workflows/labors/runtime_configs/run_once/#{config.config_id}", 
-        workflow_type: "test-workflow",
+        workflow_type: "test",
         config: { commit: true }
       )
 
@@ -543,72 +590,19 @@ context '#revisions' do
 
     it 'returns the status of a workflow that has completed' do
 
-      config_id = Polyphemus::Config.next_id
-
-      config_1 = Polyphemus::Config.create(
-        project_name: 'labors',
+      config, *_ = create_workflow(
         workflow_name: 'my-cat-ingestion',
-        workflow_type: 'cat-ingestion',
-        config_id: config_id,
-        version_number: 1,
-        config: {"some_key" => "some_value"},
-        secrets: {},
-        created_at: '2025-01-16T12:00:00Z',
-        updated_at: '2025-01-16T12:00:00Z'
+        run_interval: 0,
+        runtime_config:{commit: true},
+        run_start: '2025-01-16T12:00:00Z',
+        run_stop: '2025-01-16T12:20:00Z'
       )
 
-      config_2 = Polyphemus::Config.create(
-        project_name: 'labors',
-        workflow_name: 'my-cat-ingestion',
-        workflow_type: 'cat-ingestion',
-        config_id: config_id,
-        version_number: 2,
-        config: {"some_key" => "some_value_2"},
-        secrets: {},
-        created_at: '2025-01-18T12:00:00Z',
-        updated_at: '2025-01-18T12:00:00Z'
-      )
-
-      runtime_config_1 = Polyphemus::RuntimeConfig.create(
-        config_id: config_id,
-        run_interval: 1000,
-        config:{commit: true} 
-      )
-
-      # Create a run for the first version
-      Polyphemus::Run.create(
-        run_id: "hello-there-1",
-        config_id: config_id,
-        version_number: config_1.version_number,
-        name: 'my-cat-ingestion-1000',
-        orchestrator_metadata: {
-          'startedAt' => '2025-01-16T12:00:00Z',
-          'nodes' => {
-            'steps-node' => {
-              'finishedAt' => '2025-01-16T12:20:00Z',
-              'phase' => 'Succeeded',
-              'type' => 'Steps'
-            }
-          }
-        }
-      )
-
-      # Create a run for the second version
-      Polyphemus::Run.create(
-        run_id: "hello-there-2",
-        config_id: config_id,
-        version_number: config_2.version_number,
-        name: 'my-cat-ingestion-2000',
-        orchestrator_metadata: {
-          'startedAt' => '2025-01-18T12:00:00Z',
-          'nodes' => {
-            'steps-node' => {
-              'finishedAt' => '2025-01-18T12:20:00Z',
-              'phase' => 'Succeeded',
-              'type' => 'Steps'
-            }
-          }
-        }
+      create_run(
+        config, 2000,
+        status: 'Succeeded',
+        run_start: '2025-01-18T12:00:00Z',
+        run_stop: '2025-01-18T12:20:00Z'
       )
 
       auth_header(:editor)
@@ -618,7 +612,7 @@ context '#revisions' do
       # Make sure the second version of the config is used (we use the latest run)
       expect(json_body.count).to eq(1)
       expect(json_body[0][:workflow_name]).to eq("my-cat-ingestion")
-      expect(json_body[0][:workflow_type]).to eq("cat-ingestion")
+      expect(json_body[0][:workflow_type]).to eq("test")
       expect(json_body[0][:pipeline_state]).to eq("succeeded")
       # This should be the most recent run from version 2
       expect(json_body[0][:pipeline_finished_at]).to eq("2025-01-18T12:20:00Z")
@@ -666,24 +660,35 @@ context '#revisions' do
       expect(json_body[0][:pipeline_finished_at]).to be_nil
     end
 
-    it 'returns a nil status when the workflow hasnt been run yet' do
-      config_2 = Polyphemus::Config.create(
-        project_name: 'labors',
-        workflow_name: 'my-cat-ingestion-2',
-        workflow_type: 'cat-ingestion',
-        config_id: Polyphemus::Config.next_id,
-        version_number: 1,
-        config: {},
-        secrets: {},
+    it 'returns a nil status when the workflow hasnt been run yet and is not scheduled' do
+      create_workflow(
+        workflow_name: 'parked-workflow',
+        run_interval: nil
       )
 
       auth_header(:editor)
       get("/api/workflows/labors/status")
       expect(last_response.status).to eq(200)
       expect(json_body.count).to eq(1)
-      expect(json_body[0][:workflow_name]).to eq("my-cat-ingestion-2")
-      expect(json_body[0][:workflow_type]).to eq("cat-ingestion")
+      expect(json_body[0][:workflow_name]).to eq("parked-workflow")
+      expect(json_body[0][:workflow_type]).to eq("test")
       expect(json_body[0][:pipeline_state]).to be_nil
+      expect(json_body[0][:pipeline_finished_at]).to be_nil
+    end
+
+    it 'returns a pending status when the workflow hasnt been run yet and is scheduled' do
+      create_workflow(
+        workflow_name: 'pending-workflow',
+        run_interval: 1000
+      )
+
+      auth_header(:editor)
+      get("/api/workflows/labors/status")
+      expect(last_response.status).to eq(200)
+      expect(json_body.count).to eq(1)
+      expect(json_body[0][:workflow_name]).to eq("pending-workflow")
+      expect(json_body[0][:workflow_type]).to eq("test")
+      expect(json_body[0][:pipeline_state]).to eq("pending")
       expect(json_body[0][:pipeline_finished_at]).to be_nil
     end
   end

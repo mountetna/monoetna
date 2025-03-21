@@ -5,7 +5,7 @@ describe SftpDepositUploaderJob do
   end
 
   let(:config) {
-    config = {
+    {
       "project_name" => "labors",
       "secrets" => {
         "sftp_ingest_host" => "some-sftp-host", 
@@ -27,7 +27,6 @@ describe SftpDepositUploaderJob do
       "config_id" => "1",
       "version_number" => "1"
     }
-    config
   }
 
   # TODO: eventually add mutliple files to test with, but running into stubbing and streaming errors
@@ -76,24 +75,48 @@ describe SftpDepositUploaderJob do
     before do
       stub_initial_sftp_connection
       stub_initial_ssh_connection
-      stub_polyphemus_get_run(config["project_name"], run_id, run_record)
       fake_stream = StringIO.new("fake file content")
       stub_sftp_client_download_as_stream(return_io: fake_stream)
-      stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
       stub_slack(config["secrets"]["notification_webhook_url"])
+      stub_polyphemus_get_run(config["project_name"], run_id, run_record)
+      stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
+      stub_polyphemus_get_last_state(
+        config["project_name"],
+        config["config_id"],
+        {}
+      )
     end 
 
     it 'successfully uploads files' do
       stub_remote_ssh_mkdir_p
       stub_remote_ssh_file_upload(success: true)
 
-      stub_polyphemus_update_run(config["project_name"], run_id, captured_requests)
-
       job = create_job(config, runtime_config)
       context = job.execute
 
       expect(context[:failed_files]).to be_empty
-      expect(captured_requests).to be_empty
+      expect(captured_requests.first[:state]).to eq(
+        deposit_successful_files: [ sftp_files.first[:path] ]
+      )
+    end
+
+    it 'skips already uploaded files' do
+      stub_remote_ssh_mkdir_p
+      stub_remote_ssh_file_upload(success: true)
+
+      stub_polyphemus_get_last_state(
+        config["project_name"],
+        config["config_id"],
+        {
+          deposit_successful_files: [ [ sftp_files.first[:path] ] ]
+        }
+      )
+
+      job = create_job(config, runtime_config)
+      context = job.execute
+
+      expect(context[:files_to_update]).to be_empty
+      expect(captured_requests).to eq([])
     end
 
     it 'fails to upload files' do
@@ -107,7 +130,9 @@ describe SftpDepositUploaderJob do
       job = create_job(config, runtime_config)
       context = job.execute
 
-      expect(captured_requests[0][:state][:deposit_num_failed_files]).to eq(1)
+      expect(captured_requests[0][:state]).to eq(
+        deposit_num_failed_files: 1
+      )
     end
   end
 end

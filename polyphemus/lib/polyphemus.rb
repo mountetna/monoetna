@@ -16,6 +16,7 @@ class Polyphemus
     return if @db
     @db = Sequel.connect(config(:db))
     @db.extension :connection_validator
+    Sequel.extension :pg_json_ops
     @db.extension :pg_json
     @db.pool.connection_validation_timeout = -1
   end

@@ -136,7 +136,11 @@ describe SftpFileDiscoveryJob do
     }
 
     before do
-      stub_polyphemus_get_last_state(config["project_name"], config["config_id"], config["version_number"], last_state)
+      stub_polyphemus_get_last_state(
+        config["project_name"],
+        config["config_id"],
+        last_state
+      )
       stub_initial_sftp_connection
       stub_sftp_search_files(sftp_files)
     end

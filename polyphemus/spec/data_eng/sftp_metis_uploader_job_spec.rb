@@ -104,6 +104,11 @@ describe SftpMetisUploaderJob do
         headers: {}
       )
       stub_slack(config["secrets"]["notification_webhook_url"])
+      stub_polyphemus_get_last_state(
+        config["project_name"],
+        config["config_id"],
+        {}
+      )
     end
 
     it 'successfully uploads files' do
@@ -113,7 +118,28 @@ describe SftpMetisUploaderJob do
       job = create_job(config, runtime_config)
       context = job.execute
       expect(context[:failed_files]).to be_empty
-      expect(captured_requests).to be_empty
+      expect(captured_requests.first[:state]).to eq(
+        metis_successful_files: [ sftp_files.first[:path] ]
+      )
+    end
+
+    it 'skips already uploaded files' do
+      stub_upload_file_with_stream(file_to_upload, fake_stream)
+      allow_any_instance_of(Etna::Filesystem::SftpFilesystem).to receive(:with_readable).and_yield(StringIO.new("A"*32))
+
+      stub_polyphemus_get_last_state(
+        config["project_name"],
+        config["config_id"],
+        {
+          metis_successful_files: [ [ sftp_files.first[:path] ] ]
+        }
+      )
+
+      job = create_job(config, runtime_config)
+      context = job.execute
+
+      expect(context[:files_to_update]).to be_empty
+      expect(captured_requests).to eq([])
     end
 
     it 'fails to upload files' do

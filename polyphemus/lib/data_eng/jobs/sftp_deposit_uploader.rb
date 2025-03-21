@@ -69,7 +69,11 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
       raise "Run #{run_id} not found"
     end
 
-    context[:files_to_update] = (run.dig("state","files_to_update") || []).map(&:symbolize_keys) 
+    context[:files_to_ignore] = fetch_successful_files
+
+    context[:files_to_update] = (run.dig("state","files_to_update") || []).map(&:symbolize_keys).reject do |file|
+      context[:files_to_ignore].include?(file[:path])
+    end
 
     if context[:files_to_update].empty?
       logger.info("No new files to upload...")
@@ -98,7 +102,7 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
           remote_filename: sftp_path,
           local_filename: deposit_path
         )
-        context[:successful_files] << deposit_path
+        context[:successful_files] << sftp_path
       rescue Etna::RemoteSSH::RemoteSSHError => e
         logger.warn("Failed to upload to deposit host #{deposit_host}: #{sftp_path}. Error: #{e.message}")
         context[:failed_files] << sftp_path 
@@ -114,28 +118,49 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
 
     msg += "\n" 
 
-    if context[:successful_files].any?
+    state = {}
+
+    if context[:successful_files]&.any?
       msg += "Uploaded #{context[:successful_files].size} files:\n" +
         context[:successful_files].join("\n")
+
+      state[:deposit_successful_files] = context[:successful_files]
     end
 
-    if context[:failed_files].any?
+    if context[:failed_files]&.any?
       msg += "Failed #{context[:failed_files].size} files:\n" +
         context[:failed_files].join("\n")
-
-      polyphemus_client.update_run(project_name, run_id, {
-        state: {
-          deposit_num_failed_files: context[:failed_files].size
-        },
-      })
 
       logger.warn("Found #{context[:failed_files].size} failed files")
 
       context[:failed_files].each do |file_path|
         logger.warn(file_path)
       end
+
+      state[:deposit_num_failed_files] = context[:failed_files].size
     end
     
+    unless state.empty?
+      polyphemus_client.update_run(project_name, run_id, { state: state })
+    end
+
     notify_slack(msg, channel: notification_channel, webhook_url: notification_webhook_url)
+  end
+
+  private
+
+  def fetch_successful_files
+    begin
+      response = polyphemus_client.get_previous_state(
+        project_name,
+        workflow_config_id,
+        state: [:deposit_successful_files],
+        collect: true
+      )
+      return Set.new((response["deposit_successful_files"] || []).flatten)
+    rescue Etna::Error => e
+      logger.warn("Error fetching previous state")
+      raise e
+    end
   end
 end

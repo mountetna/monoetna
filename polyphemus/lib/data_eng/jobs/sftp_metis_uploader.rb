@@ -62,7 +62,11 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
 
     raise "Run #{run_id} not found" unless run
 
-    context[:files_to_update] = (run.dig("state","files_to_update") || []).map(&:symbolize_keys) 
+    context[:files_to_ignore] = fetch_successful_files
+
+    context[:files_to_update] = (run.dig("state","files_to_update") || []).map(&:symbolize_keys).reject do |file|
+      context[:files_to_ignore].include?(file[:path])
+    end
 
     if context[:files_to_update].empty?
       logger.info("No new files to upload...")
@@ -99,6 +103,8 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
       logger: nil,
     )
 
+    logger.info("Uploading #{context[:files_to_update].size} to metis at #{metis_root_path}")
+
     workflow.copy_files(context[:files_to_update].map do |file|
       [ file[:path], file[:path].gsub(name_regex, '') ]
     end) do |filename, success|
@@ -119,29 +125,50 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
 
     msg += "\n" 
 
-    if context[:successful_files].any?
+    state = {}
+
+    if context[:successful_files]&.any?
       msg += "Uploaded #{context[:successful_files].size} files:\n" +
         context[:successful_files].join("\n")
+
+      state[:metis_successful_files] = context[:successful_files]
     end
 
-    if context[:failed_files].any?
+    if context[:failed_files]&.any?
       msg += "Failed #{context[:failed_files].size} files:\n" +
         context[:failed_files].join("\n")
-
-      polyphemus_client.update_run(project_name, run_id, {
-        state: {
-          metis_num_failed_files: context[:failed_files].size
-        },
-      })
 
       logger.warn("Found #{context[:failed_files].size} failed files")
 
       context[:failed_files].each do |file_path|
         logger.warn(file_path)
       end
+
+      state[:metis_num_failed_files] = context[:failed_files].size
     end
     
+    unless state.empty?
+      polyphemus_client.update_run(project_name, run_id, { state: state })
+    end
+
     notify_slack(msg, channel: notification_channel, webhook_url: notification_webhook_url)
+  end
+
+  private
+
+  def fetch_successful_files
+    begin
+      response = polyphemus_client.get_previous_state(
+        project_name,
+        workflow_config_id,
+        state: [:metis_successful_files],
+        collect: true
+      )
+      return Set.new((response["metis_successful_files"] || []).flatten)
+    rescue Etna::Error => e
+      logger.warn("Error fetching previous state")
+      raise e
+    end
   end
 end
 
