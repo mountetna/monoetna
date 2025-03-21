@@ -68,13 +68,13 @@ describe SftpFileDiscoveryJob do
       runtime_config = {
         "config" => {
           "override_interval" => 864000, # 10 days
-          "initial_start_scan_time" => 1672531200, #Jan 1, 2023
+          "initial_start_scan_time" => '2023-01-01T00:00:00'
         }
       }
       job = create_job(config, runtime_config)
       job.execute
-      expect(captured_requests[0][:state][:start_time]).to eq(runtime_config["config"]["initial_start_scan_time"])
-      expect(captured_requests[0][:state][:end_time]).to eq(runtime_config["config"]["initial_start_scan_time"] + runtime_config["config"]["override_interval"])
+      expect(captured_requests[0][:state][:start_time]).to eq(DateTime.parse(runtime_config["config"]["initial_start_scan_time"]).to_i)
+      expect(captured_requests[0][:state][:end_time]).to eq(DateTime.parse(runtime_config["config"]["initial_start_scan_time"]).to_i + runtime_config["config"]["override_interval"])
     end
 
     it 'sets the end time to the current time if no interval is provided' do
@@ -84,12 +84,12 @@ describe SftpFileDiscoveryJob do
       runtime_config = {
         "config" => {
           "interval" => nil,
-          "initial_start_scan_time" => 1672531200, #Jan 1, 2023
+          "initial_start_scan_time" => '2023-01-01T00:00:00'
         }
       }
       job = create_job(config, runtime_config)
       job.execute
-      expect(captured_requests[0][:state][:start_time]).to eq(runtime_config["config"]["initial_start_scan_time"])
+      expect(captured_requests[0][:state][:start_time]).to eq(DateTime.parse(runtime_config["config"]["initial_start_scan_time"]).to_i)
       expect(captured_requests[0][:state][:end_time]).to be_within(5).of(Time.now.to_i)
     end
 
@@ -102,7 +102,7 @@ describe SftpFileDiscoveryJob do
       {
         "config" => {
           "interval" => 864000, # 10 days
-          "initial_start_scan_time" => 1672531200, #Jan 1, 2023
+          "initial_start_scan_time" => '2023-01-01T00:00:00'
         }
       }
     }

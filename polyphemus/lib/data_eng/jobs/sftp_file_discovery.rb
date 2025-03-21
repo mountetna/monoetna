@@ -91,9 +91,9 @@ class SftpFileDiscoveryJob < Polyphemus::ETLJob
 
   def fetch_last_scan
     if restart_scan?
-      logger.info("Restarting scan... at #{Time.at(initial_start_scan_time).strftime('%Y-%m-%d %H:%M:%S')}")
+      logger.info("Restarting scan... at #{initial_start_scan_time}")
 
-      return initial_start_scan_time
+      return DateTime.parse(initial_start_scan_time).to_i
     end
 
     begin

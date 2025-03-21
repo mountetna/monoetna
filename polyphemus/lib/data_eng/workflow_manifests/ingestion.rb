@@ -20,7 +20,7 @@ class Polyphemus
           },
           runtime_params: {
             initial_start_scan_time: {
-              type: 'integer', # unix timestamp
+              type: 'datetime',
               description: 'Scan start time, defaults to last completion',
               default: nil
             },

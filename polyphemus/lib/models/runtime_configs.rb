@@ -32,7 +32,7 @@ class Polyphemus
     end
     
     def disabled?
-      disabled || run_interval.nil? || run_interval == 0
+      disabled || run_interval.nil? || run_interval <= 0
     end
 
     def should_run?
