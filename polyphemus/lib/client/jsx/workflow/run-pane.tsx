@@ -54,8 +54,10 @@ type SelectValue = {
   description: string;
 };
 
+type ParamType = 'select' | 'options' | 'boolean' | 'integer' | 'string' | 'datetime';
+
 type ComplexParam = {
-  type: string;
+  type: ParamType;
   values?: SelectValue[];
   valuesFrom?: string;
   description?: string;
@@ -71,15 +73,17 @@ type ParamComponent = {
 };
 
 const SelectParam = ({value, options,name,update,config}:ParamComponent) => {
-  const opts = options.values;
-  const defaultValue = options.default;
+  const { values, default: defaultValue } = options;
+
+  if (!values) return null;
+
   return (
     <Select
       value={value ? value : defaultValue ? defaultValue : ''}
       onChange={(e) => update(name, e.target.value as string)}
     >
       {
-        opts.map( opt =>
+        values.map( opt =>
           <MenuItem key={opt.value} value={opt.value}>
             {`${opt.value}${opt.description ? ` - ${opt.description}` : ''}`}
           </MenuItem>
