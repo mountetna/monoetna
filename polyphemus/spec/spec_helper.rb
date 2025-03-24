@@ -139,6 +139,10 @@ FactoryBot.define do
      to_create(&:save)
   end
 
+  factory :run, class: Polyphemus::Run do
+     to_create(&:save)
+  end
+
   factory :log, class: Polyphemus::Log do
      to_create(&:save)
   end
@@ -630,12 +634,70 @@ def create_metis_file(file_name, file_path, file_hash: SecureRandom.hex, updated
   })
 end
 
+def create_run(config_o, run_num, status:, run_start:,run_stop:)
+  create(:run, {
+    config_id: config_o.config_id,
+    run_id: SecureRandom.hex,
+    name: "#{config_o.workflow_name}-#{run_num}",
+    version_number: config_o.version_number,
+    created_at: run_start || Time.now,
+    orchestrator_metadata: status == 'Running' ? nil : {
+      'startedAt' => run_start,
+      "nodes" => {
+        "step-node" => {
+          'finishedAt' => run_stop,
+          'type' => 'Steps',
+          'phase' => status
+        }
+      }
+    }
+  })
+end
+
+def create_config(params)
+  create(
+    :config,
+    {
+      project_name: 'labors',
+      config_id: Polyphemus::Config.next_id,
+      workflow_type: 'test',
+      version_number: 1,
+      config: {},
+      secrets: {}
+    }.merge(params)
+  )
+end
+
+def create_workflow(workflow_name:, run_interval:, runtime_config: {}, run_start: nil, run_stop: nil, disabled: false, status: 'Succeeded')
+  config_o = create_config(
+    workflow_name: workflow_name,
+    workflow_type: 'test'
+  )
+  runtime_config_o = create( :runtime_config,
+    config_id: config_o.config_id,
+    config: runtime_config,
+    run_interval: run_interval,
+    disabled: disabled
+  )
+
+  if run_start
+    run_o = create_run(
+      config_o, 1000,
+      status: status,
+      run_start: run_start,
+      run_stop: run_stop
+    )
+  end
+
+  return config_o, runtime_config_o, run_o
+end
+
 ## Polyphemus V2
 
 class TestManifest < Polyphemus::WorkflowManifest
     def self.as_json
     {
-      name: 'test-workflow',
+      name: 'test',
       schema: {
         type: 'object',
         properties: {
@@ -655,7 +717,7 @@ class TestManifest < Polyphemus::WorkflowManifest
 end
 
 # Polyphemus API Stubs
-def stub_polyphemus_get_last_state(project_name, config_id, version_number, last_state)
+def stub_polyphemus_get_last_state(project_name, config_id, last_state)
   stub_request(:post, "#{POLYPHEMUS_HOST}/api/workflows/#{project_name}/run/previous/#{config_id}")
     .to_return({
       status: 200,

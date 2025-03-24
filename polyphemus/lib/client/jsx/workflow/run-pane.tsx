@@ -49,39 +49,41 @@ const useStyles = makeStyles((theme) => ({
 
 type Value = undefined | string | boolean | number;
 
-type SelectParam = {
+type SelectValue = {
   value: string;
   description: string;
 };
 
+type ParamType = 'select' | 'options' | 'boolean' | 'integer' | 'string' | 'datetime';
+
 type ComplexParam = {
-  type: string;
-  values?: SelectParam[];
+  type: ParamType;
+  values?: SelectValue[];
   valuesFrom?: string;
   description?: string;
   default?: string;
 };
 
-const DefaultSelect = ({
-  value,
-  opts=[],
-  defaultValue,
-  name,
-  update
-}: {
+type ParamComponent = {
   value: Value;
-  opts?: SelectParam[];
-  defaultValue: string | undefined;
+  options: ComplexParam;
   name: string;
-  update: (name: string, value: string | boolean) => void;
-}) => {
+  update: (name: string, value: Value) => void;
+  config: any;
+};
+
+const SelectParam = ({value, options,name,update,config}:ParamComponent) => {
+  const { values, default: defaultValue } = options;
+
+  if (!values) return null;
+
   return (
     <Select
       value={value ? value : defaultValue ? defaultValue : ''}
       onChange={(e) => update(name, e.target.value as string)}
     >
       {
-        opts.map( opt =>
+        values.map( opt =>
           <MenuItem key={opt.value} value={opt.value}>
             {`${opt.value}${opt.description ? ` - ${opt.description}` : ''}`}
           </MenuItem>
@@ -91,78 +93,108 @@ const DefaultSelect = ({
   );
 };
 
+const OptionsParam = ({value, options,name,update,config}:ParamComponent) => {
+  const { values, valuesFrom } = options;
+  let onChange: (e: any, v: string[]) => void;
+  let fillValues: string[];
+
+  if (valuesFrom === 'model_names') {
+    fillValues = ['all'].concat(Object.keys(config).sort());
+    onChange = (e, v) => update(name, v.includes('all') ? 'all' : v.join(','));
+  } else if (values) {
+    fillValues = values.map(v => v.value);
+    onChange = (e, v) => update(name, v.join(','));
+  } else {
+    return null;
+  }
+
+  return (
+    <Autocomplete
+      multiple
+      fullWidth
+      id={name}
+      options={fillValues}
+      value={'' === value ? [] : (value as string)?.split(',') || []}
+      renderInput={(params) => <TextField {...params} variant='standard' />}
+      onChange={onChange}
+    />
+  );
+}
+
+const StringParam = ({value, options,name,update,config}:ParamComponent) => {
+  return (
+    <TextField
+      size='small'
+      placeholder={options.description}
+      fullWidth
+      value={value == undefined ? '' : value}
+      onChange={(e) => update(name, e.target.value)}
+    />
+  );
+}
+
+const BooleanParam = ({value, options,name,update,config}:ParamComponent) => {
+  return (
+    <Switch
+      size='small'
+      checked={value == undefined ? false : (value as boolean)}
+      onChange={(e) => update(name, e.target.checked)}
+    />
+  );
+}
+
+const IntegerParam = ({value, options,name,update,config}:ParamComponent) => {
+  return (
+    <TextField
+      size='small'
+      type='number'
+      placeholder={options.description}
+      fullWidth
+      value={value == undefined ? '' : value}
+      onChange={(e) => update(name, parseInt(e.target.value))}
+    />
+  );
+}
+
+const DateTimeParam = ({value, options,name,update,config}:ParamComponent) => {
+  return (
+    <TextField
+      size='small'
+      type='datetime-local'
+      placeholder={options.description}
+      fullWidth
+      value={value == undefined ? '' : value}
+      onChange={(e) => { console.log({ v: e.target.value}); update(name, e.target.value)} }
+    />
+  );
+}
+
+const PARAMS = {
+  select: SelectParam,
+  options: OptionsParam,
+  boolean: BooleanParam,
+  integer: IntegerParam,
+  string: StringParam,
+  datetime: DateTimeParam,
+}
+
 const Param = ({
   value,
   options,
   name,
   update,
   config
-}: {
-  value: Value;
-  options: ComplexParam;
-  name: string;
-  update: (name: string, value: Value) => void;
-  config: any;
-}) => {
-  if (options.type === 'options') {
-    const { values, valuesFrom } = options;
-    let onChange: (e: any, v: string[]) => void;
-    let fillValues: string[];
+}: ParamComponent) => {
+  if (options.type in PARAMS) {
+    const Component = PARAMS[options.type];
 
-    if (valuesFrom === 'model_names') {
-      fillValues = ['all'].concat(Object.keys(config).sort());
-      onChange = (e, v) => update(name, v.includes('all') ? 'all' : v.join(','));
-    } else if (values) {
-      fillValues = values.map(v => v.value);
-      onChange = (e, v) => update(name, v.join(','));
-    } else {
-      return null;
-    }
-
-    return (
-      <Autocomplete
-        multiple
-        fullWidth
-        id={name}
-        options={fillValues}
-        value={'' === value ? [] : (value as string)?.split(',') || []}
-        renderInput={(params) => <TextField {...params} variant='standard' />}
-        onChange={onChange}
-      />
-    );
-  } else if (options.type === 'select') {
-    return (
-      <DefaultSelect value={value} opts={options.values} name={name} update={update} defaultValue={options.default} />
-    );
-  } else if (options.type == 'string') {
-    return (
-      <TextField
-        size='small'
-        placeholder={options.description}
-        fullWidth
-        value={value == undefined ? '' : value}
-        onChange={(e) => update(name, e.target.value)}
-      />
-    );
-  } else if (options.type == 'boolean') {
-    return (
-      <Switch
-        size='small'
-        checked={value == undefined ? false : (value as boolean)}
-        onChange={(e) => update(name, e.target.checked)}
-      />
-    );
-  } else if (options.type == 'integer') {
-    return (
-      <TextField
-        size='small'
-        type='number'
-        placeholder={options.description}
-        fullWidth
-        value={value == undefined ? '' : value}
-        onChange={(e) => update(name, parseInt(e.target.value))}
-      />
-    );
+    return <Component
+      value={value}
+      options={options}
+      name={name}
+      update={update}
+      config={config}
+    />;
   }
 
   return null;
