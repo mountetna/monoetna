@@ -27,6 +27,7 @@ import {
 import { paramValuesToRaw, workspacesFromResponse } from '../selectors/workflow_selectors';
 import { isSome } from '../selectors/maybe';
 import { val_wrap } from '../components/workspace/ui_definitions/inputs/pieces/user_input_pieces';
+import * as _ from 'lodash';
 
 export const defaultApiHelpers = {
   vulcanPath(endpoint: string): string {
@@ -81,7 +82,7 @@ export const defaultApiHelpers = {
   getImage(projectName: string, workspaceId: number, imageFile: string): Promise<Response> {
     return new Promise(() => null);
   },
-  setConfig(projectName: string, workspaceId: number, params: FlatParams): Promise<AccountingReturn> {
+  setConfig(projectName: string, workspaceId: number, params: FlatParams, uiFilesSent: string[], paramsChanged: string[]): Promise<AccountingReturn> {
     return new Promise(() => null);
   },
   postUIValues(projectName: string, workspaceId: number, status: WorkspaceStatus, steps: string | null): Promise<AccountingReturn> {
@@ -255,10 +256,14 @@ export function useApi(
   }, [vulcanPost, vulcanPath]);
 
   const setConfig = useCallback(
-    (projectName: string, workspaceId: number, params: FlatParams): Promise<AccountingReturn> => {
+    (projectName: string, workspaceId: number, params: FlatParams, uiFilesSent: string[], paramsChanged: string[]): Promise<AccountingReturn> => {
       return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/config`),
-        {params: params}
+        {
+          params,
+          uiFilesSent,
+          paramsChanged
+        }
       );
   }, [vulcanPost, vulcanPath]);
 
@@ -267,16 +272,15 @@ export function useApi(
       // Only ever per a single 'step'.
       // Can assume the values have already been validated.
       // If a "inputUI", send targeted file outputs
+      let uiFilesSent: string[] = [];
+      let paramsChanged: string[] = [];
+      let paramsUse: FlatParams = status.last_params;
       if (step in status.ui_contents) {
         let filesContent: MultiFileContent = {};
-        if (! (step in status.ui_contents)) {
-          return Promise.reject(
-            new Error(`${step} missing, bug in client.`)
-          );
-        }
         Object.entries(status.ui_contents[step]).map(([key, val]) => {
           if (isSome(val)) {
             // These should never really not be a 'some' / at least [null] as will have been deliberately set to a (possibly null) value.
+            uiFilesSent.push(key);
             filesContent[key] = val[0];
           } else {
             return Promise.reject(
@@ -290,14 +294,18 @@ export function useApi(
           workspaceId,
           {...filesContent}
         )
+      } else {
+        paramsUse = paramValuesToRaw(status.params)
+        paramsChanged = Object.keys(status.params[step]).filter((name) => !_.isEqual(paramsUse[name], status.last_params[name]))
       }
 
       // Send params to request new accounting
-      const params_use = step in status.params ? paramValuesToRaw(status.params) : status.last_params;
       return setConfig(
         projectName,
         workspaceId,
-        params_use
+        paramsUse,
+        uiFilesSent,
+        paramsChanged
       )
         .then(handleFetchSuccess)
         .catch(handleFetchError);
