@@ -56,28 +56,37 @@ class Vulcan
         dag[(last_matched_index + 1)..-1]
       end
 
-      def filter_upstream_files(file_dag, ui_targets)
-        # Extract files that are downstream of the ui targets (we dont want to delete files )
-        # Ie: ui_file_1 -> ui_file_2 -> ui_file_3 and we have ui_targets = [ui_file_2]
-        # We filter up to ui_file_2, so we are only left with ui_file_3
-        last_ui_index = file_dag.rindex { |file| ui_targets.include?(file) }
-        last_ui_index ? file_dag[(last_ui_index + 1)..-1] : []
-      end
-
       def ui_targets(target_mapping)
         target_mapping.select { |target, requirements| requirements["params"].include?("ui") }.keys
       end
 
-      def file_dag(target_mapping)
-        # This function returns an ordered list of files based on the dependencies between them
-        visited = {}
-        order = []
-        
-        # DFS-based topological sort.
-        target_mapping.each_key do |file|
-          dfs(file, target_mapping, visited, order) unless visited[file]
+      def file_graph(target_mapping)
+        # Build reverse adjacency: input -> [outputs]
+        graph = Hash.new { |h,k| h[k] = [] }
+        target_mapping.each do |output, info|
+          Array(info["inputs"]).each do |inp|
+            graph[inp] << output
+          end
         end
-        order
+        graph
+      end
+
+      def downstream_nodes(graph, start_nodes)
+        # Takes in an adjacency list and a list of start nodes.
+        # Returns a list of all nodes that are downstream of the start nodes.
+        visited = Set.new
+        queue   = start_nodes.to_a.dup
+      
+        until queue.empty?
+          node = queue.shift
+          graph[node].each do |child|
+            next if visited.include?(child)
+            visited << child
+            queue << child
+          end
+        end
+      
+        visited
       end
 
       def filter_ui_targets(jobs_to_run, target_mapping)
@@ -93,18 +102,6 @@ class Vulcan
 
       private
 
-      def dfs(file, files, visited, order)
-        return if visited[file]
-        visited[file] = true
-        
-        # Process only inputs that are keys in our object
-        files[file]["inputs"].each do |input|
-          dfs(input, files, visited, order) if files.key?(input)
-        end
-        
-        order << file
-      end
-
       def find_targets_matching_params(target_mapping, params)
         target_mapping.select { |target, requirements| requirements["params"].any? { |param| params.include?(param) } }.keys
       end
@@ -113,7 +110,7 @@ class Vulcan
         target_mapping.reject { |target, requirements| requirements["params"].include?("ui") }
       end
 
-      module_function :find_affected_downstream_jobs, :find_buildable_targets, :match, :ui_targets, :file_dag, :find_targets_matching_params, :remove_ui_targets, :dfs, :filter_upstream_files, :filter_ui_targets
+      module_function :find_affected_downstream_jobs, :find_buildable_targets, :match, :ui_targets, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes
     end
   end
 end

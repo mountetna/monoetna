@@ -824,7 +824,7 @@ describe VulcanV2Controller do
         post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", ui_file_request)
       end
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_one.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_falsey
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_truthy # This should not be removed
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_summary.txt")).to be_falsey
     end
   end

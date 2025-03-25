@@ -43,38 +43,43 @@ describe Vulcan::Snakemake::Inference do
     end
   end
 
-  context 'file_dag' do
-    it 'correctly finds the file dag' do
-      result = Vulcan::Snakemake::Inference.file_dag(target_mapping)
-      expect(result).to eq(
-        ["output/count_poem.txt",
-         "output/count_poem_2.txt",
-          "output/arithmetic.txt",
-          "output/check.txt",
-          "output/ui_job_one.txt",
-          "output/ui_job_two.txt",
-          "output/summary.txt",
-          "output/ui_summary.txt",
-          "output/final.txt"]
+  context 'file graph' do
+    it 'correctly builds the adjacency list' do
+      result = Vulcan::Snakemake::Inference.file_graph(target_mapping)
+      expect(result).to match(
+          a_hash_including(
+              "output/poem.txt"=>["output/count_poem.txt", "output/count_poem_2.txt"],
+              "output/poem_2.txt"=>["output/count_poem.txt", "output/count_poem_2.txt"],
+              "output/count_poem.txt"=>["output/arithmetic.txt", "output/summary.txt"],
+              "output/count_poem_2.txt"=>["output/arithmetic.txt", "output/summary.txt"],
+              "output/arithmetic.txt"=>["output/check.txt", "output/summary.txt"],
+              "output/check.txt"=>["output/ui_job_one.txt", "output/summary.txt"],
+              "output/ui_job_one.txt"=>["output/summary.txt", "output/ui_summary.txt"],
+              "output/ui_job_two.txt"=>["output/summary.txt", "output/ui_summary.txt"],
+              "output/summary.txt"=>["output/ui_summary.txt"],
+              "output/ui_summary.txt"=>["output/final.txt"]
+          )
       )
     end
   end
 
-  context 'filter_upstream_files' do
-    let(:file_dag) { ["file_a", "file_b", "file_c", "file_d", "file_e"] }
-    it 'correctly removes upstream files when there is one ui target' do
-      result = Vulcan::Snakemake::Inference.filter_upstream_files(file_dag, ["file_c"])
-      expect(result).to eq(["file_d", "file_e"])
+  context 'downstream_nodes' do
+    let(:file_graph) { Vulcan::Snakemake::Inference.file_graph(target_mapping) }
+  
+    it 'correctly finds downstream nodes' do
+      result = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, ["output/summary.txt"])
+      expect(result).to eq(Set.new(["output/ui_summary.txt", "output/final.txt"]))
     end
 
-    it 'correctly removes upstream files when there are multiple ui targets' do
-      result = Vulcan::Snakemake::Inference.filter_upstream_files(file_dag, ["file_a", "file_c"])
-      expect(result).to eq(["file_d", "file_e"])
+    it 'correctly finds downstream nodes when there are multiple targets' do
+      result = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, ["output/arithmetic.txt", "output/ui_job_two.txt"])
+      expect(result).to eq(Set.new(["output/check.txt", "output/summary.txt", "output/ui_summary.txt", "output/ui_job_one.txt", "output/final.txt"]))
     end
 
-    it 'correctly removes all files if the target is the last file in the dag' do
-      result = Vulcan::Snakemake::Inference.filter_upstream_files(file_dag, ["file_e"])
-      expect(result).to eq([])
+    it 'correctly ignores downstream nodes on the same level' do
+      result = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, ["output/ui_job_one.txt"])
+      # ui_job_two.txt is on the same level as ui_job_one.txt
+      expect(result).to eq(Set.new(["output/summary.txt", "output/ui_summary.txt", "output/final.txt"]))
     end
   end
 
