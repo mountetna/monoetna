@@ -35,7 +35,7 @@
       width: 300px;
       transition: width 250ms ease-in-out;
     }
-    title {
+    .title {
       width: 100%;
       transition: width 250ms ease-in-out;
     }
@@ -70,7 +70,7 @@
         margin-left: 15px;
       }
     }
-    title {
+    .title {
       width: 0px;
       overflow-x: hidden;
       transition: width 250ms ease-in-out;
