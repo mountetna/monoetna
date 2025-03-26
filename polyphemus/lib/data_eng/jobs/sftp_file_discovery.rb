@@ -10,7 +10,7 @@ class SftpFileDiscoveryJob < Polyphemus::ETLJob
   private
 
   def restart_scan?
-    !!initial_start_scan_time
+    !!DateTime.parse(initial_start_scan_time) rescue false
   end
 
   def sftp_client

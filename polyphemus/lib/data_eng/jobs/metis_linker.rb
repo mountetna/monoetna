@@ -92,7 +92,6 @@ EOT
       response = polyphemus_client.get_previous_state(
        project_name,
        workflow_config_id,
-       workflow_version,
        state: [:end_time]
       )
       return response['end_time'].to_i
