@@ -9,17 +9,14 @@
  * shown).
  */
 
-// Framework libraries.
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import 'regenerator-runtime/runtime';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
-// Class imports.
 import Header from '../header';
 import ViewTabBar from './view_tab_bar';
 import ViewTab from './view_tab';
 
-// Module imports.
 import {setLocation} from 'etna-js/actions/location_actions';
 import {requestView} from '../../actions/view_actions';
 import {

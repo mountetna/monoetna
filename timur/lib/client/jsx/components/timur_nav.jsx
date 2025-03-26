@@ -46,8 +46,9 @@ const Logo = connect(({exchanges}) => ({exchanges}))(({exchanges}) => (
 
 const getTabs = ({mode, user, canUseAdvanced}) => {
   let tabs = {
+    project: Routes.dashboard_path(CONFIG.project_name),
     browse: Routes.browse_path(CONFIG.project_name),
-    map: Routes.map_path(CONFIG.project_name),
+    model: Routes.map_path(CONFIG.project_name),
     search: Routes.search_path(CONFIG.project_name),
     query: Routes.query_path(CONFIG.project_name),
     help: `https://mountetna.github.io/timur.html#${mode}`

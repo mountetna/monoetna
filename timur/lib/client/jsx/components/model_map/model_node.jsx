@@ -45,7 +45,13 @@ const ModelNode = ({model_name, center, size, selected, handler, disabled, numSi
       className={`${classes.model_node} ${selected ? classes.selected : ''} ${
         disabled ? classes.disabled : ''
       }`}
-      style={{top: center.y, left: center.x, '--model-width': `${600 / (numSiblings + 1) - 15}px` }}
+
+      style={{
+        top: center.y,
+        left: center.x,
+        maxWidth: `${600 / (numSiblings + 1) - 15}px`
+      }}
+
       onClick={() => {
         if (!disabled) handler(model_name);
       }}
