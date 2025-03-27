@@ -191,7 +191,7 @@ class WorkflowController < Polyphemus::Controller
       config_id: @params[:config_id],
     ).exclude(state: nil).order(Sequel.desc(:created_at)).all
 
-    success_json({}) if runs.empty?
+    return success_json({}) if runs.empty?
 
     filtered_state = @params[:state].to_h do |state_key|
       result = @params[:collect] ?
