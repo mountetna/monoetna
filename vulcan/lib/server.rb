@@ -15,11 +15,11 @@ class Vulcan
 
     # Vulcan V2 endpoints
 
-    # CRUD Workflow
+    # Workflow API
     post 'api/v2/:project_name/workflows/create', action: 'vulcan_v2#create_workflow', auth: { user: { is_admin?: :project_name }}
     get 'api/v2/:project_name/workflows/', action: 'vulcan_v2#list_workflows', auth: { user: { can_edit?: :project_name }}
 
-    # CRUD Workspace
+    # Workspace API
     post 'api/v2/:project_name/workspace/create', action: 'vulcan_v2#create_workspace', auth: { user: { can_edit?: :project_name }}
     get 'api/v2/:project_name/workspace', action: 'vulcan_v2#list_workspaces',  auth: { user: { can_edit?: :project_name }}
     get 'api/v2/:project_name/workspace/:workspace_id', action: 'vulcan_v2#get_workspace',  auth: { user: { can_edit?: :project_name }}
@@ -44,12 +44,6 @@ class Vulcan
     # Is running endpoint
     get'api/v2/:project_name/workspace/:workspace_id/running', action: 'vulcan_v2#is_running',  auth: { user: { can_edit?: :project_name }}
   
-    # Workspace state aka revisions
-    # TODO: rename? to pipeline state?
-    post 'api/v2/:project_name/:workspace_id/save, action: vulcan_v2#save_workspace_state', auth: { user: { can_edit?: :project_name }}
-    post 'api/v2/:project_name/:workspace_id/load, action: vulcan_v2#load_workspace_state', auth: { user: { can_edit?: :project_name }}
-    get'api/v2/:project_name/:workspace_id/state, action: vulcan_v2#get_workspace_state', auth: { user: { can_edit?: :project_name }}
-
     # Vulcan V1 endpoints - to eventually remove
     get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
 
