@@ -67,7 +67,7 @@ class Magma
         magma_model = Magma.instance.get_project(project_name)&.models[ @name.to_sym ]
 
         magma_record = magma_model&.where(
-          magma_model.identity.name => composed_identifier
+          magma_model.identity.column_name.to_sym => composed_identifier
         )&.first
 
         [
