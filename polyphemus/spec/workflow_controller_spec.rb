@@ -405,6 +405,13 @@ describe WorkflowController do
       }.merge(params))
     end
 
+    it 'returns nothing when there are no runs' do
+      auth_header(:editor)
+      post("/api/workflows/labors/run/previous/#{config_id}", state: [:current_labor])
+      expect(last_response.status).to eq(200)
+      expect(json_body).to eq({})
+    end
+
     it 'returns the specific state when a state is specified' do
       create_run(state: { current_labor: "The Nemean Lion"})
 
