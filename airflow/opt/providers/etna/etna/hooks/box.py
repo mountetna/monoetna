@@ -244,7 +244,7 @@ class Box(object):
         """
         Save the cursor to the database.
         """
-        Variable.set(self.variable_key, self.cursor, serialize_json=True)
+        Variable.update(self.variable_key, self.cursor, serialize_json=True)
 
     def remove_file(self, ftps: FTP_TLS, file: FtpEntry):
         """
