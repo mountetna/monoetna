@@ -48,10 +48,6 @@ class VulcanV2Controller < Vulcan::Controller
     )
   end
 
-  def update_workflow
-    # re-generate target mapping and dag
-  end
-
   def create_workspace
     workflow = Vulcan::WorkflowV2.first(id: @params[:workflow_id], project_name: @params[:project_name])
     unless workflow
@@ -65,7 +61,7 @@ class VulcanV2Controller < Vulcan::Controller
         @remote_manager.clone(workflow.repo_remote_url, workspace_dir)
         @remote_manager.checkout_version(workspace_dir, @escaped_params[:git_version])
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
-        @remote_manager.mkdir(Vulcan::Path.workspace_output_path(workspace_dir))
+        @remote_manager.mkdir(Vulcan::Path.workspace_output_dir(workspace_dir))
         @remote_manager.upload_dir(Vulcan::Path::SNAKEMAKE_UTILS_DIR, workspace_dir, true)
         config = @remote_manager.read_yaml_file(Vulcan::Path.default_snakemake_config(workspace_dir))
         obj = Vulcan::Workspace.create(
@@ -132,14 +128,38 @@ class VulcanV2Controller < Vulcan::Controller
     })
     success_json(response)
   end
-
+  # Update workspace name and tags
   def update_workspace
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    unless workspace
+      msg = "Workspace for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+
+    if @params.key?(:name)
+      workspace.name = @params[:name]
+    end
+
+    if @params.key?(:tags)
+      formatted_tags = '{' + @params[:tags].map { |tag| "\"#{tag}\"" }.join(',') + '}'
+      # Validate the format matches PostgreSQL array format
+      # Our db has an old version of sequel that doesnt support the pg_array method
+      safe_tags = Sequel.lit(formatted_tags).to_s
+      workspace.tags = safe_tags
+    end
+
+    workspace.save
+    success_json(workspace.to_hash)
   end
 
   def save_config
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     unless workspace
       msg = "Workspace for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+    unless @params.key?(:uiFilesSent) && @params.key?(:paramsChanged)
+      msg = "Missing required parameters: uiFilesSent and/or paramsChanged."
       raise Etna::BadRequest.new(msg)
     end
     begin
@@ -163,7 +183,7 @@ class VulcanV2Controller < Vulcan::Controller
         )
       end
       @snakemake_manager.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged], workspace)
-      available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" }
+      available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path)).map { |file| "output/#{file}" }
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(
         workspace.target_mapping,
@@ -208,7 +228,7 @@ class VulcanV2Controller < Vulcan::Controller
         raise Etna::BadRequest.new(msg)
       end
       # Build snakemake command
-      available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path)).map { |file| "output/#{file}" }
+      available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path)).map { |file| "output/#{file}" }
       params = @remote_manager.read_yaml_file(config.path).keys
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(workspace.target_mapping, params, available_files)
@@ -260,7 +280,7 @@ class VulcanV2Controller < Vulcan::Controller
     raise Etna::BadRequest.new("No files provided") if files.empty?
     begin
       files.each do |file|
-        output_path = Vulcan::Path.workspace_output_path(workspace.path)
+        output_path = Vulcan::Path.workspace_output_dir(workspace.path)
         @remote_manager.write_file("#{output_path}#{file[:filename]}", file[:content])
       end
     rescue => e
@@ -276,7 +296,7 @@ class VulcanV2Controller < Vulcan::Controller
     file_names = @params[:file_names] || []
     raise Etna:BadRequest.new("No files provided" ) if file_names.empty?
     file_contents = file_names.map do |file_name|
-      output_path = Vulcan::Path.workspace_output_path(workspace.path)
+      output_path = Vulcan::Path.workspace_output_dir(workspace.path)
       content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
       {
         filename: file_name,
@@ -289,7 +309,7 @@ class VulcanV2Controller < Vulcan::Controller
   def get_files
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
-    success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_path(workspace.path))})
+    success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path))})
   end
 
   def read_image
@@ -297,7 +317,7 @@ class VulcanV2Controller < Vulcan::Controller
     raise Etna::BadRequest.new("Workspace not found") unless workspace
     file_name = @params[:file_name] || []
     raise Etna:BadRequest.new("No file provided" ) if file_name.nil? || file_name.empty?
-    output_path = Vulcan::Path.workspace_output_path(workspace.path)
+    output_path = Vulcan::Path.workspace_output_dir(workspace.path)
     unless @remote_manager.file_exists?("#{output_path}#{file_name}")
       raise Etna::BadRequest.new("File not found")
     end
