@@ -17,7 +17,7 @@ import CodeMirror from 'rodemirror';
 
 const useStyles = makeStyles((theme) => ({
   query_string: {
-    width: '100%',
+    width: 'calc(100% - 20px)',
     padding: '10px',
     position: 'relative',
     borderBottom: '1px solid #eee'
@@ -25,6 +25,7 @@ const useStyles = makeStyles((theme) => ({
   query_box: {
     border: '1px solid #ccc',
     borderRadius: 2,
+    paddingRight: '26px',
     backgroundColor: 'rgba(128,128,128,0.01)'
   },
   expand: {
@@ -58,10 +59,12 @@ const QueryString = () => {
 
   const codeMirrorText = fold ? queryString : prettyString;
 
+  const FoldIcon = fold ? ExpandMoreIcon : ExpandLessIcon;
+
   return (
     <Grid className={ classes.query_string } >
-      <IconButton className={ classes.expand } onClick={ () => setFold(!fold) } >
-        { fold ? <ExpandMoreIcon/> : <ExpandLessIcon/> }
+      <IconButton className={ classes.expand } onClick={ () => setFold(!fold) } size='small'>
+        <FoldIcon fontSize='small'/>
       </IconButton>
       <Grid className={classes.query_box}>
         <ErrorBoundary>

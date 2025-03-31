@@ -10,7 +10,6 @@ import {EmptyQueryResponse} from '../../contexts/query/query_types';
 import QueryModelSelector from './query_model_selector';
 import QueryClause from './query_clause';
 import QueryChevron from './query_chevron';
-import QueryControlButtons from './query_control_buttons';
 import {isLinkCollection, sortAttributeList} from '../../utils/attributes';
 
 const QueryFromPane = () => {

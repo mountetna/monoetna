@@ -5,8 +5,8 @@ import QueryControls from './query_controls';
 import Grid from '@material-ui/core/Grid';
 import Slide from '@material-ui/core/Slide';
 import Tooltip from '@material-ui/core/Tooltip';
-import IconButton from '@material-ui/core/IconButton';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import ListIcon from '@material-ui/icons/List';
 import CodeIcon from '@material-ui/icons/Code';
 import TuneIcon from '@material-ui/icons/Tune';
@@ -24,15 +24,8 @@ const useStyles = makeStyles((theme) => ({
     padding: '15px',
     borderBottom: '1px solid #ccc'
   },
-  button: {
-    '&& :not(:last-child)': {
-      borderRight: '1px solid #ccc'
-    }
-  },
   buttons: {
-    border: '1px solid #ccc',
-    borderRadius: '2px',
-    height: '30px'
+    borderRadius: '2px'
   },
   slide: {
     overflowY: 'scroll',
@@ -74,9 +67,11 @@ const QueryBuilder = ({}) => {
 
   const classes = useStyles();
 
-  const [ showQuery, setShowQuery ] = useState(true);
-  const [ showRawQuery, setShowRawQuery ] = useState(false);
-  const [ showQueryOptions, setShowQueryOptions ] = useState(false);
+  const [ options, setOptions ] = useState(['controls']);
+
+  const showQuery = options.includes('controls');
+  const showRawQuery = options.includes('raw');
+  const showQueryOptions = options.includes('options');
 
   const ref = useRef(null);
 
@@ -93,26 +88,26 @@ const QueryBuilder = ({}) => {
   return (
       <Grid style={{ overflow: 'hidden', height: '100%' }} direction='column' container>
         <Grid item container direction='row' className={classes.toolbar} alignItems='center'>
-          <ButtonGroup className={classes.buttons} size="small">
-            <Tooltip title="Query controls">
-              <IconButton className={classes.button} disableRipple={true} color={ showQuery ? 'secondary' : 'primary' } onClick={ () => setShowQuery(!showQuery) }>
+          <ToggleButtonGroup className={classes.buttons} value={options} onChange={ (e,f) => setOptions(f) } size='small'>
+            <ToggleButton disableRipple={true} value='controls'>
+              <Tooltip title="Query controls">
                 <ListIcon/>
-              </IconButton>
-            </Tooltip>
-            { showQuery && <Tooltip title="Raw query">
-              <IconButton className={classes.button} disableRipple={true} color={showRawQuery ? 'secondary' : 'primary' } onClick={ () => setShowRawQuery(!showRawQuery) } >
+              </Tooltip>
+            </ToggleButton>
+            { showQuery &&
+              <ToggleButton disableRipple={true} value='raw'>
+                <Tooltip title="Raw query">
                   <CodeIcon/>
-                </IconButton>
-              </Tooltip>
+                </Tooltip>
+              </ToggleButton>
             }
-            { showQuery && <Tooltip title="Query Options">
-                <IconButton className={classes.button} disableRipple={true} color={showQueryOptions ? 'secondary' : 'primary' } onClick={ () => setShowQueryOptions(!showQueryOptions) }>
-                  <TuneIcon/>
-                </IconButton>
+            <ToggleButton disableRipple={true} value='options'>
+              <Tooltip title="Query Options">
+                <TuneIcon/>
               </Tooltip>
-            }
-          </ButtonGroup>
-          <QueryOptions open={showQueryOptions} onClose={ () => setShowQueryOptions(false) }/>
+            </ToggleButton>
+          </ToggleButtonGroup>
+          <QueryOptions open={showQueryOptions} onClose={ () => setOptions(options.filter( o => o !== 'options')) }/>
           <Grid item container direction='row' alignItems='center'
             justifyContent='flex-end'
             style={{ width: 'auto', flex: '1 1 auto' }}>

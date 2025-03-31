@@ -33,7 +33,7 @@ const routePath = (template, params) => {
 
 const matchRoute = ({ path, hash }, route) => (
   // match the route part
-  path.match(route.path_regexp) && !(hash && route.hash_regexp && hash.match(route.hash_regexp))
+  path.match(route.path_regexp) && (!hash || (route.hash_regexp && hash.match(route.hash_regexp)))
 );
 
 const routeParams = ({path,hash}, route) => {
