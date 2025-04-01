@@ -183,31 +183,23 @@ describe VulcanV2Controller do
       expect(json_body[:dag]).to_not be_nil
     end
 
-    it 'removes the workspace directory if an error occurs' do
-    end
-
-    it 'errors if the requested workflow is not created' do
-    end
-
-
   end
 
   context 'list all workspaces' do
 
-    before do
-      setup_workspace
-    end
-
     it 'for a user if it exists' do
+      setup_workspace
       get("/api/v2/#{PROJECT}/workspace/")
       expect(last_response.status).to eq(200)
       expect(json_body[:workspaces].count).to eq(1)
     end
 
     it 'should return an empty list if no workspaces exist' do
-    end
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/workspace/")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:workspaces]).to be_empty
 
-    it 'should warn the user if a new version of a workflow exists' do
     end
 
   end
@@ -450,8 +442,6 @@ describe VulcanV2Controller do
 
   context 'write files' do
 
-    # TODO: add a file exists endpoint here, we don't want to re-run if the files exist
-
     before do
       setup_workspace
     end
@@ -474,6 +464,25 @@ describe VulcanV2Controller do
     end
 
     it 'writes multiple files' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      file_name = "test_file_name"
+      content = "This is a test file, with content 1."
+      file_name_2 = "test_file_name_2"
+      content_2 = "This is a test file, with content 2."
+      request = {
+        files: [{
+          filename: file_name,
+          content: content
+        }, {
+          filename: file_name_2,
+          content: content_2
+        }]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request)
+      expect(last_response.status).to eq(200)
+      expect(remote_manager.file_exists?("#{workspace.path}/output/#{file_name}")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/#{file_name_2}")).to be_truthy
     end
 
   end
