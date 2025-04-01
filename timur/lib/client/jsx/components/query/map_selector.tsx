@@ -15,7 +15,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListItem from '@material-ui/core/ListItem';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectModelNames, selectTemplate} from 'etna-js/selectors/magma';
-import ModelAttributesTable from '../model_map/model_attributes_table';
+import ModelAttributesTable, {toggleSelection} from '../model_map/model_attributes_table';
 
 const useStyles = makeStyles((theme) => ({
   attributes: {
@@ -89,6 +89,13 @@ const MapSelector = ({setModel, open, onClose, modelNames=[], modelName, setAttr
     }, [ onClose ]
   );
 
+  const setAttributeHandler = useCallback(
+    attName => {
+      if (setAttribute) setAttribute(modelName, attName);
+      if (setAttributes) setSelected(toggleSelection(selected, attName));
+    }, [ modelName, selected ]
+  );
+
   const attributesSelected = Object.keys(selected).length > 0;
 
   return <Dialog open={open} onClose={handleClose} maxWidth='lg'>
@@ -110,7 +117,7 @@ const MapSelector = ({setModel, open, onClose, modelNames=[], modelName, setAttr
             template={filteredTemplate}
             showHiddenAttributes={false}
             columns={ { type: true, attribute: true } }
-            setAttribute={ setAttribute ? attName => setAttribute(modelName, attName) : null }
+            setAttribute={ setAttributeHandler }
             selected={ setAttributes ? selected : {} }
             setSelected={ setAttributes ? setSelected : null }
           />

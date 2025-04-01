@@ -21,6 +21,15 @@ import SearchIcon from '@material-ui/icons/Search';
 import Paper from '@material-ui/core/Paper';
 import {Template,Attribute} from '../../api/magma_api';
 
+export const toggleSelection = (selection, item) => {
+  if (selection[item]) {
+    const { [item]: _, ...newSelected } = selection;
+    return newSelected;
+  } else {
+    return { [item]: true, ...selection }
+  }
+}
+
 const attributeStyles = makeStyles((theme) => ({
   attribute_row: {
     height: '36px'
@@ -288,11 +297,7 @@ const ModelAttributesTable = ({
   );
 
   const selectAttribute = (attribute_name:string) => {
-    if (selected[attribute_name]) {
-      const { [attribute_name]: _, ...newSelected } = selected;
-      (setSelected as Function)(newSelected);
-    } else
-      (setSelected as Function)({ [attribute_name]: true, ...selected } );
+    (setSelected as Function)(toggleSelection(selected,attribute_name));
   }
 
   const numSelected = Object.keys(selected).length;
