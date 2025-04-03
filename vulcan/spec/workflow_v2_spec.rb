@@ -91,7 +91,7 @@ describe VulcanV2Controller do
   end
 
 
-  context 'creates workspaces' do
+  context 'creates workspaces', long_running: true do
 
     before do
       auth_header(:superuser)
@@ -183,31 +183,23 @@ describe VulcanV2Controller do
       expect(json_body[:dag]).to_not be_nil
     end
 
-    it 'removes the workspace directory if an error occurs' do
-    end
-
-    it 'errors if the requested workflow is not created' do
-    end
-
-
   end
 
   context 'list all workspaces' do
 
-    before do
-      setup_workspace
-    end
-
     it 'for a user if it exists' do
+      setup_workspace
       get("/api/v2/#{PROJECT}/workspace/")
       expect(last_response.status).to eq(200)
       expect(json_body[:workspaces].count).to eq(1)
     end
 
     it 'should return an empty list if no workspaces exist' do
-    end
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/workspace/")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:workspaces]).to be_empty
 
-    it 'should warn the user if a new version of a workflow exists' do
     end
 
   end
@@ -228,7 +220,9 @@ describe VulcanV2Controller do
           params: {
             count_bytes: false,
             count_chars: true
-          }
+          },
+          paramsChanged: [],
+          uiFilesSent: []
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       expect(last_response.status).to eq(200)
@@ -255,7 +249,9 @@ describe VulcanV2Controller do
         params: {
           count_bytes: false,
           count_chars: true
-        }
+        },
+        paramsChanged: [],
+        uiFilesSent: []
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       config_id = json_body[:config_id]
@@ -278,7 +274,9 @@ describe VulcanV2Controller do
         params: {
           count_bytes: false,
           count_chars: true 
-        }
+        },
+        paramsChanged: [],
+        uiFilesSent: []
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       config_1 = Vulcan::Config.first(id: json_body[:config_id])
@@ -286,7 +284,9 @@ describe VulcanV2Controller do
         params: {
           count_bytes: false,
           count_chars: false 
-        }
+        },
+        paramsChanged: ["count_chars"],
+        uiFilesSent: []
       }
 
       # NOTE: when we set
@@ -337,8 +337,10 @@ describe VulcanV2Controller do
             count_chars: true,
             add: 2,
             add_and_multiply_by: 2
-          }
-        }
+          },
+          paramsChanged: [],
+          uiFilesSent: []
+      }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       expect(json_body[:scheduled]).to match_array(["arithmetic", "checker", "count"])
       expect(json_body[:downstream]).to match_array(["ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
@@ -359,7 +361,9 @@ describe VulcanV2Controller do
         params: {
           count_bytes: false,
           count_chars: true
-        }
+        },
+        paramsChanged: [],
+        uiFilesSent: []
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/config", request)
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
@@ -383,7 +387,9 @@ describe VulcanV2Controller do
         params: {
           count_bytes: false,
           count_chars: true
-        }
+        },
+        paramsChanged: [],
+        uiFilesSent: []
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/config", request)
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{json_body[:config_id]}")
@@ -398,10 +404,13 @@ describe VulcanV2Controller do
         params: {
           count_bytes: false,
           count_chars: false 
-        }
+        },
+        paramsChanged: ["count_chars"],
+        uiFilesSent: []
       }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/config", request_2)
-      workspace = Vulcan::Workspace.first(id: workspace_id)
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/config", request_2)
+      end
       config_id = json_body[:config_id]
       run_with_retry do
         post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/run/#{config_id}")
@@ -409,6 +418,7 @@ describe VulcanV2Controller do
 
       # Check that the last config is the second config
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      workspace = Vulcan::Workspace.first(id: workspace_id)
       default_config_content = remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
       expected_config_content = default_config_content.merge(JSON.parse(request_2[:params].to_json))
       expect(json_body[:last_config]).to eq(expected_config_content.transform_keys(&:to_sym))
@@ -432,8 +442,6 @@ describe VulcanV2Controller do
 
   context 'write files' do
 
-    # TODO: add a file exists endpoint here, we don't want to re-run if the files exist
-
     before do
       setup_workspace
     end
@@ -456,6 +464,25 @@ describe VulcanV2Controller do
     end
 
     it 'writes multiple files' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      file_name = "test_file_name"
+      content = "This is a test file, with content 1."
+      file_name_2 = "test_file_name_2"
+      content_2 = "This is a test file, with content 2."
+      request = {
+        files: [{
+          filename: file_name,
+          content: content
+        }, {
+          filename: file_name_2,
+          content: content_2
+        }]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request)
+      expect(last_response.status).to eq(200)
+      expect(remote_manager.file_exists?("#{workspace.path}/output/#{file_name}")).to be_truthy
+      expect(remote_manager.file_exists?("#{workspace.path}/output/#{file_name_2}")).to be_truthy
     end
 
   end
@@ -501,6 +528,22 @@ describe VulcanV2Controller do
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/")
       expect(last_response.status).to eq(200)
       expect(json_body[:files]).to eq(["poem.txt", "poem_2.txt"])
+    end
+
+  end
+
+  context 'update workspace' do
+    before do
+      setup_workspace
+    end
+
+    it 'updates the workspace name and tags' do
+      workspace_id = Vulcan::Workspace.all[0].id
+      post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/update", {name: "new_name", tags: ["new_tag", "new_tag_2"]})
+      expect(last_response.status).to eq(200)
+      workspace = Vulcan::Workspace.first(id: workspace_id)
+      expect(workspace.name).to eq("new_name")
+      expect(workspace.tags).to eq(["new_tag", "new_tag_2"])
     end
 
   end
@@ -592,7 +635,9 @@ describe VulcanV2Controller do
             count_chars: false,
             add: 2,
             add_and_multiply_by: 4
-          }
+          },
+          uiFilesSent: [],
+          paramsChanged: []
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       config_id = json_body[:config_id]
@@ -789,7 +834,7 @@ describe VulcanV2Controller do
       end
       # Make sure that we removed all ui files
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_one.txt")).to be_falsey
-      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_falsey
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_truthy
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_summary.txt")).to be_falsey
     end
 
@@ -824,7 +869,7 @@ describe VulcanV2Controller do
         post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", ui_file_request)
       end
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_one.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_falsey
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_truthy # This should not be removed
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_summary.txt")).to be_falsey
     end
   end
@@ -843,7 +888,9 @@ describe VulcanV2Controller do
           params: {
             count_bytes: false,
             count_chars: true 
-          }
+          },
+          uiFilesSent: [],
+          paramsChanged: []
       }
       # TODO: add a meta key that can switch profiles
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
@@ -878,7 +925,9 @@ describe VulcanV2Controller do
           params: {
             count_bytes: false,
             count_chars: true 
-          }
+          },
+          paramsChanged: [],
+          uiFilesSent: []
       }
       # TODO: add a meta key that can switch profiles
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)

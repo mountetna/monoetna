@@ -88,7 +88,7 @@ class Vulcan
     def rmdir(dir)
       # We can solve alot of these problems by just making sure the etna-user only has permission to operate under /vulcan/app
       #TODO: handle cases: dir = /app/vulcan/workflows/ipi/
-      allowed_directory = Vulcan::Path::ALLOWED_DIRECTORIES.find { |allowed_dir| dir.start_with?(allowed_dir) }
+      allowed_directory = Vulcan::Path.allowed_directories.find { |allowed_dir| dir.start_with?(allowed_dir) }
       if allowed_directory.nil?
         raise ArgumentError, "Directory #{dir} cannot be deleted because it is not in the list of allowed directories."
       elsif allowed_directory == dir

@@ -9,12 +9,30 @@ class Vulcan
   attr_reader :db, :ssh_pool
 
   def setup_ssh()
-    c = config(:v2_ssh_config)
+    Vulcan.instance.logger.info("Setting up SSH connection pool...")
+    c = config(:ssh)
+    
     begin
-      @ssh_pool ||= SSHConnectionPool.new(c[:host], c[:username], c[:password])
+      if c[:proxy]
+        Vulcan.instance.logger.info("Proxy configuration detected - setting up SSH connection with jump host...")
+        Vulcan.instance.logger.info("Connecting through proxy host: #{c[:proxy][:host]}")
+        @ssh_pool ||= SSHConnectionPool.new(
+          c[:host], 
+          c[:username], 
+          c[:password],
+          proxy: c[:proxy]
+        )
+      else
+        Vulcan.instance.logger.info("Setting up direct SSH connection to #{c[:host]}...")
+        @ssh_pool ||= SSHConnectionPool.new(c[:host], c[:username], c[:password])
+      end
     rescue => e
-      Vulcan.instance.logger.log_error(e)
+      Vulcan.instance.logger.error("Failed to establish SSH connection: #{e.message}")
+      Vulcan.instance.logger.error(e.backtrace.join("\n"))
+      raise e
     end
+    
+    Vulcan.instance.logger.info("SSH connection pool setup complete.")
   end
 
   def setup_db(load_models = true)

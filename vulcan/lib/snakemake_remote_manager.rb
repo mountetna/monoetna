@@ -227,22 +227,23 @@ class Vulcan
         # Only proceed if there's a reason to check (either params changed or ui files were written)
         return unless params_changed.any? || ui_files_written.any?
 
-        existing_ui_targets = Vulcan::Snakemake::Inference.ui_targets(workspace.target_mapping)
-          .select { |target| @remote_manager.file_exists?(File.join(workspace.path, target)) }
-
-        # We build a file dag so that we can only remove files that are downstream of the ui targets
-        file_dag = Vulcan::Snakemake::Inference.file_dag(workspace.target_mapping)
-
-        # Determine criteria for filtering based on whether params changed or ui files were sent
-        files_to_filter = if params_changed.any?
+        # Determine what files to filter based on whether params changed or ui files were sent
+        files_changed = if params_changed.any?
                                 Vulcan::Snakemake::Inference.find_targets_matching_params(workspace.target_mapping, params_changed)
                               else
                                 ui_files_written
                               end
 
-        filtered_dag = Vulcan::Snakemake::Inference.filter_upstream_files(file_dag, files_to_filter)
-        # Now we know which files are eligible for removal
-        targets_to_remove = existing_ui_targets.select { |target| filtered_dag.include?(target) }
+        # We build a file grapho that we can only remove files that are downstream of the ui targets
+        file_dag = Vulcan::Snakemake::Inference.file_graph(workspace.target_mapping)
+        reachable_files = Vulcan::Snakemake::Inference.downstream_nodes(file_dag, files_changed)
+
+        # Find the existing ui targets that are in the workspace
+        existing_ui_targets = Vulcan::Snakemake::Inference.ui_targets(workspace.target_mapping)
+          .select { |target| @remote_manager.file_exists?(File.join(workspace.path, target)) }
+
+        # Remove the files
+        targets_to_remove = (reachable_files & existing_ui_targets) 
         targets_to_remove.each do |target|
           Vulcan.instance.logger.info("Removing UI target: #{target}")
           @remote_manager.rm_file(File.join(workspace.path, target))

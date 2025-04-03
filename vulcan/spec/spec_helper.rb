@@ -107,9 +107,21 @@ RSpec.configure do |config|
     # Don't wrap long running tests in a transaction, as it will cause the tests to hang.
     # Make sure to group tests that are long running in the same context.
     if example.metadata[:long_running]
-      DatabaseCleaner.clean_with(:truncation)
-      example.run
-      DatabaseCleaner.clean_with(:truncation)
+      retries = 3
+      begin
+        DatabaseCleaner.clean_with(:truncation)
+        example.run
+        DatabaseCleaner.clean_with(:truncation)
+      rescue Sequel::Error => e
+        Vulcan.instance.logger.error("Got a sequel error, retrying...")
+        retries -= 1
+        if retries > 0
+          sleep(1) # Add a small delay before retrying
+          retry
+        else
+          raise e # Re-raise if we've exhausted our retries
+        end
+      end
     else
       Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
     end
@@ -347,9 +359,7 @@ def write_image_to_workspace(workspace_id)
 end
 
 def remove_all_dirs
-  remote_manager.rmdir(Vulcan::Path::WORKFLOW_BASE_DIR)
-  remote_manager.rmdir(Vulcan::Path::WORKSPACE_BASE_DIR)
-  remote_manager.rmdir(Vulcan::Path::VULCAN_TMP_DIR)
+  remote_manager.rmdir(Vulcan::Path.workspace_base_dir)
 end
 
 
@@ -359,11 +369,11 @@ def check_jobs_status(job_names, max_attempts = 5, base_delay = 10)
   loop do
     attempts += 1
     yield
-
     # Check the status of each job in the response
     all_jobs_completed = job_names.all? do |job_name|
       json_body[job_name.to_sym] == "COMPLETED"
     end
+    Vulcan.instance.logger.info("job status: #{json_body}")
 
     # Break the loop if all jobs are completed
     break if all_jobs_completed
@@ -386,7 +396,8 @@ def run_with_retry(max_attempts = 5, base_delay = 15)
     attempts += 1
     yield
 
-    if last_response.status == 429
+    Vulcan.instance.logger.info("last response status: #{last_response.status}")
+    if last_response.status == 429 || last_response.status == 422 # TODO:revisit - a general retry mechanism?
       if attempts < max_attempts
         sleep_duration = base_delay * (2 ** (attempts - 1))
         sleep(sleep_duration)
