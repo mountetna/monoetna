@@ -149,33 +149,10 @@ export function SingleConstraintColDefLogicPiece(
   const updateColumn = (newCol: string, x?: string) => {
     // Reset def too!
     const newValue = {...value};
-    // newValue['def'] = emptyConstraintDef;
+    newValue['def'] = emptyConstraintDef;
     newValue['col'] = newCol;
     changeFxn(newValue, key);
   };
-  
-  // const clearDef = () => {
-  //   const full = {...values};
-  //   // methods (Current at index, must remain/become [emptyMethod] or lose current)
-  //   let next_methods = full['methods'];
-  //   next_methods.splice(index, 1);
-  //   if (next_methods.length == 0) {
-  //     next_methods = [emptyMethod];
-  //   }
-  //   // logic (Current at index-1, must remain/become [[]], lose current, or lose next if clicked for 1st def)
-  //   let next_logic = full['logic'];
-  //   if (next_logic.length == 1) {
-  //     next_logic = [[]];
-  //   } else {
-  //     if (index == 0) {
-  //       next_logic.splice(index, 1);
-  //     }
-  //     if (index > 0) {
-  //       next_logic.splice(index - 1, 1);
-  //     }
-  //   }
-  //   overallChangeFxn({methods: next_methods, logic: next_logic}, key);
-  // };
 
   const colOptions = !!all_column_options ? all_column_options : Object.keys(data_summary);
   const chosenColValues = !!value['col'] && value['col'] in data_summary ? data_summary[value['col']] : undefined;
