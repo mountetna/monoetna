@@ -18,8 +18,11 @@ class Vulcan
         boot_log = "#{dir}/#{Vulcan::Path::WORKSPACE_BOOT_LOG}"
         slurm_uuid = nil
 
-        command = "cd #{Shellwords.escape(dir)} && #{snakemake_command} > #{Vulcan::Path::WORKSPACE_BOOT_LOG}"
-        @remote_manager.invoke_background_ssh_command(command)
+        command = @remote_manager.build_command
+          .add('cd', dir)
+          .add_raw(snakemake_command)
+          .redirect_to(Vulcan::Path::WORKSPACE_BOOT_LOG)
+        @remote_manager.invoke_background_ssh_command(command.to_s)
         if @remote_manager.file_exists?(boot_log, true)
           begin
             regex = /SLURM run ID: ([a-f0-9\-]+)/
@@ -33,16 +36,18 @@ class Vulcan
             raise e
           end
         else
-          raise "Could not create: #{boot_log}, command is: #{command}"
+          raise "Could not create: #{boot_log}, command is: #{command.to_s}"
         end
         # We no longer need the boot.log
-        @remote_manager.invoke_ssh_command("rm #{Shellwords.escape(boot_log)}")
+        @remote_manager.invoke_ssh_command(@remote_manager.build_command.add('rm', boot_log).to_s)
         slurm_uuid
       end
 
       def dry_run_snakemake(dir, snakemake_command)
-        command = "cd #{Shellwords.escape(dir)} && #{snakemake_command}"
-        out = @remote_manager.invoke_ssh_command(command)
+        command = @remote_manager.build_command
+          .add('cd', dir)
+          .add_raw(snakemake_command)
+        out = @remote_manager.invoke_ssh_command(command.to_s)
         get_rules_from_run(out[:stdout])
       end
 
@@ -53,9 +58,9 @@ class Vulcan
         # If any files are open, it assumes that a Snakemake process is running.
         snakemake_log_dir = "#{Shellwords.escape(dir)}/.snakemake/log"
         return false unless @remote_manager.dir_exists?(snakemake_log_dir)
-        command = "lsof +D #{snakemake_log_dir}"
+        command = @remote_manager.build_command.add('lsof', '+D', snakemake_log_dir)
         begin
-          result = @remote_manager.invoke_ssh_command(command)
+          result = @remote_manager.invoke_ssh_command(command.to_s)
           # Return true if files are open, false otherwise
           result[:exit_status] == 0
         rescue RuntimeError => e
@@ -109,8 +114,9 @@ class Vulcan
           if job_id.nil?
             status_hash[job_name] = "NOT STARTED"
           else
-            command = "sacct --name=#{Shellwords.escape(slurm_uuid)} -j #{Shellwords.escape(job_id)} -X -o State -n"
-            out = @remote_manager.invoke_ssh_command(command)
+            command = @remote_manager.build_command
+              .add('sacct', "--name=#{slurm_uuid}", '-j', job_id, '-X', '-o', 'State', '-n')
+            out = @remote_manager.invoke_ssh_command(command.to_s)
             status_hash[job_name] = out[:stdout].empty? ? "NOT STARTED" : out[:stdout].strip
           end
         end
@@ -118,8 +124,10 @@ class Vulcan
       end
 
       def get_snakemake_log(dir, slurm_run_uuid)
-        command = "cd #{Shellwords.escape(dir)} && grep -rl #{slurm_run_uuid} #{Vulcan::Path::WORKSPACE_SNAKEMAKE_LOG_DIR}"
-        out = @remote_manager.invoke_ssh_command(command)
+        command = @remote_manager.build_command
+          .add('cd', dir)
+          .add('grep', '-rl', slurm_run_uuid, Vulcan::Path::WORKSPACE_SNAKEMAKE_LOG_DIR)
+        out = @remote_manager.invoke_ssh_command(command.to_s)
         log = out[:stdout].gsub("\n", "")
         "#{dir}/#{log}"
       end
@@ -178,8 +186,11 @@ class Vulcan
         end
 
         # Run snakemake --d3dag
-        dag_command = "cd #{Shellwords.escape(dir)} && snakemake --configfile #{config_path} --d3dag > rulegraph.json"
-        dag_output = @remote_manager.invoke_ssh_command(dag_command)
+        dag_command = @remote_manager.build_command
+          .add('cd', dir)
+          .add('snakemake', '--configfile', config_path, '--d3dag')
+          .redirect_to('rulegraph.json')
+        dag_output = @remote_manager.invoke_ssh_command(dag_command.to_s)
         if dag_output[:exit_status] != 0
           raise "Failed to generate DAG: #{dag_output[:stderr_or_info]}"
         end

@@ -1,12 +1,17 @@
 require 'shellwords'
 require 'timeout'
 require_relative "./path"
+require_relative "./command_builder"
 
 class Vulcan
 
   class RemoteManager
     def initialize(ssh_pool)
       @ssh_pool = ssh_pool
+    end
+
+    def build_command
+      CommandBuilder.new
     end
 
     def find_string(file, regex, attempts = 3)
@@ -23,14 +28,17 @@ class Vulcan
     end
 
     def write_file(remote_file_path, content)
-      command = "mkdir -p $(dirname #{remote_file_path}) && echo #{Shellwords.escape(content)} > #{remote_file_path}"
-      invoke_ssh_command(command)
+      command = build_command
+        .add('mkdir', '-p', File.dirname(remote_file_path))
+        .add('echo', content)
+        .redirect_to(remote_file_path)
+
+      invoke_ssh_command(command.to_s)
     end
 
     def read_file_to_memory(remote_file_path)
-      command = Shellwords.join(['cat', remote_file_path])
-      result = invoke_ssh_command(command)
-      result[:stdout]
+      command = build_command.add('cat', remote_file_path)
+      invoke_ssh_command(command.to_s)[:stdout]
     end
 
     def read_yaml_file(remote_file_path)
@@ -39,7 +47,7 @@ class Vulcan
 
     def read_json_file(remote_file_path)
       JSON.parse(read_file_to_memory(remote_file_path))
-  end
+    end
 
     def upload_dir(local_dir, remote_dir, recurse)
       @ssh_pool.with_conn do |ssh|
@@ -49,39 +57,45 @@ class Vulcan
 
     def mkdir(dir)
       # Make project directory if it doesnt exist
-      command = Shellwords.join(["mkdir", "-p", dir])
-      invoke_ssh_command(command)
+      command = build_command.add('mkdir', '-p', dir)
+      invoke_ssh_command(command.to_s)
     end
 
     def create_dummy_file(file_path)
       # Create a test file with the content "TEST FILE"
-      command = "mkdir -p $(dirname #{file_path}) && echo 'DUMMY FILE' > #{file_path}"
-      invoke_ssh_command(command)
+      command = build_command
+        .add('mkdir', '-p', File.dirname(file_path))
+        .add('echo', 'DUMMY FILE')
+        .redirect_to(file_path)
+
+      invoke_ssh_command(command.to_s)
     end
 
-    def list_files(dir, append_dir: false)
-      command = "ls #{Shellwords.escape(dir)}"
-      out = invoke_ssh_command(command)
-      out[:stdout].split("\n")
+    def list_files(dir)
+      command = build_command.add('ls', dir)
+      invoke_ssh_command(command.to_s)[:stdout].split("\n")
     end
 
     def md5sum(file)
-      command = "md5sum #{Shellwords.escape(file)}"
-      out = invoke_ssh_command(command)
-      out[:stdout].split("\n")
+      command = build_command.add('md5sum', file)
+      invoke_ssh_command(command.to_s)[:stdout].split("\n")
     end
 
     def list_dirs(dir)
-      escaped_dir = Shellwords.escape(dir)
+      escaped_dir = dir
       # If there are no directories, return an empty array
       # "ls -d #{Shellwords.escape(dir)}/*/" throws an error if the dir is empty
-      check_dirs_command = "find #{escaped_dir} -maxdepth 1 -mindepth 1 -type d | wc -l"
-      check_result = invoke_ssh_command(check_dirs_command)
+      check_command = build_command
+        .add('find', escaped_dir, '-maxdepth', '1', '-mindepth', '1', '-type', 'd')
+        .pipe_to('wc', '-l')
+
+      check_result = invoke_ssh_command(check_command.to_s)
       if check_result[:stdout].strip.to_i == 0
         return []
       end
-      command = "ls -d #{Shellwords.escape(dir)}/*/"
-      result = invoke_ssh_command(command)
+
+      command = build_command.add('ls', '-d', "#{escaped_dir}/*/")
+      result = invoke_ssh_command(command.to_s)
       result[:stdout].split("\n").map { |path| File.basename(path) }
     end
 
@@ -94,50 +108,62 @@ class Vulcan
       elsif allowed_directory == dir
         raise ArgumentError, "Cannot delete top level vulcan directory"
       else
-        command = Shellwords.join(["rm", "-r", "-f", dir])
-        invoke_ssh_command(command)
+        command = build_command.add('rm', '-r', '-f', dir)
+        invoke_ssh_command(command.to_s)
       end
     end
 
     def rm_file(file)
       # TODO: revisit for safety
-        command = Shellwords.join(["rm","-f", file])
-      invoke_ssh_command(command)
+      command = build_command.add('rm', '-f', file)
+      invoke_ssh_command(command.to_s)
     end
 
     def dir_exists?(dir)
-      command = "[ -d #{dir} ] && echo 'Directory exists.' || echo 'Directory does not exist.'"
-      out = invoke_ssh_command(command)
+      command = build_command
+        .add('sh', '-c', "[ -d #{dir} ] && echo 'Directory exists.' || echo 'Directory does not exist.'") # TODO maybe make this cleaner
+      out = invoke_ssh_command(command.to_s)
       out[:stdout].chomp == 'Directory exists.'
     end
 
     def clone(repo, target_dir)
       # For now we ignore branch and assume the default branch
-      command = Shellwords.join(['git', 'clone', repo, target_dir])
-      invoke_ssh_command(command)
+      command = build_command.add('git', 'clone', repo, target_dir)
+      invoke_ssh_command(command.to_s)
     end
 
     def fetch_tags(dir)
-      command = "cd #{Shellwords.escape(dir)} && git fetch --tags"
-      invoke_ssh_command(command)
+      command = build_command
+        .add('cd', dir)
+        .add('git', 'fetch', '--tags')
+
+      invoke_ssh_command(command.to_s)
     end
 
     def checkout_version(dir, sha_or_tag)
-      command = "cd #{Shellwords.escape(dir)} && git checkout #{Shellwords.escape(sha_or_tag)}"
-      invoke_ssh_command(command)
+      command = build_command
+        .add('cd', dir)
+        .add('git', 'checkout', sha_or_tag)
+
+      invoke_ssh_command(command.to_s)
     end
 
     def get_repo_remote_url(repo_dir)
-      command = "cd #{Shellwords.escape(repo_dir)} && git config --get remote.origin.url"
-      result = invoke_ssh_command(command)
+      command = build_command
+        .add('cd', repo_dir)
+        .add('git', 'config', '--get', 'remote.origin.url')
+
+      result = invoke_ssh_command(command.to_s)
       result[:stdout].chomp
     end
 
     def file_exists?(file_path, wait = false)
       def remote_file_exists?(file_path)
         begin
-          command = "test -f #{file_path} && echo 'exists' || echo 'not exists'"
-          result = invoke_ssh_command(command, 1)
+          command = build_command
+            .add('sh', '-c', "[ -f #{file_path} ] && echo 'exists' || echo 'not exists'") # TODO maybe make this cleaner
+
+          result = invoke_ssh_command(command.to_s, 1)
           result[:stdout].strip == 'exists'
         rescue => e
           raise e unless e.message.include?("timed out")
@@ -170,13 +196,16 @@ class Vulcan
       # Runs a ssh command as a async background process.
       # Combines standard err and standard out to the same stream
       # Immediately closes the ssh channel.
-      wrapped_command = "nohup sh -c '#{command} 2>&1' &"
+      wrapped_command = build_command
+        .add('nohup', 'sh', '-c', "#{command} 2>&1")
+        .background
+
       @ssh_pool.with_conn do |ssh|
         ssh.open_channel do |channel|
-          channel.exec(wrapped_command)
+          channel.exec(wrapped_command.to_s)
           channel.close
-          end
         end
+      end
     end
 
     def invoke_ssh_command(command, timeout = 10)
