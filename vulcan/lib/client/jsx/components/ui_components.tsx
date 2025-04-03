@@ -30,6 +30,7 @@ import LinkOutput from './workspace/ui_definitions/outputs/link';
 import { PlotlyOutput, PlotOutput, PngOutput } from './workspace/ui_definitions/outputs/plot';
 import ConsignmentOutput from './workspace/ui_definitions/outputs/consignment';
 import RawOutput from './workspace/ui_definitions/outputs/raw';
+import TwoGroupSelection from './workspace/ui_definitions/inputs/components/two_group_selection';
 
 /*
 Inputs: For Input_Feed, can produce an output, tracked as a step by snakemake
@@ -68,7 +69,8 @@ export const INPUT_TYPES = {
   DIFF_EXP_SC: 'diff-exp-sc',
   DATA_TRANSFORMATION: 'data-transformation',
   ANNOTATION_EDITOR: 'annotation-editor',
-  ANY_VIZ: 'any-viz'
+  ANY_VIZ: 'any-viz',
+  TWO_GROUP_SELECTION: 'two-group-selection'
 };
 
 export const components = {} as {[k: string]: [
@@ -100,6 +102,7 @@ configureComponent(INPUT_TYPES.METIS_CSV_OR_TSV, MetisFileInput, MetisFileValida
 configureComponent(INPUT_TYPES.METIS_FOLDER, MetisFolderInput, MetisFolderValidator(), ['target'], []);
 configureComponent(INPUT_TYPES.METIS_FILE_OR_FOLDER, MetisFileInput, MetisPathValidator(), ['target'], []);
 configureComponent(INPUT_TYPES.SELECT_AUTOCOMPLETE, SelectAutocompleteInput, StronglyNotEmptyValidator, ['picked'], ['options'], 'recommendation');
+configureComponent(INPUT_TYPES.TWO_GROUP_SELECTION, TwoGroupSelection, AllOutputValuesNotEmptyValidator, ['g1', 'g2'], ['data_summary'], 'all_column_options')
 configureComponent(INPUT_TYPES.SELECT_AUTOCOMPLETE_MULTI_PICK, SelectAutocompleteMultiPickInput, StronglyNotEmptyValidator);
 configureComponent(INPUT_TYPES.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, StronglyNotEmptyValidator);
 configureComponent(INPUT_TYPES.NESTED_SELECT_AUTOCOMPLETE_MULTI_PICK, NestedSelectAutocompleteMultiPickInput, StronglyNotEmptyValidator);

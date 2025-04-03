@@ -1,7 +1,6 @@
-import React, {useEffect, useMemo} from 'react';
+import React, { useEffect } from 'react';
 import {DataEnvelope} from '../../input_types';
 import { maybeOfNullable, some, withDefault, Maybe } from '../../../../../selectors/maybe';
-import MultiselectStringInput from '../components/multiselect_string';
 import InputLabel from '@material-ui/core/InputLabel';
 import Slider from '@material-ui/core/Slider';
 import StringInput from '../components/string';
@@ -13,6 +12,7 @@ import TextField from '@material-ui/core/TextField';
 import NestedSelectAutocompleteInput from '../nested_select_autocomplete';
 import { nestedOptionSet } from './utils'
 import NestedSelectAutocompleteMultiPickInput from '../nested_select_autocomplete_multi_choice';
+import { FloatPiece } from './number_pieces';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v};
@@ -101,10 +101,11 @@ export function dropdownPiece(
         key={key}
         label={label}
         value={some(value)}
-        data={val_wrap(options)}
+        data={{options}}
         minWidth={minWidth}
         disabled={disabled}
-        onChange={ (value) => changeFxn(withDefault(value,null), key) }
+        onChange={ (value) => {} }
+        onChangeOverride={ (event, value) => changeFxn(withDefault(value,null), key) }
       />
     );
     // options = Object with keys = label values to show the user; values = true option values that the output / saved state should hold.
@@ -118,10 +119,11 @@ export function dropdownPiece(
         key={key}
         label={label}
         value={some(toLabel(value))}
-        data={val_wrap(labels)}
+        data={{options}}
         minWidth={minWidth}
         disabled={disabled}
-        onChange={ (label) => changeFxn(toValue(withDefault(label,null)), key) }
+        onChange={ (value) => {} }
+        onChangeOverride={ (event, label) => changeFxn(toValue(withDefault(label,null)), key) }
       />
     );
   }
@@ -201,33 +203,38 @@ export function nestedDropdownFullPathPiece(
     </Grid>
   }
 
+import ListInput from 'etna-js/components/inputs/list_input';
+import DropdownAutocompleteInput from 'etna-js/components/inputs/dropdown_autocomplete_wrapper';
 export function MultiselectPiece(
   key: string, changeFxn: Function, value: string[] | null = null,
-  label: string, options: string[]) {
-    useEffect(() => {
-      if (options != null && value != null && value.length != 0) {
-        // Needed if given options change and chosen ones aren't captured
-        let needs_reset = 
-            value.filter(
-              (val) => !options.includes(val)
-            ).length > 0;
-        if (needs_reset) changeFxn([], key);
-      }
-    }, [options]);
-    
-    return(
-      <div key={key} style={{paddingTop: 8}}>
-        <InputLabel htmlFor={'multiselect-'+key} shrink>{label}</InputLabel>
-        <MultiselectStringInput
-          key={'multiselect-'+key}
-          data={{'0': options}}
-          value={maybeOfNullable(value)}
-          onClear={() => changeFxn([], key)}
-          onChange={(val: Maybe<string[]>) => changeFxn(withDefault(val, null), key)}
-        />
-      </div>
-    );
+  label: string, options: string[],
+  onAll: string[] = options,
+  onClear: string[] = [],
+  maxItems: number = 25
+) {
+
+  if (value != null && value.length > 0) {
+    if (value.filter((val) => !(val==='' || options.includes(val))).length > 0) changeFxn(null, key);
   }
+
+  return(
+    <div key={key} style={{paddingTop: 8}}>
+      <InputLabel htmlFor={'multiselect-'+key} shrink>{label}</InputLabel>
+      <ListInput
+        key={'multiselect-'+key}
+        placeholder='Select items from the list'
+        className='link_text'
+        values={value!=null ? value : []}
+        itemInput={DropdownAutocompleteInput}
+        list={options}
+        onChange={(val: string[]) => changeFxn(val, key)}
+        onAll={() => changeFxn(onAll, key)}
+        onClear={() => changeFxn(onClear, key)}
+        maxItems={maxItems}
+      />
+    </div>
+  );
+}
 
   export function MultiselectAfterDataChoicePiece(
     key: string, changeFxn: Function, value: string[] | null = null,
@@ -276,32 +283,37 @@ export function sliderPiece(
     );
   }
 
+export type NumericConstraint = ['exactly' | 'above', number | null, 'exactly' | 'below', number | null];
+export const emptyNumericConstraintDef: NumericConstraint = ['exactly', 0, 'below', 0];
 export function rangePiece(
-  key: string, changeFxn: Function, value: (string|number|null)[] = ['exactly', null, 'below', null],
+  key: string, changeFxn: Function, value: NumericConstraint,
   label: string) {
-    const updateSlot = (newValue: string|number|null, slot: number, current_full = value) => {
+    const updateSlot = (newValue: 'exactly' | 'above' | 'below' | number | null, slot: number, current_full = value) => {
       let next_full = [...current_full];
       next_full[slot] = newValue;
       return next_full;
     };
     
     return(
-      <div key={key}>
-        <div style={{display: 'inline-flex'}}>
-          {dropdownPiece(
-            key+'_lower_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue, 0), key), value[0] as string,
-            label + ', From', ['exactly','above'], true, 120)}
-          {floatPiece(
-            key+'_lower_value', (newValue: number | null) => changeFxn(updateSlot(newValue, 1), key), value[1] as number,
-            'Min-value', 120)}
-        </div>
-        <div style={{display: 'inline-flex'}}>
-          {dropdownPiece(
-            key+'_upper_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue, 2), key), value[2] as string,
-            'To', ['exactly','below'], true, 120)}
-          {floatPiece(
-            key+'_upper_value', (newValue: number | null) => changeFxn(updateSlot(newValue, 3), key), value[3] as number,
-            'Max-value', 120)}
+      <div>
+        {label==='' ? null : <InputLabel htmlFor={`${key}-range`} shrink>{label}</InputLabel>}
+        <div key={`${key}-range`}>
+          <div style={{display: 'inline-flex'}}>
+            {dropdownPiece(
+              key+'_lower_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue as 'exactly' | 'above', 0), key), value[0] as string,
+              'From', ['exactly','above'], true, 120)}
+            {FloatPiece(
+              key+'_lower_value', (newValue: number | null) => changeFxn(updateSlot(newValue as number | null, 1), key), value[1] as number,
+              'Min-value', 120)}
+          </div>
+          <div style={{display: 'inline-flex'}}>
+            {dropdownPiece(
+              key+'_upper_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue as 'exactly' | 'below', 2), key), value[2] as string,
+              'To', ['exactly','below'], true, 120)}
+            {FloatPiece(
+              key+'_upper_value', (newValue: number | null) => changeFxn(updateSlot(newValue as number | null, 3), key), value[3] as number,
+              'Max-value', 120)}
+          </div>
         </div>
       </div>
     );
