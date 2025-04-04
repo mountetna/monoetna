@@ -73,6 +73,9 @@ etna/packages/magmaR*.tar.gz
 etna/packages/magmaR/.Renviron
 etna/packages/magmaR.Rcheck*
 
+# For archimedes-r dev via RStudio
+archimedes**/*.tar.gz
+
 # For possible Singularity dev work
 archimedes-singularity/transfer
 **.sif
