@@ -148,29 +148,18 @@ const QueryControlButtons = () => {
     //   fetch when needed?
     if (
       lastPage !== page ||
-      lastPageSize !== pageSize ||
-      lastExpandMatrices !== expandMatrices ||
-      lastShowDisconnected !== showDisconnected ||
-      lastFlattenQuery !== flattenQuery
+      lastPageSize !== pageSize
     ) {
       runQuery();
       setLastPage(page);
       setLastPageSize(pageSize);
-      setLastExpandMatrices(expandMatrices);
-      setLastShowDisconnected(showDisconnected);
-      setLastFlattenQuery(flattenQuery);
     }
   }, [
     page,
     pageSize,
     lastPage,
     lastPageSize,
-    runQuery,
-    expandMatrices,
-    flattenQuery,
-    lastExpandMatrices,
-    lastShowDisconnected,
-    lastFlattenQuery
+    runQuery
   ]);
 
   useEffect(() => {
@@ -194,7 +183,9 @@ const QueryControlButtons = () => {
       _.isEqual(columns, lastColumns) &&
       _.isEqual(recordFilters, lastFilters) &&
       _.isEqual(orRecordFilterIndices, lastOrFilterIndices) &&
-      lastShowDisconnected !== showDisconnected
+      lastShowDisconnected === showDisconnected &&
+      lastExpandMatrices === expandMatrices &&
+      lastFlattenQuery === flattenQuery
     );
   }, [
     columns,
@@ -203,7 +194,12 @@ const QueryControlButtons = () => {
     lastFilters,
     orRecordFilterIndices,
     lastOrFilterIndices,
-    lastShowDisconnected
+    showDisconnected,
+    lastShowDisconnected,
+    flattenQuery,
+    lastFlattenQuery,
+    expandMatrices,
+    lastExpandMatrices
   ]);
 
   const handleRunQuery = useCallback(() => {
@@ -211,7 +207,10 @@ const QueryControlButtons = () => {
     setLastColumns(columns);
     setLastFilters(recordFilters);
     setLastOrFilterIndices(orRecordFilterIndices);
-  }, [runQuery, columns, recordFilters, orRecordFilterIndices]);
+    setLastExpandMatrices(expandMatrices);
+    setLastShowDisconnected(showDisconnected);
+    setLastFlattenQuery(flattenQuery);
+  }, [runQuery, columns, recordFilters, orRecordFilterIndices,expandMatrices,showDisconnected,flattenQuery]);
 
   return (
     <>
