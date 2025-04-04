@@ -1,0 +1,6 @@
+{
+	"cell_type": ["T", "B", "Myeloid"],
+	"has_thing": [true, false],
+	"gene1": [0,0,1,3,6,8,10],
+	"subject": ["HS1", "HS2"]
+}
