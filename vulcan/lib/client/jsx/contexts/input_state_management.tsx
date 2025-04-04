@@ -1,5 +1,5 @@
-import React, {useEffect} from 'react';
-import {defaultSession, VulcanState} from '../reducers/vulcan_reducer';
+import React, {useEffect, useMemo} from 'react';
+import {VulcanState} from '../reducers/vulcan_reducer';
 import {
   createContext,
   Dispatch,
@@ -10,36 +10,34 @@ import {
   useRef,
   useState
 } from 'react';
-import {defaultSessionSyncHelpers} from './session_sync';
+import {defaultSessionSyncHelpers} from './session_sync_while_running';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {dismissMessages, showMessages} from 'etna-js/actions/message_actions';
 import {
   clearBufferedInput,
   clearAutoPassStep,
   setBufferedInput,
-  setInputs,
+  setUIValues,
   setRunTrigger,
   setAutoPassStep,
   VulcanAction
 } from '../actions/vulcan_actions';
-import {allSourcesForStepName} from '../selectors/workflow_selectors';
 import {
   mapSome,
   Maybe,
-  maybeOfNullable,
   some,
-  withDefault
 } from '../selectors/maybe';
-import {DataEnvelope} from '../components/workflow/user_interactions/inputs/input_types';
 import {VulcanContext} from './vulcan_context';
 
 import Button from '@material-ui/core/Button';
 import {FormControlLabel, Grid, Switch} from '@material-ui/core';
-import {Workflow} from '../api_types';
+import { Workspace } from '../api_types';
+import { DataEnvelope } from '../components/ui_components';
+import { stepHasBeenOutput } from '../selectors/workflow_selectors';
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(
-    stepName: string | null,
+    stepName: string,
     inputs: DataEnvelope<Maybe<any>>
   ) {
     return false;
@@ -47,27 +45,25 @@ export const defaultInputStateManagement = {
 };
 
 export function isPassableUIStep(
-  stepName: string | null,
-  workflow: Workflow | null
+  stepName: string,
+  workspace: Workspace | null
 ) {
-  if (stepName != null) {
-    const this_step = workflow?.steps[0].filter(
-      (val) => val.name == stepName
-    )[0];
+  if (workspace && Object.keys(workspace.vulcan_config).includes(stepName)) {
+    const this_step = workspace?.vulcan_config[stepName];
     if (this_step?.doc?.startsWith('SKIPPABLE')) return true;
   }
   return false;
 }
 
 export const defaultBufferedInputs = {
-  inputs: {} as DataEnvelope<Maybe<any>>,
-  setInputs(
-    inputs:
+  values: {} as DataEnvelope<Maybe<any>>,
+  setValues(
+    values:
       | DataEnvelope<Maybe<any>>
       | ((prev: DataEnvelope<Maybe<any>>) => DataEnvelope<Maybe<any>>)
   ) {},
-  commitInputs() {},
-  cancelInputs() {}
+  commitValueUpdates() {},
+  cancelValueUpdates() {}
 };
 export const BufferedInputsContext = createContext(defaultBufferedInputs);
 
@@ -79,83 +75,74 @@ export function WithBufferedInputs({
 }: PropsWithChildren<{
   commitSessionInputChanges: typeof defaultInputStateManagement.commitSessionInputChanges;
   dispatch: Dispatch<VulcanAction>;
-  stepName: string | null;
+  stepName: string;
 }>) {
   const {stateRef, state} = useContext(VulcanContext);
-  const inputsRef = useRef({} as DataEnvelope<Maybe<any>>);
-  const [inputs, setInputsState] = useState(inputsRef.current);
-  const hasInputs = Object.keys(inputs).length > 0;
+  const valuesRef = useRef({} as DataEnvelope<Maybe<any>>);
+  const [values, setValuesState] = useState(valuesRef.current);
+  // We must assume a newly rendered UI might be filled in automatically with a valid default, even if the user has not touched it. 
+  const hasNewValues = Object.keys(values).length > 0 || !stepHasBeenOutput(stepName, stateRef.current.status);
 
-  const cancelInputs: any = useCallback(() => {
-    // eslint-disable-next-line
-    setInputs({});
-    // @ts-ignore
-    // eslint-disable-next-line
-  }, [setInputs]);
+  const cancelValueUpdates: any = useCallback(() => {
+    // // eslint-disable-next-line
+    setValues({});
+    // // @ts-ignore
+    // // eslint-disable-next-line
+  }, [setValues]);
 
-  const setInputs: any = useCallback<typeof defaultBufferedInputs.setInputs>(
-    (inputs) => {
-      if (inputs instanceof Function) {
-        inputsRef.current = inputs(inputsRef.current);
+  const setValues: any = useCallback<typeof defaultBufferedInputs.setValues>(
+    (values) => {
+      if (values instanceof Function) {
+        valuesRef.current = values(valuesRef.current);
       } else {
-        inputsRef.current = inputs;
+        valuesRef.current = values;
       }
 
-      if (Object.keys(inputsRef.current).length > 0) {
+      if (Object.keys(valuesRef.current).length > 0) {
         if (!stateRef.current.bufferedSteps.includes(stepName)) {
           dispatch(setBufferedInput(stepName));
         }
-        // Check / Initiate auto-pass attempt stepUI.
-        if (
-          stepName != null &&
-          stateRef.current.autoPassSteps.includes(stepName) &&
-          Object.keys(stateRef.current.session.inputs).filter((val) =>
-            val.includes(stepName)
-          ).length < 1
-        ) {
-          if (commitSessionInputChanges(stepName, inputsRef.current)) {
-            cancelInputs();
-            dispatch(setRunTrigger(stepName));
-          }
-        }
+        // // Check / Initiate auto-pass attempt stepUI.
+        // if (
+        //   stepName != null &&
+        //   stateRef.current.autoPassSteps.includes(stepName) &&
+        //   Object.keys(stateRef.current.status.ui_contents).filter((val) =>
+        //     val.includes(stepName)
+        //   ).length < 1
+        // ) {
+        //   if (commitSessionInputChanges(stepName, valuesRef.current)) {
+        //     dispatch(setRunTrigger(stepName));
+        //   }
+        // }
       } else {
         if (stateRef.current.bufferedSteps.includes(stepName)) {
           dispatch(clearBufferedInput(stepName));
         }
       }
-      setInputsState(inputsRef.current);
+      setValuesState(valuesRef.current);
     },
-    [dispatch, stateRef, stepName, cancelInputs, commitSessionInputChanges]
+    [dispatch, stateRef, stepName, cancelValueUpdates, commitSessionInputChanges]
   );
 
-  useEffect(() => {
-    if (
-      !state.bufferedSteps.includes(stepName) &&
-      Object.keys(inputs).length > 0
-    ) {
-      setInputs({});
-    }
-  }, [setInputs, state.bufferedSteps, inputs, stepName]);
+  // useEffect(() => {
+  //   // Initiate auto-pass attempt, primary inputs.
+  //   if (
+  //     stepName === null &&
+  //     stateRef.current.autoPassSteps.includes(stepName)
+  //   ) {
+  //     if (commitSessionInputChanges(stepName, valuesRef.current)) {
+  //       cancelValueUpdates();
+  //       dispatch(setRunTrigger(stepName));
+  //     }
+  //     dispatch(clearAutoPassStep(null));
+  //   }
+  // }, [stateRef.current.autoPassSteps, cancelValueUpdates, commitSessionInputChanges]);
 
-  useEffect(() => {
-    // Initiate auto-pass attempt, primary inputs.
-    if (
-      stepName === null &&
-      stateRef.current.autoPassSteps.includes(stepName)
-    ) {
-      if (commitSessionInputChanges(stepName, inputsRef.current)) {
-        cancelInputs();
-        dispatch(setRunTrigger(stepName));
-      }
-      dispatch(clearAutoPassStep(null));
+  const commitValueUpdates = useCallback(() => {
+    if (commitSessionInputChanges(stepName, valuesRef.current)) {
+      cancelValueUpdates();
     }
-  }, [stateRef.current.autoPassSteps, cancelInputs, commitSessionInputChanges]);
-
-  const commitInputs = useCallback(() => {
-    if (commitSessionInputChanges(stepName, inputsRef.current)) {
-      cancelInputs();
-    }
-  }, [cancelInputs, commitSessionInputChanges, stepName]);
+  }, [cancelValueUpdates, commitSessionInputChanges, stepName]);
 
   function setAutoPass(event: any, checked: boolean) {
     if (checked) {
@@ -165,13 +152,13 @@ export function WithBufferedInputs({
     }
   }
 
-  const commit_reset_buttons = hasInputs ? (
+  const commit_reset_buttons = hasNewValues ? (
     <div className='reset-or-commit-inputs'>
-      <Button onClick={cancelInputs} disabled={!!state.pollingState}>
+      <Button onClick={cancelValueUpdates} disabled={!!state.pollingState}>
         Reset
       </Button>
       <Button
-        onClick={commitInputs}
+        onClick={commitValueUpdates}
         style={{
           background: 'linear-gradient(135deg, #6e8efb, #a777e3)',
           textAlign: 'center',
@@ -189,7 +176,7 @@ export function WithBufferedInputs({
 
   const autopass_switch = isPassableUIStep(
     stepName,
-    stateRef.current.workflow
+    stateRef.current.workspace
   ) ? (
     <FormControlLabel
       control={
@@ -206,7 +193,7 @@ export function WithBufferedInputs({
   ) : null;
 
   const controls_below =
-    isPassableUIStep(stepName, stateRef.current.workflow) || hasInputs ? (
+    isPassableUIStep(stepName, stateRef.current.workspace) || hasNewValues ? (
       <Grid container style={{width: 'auto'}} justifyContent='flex-end'>
         {autopass_switch}
         {commit_reset_buttons}
@@ -215,7 +202,7 @@ export function WithBufferedInputs({
 
   return (
     <BufferedInputsContext.Provider
-      value={{inputs, setInputs, commitInputs, cancelInputs}}
+      value={{values, setValues, commitValueUpdates, cancelValueUpdates}}
     >
       <div>{children}</div>
       {controls_below}
@@ -226,7 +213,6 @@ export function WithBufferedInputs({
 export function useInputStateManagement(
   invoke: ReturnType<typeof useActionInvoker>,
   dispatch: Dispatch<VulcanAction>,
-  requestPoll: typeof defaultSessionSyncHelpers.requestPoll,
   stateRef: MutableRefObject<VulcanState>
 ): typeof defaultInputStateManagement {
   const getErrors = useCallback(
@@ -257,20 +243,13 @@ export function useInputStateManagement(
     typeof defaultInputStateManagement.commitSessionInputChanges
   >(
     (stepName, inputs) => {
+      // Validate current input set, ending here if not valid
       if (!validateInputs(stepName)) return false;
-      const sources = allSourcesForStepName(
-        stepName,
-        stateRef.current.workflow
-      );
-      const newInputs = {...stateRef.current.session.inputs};
-      sources.forEach((source) => {
-        mapSome(inputs[source] || null, (inner) => (newInputs[source] = inner));
-      });
-      dispatch(setInputs(newInputs));
-      requestPoll(false, some(stepName as string));
+      // Push to params/ui_contents in status, and mark step as needing to by sync'd to server by workspace-manager
+      dispatch(setUIValues(inputs, stepName))
       return true;
     },
-    [dispatch, requestPoll, stateRef, validateInputs]
+    [dispatch, validateInputs]
   );
 
   return {
