@@ -26,6 +26,9 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: '10px',
     cursor: 'pointer'
   },
+  title: {
+    fontWeight: 'bold'
+  },
   columns: {
     width: '100%',
     paddingLeft: '30px'
@@ -180,7 +183,7 @@ const QuerySelectPane = () => {
       <QueryClause title=''>
         <Grid container alignItems='center'>
           <QueryChevron fold={fold} setFold={setFold}/>
-          Select attributes as&nbsp;<b>columns</b>:
+          <Typography className={classes.title}>Columns:</Typography>
           <QueryClauseSummaryControls
             fold={fold}
             setFold={setFold}

@@ -53,10 +53,9 @@ const QueryAnyEverySelectorList = ({
     <React.Fragment>
       <Typography>{anyList.length ? 'For' : 'For the'}&nbsp;</Typography>
       {anyList.map(([modelName, value], index: number) => {
-        return ( <>
+        return ( <React.Fragment key={index}>
           <Selector
             canEdit={true}
-            key={index}
             name={value.toString()}
             onSelect={() => handlePatchFilter(modelName)}
             choiceSet={ [
@@ -65,9 +64,9 @@ const QueryAnyEverySelectorList = ({
             ]}
           />
           {
-            (index < anyList.length - 1) && <Typography>&nbsp;and&nbsp;</Typography>
+            (index < anyList.length - 1) && <Typography>and&nbsp;</Typography>
           }
-        </>
+        </React.Fragment>
         );
       })}
     </React.Fragment>

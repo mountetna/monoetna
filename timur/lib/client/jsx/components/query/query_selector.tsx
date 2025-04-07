@@ -5,12 +5,13 @@ import MenuItem from '@material-ui/core/MenuItem';
 import {makeStyles, useTheme} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = color => makeStyles((theme) => ({
   select: {
     alignItems: 'center',
     '&&& .MuiSelect-select': {
-      padding: '0px',
-      paddingRight: '5px'
+      padding: '6px 0px',
+      paddingRight: '5px',
+      color: color in theme.palette ? theme.palette[color].main : color
     }
   }
 }));
@@ -35,23 +36,16 @@ const Selector = ({
   placeholder: string;
   choiceSet: string[]|string[][];
 }) => {
-  const classes = useStyles();
+  const classes = useStyles(color)();
 
   if (!canEdit) return <Typography>{name}</Typography>;
   const theme = useTheme();
   return (
-    <FormControl variant="standard" className={classes.select}
-      sx={{
-        '&&& .MuiSelect-select': {
-          color: color in theme.palette ? theme.palette[color].main : color
-        }
-      }}
-    >
+    <FormControl variant="standard" className={classes.select}>
       <Select
         labelId={id(label)}
         variant='standard'
         autoWidth
-        color={ color }
         IconComponent='span'
         disableUnderline={true}
         value={name}

@@ -222,13 +222,13 @@ const QueryColumnSelector = React.memo(
               </>
           }
           <Typography>&nbsp;as column&nbsp;</Typography>
-            <TextField
-              variant='standard'
-              size='small'
-              className={classes.column_input}
-              value={column.display_label}
-              onChange={(e) => onChangeLabel(e.target.value)}
-            />
+          <TextField
+            variant='standard'
+            size='small'
+            className={classes.column_input}
+            value={column.display_label}
+            onChange={(e) => onChangeLabel(e.target.value)}
+          />
           { showControls && canEdit && <Tooltip title='Copy column' aria-label='Copy column'>
             <IconButton size='small' onClick={onCopyColumn} color='primary'>
               <FileCopyIcon fontSize='small'/>

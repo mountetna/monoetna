@@ -54,13 +54,15 @@ const QueryNumber = ({number, level, setRemoveHint, onClick}) => {
 
   return <Button
     size='small'
-    color='black'
-    variant='variant'
+    variant='text'
     onMouseEnter={() => setRemoveHint && setRemoveHint(true)}
     onMouseLeave={() => setRemoveHint && setRemoveHint(false)}
     className={classes.number}
+    color={
+      setRemoveHint ? 'primary' : 'default'
+    }
     style={{
-      cursor: setRemoveHint ? 'pointer' : 'default'
+      cursor: setRemoveHint ? 'pointer' : 'text'
     }}
     onClick={onClick}>
     { formattedNumber }.&nbsp;

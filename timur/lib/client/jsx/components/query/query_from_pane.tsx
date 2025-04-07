@@ -1,7 +1,9 @@
 import React, {useCallback, useContext} from 'react';
 
 import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
+import {makeStyles} from '@material-ui/core/styles';
 
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import {QueryColumnContext} from '../../contexts/query/query_column_context';
@@ -12,6 +14,15 @@ import QueryClause from './query_clause';
 import QueryChevron from './query_chevron';
 import {isLinkCollection, sortAttributeList} from '../../utils/attributes';
 
+const useStyles = makeStyles((theme) => ({
+  title: {
+    fontWeight: 'bold'
+  },
+  summary: {
+    fontStyle: 'italic',
+    paddingLeft: '10px',
+  }
+}));
 const QueryFromPane = () => {
   const {
     state: {graph, rootModel},
@@ -54,17 +65,20 @@ const QueryFromPane = () => {
     [graph, setRootModel, setQueryColumns, setDataAndNumRecords]
   );
 
+  const classes = useStyles();
+
   return (
     <QueryClause title=''>
       <Grid item container>
         <Grid item container xs={8} alignItems='center'>
           <QueryChevron disabled/>
-          Select records from model&nbsp;
+          <Typography className={classes.title}>Rows:</Typography>
+          <Typography className={classes.summary}>from&nbsp;</Typography>
           <QueryModelSelector
             setModel={onRootModelSelect}
             modelNames={[...graph.allowedModels]}
             modelName={rootModel || ''}
-          />&nbsp;as&nbsp;<b>rows</b>
+          />
         </Grid>
       </Grid>
     </QueryClause>

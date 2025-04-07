@@ -31,6 +31,9 @@ const useStyles = makeStyles((theme) => ({
     width: '100%',
     paddingLeft: '30px'
   },
+  title: {
+    fontWeight: 'bold'
+  },
   empty: {
     paddingLeft: '5px'
   }
@@ -133,7 +136,7 @@ const QueryWherePane = () => {
     <QueryClause title=''>
       <Grid container alignItems='center'>
         <QueryChevron fold={fold} setFold={setFold}/>
-        Show {rootModel} records&nbsp;<b>where</b>:
+        <Typography className={classes.title}>Where:</Typography>
         <QueryClauseSummaryControls
           fold={fold}
           setFold={setFold}
