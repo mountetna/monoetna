@@ -86,19 +86,6 @@ const QuerySliceControl = ({
     [clause, handlePatchClause]
   );
 
-
-    const x = <QueryFilterClause
-      index={sliceIndex}
-      clause={slice.clause}
-      graph={graph}
-      modelNames={modelNames}
-      isColumnFilter={true}
-      patchClause={handlePatchClause}
-      removeClause={removeSlice}
-      showRemoveIcon={true}
-      canAddSubclause={false}
-    />;
-
   const [ removeHint, setRemoveHint ] = useState(false);
 
   return <Grid item container alignItems='center'>
@@ -120,14 +107,14 @@ const QuerySliceControl = ({
         <QueryFilterSubclause
           key={sliceIndex}
           subclause={clause.subclauses[0]}
-          subclauseIndex={sliceIndex}
+          subclauseIndex={0}
           graph={graph}
           modelName={clause.modelName}
           patchSubclause={(updatedSubclause: QuerySubclause) =>
-            handleUpdateSubclause(updatedSubclause, sliceIndex)
+            handleUpdateSubclause(updatedSubclause, 0)
           }
           modelAttributes={[]}
-          removeSubclause={() => handleRemoveSubclause(sliceIndex)}
+          removeSubclause={() => handleRemoveSubclause(0)}
           isColumnFilter={true}
           showRemoveIcon={false}
         />
