@@ -4,6 +4,75 @@ import {QueryWhereState} from './query_where_context';
 import {QueryColumn} from './query_types';
 import {migrateSubclauses, migrateSlices} from '../../utils/query_uri_params';
 
+const btou = str => btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+const utob = str => {
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (str.length % 4) str += '=';
+  return atob(str);
+}
+
+const unpackParams = async search => {
+  let searchParams = new URLSearchParams(search);
+
+  if (searchParams.has('q')) {
+    const stream = new Blob(
+      [Uint8Array.from(
+        utob(searchParams.get('q')),
+        c => c.charCodeAt(0)
+      )]
+    ).stream();
+    let decompressedStream = stream.pipeThrough(
+      new DecompressionStream("gzip")
+    );
+    const blob = await new Response(decompressedStream).blob();
+    const text = await blob.text();
+    return JSON.parse(text);
+  }
+
+  return {
+    rootModel: searchParams.get('rootModel') || '',
+    recordFilters: migrateSubclauses(
+      JSON.parse(searchParams.get('recordFilters') || '[]')
+    ),
+    orRecordFilterIndices: JSON.parse(
+      searchParams.get('orRecordFilterIndices') || '[]'
+    ),
+    columns: migrateSlices(JSON.parse(searchParams.get('columns') || '[]'))
+  }
+};
+
+const packParams = async params => {
+  const stream = new Blob(
+    [JSON.stringify(params)],
+    { type: 'applicaton/json' }
+  ).stream();
+
+  const gzipStream = stream.pipeThrough(new CompressionStream("gzip"));
+
+  const compressedResponse = await new Response(gzipStream);
+  const blob = await compressedResponse.blob();
+  const buffer = await blob.arrayBuffer();
+  const compressedBase64 = btou(
+    String.fromCharCode(
+      ...new Uint8Array(buffer)
+    )
+  );
+
+  const searchParams = new URLSearchParams();
+
+  searchParams.set('q', compressedBase64)
+
+  return searchParams.toString();
+}
+
+function serializeState(state: {[key: string]: any}, isJson: boolean = true) {
+  let params = new URLSearchParams();
+  Object.entries(state).forEach(([key, value]) => {
+    params.set(key, (typeof value  === 'string') ? value : JSON.stringify(value));
+  })
+  return params.toString();
+}
+
 export default function useUriQueryParams({
   columnState,
   rootModel,
@@ -26,57 +95,45 @@ export default function useUriQueryParams({
   if (!search) search = window.location.hash;
   if (!pathname) pathname = window.location.pathname;
 
-  function serializeState(state: {[key: string]: any}, isJson: boolean = true) {
-    return Object.entries(state)
-      .map(([key, value]) => {
-        return `${key}=${encodeURIComponent(
-          isJson ? JSON.stringify(value) : value
-        )}`;
-      })
-      .join('&');
-  }
-
   // Update the search params to reflect current state
   useEffect(() => {
-    let searchParams = new URLSearchParams(search.slice(1));
-    searchParams.set('rootModel', rootModel);
-    Object.entries(whereState).forEach(([key, value]: [string, any]) => {
-      searchParams.set(key, JSON.stringify(value));
-    });
-    Object.entries(columnState).forEach(([key, value]: [string, any]) => {
-      searchParams.set(key, JSON.stringify(value));
-    });
-
-    if (search.slice(1) !== searchParams.toString()) {
-      history.pushState({}, '', `${pathname}#${searchParams.toString()}`);
+    const updateSearchParams = async () => {
+      let params = await unpackParams(search.slice(1));
+      let paramString = await packParams({
+        ...params,
+        rootModel,
+        ...whereState,
+        ...columnState
+      });
+      if (search.slice(1) !== paramString) {
+        history.pushState({}, '', `${pathname}#${paramString}`);
+      }
     }
+
+    updateSearchParams().catch(console.error);
   }, [rootModel, search, whereState, columnState, pathname]);
 
   // Set current state to reflect query params only on component load
   useEffect(() => {
-    if (search === '') return;
+    const setCurrentState = async () => {
+      if (search === '') return;
 
-    let searchParams = new URLSearchParams(search.slice(1));
+      const paramString = await packParams({rootModel, ...whereState, ...columnState});
+      let serializedState = '#' + paramString;
 
-    let serializedState =
-      '#' +
-      serializeState({rootModel}, false) +
-      serializeState(whereState) +
-      serializeState(columnState);
+      if (serializedState === search) return;
 
-    if (serializedState === search) return;
+      let params = await unpackParams(search.slice(1));
 
-    setQueryColumns(
-      migrateSlices(JSON.parse(searchParams.get('columns') || '[]'))
-    );
-    setRootModel(searchParams.get('rootModel') || '');
-    setWhereState({
-      recordFilters: migrateSubclauses(
-        JSON.parse(searchParams.get('recordFilters') || '[]')
-      ),
-      orRecordFilterIndices: JSON.parse(
-        searchParams.get('orRecordFilterIndices') || '[]'
-      )
-    });
+      setQueryColumns(params.columns);
+      setRootModel(params.rootModel);
+      setWhereState({
+        recordFilters: params.recordFilters,
+        orRecordFilterIndices: params.orRecordFilterIndices
+      });
+    }
+
+    setCurrentState().catch(console.error);
+
   }, []);
 }
