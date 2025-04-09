@@ -110,9 +110,8 @@ class SftpMetisUploaderJob < Polyphemus::ETLJob
     
     unless state.empty?
       polyphemus_client.update_run(project_name, run_id, { state: state })
+      notify_slack(msg, channel: notification_channel, webhook_url: notification_webhook_url)
     end
-
-    notify_slack(msg, channel: notification_channel, webhook_url: notification_webhook_url)
   end
 
   private
