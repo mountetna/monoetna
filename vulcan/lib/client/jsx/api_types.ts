@@ -21,8 +21,8 @@ export type WorkflowCreateResponse = {'workflow_id': number, 'workflow_name': st
 
 export interface WorkspaceStep {
   name: string;
-  input: InputOutputConfig;
-  output: InputOutputConfig;
+  input: InputConfig;
+  output: OutputConfig;
   label?: string;
   ui_component?: string;
   doc?: string;
@@ -206,14 +206,20 @@ export type VulcanConfigElement = {
   label?: string;
   default?: any;
   doc?: string;
-  input?: InputOutputConfig;
+  input?: InputConfig;
   input_map?: string[];
-  output?: InputOutputConfig;
+  output?: OutputConfig;
 }
 
-export type InputOutputConfig = {
-  files?: string[]
-  params?: string[]
+export type InputConfig = {
+  files?: string[] | {[k: string]: string}
+  params?: string[] | {[k: string]: string}
+  preset?: {[k: string]: any}
+}
+
+type OutputConfig = {
+  files?: string[] | {[k: string]: string}
+  params?: string[] | {[k: string]: string}
 }
 
 export interface RunReturn {

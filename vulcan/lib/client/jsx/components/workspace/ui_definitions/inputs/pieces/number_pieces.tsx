@@ -78,7 +78,7 @@ export function NumberPiece(
     if (!isNaN(parsed)) {
       changeFxn(parsed, key);
     } else {
-      console.log(`Numeric input used as it did not parse properly: ${event.target.value}`)
+      console.log(`Number update not used as it did not parse properly: ${event.target.value}`)
     }
   }
   

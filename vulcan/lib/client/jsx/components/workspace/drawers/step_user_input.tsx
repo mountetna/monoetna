@@ -47,7 +47,7 @@ function StepUIInner({
   const {state} = useContext(VulcanContext);
   const {status} = state;
   const {workspace} = useWorkspace();
-  const {values, setValues} = useContext(BufferedInputsContext);
+  const {values, setValues, showError} = useContext(BufferedInputsContext);
 
   const stepInputs: BoundInputSpecification[] = useMemo(
     () =>
@@ -60,7 +60,8 @@ function StepUIInner({
           status.params,
           status.ui_contents,
           values,
-          setValues
+          setValues,
+          showError
         )
       ),
     [specs, workspace.vulcan_config, status.last_params, status.file_contents, status.params, status.ui_contents, values, setValues]
@@ -82,7 +83,7 @@ function StepUIOuter({
   step: WorkspaceStep;
   hideLabel: boolean;
 }) {
-  const {dispatch, commitSessionInputChanges} = useContext(VulcanContext);
+  const {dispatch, commitSessionInputChanges, useActionInvoker} = useContext(VulcanContext);
   const {workspace} = useWorkspace();
   const specs = useMemo(
     () => getInputSpecifications(step, workspace),
@@ -94,6 +95,7 @@ function StepUIOuter({
       <WithBufferedInputs
         commitSessionInputChanges={commitSessionInputChanges}
         dispatch={dispatch}
+        invoke={useActionInvoker()}
         stepName={step.name}
       >
         <StepUIInner specs={specs} hideLabel={hideLabel} />

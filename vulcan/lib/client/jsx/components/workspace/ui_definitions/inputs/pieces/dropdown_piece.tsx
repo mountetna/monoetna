@@ -1,32 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {DataEnvelope, WithInputParams} from '../../input_types';
-import {maybeOfNullable, some, withDefault} from '../../../../../selectors/maybe';
-import {StringOptions} from '../../monoids';
-import {useMemoized} from '../../../../../selectors/workflow_selectors';
-import {useSetsDefault} from '../../useSetsDefault';
+import React, {useEffect, useState} from 'react';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import {useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
-
-export function pullRecommendation<T extends DataEnvelope<any>>(
-  data: T | null | undefined
-): string | undefined {
-  // Make the recommendation part of the autocomplete into the 'label' of renderInput
-  if (data != null) {
-    let data_use = {...data};
-    let suggestion: string | undefined = undefined;
-    if (Object.keys(data).includes('recommendation')) {
-      // Allow multi-recommendation?
-      const rec = Array.isArray(data['recommendation'])
-        ? data['recommendation'].join(', ')
-        : data['recommendation'];
-      suggestion = rec == null || rec == 'null' ? undefined : 'Recommendation: ' + rec;
-      delete data_use['recommendation'];
-    }
-    return suggestion;
-  }
-  return undefined;
-}
 
 function dispValue(value: string | null) {
   return value == null ? '' : value;
@@ -72,40 +47,70 @@ function determineHelperText(
   }
 }
 
-export default function SelectAutocompleteInput({
-  data,
-  defaultValue,
-  label,
+type DropdownPieceInputs = {
+  name?: string,
+  changeFxn: (v: string | null, k?: string) => void, // k likely becomes meaningless so should not be used in the function
+  value: string | null,
+  label?: string,
+  options_in: string[],
+  minWidth?: number,
+  maxOptions?: number,
+  disableClearable?: boolean,
+  disabled?: boolean
+}
+
+export default function DropdownPiece(
+  key: DropdownPieceInputs['name'],
+  changeFxn: DropdownPieceInputs['changeFxn'],
+  value: DropdownPieceInputs['value'],
+  label: DropdownPieceInputs['label'] = '',
+  options: string[] | {[k: string]: string} | null,
+  sorted: boolean = true,
+  minWidth: DropdownPieceInputs['minWidth'] = 200,
+  disabled: DropdownPieceInputs['disabled'] = false,
+): React.ReactElement | null {
+  if (options==null) return null;
+  if (Array.isArray(options)) {
+    return <DropdownPieceRct
+      name={key}
+      changeFxn={changeFxn}
+      value={value}
+      label={label}
+      options_in={options}
+      minWidth={minWidth}
+      disabled={disabled}
+    />
+  }
+  // options_in = Object with keys = label values to show the user; values = true option values that the output / saved state should hold.
+  const labels = Object.keys(options)
+  const toValue = (label: string | null | undefined) => label == null? null : options[label]
+  const toLabel = (value: string | null) => {
+    return (value == null) ? null : (Object.keys(options).find(key => options[key] === value)) as string
+  };
+  return(
+    <DropdownPieceRct
+      name={key}
+      changeFxn={(v,k) => {changeFxn(toValue(v), k)}}
+      label={label}
+      value={toLabel(value)}
+      options_in={labels}
+      minWidth={minWidth}
+    />
+  );
+}
+
+export function DropdownPieceRct({
+  name,
+  changeFxn,
+  value,
+  label = '',
+  options_in,
   minWidth,
-  maxOptions = 100,
+  maxOptions = 200,
   disableClearable = true,
   disabled = false,
-  onChangeOverride,
-  onChange,
-  ...props
-}: WithInputParams<
-  {
-    label?: string;
-    minWidth?: number;
-    disableClearable?: boolean;
-    disabled?: boolean;
-    maxOptions?: number;
-    onChangeOverride?: (event: any, e: string | null) => void;
-  },
-  string | null,
-  StringOptions
->) {
-  /*
-  Creates a searchable dropdown selection input box from concatenated values of the 'data' hash.
-  Special Case: If any data key is "recommendation", a line of text will display the values of this recommendation to the user.
-  */
-  const options_in: string[] = data.options;
-  const suggestion = pullRecommendation(data);
+}: DropdownPieceInputs): React.ReactElement | null {
 
-  const value = !!onChangeOverride ? withDefault(props.value, null) : useSetsDefault(defaultValue || null, props.value, onChange, 'picked');
-  const disp_label = useMemo(() => {
-    return suggestion ? suggestion : label;
-  }, [suggestion, label]);
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [helperText, setHelperText] = useState(undefined as string | undefined);
   const [inputState, setInputState] = useState(dispValue(value));
@@ -166,43 +171,34 @@ export default function SelectAutocompleteInput({
     setHelperText
   ]);
 
-  const onChangeAction = useCallback(
-    (event: any, e: string | null) => {
-      onChangeOverride
-        ? onChangeOverride(event, maybeOfNullable(e))
-        : onChange({picked: maybeOfNullable(e)});
-    },
-    [onChangeOverride, onChange]
-  );
-
   // ToDo: Replace with stubbing options_in + disabled + placeholder text to explain
   if (0 === options_in.length) return null;
 
   return (
-    <Autocomplete
-      disableClearable={disableClearable}
-      disabled={disabled}
-      clearOnBlur={true}
-      options={options_in}
-      filterOptions={(x: string[]) => options.display}
-      loading={loadingOptions}
-      value={value}
-      onChange={onChangeAction}
-      inputValue={inputState}
-      onInputChange={(event: any, newInputState: string) => {
-        setInputState(newInputState);
-      }}
-      style={{minWidth: minWidth, paddingTop: disp_label ? 8 : 0}}
-      renderInput={(params: any) => (
-        <TextField
-          {...params}
-          helperText={helperText}
-          error={inputState != dispValue(value)}
-          label={disp_label}
-          size='small'
-          InputLabelProps={{shrink: true}}
-        />
-      )}
-    />
+    <div key={!!name ? name : 'dropdown'}>
+      <Autocomplete
+        disableClearable={disableClearable}
+        disabled={disabled}
+        clearOnBlur={true}
+        options={options_in}
+        filterOptions={(x: string[]) => options.display}
+        loading={loadingOptions}
+        value={value}
+        onChange={(event: any, e: string | null) => {changeFxn(e, name)}}
+        inputValue={inputState}
+        onInputChange={(event: any, newInputState: string) => {setInputState(newInputState)}}
+        style={{minWidth: minWidth, paddingTop: label!='' ? 8 : 0}}
+        renderInput={(params: any) => (
+          <TextField
+            {...params}
+            helperText={helperText}
+            error={inputState != dispValue(value)}
+            label={label}
+            size='small'
+            InputLabelProps={{shrink: true}}
+          />
+        )}
+      />
+    </div>
   );
 }

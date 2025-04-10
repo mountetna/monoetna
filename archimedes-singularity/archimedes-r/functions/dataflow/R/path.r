@@ -3,7 +3,7 @@ input_path <- function(
 ) {
 
   if (is.character(key) && ! key %in% names(snakemake@input)) {
-    stop("No input keyed ", key, " exists in the snakemake object for this job.")
+    stop("No input or param keyed ", key, " exists in the snakemake object for this job.")
   }
   
   path <- snakemake@input[[key]]
@@ -19,10 +19,16 @@ input_single_var <- function(
   key,
   type
 ) {
-  scan(
-    input_path(key),
-    what = type,
-    quiet = TRUE)
+
+  if (is.character(key) && key %in% names(snakemake@params)) {
+    snakemake@params[[key]]
+  } else {
+    scan(
+      input_path(key),
+      what = type,
+      quiet = TRUE
+    )
+  }
 }
 
 input_str <- function(key) {

@@ -1,7 +1,7 @@
 import React, {Dispatch, PropsWithChildren, useMemo, useState} from 'react';
 import * as _ from 'lodash';
 
-import {DataEnvelope, WithInputParams} from '../../input_types';
+import {WithInputParams} from '../../input_types';
 import {useSetsDefault} from '../../useSetsDefault';
 import {some} from '../../../../../selectors/maybe';
 import {
@@ -14,18 +14,19 @@ import {
 import {pick} from 'lodash';
 import {
   stringPiece,
-  dropdownPiece,
   MultiselectPiece,
   checkboxPiece,
   sliderPiece,
   ReductionSetupPiece,
-  nestedDropdownPiece,
   MultiselectAfterDataChoicePiece
 } from '../pieces/user_input_pieces';
-import {subsetDataFramePiece} from '../pieces/subsetDataFrame_piece';
 import {ReorderCustomOnlyPiece, ReorderVizPiece} from '../pieces/reorder_piece';
-import NestedDropdownMultiPickAdvanced from '../pieces/nested_dropdown_multi_pick_advanced';
+import NestedDropdownMultiChoiceAdvancedPiece from '../pieces/nested_dropdown_multi_choice_advanced_piece';
 import { nestedOptionSet } from '../pieces/utils';
+import DropdownPiece from '../pieces/dropdown_piece';
+import { DataEnvelope } from '../../../../ui_components';
+import NestedDropdownPiece from '../pieces/nested_dropdown_piece';
+import { OptionalSelectionDefinitionPiece } from '../pieces/grouping_pieces';
 
 /*
 Docmentation last updated: Apr 15, 2022
@@ -102,10 +103,10 @@ JSX:
 
 */
 
-const remove_hidden = (
+function remove_hidden(
   vals: DataEnvelope<any>,
   hide: string[] | null | undefined
-) => {
+): DataEnvelope<any> {
   let values = {...vals};
 
   if (hide == null || hide.length === 0 || values.length === 0) {
@@ -259,7 +260,7 @@ const defaults_dittoseq: DataEnvelope<any> = {
   vars_use: [],
   x_scale: 'linear',
   y_scale: 'linear',
-  cells_use: {},
+  cells_use: false,
   reduction_setup: [null, '1', '2'],
   do_hover: true,
   vlnplot_lineweight: 1,
@@ -477,10 +478,9 @@ function useExtraInputs(
       cells_use: [
         'Focus on a subset of cells',
         full_data,
+        options,
         false,
-        'secondary',
-        continuous,
-        'Discrete Cell_Metadata'
+        'secondary'
       ],
       x_order: ['Order of X-Axis Groupings', full_data, x_by, discrete],
       y_order: ['Order of Y-Axis Groupings', full_data, y_by, discrete],
@@ -567,17 +567,17 @@ const components_plotly: DataEnvelope<Function> = {
   legend_title: stringPiece,
   xlab: stringPiece,
   ylab: stringPiece,
-  x_by: dropdownPiece,
-  y_by: dropdownPiece,
-  color_by: dropdownPiece,
+  x_by: DropdownPiece,
+  y_by: DropdownPiece,
+  color_by: DropdownPiece,
   plots: MultiselectPiece,
   color_order: ReorderVizPiece,
   order_when_continuous_color: checkboxPiece,
   size: sliderPiece,
-  scale_by: dropdownPiece,
-  x_scale: dropdownPiece,
-  y_scale: dropdownPiece,
-  rows_use: subsetDataFramePiece,
+  scale_by: DropdownPiece,
+  x_scale: DropdownPiece,
+  y_scale: DropdownPiece,
+  rows_use: OptionalSelectionDefinitionPiece,
   x_order: ReorderVizPiece,
   y_order: ReorderVizPiece
 };
@@ -588,30 +588,30 @@ const components_dittoseq: DataEnvelope<Function> = {
   legend_title: stringPiece,
   xlab: stringPiece,
   ylab: stringPiece,
-  x_by: nestedDropdownPiece,
-  y_by: nestedDropdownPiece,
-  var: nestedDropdownPiece,
-  vars: NestedDropdownMultiPickAdvanced,
-  group_by: nestedDropdownPiece,
-  color_by: nestedDropdownPiece,
-  sample_by: nestedDropdownPiece,
+  x_by: NestedDropdownPiece,
+  y_by: NestedDropdownPiece,
+  var: NestedDropdownPiece,
+  vars: NestedDropdownMultiChoiceAdvancedPiece,
+  group_by: NestedDropdownPiece,
+  color_by: NestedDropdownPiece,
+  sample_by: NestedDropdownPiece,
   plots: MultiselectPiece,
   vars_use: MultiselectAfterDataChoicePiece,
   color_order: ReorderVizPiece,
   size: sliderPiece,
   opacity: sliderPiece,
-  scale_by: dropdownPiece,
+  scale_by: DropdownPiece,
   scale: checkboxPiece,
-  x_scale: dropdownPiece,
-  y_scale: dropdownPiece,
-  cells_use: subsetDataFramePiece,
+  x_scale: DropdownPiece,
+  y_scale: DropdownPiece,
+  cells_use: OptionalSelectionDefinitionPiece,
   group_order: ReorderCustomOnlyPiece,
   var_order: ReorderCustomOnlyPiece,
   reduction_setup: ReductionSetupPiece,
   do_hover: checkboxPiece,
   vlnplot_lineweight: sliderPiece,
   vlnplot_width: sliderPiece,
-  vlnplot_scaling: dropdownPiece,
+  vlnplot_scaling: DropdownPiece,
   boxplot_width: sliderPiece,
   boxplot_color: stringPiece,
   boxplot_fill: checkboxPiece,
@@ -655,7 +655,7 @@ function VisualizationUI(
   components: DataEnvelope<Function>,
   plot_relabels?: DataEnvelope<string> | undefined
 ) {
-  const preset = useMemo(() => data && 'optional' in data && 'preset' in data['optional'] ? data['optional']['preset'] : undefined, [data]);
+  const preset = useMemo(() => data && 'preset' in data ? data['preset'] : undefined, [data]);
   const hide = useMemo(() => preset && Object.keys(preset), [preset]);
   const defaultValue = whichDefaults(setPlotType, preset, defaults, redefaults, input_sets);
   const value = useSetsDefault(defaultValue, props.value, onChange, 'plot_setup');
@@ -664,8 +664,6 @@ function VisualizationUI(
     value && value['plot_type'] ? (value['plot_type'] as string) : null;
 
   const data_frame: DataEnvelope<any> = useMemo(() => {
-    if (data == null) return {};
-    if (data['data_frame'] == null) return {};
     return data['data_frame'];
   }, [data]);
 
@@ -675,24 +673,18 @@ function VisualizationUI(
   }, [data_frame]);
 
   const continuous_columns: string[] | nestedOptionSet = useMemo(() => { // NOTE: these data don't necessarily need to be contained within the given data_frame (to accomodate for visualizing genomics data)
-    if (data == null || !('optional' in data)) return [];
-    if (data['optional']['continuous_cols'] == null) return df_columns; // Should build a warning here instead?
-    return data['optional']['continuous_cols'];
+    return 'continuous_opts' in data ? data['continuous_opts'] : df_columns;
   }, [data]);
   const discrete_columns: string[] = useMemo(() => {
-    if (data == null || !data['optional']) return [];
-    if (data['optional']['discrete_cols'] == null) return df_columns; // Should build a warning here instead?
-    return data['optional']['discrete_cols'];
+    return 'discrete_opts' in data ? data['discrete_opts'] : df_columns;
+  }, [data]);
+  const columns: string[] | nestedOptionSet = useMemo(() => {
+    return 'all_opts' in data ? data['all_opts'] : df_columns;
   }, [data]);
 
-  const columns: string[] | nestedOptionSet = (data != null && 'optional' in data && data['optional']['all_cols'] != null) ? data['optional']['all_cols'] : df_columns
-
   const reduction_opts: DataEnvelope<string[]> | null = useMemo(() => {
-    if (data == null || !('optional' in data)) return null;
-    if (data['optional']['reduction_opts'] == null) return null;
-    return data['optional']['reduction_opts'];
+    return 'reduction_opts' in data ? data['reduction_opts'] : null;
   }, [data])
-  // console.log({reduction_opts});
 
   const x_by =
     value && Object.keys(value).includes('x_by')
@@ -729,7 +721,7 @@ function VisualizationUI(
     reduction_opts
   );
 
-  const shownSetupValues = useMemo(() => {
+  const shownSetupValues: ReturnType<typeof remove_hidden> = useMemo(() => {
     if (plotType == null) return {};
     const initial = {...value};
     if (Object.keys(initial).includes('plot_type')) {
@@ -738,7 +730,7 @@ function VisualizationUI(
     return remove_hidden(initial, hide);
   }, [value, hide]);
 
-  const updatePlotType = (newType: string, key: string) => {
+  const updatePlotType = (newType: string | null, key?: string) => {
     onChange({plot_setup: some(whichDefaults(newType, preset, defaults, redefaults, input_sets))});
   };
 
@@ -759,7 +751,7 @@ function VisualizationUI(
   const pickPlot =
     setPlotType != null ? null : (
       <div>
-        {dropdownPiece(
+        {DropdownPiece(
           'plot_type',
           updatePlotType,
           plotType,
@@ -774,7 +766,7 @@ function VisualizationUI(
     plotType == null ? null : (
       <Grid container direction='column'>
         {Object.entries(input_sets[plotType]).map(([group_name, val]) => {
-          const group_values: DataEnvelope<any> = pick(shownSetupValues, val);
+          const group_values: DataEnvelope<any> = pick(shownSetupValues, val as string[]);
           const open = expandedDrawers.includes(group_name);
           // console.log('group_values', group_values)
           return Object.keys(group_values).length > 0 ? (
@@ -803,7 +795,10 @@ function VisualizationUI(
       </Grid>
     );
 
-  // console.log(props.value);
+  // console.log({
+  //   VizValue: value,
+  //   data: data
+  // });
 
   return (
     <div key='VizUI'>

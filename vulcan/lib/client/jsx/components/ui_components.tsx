@@ -9,11 +9,11 @@ import IntegerInput from "./workspace/ui_definitions/inputs/components/integer";
 import { MetisFileInput, MetisFolderInput } from "./workspace/ui_definitions/inputs/components/metis_items";
 import MultipleInput from "./workspace/ui_definitions/inputs/multiple_input";
 import MultiselectStringInput from "./workspace/ui_definitions/inputs/components/multiselect_string";
-import NestedSelectAutocompleteInput from "./workspace/ui_definitions/inputs/nested_select_autocomplete";
-import NestedSelectAutocompleteMultiPickInput from "./workspace/ui_definitions/inputs/nested_select_autocomplete_multi_choice";
+import NestedDropdownInput from "./workspace/ui_definitions/inputs/components/nested_dropdown";
+// import NestedDropdownMultiChoicePieceRct from "./workspace/ui_definitions/inputs/pieces/nested_dropdown_multi_choice_piece";
 import DiffExpSC from "./workspace/ui_definitions/inputs/scDGE";
-import SelectAutocompleteInput from "./workspace/ui_definitions/inputs/components/select_autocomplete";
-import SelectAutocompleteMultiPickInput from "./workspace/ui_definitions/inputs/select_autocomplete_multi_choice";
+import DropdownInput from "./workspace/ui_definitions/inputs/components/dropdown";
+import DropdownMultiChoiceInput from "./workspace/ui_definitions/inputs/components/dropdown_multi_choice";
 import SingleDropdownMulticheckbox from "./workspace/ui_definitions/inputs/single_dropdown_multicheckbox";
 import StringInput from "./workspace/ui_definitions/inputs/components/string";
 import { AnyDittoSeq, AnyPlotly, BarPlotly, DittoBarPlot, DittoDimPlot, DittoPlot, DittoScatterPlot, ScatterPlotly, YPlotly } from "./workspace/ui_definitions/inputs/components/visualizations";
@@ -31,49 +31,43 @@ import { PlotlyOutput, PlotOutput, PngOutput } from './workspace/ui_definitions/
 import ConsignmentOutput from './workspace/ui_definitions/outputs/consignment';
 import RawOutput from './workspace/ui_definitions/outputs/raw';
 import TwoGroupSelection from './workspace/ui_definitions/inputs/components/two_group_selection';
+import { NestedDropdownMultiChoiceInput, NestedDropdownMultiChoiceAdvancedInput, NestedDropdownMultiChoiceBulkAddInput, NestedDropdownMultiChoiceReorderInput } from './workspace/ui_definitions/inputs/components/nested_dropdown_multi_choice';
 
 /*
-Inputs: For Input_Feed, can produce an output, tracked as a step by snakemake
-How they work:
-- Defined through both a jsx definition of the component && as well as validator function via the `configureComponent` at the bottom of the section.
-- value in INPUT_TYPES object is the string that can be used for ui_component in a vulcan_config.
-*/
-export const INPUT_TYPES = {
-  INTEGER: 'int',
-  FLOAT: 'float',
-  BOOL: 'boolean',
-  STRING: 'string',
-  ARRAY: 'array',
-  FILE: 'File',
-  METIS_FILE: 'MetisFile',
-  METIS_CSV_OR_TSV: 'MetisCSVorTSV',
-  METIS_FOLDER: 'MetisFolder',
-  METIS_FILE_OR_FOLDER: 'MetisPath',
-  MULTISELECT_STRING: 'multiselect-string',
-  SELECT_AUTOCOMPLETE: 'dropdown',
-  SELECT_AUTOCOMPLETE_MULTI_PICK: 'dropdown-multi-pick',
-  CHECKBOXES: 'checkboxes',
-  NESTED_SELECT_AUTOCOMPLETE: 'nested-select-autocomplete',
-  NESTED_SELECT_AUTOCOMPLETE_MULTI_PICK: 'nested-select-autocomplete-multi-pick',
-  MULTIPLE_MULTISELECT_STRING_ALL: 'multiple-multiselect-string-all',
-  MULTIPLE_STRING: 'multiple-string',
-  SINGLE_DROPDOWN_MULTICHECKBOX: 'single-dropdown-multicheckbox',
-  SCATTER_PLOTLY: 'scatter-plotly',
-  BAR_PLOTLY: 'bar-plotly',
-  Y_PLOTLY: 'y-plotly',
-  DITTOSEQ_DIM_PLOT: 'dittoseq-dim-plot',
-  DITTOSEQ_SCATTER_PLOT: 'dittoseq-scatter-plot',
-  DITTOSEQ_BAR_PLOT: 'dittoseq-bar-plot',
-  DITTOSEQ_PLOT: 'dittoseq-plot',
-  ANY_DITTOSEQ: 'any-dittoseq',
-  DIFF_EXP_SC: 'diff-exp-sc',
-  DATA_TRANSFORMATION: 'data-transformation',
-  ANNOTATION_EDITOR: 'annotation-editor',
-  ANY_VIZ: 'any-viz',
-  TWO_GROUP_SELECTION: 'two-group-selection'
-};
+InputComponents: 
+  - For Input_Feed
+  - I/O:
+    - Some require inputs
+    - Can produce outputs
+  - Tracked as a step by snakemake
+Defined here via:
+- token - string utilized to request this input setup in a vulcan_config.yaml
+- component - jsx defining the UI itself (more below)
+- validator - jsx defining any when to block the user from 'Confirm'ing their selections, as well as the error messages to display (more below)
+- outputKeys - string[] naming the 'value' keys managed by the 'component' jsx
+- inputKeysRequired - string[] naming the 'data' keys expect by the 'component' jsx
+- inputKeyOptional - string naming a single 'data' key only optionally expected by the 'component' jsx
 
-export const components = {} as {[k: string]: [
+'inputComponents' export holds all of these definitions.
+
+components:
+  - take as input:
+    - current 'value', as Object where all values map to potential outputs
+    - a standard 'onChange' function, not defined here, called whenever updating the current value
+    - input 'dataElement'
+    - (additional 'params', managed externally)
+  - output:
+    - A React Component
+
+validators:
+  - take as input:
+    - current 'value'
+    - input 'dataElement'
+  - output:
+    - string[] that is empty when there are no 'value' validation errors
+*/
+
+export const inputComponents = {} as {[k: string]: [
   InputBackendComponent<any, any, any>,
   InputValidator<any, any>,
   string[],
@@ -84,43 +78,52 @@ function configureComponent<Value, DataElement>(
   type: InputType,
   component: InputBackendComponent<any, Value, DataElement>,
   validator: InputValidator<Value, DataElement>,
-  outputInternalNames: string[],
-  inputNames: string[],
-  optionalInputName?: string
+  outputKeys: string[],
+  inputKeysRequired: string[],
+  inputKeysOptional?: string
 ) {
-  if (type in components) throw new Error(`Duplicate definition for ${type}`);
-  components[type] = [component, validator, outputInternalNames, inputNames, optionalInputName];
+  if (type in inputComponents) throw new Error(`Duplicate definition for ${type}`);
+  inputComponents[type] = [component, validator, outputKeys, inputKeysRequired, inputKeysOptional];
 }
-configureComponent(INPUT_TYPES.STRING, StringInput, NotEmptyValidator, ['value'], []);
-configureComponent(INPUT_TYPES.FLOAT, FloatInput, NotEmptyValidator, ['value'], []);
-configureComponent(INPUT_TYPES.INTEGER, IntegerInput, NotEmptyValidator, ['value'], []);
-configureComponent(INPUT_TYPES.BOOL, BooleanInput, NotEmptyValidator, ['value'], []);
-configureComponent(INPUT_TYPES.CHECKBOXES, CheckboxesInput, NotEmptyValidator, ['picked'], ['options']);
-configureComponent(INPUT_TYPES.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator, ['picked'], ['options']);
-configureComponent(INPUT_TYPES.METIS_FILE, MetisFileInput, MetisFileValidator(), ['target'], []);
-configureComponent(INPUT_TYPES.METIS_CSV_OR_TSV, MetisFileInput, MetisFileValidator('\\.[ct]sv$', 'csv or tsv file'), ['target'], []);
-configureComponent(INPUT_TYPES.METIS_FOLDER, MetisFolderInput, MetisFolderValidator(), ['target'], []);
-configureComponent(INPUT_TYPES.METIS_FILE_OR_FOLDER, MetisFileInput, MetisPathValidator(), ['target'], []);
-configureComponent(INPUT_TYPES.SELECT_AUTOCOMPLETE, SelectAutocompleteInput, StronglyNotEmptyValidator, ['picked'], ['options'], 'recommendation');
-configureComponent(INPUT_TYPES.TWO_GROUP_SELECTION, TwoGroupSelection, AllOutputValuesNotEmptyValidator, ['g1', 'g2'], ['data_summary'], 'all_column_options')
-configureComponent(INPUT_TYPES.SELECT_AUTOCOMPLETE_MULTI_PICK, SelectAutocompleteMultiPickInput, StronglyNotEmptyValidator);
-configureComponent(INPUT_TYPES.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, StronglyNotEmptyValidator);
-configureComponent(INPUT_TYPES.NESTED_SELECT_AUTOCOMPLETE_MULTI_PICK, NestedSelectAutocompleteMultiPickInput, StronglyNotEmptyValidator);
-configureComponent(INPUT_TYPES.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
-configureComponent(INPUT_TYPES.DATA_TRANSFORMATION, DataTransformationInput, AllInnerKeysNotNullValidator);
-configureComponent(INPUT_TYPES.ANNOTATION_EDITOR, AnnotationEditorInput, AnnotationEditorValidator);
-configureComponent(INPUT_TYPES.SCATTER_PLOTLY, ScatterPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator), ['plot_setup'], ['data_frame'], 'optional');
-configureComponent(INPUT_TYPES.BAR_PLOTLY, BarPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator), ['plot_setup'], ['data_frame'], 'optional');
-configureComponent(INPUT_TYPES.Y_PLOTLY, YPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator), ['plot_setup'], ['data_frame'], 'optional');
-configureComponent(INPUT_TYPES.ANY_VIZ, AnyPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator), ['plot_setup'], ['data_frame'], 'optional');
-configureComponent(INPUT_TYPES.DITTOSEQ_DIM_PLOT, DittoDimPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator), ['plot_setup'], ['data_frame'], 'optional');
-configureComponent(INPUT_TYPES.DITTOSEQ_SCATTER_PLOT, DittoScatterPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator), ['plot_setup'], ['data_frame'], 'optional');
-configureComponent(INPUT_TYPES.DITTOSEQ_PLOT, DittoPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator), ['plot_setup'], ['data_frame'], 'optional');
-configureComponent(INPUT_TYPES.DITTOSEQ_BAR_PLOT, DittoBarPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator), ['plot_setup'], ['data_frame'], 'optional');
-configureComponent(INPUT_TYPES.ANY_DITTOSEQ, AnyDittoSeq, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator), ['plot_setup'], ['data_frame'], 'optional');
-configureComponent(INPUT_TYPES.DIFF_EXP_SC, DiffExpSC, PlusSubsetValidator('subset',AllOutputValuesNotEmptyAllowingEmptyArrayValidator));
-configureComponent(INPUT_TYPES.SINGLE_DROPDOWN_MULTICHECKBOX, SingleDropdownMulticheckbox, NotEmptyValidator);
-configureComponent(INPUT_TYPES.MULTIPLE_MULTISELECT_STRING_ALL, MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator);
+configureComponent('default', StringInput, NotEmptyValidator, ['value'], []);
+configureComponent('string', StringInput, NotEmptyValidator, ['value'], []);
+configureComponent('float', FloatInput, NotEmptyValidator, ['value'], []);
+configureComponent('int', IntegerInput, NotEmptyValidator, ['value'], []);
+configureComponent('boolean', BooleanInput, NotEmptyValidator, ['value'], [], 'label');
+configureComponent('checkbox', BooleanInput, NotEmptyValidator, ['value'], [], 'label');
+configureComponent('checkboxes', CheckboxesInput, NotEmptyValidator, ['picked'], ['options']);
+configureComponent('two-group-selection', TwoGroupSelection, AllOutputValuesNotEmptyValidator, ['g1', 'g2'], ['data_summary'], 'all_column_options')
+configureComponent('multiselect-string', MultiselectStringInput, NotEmptyValidator, ['picked'], ['options']);
+configureComponent('MetisFile', MetisFileInput, MetisFileValidator(), ['target'], []);
+configureComponent('MetisCSVorTSV', MetisFileInput, MetisFileValidator('\\.[ct]sv$', 'csv or tsv file'), ['target'], []);
+configureComponent('MetisFolder', MetisFolderInput, MetisFolderValidator(), ['target'], []);
+configureComponent('MetisPath', MetisFileInput, MetisPathValidator(), ['target'], []);
+configureComponent('dropdown', DropdownInput, StronglyNotEmptyValidator, ['picked'], ['options'], 'recommendation');
+configureComponent('nested-dropdown', NestedDropdownInput, StronglyNotEmptyValidator, ['picked'], ['nestedOptions'], 'recommendation');
+configureComponent('dropdown-multi-choice', DropdownMultiChoiceInput, StronglyNotEmptyValidator, ['picked'], ['options'], 'recommendation');
+configureComponent('nested-dropdown-multi-choice', NestedDropdownMultiChoiceInput, StronglyNotEmptyValidator, ['picked'], ['nestedOptions'], 'recommendation');
+configureComponent('nested-dropdown-multi-choice-bulk-add', NestedDropdownMultiChoiceBulkAddInput, StronglyNotEmptyValidator, ['picked'], ['nestedOptions'], 'recommendation');
+configureComponent('nested-dropdown-multi-choice-reorder', NestedDropdownMultiChoiceReorderInput, StronglyNotEmptyValidator, ['picked'], ['nestedOptions'], 'recommendation');
+configureComponent('nested-dropdown-multi-choice-advanced', NestedDropdownMultiChoiceAdvancedInput, StronglyNotEmptyValidator, ['picked'], ['nestedOptions'], 'recommendation');
+// python plotly visualization
+configureComponent('any-viz', AnyPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator), ['plot_setup'], ['data_frame'], 'optional');
+configureComponent('scatter-plotly', ScatterPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator), ['plot_setup'], ['data_frame'], 'optional');
+configureComponent('bar-plotly', BarPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator), ['plot_setup'], ['data_frame'], 'optional');
+configureComponent('y-plotly', YPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator), ['plot_setup'], ['data_frame'], 'optional');
+// dittoSeq visualization
+configureComponent('any-dittoseq', AnyDittoSeq, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator), ['plot_setup'], ['data_frame', 'continuous_opts', 'discrete_opts', 'all_opts', 'reduction_opts'], 'optional');
+configureComponent('dittoseq-dim-plot', DittoDimPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator), ['plot_setup'], ['data_frame'], 'optional');
+configureComponent('dittoseq-scatter-plot', DittoScatterPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator), ['plot_setup'], ['data_frame'], 'optional');
+configureComponent('dittoseq-plot', DittoPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator), ['plot_setup'], ['data_frame'], 'optional');
+configureComponent('dittoseq-bar-plot', DittoBarPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator), ['plot_setup'], ['data_frame'], 'optional');
+// NOT YET UPDATED
+// configureComponent('multiple-string', MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
+// configureComponent('data-transformation', DataTransformationInput, AllInnerKeysNotNullValidator);
+// configureComponent('annotation-editor', AnnotationEditorInput, AnnotationEditorValidator);
+// configureComponent('diff-exp-sc', DiffExpSC, PlusSubsetValidator('subset',AllOutputValuesNotEmptyAllowingEmptyArrayValidator));
+// configureComponent('single-dropdown-multicheckbox', SingleDropdownMulticheckbox, NotEmptyValidator);
+// configureComponent('multiple-multiselect-string-all', MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator);
+
 
 /*
 Outputs: For Output_Feed, cannot produce an output, NOT tracked as a step by snakemake

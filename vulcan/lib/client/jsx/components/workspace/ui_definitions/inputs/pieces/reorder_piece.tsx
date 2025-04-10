@@ -10,10 +10,9 @@ import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp';
 import LowPriorityIcon from '@material-ui/icons/LowPriority';
 import DragHandleIcon from '@material-ui/icons/DragHandle';
 import Typography from '@material-ui/core/Typography';
-import {some} from '../../../../../selectors/maybe';
-import SelectAutocompleteInput from '../components/select_autocomplete';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 import {arrayLevels, checkboxPiece} from './user_input_pieces';
+import { DropdownPieceRct } from './dropdown_piece';
 
 const LevelComponent = (props: any) => {
   return (
@@ -130,7 +129,7 @@ export function ReorderVizPiece(
   can_randomize: boolean = false
 ) {
   const data_targ = Array.isArray(data_target) ? data_target[data_target.length - 1] : data_target
-  const onMethodSelect = (e: any, picked: string | null) => {
+  const onMethodSelect = (picked: string | null, k?: string) => {
     const newValue =
       picked == 'custom'
         ? arrayLevels(Object.values(full_data[data_targ as string]))
@@ -166,13 +165,12 @@ export function ReorderVizPiece(
   }, [full_data, data_target, discrete_data]);
 
   const case_dropdown = (
-    <SelectAutocompleteInput
-      key={key}
+    <DropdownPieceRct
+      name={key}
       label={label}
-      value={some(chosen_case)}
-      data={{a: order_options}}
-      onChange={() => {}}
-      onChangeOverride={onMethodSelect}
+      value={chosen_case}
+      options_in={order_options}
+      changeFxn={onMethodSelect}
     />
   );
 

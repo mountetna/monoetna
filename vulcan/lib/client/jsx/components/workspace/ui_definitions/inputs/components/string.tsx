@@ -4,21 +4,15 @@ import {some} from '../../../../../selectors/maybe';
 import {useSetsDefault} from '../../useSetsDefault';
 import {selectDefaultString} from '../../monoids';
 import { TextField } from '@material-ui/core';
+import { stringPiece } from '../pieces/user_input_pieces';
 
 export default function StringInput({onChange, label, minWidth, defaultValue, data, ...props}: WithInputParams<{label?: string, minWidth?: number}, string, string>) {
   const value = useSetsDefault(defaultValue || selectDefaultString(data), props.value, onChange, 'value');
-  
-  return (
-    <div style={{paddingTop: label ? 8 : 0}}>
-      <TextField
-        value={value}
-        multiline
-        label={label}
-        InputLabelProps={{ shrink: true }}
-        onChange={(event) => onChange({value: some(event.target.value)})}
-        size="small"
-        style={{minWidth: minWidth || 200}}
-      />
-    </div>
-  );
+  return stringPiece(
+    label || 'string-input',
+    (v, k?) => onChange({value: some(v)}),
+    value,
+    label,
+    minWidth
+  )
 }

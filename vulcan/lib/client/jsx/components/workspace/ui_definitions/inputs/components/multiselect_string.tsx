@@ -1,31 +1,22 @@
-import React, {Dispatch, useCallback, useMemo} from 'react';
-
-import ListInput from 'etna-js/components/inputs/list_input';
-import DropdownAutocompleteInput from 'etna-js/components/inputs/dropdown_autocomplete_wrapper';
+import { MultiselectPiece } from '../pieces/user_input_pieces';
 import {WithInputParams} from '../../input_types';
-import {mapSome, some, withDefault} from '../../../../../selectors/maybe';
-import {flattenStringOptions, StringOptions} from '../../monoids';
-import {useMemoized} from '../../../../../selectors/workflow_selectors';
+import {mapSome, maybeOfNullable, some, withDefault} from '../../../../../selectors/maybe';
+import {StringOptions} from '../../monoids';
 
-export default function MultiselectStringInput({onChange, data, ...props}: WithInputParams<
-  {onClear?: Dispatch<void>, onAll?: Dispatch<void>}, string[], StringOptions>) {
-  const defaultOnClear = useCallback(() => onChange({picked: null}), [onChange]);
-  const options = useMemoized(flattenStringOptions, data);
-  const defaultOnAll = useCallback(() => onChange({picked: some(options)}), [onChange, options]);
-  const {onClear = defaultOnClear, onAll = defaultOnAll} = props;
+export default function MultiselectStringInput({onChange, data, label, defaultValue, ...props}: WithInputParams<
+  {label?: string}, string[], string[]>) {
+  const options = data.options;
+  // const picked = useSetsDefault(defaultValue as string[] || [], props.value, onChange, 'picked'); // Had to replace selectDefaultNumber(data) with 0 due how the component can be cleared.  NaN was not an option because of cross-language conversion.
   const picked = withDefault(mapSome(props.value.picked, inner => Array.isArray(inner) ? inner : [inner]), []);
 
-  return (
-    <ListInput
-      placeholder='Select items from the list'
-      className='link_text'
-      values={picked}
-      itemInput={DropdownAutocompleteInput}
-      list={options}
-      onChange={(e: string[]) => onChange({picked: some(e)})}
-      onAll={onAll}
-      onClear={onClear}
-      maxItems={25}
-    />
+  return MultiselectPiece(
+    label || 'multiselect',
+    (val: string[] | null) => {onChange({picked: maybeOfNullable(val)})},
+    picked,
+    label || 'Selections',
+    options,
+    options,
+    [],
+    25
   );
 }

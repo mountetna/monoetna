@@ -1,9 +1,9 @@
 import React from 'react';
 import { fireEvent, waitFor, screen } from '@testing-library/react';
-import NestedDropdownMultiPickAdvanced from '../nested_dropdown_multi_pick_advanced';
 import { renderWithProviders } from './utils';
-import { ComponentUse } from '../../visualizations';
+import { ComponentUse } from '../../components/visualizations';
 import { nestedOptionSet, keyedValues } from '../utils';
+import NestedDropdownMultiChoiceAdvancedPiece from '../nested_dropdown_multi_choice_advanced_piece';
 
 const initialValues: keyedValues = {
     marks_use: ['cd3'],
@@ -35,7 +35,7 @@ const updateValue = (newValue: any, key: string, prevValues = {...values}) => {
     values = prevValues;
 };
 
-describe('NestedDropdownMultiPickAdvanced', () => {
+describe('NestedDropdownMultiChoicePieces', () => {
     beforeEach(() => {
         values = initialValues;
     });
@@ -53,12 +53,12 @@ describe('NestedDropdownMultiPickAdvanced', () => {
                         false
                     ]}
                     updateValue={updateValue}
-                    comps={{marks_use: NestedDropdownMultiPickAdvanced}}
+                    comps={{marks_use: NestedDropdownMultiChoiceAdvancedPiece}}
                 />
             );
             await waitFor(() => {
                 expect(document.querySelector(
-                    'input[id="MultiMultiPick-optionPaths-marks_use-selection"]:not(.Mui-disabled)'
+                    'input[id="MultiMultiChoice-optionPaths"]:not(.Mui-disabled)'
                 )).toBeTruthy();
             });
         });
@@ -66,7 +66,7 @@ describe('NestedDropdownMultiPickAdvanced', () => {
         it('shows chosen values', async () => {
             expect(values.marks_use).toEqual(initialValues.marks_use);
             // Dropdown for matching optionSet exists
-            expect(document.querySelector('input[id="MultiMultiPick-Row_Features---set2-leaves-marks_use-selection"]:not(.Mui-disabled)')).toBeTruthy();
+            expect(document.querySelector('input[id="MultiMultiChoice-Row_Features---set2-leaves"]:not(.Mui-disabled)')).toBeTruthy();
             // values' chips exist
             expect(screen.getByText('cd3')).toBeTruthy();
         });
@@ -91,12 +91,12 @@ describe('NestedDropdownMultiPickAdvanced', () => {
                         true
                     ]}
                     updateValue={updateValue}
-                    comps={{marks_use: NestedDropdownMultiPickAdvanced}}
+                    comps={{marks_use: NestedDropdownMultiChoiceAdvancedPiece}}
                 />
             );
             await waitFor(() => {
                 expect(document.querySelector(
-                    'input[id="MultiMultiPick-optionPaths-marks_use-selection"]:not(.Mui-disabled)'
+                    'input[id="MultiMultiChoice-optionPaths"]:not(.Mui-disabled)'
                 )).toBeTruthy();
             });
         });
@@ -104,7 +104,7 @@ describe('NestedDropdownMultiPickAdvanced', () => {
         it('shows chosen values', async () => {
             expect(values.marks_use).toEqual(initialValues.marks_use);
             // Dropdown for matching optionSet exists
-            expect(document.querySelector('input[id="MultiMultiPick-Row_Features---set2-leaves-marks_use-selection"]:not(.Mui-disabled)')).toBeTruthy();
+            expect(document.querySelector('input[id="MultiMultiChoice-Row_Features---set2-leaves"]:not(.Mui-disabled)')).toBeTruthy();
             // values' chips exist
             expect(screen.getByText('cd3')).toBeTruthy();
         });
@@ -197,12 +197,12 @@ describe('NestedDropdownMultiPickAdvanced', () => {
                         false
                     ]}
                     updateValue={updateValue}
-                    comps={{marks_use: NestedDropdownMultiPickAdvanced}}
+                    comps={{marks_use: NestedDropdownMultiChoiceAdvancedPiece}}
                 />
             );
             await waitFor(() => {
                 expect(document.querySelector(
-                    'input[id="MultiMultiPick-optionPaths-marks_use-selection"]:not(.Mui-disabled)'
+                    'input[id="MultiMultiChoice-optionPaths"]:not(.Mui-disabled)'
                 )).toBeTruthy();
             });
         });
@@ -210,7 +210,7 @@ describe('NestedDropdownMultiPickAdvanced', () => {
         it('shows chosen values', async () => {
             expect(values.marks_use).toEqual(initialValues.marks_use);
             // Dropdown for matching optionSet exists
-            expect(document.querySelector('input[id="MultiMultiPick-Row_Features---set2-leaves-marks_use-selection"]:not(.Mui-disabled)')).toBeTruthy();
+            expect(document.querySelector('input[id="MultiMultiChoice-Row_Features---set2-leaves"]:not(.Mui-disabled)')).toBeTruthy();
             // values' chips exist
             expect(screen.getByText('cd3')).toBeTruthy();
         });

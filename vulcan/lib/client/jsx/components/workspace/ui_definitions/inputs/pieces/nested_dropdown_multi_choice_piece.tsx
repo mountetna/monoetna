@@ -2,16 +2,11 @@
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
-import {WithInputParams} from '../input_types';
-import {some, Maybe} from '../../../../selectors/maybe';
-import {useMemoized} from '../../../../selectors/workflow_selectors';
-import {joinNesting} from '../monoids';
-import {useSetsDefault} from '../useSetsDefault';
 import { Grid } from '@material-ui/core'
 import SubdirectoryArrowRightOutlinedIcon from '@material-ui/icons/SubdirectoryArrowRight';
-import { arrayLevels } from './pieces/user_input_pieces';
-import SelectAutocompleteMultiPickInput from './select_autocomplete_multi_choice';
-import { nestedOptionSet } from './pieces/utils';
+import { arrayLevels, key_wrap } from './user_input_pieces';
+import { nestedOptionSet } from './utils';
+import { DropdownMultiChoicePieceRct } from './dropdown_multi_choice_piece';
 
 export const sep = '---'
 
@@ -55,7 +50,7 @@ export function pathValues(pathString: string, allOptions: nestedOptionSet, _sep
   pathLevels.forEach( (this_level) => {
     values = values[this_level] as nestedOptionSet
   })
-  return Object.keys(values)
+  return Object.keys(values).filter(k => values[k]==null)
 }
 
 function valuesPerSelectPaths(valuesPerPath: {[key:string]: string[]}, paths: string | string[]) {
@@ -75,18 +70,53 @@ function valuesFromValuesPerPath(valuesPerPath: {[key:string]: string[]}) {
   return arrayLevels(([] as string[]).concat.apply([] as string[], Object.values(valuesPerPath))) as string[]
 }
 
-export default function NestedSelectAutocompleteMultiPickInput({ label, testIdAppend='', data, onChange, ...props }: WithInputParams<{
-  label?: string
-  testIdAppend?: string
-}, string[], nestedOptionSet>) {
-  const value: string[] = useSetsDefault([] as string[], props.value, onChange);
-  const allOptions = useMemoized(joinNesting, data);
+export type NestedDropdownMultiChoicePieceInputs = {
+  name: string,
+  changeFxn: (v: string[] | null, k?: string) => void, // k likely becomes meaningless so should not be used in the function
+  value: string[] | null,
+  label?: string,
+  options_in: nestedOptionSet,
+  testId?: string
+  sorted?: boolean
+}
+
+export function NestedDropdownMultiChoicePiece(
+  key: NestedDropdownMultiChoicePieceInputs['name'],
+  changeFxn: NestedDropdownMultiChoicePieceInputs['changeFxn'],
+  value: NestedDropdownMultiChoicePieceInputs['value'],
+  label: NestedDropdownMultiChoicePieceInputs['label'] = '',
+  options: string[] | nestedOptionSet | null,
+  sorted: boolean = true
+): React.ReactElement | null {
+  if (options==null) return null;
+  if (Array.isArray(options)) {
+    options = key_wrap([...options]) as nestedOptionSet
+  }
+  return <NestedDropdownMultiChoicePieceRct
+    name={key}
+    label={label}
+    testId={key}
+    value={value}
+    options_in={options}
+    changeFxn={changeFxn}
+  />
+}
+
+export default function NestedDropdownMultiChoicePieceRct({
+  name,
+  changeFxn,
+  value,
+  label,
+  options_in,
+  testId,
+  sorted
+}: NestedDropdownMultiChoicePieceInputs) {
   const [valuesPerPath, setValuesPerPath] = useState({} as {[key:string]: string[]});
   const [paths, setPaths] = useState([] as string[]);
 
   const flattenedPaths = useMemo(() => {
-    return flattenOptionPaths(allOptions)
-  }, [allOptions])
+    return flattenOptionPaths(options_in)
+  }, [options_in])
 
   const pathOptions = useMemo(() => {
     return leafParentPaths(flattenedPaths)
@@ -105,39 +135,38 @@ export default function NestedSelectAutocompleteMultiPickInput({ label, testIdAp
   }, [flattenedPaths, value]);
 
   // OptionPath Selection
-  const handlePickedOptionPaths = useCallback( (event: any, e: string[]) => {
-    const e_use = arrayLevels(e)
+  const handlePickedOptionPaths = useCallback( (v: string[] | null, k?:string) => {
+    const v_use = arrayLevels(v || [])
     const currentPaths = [...paths]
-    if (e_use != currentPaths) {
-      const prevPaths = paths.filter((path:string) => e_use.includes(path))
-      setPaths(e_use)
+    if (v_use != currentPaths) {
+      const prevPaths = paths.filter((path:string) => v_use.includes(path))
+      setPaths(v_use)
       // Remove associated values if user removed an option path
       // (prevPaths = chosen paths that had previously been chosen)
       if (currentPaths.length > prevPaths.length) {
-        onChange(some(valuesFromValuesPerPath(valuesPerSelectPaths(valuesPerPath, prevPaths))))
+        changeFxn(valuesFromValuesPerPath(valuesPerSelectPaths(valuesPerPath, prevPaths)), k)
       }
     }
   }, [valuesPerPath])
   const optionPathPicker = <Grid item>
-      <SelectAutocompleteMultiPickInput
-        key='MultiMultiPick-optionPaths'
-        onChange={(v) => {}}
-        onChangeOverride={handlePickedOptionPaths}
-        value={some(paths)}
-        data={{a: pathOptions}}
+      <DropdownMultiChoicePieceRct
+        name='MultiMultiChoice-optionPaths'
+        changeFxn={(v: string[] | null, k?: string) => handlePickedOptionPaths(v, name)}
+        value={paths}
+        options_in={pathOptions}
         placeholder={paths.length<1 ? 'Option Sets' : undefined}
         label={label}
-        testId={testIdAppend ? `MultiMultiPick-optionPaths-${testIdAppend}`: 'MultiMultiPick-optionPaths'}
+        testId={!!testId ? `MultiMultiChoice-optionPaths-${testId}`: 'MultiMultiChoice-optionPaths'}
       />
     </Grid>
 
   // Value Selection
-  const handlePickedValues = useCallback( (event: any, e: string[], pathString: string) => {
-    const e_use = arrayLevels(e)
+  const handlePickedValues = useCallback( (pathString: string, v: string[] | null, k?: string) => {
+    const v_use = arrayLevels(v || [])
     const newValuesPerPath = {...valuesPerPath}
-    newValuesPerPath[pathString] = e_use
+    newValuesPerPath[pathString] = v_use
     const newValues = valuesFromValuesPerPath(newValuesPerPath)
-    onChange(some(newValues))
+    changeFxn(newValues, k)
   }, [valuesPerPath])
   const singleValuePicker = (pathString: string, values: string[], disabled = false) => {
     return(
@@ -146,16 +175,15 @@ export default function NestedSelectAutocompleteMultiPickInput({ label, testIdAp
           <SubdirectoryArrowRightOutlinedIcon fontSize='small' color="secondary" style={{paddingTop: '3px', paddingRight: '2px'}}/>
         </Grid>
         <Grid item xs={11}>
-          <SelectAutocompleteMultiPickInput
-            key={pathString+'-leaves'}
-            data={disabled ? {a: ['']} : {a: pathValues(pathString, allOptions)}}
+          <DropdownMultiChoicePieceRct
+            name={pathString+'-leaves'}
+            options_in={disabled ? [''] : pathValues(pathString, options_in)}
             disabled={disabled}
             placeholder={disabled ? 'Awaiting Option Set selection' : undefined}
             label={pathString+' options'}
-            value={some(values)}
-            onChangeOverride={ (event: any, e: string[]) => handlePickedValues(event, e, pathString) }
-            onChange={(v) => {}}
-            testId={testIdAppend ? `MultiMultiPick-${pathString}-leaves-${testIdAppend}`: `MultiMultiPick-${pathString}-leaves`}
+            value={values}
+            changeFxn={ (v: string[] | null, k?: string) => handlePickedValues(pathString, v, name) }
+            testId={!!testId ? `MultiMultiChoice-${pathString}-leaves-${testId}`: `MultiMultiChoice-${pathString}-leaves`}
           />
         </Grid>
       </Grid>
@@ -167,7 +195,7 @@ export default function NestedSelectAutocompleteMultiPickInput({ label, testIdAp
       } )}
     </Grid>
 
-  return <Grid container direction='column'>
+  return <Grid key={name} container direction='column'>
     {optionPathPicker}
     {allValuePickers}
   </Grid>

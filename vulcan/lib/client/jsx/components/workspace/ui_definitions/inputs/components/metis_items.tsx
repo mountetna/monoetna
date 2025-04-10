@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {WithInputParams} from '../../input_types';
-import {some, withDefault} from '../../../../../selectors/maybe';
+import {some} from '../../../../../selectors/maybe';
 import { PickFileOrFolder, PickBucket } from 'etna-js/components/metis_exploration';
 import {useSetsDefault} from '../../useSetsDefault';
 import { Grid } from '@material-ui/core';

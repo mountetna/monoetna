@@ -10,13 +10,13 @@ import {
   BoundInputSpecification,
   InputValidator
 } from '../ui_definitions/input_types';
-import { components, InputType, INPUT_TYPES } from '../../ui_components';
+import { inputComponents, InputType } from '../../ui_components';
 import Icon from 'etna-js/components/icon';
 
 function backendComponentOf(
   type: InputType
 ): [InputBackendComponent, InputValidator] {
-  const result = type in components ? components[type] : components[INPUT_TYPES.STRING];
+  const result = type in inputComponents ? inputComponents[type] : inputComponents['default'];
   return [result[0], result[1]];
 }
 

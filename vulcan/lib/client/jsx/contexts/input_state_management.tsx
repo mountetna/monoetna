@@ -10,7 +10,6 @@ import {
   useRef,
   useState
 } from 'react';
-import {defaultSessionSyncHelpers} from './session_sync_while_running';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {dismissMessages, showMessages} from 'etna-js/actions/message_actions';
 import {
@@ -18,14 +17,11 @@ import {
   clearAutoPassStep,
   setBufferedInput,
   setUIValues,
-  setRunTrigger,
   setAutoPassStep,
   VulcanAction
 } from '../actions/vulcan_actions';
 import {
-  mapSome,
   Maybe,
-  some,
 } from '../selectors/maybe';
 import {VulcanContext} from './vulcan_context';
 
@@ -33,7 +29,6 @@ import Button from '@material-ui/core/Button';
 import {FormControlLabel, Grid, Switch} from '@material-ui/core';
 import { Workspace } from '../api_types';
 import { DataEnvelope } from '../components/ui_components';
-import { stepHasBeenOutput } from '../selectors/workflow_selectors';
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(
@@ -63,7 +58,8 @@ export const defaultBufferedInputs = {
       | ((prev: DataEnvelope<Maybe<any>>) => DataEnvelope<Maybe<any>>)
   ) {},
   commitValueUpdates() {},
-  cancelValueUpdates() {}
+  cancelValueUpdates() {},
+  showError(e: string) {}
 };
 export const BufferedInputsContext = createContext(defaultBufferedInputs);
 
@@ -71,17 +67,20 @@ export function WithBufferedInputs({
   children,
   commitSessionInputChanges,
   dispatch,
+  invoke,
   stepName
 }: PropsWithChildren<{
   commitSessionInputChanges: typeof defaultInputStateManagement.commitSessionInputChanges;
   dispatch: Dispatch<VulcanAction>;
+  invoke: ReturnType<typeof useActionInvoker>,
   stepName: string;
 }>) {
   const {stateRef, state} = useContext(VulcanContext);
   const valuesRef = useRef({} as DataEnvelope<Maybe<any>>);
   const [values, setValuesState] = useState(valuesRef.current);
   // We must assume a newly rendered UI might be filled in automatically with a valid default, even if the user has not touched it. 
-  const hasNewValues = Object.keys(values).length > 0 || !stepHasBeenOutput(stepName, stateRef.current.status);
+  const hasNewValues = Object.keys(values).length > 0 ||
+    !((stepName in stateRef.current.status.params) || (stepName in stateRef.current.status.ui_contents));
 
   const cancelValueUpdates: any = useCallback(() => {
     // // eslint-disable-next-line
@@ -152,6 +151,11 @@ export function WithBufferedInputs({
     }
   }
 
+  const showError = useCallback((e: string) => {
+    invoke(dismissMessages());
+    invoke(showMessages([`Error in step ${stepName}: ${e}`]))
+  }, [])
+
   const commit_reset_buttons = hasNewValues ? (
     <div className='reset-or-commit-inputs'>
       <Button onClick={cancelValueUpdates} disabled={!!state.pollingState}>
@@ -202,7 +206,7 @@ export function WithBufferedInputs({
 
   return (
     <BufferedInputsContext.Provider
-      value={{values, setValues, commitValueUpdates, cancelValueUpdates}}
+      value={{values, setValues, commitValueUpdates, cancelValueUpdates, showError}}
     >
       <div>{children}</div>
       {controls_below}

@@ -60,7 +60,7 @@ function ParamInputIndividual({input}: {
   const {state} = useContext(VulcanContext);
   const {status, workspace} = state;
   if (!workspace || !workspace.vulcan_config) return null;
-  const {values, setValues} = useContext(BufferedInputsContext);
+  const {values, setValues, showError} = useContext(BufferedInputsContext);
 
   const bound = useMemo(() => bindInputSpecification(
       input,
@@ -70,7 +70,8 @@ function ParamInputIndividual({input}: {
       status.params,
       status.ui_contents,
       values,
-      setValues
+      setValues,
+      showError
     ), [
       input,
       values,
@@ -93,7 +94,7 @@ function ParamInputGroup({inputs, groupName, select, expanded}: {
   expanded: boolean,
   select: (event: any) => void
 }) {
-  const {commitSessionInputChanges, dispatch} = useContext(VulcanContext);
+  const {commitSessionInputChanges, dispatch, useActionInvoker} = useContext(VulcanContext);
   const sortedInputs = useMemo(() => inputs.sort(
     (a, b) =>
       collator.compare(a.label, b.label)), [inputs]);
@@ -111,6 +112,7 @@ function ParamInputGroup({inputs, groupName, select, expanded}: {
           <WithBufferedInputs
             commitSessionInputChanges={commitSessionInputChanges}
             dispatch={dispatch}
+            invoke={useActionInvoker()}
             stepName={input.name}
             key={index}
           >

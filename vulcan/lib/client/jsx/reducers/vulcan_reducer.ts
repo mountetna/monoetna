@@ -11,13 +11,13 @@ import {
 import {
   allUIStepNames,
   inputUINames,
-  stepOutputMapping,
   uiContentsFromFiles,
   upcomingStepNames,
   vulcanConfigFromRaw,
 } from '../selectors/workflow_selectors';
 import {Maybe, withDefault} from '../selectors/maybe';
 import { pick } from 'lodash';
+import { stepOutputMapping } from '../components/workspace/ui_definitions/input_types';
 
 const defaultWorkflows = [] as Workflow[];
 const defaultWorkspaces = [] as WorkspaceMinimal[];

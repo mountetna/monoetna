@@ -1,19 +1,20 @@
 
-import React from 'react';
-import {DataEnvelope} from '../../input_types';
+import React, { useCallback } from 'react';
 import {
-  dropdownPiece,
   MultiselectPiece,
-  nestedDropdownPiece,
   rangePiece,
   arrayLevels,
   NumericConstraint,
-  emptyNumericConstraintDef
+  emptyNumericConstraintDef,
+  checkboxPiece
 } from './user_input_pieces';
 import {Button, PropTypes} from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import InputLabel from '@material-ui/core/InputLabel';
 import { nestedOptionSet } from './utils';
+import DropdownPiece from './dropdown_piece';
+import NestedDropdownPiece from './nested_dropdown_piece';
+import { DataEnvelope } from '../../../../ui_components';
 
 /*
 This script establishes various Pieces all aimed at data slicing for the purpose of extablishing data groupings.
@@ -69,11 +70,11 @@ const emptySingleSelectionDefinition = {
   def: [] as SingleSelectionConstraintDef,
   logic: null as null | 'AND' | 'OR'
 };
-type SingleSelectionDefinition = typeof emptySingleSelectionDefinition;
+export type SingleSelectionDefinition = typeof emptySingleSelectionDefinition;
 export type SelectionDefinition = SingleSelectionDefinition[]
 export const emptySelectionDefinition: SelectionDefinition = [emptySingleSelectionDefinition]
 
-export function SingleConstraintDefPiece(
+function SingleConstraintDefPiece(
   key: string,
   changeFxn: (v: SingleSelectionConstraintDef, k?: string) => void,
   value: SingleSelectionConstraintDef,
@@ -102,7 +103,7 @@ export function SingleConstraintDefPiece(
     );
   }
   if (typeof data_values[0] == 'boolean') {
-    return dropdownPiece(
+    return DropdownPiece(
       key,
       (v,k) => changeFxn([v]),
       value.length > 0 ? value[0] as string : null,
@@ -119,7 +120,7 @@ export function SingleConstraintDefPiece(
   );
 }
 
-export function SingleConstraintColDefLogicPiece(
+function SingleConstraintColDefLogicPiece(
   key: string,
   changeFxn: (v: SingleSelectionDefinition, k?: string) => void, // k likely becomes meaningless so should not be used in the function
   value: SingleSelectionDefinition = emptySingleSelectionDefinition,
@@ -133,40 +134,38 @@ export function SingleConstraintColDefLogicPiece(
   color: PropTypes.Color,
 ) {
 
-  // updateFxns for inner piece calls
-  // 'x' is a dummy variable needed because each piece will send a dummy key in addition the 'newDef' value.
-  function updatePart(newVal, key: keyof SingleSelectionDefinition) {
+  const updatePart = useCallback((newVal, key: keyof SingleSelectionDefinition, currentValue: typeof value) => {
     const newValue = {...value};
     newValue[key] = newVal;
     changeFxn(newValue, key);
-  }
-  const updateLogic = (newLogic: string | null, x?: string) => {
-    updatePart(newLogic, 'logic');
-  };
-  const updateDef = (newDef: (string | number | null)[], x?: string) => {
-    updatePart(newDef, 'def');
-  };
-  const updateColumn = (newCol: string, x?: string) => {
+  }, [changeFxn]);
+  const updateLogic = useCallback((newLogic: string | null, x: string | undefined, currentValue: typeof value) => {
+    updatePart(newLogic, 'logic', currentValue);
+  }, [updatePart]);
+  const updateDef = useCallback((newDef: (string | number | null)[], x: string | undefined, currentValue: typeof value) => {
+    updatePart(newDef, 'def', currentValue);
+  }, [updatePart]);
+  const updateColumn = useCallback((newCol: string | null, x: string | undefined, currentValue: typeof value) => {
     // Reset def too!
-    const newValue = {...value};
+    const newValue = {...currentValue};
     newValue['def'] = emptyConstraintDef;
     newValue['col'] = newCol;
     changeFxn(newValue, key);
-  };
+  }, [changeFxn]);
 
   const colOptions = !!all_column_options ? all_column_options : Object.keys(data_summary);
   const chosenColValues = !!value['col'] && value['col'] in data_summary ? data_summary[value['col']] : undefined;
 
-  const pick_column_comp = Array.isArray(colOptions) ? dropdownPiece(
+  const pick_column_comp = Array.isArray(colOptions) ? DropdownPiece(
     key + index + '-col',
-    updateColumn,
+    (v,k) => {updateColumn(v, k, value)},
     value['col'],
     label + ' ' + (index + 1) + ', Data Target',
     colOptions,
     sorted
-  ) : nestedDropdownPiece(
+  ) : NestedDropdownPiece(
     key + index,
-    updateColumn,
+    (v,k) => {updateColumn(v, k, value)},
     value['col'],
     label + ' ' + (index + 1) + ', Data Target',
     colOptions
@@ -182,9 +181,9 @@ export function SingleConstraintColDefLogicPiece(
     </Button>
   );
   const logic_comp = index == 0 ? null : (
-    dropdownPiece(
+    DropdownPiece(
       key + index + '-logic',
-      updateLogic,
+      (v,k) => {updateLogic(v, k, value)},
       value['logic'],
       'Combination Logic',
       ['AND', 'OR'],
@@ -205,7 +204,7 @@ export function SingleConstraintColDefLogicPiece(
         <div style={{paddingLeft: 10}}>
           {!!value['col'] && SingleConstraintDefPiece(
             key + index + '-def',
-            updateDef,
+            (v,k) => {updateDef(v, k, value)},
             value['def'],
             'Data Values',
             chosenColValues,
@@ -217,19 +216,30 @@ export function SingleConstraintColDefLogicPiece(
   );
 };
 
-export function SelectionDefinitionPiece(
-  key: string,
+type SelectionDefinitionPieceInputs = {
+  name?: string,
   changeFxn: (v: SelectionDefinition, k?: string) => void, // k likely becomes meaningless so should not be used in the function
-  value: SelectionDefinition = emptySelectionDefinition,
-  label: string = 'Selection Criteria',
+  value: SelectionDefinition,
+  label?: string,
   data_summary: DataEnvelope<any>,
-  all_column_options: nestedOptionSet | string[] | undefined,
-  sorted: boolean,
-  color: PropTypes.Color = 'primary'
-) {
+  all_column_options?: nestedOptionSet | string[],
+  sorted?: boolean,
+  color?: PropTypes.Color
+}
 
-  function removeConstraint(index: number) {
-    const newValue = [...value];
+export function SelectionDefinitionPieceRct({
+  name = 'selection',
+  changeFxn,
+  value,
+  label = '',
+  data_summary,
+  all_column_options,
+  sorted = false,
+  color = 'primary',
+}: SelectionDefinitionPieceInputs): React.ReactElement | null {
+
+  const removeConstraint = useCallback((index: number, currentValue: typeof value, name: string) => {
+    const newValue = [...currentValue];
     if (index < newValue.length) {
       newValue.splice(index, 1)
       if (index==0 && newValue.length > 0) {
@@ -237,31 +247,31 @@ export function SelectionDefinitionPiece(
         newValue[0]['logic'] = null;
       }
     }
-    changeFxn(newValue, key);
-  }
-  function updateConstraint(constraint: SingleSelectionDefinition, index: number) {
-    const newValue = [...value];
+    changeFxn(newValue, name);
+  }, [changeFxn]);
+  const updateConstraint = useCallback((constraint: SingleSelectionDefinition, index: number, currentValue: typeof value, name: string) => {
+    const newValue = [...currentValue];
     newValue[index] = constraint;
-    changeFxn(newValue, key);
-  }
-  function addConstraint() {
-    changeFxn([...value, emptySingleSelectionDefinition], key);
-  }
-  
+    changeFxn(newValue, name);
+  }, [changeFxn]);
+  const addConstraint = useCallback((currentValue: typeof value) => {
+    changeFxn([...value, emptySingleSelectionDefinition], name);
+  }, [changeFxn]);
+
   return (
     <div>
-      <InputLabel htmlFor={`${key}-selections`} shrink>{label}</InputLabel>
-      <div key={`${key}-selections`} style={{
+      <InputLabel htmlFor={`${name}-selections`} shrink>{label}</InputLabel>
+      <div key={`${name}-selections`} style={{
           paddingLeft: '15px',
           paddingTop: '2px'
         }}>
         {value.map((constraint, index) => {
           return SingleConstraintColDefLogicPiece(
-            key + '-constraint-' + index,
-            (v, k?) => updateConstraint(v, index),
+            name + '-constraint-' + index,
+            (v, k?) => {updateConstraint(v, index, value, name)},
             constraint,
             'Constraint',
-            () => removeConstraint(index),
+            () => {removeConstraint(index, value, name)},
             data_summary,
             all_column_options,
             index,
@@ -272,7 +282,7 @@ export function SelectionDefinitionPiece(
         <br></br>
         <Button
           color={color}
-          onClick={addConstraint}
+          onClick={(v, k?) => {addConstraint(value)}}
         >
           Add another condition?
         </Button>
@@ -281,154 +291,102 @@ export function SelectionDefinitionPiece(
   );
 }
 
-// /*
-// value structure: {
-//   g1: method,
-//   g2: method
-// }
-// */
-// function TwoGroupSingleConstraintDefPiece(
-//   value: undefined | {g1: SelectionMethod, g2: SelectionMethod},
-//   data_values: undefined | (string | number | boolean)[],
-//   updateFxn: Function,
-//   key: string,
-//   index: number,
-//   label1: string = 'Group 1',
-//   label2: string = 'Group 2'
-// ) {
+export function SelectionDefinitionPiece(
+  key: SelectionDefinitionPieceInputs['name'],
+  changeFxn: SelectionDefinitionPieceInputs['changeFxn'], // k likely becomes meaningless so should not be used in the function
+  value: SelectionDefinitionPieceInputs['value'] = emptySelectionDefinition,
+  label: SelectionDefinitionPieceInputs['label'] = 'Selection Criteria',
+  data_summary: SelectionDefinitionPieceInputs['data_summary'],
+  all_column_options: SelectionDefinitionPieceInputs['all_column_options'],
+  sorted: SelectionDefinitionPieceInputs['sorted'],
+  color: SelectionDefinitionPieceInputs['color'] = 'primary'
+) {
+  return <SelectionDefinitionPieceRct
+    name={key}
+    changeFxn={changeFxn}
+    value={value}
+    label={label}
+    data_summary={data_summary}
+    all_column_options={all_column_options}
+    sorted={sorted}
+    color={color}
+  />
+}
 
-//   function updateGroup(group, value)
+export function OptionalSelectionDefinitionPieceRct({
+  name = 'optionsl-selection',
+  changeFxn,
+  value = false,
+  label,
+  data_summary,
+  all_column_options,
+  sorted = false,
+  color = 'primary'
+}: {
+  name: SelectionDefinitionPieceInputs['name'],
+  changeFxn: (v: SelectionDefinition | false, k?: string) => void,
+  value: SelectionDefinitionPieceInputs['value'] | false,
+  label: SelectionDefinitionPieceInputs['label'],
+  data_summary: SelectionDefinitionPieceInputs['data_summary'],
+  all_column_options: SelectionDefinitionPieceInputs['all_column_options'],
+  sorted: SelectionDefinitionPieceInputs['sorted'],
+  color: SelectionDefinitionPieceInputs['color']
+}): React.ReactElement {
 
-//   if ( !!data_values && typeof data_values[0] == 'boolean') {
-//     // Case = selecting True or False as g1, so g2 gets the other.
-//     dropdownPiece(
-//       key + index + index,
-//       updateFxn,
-//       value.length > 0 ? (value[0] as string) : undefined,
-//       label,
-//       ['True', 'False'],
-//       false
-//     );
-//   }
-// }
+  // Put together all subsetting options
+  // let subset_options: string[] | nestedOptionSet = Object.keys(data_summary);
+  // if (additional_numeric_options!=null) {
+  //   subset_options = {
+  //     ...additional_numeric_options,
+  //     [data_summary_options_label]: key_wrap([...subset_options])}
+  // }
 
+  const startOrClear = useCallback((doSubset: boolean, x: any) => {
+    const new_full = doSubset ? emptySelectionDefinition : false;
+    changeFxn(new_full, name);
+  }, [changeFxn]);
 
+  // console.log(values);
+  return (
+    <div key={name}>
+      {checkboxPiece(
+        `${name}-on-off` || 'optional-selection-on-off',
+        startOrClear,
+        typeof value !== 'boolean',
+        label || "Do subset?"
+      )}
+      {typeof value !== 'boolean' && SelectionDefinitionPiece(
+        `${name}-selection`,
+        (v: SelectionDefinition, k?:string) => {changeFxn(v,name)},
+        value as SelectionDefinition,
+        'Cells to keep',
+        data_summary,
+        all_column_options,
+        sorted,
+        color
+      )}
+    </div>
+  );
+}
 
-// /*
-// value structure: {
-//   col: string,
-//   g1: method,
-//   g2: method
-// }
-// */
-
-// // For selection of a data column and then 2 value sets of that column (presumably mapping to two groupings that will later get).
-// const DFSelectColAndTwoGroupsPiece = (
-//     def: (string | number | null)[] = emptyMethod,
-//     index: number,
-//     data_summary: DataEnvelope<any>,
-//     all_column_options: nestedOptionSet | string[],
-//     updateCurrent: Function,
-//     overallChangeFxn: Function,
-//     key: string,
-//     values: DataEnvelope<(string | number | null)[][]>,
-//     sorted: boolean,
-//     color: PropTypes.Color
-//   ) => {
-//     // updateFxns for inner piece calls
-//     // 'x' is a dummy variable needed because each piece will send a dummy key in addition the 'newDef' value.
-//     const updateLogic = (newLogic: string | null, x: string) => {
-//       updateCurrent(null, newLogic, index);
-//     };
-//     const updateDefTargets = (newDef: (string | number | null)[], x: string) => {
-//       // Data target inners will not have the column_name
-//       const col = [def[0]];
-//       updateCurrent(col.concat(...newDef), null, index);
-//     };
-//     const updateDefColumn = (newCol: string, x: string) => {
-//       // (Resets away any data targets)
-//       updateCurrent([newCol], null, index);
-//     };
-    
-//     const clearDef = () => {
-//       const full = {...values};
-//       // methods (Current at index, must remain/become [emptyMethod] or lose current)
-//       let next_methods = full['methods'];
-//       next_methods.splice(index, 1);
-//       if (next_methods.length == 0) {
-//         next_methods = [emptyMethod];
-//       }
-//       // logic (Current at index-1, must remain/become [[]], lose current, or lose next if clicked for 1st def)
-//       let next_logic = full['logic'];
-//       if (next_logic.length == 1) {
-//         next_logic = [[]];
-//       } else {
-//         if (index == 0) {
-//           next_logic.splice(index, 1);
-//         }
-//         if (index > 0) {
-//           next_logic.splice(index - 1, 1);
-//         }
-//       }
-//       overallChangeFxn({methods: next_methods, logic: next_logic}, key);
-//     };
-  
-//     const pick_column = Array.isArray(all_column_options) ? dropdownPiece(
-//       key + index,
-//       updateDefColumn,
-//       def[0] as string,
-//       'Condition ' + (index + 1) + ', Feature',
-//       all_column_options,
-//       sorted
-//     ) : nestedDropdownPiece(
-//       key + index,
-//       updateDefColumn,
-//       def[0] as string,
-//       'Condition ' + (index + 1) + ', Feature',
-//       all_column_options
-//     );
-//     const clear_comp = (
-//       <Button
-//         color={color}
-//         onClick={(x) => {
-//           clearDef();
-//         }}
-//       >
-//         <DeleteIcon fontSize='small' />
-//       </Button>
-//     );
-//     const logic_comp =
-//       index == 0
-//         ? null
-//         : dropdownPiece(
-//             key + index + index + index,
-//             updateLogic,
-//             values['logic'][index - 1][0] as string,
-//             'Combination Logic',
-//             ['and', 'or'],
-//             false
-//           );
-//     const def_comp = targetSelectionComponent(
-//       def,
-//       data_summary,
-//       updateDefTargets,
-//       key,
-//       index
-//     );
-  
-//     return (
-//       <div
-//         key={key + index}
-//         style={{
-//           display: 'inline-flex'
-//         }}
-//       >
-//         <div>
-//           {logic_comp}
-//           {pick_column}
-//           <div style={{paddingLeft: 10}}>{def_comp}</div>
-//         </div>
-//         {clear_comp}
-//       </div>
-//     );
-//   };
+export function OptionalSelectionDefinitionPiece(
+  key: SelectionDefinitionPieceInputs['name'],
+  changeFxn: (v: SelectionDefinition | false, k?: string) => void,
+  value: SelectionDefinitionPieceInputs['value'] | false = false,
+  label: SelectionDefinitionPieceInputs['label'],
+  data_summary: SelectionDefinitionPieceInputs['data_summary'],
+  all_column_options: SelectionDefinitionPieceInputs['all_column_options'],
+  sorted: SelectionDefinitionPieceInputs['sorted'] = false,
+  color: SelectionDefinitionPieceInputs['color'] = 'primary'
+) {
+  return <OptionalSelectionDefinitionPieceRct
+    name={key}
+    changeFxn={changeFxn}
+    value={value}
+    label={label}
+    data_summary={data_summary}
+    all_column_options={all_column_options}
+    sorted={sorted}
+    color={color}
+  />
+}
