@@ -45,6 +45,7 @@ import Tag from '../dashboard/tag';
 import Grid from '@material-ui/core/Grid';
 import { VulcanState } from '../../reducers/vulcan_reducer';
 import { useDataSync } from './data_sync';
+import { WorkspaceRaw } from '../../api_types';
 
 // import RevisionHistory from 'etna-js/components/revision-history';
 
@@ -107,6 +108,9 @@ export default function WorkspaceManager() {
   useEffect(() => {
     setLocalTitle(workspace.name);
   }, [workspace.name])
+  useEffect(() => {
+    setTags(workspace.tags);
+  }, [workspace.tags])
 
   useDataSync(state, dispatch, showErrors, getFileNames, readFiles, postUIValues);
 
@@ -226,20 +230,10 @@ export default function WorkspaceManager() {
 
   const handleUpdateWorkspace = useCallback((title?: string, tags?: string[]) => {
     // ToDo: Handle this update from the api return instead, to be sure we stay accurate
-    const newWorkspace = {...workspace}
-    if (!!title && !_.isEqual(title, workspace.name)) {
-      newWorkspace['name'] = title;
-    }
-    if (!!tags && !_.isEqual(tags, workspace.tags)) {
-      newWorkspace['tags'] = tags;
-    }
     showErrors(
       updateWorkspace(projectName, workspaceId as number, title, tags)
-        // .then((workspaceResponse) => {
-        //   dispatch(setWorkspace(workspaceResponse, workspaceResponse.project));
-        // })
-        .then(() => {
-          dispatch(setWorkspace(newWorkspace, projectName));
+        .then((workspaceResponse: WorkspaceRaw) => {
+          dispatch(setWorkspace(workspaceResponse, projectName));
         })
     );
   }, [projectName, workspaceId])
@@ -249,11 +243,9 @@ export default function WorkspaceManager() {
   }, []);
 
   function togglePublicTag() {
-    if (tags.includes('public')) {
-      setTags(tags.filter((v)=>v!='public'));
-    } else {
-      setTags([...tags, 'public']);
-    }
+    const newTags = tags.includes('public') ? tags.filter((v)=>v!='public') : [...tags, 'public']
+    setTags(newTags);
+    handleUpdateWorkspace(undefined, newTags);
   }
 
   const running = useMemo(() => state.pollingState > 0, [state.pollingState]);
@@ -420,7 +412,6 @@ export default function WorkspaceManager() {
               }`}
               onClick={() => {
                 togglePublicTag();
-                handleUpdateWorkspace(undefined, tags);
               }}
               disabled={guest(projectName || '')}
             />

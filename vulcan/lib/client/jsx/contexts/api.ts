@@ -64,7 +64,7 @@ export const defaultApiHelpers = {
   getWorkspace(projectName: string, workspaceId: number): Promise<WorkspaceRaw> {
     return new Promise(() => null);
   },
-  updateWorkspace(projectName: string, workspaceId: number, name?: string, tags?: string[]): Promise<Workspace> {
+  updateWorkspace(projectName: string, workspaceId: number, name?: string, tags?: string[]): Promise<WorkspaceRaw> {
     return new Promise(() => null);
   },
   deleteWorkspace(projectName: string, workspaceId: number): Promise<Response> {
@@ -205,7 +205,7 @@ export function useApi(
   }, [vulcanGet, vulcanPath]);
 
   const updateWorkspace = useCallback(
-    (projectName: string, workspaceId: number, name?: string, tags?: string[]): Promise<Workspace> => {
+    (projectName: string, workspaceId: number, name?: string, tags?: string[]): Promise<WorkspaceRaw> => {
       const params = {};
       if (!!name) params['name'] = name;
       if (!!tags) params['tags'] = tags;
