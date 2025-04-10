@@ -117,7 +117,6 @@ export default function FileAttribute(props) {
   }, [uploads]);
 
   useEffect(() => {
-    // console.log('previous_value being set to', value);
     setPreviousValue(value);
   }, []);
 

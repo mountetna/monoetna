@@ -43,6 +43,7 @@ export const stubUrl = ({
   times?: number;
 }) => {
   nock(host)
+    .log(console.log)
     [verb](path, request)
     .times(times)
     .reply(status, response, {

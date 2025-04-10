@@ -73,7 +73,7 @@ describe('useUriQueryParams', () => {
         />
       );
 
-      await waitFor(() => screen.getByText('Rendered'));
+      await waitFor(() => expect(setWhereMock).toHaveBeenCalledTimes(1))
 
       expect(setWhereMock).toHaveBeenCalledWith({
         recordFilters: [

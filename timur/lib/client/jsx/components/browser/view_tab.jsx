@@ -21,7 +21,6 @@ const ViewTab = ({tab, ...pane_props}) => {
     groups[pane.group].push(pane);
     return groups;
   }, {});
-  console.log({tab_groups});
   return (
     <div id='tab'>
       {Object.keys(tab_groups).map((pane_group, i) => (

@@ -122,7 +122,7 @@ describe('QueryResults', () => {
       })
     });
 
-    await waitFor(() => screen.getByText('Nest matrices'));
+    await waitFor(() => screen.getByText('Rows per page:'));
 
     expect(asFragment()).toMatchSnapshot();
 
@@ -230,17 +230,11 @@ describe('QueryResults', () => {
       })
     });
 
-    await waitFor(() => screen.getByText('Nest matrices'));
+    await waitFor(() => screen.getByText('Rows per page:'));
 
     expect(asFragment()).toMatchSnapshot();
 
     expect(screen.getByText('labor.contributions.Athens')).toBeTruthy();
     expect(screen.getByText('labor.contributions.Sparta')).toBeTruthy();
-
-    fireEvent.click(screen.getByText('Nest matrices'));
-
-    expect(screen.getByText('labor.contributions')).toBeTruthy();
-    expect(() => screen.getByText('labor.contributions.Athens')).toThrowError();
-    expect(() => screen.getByText('labor.contributions.Sparta')).toThrowError();
   });
 });

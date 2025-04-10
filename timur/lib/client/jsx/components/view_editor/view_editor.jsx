@@ -133,7 +133,6 @@ const ViewEditor = ({view_id}) => {
 
   const revertView = () => {
     selectView(view.id);
-    console.log('reverting to', view, views);
     if (editing) toggleEdit();
   };
 

@@ -89,19 +89,19 @@ const QueryBuilder = ({}) => {
       <Grid style={{ overflow: 'hidden', height: '100%' }} direction='column' container>
         <Grid item container direction='row' className={classes.toolbar} alignItems='center'>
           <ToggleButtonGroup className={classes.buttons} value={options} onChange={ (e,f) => setOptions(f) } size='small'>
-            <ToggleButton disableRipple={true} value='controls'>
+            <ToggleButton aria-label="controls" disableRipple={true} value='controls'>
               <Tooltip title="Query controls">
                 <ListIcon/>
               </Tooltip>
             </ToggleButton>
             { showQuery &&
-              <ToggleButton disableRipple={true} value='raw'>
+              <ToggleButton aria-label="raw" disableRipple={true} value='raw'>
                 <Tooltip title="Raw query">
                   <CodeIcon/>
                 </Tooltip>
               </ToggleButton>
             }
-            <ToggleButton disableRipple={true} value='options'>
+            <ToggleButton aria-label="options" disableRipple={true} value='options'>
               <Tooltip title="Query Options">
                 <TuneIcon/>
               </Tooltip>
