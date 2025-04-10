@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import {useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
+import { PieceBaseInputs } from './user_input_pieces';
 
 function dispValue(value: string | null) {
   return value == null ? '' : value;
@@ -47,11 +48,7 @@ function determineHelperText(
   }
 }
 
-type DropdownPieceInputs = {
-  name?: string,
-  changeFxn: (v: string | null, k?: string) => void, // k likely becomes meaningless so should not be used in the function
-  value: string | null,
-  label?: string,
+interface DropdownPieceInputs extends PieceBaseInputs<string | null>{
   options_in: string[],
   minWidth?: number,
   maxOptions?: number,
@@ -110,6 +107,11 @@ export function DropdownPieceRct({
   disableClearable = true,
   disabled = false,
 }: DropdownPieceInputs): React.ReactElement | null {
+
+  if (!options_in) {
+    console.log(`No Options Given to dropdown-piece named '${name}'`)
+    return null
+  }
 
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [helperText, setHelperText] = useState(undefined as string | undefined);

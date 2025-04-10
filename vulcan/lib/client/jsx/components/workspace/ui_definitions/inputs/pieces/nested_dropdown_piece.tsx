@@ -1,10 +1,10 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import DropdownPiece from './dropdown_piece';
-import { key_wrap } from './user_input_pieces';
+import DropdownPiece, { DropdownPieceRct } from './dropdown_piece';
+import { key_wrap, PieceBaseInputs } from './user_input_pieces';
+import { nestedOptionSet } from '../../input_types';
+import * as _ from 'lodash';
 
-type NestedOptionSet = {[k: string]: null | NestedOptionSet};
-
-function getPath(options: NestedOptionSet, leaf: string): string[] {
+function getPath(options: nestedOptionSet, leaf: string): string[] {
   for (let [key, value] of Object.entries(options)) {
     if (value && typeof value === 'object') {
       // Look one step ahead for our leaf nodes
@@ -22,7 +22,7 @@ function getPath(options: NestedOptionSet, leaf: string): string[] {
 
 function getOptions(
   desiredPath: string[],
-  optionSet: NestedOptionSet
+  optionSet: nestedOptionSet
 ): string[] | null {
   if (null == desiredPath || desiredPath.length === 0)
     {return Object.keys(optionSet);}
@@ -32,12 +32,8 @@ function getOptions(
   return null;
 }
 
-type NestedDropdownPieceInputs = {
-  name?: string,
-  changeFxn: (v: string | null, k?: string) => void, // k likely becomes meaningless so should not be used in the function
-  value: string | null,
-  label?: string,
-  nestedOptions: NestedOptionSet,
+interface NestedDropdownPieceInputs extends PieceBaseInputs<string | null> {
+  nestedOptions: nestedOptionSet,
   disabled?: boolean
 }
 
@@ -117,32 +113,29 @@ export function NestedDropdownPieceRct({
         return (
           !!options && // skip here if leaf
           <div key={`nested-dropdown-${index}`}>
-            {DropdownPiece(
-              `nested-dropdown-${index}`,
-              (v, k) => handleSelect(v, index),
-              value,
-              index==0 ? label : undefined,
-              options,
-              false,
-              200,
-              disabled
-            )}
+            <DropdownPieceRct
+              name={`nested-dropdown-${index}`}
+              changeFxn={(v, k) => handleSelect(v, index)}
+              value={value}
+              label={index==0 ? label : undefined}
+              options_in={options}
+              minWidth={200}
+              disabled={disabled}
+            />
           </div>
         );
       })}
       { !!leafOptions &&
         (value==null || leafOptions.includes(value)) &&
-        DropdownPiece(
-          `nested-dropdown-${path.length}`,
-          (v, k) => handleSelect(v, path.length),
-          value,
-          path.length == 0 ? label : undefined,
-          leafOptions,
-          false,
-          200,
-          disabled
-        )
-      }
+        <DropdownPieceRct
+          name={`nested-dropdown-${path.length}`}
+          changeFxn={(v, k) => handleSelect(v, path.length)}
+          value={value}
+          label={path.length == 0 ? label : undefined}
+          options_in={leafOptions}
+          minWidth={200}
+          disabled={disabled}
+        />}
     </div>
   );
 };

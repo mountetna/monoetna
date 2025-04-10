@@ -1,6 +1,6 @@
 import React from 'react';
 import {AllInnerKeysNotNullValidator} from '../all_inner_keys_not_null_validator';
-import {DataEnvelope, ValidationInputSpecification} from '../../input_types';
+import {DataEnvelope, ValidationInputSpecification} from '../../../input_types';
 import {some} from '../../../../../../selectors/maybe';
 
 describe('AllInnerKeysNotNullValidator', () => {

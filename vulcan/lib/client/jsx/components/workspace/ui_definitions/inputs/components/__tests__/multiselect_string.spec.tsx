@@ -2,7 +2,7 @@ import React from 'react';
 import {mount, ReactWrapper} from 'enzyme';
 import MultiselectStringInput from '../multiselect_string';
 import {Maybe} from '../../../../../../selectors/maybe';
-import { DataEnvelope } from '../../../../../ui_components';
+import { DataEnvelope } from '../../../input_types';
 
 describe('MultiselectStringInput', () => {
   let data: {options: string[]};

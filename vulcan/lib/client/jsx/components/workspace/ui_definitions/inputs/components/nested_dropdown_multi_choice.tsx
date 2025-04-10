@@ -2,10 +2,9 @@
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
 import React, {useMemo} from 'react';
-import {WithInputParams} from '../../input_types';
+import {nestedOptionSet, WithInputParams} from '../../input_types';
 import {maybeOfNullable} from '../../../../../selectors/maybe';
 import {useSetsDefault} from '../../useSetsDefault';
-import { nestedOptionSet } from '../pieces/utils';
 import NestedDropdownMultiChoicePieceRct from '../pieces/nested_dropdown_multi_choice_piece';
 import { pullRecommendationIntoLabel } from './dropdown';
 import { NestedDropdownMultiChoiceAdvancedPieceRct } from '../pieces/nested_dropdown_multi_choice_advanced_piece';

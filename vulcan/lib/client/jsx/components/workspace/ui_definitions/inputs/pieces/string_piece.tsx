@@ -1,0 +1,47 @@
+import React from "react";
+import TextField from "@material-ui/core/TextField";
+import { PieceBaseInputs } from "./user_input_pieces";
+
+interface StringPieceInputs extends PieceBaseInputs<string> {
+  minWidth?: number
+  multiline?: boolean
+}
+
+export function StringPieceRct({
+  name, changeFxn, value,
+  label = '',
+  minWidth = 150,
+  multiline = undefined
+}: StringPieceInputs): React.ReactElement {
+  return (
+  <div key={name} style={{paddingTop: label ? 8 : 0}}>
+    <TextField
+      value={value}
+      multiline={multiline}
+      label={label}
+      InputLabelProps={{ shrink: true }}
+      onChange={(event) => changeFxn(event.target.value, key)}
+      size="small"
+      style={{minWidth: minWidth || 200}}
+    />
+  </div>
+  );
+};
+
+export function StringPiece(
+  key: StringPieceInputs['name'],
+  changeFxn: StringPieceInputs['changeFxn'],
+  value: StringPieceInputs['value'],
+  label: StringPieceInputs['label'] = '',
+  minWidth: StringPieceInputs['minWidth'] = 150,
+  multiline: StringPieceInputs['multiline'] = undefined
+) {
+  return <StringPieceRct
+    name={key}
+    changeFxn={changeFxn}
+    value={value}
+    label={label}
+    minWidth={minWidth}
+    multiline={multiline}
+  />
+};

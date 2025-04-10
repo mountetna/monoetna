@@ -1,6 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import TextField from '@material-ui/core/TextField';
-import {IntegerInput, FloatInput} from 'etna-js/components/inputs/numeric_input.jsx'
+import { PieceBaseInputs } from './user_input_pieces';
+import InputLabel from '@material-ui/core/InputLabel';
+import Slider from '@material-ui/core/Slider';
+import { DropdownPieceRct } from './dropdown_piece';
+import Grid from '@material-ui/core/Grid';
 
 function parseIntBetter(s: string) {
   const parsed = parseInt(s, 10);
@@ -18,74 +22,34 @@ function from_num(num: number | null, float = false) {
   return num == null ? '' : num.toString();
 }
 
-// export function NumberPiece(
-//   key: string, changeFxn: (value: number | null, key: string) => void, value: number | null = null,
-//   label?: string,
-//   minWidth: number = 200,
-//   block_decimal: boolean = false
-// ) {
-//   const [inputState, setInputState] = useState({
-//     text: from_num(value),
-//     intVal: value,
-//     hasError: false
-//   });
-//   // Detect external changes
-//   useEffect(() => {
-//     console.log("checking")
-//     if (value != inputState.intVal) {
-//       onNewNum({target: {value: value}});
-//     }
-//   }, [value, inputState.intVal])
+interface NumberPieceInputs extends PieceBaseInputs<number | null> {
+  minWidth?: number;
+  integer: boolean;
+}
 
-//   function onNewNum(event: any) {
-//     const parser = block_decimal ? parseIntBetter : Number;
-//     const parsed = parser(event.target.value);
-//     if (isNaN(parsed)) {
-//       setInputState({text: event.target.value, intVal: null, hasError: true})
-//       changeFxn(null, key);
-//     } else {
-//       setInputState({text: event.target.value, intVal: parsed, hasError: false});
-//       changeFxn(parsed, key);
-//     }
-//   }
-//   // console.log({inputState})
+export function NumberPieceRct({
+  name,
+  changeFxn,
+  value,
+  label,
+  minWidth,
+  integer
+}: NumberPieceInputs): React.ReactElement {
 
-//   return (
-//     <div style={{paddingTop: !!label ? 8 : 0}}>
-//       <TextField
-//         key={`${key}-number`}
-//         value={inputState.text}
-//         label={label}
-//         error={inputState.hasError}
-//         onChange={onNewNum}
-//         size='small'
-//         style={{minWidth: minWidth || 200}}
-//       />
-//     </div>
-//   );
-// }
-
-export function NumberPiece(
-  key: string, changeFxn: (value: number | null, key: string) => void, value: number | null = null,
-  label?: string,
-  minWidth: number = 200,
-  integer: boolean = false
-) {
-  
   function onNewNum(event: any) {
     const parser = integer ? parseIntBetter : Number;
     const parsed = parser(event.target.value);
     if (!isNaN(parsed)) {
-      changeFxn(parsed, key);
+      changeFxn(parsed, name);
     } else {
       console.log(`Number update not used as it did not parse properly: ${event.target.value}`)
     }
   }
-  
+
   return (
     <div style={{paddingTop: !!label ? 8 : 0}}>
       <TextField
-        key={`${key}-number`}
+        key={`${name}-number`}
         value={from_num(value, !integer)}
         label={label}
         onChange={onNewNum}
@@ -94,20 +58,199 @@ export function NumberPiece(
       />
     </div>
   );
-}
+};
+
+export function NumberPiece(
+  key: NumberPieceInputs['name'],
+  changeFxn: NumberPieceInputs['changeFxn'],
+  value: NumberPieceInputs['value'] = null,
+  label: NumberPieceInputs['label'] = '',
+  minWidth: NumberPieceInputs['minWidth'] = 200,
+  integer: NumberPieceInputs['integer'] = false
+) {
+  return <NumberPieceRct
+    name={key}
+    changeFxn={changeFxn}
+    value={value}
+    label={label}
+    minWidth={minWidth}
+    integer={integer}
+  />
+};
 
 export function FloatPiece(
-  key: string, changeFxn: (value: number | null, key: string) => void, value: number | null = null,
-  label?: string,
-  minWidth: number = 200
+  key: NumberPieceInputs['name'],
+  changeFxn: NumberPieceInputs['changeFxn'],
+  value: NumberPieceInputs['value'] = null,
+  label: NumberPieceInputs['label'] = '',
+  minWidth: NumberPieceInputs['minWidth'] = 200,
 ) {
-  return NumberPiece(key, changeFxn, value, label, minWidth, false)
+  return <NumberPieceRct
+    name={key}
+    changeFxn={changeFxn}
+    value={value}
+    label={label}
+    minWidth={minWidth}
+    integer={false}
+  />
 }
 
 export function IntegerPiece(
-  key: string, changeFxn: (value: number | null, key: string) => void, value: number | null = null,
-  label?: string,
-  minWidth: number = 200
+  key: NumberPieceInputs['name'],
+  changeFxn: NumberPieceInputs['changeFxn'],
+  value: NumberPieceInputs['value'] = null,
+  label: NumberPieceInputs['label'] = '',
+  minWidth: NumberPieceInputs['minWidth'] = 200,
 ) {
-  return NumberPiece(key, changeFxn, value, label, minWidth, true)
+  return <NumberPieceRct
+    name={key}
+    changeFxn={changeFxn}
+    value={value}
+    label={label}
+    minWidth={minWidth}
+    integer={true}
+  />
+}
+
+interface SliderPieceInputs extends PieceBaseInputs<number> {
+  min: number,
+  max: number,
+  stepSize?: number
+}
+
+export function SliderPieceRct({
+  name, changeFxn, value, label,
+  min,
+  max,
+  stepSize
+}: SliderPieceInputs): React.ReactElement {
+  return(
+    <div key={name} style={{paddingTop: 8}}>
+      <InputLabel htmlFor={'slider-'+name} shrink>{label}</InputLabel>
+      <Slider
+        key={'slider-'+name}
+        value={value}
+        onChange={(event, newValue) => changeFxn(newValue as number, name)}
+        min={min}
+        max={max}
+        step={stepSize}
+        valueLabelDisplay="auto"
+      />
+    </div>
+  );
+}
+
+export function SliderPiece(
+  key: SliderPieceInputs['name'],
+  changeFxn: SliderPieceInputs['changeFxn'],
+  value: SliderPieceInputs['value'],
+  label?: SliderPieceInputs['label'],
+  min: SliderPieceInputs['min'] = 0.1,
+  max: SliderPieceInputs['max'] = 20,
+  stepSize: SliderPieceInputs['stepSize'] = undefined
+) {
+  return <SliderPieceRct
+    name={key}
+    changeFxn={changeFxn}
+    value={value}
+    label={label}
+    min={min}
+    max={max}
+    stepSize={stepSize}
+  />
+}
+
+export type NumericConstraint = ['exactly' | 'above', number | null, 'exactly' | 'below', number | null];
+export const emptyNumericConstraintDef: NumericConstraint = ['exactly', 0, 'below', 0];
+
+interface RangePieceInputs extends PieceBaseInputs<NumericConstraint> {
+
+};
+
+export function RangePieceRct({
+  name,
+  changeFxn,
+  value,
+  label = ''
+}: RangePieceInputs): React.ReactElement {
+
+  function updateSlot(newValue: 'exactly' | 'above' | 'below' | number | null, slot: number, current_full: NumericConstraint = value) {
+    let next_full: NumericConstraint = [...current_full];
+    next_full[slot] = newValue;
+    changeFxn(next_full, name);
+  };
+
+  return(
+    <div key={`${name}-range`}>
+      {!!label ? <InputLabel htmlFor={`${name}-range-input`} shrink>{label}</InputLabel>: null}
+      <Grid container direction='column' key={`${name}-range-input`}>
+        <Grid item container style={{display: 'inline-flex'}}>
+          <Grid item>
+            <DropdownPieceRct
+              name={name+'_lower_bound_type'}
+              changeFxn={(newValue: string | null, k?: string) => {
+                if (!!newValue && ['exactly','above'].includes(newValue)) {
+                  updateSlot(newValue as 'exactly' | 'above', 0)
+                }
+              }}
+              value={value[0]}
+              label='From'
+              options_in={['exactly','above']}
+              minWidth={120}
+            />
+          </Grid>
+          <Grid item>
+            <NumberPieceRct
+              name={name+'_lower_value'}
+              changeFxn={(newValue: number | null, k?: string) => {updateSlot(newValue, 1)}}
+              value={value[1]}
+              label='Min-value'
+              minWidth={120}
+              integer={false}
+            />
+          </Grid>
+        </Grid>
+        <Grid item container style={{display: 'inline-flex'}}>
+          <Grid item>
+            <DropdownPieceRct
+              name={name+'_upper_bound_type'}
+              changeFxn={(newValue: string | null, k?: string) => {
+                if (!!newValue && ['exactly','below'].includes(newValue)) {
+                  updateSlot(newValue as 'exactly' | 'below', 2)
+                }
+              }}
+              value={value[2]}
+              label='To'
+              options_in={['exactly','below']}
+              minWidth={120}
+            />
+          </Grid>
+          <Grid item>
+            <NumberPieceRct
+              name={name+'_upper_value'}
+              changeFxn={(newValue: number | null, k?: string) => {updateSlot(newValue, 3)}}
+              value={value[3]}
+              label='Max-value'
+              minWidth={120}
+              integer={false}
+            />
+          </Grid>
+        </Grid>
+      </Grid>
+    </div>
+  );
+}
+
+export function rangePiece(
+  key: RangePieceInputs['name'],
+  changeFxn: RangePieceInputs['changeFxn'],
+  value: RangePieceInputs['value'],
+  label?: RangePieceInputs['label']
+) {
+  return <RangePieceRct
+    name={key}
+    changeFxn={changeFxn}
+    value={value}
+    label={label}
+  />
 }

@@ -1,16 +1,15 @@
 import React from 'react';
-import {DataEnvelope, WithInputParams} from '../../input_types';
+import {DataEnvelope, OptionSet, WithInputParams} from '../../input_types';
 import {some} from '../../../../../selectors/maybe';
 import {useSetsDefault} from '../../useSetsDefault';
-import { emptySelectionDefinition, SelectionDefinitionPiece, SelectionDefinition } from '../pieces/grouping_pieces';
-import { nestedOptionSet } from '../pieces/utils';
+import { emptySelectionDefinition, SelectionDefinitionPiece, SelectionDefinition, SelectionDefinitionPieceRct } from '../pieces/grouping_pieces';
 import Grid from '@material-ui/core/Grid';
 
 export default function TwoGroupSelection({
   data,
   onChange,
   ...props
-}: WithInputParams<{}, DataEnvelope<any>, {data_summary: DataEnvelope<any>, all_column_options?: nestedOptionSet | string[]}>) {
+}: WithInputParams<{}, DataEnvelope<any>, {data_summary: DataEnvelope<any>, all_column_options?: OptionSet}>) {
   const g1_value = useSetsDefault(
     emptySelectionDefinition,
     props.value,
@@ -30,28 +29,26 @@ export default function TwoGroupSelection({
   return (
     <Grid container direction='column'>
       <Grid item>
-        {!!g1_value && SelectionDefinitionPiece(
-          'g1',
-          (v: SelectionDefinition) => onChange({g1: some(v), g2: some(g2_value)}),
-          g1_value,
-          'Group 1 Selection Criteria',
-          data['data_summary'],
-          'all_column_options' in data ? data['all_column_options'] : undefined,
-          false,
-          'primary'
-        )}
+        {!!g1_value && <SelectionDefinitionPieceRct
+          name='g1'
+          changeFxn={(v: SelectionDefinition) => onChange({ g1: some(v), g2: some(g2_value) })}
+          value={g1_value}
+          label='Group 1 Selection Criteria'
+          data_summary={data['data_summary']}
+          all_column_options={'all_column_options' in data ? data['all_column_options'] : undefined}
+          color='primary'
+        />}
       </Grid>
       <Grid item>
-        {!!g2_value && SelectionDefinitionPiece(
-          'g2',
-          (v: SelectionDefinition) => onChange({g1: some(g1_value), g2: some(v)}),
-          g2_value,
-          'Group 2 Selection Criteria',
-          data['data_summary'],
-          'all_column_options' in data ? data['all_column_options'] : undefined,
-          false,
-          'primary'
-        )}
+        {!!g2_value && <SelectionDefinitionPieceRct
+          name='g2'
+          changeFxn={(v: SelectionDefinition) => onChange({ g1: some(g1_value), g2: some(v) })}
+          value={g2_value}
+          label='Group 2 Selection Criteria'
+          data_summary={data['data_summary']}
+          all_column_options={'all_column_options' in data ? data['all_column_options'] : undefined}
+          color='primary'
+        />}
       </Grid>
     </Grid>
   )

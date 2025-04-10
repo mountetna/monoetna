@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import {useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
+import { PieceBaseInputs } from './user_input_pieces';
 
 // Compared to select_autocomplete, also filter selected options
 function valueUse(value: string[] | null) {
@@ -46,11 +47,7 @@ function determineHelperText(
     }
   }
 
-export type DropdownMultiChoicePieceInputs = {
-  name?: string,
-  changeFxn: (v: string[] | null, k?: string) => void, // k likely becomes meaningless so should not be used in the function
-  value: string[] | null,
-  label?: string,
+export interface DropdownMultiChoicePieceInputs extends PieceBaseInputs<string[] | null> {
   options_in: string[],
   minWidth?: number,
   maxOptions?: number,
@@ -171,7 +168,7 @@ export function DropdownMultiChoicePieceRct({
       onInputChange={(event: any, newInputState: string) => {
         setInputState(newInputState);
       }}
-      id={!!testId ? `${testId}-full` : 'multi-pick-piece-full'}
+      id={!!testId ? `${testId}` : name}
       style={{minWidth: minWidth, paddingTop: label ? 8 : 0}}
       renderInput={(params: any) => (
         <TextField
@@ -183,10 +180,8 @@ export function DropdownMultiChoicePieceRct({
           fullWidth
           size='small'
           InputLabelProps={{shrink: true}}
-          inputProps={{
-            'data-testid': !!testId ? testId : 'multi-pick-input',
-            'id': !!testId ? testId : 'multi-pick-input',
-          }}
+          id={!!testId ? `${testId}` : undefined}
+          data-testid={!!testId ? `${testId}` : undefined}
         />
       )}
     />

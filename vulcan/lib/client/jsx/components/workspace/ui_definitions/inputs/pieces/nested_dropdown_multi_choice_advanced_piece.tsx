@@ -5,11 +5,11 @@ import IconButton from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import LibraryAddRoundedIcon from '@material-ui/icons/LibraryAddRounded';
 import Tooltip from '@material-ui/core/Tooltip';
-import { nestedOptionSet } from './utils';
-import { ReorderCollapsiblePiece } from './reorder_piece';
+import { ReorderCollapsiblePieceRct } from './reorder_piece';
 import SelectionsFromPasteModal, { fuseSearchSets } from './select_from_paste_modal';
 import NestedDropdownMultiChoicePieceRct, { flattenOptionPaths, leafParentPaths, NestedDropdownMultiChoicePieceInputs, pathValues, sep } from './nested_dropdown_multi_choice_piece';
 import { key_wrap } from './user_input_pieces';
+import { OptionSet } from '../../input_types';
 
 function val_wrap_in_val_key(v: string[]): {val: string}[] {
   return v.map((value) => {
@@ -28,9 +28,9 @@ const buttonStyles = makeStyles((theme) => ({
   }
 }));
 
-export interface NestedDropdownMultiChoiceAdvancedInputs extends NestedDropdownMultiChoicePieceInputs {
+interface NestedDropdownMultiChoiceAdvancedInputs extends NestedDropdownMultiChoicePieceInputs {
   letReorder: boolean,
-  letBulkAdd: boolean
+  letBulkAdd: boolean,
 };
 
 export default function NestedDropdownMultiChoiceAdvancedPiece(
@@ -38,16 +38,12 @@ export default function NestedDropdownMultiChoiceAdvancedPiece(
   changeFxn: NestedDropdownMultiChoiceAdvancedInputs['changeFxn'],
   value: NestedDropdownMultiChoiceAdvancedInputs['value'] = [] as string[],
   label: NestedDropdownMultiChoiceAdvancedInputs['label'],
-  options: nestedOptionSet | string[],
+  options: OptionSet,
   letReorder: NestedDropdownMultiChoiceAdvancedInputs['letReorder'] = true,
   letBulkAdd: NestedDropdownMultiChoiceAdvancedInputs['letBulkAdd'] = true,
   testId: NestedDropdownMultiChoiceAdvancedInputs['testId'],
   sorted: NestedDropdownMultiChoiceAdvancedInputs['sorted']
-): React.ReactElement | null {
-  if (options==null) return null;
-  if (Array.isArray(options)) {
-    options = key_wrap([...options]) as nestedOptionSet
-  }
+): React.ReactElement {
   return <NestedDropdownMultiChoiceAdvancedPieceRct
     name={key}
     changeFxn={changeFxn}
@@ -69,6 +65,7 @@ export function NestedDropdownMultiChoiceAdvancedPieceRct({
   options_in,
   letReorder = true,
   letBulkAdd = true,
+  testId = undefined,
   sorted = true
 }: NestedDropdownMultiChoiceAdvancedInputs) {
 
@@ -147,12 +144,18 @@ export function NestedDropdownMultiChoiceAdvancedPieceRct({
           value={value}
           label={`${label} - selection`}
           options_in={options_in}
+          testId={testId}
         />
       </Grid>
       {bulkAdd}
     </Grid>
     {letReorder && <Grid item style={{paddingLeft: '12px'}}>
-      {ReorderCollapsiblePiece(`${name}-reorder`, (value: string[]) => changeFxn(value, name), value, 'Reorder selections?')}
+      <ReorderCollapsiblePieceRct
+        name={`${name}-reorder`}
+        changeFxn={(value: string[], k?) => changeFxn(value, name)}
+        value={!!value ? value : []}
+        label='Reorder selections?'
+      />
     </Grid>}
   </Grid>;
 };

@@ -28,7 +28,7 @@ import {VulcanContext} from './vulcan_context';
 import Button from '@material-ui/core/Button';
 import {FormControlLabel, Grid, Switch} from '@material-ui/core';
 import { Workspace } from '../api_types';
-import { DataEnvelope } from '../components/ui_components';
+import { DataEnvelope } from '../components/workspace/ui_definitions/input_types';
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(

@@ -1,13 +1,13 @@
 // Input component that takes nested object
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
-import {WithInputParams} from '../../input_types';
+import React from 'react';
+import {nestedOptionSet, WithInputParams} from '../../input_types';
 import {maybeOfNullable, some} from '../../../../../selectors/maybe';
 import {useSetsDefault} from '../../useSetsDefault';
-import NestedDropdownPiece from '../pieces/nested_dropdown_piece';
+import { NestedDropdownPieceRct } from '../pieces/nested_dropdown_piece';
 import { pullRecommendationIntoLabel } from './dropdown';
 import { useMemo } from 'react';
-import { nestedOptionSet } from '../pieces/utils';
 
 export default function NestedDropdownInput({ label, data, onChange, ...props }: WithInputParams<{label?: string}, string|null, nestedOptionSet>) {
   const picked: string | null = useSetsDefault(null, props.value, onChange, 'picked');
@@ -16,12 +16,11 @@ export default function NestedDropdownInput({ label, data, onChange, ...props }:
     return pullRecommendationIntoLabel(data, label);
   }, [data, label]);
 
-  return NestedDropdownPiece(
-    `nested-dropdown-${label}`,
-    (v, k) => {onChange({picked: maybeOfNullable(v)})},
-    picked,
-    disp_label,
-    allOptions,
-    true
-  )
+  return <NestedDropdownPieceRct
+    name={`nested-dropdown-${label}`}
+    changeFxn={(v, k) => {onChange({picked: maybeOfNullable(v)})}}
+    value={picked}
+    label={disp_label}
+    nestedOptions={allOptions}
+  />
 };

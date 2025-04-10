@@ -4,9 +4,9 @@
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import { Grid } from '@material-ui/core'
 import SubdirectoryArrowRightOutlinedIcon from '@material-ui/icons/SubdirectoryArrowRight';
-import { arrayLevels, key_wrap } from './user_input_pieces';
-import { nestedOptionSet } from './utils';
+import { arrayLevels, key_wrap, PieceBaseInputs } from './user_input_pieces';
 import { DropdownMultiChoicePieceRct } from './dropdown_multi_choice_piece';
+import { nestedOptionSet, OptionSet } from '../../input_types';
 
 export const sep = '---'
 
@@ -70,12 +70,8 @@ function valuesFromValuesPerPath(valuesPerPath: {[key:string]: string[]}) {
   return arrayLevels(([] as string[]).concat.apply([] as string[], Object.values(valuesPerPath))) as string[]
 }
 
-export type NestedDropdownMultiChoicePieceInputs = {
-  name: string,
-  changeFxn: (v: string[] | null, k?: string) => void, // k likely becomes meaningless so should not be used in the function
-  value: string[] | null,
-  label?: string,
-  options_in: nestedOptionSet,
+export interface NestedDropdownMultiChoicePieceInputs extends PieceBaseInputs<string[] | null> {
+  options_in: OptionSet,
   testId?: string
   sorted?: boolean
 }
@@ -89,9 +85,7 @@ export function NestedDropdownMultiChoicePiece(
   sorted: boolean = true
 ): React.ReactElement | null {
   if (options==null) return null;
-  if (Array.isArray(options)) {
-    options = key_wrap([...options]) as nestedOptionSet
-  }
+
   return <NestedDropdownMultiChoicePieceRct
     name={key}
     label={label}
@@ -108,15 +102,21 @@ export default function NestedDropdownMultiChoicePieceRct({
   value,
   label,
   options_in,
-  testId,
-  sorted
+  testId = undefined,
+  sorted = false
 }: NestedDropdownMultiChoicePieceInputs) {
   const [valuesPerPath, setValuesPerPath] = useState({} as {[key:string]: string[]});
   const [paths, setPaths] = useState([] as string[]);
+  const options: nestedOptionSet = useMemo(() => {
+    if (Array.isArray(options_in)) {
+      return key_wrap([...options_in]) as nestedOptionSet
+    }
+    return options_in
+  }, [options_in])
 
   const flattenedPaths = useMemo(() => {
-    return flattenOptionPaths(options_in)
-  }, [options_in])
+    return flattenOptionPaths(options)
+  }, [options])
 
   const pathOptions = useMemo(() => {
     return leafParentPaths(flattenedPaths)
@@ -156,7 +156,7 @@ export default function NestedDropdownMultiChoicePieceRct({
         options_in={pathOptions}
         placeholder={paths.length<1 ? 'Option Sets' : undefined}
         label={label}
-        testId={!!testId ? `MultiMultiChoice-optionPaths-${testId}`: 'MultiMultiChoice-optionPaths'}
+        testId={!!testId ? `MultiMultiChoice-optionPaths-${testId}`: undefined}
       />
     </Grid>
 
@@ -177,13 +177,13 @@ export default function NestedDropdownMultiChoicePieceRct({
         <Grid item xs={11}>
           <DropdownMultiChoicePieceRct
             name={pathString+'-leaves'}
-            options_in={disabled ? [''] : pathValues(pathString, options_in)}
+            options_in={disabled ? [''] : pathValues(pathString, options)}
             disabled={disabled}
             placeholder={disabled ? 'Awaiting Option Set selection' : undefined}
             label={pathString+' options'}
             value={values}
             changeFxn={ (v: string[] | null, k?: string) => handlePickedValues(pathString, v, name) }
-            testId={!!testId ? `MultiMultiChoice-${pathString}-leaves-${testId}`: `MultiMultiChoice-${pathString}-leaves`}
+            testId={!!testId ? `MultiMultiChoice-${pathString}-leaves-${testId}`: undefined}
           />
         </Grid>
       </Grid>

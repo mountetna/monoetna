@@ -1,12 +1,8 @@
 import React from 'react';
-import {
-  checkboxPiece,
-  key_wrap,
-} from './user_input_pieces';
 import {PropTypes} from '@material-ui/core';
-import { nestedOptionSet } from './utils';
-import { emptySelectionDefinition, SelectionDefinition, SelectionDefinitionPiece } from './grouping_pieces';
-import { DataEnvelope } from '../../../../ui_components';
+import { emptySelectionDefinition, SelectionDefinition, SelectionDefinitionPiece, SelectionDefinitionPieceRct } from './grouping_pieces';
+import { DataEnvelope } from '../../input_types';
+import { CheckboxPieceRct } from './checkbox_piece';
 
 /*
 This script defines a component that behaves like all other 'user_input_pieces'.
@@ -43,33 +39,28 @@ export function subsetDataFramePiece(
 
   const startOrClear = (doSubset: boolean, x: any) => {
     const new_full = doSubset ? emptySelectionDefinition : false;
-    console.log("Filling subetting...")
     changeFxn(new_full, key);
   };
-
-  const base = checkboxPiece(
-    key,
-    startOrClear,
-    Object.keys(value).length != 0,
-    label
-  );
-
-  const meat = !value ? null : SelectionDefinitionPiece(
-    key,
-    changeFxn,
-    value as SelectionDefinition,
-    'Cells to keep',
-    data_summary,
-    all_options,
-    sorted,
-    color
-  );
 
   // console.log(values);
   return (
     <div key={key}>
-      {base}
-      {meat}
+      <CheckboxPieceRct
+        name={key}
+        changeFxn={startOrClear}
+        value={Object.keys(value).length != 0}
+        label={label}
+      />
+      {!!value && <SelectionDefinitionPieceRct
+        name={key}
+        changeFxn={changeFxn}
+        value={value as SelectionDefinition}
+        label={'Cells to keep'}
+        data_summary={data_summary}
+        all_column_options={all_options}
+        sorted={sorted}
+        color={color}
+      />}
     </div>
   );
 }

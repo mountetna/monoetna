@@ -1,15 +1,11 @@
 import React, { useEffect } from 'react';
-import {DataEnvelope} from '../../input_types';
-import { maybeOfNullable, some, withDefault, Maybe } from '../../../../../selectors/maybe';
 import InputLabel from '@material-ui/core/InputLabel';
 import Slider from '@material-ui/core/Slider';
-import FloatInput from '../components/float';
 import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
-import NestedDropdownInput from '../components/nested_dropdown';
-import { nestedOptionSet } from './utils'
-import NestedDropdownMultiChoicePieceRct from './nested_dropdown_multi_choice_piece';
 import { FloatPiece } from './number_pieces';
+import { DataEnvelope } from '../../input_types';
+import DropdownPiece, { DropdownPieceRct } from './dropdown_piece';
+import TextField from '@material-ui/core/TextField';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v};
@@ -30,6 +26,35 @@ export function arrayLevels(original: any[]) {
   return Array.from(original).filter(onlyUnique);
 }
 
+export type PieceBaseInputs<V> = {
+  name: string;
+  changeFxn: (v: V, k?: string) => void;
+  value: V;
+  label?: string;
+};
+
+export function DisabledTextbox({
+  name,
+  label,
+  text
+}: {
+  name: string
+  label: string | undefined
+  text: string
+}): React.ReactElement {
+  return <div key={name} style={!!label ? {paddingTop: 8} : undefined}>
+    <TextField
+      key={name}
+      label={label}
+      InputLabelProps={{ shrink: true }}
+      size="small"
+      disabled
+      fullWidth
+      placeholder={text}
+    />
+  </div>
+};
+
 /*
 "Pieces" which follow define components/elements which can be used to fill in discrete parts of a user input widget.
 They are named based on types of input methods.
@@ -42,187 +67,6 @@ Some "pieces" have additional inputs, but the first 4 are ALWAYS:
   - value = the current value of this target element
   - label = a text label to be displayed with this component
 */
-
-export function stringPiece(
-  key: string, changeFxn: (v: any, k?:string) => void, value: string = '',
-  label: string | undefined = undefined, minWidth: number = 150) {
-    return (
-      <div key={key} style={{paddingTop: label ? 8 : 0}}>
-        <TextField
-          value={value}
-          multiline
-          label={label}
-          InputLabelProps={{ shrink: true }}
-          onChange={(event) => changeFxn(event.target.value, key)}
-          size="small"
-          style={{minWidth: minWidth || 200}}
-        />
-      </div>
-    );
-  };
-
-export function checkboxPiece(
-  key: string, changeFxn: (v: boolean, k?:string) => void, value: boolean = false,
-  label: string,
-  disabled: boolean = false,
-  labelPlacement: FormControlLabelProps['labelPlacement'] ='end') {
-
-  return <CheckboxPieceRct
-    name={key}
-    changeFxn={changeFxn}
-    value={value}
-    label={label}
-    disabled={disabled}
-    labelPlacement={labelPlacement}
-  />
-};
-
-export function CheckboxPieceRct({
-  name, changeFxn, value = false,
-  label,
-  disabled = false,
-  labelPlacement = 'end'}: {
-    name: string,
-    changeFxn: (v: boolean, k?:string) => void,
-    value: boolean,
-    label: string,
-    disabled?: boolean,
-    labelPlacement?: FormControlLabelProps['labelPlacement']
-  }): React.ReactElement {
-
-  const inner = <Checkbox
-    onChange={(e: any) => changeFxn(!value, name)}
-    checked={value}
-    inputProps={{ 'aria-label': 'controlled' }}
-    disabled={disabled}
-  />;
-  if (label) {
-    return (
-      <FormControlLabel key={name} control={inner} label={label} labelPlacement={labelPlacement}/>
-    );
-  }
-
-  return inner;
-};
-
-import ListInput from 'etna-js/components/inputs/list_input';
-import DropdownAutocompleteInput from 'etna-js/components/inputs/dropdown_autocomplete_wrapper';
-import DropdownPiece from './dropdown_piece';
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel, { FormControlLabelProps } from '@material-ui/core/FormControlLabel';
-export function MultiselectPiece(
-  key: string, changeFxn: Function, value: string[] | null = null,
-  label: string, options: string[],
-  onAll: string[] = options,
-  onClear: string[] = [],
-  maxItems: number = 25
-) {
-
-  if (value != null && value.length > 0) {
-    if (value.filter((val) => !(val==='' || options.includes(val))).length > 0) changeFxn(null, key);
-  }
-
-  return(
-    <div key={key} style={{paddingTop: 8}}>
-      <InputLabel htmlFor={'multiselect-'+key} shrink>{label}</InputLabel>
-      <ListInput
-        key={'multiselect-'+key}
-        placeholder='Select items from the list'
-        className='link_text'
-        values={value!=null ? value : []}
-        itemInput={DropdownAutocompleteInput}
-        list={options}
-        onChange={(val: string[]) => changeFxn(val, key)}
-        onAll={() => changeFxn(onAll, key)}
-        onClear={() => changeFxn(onClear, key)}
-        maxItems={maxItems}
-      />
-    </div>
-  );
-}
-
-  export function MultiselectAfterDataChoicePiece(
-    key: string, changeFxn: Function, value: string[] | null = null,
-    label: string,
-    full_data: DataEnvelope<any[]>,
-    data_target: string | null, // The name of a column/key of full_data which the user has chosen as the target of this ui piece, or null if not chosen yet.
-    data_target_label: string, // The label of the ui-piece where the user selects data_target 
-    discrete_data: string[]
-  ) {
-  
-    const canReorder = data_target != null && discrete_data.includes(data_target) && full_data != null
-    const levels = canReorder ? arrayLevels(Object.values(full_data[data_target as string])) : null
-    return(
-      levels != null ? MultiselectPiece(key, changeFxn, value, label, levels) :
-        <div key={key} style={{paddingTop: 8}}>
-          <TextField
-            key={'multiselect-'+key}
-            label={label}
-            InputLabelProps={{ shrink: true }}
-            size="small"
-            disabled
-            fullWidth
-            placeholder={'Awaiting '+data_target_label+' choice'}
-          />
-        </div>
-    )
-  }
-
-export function sliderPiece(
-  key: string, changeFxn: Function, value: number,
-  label: string, min: number = 0.1, max: number = 20, stepSize: number | undefined = undefined) {
-
-    return(
-        <div key={key} style={{paddingTop: 8}}>
-          <InputLabel htmlFor={'slider-'+key} shrink>{label}</InputLabel>
-          <Slider
-            key={'slider-'+key}
-            value={value}
-            onChange={(event, newValue) => changeFxn(newValue as number, key)}
-            min={min}
-            max={max}
-            step={stepSize}
-            valueLabelDisplay="auto"
-          />
-        </div>
-    );
-  }
-
-export type NumericConstraint = ['exactly' | 'above', number | null, 'exactly' | 'below', number | null];
-export const emptyNumericConstraintDef: NumericConstraint = ['exactly', 0, 'below', 0];
-export function rangePiece(
-  key: string, changeFxn: Function, value: NumericConstraint,
-  label: string) {
-    const updateSlot = (newValue: 'exactly' | 'above' | 'below' | number | null, slot: number, current_full = value) => {
-      let next_full = [...current_full];
-      next_full[slot] = newValue;
-      return next_full;
-    };
-    
-    return(
-      <div>
-        {label==='' ? null : <InputLabel htmlFor={`${key}-range`} shrink>{label}</InputLabel>}
-        <div key={`${key}-range`}>
-          <div style={{display: 'inline-flex'}}>
-            {DropdownPiece(
-              key+'_lower_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue as 'exactly' | 'above', 0), key), value[0] as string,
-              'From', ['exactly','above'], true, 120)}
-            {FloatPiece(
-              key+'_lower_value', (newValue: number | null) => changeFxn(updateSlot(newValue as number | null, 1), key), value[1] as number,
-              'Min-value', 120)}
-          </div>
-          <div style={{display: 'inline-flex'}}>
-            {DropdownPiece(
-              key+'_upper_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue as 'exactly' | 'below', 2), key), value[2] as string,
-              'To', ['exactly','below'], true, 120)}
-            {FloatPiece(
-              key+'_upper_value', (newValue: number | null) => changeFxn(updateSlot(newValue as number | null, 3), key), value[3] as number,
-              'Max-value', 120)}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
 export function ReductionSetupPiece(
   key: string, changeFxn: Function, value: (string|null)[] = [null, '1', '2'],
@@ -256,24 +100,31 @@ export function ReductionSetupPiece(
       direction='column'
     >
       <Grid item>
-        {error_with_input ?
-          DropdownPiece(
-            key+'-reduction', (newElement: string | null) => changeFxn(changeReduction(newElement), key), 'Error in input setup',
-            label[0], ['Error in input setup'], false, 200, true) :
-          DropdownPiece(
-            key+'-reduction', (newElement: string | null) => changeFxn(changeReduction(newElement), key), value[0],
-            label[0], Object.keys(reduction_opts), false, 200, false)}
+        <DropdownPieceRct
+          name={key+'-reduction'}
+          changeFxn={(newElement: string | null) => changeFxn(changeReduction(newElement), key)}
+          value={error_with_input ? 'Error in input setup' : value[0]}
+          label={label[0]}
+          options_in={error_with_input ? ['Error in input setup'] : Object.keys(reduction_opts)}
+          minWidth={200}
+          disabled={error_with_input}
+        />
       </Grid>
-      <Grid item style={{paddingLeft: 10}}>
-        {DropdownPiece(
-          key+'-dimx', (newElement: string | null) => changeFxn(changeDim(newElement, 1), key), value[1],
-          label[1], value[0]==null ? ['1', '2'] : reduction_opts[value[0]] || ['1'], false, 200, disable_dims)}
-      </Grid>
-      <Grid item style={{paddingLeft: 10}}>
-        {DropdownPiece(
-          key+'-dimy', (newElement: string | null) => changeFxn(changeDim(newElement, 2), key), value[2],
-          label[2], value[0]==null ? ['1', '2'] : reduction_opts[value[0]] || ['2'], false, 200, disable_dims)}
-      </Grid>
+      {[{i:1,ax:'x'},{i:2,ax:'y'}].map((v) => {
+        const i: number = v.i;
+        const k = `${key}-dim${v.ax}`
+        return <Grid item key={k} style={{paddingLeft: 10}}>
+          <DropdownPieceRct
+            name={k}
+            changeFxn={(newElement: string | null) => changeFxn(changeDim(newElement, i as 1 | 2), key)}
+            value={value[i]}
+            label={label[i]}
+            options_in={value[0]==null ? ['1', '2'] : reduction_opts[value[0]] || [`${i}`]}
+            minWidth={200}
+            disabled={disable_dims}
+          />
+        </Grid>
+      })}
     </Grid>
   )
 

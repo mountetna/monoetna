@@ -24,6 +24,7 @@ import {
 } from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {
+  DataEnvelope,
   WorkspaceStepGroup
 } from '../components/workspace/ui_definitions/input_types';
 import {useMemo} from 'react';
@@ -34,8 +35,7 @@ import {
   some,
   withDefault
 } from './maybe';
-import { inputComponents, dontDownloadForOutputTypes, DataEnvelope } from '../components/ui_components';
-import { defaultApiHelpers } from '../contexts/api';
+import { dontDownloadForOutputTypes } from '../components/ui_components';
 
 export function pick<T extends DataEnvelope<any>, K extends keyof T>(obj: T, keys: K[]) {
   return Object.fromEntries(

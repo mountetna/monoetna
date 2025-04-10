@@ -1,5 +1,5 @@
 import {InputType} from 'etna-js/utils/input_types';
-export {InputType, DataEnvelope} from 'etna-js/utils/input_types';
+export {InputType} from 'etna-js/utils/input_types';
 import BooleanInput from "./workspace/ui_definitions/inputs/components/boolean";
 import CheckboxesInput from "./workspace/ui_definitions/inputs/components/checkboxes";
 import { AnnotationEditorInput, DataTransformationInput } from "./workspace/ui_definitions/inputs/data_transformation";

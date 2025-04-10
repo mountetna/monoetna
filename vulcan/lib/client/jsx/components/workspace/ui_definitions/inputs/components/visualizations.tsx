@@ -1,7 +1,7 @@
 import React, {Dispatch, PropsWithChildren, useMemo, useState} from 'react';
 import * as _ from 'lodash';
 
-import {WithInputParams} from '../../input_types';
+import {DataEnvelope, OptionSet, WithInputParams} from '../../input_types';
 import {useSetsDefault} from '../../useSetsDefault';
 import {some} from '../../../../../selectors/maybe';
 import {
@@ -13,20 +13,17 @@ import {
 } from '@material-ui/core';
 import {pick} from 'lodash';
 import {
-  stringPiece,
-  MultiselectPiece,
-  checkboxPiece,
-  sliderPiece,
   ReductionSetupPiece,
-  MultiselectAfterDataChoicePiece
 } from '../pieces/user_input_pieces';
 import {ReorderCustomOnlyPiece, ReorderVizPiece} from '../pieces/reorder_piece';
 import NestedDropdownMultiChoiceAdvancedPiece from '../pieces/nested_dropdown_multi_choice_advanced_piece';
-import { nestedOptionSet } from '../pieces/utils';
-import DropdownPiece from '../pieces/dropdown_piece';
-import { DataEnvelope } from '../../../../ui_components';
+import DropdownPiece, { DropdownPieceRct } from '../pieces/dropdown_piece';
 import NestedDropdownPiece from '../pieces/nested_dropdown_piece';
 import { OptionalSelectionDefinitionPiece } from '../pieces/grouping_pieces';
+import { StringPiece } from '../pieces/string_piece';
+import { CheckboxPiece } from '../pieces/checkbox_piece';
+import { MultiselectStringAfterDataChoicePiece, MultiselectStringPiece } from '../pieces/multiselect_string_piece';
+import { SliderPiece } from '../pieces/number_pieces';
 
 /*
 Docmentation last updated: Apr 15, 2022
@@ -388,10 +385,10 @@ const input_constraints: DataEnvelope<DataEnvelope<'continuous' | 'discrete'>> =
   };
 
 function useExtraInputs(
-  options: string[] | nestedOptionSet,
+  options: OptionSet,
   full_data: DataEnvelope<any>,
   plot_type: string | null,
-  continuous: string[] | nestedOptionSet,
+  continuous: OptionSet,
   discrete: string[],
   x_by: string | null,
   y_by: string | null,
@@ -412,7 +409,7 @@ function useExtraInputs(
   function is_ditto() {
     return plot_type!=null && plot_type.includes('ditto')
   }
-  function add_make(add_to: string[] | nestedOptionSet, for_plot_types: string[]) {
+  function add_make(add_to: OptionSet, for_plot_types: string[]) {
     if (plot_type==null || !for_plot_types.includes(plot_type)) return add_to
     if (Array.isArray(add_to)) return ['make'].concat(add_to)
     let output = {...add_to}
@@ -439,7 +436,17 @@ function useExtraInputs(
         add_make(get_options('color_by'), ['scatter_plot', 'y_plot', 'dittoPlot', 'dittoFreqPlot', 'dittoScatterPlot']),
         false],
       sample_by: ['Sample Data (try \'_sc_seq_ids_\' if there; \'make\' = ignore)', add_make(get_options('sample_by'), ['dittoFreqPlot']), false],
-      plots: !is_ditto ? ['Data Representations', ['violin', 'box']] : ['Data Representations', ['vlnplot', 'boxplot', 'jitter', 'ridgeplot']],
+      plots: !is_ditto ? [
+        'Data Representations',
+        ['box', 'violin'],
+        ['box', 'violin'],
+        ['box', 'violin']
+      ] : [
+        'Data Representations',
+        ['vlnplot', 'boxplot', 'jitter', 'ridgeplot'],
+        ['vlnplot', 'boxplot', 'jitter', 'ridgeplot'],
+        ['jitter', 'vlnplot']
+      ],
       vars_use: ['Primary Data values to display (blank = all)', full_data, var_, 'Primary Data', discrete],
       color_order: [
         'Point Render & (discrete) Color Assignment Order',
@@ -563,17 +570,17 @@ function InputWrapper({
 }
 
 const components_plotly: DataEnvelope<Function> = {
-  plot_title: stringPiece,
-  legend_title: stringPiece,
-  xlab: stringPiece,
-  ylab: stringPiece,
+  plot_title: StringPiece,
+  legend_title: StringPiece,
+  xlab: StringPiece,
+  ylab: StringPiece,
   x_by: DropdownPiece,
   y_by: DropdownPiece,
   color_by: DropdownPiece,
-  plots: MultiselectPiece,
+  plots: MultiselectStringPiece,
   color_order: ReorderVizPiece,
-  order_when_continuous_color: checkboxPiece,
-  size: sliderPiece,
+  order_when_continuous_color: CheckboxPiece,
+  size: SliderPiece,
   scale_by: DropdownPiece,
   x_scale: DropdownPiece,
   y_scale: DropdownPiece,
@@ -583,11 +590,11 @@ const components_plotly: DataEnvelope<Function> = {
 };
 
 const components_dittoseq: DataEnvelope<Function> = {
-  plot_title: stringPiece,
-  plot_subtitle: stringPiece,
-  legend_title: stringPiece,
-  xlab: stringPiece,
-  ylab: stringPiece,
+  plot_title: StringPiece,
+  plot_subtitle: StringPiece,
+  legend_title: StringPiece,
+  xlab: StringPiece,
+  ylab: StringPiece,
   x_by: NestedDropdownPiece,
   y_by: NestedDropdownPiece,
   var: NestedDropdownPiece,
@@ -595,38 +602,38 @@ const components_dittoseq: DataEnvelope<Function> = {
   group_by: NestedDropdownPiece,
   color_by: NestedDropdownPiece,
   sample_by: NestedDropdownPiece,
-  plots: MultiselectPiece,
-  vars_use: MultiselectAfterDataChoicePiece,
+  plots: MultiselectStringPiece,
+  vars_use: MultiselectStringAfterDataChoicePiece,
   color_order: ReorderVizPiece,
-  size: sliderPiece,
-  opacity: sliderPiece,
+  size: SliderPiece,
+  opacity: SliderPiece,
   scale_by: DropdownPiece,
-  scale: checkboxPiece,
+  scale: CheckboxPiece,
   x_scale: DropdownPiece,
   y_scale: DropdownPiece,
   cells_use: OptionalSelectionDefinitionPiece,
   group_order: ReorderCustomOnlyPiece,
   var_order: ReorderCustomOnlyPiece,
   reduction_setup: ReductionSetupPiece,
-  do_hover: checkboxPiece,
-  vlnplot_lineweight: sliderPiece,
-  vlnplot_width: sliderPiece,
+  do_hover: CheckboxPiece,
+  vlnplot_lineweight: SliderPiece,
+  vlnplot_width: SliderPiece,
   vlnplot_scaling: DropdownPiece,
-  boxplot_width: sliderPiece,
-  boxplot_color: stringPiece,
-  boxplot_fill: checkboxPiece,
-  boxplot_lineweight: sliderPiece,
-  jitter_size: sliderPiece,
-  jitter_width: sliderPiece,
-  jitter_color: stringPiece,
-  ridgeplot_lineweight: sliderPiece,
-  do_label: checkboxPiece,
-  labels_highlight: checkboxPiece,
-  labels_repel: checkboxPiece,
-  do_contour: checkboxPiece,
-  do_ellipse: checkboxPiece,
-  legend_show: checkboxPiece,
-  split_adjust_free_y: checkboxPiece
+  boxplot_width: SliderPiece,
+  boxplot_color: StringPiece,
+  boxplot_fill: CheckboxPiece,
+  boxplot_lineweight: SliderPiece,
+  jitter_size: SliderPiece,
+  jitter_width: SliderPiece,
+  jitter_color: StringPiece,
+  ridgeplot_lineweight: SliderPiece,
+  do_label: CheckboxPiece,
+  labels_highlight: CheckboxPiece,
+  labels_repel: CheckboxPiece,
+  do_contour: CheckboxPiece,
+  do_ellipse: CheckboxPiece,
+  legend_show: CheckboxPiece,
+  split_adjust_free_y: CheckboxPiece
 };
 
 export const ComponentUse = ({
@@ -672,13 +679,13 @@ function VisualizationUI(
     return Object.keys(data_frame);
   }, [data_frame]);
 
-  const continuous_columns: string[] | nestedOptionSet = useMemo(() => { // NOTE: these data don't necessarily need to be contained within the given data_frame (to accomodate for visualizing genomics data)
+  const continuous_columns: OptionSet = useMemo(() => { // NOTE: these data don't necessarily need to be contained within the given data_frame (to accomodate for visualizing genomics data)
     return 'continuous_opts' in data ? data['continuous_opts'] : df_columns;
   }, [data]);
   const discrete_columns: string[] = useMemo(() => {
     return 'discrete_opts' in data ? data['discrete_opts'] : df_columns;
   }, [data]);
-  const columns: string[] | nestedOptionSet = useMemo(() => {
+  const columns: OptionSet = useMemo(() => {
     return 'all_opts' in data ? data['all_opts'] : df_columns;
   }, [data]);
 

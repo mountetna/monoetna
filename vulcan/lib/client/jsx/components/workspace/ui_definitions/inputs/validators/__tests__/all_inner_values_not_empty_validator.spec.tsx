@@ -3,7 +3,7 @@ import {
   AllInnerValuesNotEmptyValidator,
   AllInnerValuesNotEmptyValidatorStrong
 } from '../all_inner_values_not_empty_validator';
-import {DataEnvelope, ValidationInputSpecification} from '../../input_types';
+import {DataEnvelope, ValidationInputSpecification} from '../../../input_types';
 import {some} from '../../../../../../selectors/maybe';
 
 describe('AllInnerValuesNotEmptyValidator', () => {

@@ -1,12 +1,13 @@
 import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {dataAndUrlForOutputTypes, DataEnvelope, dontDownloadForOutputTypes, OUTPUTS} from '../../ui_components';
+import {dataAndUrlForOutputTypes, dontDownloadForOutputTypes, OUTPUTS} from '../../ui_components';
 
 import StepIconName from './step_elements/step_icon_name';
 
 import {configIOValues, uiComponentOfStep} from '../../../selectors/workflow_selectors';
 import {WorkspaceStatus, WorkspaceStep} from '../../../api_types';
+import { DataEnvelope } from '../ui_definitions/input_types';
 
 function stepInputDataRaw(
   step: WorkspaceStep,

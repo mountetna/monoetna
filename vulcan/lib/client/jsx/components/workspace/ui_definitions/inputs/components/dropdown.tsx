@@ -1,10 +1,9 @@
 import React, {useMemo} from 'react';
-import {WithInputParams} from '../../input_types';
+import {DataEnvelope, WithInputParams} from '../../input_types';
 import {maybeOfNullable, some, withDefault} from '../../../../../selectors/maybe';
 import {StringOptions} from '../../monoids';
 import {useSetsDefault} from '../../useSetsDefault';
 import { DropdownPieceRct } from '../pieces/dropdown_piece';
-import { DataEnvelope } from '../../../../ui_components';
 
 export function pullRecommendationIntoLabel<T extends DataEnvelope<any>>(
   data: T | null | undefined, label: string | undefined
@@ -37,6 +36,7 @@ export default function DropdownInput({
   maxOptions = 200,
   disableClearable = true,
   disabled = false,
+  showError,
   onChange,
   ...props
 }: WithInputParams<
@@ -55,6 +55,7 @@ export default function DropdownInput({
   Special Case: If any data key is "recommendation", a line of text will display the values of this recommendation to the user.
   */
   const options_in: string[] = data.options;
+  if (!options_in) showError('No data options given')
 
   const value = useSetsDefault(defaultValue || null, props.value, onChange, 'picked');
   const disp_label = useMemo(() => {

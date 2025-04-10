@@ -11,8 +11,9 @@ import LowPriorityIcon from '@material-ui/icons/LowPriority';
 import DragHandleIcon from '@material-ui/icons/DragHandle';
 import Typography from '@material-ui/core/Typography';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
-import {arrayLevels, checkboxPiece} from './user_input_pieces';
+import {arrayLevels, PieceBaseInputs} from './user_input_pieces';
 import { DropdownPieceRct } from './dropdown_piece';
+import { CheckboxPiece, CheckboxPieceRct } from './checkbox_piece';
 
 const LevelComponent = (props: any) => {
   return (
@@ -74,15 +75,17 @@ return <DragDropContext onDragEnd={HandleOnDragEnd}>
 </DragDropContext>
 };
 
-export function ReorderCollapsiblePiece(
-  key: string,
-  changeFxn: Function,
-  value: string[] | null = [] as string[],
-  label: string = 'Reorder'
-) {
+interface ReorderCollapsiblePieceInputs extends PieceBaseInputs<string[]> {
+};
+
+export function ReorderCollapsiblePieceRct({
+  name,
+  changeFxn,
+  value,
+  label = 'Reorder'
+}: ReorderCollapsiblePieceInputs): React.ReactElement {
   const [open, setOpen] = useState(false);
-  const value_use = value==null ? [] : value;
-  const disabled=value_use.length<2;
+  const disabled=value.length<2;
 
   const openToggle = <Grid item>
     <IconButton aria-label='open-close' size='small' color='secondary' disabled={disabled} onClick={()=>setOpen(!open)}>
@@ -101,7 +104,7 @@ export function ReorderCollapsiblePiece(
   </Grid>;
 
   return (
-    <Grid key={key} item container direction='row'>
+    <Grid key={name} item container direction='row'>
       {openToggle}
       <Grid item style={{paddingTop: '8px'}}>
         <FormControl>
@@ -111,7 +114,7 @@ export function ReorderCollapsiblePiece(
           >
             {label}
           </InputLabel>
-          {open && value_use.length>=2 ? DragDrop(value_use, onDragEnd(value_use, changeFxn), {paddingTop: '15px'}) : null}
+          {open && value.length>=2 ? DragDrop(value, onDragEnd(value, changeFxn), {paddingTop: '15px'}) : null}
         </FormControl>
       </Grid>
     </Grid>
@@ -226,13 +229,13 @@ export function ReorderCustomOnlyPiece(
 
   return (
     <div key={key} style={{paddingTop: 8}}>
-      {checkboxPiece(
-        key,
-        startOrClear,
-        value != 'make',
-        label,
-        !canReorder
-      )}
+      <CheckboxPieceRct
+        name={key}
+        changeFxn={startOrClear}
+        value={value != 'make'}
+        label={label}
+        disabled={!canReorder}
+      />
       {!Array.isArray(value) ? null : DragDrop(value, onDragEnd(value, (r:any) => changeFxn(r, key)))}
     </div>
   );

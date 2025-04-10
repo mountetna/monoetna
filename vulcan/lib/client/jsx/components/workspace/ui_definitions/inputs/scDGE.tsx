@@ -9,9 +9,10 @@ import {useSetsDefault} from '../useSetsDefault';
 import {some} from '../../../../selectors/maybe';
 import {joinNesting, StringOptions} from '../monoids';
 import {useMemoized} from '../../../../selectors/workflow_selectors';
-import {MultiselectPiece, dropdownPiece} from './pieces/user_input_pieces';
 import {subsetDataFramePiece} from './pieces/subsetDataFrame_piece';
 import {Button} from '@material-ui/core';
+import { MultiselectStringPiece } from './pieces/multiselect_string_piece';
+import DropdownPiece from './pieces/dropdown_piece';
 
 /*
 This input is closely tied to a python script for running scanpy-based differential expression.
@@ -71,7 +72,7 @@ const DEComps = (
       let value_select_2 = null;
       if (Object.keys(opts).length > 0 && vals['de_meta'] != null) {
         if (Object.keys(vals).includes('de_group_1')) {
-          value_select_1 = MultiselectPiece(
+          value_select_1 = MultiselectStringPiece(
             'de_group_1',
             changeFxn,
             vals['de_group_1'],
@@ -80,7 +81,7 @@ const DEComps = (
           );
         }
         if (Object.keys(vals).includes('de_group_2')) {
-          value_select_2 = MultiselectPiece(
+          value_select_2 = MultiselectStringPiece(
             'de_group_2',
             changeFxn,
             vals['de_group_2'],
@@ -94,7 +95,7 @@ const DEComps = (
         <div>
           <hr />
           {'Step 3: What labels do you want to compare? '}
-          {dropdownPiece(
+          {DropdownPiece(
             'de_meta',
             changeFxn,
             vals['de_meta'],
@@ -122,7 +123,7 @@ const GroupComps = (
       let value_select = null;
       if (Object.keys(opts).length > 0 && vals['group_meta'] != null) {
         if (Object.keys(vals).includes('group_use')) {
-          value_select = MultiselectPiece(
+          value_select = MultiselectStringPiece(
             'group_use',
             changeFxn,
             vals['group_use'],
@@ -136,7 +137,7 @@ const GroupComps = (
         <div>
           <hr />
           {'Step 4: Within what comparison groups?'}
-          {dropdownPiece(
+          {DropdownPiece(
             'group_meta',
             changeFxn,
             vals['group_meta'],
@@ -244,7 +245,7 @@ export default function DiffExpSC({
   return (
     <div>
       Step 1: Select your DE Question Type:
-      {dropdownPiece(
+      {DropdownPiece(
         'method',
         setDEMethod,
         value['method'],

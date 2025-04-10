@@ -1,4 +1,4 @@
-import {DataEnvelope, ValidationInputSpecification} from '../../input_types';
+import {DataEnvelope, ValidationInputSpecification} from '../../../input_types';
 import {some} from '../../../../../../selectors/maybe';
 import { MetisPathValidator, MetisFileValidator, MetisFolderValidator } from '../metis_path_validators';
 

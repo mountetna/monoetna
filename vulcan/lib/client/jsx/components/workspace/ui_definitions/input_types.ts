@@ -6,7 +6,16 @@ import {
   stepOfName,
 } from '../../../selectors/workflow_selectors';
 import {defaultBufferedInputs} from '../../../contexts/input_state_management';
-import {DataEnvelope, inputComponents} from '../../ui_components';
+import {inputComponents} from '../../ui_components';
+import {DataEnvelope} from 'etna-js/utils/input_types';
+
+// Common data types:
+export {DataEnvelope} from 'etna-js/utils/input_types';
+// Expected structure of multi-category options is a nested Object where the categories are keys containing an Object as their value, and literal options are the leaf keys which have 'null' as value.  Thus, all keys upstream of an leaf key reflect the category path the user would take to get to that option.
+// **Important caveat: There are expected to be no duplicate leaf options!
+export type nestedOptionSet = {[k: string]: null | nestedOptionSet};
+// Some (many) inputs should be built to work for options provided as either 'nestedOptionSet' above OR a simple string array
+export type OptionSet = string[] | nestedOptionSet;
 
 export function nulled_vals(de: DataEnvelope<any>): DataEnvelope<null> {
   let de_ = {...de};
@@ -244,6 +253,7 @@ export type WithInputParams<
   value: Maybe<Value>;
   data: DataEnvelope<DataElement> | undefined | null;
   defaultValue?: any;
+  showError: (e) => void
 };
 
 export interface ValidationInputSpecification<
