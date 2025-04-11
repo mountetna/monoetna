@@ -18,15 +18,26 @@ class Vulcan
         boot_log = "#{dir}/#{Vulcan::Path::WORKSPACE_BOOT_LOG}"
         slurm_uuid = nil
 
-        command = @remote_manager.build_command
+        sub_command = @remote_manager.build_command
+          .add_raw('source ~/.bashrc') # load conda
           .add('cd', dir)
-          .add_raw(snakemake_command)
-          .redirect_to(Vulcan::Path::WORKSPACE_BOOT_LOG)
-        @remote_manager.invoke_background_ssh_command(command.to_s)
+          .add('conda', 'activate', Vulcan.instance.config(:conda_env))
+          .add_raw("#{snakemake_command} > #{boot_log} 2>&1 < /dev/null")
+
+        command = @remote_manager.build_command
+          .add_raw("nohup bash -lc '#{sub_command}'") 
+          .background
+
+        @remote_manager.invoke_and_close(command.to_s)
         if @remote_manager.file_exists?(boot_log, true)
           begin
             regex = /SLURM run ID: ([a-f0-9\-]+)/
-            matched = @remote_manager.find_string(boot_log, regex)
+            matched = nil
+            3.times do |attempt| # sometimes the slurm id is not written to the boot.log immediately
+              matched = @remote_manager.find_string(boot_log, regex)
+              break if matched
+              sleep(0.1) # 100ms delay between attempts
+            end
             if matched.nil?
               file_output = @remote_manager.invoke_ssh_command("cat #{boot_log}")
               raise "Could not capture slurm id, error is: #{file_output}"
@@ -36,7 +47,7 @@ class Vulcan
             raise e
           end
         else
-          raise "Could not create: #{boot_log}, command is: #{command.to_s}"
+          raise "Could not create: #{boot_lg}, command is: #{command.to_s}"
         end
         # We no longer need the boot.log
         @remote_manager.invoke_ssh_command(@remote_manager.build_command.add('rm', boot_log).to_s)
@@ -45,6 +56,7 @@ class Vulcan
 
       def dry_run_snakemake(dir, snakemake_command)
         command = @remote_manager.build_command
+          .add('conda', 'activate', Vulcan.instance.config(:conda_env))
           .add('cd', dir)
           .add_raw(snakemake_command)
         out = @remote_manager.invoke_ssh_command(command.to_s)
@@ -187,6 +199,7 @@ class Vulcan
 
         # Run snakemake --d3dag
         dag_command = @remote_manager.build_command
+          .add('conda', 'activate', Vulcan.instance.config(:conda_env))
           .add('cd', dir)
           .add('snakemake', '--configfile', config_path, '--d3dag')
           .redirect_to('rulegraph.json')

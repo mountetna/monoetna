@@ -121,9 +121,10 @@ class Vulcan
 
     def dir_exists?(dir)
       command = build_command
-        .add('sh', '-c', "[ -d #{dir} ] && echo 'Directory exists.' || echo 'Directory does not exist.'") # TODO maybe make this cleaner
+        .add('test', '-d', dir)
+        .add_raw('echo "exists" || echo "not exists"')
       out = invoke_ssh_command(command.to_s)
-      out[:stdout].chomp == 'Directory exists.'
+      out[:stdout].strip == 'exists'
     end
 
     def clone(repo, target_dir)
@@ -161,9 +162,9 @@ class Vulcan
       def remote_file_exists?(file_path)
         begin
           command = build_command
-            .add('sh', '-c', "[ -f #{file_path} ] && echo 'exists' || echo 'not exists'") # TODO maybe make this cleaner
-
-          result = invoke_ssh_command(command.to_s, 1)
+            .add('test', '-f', file_path)
+            .add_raw('echo "exists" || echo "not exists"')
+          result = invoke_ssh_command(command.to_s)
           result[:stdout].strip == 'exists'
         rescue => e
           raise e unless e.message.include?("timed out")
@@ -171,7 +172,7 @@ class Vulcan
       end
 
       if wait
-        max_retries = 3
+        max_retries = 5
         attempt = 0
         file_found = false
 
@@ -180,7 +181,9 @@ class Vulcan
             file_found = true
           else
             attempt += 1
-            sleep 0.5
+            # Exponential backoff - sleep longer each retry
+            sleep_time = 0.5 * (2 ** attempt) 
+            sleep sleep_time
           end
           if file_found
             break
@@ -192,17 +195,11 @@ class Vulcan
       end
     end
 
-    def invoke_background_ssh_command(command)
-      # Runs a ssh command as a async background process.
-      # Combines standard err and standard out to the same stream
-      # Immediately closes the ssh channel.
-      wrapped_command = build_command
-        .add('nohup', 'sh', '-c', "#{command} 2>&1")
-        .background
-
+    def invoke_and_close(command)
+      # Immediately run ssh command and close the ssh channel.
       @ssh_pool.with_conn do |ssh|
         ssh.open_channel do |channel|
-          channel.exec(wrapped_command.to_s)
+          channel.exec(command)
           channel.close
         end
       end
