@@ -11,6 +11,7 @@ import {
 import {makeStyles} from '@material-ui/core/styles';
 import DOMPurify from 'dompurify';
 import * as marked from 'marked';
+import {useFeatureFlag} from 'etna-js/hooks/useFeatureFlag';
 
 const useStyles = makeStyles((theme) => {
   const blockTags = [
@@ -64,6 +65,16 @@ const useStyles = makeStyles((theme) => {
 });
 
 export function CcView({project_name}) {
+  const canCommunity = !useFeatureFlag('external');
+  if (!canCommunity) {
+    return (
+      <Container maxWidth='sm' style={{paddingTop: 40}} className={classes.cc}>
+        <Typography>
+          <h3>You do not have access to Community Projects</h3>
+        </Typography>
+      </Container>
+    )
+  }
   const [project, setProject] = useState(null);
   const [agreed, setAgreed] = useState(false);
   useEffect(() => {

@@ -8,6 +8,7 @@ import {selectProjects} from '../selectors/janus-selector';
 import {projectNameFull} from '../utils/janus';
 import {fetchProjectsAction} from '../actions/janus-actions';
 import {useActionInvoker} from '../hooks/useActionInvoker';
+import {useFeatureFlag} from '../../hooks/useFeatureFlag';
 
 const Project = ({project_name, project_name_full, role, privileged}) => (
   <div className='project'>
@@ -73,6 +74,7 @@ const RootView = () => {
       return {my_projects, resourceProjects, communityProjects};
     }
   );
+  const canCommunity = !useFeatureFlag('external');
 
   useEffect(() => {
     invoke(fetchProjectsAction());
@@ -82,7 +84,7 @@ const RootView = () => {
     <div className='root-view'>
       <ProjectList title='Your Projects' projects={my_projects} />
       <ProjectList title='Resource Projects' projects={resourceProjects} />
-      <ProjectList title='Community Projects' projects={communityProjects} />
+      {canCommunity && <ProjectList title='Community Projects' projects={communityProjects} />}
     </div>
   );
 };
