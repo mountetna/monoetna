@@ -65,12 +65,13 @@ const useStyles = makeStyles((theme) => {
 });
 
 export function CcView({project_name}) {
+  const classes = useStyles();
   const canCommunity = !useFeatureFlag('external');
   if (!canCommunity) {
     return (
       <Container maxWidth='sm' style={{paddingTop: 40}} className={classes.cc}>
         <Typography>
-          <h3>You do not have access to Community Projects</h3>
+          <h6>We're sorry, but you do not have access to Community Projects so cannot view this page.</h6>
         </Typography>
       </Container>
     )
@@ -84,8 +85,6 @@ export function CcView({project_name}) {
       });
     });
   }, []);
-
-  const classes = useStyles();
 
   const cc_text = project && project.cc_text ? project.cc_text : '';
   const requiresAgreement = project
