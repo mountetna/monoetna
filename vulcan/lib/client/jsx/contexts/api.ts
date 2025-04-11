@@ -22,7 +22,8 @@ import {
   WorkspaceRaw,
   WorkflowCreateResponse,
   CreateWorkspaceResponse,
-  isRunningReturn
+  isRunningReturn,
+  WorkspacesResponseRaw
 } from '../api_types';
 import { paramValuesToRaw, workspacesFromResponse } from '../selectors/workflow_selectors';
 import { isSome } from '../selectors/maybe';
@@ -195,7 +196,7 @@ export function useApi(
   const getWorkspaces = useCallback(
     (projectName: string): Promise<WorkspacesResponse> => {
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace`))
-        .then((val) => workspacesFromResponse(val));
+        .then((val: unknown) => workspacesFromResponse(val as WorkspacesResponseRaw));
   }, [vulcanGet, vulcanPath]);
 
   const getWorkspace = useCallback(

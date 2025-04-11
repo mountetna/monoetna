@@ -6,28 +6,8 @@ import {dataAndUrlForOutputTypes, dontDownloadForOutputTypes, OUTPUTS} from '../
 import StepIconName from './step_elements/step_icon_name';
 
 import {configIOValues, uiComponentOfStep} from '../../../selectors/workflow_selectors';
-import {WorkspaceStatus, WorkspaceStep} from '../../../api_types';
-import { DataEnvelope } from '../ui_definitions/input_types';
-
-function stepInputDataRaw(
-  step: WorkspaceStep,
-  last_params: WorkspaceStatus['last_params'],
-  file_contents: WorkspaceStatus['file_contents']
-): {[k: string]: any} {
-  // Pull out any previous step's output data link that is a required
-  //   input into this UI step.
-  const result: {[k: string]: any} = {};
-
-  configIOValues(step.input.params).forEach((paramName) => {
-    result[paramName] = last_params[paramName] || null;
-  });
-
-  configIOValues(step.input.files).forEach((fileName) => {
-    result[fileName] = file_contents[fileName] || null;
-  });
-
-  return result;
-};
+import {VulcanConfigElement, WorkspaceStep} from '../../../api_types';
+import { DataEnvelope, fillInputData } from '../ui_definitions/input_types';
 
 export default function OutputUI({step}: {step: WorkspaceStep}) {
   const {state} = useContext(VulcanContext);
@@ -45,11 +25,7 @@ export default function OutputUI({step}: {step: WorkspaceStep}) {
   if (dontDownloadForOutputTypes.includes(stepType)) {
     data = configIOValues(step.input.files);
   } else {
-    // const newData = fillInputData(step as VulcanConfigElement, step, status.last_params, status.file_contents);
-    const oldData = stepInputDataRaw(step, status.last_params, status.file_contents);
-    // console.log({newData})
-    // console.log({oldData})
-    data = oldData;
+    data = fillInputData(step as VulcanConfigElement, step, status.last_params, status.file_contents);
   }
 
   let url;

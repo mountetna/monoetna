@@ -20,7 +20,9 @@ import {
   WorkspaceRaw,
   WorkspaceMinimalRaw,
   WorkspaceMinimal,
-  InputConfig
+  InputConfig,
+  WorkspacesResponse,
+  WorkspacesResponseRaw
 } from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {
@@ -55,6 +57,7 @@ export function uniqueValues(original: any[]) {
 }
 
 export function parseIfCan(data: any) {
+  // ToDo: REMOVE
   // console.log({raw: data, parse: data.replace(/\n$/, '').replaceAll(/:(\w+)=>/g, '"$1":').replaceAll(/nil/g, 'null')})
   try {
     return JSON.parse(data.replace(/\n$/, '').replaceAll(/:(\w+)=>/g, '"$1":').replaceAll(/nil/g, 'null'));
@@ -111,8 +114,8 @@ export function workflowByIdFromWorkflows(
   return id ? workflows.find((w) => workflowId(w) === id) : defaultWorkflow;
 }
 
-export function workspacesFromResponse(val: {workspaces: WorkspaceMinimalRaw[]}): {workspaces: WorkspaceMinimal[]} {
-  return val;
+export function workspacesFromResponse(val: WorkspacesResponseRaw): WorkspacesResponse {
+  return val as WorkspacesResponse;
   // ToDo: Clean up if stable, not returned by this path!
   // const workspaces = val.workspaces;
   // return {
@@ -131,7 +134,8 @@ export function workspaceFromRaw(raw: WorkspaceRaw): Workspace {
   const intWorkspace: any = {...raw};
   return {
     ...intWorkspace,
-    vulcan_config: vulcanConfig
+    vulcan_config: vulcanConfig,
+    tags: raw.tags || [],
   };
 }
 

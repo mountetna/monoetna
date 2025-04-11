@@ -86,7 +86,6 @@ export function getInputSpecifications(
     ui_component: step.ui_component || 'default'
   }];
 }
-
 export function fillInputData(
   config: VulcanConfigElement,
   step: WorkspaceStep,
@@ -97,7 +96,8 @@ export function fillInputData(
 
   // First: what we have from the vulcan_config
   const mappedConfigInputs = config.input?.preset || {}
-  let unmappedConfigInputs: any[] = [];
+  let unmappedConfigInputContents: any[] = [];
+  let unmappedConfigInputNames: any[] = [];
 
   if (!!step.input.params && !!step.input.files && !!showError) {
     showError("Workflow Issue: VulcanConfigElements can have params or files inputs, but NOT both.")
@@ -109,7 +109,8 @@ export function fillInputData(
     if (!!def) {
       if (Array.isArray(def)) {
         def.forEach((name) => {
-          unmappedConfigInputs.push(currentVals[name]);
+          unmappedConfigInputContents.push(currentVals[name]);
+          unmappedConfigInputNames.push(name);
         });
       } else {
         Object.keys(def).forEach((name) => {
@@ -125,12 +126,13 @@ export function fillInputData(
   fill_input_key_from_data(step.input.files, file_contents)
 
   // Now: build with context from the ui_component
+  // OutputUI: pass through as {[name]: content}
   if (!(config.ui_component in inputComponents)) {
     // stepOutput UI
-    unmappedConfigInputs.forEach((value) => mappedConfigInputs[value] = value);
+    unmappedConfigInputContents.forEach((value, i) => mappedConfigInputs[unmappedConfigInputNames[i]] = value);
     return mappedConfigInputs;
   }
-  // stepInput or Param UI
+  // stepInput or Param UI: pass through as {[desiredName]: content}
   const componentNeeds = inputComponents[config.ui_component][3] as string[];
   const componentOptional = inputComponents[config.ui_component][4] as string | undefined;
 
@@ -138,22 +140,20 @@ export function fillInputData(
   if (unusedKeys.length > 0 && !!showError) {
     showError(`Specified input key(s) '${unusedKeys.join("', '")}' in VulcanConfigElement do not exist for ui_component '${config.ui_component}'`)
   }
-
   // Required Elements
   const data: {[k: string]: any} = {};
   componentNeeds.forEach( (comp) => {
     // ToDo: Error if nothing unmapped left to grab
     data[comp] = comp in mappedConfigInputs ?
       mappedConfigInputs[comp] :
-      unmappedConfigInputs.shift()
+      unmappedConfigInputContents.shift()
   })
-
   // Optional Element
   if (!!componentOptional) {
-    if (unmappedConfigInputs.length > 0 || componentOptional in mappedConfigInputs) {
+    if (unmappedConfigInputContents.length > 0 || componentOptional in mappedConfigInputs) {
       data[componentOptional] = componentOptional in mappedConfigInputs ?
         mappedConfigInputs[componentOptional] :
-        unmappedConfigInputs.shift();
+        unmappedConfigInputContents.shift();
     }
   }
 
@@ -244,6 +244,7 @@ export type InputBackendComponent<
 > = (
   p: WithInputParams<Params, Value, DataElement>
 ) => React.ReactElement | null;
+
 export type WithInputParams<
   Params extends {},
   Value,

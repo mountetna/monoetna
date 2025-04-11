@@ -32,12 +32,13 @@ import {
   clearRunning,
   clearRunTriggers,
   setWorkspace,
+  updateWorkflowsWorkspaces,
 } from '../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 // import Vignette from '../vignette';
 import VulcanHelp from './drawers/vulcan_help';
-import { workflowName } from '../../selectors/workflow_selectors';
+import { workflowName, workspaceFromRaw } from '../../selectors/workflow_selectors';
 import {useWorkspace} from '../../contexts/workspace_context';
 // import {json_get} from 'etna-js/utils/fetch';
 import useUserHooks from '../../contexts/useUserHooks';
@@ -88,6 +89,7 @@ export default function WorkspaceManager() {
     postUIValues,
     getFileNames,
     readFiles,
+    getWorkspace,
     // updateFigure,
     // createFigure,
     // clearLocalSession
@@ -232,9 +234,10 @@ export default function WorkspaceManager() {
     // ToDo: Handle this update from the api return instead, to be sure we stay accurate
     showErrors(
       updateWorkspace(projectName, workspaceId as number, title, tags)
-        .then((workspaceResponse: WorkspaceRaw) => {
-          dispatch(setWorkspace(workspaceResponse, projectName));
-        })
+      .then(() => {
+        getWorkspace(projectName, workspaceId as number)
+          .then((workspaceRaw) => {dispatch(setWorkspace(workspaceFromRaw(workspaceRaw), projectName))});
+      })
     );
   }, [projectName, workspaceId])
 

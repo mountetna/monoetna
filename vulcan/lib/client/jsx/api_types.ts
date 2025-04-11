@@ -92,9 +92,9 @@ export type CreateWorkspaceResponse = {
   dag: string[]
 }
 
-// WorkspaceMinimal matches the content returned when listing many workspaces with getWorkspace*s*
-// Workspace matches the content returned when listing one workspace with getWorkspace
-export interface WorkspaceMinimal {
+
+// Per getWorkspace*s*
+export interface WorkspaceMinimalMinusInconsistent {
   workspace_id: number | null;
   name: string;
   workflow_name: string;
@@ -105,19 +105,23 @@ export interface WorkspaceMinimal {
   dag: string[];
   created_at: string;
   updated_at: string;
+  workspace_path: string;
 }
-export interface WorkspaceMinimalRaw extends WorkspaceMinimal {
-  // ToDo: Clean up if stable, not returned by this path!
-  // workspace_path: string;
-}
+// ToDo: Remove these if the final version is stably not edited!
+// Not currently in the minimal: none
+export interface WorkspaceMinimalRaw extends WorkspaceMinimalMinusInconsistent {}
+export interface WorkspaceMinimal extends WorkspaceMinimalMinusInconsistent {}
+export type WorkspacesResponseRaw = {workspaces: WorkspaceMinimalRaw[]}
+export type WorkspacesResponse = {workspaces: WorkspaceMinimal[]}
 
+// Per getWorkspace
 interface WorkspaceMinusInconsistent {
   workspace_id: number | null;
   workflow_id: number | null;
+  workflow_name: string;
   name: string;
   user_email: string;
   workspace_path: string;
-  tags: string[];
   dag: string[];
   git_version: string;
   created_at: string;
@@ -127,22 +131,23 @@ interface WorkspaceMinusInconsistent {
   last_job_status: {[k: string]: StatusStringFine} | null;
   last_run_id: number | null;
 }
-
-export interface Workspace extends WorkspaceMinusInconsistent {
-  vulcan_config: VulcanConfig;
-  project?: string;
-  vignette?: string;
-  thumbnails?: string[];
-}
-
 export interface WorkspaceRaw extends WorkspaceMinusInconsistent {
   vulcan_config: VulcanConfigElement[];
+  tags: string[] | null;
   // target_mapping: {[k: string]: WorkspaceStep};
+}
+export interface Workspace extends WorkspaceMinusInconsistent {
+  vulcan_config: VulcanConfig;
+  tags: string[];
+  // project?: string;
+  vignette?: string;
+  thumbnails?: string[];
 }
 
 export const defaultWorkspace: Workspace = {
   workspace_id: null,
   workflow_id: null,
+  workflow_name: '',
   name: '',
   user_email: '',
   workspace_path: '',
@@ -157,18 +162,6 @@ export const defaultWorkspace: Workspace = {
   last_job_status: {},
   last_run_id: null,
 };
-
-// export type WorkspaceResponse = Pick<WorkspaceRaw,
-//   'workspace_id'
-//   | 'workflow_id'
-//   | 'vulcan_config'
-//   | 'dag'
-//   | 'last_config'
-//   | 'last_job_status'
-// >
-
-export type WorkspacesResponseRaw = {workspaces: WorkspaceMinimalRaw[]}
-export type WorkspacesResponse = {workspaces: WorkspaceMinimal[]}
 
 export interface FileContentResponse {
   filename: string;
@@ -217,7 +210,7 @@ export type InputConfig = {
   preset?: {[k: string]: any}
 }
 
-type OutputConfig = {
+export type OutputConfig = {
   files?: string[] | {[k: string]: string}
   params?: string[] | {[k: string]: string}
 }

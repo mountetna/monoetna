@@ -103,6 +103,7 @@ export default function WorkspacesGrid({
           });
         })
       );
+      dispatch(updateWorkflowsWorkspaces());
     },
     [showErrors, updateWorkspace, project_name, allWorkspaces]
   );
