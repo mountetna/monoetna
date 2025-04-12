@@ -33,7 +33,7 @@ class UserController < Janus::Controller
 
     raise Etna::Forbidden, 'User not found' unless @janus_user
 
-    cannotCommunity = @janus_user.flags.is_a?(Array) && @janus_user.flags.include?('external')
+    cannotCommunity = ! @janus_user.flags.nil? && @janus_user.flags.include?('external')
 
     projects = @janus_user.permissions.map do |perm|
       # Don't use proj.to_hash because we don't necessarily want to send back
