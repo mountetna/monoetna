@@ -1,5 +1,5 @@
 # This code tests the retrieveMetadata function
-# library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-meta.R")
+# library(magmaR); library(testthat); source("tests/testthat/helper-magmaR.R"); source("tests/testthat/test-meta.R")
 
 targ <- magmaRset(
     token = TOKEN,

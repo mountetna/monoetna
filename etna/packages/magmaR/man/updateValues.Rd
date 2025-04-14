@@ -11,6 +11,7 @@ updateValues(
   auto.proceed = FALSE,
   autolink = FALSE,
   dryRun = FALSE,
+  template = NULL,
   ...
 )
 }
@@ -40,6 +41,8 @@ then 3) creates any of these records that don't currently exist,
 and finally 4) creates all the assumed parent-child linkages}
 
 \item{dryRun}{Logical. FALSE by default. Passed through to magma, this parameter controls whether the system will only test whether the update is valid without making changes to the database.}
+
+\item{template}{For internal use in minimizing excess http requests to magma, NULL or the return of \code{retrieveTemplate(target, projectName)}.}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
