@@ -65,17 +65,6 @@ const useStyles = makeStyles((theme) => {
 });
 
 export function CcView({project_name}) {
-  const classes = useStyles();
-  const canCommunity = !useFeatureFlag('external');
-  if (!canCommunity) {
-    return (
-      <Container maxWidth='sm' style={{paddingTop: 40}} className={classes.cc}>
-        <Typography>
-          <h6>We're sorry, but you do not have access to Community Projects so cannot view this page.</h6>
-        </Typography>
-      </Container>
-    )
-  }
   const [project, setProject] = useState(null);
   const [agreed, setAgreed] = useState(false);
   useEffect(() => {
@@ -85,6 +74,8 @@ export function CcView({project_name}) {
       });
     });
   }, []);
+
+  const classes = useStyles();
 
   const cc_text = project && project.cc_text ? project.cc_text : '';
   const requiresAgreement = project
@@ -129,6 +120,17 @@ export function CcView({project_name}) {
     );
   }
   if (!requiresAgreement) return null;
+
+  const canCommunity = !useFeatureFlag('external');
+  if (!canCommunity) {
+    return (
+      <Container maxWidth='sm' style={{paddingTop: 40}} className={classes.cc}>
+        <Typography>
+          <h6>We're sorry, but you do not have access to Community Projects so cannot view this page.</h6>
+        </Typography>
+      </Container>
+    )
+  }
 
   return (
     <Container maxWidth='sm' style={{paddingTop: 40}} className={classes.cc}>
