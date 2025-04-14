@@ -36,9 +36,9 @@ const useTableEffects = ({
 
   const validationValues = useCallback(
     (column: QueryColumn) => {
-      return (graph.models[column.model_name]?.template.attributes[
-        column.attribute_name
-      ]?.validation?.value || []) as string[];
+      return (graph.attribute(
+        column.model_name, column.attribute_name
+      )?.validation?.value || []) as string[];
     },
     [graph.models]
   );

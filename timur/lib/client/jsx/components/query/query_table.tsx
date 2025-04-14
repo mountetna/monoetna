@@ -14,7 +14,6 @@ import AntSwitch from './ant_switch';
 
 import {QueryTableColumn} from '../../contexts/query/query_types';
 import QueryTableAttributeViewer from './query_table_attribute_viewer';
-import {QueryGraph} from '../../utils/query_graph';
 
 const useStyles = makeStyles({
   table: {
@@ -35,7 +34,6 @@ const QueryTable = ({
   page,
   pageSize,
   maxColumns,
-  graph,
   expandMatrices,
   handlePageChange,
   handlePageSizeChange
@@ -46,7 +44,6 @@ const QueryTable = ({
   page: number;
   pageSize: number;
   maxColumns: number;
-  graph: QueryGraph;
   handlePageChange: (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent> | null,
     newPage: number
@@ -105,7 +102,6 @@ const QueryTable = ({
                       <QueryTableAttributeViewer
                         tableColumn={columns[index]}
                         expandMatrices={expandMatrices}
-                        graph={graph}
                         datum={datum}
                       />
                     </TableCell>

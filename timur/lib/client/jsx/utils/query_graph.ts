@@ -6,7 +6,7 @@ import {Model, Template, Attribute} from '../models/model_types';
 export class QueryGraph {
   models: {[key: string]: Model};
   graph: DirectedGraph;
-  unallowedModels: string[] = ['project'];
+  unallowedModels: string[] = [];
   includedLinkTypes: string[] = ['link', 'table'];
   allowedModels: Set<string>;
   initialized: boolean = false;
@@ -26,7 +26,7 @@ export class QueryGraph {
         let template: Template = modelDefinition.template;
         this.allowedModels.add(modelName);
 
-        if (!this.unallowedModels.includes(template.parent))
+        if (template.parent && !this.unallowedModels.includes(template.parent))
           {this.graph.addConnection(template.parent, modelName);}
 
         Object.values(template.attributes)
@@ -51,6 +51,18 @@ export class QueryGraph {
     if (!Object.keys(this.models).includes(modelName)) return null;
 
     return this.models[modelName].template;
+  }
+
+  attribute(modelName: string, attributeName: string): Attribute {
+    return this.template(modelName)?.attributes[ attributeName ];
+  }
+
+  subgraph(modelName: string): Set<string> {
+    return modelName ? this.descendants(modelName).add(modelName) : new Set();
+  }
+
+  descendants(modelName: string): Set<string> {
+    return new Set(this.allPaths(modelName).flat())
   }
 
   parentRelationship(modelName: string): string | null {
@@ -87,9 +99,11 @@ export class QueryGraph {
   // Here we calculate parent paths as separate entities, instead
   //   of allowing them to be in a single, flattened array.
   parentPaths(modelName: string): string[][] {
-    if (!Object.keys(this.graph.parents).includes(modelName)) return [];
+    if (!modelName in this.graph.parents) return [];
 
     let results: string[][] = [];
+
+    console.log(this.graph.parents[modelName]);
 
     Object.keys(this.graph.parents[modelName]).forEach((p: string) => {
       if (p !== modelName) {
@@ -126,17 +140,13 @@ export class QueryGraph {
       )
       .concat(
         // paths routing up through parents then down
-        parentPaths
-          .map((parentPath: string[]) =>
-            parentPath
-              .map((p: string, index: number) =>
-                this.pathsFrom(p).map((path) =>
-                  parentPath.slice(0, index).concat(path)
-                )
-              )
-              .flat(1)
-          )
-          .flat(1)
+        parentPaths.map((parentPath: string[]) =>
+          parentPath.map((p: string, index: number) =>
+            p == 'project' ? [] : this.pathsFrom(p).map((path) =>
+              parentPath.slice(0, index).concat(path)
+            )
+          ).flat(1)
+        ).flat(1)
       );
   }
 

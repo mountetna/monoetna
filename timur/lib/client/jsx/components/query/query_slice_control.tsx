@@ -1,10 +1,10 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useState, useContext} from 'react';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
 import {QueryClause, QuerySlice} from '../../contexts/query/query_types';
 import {QueryGraph} from '../../utils/query_graph';
-import QueryFilterClause from './query_filter_clause';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import RemoveIcon from './query_remove_icon';
 import QueryNumber from './query_number';
 import QueryModelAttributeSelector from './query_model_attribute_selector';
@@ -22,18 +22,18 @@ const QuerySliceControl = ({
   slice,
   sliceIndex,
   modelNames,
-  graph,
   patchSlice,
   removeSlice
 }: {
   slice: QuerySlice;
   sliceIndex: number;
   modelNames: string[];
-  graph: QueryGraph;
   patchSlice: (slice: QuerySlice) => void;
   removeSlice: () => void;
 }) => {
   const classes = useStyles();
+
+  const { state: {graph} } = useContext(QueryGraphContext);
 
   const clause = slice.clause;
 
@@ -113,7 +113,6 @@ const QuerySliceControl = ({
           patchSubclause={(updatedSubclause: QuerySubclause) =>
             handleUpdateSubclause(updatedSubclause, 0)
           }
-          modelAttributes={[]}
           removeSubclause={() => handleRemoveSubclause(0)}
           isColumnFilter={true}
           showRemoveIcon={false}

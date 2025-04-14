@@ -1,25 +1,26 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useContext} from 'react';
 
 import AttributeViewer from '../attributes/attribute_viewer';
 import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import {QueryTableColumn} from '../../contexts/query/query_types';
 
 const QueryTableAttributeViewer = ({
   tableColumn,
   datum,
-  graph,
   expandMatrices
 }: {
   tableColumn: QueryTableColumn;
   datum: any;
   expandMatrices: boolean;
-  graph: QueryGraph;
 }) => {
   function filename(path: string | null) {
     return path == null
       ? null
       : new URL(`https://${path}`).pathname.split('/').pop();
   }
+
+  const { state: {graph} } = useContext(QueryGraphContext);
 
   const {attribute, modelName, matrixHeadings, predicate} = tableColumn;
 

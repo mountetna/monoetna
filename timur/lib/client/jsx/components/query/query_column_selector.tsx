@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useEffect, useMemo} from 'react';
+import React, {useCallback, useState, useEffect, useContext, useMemo} from 'react';
 import Grid from '@material-ui/core/Grid';
 import FormControl from '@material-ui/core/FormControl';
 import { makeStyles } from '@material-ui/core/styles';
@@ -16,12 +16,12 @@ import useSliceMethods from './query_use_slice_methods';
 import {QueryColumn} from '../../contexts/query/query_types';
 import {
   selectAllowedModelAttributes,
-  attributeIsFile
 } from '../../selectors/query_selector';
 import QuerySliceModelAttributePane from './query_slice_model_attribute_pane';
 
 import {visibleSortedAttributesWithUpdatedAt} from '../../utils/attributes';
 import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import RemoveIcon from './query_remove_icon';
 import Selector from './query_selector';
 import QueryModelAttributeSelector from './query_model_attribute_selector';
@@ -115,7 +115,6 @@ const QueryColumnSelector = React.memo(
     columnIndex,
     canEdit,
     modelChoiceSet,
-    graph,
     onSelectModel,
     onSelectAttribute,
     onChangeLabel,
@@ -128,7 +127,6 @@ const QueryColumnSelector = React.memo(
     columnIndex: number;
     canEdit: boolean;
     modelChoiceSet: string[];
-    graph: QueryGraph;
     onSelectModel: (modelName: string) => void;
     onSelectAttribute: (attributeName: string) => void;
     onChangeLabel: (label: string) => void;
@@ -139,6 +137,8 @@ const QueryColumnSelector = React.memo(
     const [selectableModelAttributes, setSelectableModelAttributes] = useState(
       [] as Attribute[]
     );
+
+    const { state: {graph} } = useContext(QueryGraphContext);
     // All the slices related to a given model / attribute,
     //   with the model / attribute as a "label".
     // Matrices will have modelName + attributeName.
@@ -180,7 +180,7 @@ const QueryColumnSelector = React.memo(
     const showFilePredicates = useMemo(() => {
       return (
         column?.attribute_name &&
-        attributeIsFile(graph.models, column.model_name, column.attribute_name)
+        graph.attributeIsFile(column.model_name, column.attribute_name)
       );
     }, [column, graph]);
 

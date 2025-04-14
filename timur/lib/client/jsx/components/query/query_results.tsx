@@ -83,7 +83,6 @@ const QueryResults = () => {
           pageSize={pageSize}
           numRecords={numRecords}
           page={page}
-          graph={graph}
           expandMatrices={expandMatrices}
           handlePageChange={handlePageChange}
           handlePageSizeChange={handlePageSizeChange}

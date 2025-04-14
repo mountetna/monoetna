@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState, useContext} from 'react';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import {makeStyles} from '@material-ui/core/styles';
@@ -11,6 +11,7 @@ import FileCopyIcon from '@material-ui/icons/FileCopy';
 import {QueryClause, QueryFilter} from '../../contexts/query/query_types';
 import {emptyQueryClauseStamp} from '../../selectors/query_selector';
 import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import QueryFilterClause from './query_filter_clause';
 import QueryNumber from './query_number';
 import QueryAnyEverySelectorList from './query_any_every_selector_list';
@@ -38,7 +39,6 @@ const useStyles = makeStyles((theme) => ({
 const QueryFilterControl = ({
   filter,
   modelNames,
-  graph,
   or,
   setOr,
   filterIndex,
@@ -50,12 +50,13 @@ const QueryFilterControl = ({
   filter: QueryFilter;
   patchRecordFilter: QueryFilter;
   modelNames: string[];
-  graph: QueryGraph;
   patchFilter: (filter: QueryFilter) => void;
   removeFilter: () => void;
   copyFilter: () => void;
 }) => {
   const classes = useStyles();
+
+  const { state: {graph} } = useContext(QueryGraphContext);
 
   const handleModelSelect = useCallback(
     (modelName: string) => {
@@ -171,7 +172,6 @@ const QueryFilterControl = ({
                 graph={graph}
                 modelNames={Object.keys(modelChildren)}
                 hasModelChildren={!!modelChildren[clause.modelName]}
-                isColumnFilter={false}
                 patchClause={(updatedClause: QueryClause) =>
                   handlePatchClause(updatedClause, index)
                 }

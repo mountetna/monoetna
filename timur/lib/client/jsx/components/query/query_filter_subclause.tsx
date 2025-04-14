@@ -1,4 +1,4 @@
-import React, {useMemo, useCallback, useState, useEffect} from 'react';
+import React, {useMemo, useCallback, useState, useEffect, useContext} from 'react';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
@@ -10,7 +10,9 @@ import {Debouncer} from 'etna-js/utils/debouncer';
 import {QuerySubclause} from '../../contexts/query/query_types';
 import FilterOperator from './query_filter_operator';
 import useQuerySubclause from './query_use_query_subclause';
+import useQueryClause from './query_use_query_clause';
 import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import QueryNumber from './query_number';
 import RemoveIcon from './query_remove_icon';
 import Selector from './query_selector';
@@ -39,8 +41,6 @@ const QueryFilterSubclause = ({
   subclause,
   subclauseIndex,
   modelName,
-  modelAttributes,
-  graph,
   waitTime,
   eager,
   isColumnFilter,
@@ -51,8 +51,6 @@ const QueryFilterSubclause = ({
   subclause: QuerySubclause;
   subclauseIndex: number;
   modelName: string;
-  modelAttributes: Attribute[];
-  graph: QueryGraph;
   waitTime?: number;
   eager?: boolean;
   isColumnFilter: boolean;
@@ -60,6 +58,12 @@ const QueryFilterSubclause = ({
   patchSubclause: (subclause: QuerySubclause) => void;
   removeSubclause: () => void;
 }) => {
+  const { state: {graph} } = useContext(QueryGraphContext);
+
+  const {modelAttributes} = useQueryClause({
+    modelName, graph, isColumnFilter
+  });
+
   const [operandValue, setOperandValue] = useState('' as string | number);
   const [previousOperandValue, setPreviousOperandValue] = useState(
     '' as string | number
@@ -187,7 +191,7 @@ const QueryFilterSubclause = ({
 
   return <Grid item container alignItems='center' style={{ textDecoration: removeHint ? 'line-through' : 'none' }} >
     {
-      modelAttributes.length > 0 && <>
+      !isColumnFilter && <>
         <QueryNumber setRemoveHint={ showRemoveIcon ? setRemoveHint : null } onClick={ showRemoveIcon ? removeSubclause : null} number={subclauseIndex} level={2}/>
         <Selector
           canEdit={true}

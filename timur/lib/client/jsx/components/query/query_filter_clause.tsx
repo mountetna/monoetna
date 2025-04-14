@@ -7,7 +7,6 @@ import Button from '@material-ui/core/Button';
 import {makeStyles} from '@material-ui/core/styles';
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
 import AddIcon from '@material-ui/icons/Add';
 
 import {
@@ -16,8 +15,6 @@ import {
   QuerySubclause
 } from '../../contexts/query/query_types';
 import {emptyQueryClauseStamp} from '../../selectors/query_selector';
-import useQueryClause from './query_use_query_clause';
-import {QueryGraph} from '../../utils/query_graph';
 import RemoveIcon from './query_remove_icon';
 import QueryNumber from './query_number';
 import Selector from './query_selector';
@@ -39,8 +36,6 @@ const useStyles = makeStyles((theme) => ({
 const QueryFilterClause = ({
   clause,
   modelNames,
-  graph,
-  isColumnFilter,
   waitTime,
   eager,
   showRemoveIcon,
@@ -53,8 +48,6 @@ const QueryFilterClause = ({
 }: {
   clause: QueryClause;
   modelNames: string[];
-  graph: QueryGraph;
-  isColumnFilter: boolean;
   waitTime?: number;
   eager?: boolean;
   index?: number;
@@ -65,11 +58,6 @@ const QueryFilterClause = ({
   patchClause: (clause: QueryClause) => void;
   removeClause: () => void;
 }) => {
-  const {modelAttributes} = useQueryClause({
-    modelName: clause.modelName,
-    graph,
-    isColumnFilter
-  });
   const classes = useStyles();
 
   const handleModelSelect = useCallback(
@@ -158,16 +146,14 @@ const QueryFilterClause = ({
                   key={index}
                   subclause={subclause}
                   subclauseIndex={index}
-                  graph={graph}
                   waitTime={waitTime}
                   eager={eager}
                   modelName={clause.modelName}
-                  modelAttributes={modelAttributes}
                   patchSubclause={(updatedSubclause: QuerySubclause) =>
                     handleUpdateSubclause(updatedSubclause, index)
                   }
+                  isColumnFilter={false}
                   removeSubclause={() => handleRemoveSubclause(index)}
-                  isColumnFilter={isColumnFilter}
                   showRemoveIcon={canAddSubclause}
                 />
               );

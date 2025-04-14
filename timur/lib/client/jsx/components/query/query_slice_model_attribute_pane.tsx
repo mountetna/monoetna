@@ -80,7 +80,6 @@ const QuerySliceModelAttributePane = ({
               slice={slice}
               sliceIndex={index}
               modelNames={sliceableModelNames}
-              graph={graph}
               patchSlice={(updatedSlice: QuerySlice) =>
                 handlePatchSlice(index, updatedSlice)
               }

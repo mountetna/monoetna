@@ -52,11 +52,9 @@ describe('QueryGraph', () => {
     graph = new QueryGraph(models);
   });
 
-  it('ignores the project model', () => {
-    expect(Object.keys(graph.graph.children).includes('project')).toEqual(
-      false
-    );
-    expect(Object.keys(graph.graph.parents).includes('project')).toEqual(false);
+  it('includes the project model', () => {
+    expect(Object.keys(graph.graph.children).includes('project')).toEqual(true);
+    expect(Object.keys(graph.graph.parents).includes('project')).toEqual(true);
   });
 
   it('adds table and link connections', () => {
@@ -71,7 +69,7 @@ describe('QueryGraph', () => {
 
   it('provides all paths from a child model, up and down the graph', () => {
     expect(graph.allPaths('prize')).toEqual([
-      ['labor'],
+      ['labor', 'project'],
       ['labor', 'monster', 'habitat', 'vegetation'],
       ['labor', 'monster', 'victim', 'wound'],
       ['labor', 'prize']

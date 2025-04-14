@@ -124,7 +124,7 @@ const QueryWherePane = () => {
   );
 
   const modelNames = useMemo(
-    () => [...new Set(graph.allPaths(rootModel).flat())].sort(),
+    () => [...graph.descendants(rootModel)].sort(),
     [graph, rootModel]
   );
 
@@ -157,7 +157,6 @@ const QueryWherePane = () => {
               filter={filter}
               patchRecordFilter={patchRecordFilter}
               modelNames={modelNames}
-              graph={graph}
               patchFilter={(updatedFilter: QueryFilter | QuerySlice) =>
                 handlePatchFilter(
                   index,

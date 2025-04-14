@@ -36,9 +36,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const QuerySelectPane = () => {
-  const {
-    state: {graph, rootModel}
-  } = useContext(QueryGraphContext);
+  const { state: {graph, rootModel} } = useContext(QueryGraphContext);
   const {
     state: {columns},
     addQueryColumn,
@@ -108,12 +106,7 @@ const QuerySelectPane = () => {
 
   const modelChoiceSet = useMemo(
     () => [
-      ...new Set(
-        graph
-          .allPaths(rootModel)
-          .flat()
-          .concat(rootModel ? [rootModel] : [])
-      )
+      ...graph.subgraph(rootModel)
     ],
     [graph, rootModel]
   );
@@ -219,7 +212,6 @@ const QuerySelectPane = () => {
                         modelChoiceSet={modelChoiceSet}
                         columnIndex={index}
                         canEdit={0 !== index}
-                        graph={graph}
                         onSelectModel={(modelName: string) =>
                           handleOnSelectModel(index, modelName, '')
                         }

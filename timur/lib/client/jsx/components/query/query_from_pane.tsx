@@ -53,9 +53,9 @@ const QueryFromPane = () => {
         },
         ...column_attrs.map(
           attribute => (isLinkForeignKey(attribute) ? {
-            modelName: attribute.link_model_name,
-            attribute_name: attribute.link_attribute_name,
-            display_label: `${attribute.link_model_name}.${attribute.link_attribute_name}`,
+            model_name: attribute.link_model_name,
+            attribute_name: graph.template(attribute.link_model_name).identifier,
+            display_label: `${attribute.link_model_name}.${graph.template(attribute.link_model_name).identifier}`,
             slices: []
           } : {
             model_name: modelName,
