@@ -29,6 +29,14 @@ class GnomonController < Magma::Controller
       identifier: @params[:identifiers]
     ).delete
 
+    event_log(
+      event: 'delete_name',
+      message: "removed identifiers",
+      payload: {
+        identifiers: @params[:identifiers]
+      }
+    )
+
     success_json(success: "Deleted #{@params[:identifiers].count} identifiers")
   end
 
