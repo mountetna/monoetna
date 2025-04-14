@@ -109,6 +109,8 @@ export function CcView({project_name}) {
   }, [agreed]);
 
   const canCommunity = !useFeatureFlag('external');
+  const ccHtml = useMemo(() => DOMPurify.sanitize(marked(cc_text)), [cc_text]);
+  
   if (!canCommunity) {
     return (
       <Container maxWidth='sm' style={{paddingTop: 40}} className={classes.cc}>
@@ -118,8 +120,6 @@ export function CcView({project_name}) {
       </Container>
     )
   }
-
-  const ccHtml = useMemo(() => DOMPurify.sanitize(marked(cc_text)), [cc_text]);
 
   if (!project) {
     return (
