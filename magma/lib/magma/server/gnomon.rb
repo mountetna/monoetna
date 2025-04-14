@@ -49,6 +49,11 @@ class GnomonController < Magma::Controller
       version_number: version_number
     )
 
+    event_log(
+      event: 'update_rules',
+      message: "created version #{version_number} of rules"
+    )
+
     return success_json(grammar.to_hash)
   end
 
@@ -323,5 +328,13 @@ class GnomonController < Magma::Controller
 
   def rule_name
     @params[:rule_name]
+  end
+
+  def event_log(params)
+    super(
+      params.merge(
+        application: 'gnomon'
+      )
+    )
   end
 end
