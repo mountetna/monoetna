@@ -27,6 +27,11 @@ class DocumentsController < Timur::Controller
 
     document.update(@document_class.edit_params(params_with_user))
 
+    event_log(
+      event: 'update',
+      message: "updated #{@document_type} id #{@params[:id]}"
+    )
+
     success_document(document)
   end
 

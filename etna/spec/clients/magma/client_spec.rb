@@ -106,7 +106,7 @@ describe Etna::Clients::Magma do
   end
 
   it 'posts an update' do
-    stub_request(:post, /#{MAGMA_HOST}\/update$/).to_return(body: '{}')
+    stub_request(:post, /#{MAGMA_HOST}\/update$/).to_return(body: '{}', headers: { 'Content-Type': 'application/json' })
     response = magma_client.update_json(Etna::Clients::Magma::UpdateRequest.new(update))
 
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).
@@ -137,9 +137,9 @@ describe Etna::Clients::Magma do
 
       it 'posts a paged update' do
         stub_request(:post, /#{MAGMA_HOST}\/update$/).to_return([
-          { body: response1.to_json }, {body: response2.to_json}
+          { body: response1.to_json, headers: { 'Content-Type': 'application/json' } }, {body: response2.to_json, headers: { 'Content-Type': 'application/json' }}
         ])
-        stub_request(:post, /#{MAGMA_HOST}\/retrieve$/).to_return(body: monster_model.to_json)
+        stub_request(:post, /#{MAGMA_HOST}\/retrieve$/).to_return(body: monster_model.to_json, headers: { 'Content-Type': 'application/json' })
         response = magma_client.update_json(Etna::Clients::Magma::UpdateRequest.new(update), 2)
 
         expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).twice
@@ -204,7 +204,7 @@ describe Etna::Clients::Magma do
             monster: { documents: revisions1["monster"] },
             victim: { documents: revisions1["victim"] }
           }
-        }.to_json)
+        }.to_json, headers: { 'Content-Type': 'application/json' })
 
         stub_request(:post, /#{MAGMA_HOST}\/update$/).with(
           body: hash_including("revisions" => revisions2)
@@ -213,9 +213,9 @@ describe Etna::Clients::Magma do
             monster: { documents: revisions2["monster"] },
             victim: { documents: revisions2["victim"] }
           }
-        }.to_json)
+        }.to_json, headers: { 'Content-Type': 'application/json' })
 
-        stub_request(:post, /#{MAGMA_HOST}\/retrieve$/).to_return(body: monster_model.to_json)
+        stub_request(:post, /#{MAGMA_HOST}\/retrieve$/).to_return(body: monster_model.to_json, headers: { 'Content-Type': 'application/json' })
         response = magma_client.update_json(Etna::Clients::Magma::UpdateRequest.new(blank_table_update), 2)
 
         expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).twice
@@ -235,10 +235,11 @@ describe Etna::Clients::Magma do
                   "documents" => update["revisions"]["victim"]
                 }
               }
-            }.to_json
+            }.to_json,
+            headers: { 'Content-Type': 'application/json' }
           }
         end
-        stub_request(:post, /#{MAGMA_HOST}\/retrieve$/).to_return(body: monster_model.to_json)
+        stub_request(:post, /#{MAGMA_HOST}\/retrieve$/).to_return(body: monster_model.to_json, headers: { 'Content-Type': 'application/json' })
         response = magma_client.update_json(Etna::Clients::Magma::UpdateRequest.new(append_table_update), 2)
 
         expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).times(5)

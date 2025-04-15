@@ -25,8 +25,15 @@ class WorkflowController < Polyphemus::Controller
 
     Polyphemus::RuntimeConfig.create(
       config_id: config.config_id,
+      run_interval: 0,
+      config: {},
       created_at: Time.now,
       updated_at: Time.now
+    )
+
+    event_log(
+      event: 'create_workflow',
+      message: "created #{@params[:workflow_type]} workflow #{@params[:workflow_name]}"
     )
 
     success_json(config.as_json)
@@ -70,6 +77,11 @@ class WorkflowController < Polyphemus::Controller
       config.update(update)
     end
 
+    event_log(
+      event: 'update_workflow',
+      message: "updated workflow #{config.workflow_name} to version #{update[:version_number]}"
+    )
+
     success_json(config.as_json)
   end
 
@@ -91,11 +103,6 @@ class WorkflowController < Polyphemus::Controller
       ).first
     end
     success_json(config.as_json)
-  end
-
-  def list
-    configs = Polyphemus::Config.current.where(project_name: @params[:project_name]).all
-    success_json(configs.map(&:with_status))
   end
 
   def list_all
@@ -131,6 +138,9 @@ class WorkflowController < Polyphemus::Controller
     end
 
     if run
+      if run.state
+        update_columns[:state] = run.state.merge(update_columns[:state] || {})
+      end
       run.update(update_columns)
     else
       # For new runs we still need config_id and version_number
@@ -175,17 +185,22 @@ class WorkflowController < Polyphemus::Controller
   end
 
   def get_previous_state
-    require_params(:config_id, :version_number, :state)
-    run = Polyphemus::Run.where(
+    require_params(:config_id, :state)
+
+    runs = Polyphemus::Run.where(
       config_id: @params[:config_id],
-      version_number: @params[:version_number]
-    ).order(Sequel.desc(:created_at)).first
+    ).exclude(state: nil).order(Sequel.desc(:created_at)).all
 
-    raise Etna::NotFound, "No such run for config_id #{@params[:config_id]} and version_number #{@params[:version_number]}" unless run
+    return success_json({}) if runs.empty?
 
-    filtered_state = run.state.slice(*@params[:state])
-    if filtered_state.empty?
-      raise Etna::NotFound, "Requested state keys #{@params[:state].join(', ')} not found in run.state"
+    filtered_state = @params[:state].to_h do |state_key|
+      result = @params[:collect] ?
+        runs.map do |run|
+          run.state.dig(state_key)
+        end : runs.find do |run|
+          run.state.has_key?(state_key)
+        end&.state&.dig(state_key)
+      [ state_key, result ]
     end
     success_json(filtered_state)
   end
@@ -193,31 +208,27 @@ class WorkflowController < Polyphemus::Controller
   def update_runtime_config
     require_params(:config_id)
 
-    runtime_config = Polyphemus::RuntimeConfig.where(
-      config_id: @params[:config_id],
-    ).first
+    runtime_config = Polyphemus::RuntimeConfig.for_config(@params[:config_id])
 
-    config = Polyphemus::Config.current.where(
-          project_name: @params[:project_name],
-          config_id: @params[:config_id]
-    ).first
-
-    raise Etna::NotFound, "Cannot find a config for project #{@params[:project_name]} with config_id #{@params[:config_id]}" unless config 
     raise Etna::NotFound, "No runtime config found for config_id #{@params[:config_id]}" unless runtime_config
 
+    config = runtime_config.workflow_config
+
+    raise Etna::NotFound, "Cannot find a config for project #{@params[:project_name]} with config_id #{@params[:config_id]}" unless config 
+
     if @params[:config]
-        manifest = Polyphemus::WorkflowManifest.from_workflow_name(config.workflow_type)
-        errors = manifest.validate_runtime_config(@params[:config])
-        raise Etna::BadRequest, errors.join(', ') if errors.any?
+      manifest = Polyphemus::WorkflowManifest.from_workflow_name(config.workflow_type)
+      errors = manifest.validate_runtime_config(@params[:config])
+      raise Etna::BadRequest, errors.join(', ') if errors.any?
     end
     
     update_columns = {
-        config_id: @params[:config_id],
-        run_interval: @params[:run_interval],
-        config: @params[:config],
-        disabled: @params[:disabled],
-        updated_at: Time.now
-      }.compact
+      config_id: @params[:config_id],
+      run_interval: @params[:run_interval],
+      config: @params[:config],
+      disabled: @params[:disabled],
+      updated_at: Time.now
+    }.compact
 
     runtime_config.update(update_columns)
     success_json(runtime_config.as_json)
@@ -253,6 +264,11 @@ class WorkflowController < Polyphemus::Controller
     rescue StandardError => e
       raise Etna::BadRequest, "Failed to submit Argo workflow: #{e.message}"
     end
+
+    event_log(
+      event: 'launch_workflow',
+      message: "ran workflow #{config.workflow_name}"
+    )
     success_json(run.as_json)
   end
 
@@ -272,7 +288,7 @@ class WorkflowController < Polyphemus::Controller
     statuses = configs.map do |config|
       # Get the latest run for this config
       # All workflows that have been launched should have a run object
-      run, prev_run = Polyphemus::Run.where(config_id: config.config_id).order(Sequel.desc(:updated_at)).limit(2).all
+      run, prev_run = Polyphemus::Run.where(config_id: config.config_id).order(Sequel.desc(:created_at)).limit(2).all
 
       status = {
           workflow_type: config.workflow_type,
@@ -282,7 +298,8 @@ class WorkflowController < Polyphemus::Controller
           pipeline_finished_at: nil
       }
 
-      # No run object means the workflow has not been launched yet
+      next status.merge(pipeline_state: "pending") if config.runtime_config&.should_run?
+
       next status unless run
 
       if run.is_finished?
@@ -291,10 +308,9 @@ class WorkflowController < Polyphemus::Controller
           pipeline_finished_at: run.finished_at
         )
       else
-        # If there is no run, we need to check the argo workflow status
         next status.merge(
-         pipeline_finished_at: (prev_run && prev_run.is_finished?) ? prev_run.finished_at : nil,
-         pipeline_state: Polyphemus::ArgoWorkflowManager.get_workflow_status(config)
+          pipeline_state: "running",
+          pipeline_finished_at: prev_run&.is_finished? ? prev_run.finished_at : nil,
         )
       end
     end

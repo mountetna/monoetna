@@ -89,7 +89,7 @@ def stub_retrieve(request, response)
     with(
       body: request
      ).to_return(
-       status: 200, body: response.to_json, headers: {}
+       status: 200, body: response.to_json, headers: { 'Content-Type': 'application/json' }
      )
 end
 
@@ -105,7 +105,7 @@ def stub_models(project, models)
      ).to_return(
        status: 200, body: {
          models: models.map{ |m| [ m, {} ] }.to_h
-       }.to_json, headers: {}
+       }.to_json, headers: { 'Content-Type': 'application/json' }
      )
 end
 
@@ -118,15 +118,15 @@ def stub_query_count(project, model, count)
       }
     )
     .to_return(
-      status: 200, body: { answer: count }.to_json, headers: {}
+      status: 200, body: { answer: count }.to_json, headers: { 'Content-Type': 'application/json' }
     )
 end
 
 def stub_options(path)
-  stub_request(:options, path).to_return(status: 200, body: "{}", headers: {})
+  stub_request(:options, path).to_return(status: 200, body: "{}", headers: { 'Content-Type': 'application/json' })
 end
 
-def stub_json(path, payload, headers={})
+def stub_json(path, payload, headers={ 'Content-Type': 'application/json' })
   stub_request(:get, path).
     to_return(status: 200, body: payload.to_json, headers: headers)
 end

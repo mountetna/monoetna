@@ -1,71 +1,93 @@
 describe Polyphemus::RuntimeConfig do
 
-    let(:some_config) do
-        {
-            "some_key" => "some_value"
-        }
-    end
+  let(:some_config) do
+    {
+      "some_key" => "some_value"
+    }
+  end
 
-    before do
-      config_1 = Polyphemus::Config.create(
-        project_name: 'labors',
-        workflow_name: 'my-cat-ingestion',
-        workflow_type: 'cat-ingestion',
-        config_id: Polyphemus::Config.next_id,
-        version_number: 1,
-        config: {},
-        secrets: {},
-      )
-      runtime_config_1 = Polyphemus::RuntimeConfig.create(
-        config_id: config_1.config_id,
-        run_interval: 1000,
-        config: some_config
-      )
+  before do
+    Timecop.freeze('2025-01-16T12:30:00Z')
+    create_workflow(
+      workflow_name: 'ready-workflow',
+      run_interval: 1000,
+      run_start: '2025-01-16T12:00:00Z',
+      run_stop: '2025-01-16T12:10:00Z',
+    )
 
-      Polyphemus::Run.create(
-        run_id: "hello-there-1",
-        config_id: config_1.config_id,
-        version_number: config_1.version_number,
-        name: 'my-cat-ingestion-1000',
-        orchestrator_metadata: {
-            'startedAt' => '2025-01-16T12:00:00Z',
-            'finishedAt' => '2025-01-16T12:20:00Z',
-            'phase' => 'Succeeded'
-          }
-      )
+    create_workflow(
+      workflow_name: 'running-workflow',
+      run_interval: 1000,
+      run_start: '2025-01-16T12:00:00Z',
+      run_stop: nil,
+      status: 'Running'
+    )
 
-      config_2 = Polyphemus::Config.create(
-        project_name: 'labors',
-        workflow_name: 'my-cat-ingestion-2',
-        workflow_type: 'cat-ingestion',
-        config_id: Polyphemus::Config.next_id,
-        version_number: 1,
-        config: {},
-        secrets: {},
-      )
+    create_workflow(
+      workflow_name: 'pending-workflow',
+      run_interval: 1000_000,
+      run_start: '2025-01-16T12:00:00Z',
+      run_stop: '2025-01-16T12:10:00Z',
+    )
 
-      runtime_config_2 = Polyphemus::RuntimeConfig.create(
-        config_id: config_2.config_id,
-        run_interval: 1000
-      )
+    create_workflow(
+      workflow_name: 'failed-workflow',
+      run_interval: 1000,
+      run_start: '2025-01-16T12:00:00Z',
+      run_stop: '2025-01-16T12:20:00Z',
+      status: "Failed"
+    )
 
-      Polyphemus::Run.create(
-        run_id: "hello-there-2",
-        config_id: config_2.config_id,
-        version_number: config_2.version_number,
-        name: 'my-cat-ingestion-2000',
-        orchestrator_metadata: {
-          'phase' => 'Succeeded',
-          'startedAt' => '2025-01-16T12:00:00Z',
-          'finishedAt' => '2025-01-16T12:10:00Z', # Not enough time has elapsed
-        }
-      )
+    fixed_config, *_ = create_workflow(
+      workflow_name: 'fixed-workflow',
+      run_interval: 1000,
+      run_start: '2025-01-16T12:00:00Z',
+      run_stop: '2025-01-16T12:05:00Z',
+      status: "Failed"
+    )
+    create_run(fixed_config, 1001,
+      run_start: '2025-01-16T12:06:00Z',
+      run_stop: '2025-01-16T12:08:00Z',
+      status: 'Succeeded'
+    )
 
-    end
+    create_workflow(
+      workflow_name: 'ignored-workflow',
+      run_interval: 0,
+      run_start: '2025-01-16T12:00:00Z',
+      run_stop: '2025-01-16T12:10:00Z',
+    )
 
-    it 'correctly returns configs eligible for scheduling' do
-        eligible_runtime_configs = Polyphemus::RuntimeConfig.eligible_runtime_configs
-        expect(eligible_runtime_configs[0].config).to eq(some_config)
-    end
+    create_workflow(
+      workflow_name: 'ignored-workflow-2',
+      run_interval: nil,
+      run_start: '2025-01-16T12:00:00Z',
+      run_stop: '2025-01-16T12:10:00Z',
+    )
 
+    create_workflow(
+      workflow_name: 'disabled-workflow',
+      run_interval: 100000,
+      disabled: true,
+      run_start: '2025-01-16T12:00:00Z',
+      run_stop: '2025-01-16T12:10:00Z',
+    )
+
+    create_workflow(
+      workflow_name: 'new-workflow',
+      run_interval: 1000
+    )
+  end
+
+  after do
+    Timecop.return
+  end
+
+  it 'correctly returns configs eligible for scheduling' do
+    eligible_runtime_configs = Polyphemus::RuntimeConfig.eligible_runtime_configs
+    expect(eligible_runtime_configs.length).to eq(3)
+    expect(eligible_runtime_configs.map(&:workflow_config).map(&:workflow_name)).to match_array(
+      ["ready-workflow", "new-workflow", "fixed-workflow"]
+    )
+  end
 end

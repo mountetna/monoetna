@@ -1673,7 +1673,7 @@ EOT
 
   def initialize(path, *args)
     @token = ENV['TOKEN']
-    @logger = Logger.new
+    @logger = MetisClientLogger.new
 
     if !@token
       logger.write("No environment variable TOKEN is set. Set your token with `export TOKEN=<your.janus.token>` before running metis_client.")
@@ -1949,7 +1949,7 @@ class MetisSetup
   end
 end
 
-class Logger
+class MetisClientLogger
   def initialize
     ::File.open(log_file, 'w') do |f|
       f.puts(utc)

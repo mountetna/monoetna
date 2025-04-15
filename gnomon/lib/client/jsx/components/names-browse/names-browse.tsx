@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAppSelector as useSelector } from '../../hooks';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -11,7 +11,9 @@ import { useDispatch } from '../../utils/redux';
 import { setMagmaNamesListRequest } from '../../actions/names';
 import { fetchAndAddRulesFromMagma } from '../../actions/rules';
 import { selectMagmaNamesListsByRuleName } from '../../selectors/names';
-import NamesBrowseToolbar from './toolbar';
+import NamesToolbar from '../names-toolbar/toolbar';
+import ExportButton from '../names-toolbar/export-button';
+import DeleteIdentifiersButton from '../names-toolbar/delete-identifiers-button';
 import Counts, { Count } from '../names-create/counts';
 import Table from '../table';
 
@@ -89,7 +91,7 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
         addRulesFromMagma();
     }, []);
 
-    useEffect(() => {
+    const fetchAllNames = useCallback(() => {
         const fetchNamesForRule = createFnConcurrencyWrapper(fetchNamesWithRuleAndRegexFromMagma, 4);
 
         async function fetchNamesFromMagma(ruleName: string) {
@@ -109,6 +111,10 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
         }
 
         allRules.forEach(ruleName => fetchNamesFromMagma(ruleName));
+    }, [allRules.length]);
+
+    useEffect( () => {
+      fetchAllNames()
     }, [allRules.length]);
 
     useEffect(() => {
@@ -156,9 +162,24 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
         <React.Fragment>
             <div className={classes.projectAndToolbarContainer}>
                 <ProjectHeader project_name={project_name} />
-                <NamesBrowseToolbar
-                    exportData={selection.length ? selection : rowData}
-                    exportButtonText={`Export${selection.length ? ' Selection' : ''}`}
+                <NamesToolbar
+                    buttons={[
+                        <ExportButton
+                            small={true}
+                            data={selection.length ? selection : rowData}
+                            buttonText={`Export${selection.length ? ' Selection' : ''}`}
+                        />,
+                        <DeleteIdentifiersButton
+                            small={true}
+                            data={selection} 
+                            refresh={ () => {
+                              fetchAllNames();
+                              setSelection([]);
+                            } }
+                            project_name={project_name}
+                            buttonText={`Delete${selection.length ? ' Selection' : ''}`}
+                        />
+                    ]}
                 />
                 <ProjectHeader project_name={project_name} className="placeholder" />
             </div>
@@ -168,7 +189,6 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
                     rows={rowData}
                     columns={['name', 'ruleName', 'author', 'createdAt']}
                     selectable={true}
-                    showFocusedCell={true}
                     onSelectionChanged={setSelection}
                     className={classes.table}
                     dataTypeLabel='name'

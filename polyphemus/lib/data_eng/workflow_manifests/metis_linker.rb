@@ -8,8 +8,12 @@ class Polyphemus
         name: 'metis',
         schema: Metis::Loader.to_schema,
         runtime_params: {
-          commit: 'boolean'
-        }
+          commit: {
+            type: 'boolean',
+            description: 'Commit results to Magma'
+          }
+        },
+        workflow_path: '/app/workflows/argo/metis_linker/workflow.yaml'
       }
     end
 

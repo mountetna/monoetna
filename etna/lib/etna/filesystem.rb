@@ -70,7 +70,6 @@ module Etna
         rd, wd = IO.pipe
 
         cmd = mkcommand(rd, wd, file, opts, size_hint: size_hint)
-        puts "in mkio: #{cmd}"
         pid = spawn(*cmd)
         q = Queue.new
 
@@ -438,9 +437,11 @@ module Etna
       end
 
       def sftp_file_from_path(src)
-        file = ls(::File.dirname(src)).split("\n").map do |listing|
+        files = ls(::File.dirname(src)).split("\n").map do |listing|
           SftpFile.new(listing)
-        end.select do |file|
+        end
+
+        file = files.select do |file|
           file.name == ::File.basename(src)
         end
 
@@ -457,6 +458,7 @@ module Etna
         cmd << authn
         cmd << "-o"
         cmd << "-"
+        cmd << "-s"
         cmd << "-N"
         cmd << url(file)
 
