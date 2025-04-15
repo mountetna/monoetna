@@ -50,7 +50,7 @@ const ProjectList = ({title, projects}) => {
 const RootView = () => {
   const invoke = useActionInvoker();
   const canCommunity = !useFeatureFlag('external');
-  console.log({canCommunity})
+
   const {my_projects, resourceProjects, communityProjects} = useReduxState(
     (state) => {
       let permissions = selectUserPermissions(state);
