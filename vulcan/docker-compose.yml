@@ -35,13 +35,29 @@ x-base-etna-services:
   &base-etna-services # Default list of services an etna app may have.
   'vulcan_app': &base-etna-app # The ruby webserver
     <<: *base-etna-service
-    command: ./bin/puma.sh
     environment:
       <<: *base-etna-env
       WAIT_FOR_DB: 1
       MONOETNA_SHA: ${MONOETNA_SHA}
     depends_on:
       - 'vulcan_db'
+    entrypoint: >
+      sh -c "cp -R /etc/ssh-keys-ro /root/.ssh && \
+            chmod 700 /root/.ssh && \
+            [ -f /root/.ssh/config ] && chmod 600 /root/.ssh/config || true; \
+            [ -f /root/.ssh/id_ed25519 ] && chmod 600 /root/.ssh/id_ed25519 || true; \
+            [ -f /root/.ssh/laptop_to_c4 ] && chmod 600 /root/.ssh/laptop_to_c4 || true; \
+            [ -f /root/.ssh/known_hosts ] && chmod 644 /root/.ssh/known_hosts || true; \
+            exec /entrypoints/development.sh ./bin/puma.sh"
+    volumes:  # Override volumes to combine the base volumes with your new mount.
+      - .:/app:delegated
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - vulcan-log-dir:/app/log:rw
+      - vulcan-tmp-dir:/app/tmp:rw
+      - vulcan-public-dir:/app/public:rw
+      - vulcan-opt-dir:/usr/opt:rw
+      - ../etna:/etna:delegated
+      - ${HOME}/.ssh:/etc/ssh-keys-ro:ro
 
   'vulcan_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
@@ -51,6 +67,7 @@ x-base-etna-services:
   'vulcan_db':
     &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
     image: development-psql
+    command: postgres -c max_connections=200
     volumes:
       - vulcan-db-data:/var/lib/postgresql/data
     environment:
@@ -73,6 +90,7 @@ x-base-etna-services:
     command: ['httpd', '-DFOREGROUND']
     environment:
       APP_NAME: 'vulcan_app_fe'
+
   'vulcan_c4_env':
     image: vulcan_c4_env
     ports:
@@ -91,6 +109,7 @@ x-base-etna-services:
       - ./spec/fixtures/v2/slurm/slurm-db-init.sh:/test-utils/entrypoints/slurm-db-init.sh
       - ./spec/fixtures/v2/slurm/slurm.conf:/usr/local/etc/slurm.conf
       - ./spec/fixtures/v2/slurm/cgroup.conf:/usr/local/etc/cgroup.conf
+      - ./spec/fixtures/v2/bashrc_conda.sh:/root/.bashrc
     depends_on:
       - 'vulcan_app'
     environment:

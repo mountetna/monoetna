@@ -73,6 +73,7 @@ class Vulcan
       super
       application.setup_db
       application.setup_ssh
+      application.vulcan_checks
     end
   end
 end

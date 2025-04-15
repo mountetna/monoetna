@@ -138,4 +138,60 @@ ui_job_1 -> comp_job_2 -> ui_job_3
 Now lets say we change a param in comp_job_2. We do not want to delete ui_job_1, since it is an upstream dependency of ui_job_2.
 We just want to delete the files associated with ui_job_3.
 
-In order to solve this problem, we build a file dag and use the two UI params `uiFilesSent` and `paramsChanged` to do a bit of inference.
+In order to solve this problem, we build a file tree and use the two UI params `uiFilesSent` and `paramsChanged` to remove any downstream UI files.
+
+# SSH
+
+### Using the c4 env
+
+- Specify username and password in the config.yaml
+
+Ex:
+
+```yaml
+  :ssh: &default_ssh
+    :host: ahost
+    :username: user2
+    :password: some-password
+    :use_ssh_config: false
+```
+
+### Connecting to Prod
+
+- Use a ssh config file and SSH key pair for the host you want to connect to
+
+```yaml
+  :ssh: &default_ssh
+    :host: ahost
+    :username: user2
+    :password: 
+    :use_ssh_config: true
+```
+
+### Conda
+
+TODO:
+
+```bashrc
+# Define your conda paths at the top
+CONDA_BASE_DIR="/software/c4/cbi/software/miniforge3-24.11.0-0"  # Base directory where miniforge is installed
+CONDA_SH_PATH="$CONDA_BASE_DIR/etc/profile.d/conda.sh"
+
+# Lazy load conda to improve shell startup time
+conda() {
+    # Remove the function after first execution
+    unset -f conda
+    
+    # Load required modules first
+    module load CBI miniforge3/24.11.0-0
+    
+    # Initialize conda
+    . "$CONDA_SH_PATH"
+    
+    # Execute the original command
+    conda "$@"
+}
+```
+
+
+

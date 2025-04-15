@@ -64,4 +64,5 @@ echo 'for file in /app/*.completion; do source $file || true; done' >> /root/.ba
 echo 'export PATH="/app/bin:$PATH"' >> /root/.bashrc
 # Allow other users to use the root bash setup
 
-chmod -R 744 /root
+# Ignore the .ssh directory for connections to c4
+find /root -path /root/.ssh -prune -o -exec chmod 744 {} \;
