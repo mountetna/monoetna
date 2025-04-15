@@ -31,6 +31,7 @@ describe LogController do
       expect(last_response.status).to eq(200)
       expect(Polyphemus::Log.count).to eq(1)
       expect(Polyphemus::Log.first.message).to eq(msg)
+      expect(Polyphemus::Log.first.application).to eq('polyphemus')
     end
 
     it 'consolidates logs with matching entries from the past day' do
@@ -50,6 +51,25 @@ describe LogController do
       expect(last_response.status).to eq(200)
       expect(Polyphemus::Log.count).to eq(1)
       expect(Polyphemus::Log.first.payload['victims']).to eq(['Leon', 'Outis', 'Aisopos'])
+    end
+
+    it 'allows the application to be overridden' do
+      msg = 'The Nemean Lion was slain by Eurystheus'
+      hmac_header
+      json_post(
+        '/api/log/labors/write',
+        user: 'eurystheus@twelve-labors.org',
+        application: 'eurystheus',
+        event: 'update',
+        message: msg,
+        payload: {
+          victims: 122
+        }
+      )
+      expect(last_response.status).to eq(200)
+      expect(Polyphemus::Log.count).to eq(1)
+      expect(Polyphemus::Log.first.message).to eq(msg)
+      expect(Polyphemus::Log.first.application).to eq('eurystheus')
     end
   end
 
