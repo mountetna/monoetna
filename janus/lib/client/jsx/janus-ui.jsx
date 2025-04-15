@@ -62,7 +62,7 @@ const JanusUI = () => {
     <ThemeProvider theme={theme}>
       <div id='janus-group'>
         <Notifications />
-        <JanusNav/>
+        <JanusNav project_name={params.project_name}/>
         <Messages />
         <Component {...params}/>
       </div>

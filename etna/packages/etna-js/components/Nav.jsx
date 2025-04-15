@@ -56,11 +56,11 @@ const Logo = ({ LogoImage, app }) =>
     </a>
   </div>;
 
-const Link = ({ app }) => {
+const Link = ({ app, project_name }) => {
   const name = app.name
   const host_key = `${name}_host`;
 
-  const link = CONFIG[host_key] ? new URL(...[CONFIG.project_name, CONFIG[host_key]].filter(_ => _)) : undefined;
+  const link = CONFIG[host_key] ? new URL(...[project_name || CONFIG.project_name, CONFIG[host_key]].filter(_ => _)) : undefined;
 
   return <a href={link} className='etna-link' title={titelize(name)}>
     <img src={`/images/${name}.svg`} />
@@ -68,7 +68,7 @@ const Link = ({ app }) => {
   </a>;
 }
 
-const AppsMenu = ({ currentApp }) => {
+const AppsMenu = ({ currentApp, project_name }) => {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
 
@@ -113,7 +113,7 @@ const AppsMenu = ({ currentApp }) => {
                     APPS.map(app => {
                       return (
                         <Grid item xs={6} key={app.name} className='apps-menu-item'>
-                          <Link app={app} />
+                          <Link app={app} project_name={project_name}/>
                         </Grid>
                       )
                     })
@@ -151,14 +151,14 @@ function titelize(word) {
 
 // TODO
 // make responsive?
-const Nav = ({ logo, app, children, user }) => {
+const Nav = ({ logo, app, children, user, project_name }) => {
   return (
     <AppBar position="relative" className="etna-nav" variant="outlined">
       <Toolbar disableGutters className="etna-nav-toolbar">
         <Logo LogoImage={logo} app={app} />
         {findValidChildren(children)}
         <Login user={user} />
-        <AppsMenu currentApp={app} />
+        <AppsMenu currentApp={app} project_name={project_name}/>
       </Toolbar>
     </AppBar>
   );
