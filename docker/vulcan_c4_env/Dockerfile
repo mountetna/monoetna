@@ -33,12 +33,9 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
     bash miniconda.sh -b -p /$HOME/miniconda && \
     rm miniconda.sh
 
-# Add conda to PATH
-ENV PATH="/$HOME/miniconda/bin:${PATH}"
-
-# Create and activate conda environment with Snakemake
-RUN conda create -n conda-vulcan -c conda-forge -c bioconda snakemake=8.10.4 snakemake-executor-plugin-slurm=0.4.2 -y
-
+# Create conda environmnent
+RUN . /$HOME/miniconda/etc/profile.d/conda.sh && \
+    conda create -n conda-vulcan -c conda-forge -c bioconda snakemake=8.10.4 snakemake-executor-plugin-slurm=0.4.2 -y
 
 # TODO inject conda func into bashrc
 

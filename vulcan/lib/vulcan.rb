@@ -14,7 +14,8 @@ class Vulcan
     begin
       password = c.key?(:password) ? c[:password] : nil
       use_ssh_config = c.key?(:use_ssh_config) ? c[:use_ssh_config] : false
-      @ssh_pool ||= SSHConnectionPool.new(c[:host], c[:username], password, use_ssh_config)
+      settings = c.key?(:settings) ? c[:settings] : {}
+      @ssh_pool ||= SSHConnectionPool.new(c[:host], c[:username], password, use_ssh_config, settings: settings)
       @ssh_pool.with_conn do |ssh|
         result = ssh.exec!("echo 'SSH connection test successful'")
         if result.nil? || !result.include?('successful')

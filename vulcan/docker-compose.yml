@@ -57,7 +57,7 @@ x-base-etna-services:
       - vulcan-public-dir:/app/public:rw
       - vulcan-opt-dir:/usr/opt:rw
       - ../etna:/etna:delegated
-      - /Users/amazzara/.ssh:/etc/ssh-keys-ro:ro
+      - ${HOME}/.ssh:/etc/ssh-keys-ro:ro
 
   'vulcan_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
@@ -90,6 +90,7 @@ x-base-etna-services:
     command: ['httpd', '-DFOREGROUND']
     environment:
       APP_NAME: 'vulcan_app_fe'
+
   'vulcan_c4_env':
     image: vulcan_c4_env
     ports:
@@ -109,6 +110,7 @@ x-base-etna-services:
       - ./spec/fixtures/v2/slurm/slurm.conf:/usr/local/etc/slurm.conf
       - ./spec/fixtures/v2/slurm/slurmdbd.conf:/usr/local/etc/slurmdbd.conf
       - ./spec/fixtures/v2/slurm/cgroup.conf:/usr/local/etc/cgroup.conf
+      - ./spec/fixtures/v2/bashrc_conda.sh:/root/.bashrc
     depends_on:
       - 'vulcan_app'
     environment:
