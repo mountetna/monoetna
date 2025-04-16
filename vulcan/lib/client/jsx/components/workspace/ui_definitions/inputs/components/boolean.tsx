@@ -3,7 +3,7 @@ import {WithInputParams} from '../../input_types';
 import {some} from '../../../../../selectors/maybe';
 import {useSetsDefault} from '../../useSetsDefault';
 import { FormControlLabelProps } from '@material-ui/core';
-import { CheckboxPieceRct } from '../pieces/user_input_pieces';
+import { CheckboxPieceRct } from '../pieces/checkbox_piece';
 
 export default function BooleanInput({onChange, label, defaultValue, labelPlacement='end', disabled=false, data, ...props}: WithInputParams<{label?: string, labelPlacement?: FormControlLabelProps['labelPlacement'], disabled?: boolean}, boolean, boolean>) {
   const value = useSetsDefault(defaultValue || false, props.value, onChange, 'value');

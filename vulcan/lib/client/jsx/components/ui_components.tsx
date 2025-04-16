@@ -32,6 +32,7 @@ import ConsignmentOutput from './workspace/ui_definitions/outputs/consignment';
 import RawOutput from './workspace/ui_definitions/outputs/raw';
 import TwoGroupSelection from './workspace/ui_definitions/inputs/components/two_group_selection';
 import { NestedDropdownMultiChoiceInput, NestedDropdownMultiChoiceAdvancedInput, NestedDropdownMultiChoiceBulkAddInput, NestedDropdownMultiChoiceReorderInput } from './workspace/ui_definitions/inputs/components/nested_dropdown_multi_choice';
+import { MagmaRecordInput } from './workspace/ui_definitions/inputs/components/magma_record';
 
 /*
 InputComponents: 
@@ -92,6 +93,7 @@ configureComponent('int', IntegerInput, NotEmptyValidator, ['value'], []);
 configureComponent('boolean', BooleanInput, NotEmptyValidator, ['value'], [], 'label');
 configureComponent('checkbox', BooleanInput, NotEmptyValidator, ['value'], [], 'label');
 configureComponent('checkboxes', CheckboxesInput, NotEmptyValidator, ['picked'], ['options']);
+configureComponent('magma-record', MagmaRecordInput, NotEmptyValidator, ['record'], ['modelName', 'targetAtt', 'otherAttsShow'], 'hasAtts')
 configureComponent('two-group-selection', TwoGroupSelection, AllOutputValuesNotEmptyValidator, ['g1', 'g2'], ['data_summary'], 'all_column_options')
 configureComponent('multiselect-string', MultiselectStringInput, NotEmptyValidator, ['picked'], ['options']);
 configureComponent('MetisFile', MetisFileInput, MetisFileValidator(), ['target'], []);
