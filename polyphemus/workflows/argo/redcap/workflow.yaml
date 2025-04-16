@@ -1,0 +1,58 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: redcap-loader-workflow-
+  namespace: argo
+spec:
+  entrypoint: redcap-loader
+  onExit: record-runtime-meta
+  imagePullSecrets:
+    - name: hub.docker.com
+  templates:
+    - name: redcap-loader
+      steps:
+        - - name: redcap-loader
+            templateRef:
+              name: run-job-template
+              template: run-job
+            arguments:
+              parameters:
+                - name: job
+                  value: "redcap_loader"
+                - name: config_id
+                  value: "{{workflow.parameters.config_id}}"
+                - name: version_number
+                  value: "{{workflow.parameters.version_number}}"
+    - name: record-runtime-meta
+      container:
+        image: etnaagent/polyphemus:production
+        imagePullPolicy: Always
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            echo "password: $DB_PASSWORD" > /app/db-password; cp /run/config/*.yml /app; /app/bin/polyphemus get_runtime_metadata "{{workflow.uid}}" "{{workflow.name}}" "{{workflow.namespace}}"
+        env:
+          - name: KUBE_ID
+            value: "{{workflow.uid}}"
+          - name: WORKFLOW_NAME 
+            value: "{{workflow.name}}"
+          - name: APP_NAME
+            value: polyphemus
+          - name: POLYPHEMUS_ENV
+            value: production
+          - name: ETNA__PRODUCTION_FILE
+            value: /run/config/env.yml
+          - name: ETNA__PRODUCTION__DB_FILE
+            value: /app/db-password
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: workflows-polyphemus-app-secrets
+                key: db-password
+        volumeMounts:
+          - name: config-volume
+            mountPath: /run/config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: workflows-polyphemus-app-config

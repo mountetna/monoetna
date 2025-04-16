@@ -177,6 +177,7 @@ describe Metis::Loader do
     end
 
     before(:each) do
+      stub_authorize_downloads
       stub_download_file(project: 'labors', file: "pics/villages/village-1.tsv", file_contents: "name\tSPECIES\ttarget_name\nLABORS-LION-H1-C1\t__\t\n")
       stub_download_file(project: 'labors', file: 'pics/villages/village-2.csv', file_contents: "name,SPECIES,target_name\nLABORS-LION-H2-C1,__,\n")
       stub_download_file(project: 'labors', file: 'pics/other-villages/village-3.csv', file_contents: "monster,SPECIES,target_name\nLABORS-LION,human,Opheltes\n")
@@ -343,6 +344,33 @@ describe Metis::Loader do
       # Now adjusting the model template to where column_map targets non-existent attributes
       expect{Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)}.to(
         raise_error(Metis::Loader::Error, /attribute\(s\) that don't exist: spoocies/)
+      )
+    end
+
+    it 'ignores columns left out of the column_map' do
+      config = labors_config([
+        {
+          "type": "data_frame",
+          "folder_path": "villages",
+          "file_match": "*.tsv",
+          "format": "tsv",
+          "blank_table": true,
+          "column_map": {
+            "name": "name",
+            "target_name": "target_name"
+          }
+        }
+      ])
+
+      update = Metis::Loader.new(config, rules, {}, model_std).update_for(
+        tail, metis
+      )
+
+      expect(update['revisions']).to eq(
+        'victim' => {
+          'LABORS-LION-H1-C1' => {
+          }
+        }
       )
     end
 

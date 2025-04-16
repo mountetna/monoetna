@@ -4,7 +4,6 @@ require 'rack/utils'
 
 module Etna
   class Client
-
     def initialize(host, token, routes_available: true, ignore_ssl: false, max_retries: 10, backoff_time: 15, logger: nil)
       @host = host.sub(%r!/$!, '')
       @token = token

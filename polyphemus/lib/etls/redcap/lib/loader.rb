@@ -47,7 +47,7 @@ module Redcap
         )
 
         project.fetch_records.each do |model_name, model_records|
-          records[model_name] = {} unless records.keys.include?(model_name)
+          records[model_name] ||= {}
           records[model_name].update(
             filter_records(model_name, model_records)
           )
@@ -55,7 +55,7 @@ module Redcap
       end
     end
 
-    def patch_attribute(records, model_name, record_name, att_name, value)
+    def patch_attribute(model_name, record_name, att_name, value)
       records[ model_name.to_sym ] ||= {}
       records[ model_name.to_sym ][ record_name ] ||= {}
       records[ model_name.to_sym ][ record_name ][ att_name ] = value
@@ -75,7 +75,7 @@ module Redcap
                   record[ model_name.to_sym ]
                 end.each do |model_record_name, revisions|
                   temp_id_names = revisions.map(&:first)
-                  patch_attribute(records, model_name, model_record_name, att_name, temp_id_names)
+                  patch_attribute(model_name, model_record_name, att_name, temp_id_names)
                 end
 
                 # Blank out records that have no data if user specifies a
@@ -89,7 +89,7 @@ module Redcap
                   end
                   @records_to_blank[ model_name.to_sym ].each do |model_record_name|
                     # empty array in Magma removes existing table records for an attribute
-                    patch_attribute(records, model_name, model_record_name, att_name, [])
+                    patch_attribute(model_name, model_record_name, att_name, [])
                   end
                 end
               end

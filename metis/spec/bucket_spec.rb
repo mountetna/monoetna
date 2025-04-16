@@ -12,6 +12,8 @@ describe Metis::Bucket do
     @metis_uid = Metis.instance.sign.uid
 
     set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
+
+    stub_event_log(:athena)
   end
 
   after(:each) do
@@ -91,6 +93,8 @@ describe BucketController do
     @metis_uid = Metis.instance.sign.uid
 
     set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
+
+    stub_event_log(:athena)
   end
 
   after(:each) do
@@ -433,11 +437,11 @@ describe BucketController do
 
   context '#update' do
     before(:each) do
-      Metis.instance.config(:hmac_keys).update(athena: Metis.instance.sign.uid)
+      Metis.instance.instance_variable_get("@config")[:athena] = { hmac_key: Metis.instance.sign.uid }
     end
 
     after(:each) do
-      Metis.instance.config(:hmac_keys).delete(:athena)
+      Metis.instance.instance_variable_get("@config").delete(:athena)
     end
 
     it 'requires an existing bucket' do

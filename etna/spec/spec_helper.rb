@@ -27,7 +27,8 @@ def setup_app(server, layer=nil, config={ test: {} })
 
   application = Etna::Application.find(server)
 
-  config[:test].update( application.id.to_sym => { host: 'http://example.org' })
+  config[:test][ application.id.to_sym ] ||= {}
+  config[:test][ application.id.to_sym ][:host] ||= 'http://example.org'
 
   Etna::Application.find(server).configure(config)
   Rack::Builder.new do
@@ -304,9 +305,7 @@ end
 def stub_magma_models(models)
   stub_request(:post, /#{MAGMA_HOST}\/retrieve/)
   .to_return({
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: models.to_json
   })
 end
@@ -315,6 +314,7 @@ def stub_magma_update_json
   stub_request(:post, /#{MAGMA_HOST}\/update$/)
   .to_return({
     status: 200,
+    headers: { 'Content-Type': 'application/json' },
     body: {}.to_json
   })
 end
@@ -343,7 +343,8 @@ def stub_magma_update_model
   stub_request(:post, /#{MAGMA_HOST}\/update_model/)
   .to_return({
     status: 200,
-    body: {}.to_json
+    body: {}.to_json,
+    headers: { 'Content-Type': 'application/json' }
   })
 end
 

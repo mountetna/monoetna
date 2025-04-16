@@ -13,6 +13,8 @@ ENV['METIS_ENV'] = 'test'
 require_relative '../lib/metis'
 require_relative '../lib/server'
 
+require 'etna/spec/event_log'
+
 METIS_CONFIG=YAML.load(File.read("config.yml"))
 Metis.instance.configure(METIS_CONFIG)
 

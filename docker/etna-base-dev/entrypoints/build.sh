@@ -65,4 +65,4 @@ echo 'export PATH="/app/bin:$PATH"' >> /root/.bashrc
 # Allow other users to use the root bash setup
 
 # Ignore the .ssh directory for connections to c4
-find /root -path /root/.ssh -prune -o -exec chmod 744 {} \;
+chmod -R 744 /root

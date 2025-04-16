@@ -56,22 +56,49 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-container-13 makeStyles-container-64 makeStyles-buttonContainer-11 iconHorizontal"
+            class="makeStyles-container-13 makeStyles-buttonContainer-11"
+          >
+            <button
+              aria-haspopup="false"
+              aria-label="Delete"
+              class="MuiButtonBase-root-332 MuiButton-root-305 MuiButton-contained-313 makeStyles-button-14 MuiButton-containedPrimary-314 MuiButton-disableElevation-316 Mui-disabled Mui-disabled"
+              disabled=""
+              tabindex="-1"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-306"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-333"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div
+            class="makeStyles-container-13 makeStyles-container-101 makeStyles-buttonContainer-11 iconHorizontal"
           >
             <button
               aria-haspopup="false"
               aria-label="Show Labels"
-              class="MuiButtonBase-root-103 MuiButton-root-76 MuiButton-contained-84 makeStyles-button-14 MuiButton-containedSecondary-86 MuiButton-disableElevation-87"
+              class="MuiButtonBase-root-140 MuiButton-root-113 MuiButton-contained-121 makeStyles-button-14 MuiButton-containedSecondary-123 MuiButton-disableElevation-124"
               tabindex="0"
               title="Show Labels"
               type="button"
             >
               <span
-                class="MuiButton-label-77"
+                class="MuiButton-label-114"
               >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-104"
+                  class="MuiSvgIcon-root-141"
                   focusable="false"
                   viewBox="0 0 24 24"
                 >
@@ -104,26 +131,17 @@ exports[`NamesBrowse fetches and renders names for all rules 1`] = `
     class="makeStyles-countsList-2"
   >
     <div
-      class="makeStyles-container-113 makeStyles-selectedCounts-3"
+      class="makeStyles-container-150 makeStyles-selectedCounts-3"
     />
   </div>
   <div
     class="makeStyles-tableContainer-4"
   >
     <div
-      class="makeStyles-container-116 makeStyles-table-5"
+      class="makeStyles-container-153 makeStyles-table-5"
     >
       <div
-        class="makeStyles-focusedValueContainer-117"
-      >
-        <span
-          class="makeStyles-focusedValue-118"
-        >
-          ‎
-        </span>
-      </div>
-      <div
-        class="ag-theme-material makeStyles-gridContainer-119"
+        class="ag-theme-material makeStyles-gridContainer-156"
       >
         <div
           style="height: 100%;"

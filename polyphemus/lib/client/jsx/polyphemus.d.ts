@@ -1,3 +1,5 @@
+declare var CONFIG: { [key: string]: string };
+
 export type EtnaError = {
   error: string;
 };
@@ -7,6 +9,17 @@ export type Job = {
   schema: any;
   runtime_params: any;
   secrets: any;
+};
+
+export type Log = {
+  id: number;
+  application: string;
+  project_name: string;
+  user: string;
+  event: string;
+  message: string;
+  payload: boolean;
+  created_at: string;
 };
 
 export type Workflow = {

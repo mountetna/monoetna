@@ -35,20 +35,13 @@ x-base-etna-services:
   &base-etna-services # Default list of services an etna app may have.
   'vulcan_app': &base-etna-app # The ruby webserver
     <<: *base-etna-service
+    command: ./bin/puma.sh
     environment:
       <<: *base-etna-env
       WAIT_FOR_DB: 1
       MONOETNA_SHA: ${MONOETNA_SHA}
     depends_on:
       - 'vulcan_db'
-    entrypoint: >
-      sh -c "cp -R /etc/ssh-keys-ro /root/.ssh && \
-            chmod 700 /root/.ssh && \
-            [ -f /root/.ssh/config ] && chmod 600 /root/.ssh/config || true; \
-            [ -f /root/.ssh/id_ed25519 ] && chmod 600 /root/.ssh/id_ed25519 || true; \
-            [ -f /root/.ssh/laptop_to_c4 ] && chmod 600 /root/.ssh/laptop_to_c4 || true; \
-            [ -f /root/.ssh/known_hosts ] && chmod 644 /root/.ssh/known_hosts || true; \
-            exec /entrypoints/development.sh ./bin/puma.sh"
     volumes:  # Override volumes to combine the base volumes with your new mount.
       - .:/app:delegated
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -57,8 +50,8 @@ x-base-etna-services:
       - vulcan-public-dir:/app/public:rw
       - vulcan-opt-dir:/usr/opt:rw
       - ../etna:/etna:delegated
-      - ${HOME}/.ssh:/etc/ssh-keys-ro:ro
-
+      - ${HOME}/.ssh:/etc/ssh-keys-ro:ro # this will trigger the ssh-setup.sh script to run
+      - ./spec/fixtures/v2/ssh-setup.sh:/entrypoints/ssh-setup.sh:ro # this will trigger the ssh-setup.sh script to run
   'vulcan_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
     <<: *base-etna-service

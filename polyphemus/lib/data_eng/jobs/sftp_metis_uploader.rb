@@ -1,110 +1,141 @@
 require_relative 'etl_job'
-require_relative 'common'
-require_relative '../clients/sftp_client'
+require_relative 'sftp_config'
+require 'securerandom'
 
-class SFTPMetisUploaderJob < Polyphemus::ETLJob
+class SftpMetisUploaderJob < Polyphemus::ETLJob
   include WithEtnaClients
+  include WithSlackNotifications
   include WithLogger
+  include WithSftpConfig
 
   METIS_FAILED_FILES_CSV = "metis_failed_files.csv"
 
-  def initialize(config, runtime_config)
-    @project_name = config['project_name']
-    @sftp_client = SFTPClient.new(
-      config["secrets"]["sftp_host"],
-      config["secrets"]["sftp_user"],
-      config["secrets"]["sftp_password"],
-    )
+  private
 
-    # Mandatory params
-    @workflow_config_id = config['config_id']
-    @workflow_version = config['version_number']
-    @bucket_name = config['config']['bucket_name']
-    @metis_uid = config['config']['metis_uid']
-    @metis_root_path = config['config']['metis_root_path']
-    @path_to_write_files = config['config']['path_to_write_files']
+  def metis_uid
+    @metis_uid ||= SecureRandom.hex
   end
 
+  public
+
   def pre(context)
-    run = polyphemus_client.get_run(@project_name, run_id)
-    unless run
-        raise "Run #{run_id} not found"
-    end
-    context[:files_to_update] = CSV.foreach(run["state"]["files_to_update_path"], headers: true).map do |row|
-      { path: row['path'], modified_time: row['modified_time'].to_i }
+    run = polyphemus_client.get_run(project_name, run_id)
+
+    raise "Run #{run_id} not found" unless run
+
+    context[:files_to_ignore] = fetch_successful_files
+
+    context[:files_to_update] = (run.dig("state","files_to_update") || []).map(&:symbolize_keys).reject do |file|
+      context[:files_to_ignore].include?(file[:path])
     end
 
     if context[:files_to_update].empty?
       logger.info("No new files to upload...")
       return false
-    else
-      return true
     end
+
+    return true
+  end
+
+  def metis_filesystem
+    Etna::Filesystem::Metis.new(
+      project_name: project_name,
+      bucket_name: bucket_name,
+      metis_client: metis_client,
+      root: metis_root_path
+    )
+  end
+
+  def ingest_filesystem
+    Etna::Filesystem::SftpFilesystem.new(
+      username: config["secrets"]["sftp_ingest_user"],
+      password: config["secrets"]["sftp_ingest_password"],
+      host: ingest_host
+    )
   end
 
   def process(context)
     context[:failed_files] = []
+    context[:successful_files] = []
 
-    context[:files_to_update].each do |file|
-      sftp_path = file[:path]
-      modified_time = file[:modified_time]
+    workflow = Etna::Clients::Metis::IngestMetisDataWorkflow.new(
+      metis_filesystem: metis_filesystem,
+      ingest_filesystem: ingest_filesystem,
+      logger: nil,
+    )
 
-      begin
-        file_stream = @sftp_client.download_as_stream(sftp_path)
-        if file_stream.nil?
-          logger.info("Failed to download #{sftp_path}")
-          next
-        end
-      rescue StandardError => e
-        logger.info("Failed to download from sftp server, #{sftp_path}: #{e.message}")
-        context[:failed_files] << sftp_path
-        next
+    logger.info("Uploading #{context[:files_to_update].size} to metis at #{metis_root_path}")
+
+    workflow.copy_files(context[:files_to_update].map do |file|
+      [ file[:path], file[:path].gsub(name_regex, '') ]
+    end) do |filename, success|
+      if success
+        context[:successful_files] << filename
+      else
+        logger.warn("Failed to upload to metis: #{filename}")
+        context[:failed_files] << filename
       end
-
-      begin
-        uploader = Etna::Clients::Metis::MetisUploadWorkflow.new(
-          metis_client: metis_client,
-          project_name: @project_name,
-          bucket_name: @bucket_name,
-          metis_uid: @metis_uid,
-        )
-        metis_path = File.join(@metis_root_path, remove_dscolab_prefix(sftp_path))
-        uploader.do_upload(
-          Etna::Clients::Metis::MetisUploadWorkflow::StreamingIOUpload.new(
-            readable_io: file_stream,
-            size_hint: file_stream.size,
-          ),
-          metis_path
-        )
-      rescue StandardError => e
-        logger.warn("Failed to upload to metis: #{metis_path}. Error: #{e.message}")
-        context[:failed_files] << sftp_path 
-      end
-
     end
   end
 
   def post(context)
-    if context[:failed_files].any?
-      writable_dir = build_pipeline_state_dir(@path_to_write_files, run_id)
-      context[:failed_files_path] = File.join(writable_dir, METIS_FAILED_FILES_CSV)
+    msg =
+      "Finished uploading #{context[:files_to_update].size} files " +
+      "from #{ingest_host} to Metis for #{project_name}. " +
+      "Please check #{metis_root_path} path in bucket #{bucket_name}."
 
-      logger.warn("Writing failed files to #{context[:failed_files_path]}")
+    msg += "\n" 
+
+    state = {}
+
+    if context[:successful_files]&.any?
+      msg += "Uploaded #{context[:successful_files].size} files:\n" +
+        context[:successful_files].join("\n")
+
+      state[:metis_successful_files] = context[:successful_files]
+    end
+
+    if context[:failed_files]&.any?
+      msg += "Failed #{context[:failed_files].size} files:\n" +
+        context[:failed_files].join("\n")
+
       logger.warn("Found #{context[:failed_files].size} failed files")
-      CSV.open(context[:failed_files_path], "wb") do |csv|
-        csv << ["path"]
-        context[:failed_files].each do |path|
-        csv << [path]
-        end
+
+      context[:failed_files].each do |file_path|
+        logger.warn(file_path)
       end
-      polyphemus_client.update_run(@project_name, @run_id, {
-        state: {
-          metis_num_failed_files: context[:failed_files].size,
-          metis_failed_files_path: context[:failed_files_path],
-        },
-      })
-    else
-      logger.info("No failed files found")
+
+      state[:metis_num_failed_files] = context[:failed_files].size
+    end
+    
+    unless state.empty?
+      polyphemus_client.update_run(project_name, run_id, { state: state })
+      notify_slack(msg, channel: notification_channel, webhook_url: notification_webhook_url)
+    end
+  end
+
+  private
+
+  def fetch_successful_files
+    begin
+      response = polyphemus_client.get_previous_state(
+        project_name,
+        workflow_config_id,
+        state: [:metis_successful_files],
+        collect: true
+      )
+
+      files = (response["metis_successful_files"] || []).flatten.map do |filename|
+        override_root_path ? [
+          filename,
+          filename.sub(/^#{raw_ingest_root_path}/, override_root_path)
+        ] : filename
+      end.flatten
+
+      return Set.new(files)
+    rescue Etna::Error => e
+      logger.warn("Error fetching previous state")
+      raise e
     end
   end
 end

@@ -8,13 +8,25 @@ class Polyphemus
     end
 
     def finished_at
-      return nil unless self.orchestrator_metadata
-      self.orchestrator_metadata['finishedAt']
+      return nil unless self.step_data
+
+      self.step_data["finishedAt"]
+    end
+
+    def step_data
+      return nil unless self.orchestrator_metadata&.has_key?('nodes')
+
+      _, steps = self.orchestrator_metadata['nodes'].find do |id,node|
+        node["type"] == "Steps"
+      end
+
+      steps
     end
 
     def status
-      return nil unless self.orchestrator_metadata
-      self.orchestrator_metadata['phase']
+      return nil unless self.step_data
+
+      self.step_data["phase"]&.downcase
     end
 
     def is_finished?
@@ -22,7 +34,7 @@ class Polyphemus
     end
 
     def is_succeeded?
-      self.status == 'Succeeded'
+      self.status == 'succeeded'
     end
 
     def self.last_for_config(config_id)

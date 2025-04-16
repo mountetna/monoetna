@@ -5,7 +5,9 @@ metadata:
   namespace: argo
 spec:
   entrypoint: metis-linker
-  onExit: write-run_metadata
+  onExit: record-runtime-meta
+  imagePullSecrets:
+    - name: hub.docker.com
   templates:
     - name: metis-linker
       steps:
@@ -16,12 +18,41 @@ spec:
             arguments:
               parameters:
                 - name: job
-                  value: metis_linker
+                  value: "metis_linker"
                 - name: config_id
-                  value: "{{inputs.parameters.config_id}}"
+                  value: "{{workflow.parameters.config_id}}"
                 - name: version_number
-                  value: "{{inputs.parameters.version_number}}"
+                  value: "{{workflow.parameters.version_number}}"
     - name: record-runtime-meta
-      templateRef:
-        name: record-runtime-meta-template
-        template: record-runtime-meta
+      container:
+        image: etnaagent/polyphemus:production
+        imagePullPolicy: Always
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            echo "password: $DB_PASSWORD" > /app/db-password; cp /run/config/*.yml /app; /app/bin/polyphemus get_runtime_metadata "{{workflow.uid}}" "{{workflow.name}}" "{{workflow.namespace}}"
+        env:
+          - name: KUBE_ID
+            value: "{{workflow.uid}}"
+          - name: WORKFLOW_NAME 
+            value: "{{workflow.name}}"
+          - name: APP_NAME
+            value: polyphemus
+          - name: POLYPHEMUS_ENV
+            value: production
+          - name: ETNA__PRODUCTION_FILE
+            value: /run/config/env.yml
+          - name: ETNA__PRODUCTION__DB_FILE
+            value: /app/db-password
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: workflows-polyphemus-app-secrets
+                key: db-password
+        volumeMounts:
+          - name: config-volume
+            mountPath: /run/config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: workflows-polyphemus-app-config

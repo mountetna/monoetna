@@ -256,7 +256,6 @@ describe Etna::Auth do
             rsa_public: @invalid_public_key,
             token_algo: 'RS256',
             auth_redirect: "https://janus.example.org"
-
           }
         )
         token = Arachne.instance.sign.jwt_token(
@@ -511,7 +510,14 @@ describe Etna::Auth do
       Arachne::Server.get('/download/*file_path', {auth: {hmac: true}}) { success(@params[:file_path]) }
 
       # we set a key for the given id
-      config = { hmac_keys: { arachne: SecureRandom.hex, athena: SecureRandom.hex  } }
+      config = {
+        arachne: {
+          hmac_key: SecureRandom.hex
+        },
+        athena: {
+          hmac_key: SecureRandom.hex
+        }
+      }
 
       # Etna::Auth will check the hmac's authenticity
       @app = setup_app(

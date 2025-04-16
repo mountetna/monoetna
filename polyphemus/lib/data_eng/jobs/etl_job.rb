@@ -2,7 +2,8 @@ class Polyphemus
   class ETLJob
     attr_reader :config, :runtime_config
 
-    def initialize(config = {}, runtime_config = {}) 
+    def initialize(token, config = {}, runtime_config = {}) 
+      @token = token
       @config = config # config is the entire record for the table configs
       @runtime_config = runtime_config # runtime_config is the runtime_config.config json column
     end
@@ -44,11 +45,10 @@ class Polyphemus
       if pre(context)
         process(context)
       end
-    rescue Exception => e
-      raise e
-    ensure
       post(context)
       return context
+    rescue Exception => e
+      raise e
     end
   end
 end
