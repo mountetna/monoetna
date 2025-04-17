@@ -11,6 +11,7 @@ import {
 import {makeStyles} from '@material-ui/core/styles';
 import DOMPurify from 'dompurify';
 import * as marked from 'marked';
+import {useFeatureFlag} from 'etna-js/hooks/useFeatureFlag';
 
 const useStyles = makeStyles((theme) => {
   const blockTags = [
@@ -107,7 +108,18 @@ export function CcView({project_name}) {
     });
   }, [agreed]);
 
+  const canCommunity = !useFeatureFlag('external');
   const ccHtml = useMemo(() => DOMPurify.sanitize(marked(cc_text)), [cc_text]);
+
+  if (!canCommunity) {
+    return (
+      <Container maxWidth='sm' style={{paddingTop: 40}} className={classes.cc}>
+        <Typography>
+          <h6>We're sorry, but you do not have access to Community Projects so cannot view this page.</h6>
+        </Typography>
+      </Container>
+    )
+  }
 
   if (!project) {
     return (
