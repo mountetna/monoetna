@@ -20,7 +20,7 @@ export function StringPieceRct({
       multiline={multiline}
       label={label}
       InputLabelProps={{ shrink: true }}
-      onChange={(event) => changeFxn(event.target.value, key)}
+      onChange={(event) => changeFxn(event.target.value, name)}
       size="small"
       style={{minWidth: minWidth || 200}}
     />
