@@ -228,7 +228,7 @@ const MetisModel = ({
 }) => {
   const classes = useMetisFormStyles();
   const {scripts} = config;
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(100);
 
   const pages = Math.ceil(scripts.length / pageSize);
   const [page, setPage] = useState(1);
