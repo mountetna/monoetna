@@ -3,7 +3,7 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
 
-const roman = (num) => {
+const roman = (num: number) => {
   let roman = {
     m: 1000, cm: 900,
     d: 500, cd: 400,
@@ -15,18 +15,18 @@ const roman = (num) => {
 
   num = num + 1;
 
-  return Object.keys(roman).reduce( (str, i) => {
-    let q = Math.floor(num / roman[i]);
-    num -= q * roman[i];
+  return Object.keys(roman).reduce<string>( (str: string, i: string) => {
+    let q = Math.floor(num / roman[i as keyof typeof roman]);
+    num -= q * roman[i as keyof typeof roman];
     return str + i.repeat(q);
   }, '');
 }
 
-const letter = (num) => {
+const letter = (num: number) => {
   return String.fromCharCode((num % 26) + 'A'.charCodeAt(0)).repeat( Math.floor(num / 26) + 1 );
 }
 
-const numeric = (num) => {
+const numeric = (num: number) => {
   return String(num + 1);
 }
 
@@ -45,7 +45,12 @@ const numType = [
   { type: letter, caps: false }
 ];
 
-const QueryNumber = ({number, level, setRemoveHint, onClick}) => {
+const QueryNumber = ({number, level, setRemoveHint, onClick}:{
+  number: number;
+  level: number;
+  setRemoveHint?: (hint: boolean) => void;
+  onClick?: () => void;
+}) => {
   const classes = useStyles();
 
   let formattedNumber = numType[level].type(number);

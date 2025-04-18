@@ -1,11 +1,7 @@
 import React, {useMemo, useContext, useState, useCallback} from 'react';
 
 import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import AddIcon from '@material-ui/icons/Add';
-import RestartAltIcon from '@material-ui/icons/RestartAlt';
 
 import {makeStyles} from '@material-ui/core/styles';
 
@@ -152,7 +148,7 @@ const QueryWherePane = () => {
             <QueryFilterControl
               key={`${index}-${updateCounter}`}
               or={orRecordFilterIndices.includes(index)}
-              setOr={(e, checked) => handleChangeOrFilters(index)}
+              setOr={() => handleChangeOrFilters(index)}
               filterIndex={index}
               filter={filter}
               patchRecordFilter={patchRecordFilter}

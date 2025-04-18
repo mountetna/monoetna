@@ -2,7 +2,7 @@ import React, {useCallback, useState, useContext} from 'react';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
-import {QueryClause, QuerySlice} from '../../contexts/query/query_types';
+import {QueryClause, QuerySubclause, QuerySlice} from '../../contexts/query/query_types';
 import {QueryGraph} from '../../utils/query_graph';
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import RemoveIcon from './query_remove_icon';
@@ -10,6 +10,7 @@ import QueryNumber from './query_number';
 import QueryModelAttributeSelector from './query_model_attribute_selector';
 import QueryFilterSubclause from './query_filter_subclause';
 import { makeStyles } from '@material-ui/core/styles';
+import {emptyQueryClauseStamp} from '../../selectors/query_selector';
 
 const useStyles = makeStyles((theme) => ({
   subclause: {
@@ -74,7 +75,7 @@ const QuerySliceControl = ({
         modelName,
         subclauses: [
           {
-            ...clause.subclauses[0],
+            ...clause.subclauses?.[0],
             attributeName,
             attributeType: '',
             operator: '',
@@ -98,7 +99,7 @@ const QuerySliceControl = ({
         number={sliceIndex} level={1}/>
       <QueryModelAttributeSelector
         modelName={clause.modelName}
-        attributeName={clause.subclauses[0].attributeName}
+        attributeName={clause.subclauses?.[0]?.attributeName}
         setModel={handleModelSelect}
         setAttribute={handleAttributeSelect}
         modelNames={modelNames}
@@ -106,14 +107,13 @@ const QuerySliceControl = ({
       <Grid item container className={classes.subclause}>
         <QueryFilterSubclause
           key={sliceIndex}
-          subclause={clause.subclauses[0]}
+          subclause={clause.subclauses?.[0] as QuerySubclause}
           subclauseIndex={0}
-          graph={graph}
           modelName={clause.modelName}
           patchSubclause={(updatedSubclause: QuerySubclause) =>
             handleUpdateSubclause(updatedSubclause, 0)
           }
-          removeSubclause={() => handleRemoveSubclause(0)}
+          removeSubclause={() => {} }
           isColumnFilter={true}
           showRemoveIcon={false}
         />

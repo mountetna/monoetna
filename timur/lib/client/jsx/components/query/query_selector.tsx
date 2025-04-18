@@ -4,14 +4,15 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import {makeStyles, useTheme} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
+import { PaletteColor } from '@material-ui/core/styles/createPalette';
 
-const useStyles = color => makeStyles((theme) => ({
+const useStyles = (color: string) => makeStyles((theme) => ({
   select: {
     alignItems: 'center',
     '&&& .MuiSelect-select': {
       padding: '6px 0px',
       paddingRight: '5px',
-      color: color in theme.palette ? theme.palette[color].main : color
+      color: color in theme.palette ? (theme.palette[color as keyof typeof theme.palette] as PaletteColor).main : color
     }
   }
 }));
@@ -23,7 +24,7 @@ function id(label: string) {
 const Selector = ({
   canEdit,
   onSelect,
-  label,
+  label='select',
   name,
   placeholder,
   choiceSet,
@@ -31,10 +32,11 @@ const Selector = ({
 }: {
   canEdit: boolean;
   onSelect: (name: string) => void;
-  label: string;
+  label?: string;
   name: string;
-  placeholder: string;
-  choiceSet: string[]|string[][];
+  placeholder?: string;
+  choiceSet: (string|[string,boolean])[];
+  color?: string;
 }) => {
   const classes = useStyles(color)();
 
@@ -52,10 +54,9 @@ const Selector = ({
         displayEmpty
         onChange={(e) => onSelect(e.target.value as string)}
       >
-        <MenuItem disabled value=''><Typography style={{ color:'gray'}} >{placeholder}</Typography></MenuItem>
-        {choiceSet.sort().map((option: string|string[], index: number) => {
-          let [ txt, value ] = [ option, option ];
-          if (Array.isArray(option)) [ txt, value ] = option;
+        { placeholder && <MenuItem disabled value=''><Typography style={{ color:'gray'}} >{placeholder}</Typography></MenuItem> }
+        {choiceSet.sort().map((option: string|[string, boolean], index: number) => {
+          let [ txt, value ]: [string,any] = Array.isArray(option) ? option : [ option, option ];
           return <MenuItem key={index} value={value}>
             {txt}
           </MenuItem>

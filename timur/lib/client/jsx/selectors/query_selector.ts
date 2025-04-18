@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import {Attribute, Model} from '../models/model_types';
+import {Attribute, Model} from 'etna-js/models/magma-model';
 import {
   EmptyQueryClause,
   QueryColumn,
@@ -93,31 +93,7 @@ export const selectCollectionModelNames = (
   rootModelName: string,
   selectedAttributeModelNames: string[]
 ): string[] => {
-  let sliceableModelNames: Set<string> = new Set();
-
-  const fullParentage: string[] = graph.graph.fullParentage(rootModelName);
-
-  graph.allPaths(rootModelName).forEach((path: string[]) => {
-    for (let i = 0; i < path.length - 1; i++) {
-      let current = path[i];
-      let next = path[i + 1];
-      if ((current === rootModelName && !next) || next === rootModelName) {
-        continue;
-      } else if (
-        i === 0 &&
-        graph.stepIsOneToMany(rootModelName, current) &&
-        selectedAttributeModelNames.includes(current)
-      ) {
-        sliceableModelNames.add(current);
-      } else if (
-        graph.stepIsOneToMany(current, next) &&
-        !fullParentage.includes(next) &&
-        selectedAttributeModelNames.includes(next)
-      ) {
-        sliceableModelNames.add(next);
-      }
-    }
-  });
+  let sliceableModelNames: Set<string> = graph.sliceable(rootModelName, selectedAttributeModelNames);
 
   return [...sliceableModelNames];
 };

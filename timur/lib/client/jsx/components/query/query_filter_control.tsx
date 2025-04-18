@@ -48,7 +48,10 @@ const QueryFilterControl = ({
   copyFilter
 }: {
   filter: QueryFilter;
-  patchRecordFilter: QueryFilter;
+  patchRecordFilter: (index: number, updatedFilter: QueryFilter) => void;
+  or: boolean;
+  setOr: () => void;
+  filterIndex: number;
   modelNames: string[];
   patchFilter: (filter: QueryFilter) => void;
   removeFilter: () => void;
@@ -146,7 +149,7 @@ const QueryFilterControl = ({
     <QueryModelSelector
       modelName={filter.modelName}
       setModel={handleModelSelect}
-      options={modelNames}
+      modelNames={modelNames}
     />
     { showControls && <>
         <Tooltip title='Add clause' aria-label='Add clause'>
@@ -169,7 +172,6 @@ const QueryFilterControl = ({
                 key={index}
                 index={index}
                 clause={clause}
-                graph={graph}
                 modelNames={Object.keys(modelChildren)}
                 hasModelChildren={!!modelChildren[clause.modelName]}
                 patchClause={(updatedClause: QueryClause) =>

@@ -17,6 +17,11 @@ import ModelAttributesTable from './model_attributes_table';
 import {isLink} from '../../utils/attributes';
 
 const useStyles = makeStyles((theme) => ({
+  container: {
+    overflow: 'hidden',
+    height: '100%',
+    width: '100%'
+  },
   switch: {
     marginTop: '1rem'
   },
@@ -145,7 +150,7 @@ export default function CopyModelModal({
 
   return (
     <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Copy Model' saveDisabled={disabled}>
-      <Grid container direction='column' sx={{ overflow: 'hidden', height: '100%', width: '100%' }} >
+      <Grid container direction='column' className={classes.container}>
       <SelectProjectModel
         project_name={templateProjectName}
         setProjectName={setTemplateProject}

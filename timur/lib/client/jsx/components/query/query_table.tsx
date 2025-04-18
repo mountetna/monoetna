@@ -44,6 +44,7 @@ const QueryTable = ({
   page: number;
   pageSize: number;
   maxColumns: number;
+  expandMatrices: boolean;
   handlePageChange: (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent> | null,
     newPage: number

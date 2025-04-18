@@ -50,7 +50,7 @@ const QueryFilterClause = ({
   modelNames: string[];
   waitTime?: number;
   eager?: boolean;
-  index?: number;
+  index: number;
   showRemoveIcon: boolean;
   canAddSubclause: boolean;
   hasModelChildren: boolean;
@@ -114,8 +114,8 @@ const QueryFilterClause = ({
       onMouseLeave={ () => setShowControls(false) }
       item container alignItems='center'>
       <QueryNumber
-        setRemoveHint={ showRemoveIcon ? setRemoveHint : null }
-        onClick={ showRemoveIcon ? removeClause : null}
+        setRemoveHint={ showRemoveIcon ? setRemoveHint : undefined }
+        onClick={ showRemoveIcon ? removeClause : undefined}
         number={index} level={1}/>
         {
           hasModelChildren && <Selector
@@ -129,7 +129,7 @@ const QueryFilterClause = ({
         <QueryModelSelector
           modelName={clause.modelName}
           setModel={handleModelSelect}
-          options={modelNames}
+          modelNames={modelNames}
         />
           {canAddSubclause && showControls && (
             <Tooltip title='Add subclause' aria-label='Add subclause'>

@@ -16,7 +16,7 @@ import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import QueryNumber from './query_number';
 import RemoveIcon from './query_remove_icon';
 import Selector from './query_selector';
-import {Attribute} from '../../models/model_types';
+import {Attribute} from 'etna-js/models/magma-model';
 
 const useStyles = makeStyles((theme) => ({
   option: {
@@ -192,7 +192,11 @@ const QueryFilterSubclause = ({
   return <Grid item container alignItems='center' style={{ textDecoration: removeHint ? 'line-through' : 'none' }} >
     {
       !isColumnFilter && <>
-        <QueryNumber setRemoveHint={ showRemoveIcon ? setRemoveHint : null } onClick={ showRemoveIcon ? removeSubclause : null} number={subclauseIndex} level={2}/>
+        <QueryNumber
+          setRemoveHint={ showRemoveIcon ? setRemoveHint : undefined }
+          onClick={ showRemoveIcon ? removeSubclause : undefined}
+          number={subclauseIndex}
+          level={2}/>
         <Selector
           canEdit={true}
           label='attribute'
@@ -209,6 +213,7 @@ const QueryFilterSubclause = ({
       canEdit={true}
       name={filterOperator.prettify() || ''}
       placeholder='satisfies'
+      color='secondary'
       choiceSet={Object.keys(filterOperator.options())}
       onSelect={handleOperatorSelect}
     />

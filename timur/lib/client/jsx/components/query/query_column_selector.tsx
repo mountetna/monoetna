@@ -10,7 +10,7 @@ import FileCopyIcon from '@material-ui/icons/FileCopyOutlined';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 
-import {Attribute} from '../../models/model_types';
+import {Attribute} from 'etna-js/models/magma-model';
 
 import useSliceMethods from './query_use_slice_methods';
 import {QueryColumn} from '../../contexts/query/query_types';
@@ -24,6 +24,7 @@ import {QueryGraph} from '../../utils/query_graph';
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import RemoveIcon from './query_remove_icon';
 import Selector from './query_selector';
+import {attributeIsFile} from '../../selectors/query_selector';
 import QueryModelAttributeSelector from './query_model_attribute_selector';
 import QueryNumber from './query_number';
 
@@ -128,7 +129,7 @@ const QueryColumnSelector = React.memo(
     canEdit: boolean;
     modelChoiceSet: string[];
     onSelectModel: (modelName: string) => void;
-    onSelectAttribute: (attributeName: string) => void;
+    onSelectAttribute: (modelName: string, attributeName: string) => void;
     onChangeLabel: (label: string) => void;
     onRemoveColumn: () => void;
     onCopyColumn: () => void;
@@ -180,7 +181,7 @@ const QueryColumnSelector = React.memo(
     const showFilePredicates = useMemo(() => {
       return (
         column?.attribute_name &&
-        graph.attributeIsFile(column.model_name, column.attribute_name)
+        attributeIsFile(graph.models, column.model_name, column.attribute_name)
       );
     }, [column, graph]);
 
@@ -200,12 +201,12 @@ const QueryColumnSelector = React.memo(
           justifyContent='flex-start'
         >
           <QueryNumber
-            setRemoveHint={ canEdit ? setRemoveHint : null }
-            onClick={ canEdit ? onRemoveColumn : null }
+            setRemoveHint={ canEdit ? setRemoveHint : undefined }
+            onClick={ canEdit ? onRemoveColumn : undefined }
             number={columnIndex} level={0}/>
           <QueryModelAttributeSelector
-            setModel={ canEdit? onSelectModel : null }
-            setAttribute={ canEdit ? onSelectAttribute : null}
+            setModel={ canEdit? onSelectModel : undefined }
+            setAttribute={ canEdit ? onSelectAttribute : undefined}
             modelNames={modelChoiceSet}
             modelName={column.model_name}
             attributeName={column.attribute_name}

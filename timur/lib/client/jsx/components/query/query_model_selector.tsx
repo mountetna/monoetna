@@ -23,9 +23,13 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const QueryModelSelector = ({setModel, modelNames, modelName}) => {
-  const updateModel = (modelName) => {
-    setModel(modelName);
+const QueryModelSelector = ({setModel, modelNames, modelName}:{
+  setModel?: (modelName: string) => void;
+  modelNames: string[];
+  modelName: string;
+}) => {
+  const updateModel = (newModelName: string) => {
+    if (setModel) setModel(newModelName);
     setOpen(false);
   };
   const [ open, setOpen ] = useState(false);
@@ -37,7 +41,7 @@ const QueryModelSelector = ({setModel, modelNames, modelName}) => {
   const classes = useStyles();
 
   return <>
-    <Grid className={ !readOnly ? classes.selection : null } onClick={ openDialog }>
+    <Grid className={ !readOnly ? classes.selection : undefined } onClick={ openDialog }>
     {
       modelName
         ? <Typography component='span' color={ setModel ? 'secondary' : 'inherit' }>{modelName}</Typography>

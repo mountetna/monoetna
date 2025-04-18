@@ -21,7 +21,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import Paper from '@material-ui/core/Paper';
 import {Template,Attribute} from '../../api/magma_api';
 
-export const toggleSelection = (selection, item) => {
+export const toggleSelection = (selection: any, item: string) => {
   if (selection[item]) {
     const { [item]: _, ...newSelected } = selection;
     return newSelected;
@@ -37,14 +37,16 @@ const attributeStyles = makeStyles((theme) => ({
   filter: {
     paddingBottom: '10px'
   },
-  cell: {
+  container: {
+    flexWrap: 'nowrap',
+    width: 'auto'
   },
   value: {
     color: 'darkgoldenrod',
     cursor: 'pointer',
     textOverflow: 'ellipsis',
     overflowX: 'clip',
-    wordWrap: 'nowrap'
+    whiteSpace: 'nowrap'
   },
   missing: {},
   indicator: {
@@ -144,7 +146,7 @@ const ModelAttribute = ({
   selectAttribute?: Function;
   selected: boolean;
   isHidden: boolean;
-  columns: { [key: string]: boolean };
+  columns?: { [key: string]: boolean };
 }) => {
   if (!template) return null;
 
@@ -166,7 +168,7 @@ const ModelAttribute = ({
 
   const {attribute_type, attribute_group, description} = displayAttribute;
 
-  const hasColumn = column => columns ? columns[column] : true;
+  const hasColumn = (column: string) => columns ? columns[column] : true;
 
   return (
     <TableRow className={`${classes.attribute_row} ${classes[diffType]}`}>
@@ -322,7 +324,7 @@ const ModelAttributesTable = ({
     (setSelected as Function)(newSelected);
   }
 
-  return <Grid container direction='column' sx={{ flexWrap: 'nowrap', width: 'auto' }} className={className}>
+  return <Grid container direction='column' className={ `${classes.container} ${className}`}>
     <TextField
       fullWidth
       placeholder='Filter attributes, e.g. "rna type:file"'

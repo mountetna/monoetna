@@ -4,27 +4,27 @@ import {QueryWhereState} from './query_where_context';
 import {QueryColumn} from './query_types';
 import {migrateSubclauses, migrateSlices} from '../../utils/query_uri_params';
 
-const btou = str => btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-const utob = str => {
+const btou = (str: string) => btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+const utob = (str: string) => {
   str = str.replace(/-/g, '+').replace(/_/g, '/');
   while (str.length % 4) str += '=';
   return atob(str);
 }
 
-const unpackParams = async search => {
+const unpackParams = async (search: string) => {
   let searchParams = new URLSearchParams(search);
 
   if (searchParams.has('q')) {
     const stream = new Blob(
       [Uint8Array.from(
-        utob(searchParams.get('q')),
+        utob(searchParams.get('q') as string),
         c => c.charCodeAt(0)
       )]
     ).stream();
     let decompressedStream = stream.pipeThrough(
       new DecompressionStream("gzip")
     );
-    const blob = await new Response(decompressedStream).blob();
+    const blob = await new Response(decompressedStream as BodyInit).blob();
     const text = await blob.text();
     return JSON.parse(text);
   }
@@ -41,7 +41,7 @@ const unpackParams = async search => {
   }
 };
 
-const packParams = async params => {
+const packParams = async (params: any) => {
   const stream = new Blob(
     [JSON.stringify(params)],
     { type: 'applicaton/json' }
@@ -49,7 +49,7 @@ const packParams = async params => {
 
   const gzipStream = stream.pipeThrough(new CompressionStream("gzip"));
 
-  const compressedResponse = await new Response(gzipStream);
+  const compressedResponse = await new Response(gzipStream as BodyInit);
   const blob = await compressedResponse.blob();
   const buffer = await blob.arrayBuffer();
   const compressedBase64 = btou(
@@ -92,20 +92,20 @@ export default function useUriQueryParams({
   search?: string;
   pathname?: string;
 }) {
-  if (!search) search = window.location.hash;
+  if (!search) search = window.location.hash || '';
   if (!pathname) pathname = window.location.pathname;
 
   // Update the search params to reflect current state
   useEffect(() => {
     const updateSearchParams = async () => {
-      let params = await unpackParams(search.slice(1));
+      let params = await unpackParams(search!.slice(1));
       let paramString = await packParams({
         ...params,
         rootModel,
         ...whereState,
         ...columnState
       });
-      if (search.slice(1) !== paramString) {
+      if (search!.slice(1) !== paramString) {
         history.pushState({}, '', `${pathname}#${paramString}`);
       }
     }

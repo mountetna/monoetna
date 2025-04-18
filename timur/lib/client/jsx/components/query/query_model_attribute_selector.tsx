@@ -1,16 +1,8 @@
 import React, {useCallback, useState, useEffect, useMemo} from 'react';
-import ModelMapGraphic from '../model_map/model_map_graphic';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogContent from '@material-ui/core/DialogContent';
 
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
-import List from '@material-ui/core/List';
-import ListItemButton from '@material-ui/core/ListItemButton';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItem from '@material-ui/core/ListItem';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectModelNames, selectTemplate} from 'etna-js/selectors/magma';
 import {makeStyles, useTheme} from '@material-ui/core/styles';
@@ -29,11 +21,17 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const QueryModelAttributeSelector = ({setModel, modelNames, modelName, setAttribute, attributeName}) => {
+const QueryModelAttributeSelector = ({setModel, modelNames, modelName, setAttribute, attributeName}:{
+  modelName: string;
+  attributeName?: string;
+  setModel?: (modelName: string) => void;
+  modelNames: string[];
+  setAttribute?: (modelName: string, attributeName: string) => void;
+}) => {
   const [ internalModelName, setInternalModel ] = useState(modelName);
 
-  const updateAttribute = (modelName, attributeName) => {
-    setAttribute(modelName, attributeName);
+  const updateAttribute = (modelName: string, attributeName: string) => {
+    if (setAttribute) setAttribute(modelName, attributeName);
     setOpen(false);
   };
   const [ open, setOpen ] = useState(false);
@@ -47,7 +45,7 @@ const QueryModelAttributeSelector = ({setModel, modelNames, modelName, setAttrib
   const theme = useTheme();
 
   return <>
-    <Grid className={ !readOnly ? classes.selection : null } onClick={ openDialog }>
+    <Grid className={ !readOnly ? classes.selection : undefined } onClick={ openDialog }>
     {
       modelName
         ? <Typography component='span' style={{ color: setModel ? theme.palette.secondary.main : '#444' }}>{modelName}</Typography>

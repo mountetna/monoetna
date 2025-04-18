@@ -26,7 +26,7 @@ const QueryOptions = ({
   open, onClose
 }: {
   open: boolean;
-  onClose: Function;
+  onClose: () => void;
 }) => {
   const classes = useStyles();
   const {

@@ -9,11 +9,8 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
-import List from '@material-ui/core/List';
-import ListItemButton from '@material-ui/core/ListItemButton';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItem from '@material-ui/core/ListItem';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
+import {Attribute} from 'etna-js/models/magma-model';
 import {selectModelNames, selectTemplate} from 'etna-js/selectors/magma';
 import ModelAttributesTable, {toggleSelection} from '../model_map/model_attributes_table';
 
@@ -33,11 +30,21 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const MapSelector = ({setModel, open, onClose, modelNames=[], modelName, setAttribute, setAttributes, filterAttributes, attributeName}) => {
+const MapSelector = ({setModel, open, onClose, modelNames=[], modelName, setAttribute, setAttributes, filterAttributes, attributeName}:{
+  setAttribute?: (modelName: string, attributeName: string) => void;
+  setAttributes?: (attributeNames: string[]) => void;
+  setModel?: (modelName: string) => void;
+  modelName: string;
+  modelNames?: string[];
+  attributeName?: string;
+  open: boolean;
+  filterAttributes?: (attribute: Attribute) => boolean;
+  onClose: () => void;
+}) => {
   const [ width, height ] = [ 600, 600 ];
 
-  let {model_names, templates} = useReduxState((state) => {
-    let model_names = selectModelNames(state);
+  let {model_names, templates} = useReduxState((state: any) => {
+    let model_names: string[] = selectModelNames(state);
     return {
       model_names,
       templates: Object.fromEntries(
@@ -48,12 +55,12 @@ const MapSelector = ({setModel, open, onClose, modelNames=[], modelName, setAttr
     };
   });
 
-  const updateModel = modelName => {
+  const updateModel = (modelName: string) => {
     if (setModel) setModel(modelName);
     if (setAttributes) setSelected({});
   };
 
-  let disabled = model_names.filter( model_name => modelNames.length && !modelNames.includes(model_name) );
+  let disabled = model_names.filter( (model_name: string) => modelNames.length && !modelNames.includes(model_name) );
 
   const classes = useStyles();
 
@@ -75,18 +82,18 @@ const MapSelector = ({setModel, open, onClose, modelNames=[], modelName, setAttr
 
   const [ selected, setSelected ] = useState({});
 
-  const handleSetAttributes = useCallback(
-    () => {
-      setAttributes(Object.keys(selected));
-      handleClose();
-    }, [ selected, handleClose ]
-  );
-
   const handleClose = useCallback(
     () => {
       setSelected({});
       onClose();
     }, [ onClose ]
+  );
+
+  const handleSetAttributes = useCallback(
+    () => {
+      if (setAttributes) setAttributes(Object.keys(selected));
+      handleClose();
+    }, [ selected, handleClose ]
   );
 
   const setAttributeHandler = useCallback(
@@ -119,7 +126,7 @@ const MapSelector = ({setModel, open, onClose, modelNames=[], modelName, setAttr
             columns={ { type: true, attribute: true } }
             setAttribute={ setAttributeHandler }
             selected={ setAttributes ? selected : {} }
-            setSelected={ setAttributes ? setSelected : null }
+            setSelected={ setAttributes ? setSelected : undefined }
           />
         }
       </Grid>

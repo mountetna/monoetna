@@ -11,10 +11,14 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const QueryChevron = ({fold=true,setFold,disabled}) => {
+const QueryChevron = ({fold=true,setFold=(f: boolean) => {},disabled=false}:{
+  fold?: boolean;
+  setFold?: (f: boolean) => void;
+  disabled?: boolean;
+}) => {
   const classes = useStyles();
   return (
-    <IconButton className={classes.chevron} disabled={disabled} size='small' onClick={ setFold ? (() => setFold(!fold)) : null } >
+    <IconButton className={classes.chevron} disabled={disabled} size='small' onClick={ () => setFold(!fold) }>
       { fold ? <ChevronRightIcon fontSize='small'/> : <ExpandMoreIcon fontSize='small'/> }
     </IconButton>
   );

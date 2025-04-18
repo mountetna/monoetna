@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import {Model} from '../models/model_types';
+import {Model} from 'etna-js/models/magma-model';
 import {stepIsOneToMany} from '../selectors/query_selector';
 import {injectValueAtPath} from './query_any_every_helpers';
 import {QueryFilterAnyMap} from '../contexts/query/query_types';

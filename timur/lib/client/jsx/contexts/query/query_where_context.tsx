@@ -17,6 +17,7 @@ export const defaultQueryWhereContext = {
   state: defaultQueryWhereState as QueryWhereState,
   addRecordFilter: (recordFilter: QueryFilter) => {},
   removeRecordFilter: (index: number) => {},
+  removeAllRecordFilters: () => {},
   patchRecordFilter: (index: number, recordFilter: QueryFilter) => {},
   setOrRecordFilterIndices: (indices: number[]) => {},
   setWhereState: (newState: QueryWhereState) => {}

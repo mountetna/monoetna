@@ -13,6 +13,7 @@ import QueryModelSelector from './query_model_selector';
 import QueryClause from './query_clause';
 import QueryChevron from './query_chevron';
 import {isLinkForeignKey, isLinkCollection, sortAttributeList} from '../../utils/attributes';
+import {Attribute, Template} from 'etna-js/models/magma-model';
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -33,10 +34,10 @@ const QueryFromPane = () => {
 
   const onRootModelSelect = useCallback(
     (modelName: string) => {
-      let template = graph.template(modelName);
+      let template: Template = graph.template(modelName);
       let column_attrs = sortAttributeList(
         Object.values(template.attributes).filter(
-          attribute => !(isLinkCollection( attribute )
+          (attribute: Attribute) => !(isLinkCollection( attribute )
             || attribute.hidden
             || attribute.attribute_type == 'identifier'
           )
@@ -52,10 +53,10 @@ const QueryFromPane = () => {
           slices: []
         },
         ...column_attrs.map(
-          attribute => (isLinkForeignKey(attribute) ? {
+          (attribute:Attribute) => (isLinkForeignKey(attribute) ? {
             model_name: attribute.link_model_name,
-            attribute_name: graph.template(attribute.link_model_name).identifier,
-            display_label: `${attribute.link_model_name}.${graph.template(attribute.link_model_name).identifier}`,
+            attribute_name: graph.template(attribute.link_model_name as string).identifier,
+            display_label: `${attribute.link_model_name}.${graph.template(attribute.link_model_name as string).identifier}`,
             slices: []
           } : {
             model_name: modelName,
@@ -81,7 +82,7 @@ const QueryFromPane = () => {
           <Typography className={classes.summary}>from&nbsp;</Typography>
           <QueryModelSelector
             setModel={onRootModelSelect}
-            modelNames={[...graph.allowedModels]}
+            modelNames={Object.keys(graph.models)}
             modelName={rootModel || ''}
           />
         </Grid>

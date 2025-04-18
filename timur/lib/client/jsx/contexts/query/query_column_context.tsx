@@ -16,6 +16,7 @@ export const defaultQueryColumnContext = {
   state: defaultQueryColumnState as QueryColumnState,
   addQueryColumn: (column: QueryColumn) => {},
   removeQueryColumn: (index: number) => {},
+  removeAllQueryColumns: () => {},
   patchQueryColumn: (index: number, column: QueryColumn) => {},
   setRootIdentifierColumn: (column: QueryColumn) => {},
   setQueryColumns: (columns: QueryColumn[]) => {}
@@ -57,7 +58,7 @@ export const QueryColumnProvider = (
   );
 
   const removeAllQueryColumns = useCallback(
-    (index: number) => {
+    () => {
       setState({
         ...state,
         columns: [ state.columns[0] ]

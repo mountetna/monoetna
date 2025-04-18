@@ -15,7 +15,14 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const QueryClauseSummaryControls = ({fold, setFold, itemName, numItems, addHandler, removeHandler}) => {
+const QueryClauseSummaryControls = ({fold, setFold, itemName, numItems, addHandler, removeHandler}:{
+  fold: boolean;
+  setFold: (f: boolean) => void;
+  itemName: string;
+  numItems: number;
+  addHandler: () => void;
+  removeHandler: () => void;
+}) => {
   const classes = useStyles();
   return (<>
     {

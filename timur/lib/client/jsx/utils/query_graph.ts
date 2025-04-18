@@ -1,33 +1,26 @@
 // Construct a query graph from the Magma Models,
 //   so we can traverse and ask it questions.
 import {DirectedGraph} from 'etna-js/utils/directed_graph';
-import {Model, Template, Attribute} from '../models/model_types';
+import {Model, Template, Attribute} from 'etna-js/models/magma-model';
 
 export class QueryGraph {
   models: {[key: string]: Model};
   graph: DirectedGraph;
-  unallowedModels: string[] = [];
-  includedLinkTypes: string[] = ['link', 'table'];
-  allowedModels: Set<string>;
+  includedLinkTypes: string[] = ['link'];
   initialized: boolean = false;
 
   constructor(magmaModels: {[key: string]: Model}) {
     this.models = magmaModels;
     this.graph = new DirectedGraph();
-    this.allowedModels = new Set();
 
     // We ignore the project model and any links
     //   to project, for querying purposes only.
     // Also include linked models, to capture those paths.
     Object.entries(magmaModels).forEach(
       ([modelName, modelDefinition]: [string, Model]) => {
-        if (this.unallowedModels.includes(modelName)) return;
-
         let template: Template = modelDefinition.template;
-        this.allowedModels.add(modelName);
 
-        if (template.parent && !this.unallowedModels.includes(template.parent))
-          {this.graph.addConnection(template.parent, modelName);}
+        if (template.parent) this.graph.addConnection(template.parent, modelName);
 
         Object.values(template.attributes)
           .filter(
@@ -37,8 +30,7 @@ export class QueryGraph {
           )
           .forEach((link: Attribute) => {
             if (link.link_model_name) {
-              this.allowedModels.add(link.link_model_name);
-              this.graph.addConnection(modelName, link.link_model_name);
+              this.graph.addConnection(link.link_model_name, modelName);
             }
           });
       }
@@ -57,12 +49,39 @@ export class QueryGraph {
     return this.template(modelName)?.attributes[ attributeName ];
   }
 
-  subgraph(modelName: string): Set<string> {
+  subgraph(modelName: string | null): Set<string> {
     return modelName ? this.descendants(modelName).add(modelName) : new Set();
   }
 
-  descendants(modelName: string): Set<string> {
-    return new Set(this.allPaths(modelName).flat())
+  descendants(modelName: string | null): Set<string> {
+    return modelName ? new Set(this.allPaths(modelName).flat()) : new Set();
+  }
+
+  sliceable(modelName: string, selectedModels: string[]): Set<string> {
+    let names = new Set<string>();
+    this.allPaths(modelName).forEach((path: string[]) => {
+      for (let i = 0; i < path.length - 1; i++) {
+        let current = path[i];
+        let next = path[i + 1];
+        if ((current === modelName && !next) ||
+	    next === modelName) continue;
+
+        if (
+          i === 0 &&
+          this.stepIsOneToMany(modelName, current) &&
+          selectedModels.includes(current)
+        ) {
+          names.add(current);
+        } else if (
+          this.stepIsOneToMany(current, next) &&
+          !this.graph.fullParentage(modelName).includes(next) &&
+          selectedModels.includes(next)
+        ) {
+          names.add(next);
+        }
+      }
+    });
+    return names;
   }
 
   parentRelationship(modelName: string): string | null {
@@ -77,8 +96,6 @@ export class QueryGraph {
   }
 
   pathsFrom(modelName: string): string[][] {
-    // this.allowedModels could have disconnected models that
-    //   where only connected to models in the unallowedModels list,
     //   so they won't appear in the graph, but the user may query on
     //   them and we have to account for that.
     // An immediate example is "document".
@@ -87,11 +104,6 @@ export class QueryGraph {
   }
 
   asNormalizedHash(modelName: string): {[key: string]: string[]} {
-    // this.allowedModels could have disconnected models that
-    //   where only connected to models in the unallowedModels list,
-    //   so they won't appear in the graph, but the user may query on
-    //   them and we have to account for that.
-    // An immediate example is "document".
     if (!Object.keys(this.graph.children).includes(modelName)) return {};
     return this.graph.asNormalizedHash(modelName);
   }
@@ -99,11 +111,11 @@ export class QueryGraph {
   // Here we calculate parent paths as separate entities, instead
   //   of allowing them to be in a single, flattened array.
   parentPaths(modelName: string): string[][] {
-    if (!modelName in this.graph.parents) return [];
+    if (!(modelName in this.graph.parents)) return [];
 
     let results: string[][] = [];
 
-    console.log(this.graph.parents[modelName]);
+    console.log({modelName, parents:this.graph.parents[modelName]});
 
     Object.keys(this.graph.parents[modelName]).forEach((p: string) => {
       if (p !== modelName) {

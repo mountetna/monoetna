@@ -19,6 +19,7 @@ import QueryClauseSummaryControls from './query_clause_summary_controls';
 import QueryChevron from './query_chevron';
 import MapSelector from './map_selector';
 import {isLink} from '../../utils/attributes';
+import {Attribute} from 'etna-js/models/magma-model';
 
 const useStyles = makeStyles((theme) => ({
   folded: {
@@ -139,7 +140,7 @@ const QuerySelectPane = () => {
         result.destination.index
       );
 
-      setQueryColumns(newColumns);
+      setQueryColumns(newColumns as QueryColumn[]);
     },
     [columns, setQueryColumns]
   );
@@ -160,7 +161,7 @@ const QuerySelectPane = () => {
           display_label: attribute_name
         })
       ) ];
-      setQueryColumns(newColumns);
+      setQueryColumns(newColumns as QueryColumn[]);
     },
     [columns, setQueryColumns, columnsModel]
   );
@@ -188,9 +189,9 @@ const QuerySelectPane = () => {
             open={showAttributesModal}
             onClose={() => setShowAttributesModal(false)}
             setAttributes={handleOnSelectAttributes}
-            modelName={columnsModel}
+            modelName={columnsModel as string}
             filterAttributes={
-              attribute => !(isLink(attribute) || attribute.hidden)
+              (attribute:Attribute) => !(isLink(attribute) || attribute.hidden)
             }
             setModel={setColumnsModel}
           />

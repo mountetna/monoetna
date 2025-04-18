@@ -85,7 +85,7 @@ export class DirectedGraph {
     if (!this.children.hasOwnProperty(child)) {
       this.children[child] = {};
     }
-    this.children[parent][child] = this.children[child];
+    this.children[parent][child] = true
 
     if (!this.parents.hasOwnProperty(child)) {
       this.parents[child] = {};
@@ -93,7 +93,7 @@ export class DirectedGraph {
     if (!this.parents.hasOwnProperty(parent)) {
       this.parents[parent] = {};
     }
-    this.parents[child][parent] = this.parents[parent];
+    this.parents[child][parent] = true;
   }
 
   serializedPathFrom(root: string, includeRoot: boolean = true): string[] {

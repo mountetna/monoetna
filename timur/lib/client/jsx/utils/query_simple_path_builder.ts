@@ -1,4 +1,4 @@
-import {Model} from '../models/model_types';
+import {Model} from 'etna-js/models/magma-model';
 import {stepIsOneToMany} from '../selectors/query_selector';
 
 export default class QuerySimplePathBuilder {
