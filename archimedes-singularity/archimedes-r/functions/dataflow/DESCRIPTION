@@ -1,0 +1,8 @@
+Package: dataflow
+Type: package
+Title: Holds common, integral functions for archimedes-r. Import and Export of
+    Inputs/Outputs. Environmental variable retrieval. A wrapper for package
+    loading. 
+Version: 0.1.0
+Imports: jsonlite
+Encoding: UTF-8

@@ -3,8 +3,9 @@ import React from 'react';
 import Icon from 'etna-js/components/icon';
 
 import {workflowName} from '../../selectors/workflow_selectors';
+import {Workflow} from '../../api_types'
 import ImageMemo from './image_memo';
-import Tag from '../tag';
+import Tag from './tag';
 import Typography from '@material-ui/core/Typography';
 
 // To get webpack to pick up the files.
@@ -110,22 +111,15 @@ export default function Card({workflow, onClick, selected}) {
         <div className={classes.row}>
           <div className={classes.value}>
             <Typography variant='subtitle1'>
-              {workflow.displayName || workflowName(workflow)}
+              {workflow.name || workflowName(workflow)}
             </Typography>
           </div>
         </div>
         <div className={classes.row}>
-          <div className={classes.value}>{workflow.authors.join(', ')}</div>
+          <div className={classes.value}>{workflow.repo_remote_url.replace(/^https:\/\//,'')}</div>
         </div>
         <div className={classes.row}>
-          <div className={classes.value}>{workflow.lastModified}</div>
-        </div>
-        <div className={classes.row}>
-          <div className={classes.value}>
-            {workflow.tags.map((t) => (
-              <Tag key={t} label={t} />
-            ))}
-          </div>
+          <div className={classes.value}>{'Added: '+workflow.created_at.split(' ')[0]}</div>
         </div>
       </div>
     </div>
