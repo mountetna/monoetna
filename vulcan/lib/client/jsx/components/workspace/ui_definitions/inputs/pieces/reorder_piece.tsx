@@ -106,7 +106,7 @@ export function ReorderCollapsiblePieceRct({
   return (
     <Grid key={name} item container direction='row'>
       {openToggle}
-      <Grid item style={{paddingTop: '8px'}}>
+      <Grid item>
         <FormControl>
           <InputLabel shrink disabled={disabled}
             style={{width: 'max-content', userSelect: 'none'}}
@@ -178,7 +178,7 @@ export function ReorderVizPiece(
   );
 
   return (
-    <div key={key} style={{paddingTop: 8}}>
+    <div key={key}>
       {case_dropdown}
       {!Array.isArray(value) ? null : DragDrop(value, onDragEnd(value, (r:any) => changeFxn(r, key)))}
     </div>
@@ -228,7 +228,7 @@ export function ReorderCustomOnlyPiece(
   }, [full_data, data_target, discrete_data]);
 
   return (
-    <div key={key} style={{paddingTop: 8}}>
+    <div key={key}>
       <CheckboxPieceRct
         name={key}
         changeFxn={startOrClear}

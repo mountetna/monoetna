@@ -42,7 +42,7 @@ export function DisabledTextbox({
   label: string | undefined
   text: string
 }): React.ReactElement {
-  return <div key={name} style={!!label ? {paddingTop: 8} : undefined}>
+  return <div key={name}>
     <TextField
       key={name}
       label={label}

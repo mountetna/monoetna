@@ -47,7 +47,7 @@ export function NumberPieceRct({
   }
 
   return (
-    <div style={{paddingTop: !!label ? 8 : 0}}>
+    <div>
       <TextField
         key={`${name}-number`}
         value={from_num(value, !integer)}
@@ -125,7 +125,7 @@ export function SliderPieceRct({
   stepSize
 }: SliderPieceInputs): React.ReactElement {
   return(
-    <div key={name} style={{paddingTop: 8}}>
+    <div key={name}>
       <InputLabel htmlFor={'slider-'+name} shrink>{label}</InputLabel>
       <Slider
         key={'slider-'+name}
@@ -183,9 +183,9 @@ export function RangePieceRct({
   return(
     <div key={`${name}-range`}>
       {!!label ? <InputLabel htmlFor={`${name}-range-input`} shrink>{label}</InputLabel>: null}
-      <Grid container direction='column' key={`${name}-range-input`}>
-        <Grid item container style={{display: 'inline-flex'}}>
-          <Grid item>
+      <Grid container direction='column' key={`${name}-range-input`} spacing={1} style={!!label ? {paddingLeft: 10} : {}}>
+        <Grid item container spacing={1}>
+          <Grid item xs={4}>
             <DropdownPieceRct
               name={name+'_lower_bound_type'}
               changeFxn={(newValue: string | null, k?: string) => {
@@ -199,7 +199,7 @@ export function RangePieceRct({
               minWidth={120}
             />
           </Grid>
-          <Grid item>
+          <Grid item xs={8}>
             <NumberPieceRct
               name={name+'_lower_value'}
               changeFxn={(newValue: number | null, k?: string) => {updateSlot(newValue, 1)}}
@@ -210,8 +210,8 @@ export function RangePieceRct({
             />
           </Grid>
         </Grid>
-        <Grid item container style={{display: 'inline-flex'}}>
-          <Grid item>
+        <Grid item container spacing={1}>
+          <Grid item xs={4}>
             <DropdownPieceRct
               name={name+'_upper_bound_type'}
               changeFxn={(newValue: string | null, k?: string) => {
@@ -225,7 +225,7 @@ export function RangePieceRct({
               minWidth={120}
             />
           </Grid>
-          <Grid item>
+          <Grid item xs={8}>
             <NumberPieceRct
               name={name+'_upper_value'}
               changeFxn={(newValue: number | null, k?: string) => {updateSlot(newValue, 3)}}

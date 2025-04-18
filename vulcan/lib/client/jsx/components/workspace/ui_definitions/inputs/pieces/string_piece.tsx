@@ -14,7 +14,7 @@ export function StringPieceRct({
   multiline = undefined
 }: StringPieceInputs): React.ReactElement {
   return (
-  <div key={name} style={{paddingTop: label ? 8 : 0}}>
+  <div key={name}>
     <TextField
       value={value}
       multiline={multiline}

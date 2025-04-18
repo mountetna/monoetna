@@ -189,7 +189,7 @@ export function DropdownPieceRct({
         onChange={(event: any, e: string | null) => {changeFxn(e, name)}}
         inputValue={inputState}
         onInputChange={(event: any, newInputState: string) => {setInputState(newInputState)}}
-        style={{minWidth: minWidth, paddingTop: label!='' ? 8 : 0}}
+        // style={{minWidth: minWidth, paddingTop: label!='' ? 8 : 0}}
         renderInput={(params: any) => (
           <TextField
             {...params}

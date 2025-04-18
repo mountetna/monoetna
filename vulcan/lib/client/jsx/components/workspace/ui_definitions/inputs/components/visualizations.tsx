@@ -786,14 +786,16 @@ function VisualizationUI(
             >
               {Object.entries(group_values).map(([key, val]) => {
                 return (
-                  <ComponentUse
-                    key={key}
-                    k={key}
-                    value={val}
-                    extra_inputs={extra_inputs[key]}
-                    updateValue={updateValue}
-                    comps={components}
-                  />
+                  <div key={key} style={{paddingTop: '8px'}}>
+                    <ComponentUse
+                      key={key}
+                      k={key}
+                      value={val}
+                      extra_inputs={extra_inputs[key]}
+                      updateValue={updateValue}
+                      comps={components}
+                    />
+                  </div>
                 );
               })}
             </InputWrapper>

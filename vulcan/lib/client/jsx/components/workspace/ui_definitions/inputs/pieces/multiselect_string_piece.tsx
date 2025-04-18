@@ -29,7 +29,7 @@ export function MultiselectStringPieceRct({
   }
 
   return(
-    <div key={name} style={{paddingTop: 8}}>
+    <div key={name}>
       <InputLabel htmlFor={'multiselect-'+name} shrink>{label}</InputLabel>
       <ListInput
         key={'multiselect-'+name}

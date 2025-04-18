@@ -21,7 +21,6 @@ export function MagmaRecordInput({onChange, label, defaultValue, showError, data
   label?: string,
   }, string, string[] >
 ) {
-  console.log({data})
   const value = useSetsDefault(defaultValue || null, props.value, onChange, 'record');
   const modelName = getFromData('modelName', data, (e) => showError(e))
   const targetAttribute = getFromData('targetAtt', data, (e) => showError(e))

@@ -4,14 +4,15 @@ import {
   arrayLevels,
   PieceBaseInputs
 } from './user_input_pieces';
-import {Button, PropTypes} from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
 import DeleteIcon from '@material-ui/icons/Delete';
 import InputLabel from '@material-ui/core/InputLabel';
-import DropdownPiece, { DropdownPieceRct } from './dropdown_piece';
-import NestedDropdownPiece, { NestedDropdownPieceRct } from './nested_dropdown_piece';
+import { DropdownPieceRct } from './dropdown_piece';
+import { NestedDropdownPieceRct } from './nested_dropdown_piece';
 import { DataEnvelope, OptionSet } from '../../input_types';
 import { CheckboxPieceRct } from './checkbox_piece';
-import { MultiselectStringPiece, MultiselectStringPieceRct } from './multiselect_string_piece';
+import { MultiselectStringPieceRct } from './multiselect_string_piece';
 import { emptyNumericConstraintDef, NumericConstraint, rangePiece, RangePieceRct } from './number_pieces';
 
 /*
@@ -86,38 +87,44 @@ function SingleConstraintDefPieceRct({
 
   if ( !data_values || typeof data_values[0] == 'number') {
     // Special Case = subsetting on numeric data not described in the 'data_summary'
-    return <RangePieceRct
-      name={name}
-      changeFxn={changeFxn}
-      value={value.length > 0 ? value as NumericConstraint: emptyNumericConstraintDef}
-      label={label}
-    />;
+    return <Grid item>
+      <RangePieceRct
+        name={name}
+        changeFxn={changeFxn}
+        value={value.length > 0 ? value as NumericConstraint: emptyNumericConstraintDef}
+        label={label}
+      />
+    </Grid>;
   }
   if (typeof data_values[0] == 'string') {
     // Need to build the unique options set first.
     const options = arrayLevels(data_values) as string[];
-    return <MultiselectStringPieceRct
-      name={name}
-      changeFxn={changeFxn as ((v: string[] | null, k?: string) => void)}
-      value={value as string[]}
-      label={label}
-      options={options}
-    />;
+    return <Grid item>
+      <MultiselectStringPieceRct
+        name={name}
+        changeFxn={changeFxn as ((v: string[] | null, k?: string) => void)}
+        value={value as string[]}
+        label={label}
+        options={options}
+      />
+    </Grid>;
   }
   if (typeof data_values[0] == 'boolean') {
-    return <DropdownPieceRct
-      name={name}
-      changeFxn={(v,k) => changeFxn(v!=null? [v] : [])}
-      value={value.length > 0 ? value[0] as string : null}
-      label={label}
-      options_in={['True', 'False']}
-    />;
+    return <Grid item>
+      <DropdownPieceRct
+        name={name}
+        changeFxn={(v,k) => changeFxn(v!=null? [v] : [])}
+        value={value.length > 0 ? value[0] as string : null}
+        label={label}
+        options_in={['True', 'False']}
+      />
+    </Grid>;
   }
   return (
-    <div>
+    <Grid item>
       Not yet implemented Data Taype. Please followup with someone from the Data
       Library Team!
-    </div>
+    </Grid>
   );
 }
 
@@ -125,7 +132,7 @@ interface SingleConstraintInputs extends PieceBaseInputs<SingleSelectionDefiniti
   data_summary: DataEnvelope<any>,
   all_column_options?: OptionSet,
   sorted?: boolean,
-  color?: PropTypes.Color
+  color?: 'inherit' | 'primary' | 'secondary' | 'default'
   onClear?: (() => void) | undefined,
   index: number
   totalConstraints: number
@@ -167,19 +174,21 @@ function SingleConstraintColDefLogicRct({
   const colOptions = !!all_column_options ? all_column_options : Object.keys(data_summary);
   const chosenColValues = !!value['col'] && value['col'] in data_summary ? data_summary[value['col']] : undefined;
 
-  const pick_column_comp = Array.isArray(colOptions) ? <DropdownPieceRct
-    name={name + index + '-col'}
-    changeFxn={(v,k) => {updateColumn(v, k, value)}}
-    value={value['col']}
-    label={label + ' ' + (index + 1) + ', Data Target'}
-    options_in={colOptions}
-  /> : <NestedDropdownPieceRct
-    name={name + index}
-    changeFxn={(v,k) => {updateColumn(v, k, value)}}
-    value={value['col']}
-    label={label + ' ' + (index + 1) + ', Data Target'}
-    nestedOptions={colOptions}
-  />;
+  const pick_column_comp = <Grid item>
+    {Array.isArray(colOptions) ? <DropdownPieceRct
+      name={name + index + '-col'}
+      changeFxn={(v,k) => {updateColumn(v, k, value)}}
+      value={value['col']}
+      label={label + ' ' + (index + 1) + ', Data Target'}
+      options_in={colOptions}
+    /> : <NestedDropdownPieceRct
+      name={name + index}
+      changeFxn={(v,k) => {updateColumn(v, k, value)}}
+      value={value['col']}
+      label={label + ' ' + (index + 1) + ', Data Target'}
+      nestedOptions={colOptions}
+    />}
+  </Grid>
   const clear_comp = !onClear || totalConstraints <= 1 ? null : (
     <Button
       color={color}
@@ -187,30 +196,31 @@ function SingleConstraintColDefLogicRct({
         onClear();
       }}
     >
-      <DeleteIcon fontSize='small' />
+      <DeleteIcon fontSize='small'/>
     </Button>
   );
   const logic_comp = index == 0 ? null : (
-    <DropdownPieceRct
-      name={name + index + '-logic'}
-      changeFxn={(v,k) => {updateLogic(v, k, value)}}
-      value={value['logic']}
-      label={'Combination Logic'}
-      options_in={['AND', 'OR']}
-    />
-  );
+    <Grid item>
+      <DropdownPieceRct
+        name={name + index + '-logic'}
+        changeFxn={(v,k) => {updateLogic(v, k, value)}}
+        value={value['logic']}
+        label={'Combination Logic'}
+        options_in={['AND', 'OR']}
+      />
+    </Grid>
+  )
 
   return (
-    <div
+    <Grid
       key={name + index}
-      style={{
-        display: 'inline-flex'
-      }}
+      container
+      direction='row'
     >
-      <div>
+      <Grid item xs={10} container direction='column' alignItems='stretch'>
         {logic_comp}
         {pick_column_comp}
-        <div style={{paddingLeft: 10}}>
+        <Grid item style={{paddingLeft: 10}}>
           {!!value['col'] && <SingleConstraintDefPieceRct
             name={name + index + '-def'}
             changeFxn={(v,k) => {updateDef(v, k, value)}}
@@ -218,10 +228,10 @@ function SingleConstraintColDefLogicRct({
             label={'Data Values'}
             data_values={chosenColValues}
           />}
-        </div>
-      </div>
+        </Grid>
+      </Grid>
       {clear_comp}
-    </div>
+    </Grid>
   );
 };
 
@@ -229,7 +239,7 @@ interface SelectionDefinitionPieceInputs extends PieceBaseInputs<SelectionDefini
   data_summary: DataEnvelope<any>,
   all_column_options?: OptionSet,
   sorted?: boolean,
-  color?: PropTypes.Color
+  color?: 'inherit' | 'primary' | 'secondary' | 'default'
 }
 
 export function SelectionDefinitionPieceRct({
@@ -266,33 +276,35 @@ export function SelectionDefinitionPieceRct({
   return (
     <div>
       <InputLabel htmlFor={`${name}-selections`} shrink>{label}</InputLabel>
-      <div key={`${name}-selections`} style={{
+      <Grid key={`${name}-selections`} container direction='column' style={{
           paddingLeft: '15px',
           paddingTop: '2px'
         }}>
         {value.map((constraint, index) => {
-          return <SingleConstraintColDefLogicRct
-            name={name + '-constraint-' + index}
-            changeFxn={(v, k?) => {updateConstraint(v, index, value, name)}}
-            value={constraint}
-            label={'Constraint'}
-            onClear={() => {removeConstraint(index, value, name)}}
-            data_summary={data_summary}
-            all_column_options={all_column_options}
-            index={index}
-            totalConstraints={value.length}
-            sorted={sorted}
-            color={color}
-          />;
-        })}
-        <br></br>
+          return <Grid item key={`${name}-selection-${index}`}>
+              <SingleConstraintColDefLogicRct
+                name={name + '-constraint-' + index}
+                changeFxn={(v, k?) => {updateConstraint(v, index, value, name)}}
+                value={constraint}
+                label={'Constraint'}
+                onClear={() => {removeConstraint(index, value, name)}}
+                data_summary={data_summary}
+                all_column_options={all_column_options}
+                index={index}
+                totalConstraints={value.length}
+                sorted={sorted}
+                color={color}
+              />
+            </Grid>
+          }
+        )}
         <Button
           color={color}
           onClick={(v, k?) => {addConstraint(value)}}
         >
           Add another condition?
         </Button>
-      </div>
+      </Grid>
     </div>
   );
 }

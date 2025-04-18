@@ -169,7 +169,7 @@ export function DropdownMultiChoicePieceRct({
         setInputState(newInputState);
       }}
       id={!!testId ? `${testId}` : name}
-      style={{minWidth: minWidth, paddingTop: label ? 8 : 0}}
+      style={{minWidth: minWidth}}
       renderInput={(params: any) => (
         <TextField
           {...params}
