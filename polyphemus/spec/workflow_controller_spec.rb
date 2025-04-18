@@ -698,5 +698,23 @@ describe WorkflowController do
       expect(json_body[0][:pipeline_state]).to eq("pending")
       expect(json_body[0][:pipeline_finished_at]).to be_nil
     end
+
+    it 'ignores disabled workflows' do
+      config, runtime, _ = create_workflow(
+        workflow_name: 'my-cat-ingestion',
+        run_interval: 0,
+        runtime_config:{commit: true},
+        run_start: '2025-01-16T12:00:00Z',
+        run_stop: '2025-01-16T12:20:00Z',
+        disabled: true
+      )
+
+      auth_header(:editor)
+      get("/api/workflows/labors/status")
+      expect(last_response.status).to eq(200)
+
+      expect(json_body.count).to eq(0)
+    end
+
   end
 end

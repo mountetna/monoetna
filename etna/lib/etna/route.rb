@@ -221,6 +221,9 @@ module Etna
       #   for the project
       return false if user.permissions.keys.include?(params[:project_name])
 
+      # Only check for a CC if the user is not flagged 'external'
+      return false if user.has_flag?('external')
+
       !janus.community_projects(user.token).select do |project|
         project.project_name == params[:project_name]
       end.first.nil?
