@@ -40,6 +40,7 @@ GEM
       websocket (~> 1.2)
       websocket-client-simple (~> 0.3)
       xml-simple (~> 1.0)
+    bcrypt_pbkdf (1.1.1)
     bigdecimal (3.1.8)
     builder (3.2.4)
     byebug (11.1.3)
