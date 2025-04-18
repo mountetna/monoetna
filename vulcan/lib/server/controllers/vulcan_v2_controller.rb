@@ -62,7 +62,7 @@ class VulcanV2Controller < Vulcan::Controller
         @remote_manager.checkout_version(workspace_dir, @escaped_params[:git_version])
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
         @remote_manager.mkdir(Vulcan::Path.workspace_output_dir(workspace_dir))
-        @remote_manager.upload_dir(Vulcan::Path::SNAKEMAKE_UTILS_DIR, workspace_dir, true)
+        @remote_manager.upload_dir(Vulcan.instance.config(:snakemake_profile_dir), workspace_dir, true)
         config = @remote_manager.read_yaml_file(Vulcan::Path.default_snakemake_config(workspace_dir))
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
@@ -192,7 +192,7 @@ class VulcanV2Controller < Vulcan::Controller
       )
       command.options = {
         config_path: config.path,
-        profile_path: Vulcan::Path.profile_dir(workspace.path),
+        profile_path: Vulcan::Path.profile_dir(workspace.path, "generic"), # only one profile for now
         dry_run: true,
       }
       jobs_to_run = @snakemake_manager.dry_run_snakemake(workspace.path, command.build)
@@ -234,7 +234,7 @@ class VulcanV2Controller < Vulcan::Controller
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(workspace.target_mapping, params, available_files)
       command.options = {
         config_path: config.path,
-        profile_path: Vulcan::Path.profile_dir(workspace.path),
+        profile_path: Vulcan::Path.profile_dir(workspace.path, "generic"), # only one profile for now
       }
       slurm_run_uuid = @snakemake_manager.run_snakemake(workspace.path, command.build)
       log = @snakemake_manager.get_snakemake_log(workspace.path, slurm_run_uuid)
@@ -294,13 +294,13 @@ class VulcanV2Controller < Vulcan::Controller
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
     file_names = @params[:file_names] || []
-    raise Etna:BadRequest.new("No files provided" ) if file_names.empty?
+    raise Etna::BadRequest.new("No files provided") if file_names.empty?
     file_contents = file_names.map do |file_name|
       output_path = Vulcan::Path.workspace_output_dir(workspace.path)
       content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
       {
         filename: file_name,
-        content: content
+        content: content.chomp
       }
     end
     success_json({files: file_contents})

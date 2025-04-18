@@ -138,7 +138,7 @@ describe VulcanV2Controller do
       expect(remote_manager.tag_exists?(obj.path, "v1")).to be_truthy
     end
 
-    it 'successfully uploads the snakemake utils directory' do
+    it 'successfully uploads the profiles directory' do
       auth_header(:editor)
       request = {
         workflow_id: json_body[:workflow_id],
@@ -148,7 +148,7 @@ describe VulcanV2Controller do
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
-      expect(remote_manager.dir_exists?("#{obj.path}/snakemake_utils")).to be_truthy
+      expect(remote_manager.dir_exists?("#{obj.path}/profiles/generic")).to be_truthy
     end
 
     it 'successfully creates the workspace object' do
@@ -485,6 +485,24 @@ describe VulcanV2Controller do
       expect(remote_manager.file_exists?("#{workspace.path}/output/#{file_name_2}")).to be_truthy
     end
 
+    it 'handles a json string correctly' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      file_name = "test_file_name"
+      json_content = '{"contents":[{"col":"gene1","def":["exactly",0,"below",0.02],"logic":null}]}'
+      request = {
+        files: [{
+          filename: file_name,
+          content: json_content
+        }]
+      }
+      header 'Content-Type', 'application/json'
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request.to_json)
+      expect(last_response.status).to eq(200)
+      expect(remote_manager.file_exists?("#{workspace.path}/output/#{file_name}")).to be_truthy
+      expect(remote_manager.read_file_to_memory("#{workspace.path}/output/#{file_name}").chomp).to eq(json_content)
+    end
+
   end
 
 
@@ -511,6 +529,31 @@ describe VulcanV2Controller do
         file_names: ["test_file_name"]
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/read", request)
+      expect(json_body[:files][0][:content]).to eq("This is a test file, with content 1")
+      expect(last_response.status).to eq(200)
+    end
+
+
+    it 'handles json correctly' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      file_name = "test_file_name"
+      json_content = '{"contents":[{"col":"gene1","def":["exactly",0,"below",0.02],"logic":null}]}'
+      request = {
+        files: [{
+          filename: file_name,
+          content: json_content
+        }]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request)
+      expect(last_response.status).to eq(200)
+
+      # Read that file
+      request = {
+        file_names: ["test_file_name"]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/read", request)
+      expect(json_body[:files][0][:content]).to eq(json_content)
       expect(last_response.status).to eq(200)
     end
 
