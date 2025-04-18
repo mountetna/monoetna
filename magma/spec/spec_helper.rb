@@ -123,7 +123,7 @@ def load_labors_project
 end
 
 Magma.instance.setup_db
-load_labors_project
+#load_labors_project
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
