@@ -120,6 +120,36 @@ describe UpdateController do
     #expect(json_document(:prize,skin.id.to_s)).to eq(worth: 8)
   end
 
+  context 'boolean' do
+    it 'updates a boolean attribute' do
+      lion = create(:labor, name: 'Nemean Lion', completed: false)
+      update(labor: { 'Nemean Lion' => { completed: true } })
+
+      lion.refresh
+      expect(last_response.status).to eq(200)
+      expect(lion.completed).to eq(true)
+    end
+
+    it 'updates a boolean attribute from string tokens' do
+      lion = create(:labor, name: 'Nemean Lion', completed: false)
+      [ true, "true", "t", "yes", "y", "T", "TRUE", "YES", "Y", "1", 1 ].each do |true_val|
+        update(labor: { 'Nemean Lion' => { completed: true_val } })
+
+        lion.refresh
+        expect(last_response.status).to eq(200)
+        expect(lion.completed).to eq(true)
+      end
+
+      [ false, "false", "f", "no", "n", "F", "FALSE", "NO", "N", "0", 0 ].each do |false_val|
+        update(labor: { 'Nemean Lion' => { completed: false_val } })
+
+        lion.refresh
+        expect(last_response.status).to eq(200)
+        expect(lion.completed).to eq(false)
+      end
+    end
+  end
+
   it 'updates a date-time attribute' do
     lion = create(:labor, name: 'Nemean Lion', year: '0002-01-01')
     update(
