@@ -6,9 +6,6 @@ class Vulcan
     WORKSPACE_BOOT_LOG = "tmp/boot.log"
     WORKSPACE_SNAKEMAKE_LOG_DIR = ".snakemake/log/"
 
-    # TODO: revisit
-    SNAKEMAKE_UTILS_DIR = "/app/snakemake_utils" # This is local
-
     # Root paths
 
     def self.base_dir
@@ -53,8 +50,8 @@ class Vulcan
       "#{workspace_dir}/output/"
     end
 
-    def self.profile_dir(workspace_dir)
-      "#{workspace_dir}/snakemake_utils/profiles/test/"
+    def self.profile_dir(workspace_dir, profile_name)
+      "#{workspace_dir}/profiles/#{profile_name}/"
     end
 
     # Other

@@ -205,63 +205,85 @@ class Vulcan
       end
     end
 
-    def invoke_ssh_command(command, timeout = 10)
+    def invoke_ssh_command(command, timeout: 10, retries: 2, retry_delay: 1)
       # This function runs a async command and keeps polling until the command has completed
       # or until the timeout occurs.
       # This function gathers metadata about a command, so is useful when you want
       # explicit return information.
-      stdout_data = ""
-      stderr_data = ""
-      exit_status = nil
-      completed = false
+      last_error = nil
+      retry_count = 0
 
-      @ssh_pool.with_conn do |ssh|
-        ssh.open_channel do |channel|
-          channel.exec(command) do |ch, success|
-            unless success
-              raise "Command execution failed: #{command}"
-            end
+      def execute_command(command, timeout)
+        stdout_data = ""
+        stderr_data = ""
+        exit_status = nil
+        completed = false
 
-            ch.on_data do |_, data|
-              stdout_data += data
-            end
+        @ssh_pool.with_conn do |ssh|
+          ssh.open_channel do |channel|
+            channel.exec(command) do |ch, success|
+              unless success
+                raise "Command execution failed: #{command}"
+              end
 
-            ch.on_extended_data do |_, _, data|
-              stderr_data += data
-            end
+              ch.on_data do |_, data|
+                stdout_data += data
+              end
 
-            ch.on_request("exit-status") do |_, data|
-              exit_status = data.read_long
-              completed = true
-            end
+              ch.on_extended_data do |_, _, data|
+                stderr_data += data
+              end
 
-            ch.on_close do
-              completed = true
+              ch.on_request("exit-status") do |_, data|
+                exit_status = data.read_long
+                completed = true
+              end
+
+              ch.on_close do
+                completed = true
+              end
             end
           end
-        end
 
-        # Start a separate thread to monitor the timeout
-        timeout_thread = Thread.new do
-          sleep timeout
-          unless completed
-            ssh.close
-            raise "Command execution timed out: #{command}"
+          # Start a separate thread to monitor the timeout
+          timeout_thread = Thread.new do
+            sleep timeout
+            unless completed
+              ssh.close
+              raise "Command execution timed out: #{command}"
+            end
           end
-        end
 
-        until completed
-          ssh.loop(0.1) # 0.1 second loop interval
-        end
+          until completed
+            ssh.loop(0.1) # 0.1 second loop interval
+          end
 
-        # Ensure the timeout thread is terminated
-        timeout_thread.kill
+          # Ensure the timeout thread is terminated
+          timeout_thread.kill
 
-        if exit_status != 0
-          raise "Command exited with status #{exit_status}. \n Command: #{command} \n Msg: #{stderr_data} \n Stdout: #{stdout_data}"
+          if exit_status != 0
+            raise "Command exited with status #{exit_status}. \n Command: #{command} \n Msg: #{stderr_data} \n Stdout: #{stdout_data}"
+          end
+
+          return {command: command, stdout: stdout_data, stderr_or_info: stderr_data, exit_status: exit_status }
         end
       end
-      {command: command, stdout: stdout_data, stderr_or_info: stderr_data, exit_status: exit_status }
+
+      while retry_count < retries
+        begin
+          return execute_command(command, timeout)
+        rescue => e
+          last_error = e
+          retry_count += 1
+          Vulcan.instance.logger.warn("Command #{command} failed on attempt #{retry_count}/#{retries}. Retrying in #{retry_delay} seconds...")
+          if retry_count < retries
+            sleep retry_delay
+            retry_delay *= 2 # Exponential backoff
+          end
+        end
+      end
+
+      raise "Command failed after #{retries} attempts. Last error: #{last_error.message}"
     end
 
   end

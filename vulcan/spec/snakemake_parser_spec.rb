@@ -3,13 +3,20 @@ describe Vulcan::Snakemake::TargetParser do
 
   let(:core_snakefile) { File.read('/app/spec/fixtures/v2/snakemake-repo/rules/core.smk') }
   let(:summary_snakefile) { File.read('/app/spec/fixtures/v2/snakemake-repo/rules/summary-ui.smk') }
-  let(:config_yaml) { YAML.load_file('/app/spec/fixtures/v2/snakemake-repo/default-config.json') }
+  let(:config_yaml) { JSON.parse(File.read('/app/spec/fixtures/v2/snakemake-repo/default-config.json')) }
   let(:parsed_core) do
     parser = Vulcan::Snakemake::TargetParser.new(core_snakefile, config_yaml)
     parser.parse
   end
   let(:parsed_summary) do
     parser = Vulcan::Snakemake::TargetParser.new(summary_snakefile, config_yaml)
+    parser.parse
+  end
+
+  let(:sc_viz_snakefile) { File.read('/app/spec/fixtures/v2/other_snakefiles/sc_viz.smk') }
+  let(:sc_viz_config) { JSON.parse(File.read('/app/spec/fixtures/v2/other_snakefiles/default_config.json')) }
+  let(:parsed_sc_viz) do
+    parser = Vulcan::Snakemake::TargetParser.new(sc_viz_snakefile, sc_viz_config)
     parser.parse
   end
 
@@ -40,6 +47,24 @@ describe Vulcan::Snakemake::TargetParser do
         expect(parsed_core["output/count_poem.txt"]["params"]).to contain_exactly("count_bytes", "count_chars")
         expect(parsed_core["output/count_poem_2.txt"]["params"]).to contain_exactly("count_bytes", "count_chars")
         expect(parsed_core["output/arithmetic.txt"]["params"]).to contain_exactly("add", "add_and_multiply_by")
+    end
+
+  end
+
+  context 'sc_viz snakefile' do
+
+    it 'correctly ignores any directive that is not input, output, or params' do
+      expect(parsed_sc_viz.keys).not_to include(
+        "/dscolab/vulcan/containers/archimedes-r.sif",
+        "scripts/get_dataset_and_summarize.R", 
+        "scripts/make_dittoSeq_plot.R"
+      )
+    end
+
+    it 'correctly makess sure each target only has input and params' do
+      parsed_sc_viz.each do |target, properties|
+        expect(properties.keys).to contain_exactly("inputs", "params")
+      end
     end
 
   end

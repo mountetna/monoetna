@@ -49,7 +49,7 @@ class Vulcan
         .add('conda', 'activate', config(:conda_env))
         .add('snakemake', '--version')
       Vulcan.instance.logger.info("Running command: #{command.to_s}")
-      result = @remote_manager.invoke_ssh_command(command.to_s)
+      result = @remote_manager.invoke_ssh_command(command.to_s, retries: 3)
       if result[:exit_status] == 0
         Vulcan.instance.logger.info("Snakemake version: #{result[:stdout].strip}")
       else
@@ -58,6 +58,10 @@ class Vulcan
       end
     else
       Vulcan.instance.logger.error("Please specify a conda environment in the config...")
+    end
+
+    unless config(:snakemake_profile_dir)
+      Vulcan.instance.logger.error("Please specify a snakemake profile directory in the config...")
     end
   end
 

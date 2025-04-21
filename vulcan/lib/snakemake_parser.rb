@@ -70,7 +70,7 @@ class Vulcan
             state = :output
           when /^params:/
             state = :params
-          when /^(shell:|run:|rule )/
+          when /^\w+:/
             state = :none
           else
             # Process line based on the current state
