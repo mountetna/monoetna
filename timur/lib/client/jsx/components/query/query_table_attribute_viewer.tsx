@@ -77,7 +77,7 @@ const QueryTableAttributeViewer = ({
           attribute_name={attribute.attribute_name}
           record={mockRecord}
           model_name={modelName}
-          template={graph.template(modelName)}
+          template={graph.models.model(modelName)}
           mode='model_viewer'
           sliceValues={
             matrixHeadings && matrixHeadings.length > 0 ? matrixHeadings : null

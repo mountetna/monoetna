@@ -13,7 +13,7 @@ import QueryModelSelector from './query_model_selector';
 import QueryClause from './query_clause';
 import QueryChevron from './query_chevron';
 import {isLinkForeignKey, isLinkCollection, sortAttributeList} from '../../utils/attributes';
-import {Attribute, Template} from 'etna-js/models/magma-model';
+import {Attribute, Model} from 'etna-js/models/magma-model';
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: '10px',
   }
 }));
-const QueryFromPane = () => {
+const QueryRowPane = () => {
   const {
     state: {graph, rootModel},
     setRootModel
@@ -34,9 +34,9 @@ const QueryFromPane = () => {
 
   const onRootModelSelect = useCallback(
     (modelName: string) => {
-      let template: Template = graph.template(modelName);
+      let model: Model = graph.models.model(modelName) as Model;
       let column_attrs = sortAttributeList(
-        Object.values(template.attributes).filter(
+        model.selectAttributes(
           (attribute: Attribute) => !(isLinkCollection( attribute )
             || attribute.hidden
             || attribute.attribute_type == 'identifier'
@@ -48,23 +48,31 @@ const QueryFromPane = () => {
       setQueryColumns([
         {
           model_name: modelName,
-          attribute_name: template.identifier,
-          display_label: `${modelName}.${template.identifier}`,
+          attribute_name: model.identifier,
+          display_label: `${modelName}.${model.identifier}`,
           slices: []
         },
         ...column_attrs.map(
-          (attribute:Attribute) => (isLinkForeignKey(attribute) ? {
-            model_name: attribute.link_model_name,
-            attribute_name: graph.template(attribute.link_model_name as string).identifier,
-            display_label: `${attribute.link_model_name}.${graph.template(attribute.link_model_name as string).identifier}`,
-            slices: []
-          } : {
+          (attribute:Attribute) => {
+
+          if (isLinkForeignKey(attribute)) {
+            const linkModel = graph.models.model(attribute.link_model_name as string) as Model;
+
+            return {
+              model_name: attribute.link_model_name,
+              attribute_name: linkModel.identifier,
+              display_label: `${attribute.link_model_name}.${linkModel.identifier}`,
+              slices: []
+            }
+          }
+
+          return {
             model_name: modelName,
             attribute_name: attribute.attribute_name,
             display_label: attribute.attribute_name,
             slices: []
-          })
-        )
+          }
+        })
       ]);
       setDataAndNumRecords(EmptyQueryResponse, 0);
     },
@@ -82,7 +90,7 @@ const QueryFromPane = () => {
           <Typography className={classes.summary}>from&nbsp;</Typography>
           <QueryModelSelector
             setModel={onRootModelSelect}
-            modelNames={Object.keys(graph.models)}
+            modelNames={graph.models.modelNames}
             modelName={rootModel || ''}
           />
         </Grid>
@@ -91,4 +99,4 @@ const QueryFromPane = () => {
   );
 };
 
-export default QueryFromPane;
+export default QueryRowPane;

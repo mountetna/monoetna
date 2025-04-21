@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const QuerySliceModelAttributePane = ({
+const QuerySlicePane = ({
   column,
   columnIndex,
   showControls
@@ -42,7 +42,7 @@ const QuerySliceModelAttributePane = ({
   } = useContext(QueryGraphContext);
   const classes = useStyles();
 
-  const {matrixModelNames, addNewSlice, handlePatchSlice, handleRemoveSlice} =
+  const {addNewSlice, handlePatchSlice, handleRemoveSlice} =
     useSliceMethods(columnIndex, updateCounter, setUpdateCounter);
 
   let sliceableModelNames = useMemo(() => {
@@ -50,7 +50,10 @@ const QuerySliceModelAttributePane = ({
 
     if (
       rootModel === column.model_name &&
-      matrixModelNames.includes(column.model_name)
+      graph.models
+        .model(column.model_name)
+        ?.attribute(column.attribute_name)
+        ?.isType('matrix')
     ) {
       return [column.model_name];
     } else {
@@ -58,7 +61,7 @@ const QuerySliceModelAttributePane = ({
         .sliceableModelNamesInPath(rootModel, column.model_name)
         .sort();
     }
-  }, [column, graph, rootModel, matrixModelNames]);
+  }, [column, graph, rootModel]);
 
   return (
     <Grid container className={classes.slices}>
@@ -92,4 +95,4 @@ const QuerySliceModelAttributePane = ({
   );
 };
 
-export default QuerySliceModelAttributePane;
+export default QuerySlicePane;

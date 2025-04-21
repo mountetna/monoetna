@@ -213,7 +213,7 @@ const QueryFilterSubclause = ({
       canEdit={true}
       name={filterOperator.prettify() || ''}
       placeholder='satisfies'
-      color='secondary'
+      color='purple'
       choiceSet={Object.keys(filterOperator.options())}
       onSelect={handleOperatorSelect}
     />

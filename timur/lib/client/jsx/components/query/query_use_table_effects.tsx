@@ -8,7 +8,6 @@ import {
 } from '../../contexts/query/query_types';
 import {
   pathToColumn,
-  attributeIsMatrix,
   hasMatrixSlice,
   queryColumnMatrixHeadings
 } from '../../selectors/query_selector';
@@ -36,7 +35,7 @@ const useTableEffects = ({
 
   const validationValues = useCallback(
     (column: QueryColumn) => {
-      return (graph.attribute(
+      return (graph.models.attribute(
         column.model_name, column.attribute_name
       )?.validation?.value || []) as string[];
     },
@@ -46,15 +45,13 @@ const useTableEffects = ({
   const formattedColumns = useMemo(() => {
     return columns.reduce(
       (acc: QueryTableColumn[], column: QueryColumn, index: number) => {
-        let template = graph.template(column.model_name);
+        let attribute = graph.models.attribute(column.model_name, column.attribute_name);
 
-        if (!template) return acc;
+        if (!attribute) return acc;
 
-        let isMatrix: boolean = attributeIsMatrix(
-          graph.models,
-          column.model_name,
-          column.attribute_name
-        );
+        let isMatrix: boolean = !!graph.models.model(column.model_name)
+          ?.attribute(column.attribute_name)
+          ?.isType('matrix');
 
         let matrixHeadings: string[] = [];
 
@@ -70,7 +67,7 @@ const useTableEffects = ({
               label: `${column.display_label}.${heading}`,
               colId: `${generateIdCol(column, index)}.${heading}`,
               modelName: column.model_name,
-              attribute: template.attributes[column.attribute_name],
+              attribute,
               matrixHeadings,
               predicate: column.predicate
             });
@@ -80,7 +77,7 @@ const useTableEffects = ({
             label: column.display_label,
             colId: generateIdCol(column, index),
             modelName: column.model_name,
-            attribute: template.attributes[column.attribute_name],
+            attribute,
             matrixHeadings,
             predicate: column.predicate
           });

@@ -9,7 +9,7 @@ const useQueryGraph = (reduxState: any, graph: QueryGraph, setGraph: any) => {
     let models = selectModels(reduxState);
     if (
       models &&
-      Object.keys(models).length !== Object.keys(graph.models).length
+      Object.keys(models).length !== graph.models.size
     ) {
       let newGraph = new QueryGraph(models);
       setGraph(newGraph);

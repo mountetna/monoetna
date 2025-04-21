@@ -36,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const QuerySelectPane = () => {
+const QueryColumnPane = () => {
   const { state: {graph, rootModel} } = useContext(QueryGraphContext);
   const {
     state: {columns},
@@ -190,6 +190,7 @@ const QuerySelectPane = () => {
             onClose={() => setShowAttributesModal(false)}
             setAttributes={handleOnSelectAttributes}
             modelName={columnsModel as string}
+            modelNames={modelChoiceSet}
             filterAttributes={
               (attribute:Attribute) => !(isLink(attribute) || attribute.hidden)
             }
@@ -240,4 +241,4 @@ const QuerySelectPane = () => {
   );
 };
 
-export default QuerySelectPane;
+export default QueryColumnPane;

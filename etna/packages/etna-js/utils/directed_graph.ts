@@ -9,7 +9,7 @@ export class DirectedGraph {
     this.parents = {};
   }
 
-  fullParentage(n: string): string[] {
+  ancestors(n: string): string[] {
     let result: string[] = [];
 
     if (!this.parents[n]) return result;
@@ -47,7 +47,7 @@ export class DirectedGraph {
       if (seen.has(next)) continue;
       seen.add(next);
 
-      let parentage: string[] = this.fullParentage(next);
+      let parentage: string[] = this.ancestors(next);
 
       Object.keys(this.children[next]).forEach((childNode) => {
         q.push(childNode);

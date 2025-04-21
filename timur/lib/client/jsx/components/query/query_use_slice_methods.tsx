@@ -4,8 +4,6 @@ import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import {QueryColumnContext} from '../../contexts/query/query_column_context';
 import {QuerySlice} from '../../contexts/query/query_types';
 import {
-  selectMatrixModelNames,
-  selectCollectionModelNames,
   emptyQueryClauseStamp
 } from '../../selectors/query_selector';
 
@@ -58,24 +56,10 @@ const useSliceMethods = (
     [updateCounter, setUpdateCounter, patchQueryColumn, column, columnIndex]
   );
 
-  const matrixModelNames = useMemo(() => {
-    return selectMatrixModelNames(graph.models, columns);
-  }, [graph, columns]);
-
-  const collectionModelNames = useMemo(() => {
-    if (!rootModel) return [];
-
-    return selectCollectionModelNames(graph, rootModel, [
-      ...new Set(columns.map((c) => c.model_name))
-    ]);
-  }, [graph, columns, rootModel]);
-
   return {
     handleRemoveSlice,
     handlePatchSlice,
-    addNewSlice,
-    matrixModelNames,
-    collectionModelNames
+    addNewSlice
   };
 };
 

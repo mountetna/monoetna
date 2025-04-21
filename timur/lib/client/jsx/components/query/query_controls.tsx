@@ -2,8 +2,8 @@ import React, {useContext, useMemo} from 'react';
 import Grid from '@material-ui/core/Grid';
 import {makeStyles} from '@material-ui/core/styles';
 
-import QueryFromPane from './query_from_pane';
-import QuerySelectPane from './query_select_pane';
+import QueryRowPane from './query_row_pane';
+import QueryColumnPane from './query_column_pane';
 import QueryWherePane from './query_where_pane';
 
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
@@ -38,8 +38,8 @@ const QueryControls = () => {
 
   return (
     <>
-      <QueryFromPane />
-      <QuerySelectPane />
+      <QueryRowPane />
+      <QueryColumnPane />
       <QueryWherePane />
     </>
   );

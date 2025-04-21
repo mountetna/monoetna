@@ -1,16 +1,15 @@
-import {Model} from 'etna-js/models/magma-model';
-import {stepIsOneToMany} from '../selectors/query_selector';
+import {Model, Models} from 'etna-js/models/magma-model';
 
 export default class QuerySimplePathBuilder {
   path: string[];
-  models: {[key: string]: Model};
+  models: Models;
   flatten: boolean;
   rootModelName: string;
 
   constructor(
     path: string[],
     rootModelName: string,
-    models: {[key: string]: Model},
+    models: Models,
     flatten: boolean
   ) {
     this.path = path;
@@ -28,7 +27,7 @@ export default class QuerySimplePathBuilder {
     let previousModelName = this.rootModelName;
 
     this.path.forEach((modelName: string) => {
-      if (stepIsOneToMany(this.models, previousModelName, modelName)) {
+      if (this.models.model(previousModelName)?.collects(modelName)) {
         updatedPath.push(modelName);
         updatedPath.push(this.reducerVerb());
       } else {

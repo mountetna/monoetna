@@ -12,19 +12,17 @@ import Paper from '@material-ui/core/Paper';
 
 import {Attribute} from 'etna-js/models/magma-model';
 
-import useSliceMethods from './query_use_slice_methods';
 import {QueryColumn} from '../../contexts/query/query_types';
 import {
   selectAllowedModelAttributes,
 } from '../../selectors/query_selector';
-import QuerySliceModelAttributePane from './query_slice_model_attribute_pane';
+import QuerySlicePane from './query_slice_pane';
 
 import {visibleSortedAttributesWithUpdatedAt} from '../../utils/attributes';
 import {QueryGraph} from '../../utils/query_graph';
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import RemoveIcon from './query_remove_icon';
 import Selector from './query_selector';
-import {attributeIsFile} from '../../selectors/query_selector';
 import QueryModelAttributeSelector from './query_model_attribute_selector';
 import QueryNumber from './query_number';
 
@@ -139,7 +137,7 @@ const QueryColumnSelector = React.memo(
       [] as Attribute[]
     );
 
-    const { state: {graph} } = useContext(QueryGraphContext);
+    const { state: {graph, rootModel} } = useContext(QueryGraphContext);
     // All the slices related to a given model / attribute,
     //   with the model / attribute as a "label".
     // Matrices will have modelName + attributeName.
@@ -149,10 +147,9 @@ const QueryColumnSelector = React.memo(
 
     const selectAttributesForModel = useCallback(
       (modelName: string) => {
-        let template = graph.template(modelName);
         setSelectableModelAttributes(
           selectAllowedModelAttributes(
-            visibleSortedAttributesWithUpdatedAt(template.attributes)
+            visibleSortedAttributesWithUpdatedAt(graph.models.model(modelName)?.attributes || {})
           )
         );
       },
@@ -160,28 +157,28 @@ const QueryColumnSelector = React.memo(
     );
 
     useEffect(() => {
-      if (column?.model_name && graph.template(column.model_name)) {
+      if (graph.models.has(column?.model_name)) {
         selectAttributesForModel(column.model_name);
       }
     }, [graph, column, selectAttributesForModel]);
 
-    const {matrixModelNames, collectionModelNames} = useSliceMethods(
-      columnIndex,
-      updateCounter,
-      setUpdateCounter
-    );
+    const isSliceableAsMatrix = graph.models.model(column.model_name)
+      ?.attribute(column.attribute_name)
+      ?.isType('matrix');
 
-    const isSliceableAsMatrix = matrixModelNames.includes(column.model_name);
-    const isSliceableAsCollection = collectionModelNames.includes(
-      column.model_name
-    );
+    const isSliceableAsCollection = rootModel ? graph.sliceable(
+      rootModel, column.model_name
+    ) : false;
 
     const isSliceable = isSliceableAsMatrix || isSliceableAsCollection;
 
     const showFilePredicates = useMemo(() => {
       return (
         column?.attribute_name &&
-        attributeIsFile(graph.models, column.model_name, column.attribute_name)
+        graph.models
+          .model(column.model_name)
+          ?.attribute(column.attribute_name)
+          ?.isFile()
       );
     }, [column, graph]);
 
@@ -241,7 +238,7 @@ const QueryColumnSelector = React.memo(
             selectableModelAttributes.length > 0 &&
             isSliceable &&
             canEdit &&
-            <QuerySliceModelAttributePane showControls={ showControls } column={column} columnIndex={columnIndex} />
+            <QuerySlicePane showControls={ showControls } column={column} columnIndex={columnIndex} />
         }
       </Grid>
     );
