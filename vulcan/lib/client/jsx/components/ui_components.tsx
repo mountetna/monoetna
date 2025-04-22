@@ -33,6 +33,7 @@ import RawOutput from './workspace/ui_definitions/outputs/raw';
 import TwoGroupSelection from './workspace/ui_definitions/inputs/components/two_group_selection';
 import { NestedDropdownMultiChoiceInput, NestedDropdownMultiChoiceAdvancedInput, NestedDropdownMultiChoiceBulkAddInput, NestedDropdownMultiChoiceReorderInput } from './workspace/ui_definitions/inputs/components/nested_dropdown_multi_choice';
 import { MagmaRecordInput } from './workspace/ui_definitions/inputs/components/magma_record';
+import MarkdownOutput, { CollapsibleMarkdownOutput } from './workspace/ui_definitions/outputs/markdown';
 
 /*
 InputComponents: 
@@ -131,27 +132,21 @@ configureComponent('dittoseq-bar-plot', DittoBarPlot, PlusSubsetValidator('cells
 Outputs: For Output_Feed, cannot produce an output, NOT tracked as a step by snakemake
 How they work:
 - Defined through a jsx definition of the component only.
-- value in OUTPUT_TYPES object is the string that can be used for ui_component in a vulcan_config.
-- Additionally, if the input data is very large, addinf the type to 'dontDownloadForOutputTypes' is a VERY good idea.
+- key in OUTPUTS object is the string used to invoke this ui_component in a vulcan_config.
+- Additionally, if the input data might be large, and is downloaded by a mechanism in the component code, adding this key to 'dontDownloadForOutputTypes' is a VERY good idea.
 */
-export const OUTPUT_TYPES = {
-  LINK: 'link',
-  PLOT: 'plot',
-  PLOTLY: 'plotly',
-  PNG: 'png',
-  CONSIGNMENT: 'consignment',
-  RAW: 'raw'
-};
 
-export const dontDownloadForOutputTypes = ['default', OUTPUT_TYPES.LINK];
+export const dontDownloadForOutputTypes = ['default', 'link'];
 export const dataAndUrlForOutputTypes = [] as string[];
 
 export const OUTPUTS = {
-  default: LinkOutput,
-  [OUTPUT_TYPES.LINK]: LinkOutput,
-  [OUTPUT_TYPES.PLOTLY]: PlotlyOutput,
-  [OUTPUT_TYPES.PLOT]: PlotOutput,
-  [OUTPUT_TYPES.PNG]: PngOutput,
-  [OUTPUT_TYPES.CONSIGNMENT]: ConsignmentOutput,
-  [OUTPUT_TYPES.RAW]: RawOutput
+  'default': LinkOutput,
+  'link': LinkOutput,
+  'plotly': PlotlyOutput,
+  'plot': PlotOutput,
+  'png': PngOutput,
+  'consignment': ConsignmentOutput,
+  'raw': RawOutput,
+  'markdown': MarkdownOutput,
+  'collapsible-markdown': CollapsibleMarkdownOutput
 };
