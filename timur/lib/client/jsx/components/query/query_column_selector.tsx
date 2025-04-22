@@ -36,7 +36,19 @@ const useStyles = makeStyles((theme) => ({
     '& input': {
       padding: '4px'
     }
+  },
+  row: {
+    borderBottom: '1px solid #eee'
+  },
+  attribute: {
+    flex: '1 1 auto',
+    width: 'auto'
+  },
+  column: {
+    flex: '0 0 30%',
+    width: 'auto'
   }
+
 }));
 
 function id(label: string) {
@@ -175,12 +187,12 @@ const QueryColumnSelector = React.memo(
     const showFilePredicates = useMemo(() => {
       return (
         column?.attribute_name &&
-        graph.models
-          .model(column.model_name)
-          ?.attribute(column.attribute_name)
+        graph.models.attribute(column.model_name, column.attribute_name)
           ?.isFile()
       );
     }, [column, graph]);
+
+    console.log({showFilePredicates, column});
 
     const [ removeHint, setRemoveHint ] = useState(false);
     const [ showControls, setShowControls ] = useState(false);
@@ -190,12 +202,14 @@ const QueryColumnSelector = React.memo(
         style={{ textDecoration: removeHint ? 'line-through' : 'none' }}
         onMouseEnter={ () => setShowControls(true) }
         onMouseLeave={ () => setShowControls(false) }
-        container direction='column'>
+        className={classes.row}
+        container>
         <Grid
           item
           container
           alignItems='center'
           justifyContent='flex-start'
+          className={classes.attribute}
         >
           <QueryNumber
             setRemoveHint={ canEdit ? setRemoveHint : undefined }
@@ -219,12 +233,20 @@ const QueryColumnSelector = React.memo(
                 />
               </>
           }
-          <Typography>&nbsp;as column&nbsp;</Typography>
+        </Grid>
+        <Grid
+          item
+          container
+          alignItems='center'
+          className={classes.column}
+          justifyContent='flex-start'
+        >
           <TextField
             variant='standard'
             size='small'
             className={classes.column_input}
             value={column.display_label}
+            placeholder='column name'
             onChange={(e) => onChangeLabel(e.target.value)}
           />
           { showControls && canEdit && <Tooltip title='Copy column' aria-label='Copy column'>

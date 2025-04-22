@@ -17,10 +17,13 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: '25px'
   },
   controls: {
-    height: '32px'
+    height: '26px',
+    fontSize: '0.9em'
   },
   empty: {
-    height: '32px'
+    height: '30px',
+    paddingTop: '6px',
+    paddingLeft: '4px'
   }
 }));
 
