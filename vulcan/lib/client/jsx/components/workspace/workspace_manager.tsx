@@ -102,16 +102,19 @@ export default function WorkspaceManager() {
   const [vulcanHelpIsOpen, setVulcanHelpIsOpen] = useState(false);
   const {status, workQueueable: committedStepPending, projectName} = state;
 
-  const [tags, setTags] = useState<string[]>(workspace.tags || []);
+  const [localTags, setLocalTags] = useState<string[]>(workspace.tags || []);
   const [openTagEditor, setOpenTagEditor] = useState(false);
   // const [openRevisions, setOpenRevisions] = useState<boolean | null>(null);
   const [localTitle, setLocalTitle] = useState(workspace.name);
+  const [updating, setUpdating] = useState(false);
+  const [updatingTags, setUpdatingTags] = useState(false);
+  const [updatingTitle, setUpdatingTitle] = useState(false);
 
   useEffect(() => {
     setLocalTitle(workspace.name);
   }, [workspace.name])
   useEffect(() => {
-    setTags(workspace.tags);
+    setLocalTags(workspace.tags || []);
   }, [workspace.tags])
 
   useDataSync(state, dispatch, showErrors, getFileNames, readFiles, postUIValues);
@@ -230,24 +233,34 @@ export default function WorkspaceManager() {
   //   [dispatch, session, requestPoll]
   // );
 
+  const setAllNotUpdating = () => {
+    setUpdating(false);
+    setUpdatingTags(false);
+    setUpdatingTitle(false);
+  }
+
   const handleUpdateWorkspace = useCallback((title?: string, tags?: string[]) => {
     // ToDo: Handle this update from the api return instead, to be sure we stay accurate
-    showErrors(
-      updateWorkspace(projectName, workspaceId as number, title, tags)
+    setUpdating(true);
+    showErrors(updateWorkspace(projectName, workspaceId as number, title, tags), (e) => setAllNotUpdating())
       .then(() => {
-        getWorkspace(projectName, workspaceId as number)
-          .then((workspaceRaw) => {dispatch(setWorkspace(workspaceFromRaw(workspaceRaw), projectName))});
-      })
-    );
+        showErrors(getWorkspace(projectName, workspaceId as number), (e) => setAllNotUpdating())
+        .then((workspaceRaw) => {
+          dispatch(setWorkspace(workspaceFromRaw(workspaceRaw), projectName))
+          setAllNotUpdating()
+        });
+      });
   }, [projectName, workspaceId])
 
   const handleCloseEditTags = useCallback(() => {
+    setLocalTags(workspace.tags || [])
     setOpenTagEditor(false);
   }, []);
 
   function togglePublicTag() {
-    const newTags = tags.includes('public') ? tags.filter((v)=>v!='public') : [...tags, 'public']
-    setTags(newTags);
+    const newTags = localTags.includes('public') ? localTags.filter((v)=>v!='public') : [...localTags, 'public']
+    setLocalTags(newTags);
+    setUpdatingTags(true);
     handleUpdateWorkspace(undefined, newTags);
   }
 
@@ -304,7 +317,7 @@ export default function WorkspaceManager() {
     canEdit
   ]);
 
-  const isPublic = useMemo(() => (tags || []).includes('public'), [tags]);
+  const isPublic = useMemo(() => (workspace.tags || []).includes('public'), [workspace.tags]);
 
   if (!workflow_name || !workspace) return null;
 
@@ -332,6 +345,7 @@ export default function WorkspaceManager() {
                       className: classes.titleText
                     }
                   }}
+                  disabled={updating}
                   variant='standard'
                   onChange={(e) => setLocalTitle(e.target.value)}
                   placeholder='Untitled'
@@ -340,10 +354,14 @@ export default function WorkspaceManager() {
               {localTitle != workspace.name && <Grid item xs={2}>
                 <FlatButton
                   className='header-btn-name-save'
-                  icon='save'
+                  icon={updatingTitle? 'spinner fa-spin' : 'save'}
                   label='Save'
                   title='Save Workspace Title'
-                  onClick={() => handleUpdateWorkspace(localTitle, undefined)}
+                  disabled={updating}
+                  onClick={() => {
+                    setUpdatingTitle(true);
+                    handleUpdateWorkspace(localTitle, undefined)
+                  }}
                 />
               </Grid>}
             </Grid>
@@ -408,7 +426,7 @@ export default function WorkspaceManager() {
           <>
             <FlatButton
               className='header-btn public-private'
-              icon={`${isPublic ? 'lock' : 'unlock'}`}
+              icon={updatingTags ? 'spinner fa-spin' : isPublic ? 'lock' : 'unlock'}
               label={`Make ${isPublic ? 'private' : 'public'}`}
               title={`Make the current figure ${
                 isPublic ? 'private' : 'public'
@@ -416,13 +434,14 @@ export default function WorkspaceManager() {
               onClick={() => {
                 togglePublicTag();
               }}
-              disabled={guest(projectName || '')}
+              disabled={updating || guest(projectName || '')}
             />
             <FlatButton
               className='header-btn edit-tags'
-              icon='tags'
+              icon={updatingTags ? 'spinner fa-spin' : 'tags'}
               label='Edit tags'
               title='Edit tags'
+              disabled={updating}
               onClick={() => setOpenTagEditor(true)}
             />
             <Dialog
@@ -440,9 +459,9 @@ export default function WorkspaceManager() {
                   classes={{
                     input: classes.tags
                   }}
-                  defaultValue={tags}
+                  defaultValue={workspace.tags}
                   id='figure-edit-tags-filter'
-                  options={tags}
+                  options={workspace.tags}
                   renderInput={(params: any) => (
                     <TextField {...params} label='Tags' variant='outlined' />
                   )}
@@ -458,11 +477,17 @@ export default function WorkspaceManager() {
                     let regex = new RegExp(state.inputValue);
                     return options.filter((o) => regex.test(o));
                   }}
-                  onChange={(e: any, v: string[]) => setTags(v)}
+                  onChange={(e: any, v: string[]) => setLocalTags(v)}
                 />
               </DialogContent>
               <DialogActions>
-                <Button onClick={() => handleUpdateWorkspace(undefined, tags)} color='primary'>
+                <Button onClick={() => {
+                  setUpdatingTags(true);
+                  handleUpdateWorkspace(undefined, localTags)
+                  handleCloseEditTags()
+                  }}
+                  color='primary'
+                >
                   Save Tags
                 </Button>
                 <Button onClick={handleCloseEditTags} color='primary'>
