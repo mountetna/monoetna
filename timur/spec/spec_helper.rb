@@ -143,6 +143,10 @@ FactoryBot.define do
       end
     end
   end
+
+  factory :query_history do
+    to_create(&:save)
+  end
 end
 
 def get_document doc_type, id, user=:viewer

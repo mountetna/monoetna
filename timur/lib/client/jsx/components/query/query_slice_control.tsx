@@ -15,7 +15,8 @@ import {emptyQueryClauseStamp} from '../../selectors/query_selector';
 const useStyles = makeStyles((theme) => ({
   subclause: {
     flex: '1',
-    paddingLeft: '5px'
+    paddingLeft: '5px',
+    height: '32px'
   }
 }));
 

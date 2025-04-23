@@ -5,17 +5,14 @@ import QueryControls from './query_controls';
 import Grid from '@material-ui/core/Grid';
 import Slide from '@material-ui/core/Slide';
 import Tooltip from '@material-ui/core/Tooltip';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
-import ListIcon from '@material-ui/icons/List';
-import CodeIcon from '@material-ui/icons/Code';
-import TuneIcon from '@material-ui/icons/Tune';
+import QueryDisplayButtons from './query_display_buttons';
 import QueryControlButtons from './query_control_buttons';
 import QueryResults from './query_results';
 import QueryString from './query_string';
 import QueryOptions from './query_options';
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 
+import useUriQueryParams from '../../contexts/query/use_uri_query_params';
 import useQueryGraph from '../../contexts/query/use_query_graph';
 import { useTheme, makeStyles } from '@material-ui/core/styles';
 
@@ -71,7 +68,6 @@ const QueryBuilder = ({}) => {
 
   const showQuery = options.includes('controls');
   const showRawQuery = options.includes('raw');
-  const showQueryOptions = options.includes('options');
 
   const ref = useRef(null);
 
@@ -85,29 +81,14 @@ const QueryBuilder = ({}) => {
     transitionTimingFunction: `${theme.transitions.easing.easeIn}`
   };
 
+  useUriQueryParams({});
+
   return (
       <Grid style={{ overflow: 'hidden', height: '100%' }} direction='column' container>
         <Grid item container direction='row' className={classes.toolbar} alignItems='center'>
-          <ToggleButtonGroup className={classes.buttons} value={options} onChange={ (e,f) => setOptions(f) } size='small'>
-            <ToggleButton aria-label="controls" disableRipple={true} value='controls'>
-              <Tooltip title="Query controls">
-                <ListIcon/>
-              </Tooltip>
-            </ToggleButton>
-            { showQuery &&
-              <ToggleButton aria-label="raw" disableRipple={true} value='raw'>
-                <Tooltip title="Raw query">
-                  <CodeIcon/>
-                </Tooltip>
-              </ToggleButton>
-            }
-            <ToggleButton aria-label="options" disableRipple={true} value='options'>
-              <Tooltip title="Query Options">
-                <TuneIcon/>
-              </Tooltip>
-            </ToggleButton>
-          </ToggleButtonGroup>
-          <QueryOptions open={showQueryOptions} onClose={ () => setOptions(options.filter( o => o !== 'options')) }/>
+          <QueryDisplayButtons
+            options={options}
+            setOptions={setOptions}/>
           <Grid item container direction='row' alignItems='center'
             justifyContent='flex-end'
             style={{ width: 'auto', flex: '1 1 auto' }}>

@@ -34,6 +34,7 @@ import {QueryBuilder} from '../../utils/query_builder';
 import useTableEffects from './query_use_table_effects';
 import useResultsActions from './query_use_results_actions';
 import QueryTsvOptionsModal from './query_tsv_options_modal';
+import SaveQueryModal from './save_query_modal';
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -178,6 +179,8 @@ const QueryControlButtons = () => {
     copyText(window.location.href);
   }
 
+  const [ showSaveQuery, setShowSaveQuery ] = useState(false);
+
   const disableQueryBtn = useMemo(() => {
     return !rootModel || (
       _.isEqual(columns, lastColumns) &&
@@ -245,6 +248,16 @@ const QueryControlButtons = () => {
         >
           Copy Link
         </Button>
+        <Button
+          className={classes.button}
+          color='secondary'
+          onClick={ () => setShowSaveQuery(true) }
+        >
+          Save Query
+        </Button>
+        <SaveQueryModal
+          open={ showSaveQuery }
+          onClose={ () => setShowSaveQuery(false) }/>
       </Grid>
     </>
   );
