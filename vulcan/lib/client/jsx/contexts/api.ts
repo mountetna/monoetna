@@ -34,9 +34,10 @@ export const defaultApiHelpers = {
   vulcanPath(endpoint: string): string {
     return `${CONFIG.vulcan_host}${endpoint}`
   },
-  showErrors<T>(work: Promise<T>): Promise<T> {
+  showErrors<T>(work: Promise<T>, additional: (e: any) => void = (e) => {}): Promise<T> {
     work.catch((e) => {
       console.error(e);
+      additional(e);
     });
 
     return work;
@@ -153,7 +154,7 @@ export function useApi(
   }, []);
 
   const showErrors = useCallback(
-    <T>(work: Promise<T>): Promise<T> => {
+    <T>(work: Promise<T>, additional: (e: any) => void = (e) => {}): Promise<T> => {
       work.catch((e) => {
         if (!(e instanceof Array)) {
           e = [`${e}`];
@@ -161,6 +162,7 @@ export function useApi(
 
         console.error(e);
         invoke(showMessages(e));
+        additional(e);
       });
 
       return work;
