@@ -24,6 +24,7 @@ function from_num(num: number | null, float = false) {
 
 interface NumberPieceInputs extends PieceBaseInputs<number | null> {
   minWidth?: number;
+  fullWidth?: boolean;
   integer: boolean;
 }
 
@@ -33,7 +34,8 @@ export function NumberPieceRct({
   value,
   label,
   minWidth,
-  integer
+  integer,
+  fullWidth=undefined,
 }: NumberPieceInputs): React.ReactElement {
 
   function onNewNum(event: any) {
@@ -52,6 +54,7 @@ export function NumberPieceRct({
         key={`${name}-number`}
         value={from_num(value, !integer)}
         label={label}
+        fullWidth={fullWidth}
         onChange={onNewNum}
         size='small'
         style={{minWidth: minWidth || 200}}
@@ -66,6 +69,7 @@ export function NumberPiece(
   value: NumberPieceInputs['value'] = null,
   label: NumberPieceInputs['label'] = '',
   minWidth: NumberPieceInputs['minWidth'] = 200,
+  fullWidth: NumberPieceInputs['fullWidth'] = undefined,
   integer: NumberPieceInputs['integer'] = false
 ) {
   return <NumberPieceRct
@@ -73,6 +77,7 @@ export function NumberPiece(
     changeFxn={changeFxn}
     value={value}
     label={label}
+    fullWidth={fullWidth}
     minWidth={minWidth}
     integer={integer}
   />
@@ -84,12 +89,14 @@ export function FloatPiece(
   value: NumberPieceInputs['value'] = null,
   label: NumberPieceInputs['label'] = '',
   minWidth: NumberPieceInputs['minWidth'] = 200,
+  fullWidth: NumberPieceInputs['fullWidth'] = undefined,
 ) {
   return <NumberPieceRct
     name={key}
     changeFxn={changeFxn}
     value={value}
     label={label}
+    fullWidth={fullWidth}
     minWidth={minWidth}
     integer={false}
   />
@@ -101,12 +108,14 @@ export function IntegerPiece(
   value: NumberPieceInputs['value'] = null,
   label: NumberPieceInputs['label'] = '',
   minWidth: NumberPieceInputs['minWidth'] = 200,
+  fullWidth: NumberPieceInputs['fullWidth'] = undefined,
 ) {
   return <NumberPieceRct
     name={key}
     changeFxn={changeFxn}
     value={value}
     label={label}
+    fullWidth={fullWidth}
     minWidth={minWidth}
     integer={true}
   />

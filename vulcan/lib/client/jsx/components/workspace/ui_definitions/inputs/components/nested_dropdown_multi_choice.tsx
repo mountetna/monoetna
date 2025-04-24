@@ -12,7 +12,6 @@ import { NestedDropdownMultiChoiceAdvancedPieceRct } from '../pieces/nested_drop
 function _NestedDropdownMultiChoiceInput({ letReorder, letBulkAdd, label, testIdAppend='', data, onChange, ...props }: WithInputParams<{
   letReorder: boolean;
   letBulkAdd: boolean;
-  label?: string;
   testIdAppend?: string;
 }, string[], nestedOptionSet>) {
   const value: string[] = useSetsDefault([] as string[], props.value, onChange, 'picked');
@@ -42,28 +41,24 @@ function _NestedDropdownMultiChoiceInput({ letReorder, letBulkAdd, label, testId
 };
 
 export function NestedDropdownMultiChoiceInput({ label, testIdAppend='', data, onChange, ...props }: WithInputParams<{
-  label?: string
   testIdAppend?: string
 }, string[], nestedOptionSet>) {
   return  _NestedDropdownMultiChoiceInput({ letReorder: false, letBulkAdd: false, label, testIdAppend, data, onChange, ...props });
 };
 
 export function NestedDropdownMultiChoiceBulkAddInput({ label, testIdAppend='', data, onChange, ...props }: WithInputParams<{
-  label?: string
   testIdAppend?: string
 }, string[], nestedOptionSet>) {
   return  _NestedDropdownMultiChoiceInput({ letReorder: false, letBulkAdd: true, label, testIdAppend, data, onChange, ...props });
 };
 
 export function NestedDropdownMultiChoiceReorderInput({ label, testIdAppend='', data, onChange, ...props }: WithInputParams<{
-  label?: string
   testIdAppend?: string
 }, string[], nestedOptionSet>) {
   return  _NestedDropdownMultiChoiceInput({ letReorder: true, letBulkAdd: false, label, testIdAppend, data, onChange, ...props });
 };
 
 export function NestedDropdownMultiChoiceAdvancedInput({ label, testIdAppend='', data, onChange, ...props }: WithInputParams<{
-  label?: string
   testIdAppend?: string
 }, string[], nestedOptionSet>) {
   return  _NestedDropdownMultiChoiceInput({ letReorder: true, letBulkAdd: true, label, testIdAppend, data, onChange, ...props });

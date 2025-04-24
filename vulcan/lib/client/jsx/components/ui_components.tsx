@@ -15,7 +15,7 @@ import DiffExpSC from "./workspace/ui_definitions/inputs/scDGE";
 import DropdownInput from "./workspace/ui_definitions/inputs/components/dropdown";
 import DropdownMultiChoiceInput from "./workspace/ui_definitions/inputs/components/dropdown_multi_choice";
 import SingleDropdownMulticheckbox from "./workspace/ui_definitions/inputs/single_dropdown_multicheckbox";
-import StringInput from "./workspace/ui_definitions/inputs/components/string";
+import StringInput, { MultilineStringInput } from "./workspace/ui_definitions/inputs/components/string";
 import { AnyDittoSeq, AnyPlotly, BarPlotly, DittoBarPlot, DittoDimPlot, DittoPlot, DittoScatterPlot, ScatterPlotly, YPlotly } from "./workspace/ui_definitions/inputs/components/visualizations";
 
 import AllInnerKeysNotNullValidator from "./workspace/ui_definitions/inputs/validators/all_inner_keys_not_null_validator";
@@ -89,6 +89,8 @@ function configureComponent<Value, DataElement>(
 }
 configureComponent('default', StringInput, NotEmptyValidator, ['value'], []);
 configureComponent('string', StringInput, NotEmptyValidator, ['value'], []);
+configureComponent('multiline-string', MultilineStringInput, NotEmptyValidator, ['value'], []);
+configureComponent('multi-line-string', MultilineStringInput, NotEmptyValidator, ['value'], []);
 configureComponent('float', FloatInput, NotEmptyValidator, ['value'], []);
 configureComponent('int', IntegerInput, NotEmptyValidator, ['value'], []);
 configureComponent('boolean', BooleanInput, NotEmptyValidator, ['value'], [], 'label');

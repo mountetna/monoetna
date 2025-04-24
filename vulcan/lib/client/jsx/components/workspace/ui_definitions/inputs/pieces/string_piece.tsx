@@ -3,21 +3,24 @@ import TextField from "@material-ui/core/TextField";
 import { PieceBaseInputs } from "./user_input_pieces";
 
 interface StringPieceInputs extends PieceBaseInputs<string> {
-  minWidth?: number
-  multiline?: boolean
+  minWidth?: number;
+  multiline?: boolean;
+  fullWidth?: boolean;
 }
 
 export function StringPieceRct({
   name, changeFxn, value,
   label = '',
   minWidth = 150,
-  multiline = undefined
+  multiline = undefined,
+  fullWidth = undefined,
 }: StringPieceInputs): React.ReactElement {
   return (
   <div key={name}>
     <TextField
       value={value}
       multiline={multiline}
+      fullWidth={fullWidth}
       label={label}
       InputLabelProps={{ shrink: true }}
       onChange={(event) => changeFxn(event.target.value, name)}
@@ -34,7 +37,8 @@ export function StringPiece(
   value: StringPieceInputs['value'],
   label: StringPieceInputs['label'] = '',
   minWidth: StringPieceInputs['minWidth'] = 150,
-  multiline: StringPieceInputs['multiline'] = undefined
+  multiline: StringPieceInputs['multiline'] = undefined,
+  fullWidth: StringPieceInputs['fullWidth'] = undefined,
 ) {
   return <StringPieceRct
     name={key}
@@ -43,5 +47,6 @@ export function StringPiece(
     label={label}
     minWidth={minWidth}
     multiline={multiline}
+    fullWidth={fullWidth}
   />
 };

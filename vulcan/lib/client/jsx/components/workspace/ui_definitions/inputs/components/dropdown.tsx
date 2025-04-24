@@ -41,7 +41,6 @@ export default function DropdownInput({
   ...props
 }: WithInputParams<
   {
-    label?: string;
     minWidth?: number;
     maxOptions?: number;
     disableClearable?: boolean;

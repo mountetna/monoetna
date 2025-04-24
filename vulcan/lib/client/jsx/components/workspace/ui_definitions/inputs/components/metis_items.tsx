@@ -9,7 +9,6 @@ declare const CONFIG: {[key: string]: any};
 type metisPathType = { bucket: string, path: string, type: 'file' | 'folder' | null }
 
 function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: WithInputParams<{
-    label?: string,
     allowFiles: boolean
     }, metisPathType, metisPathType
   >) {
@@ -68,9 +67,9 @@ function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: With
   );
 }
 
-export function MetisFileInput({onChange, label, data, ...props}: WithInputParams<{label?: string}, metisPathType, metisPathType>) {
+export function MetisFileInput({onChange, label, data, ...props}: WithInputParams<{}, metisPathType, metisPathType>) {
   return _MetisLocationInput({onChange, label, allowFiles: true, data, ...props})
 }
-export function MetisFolderInput({onChange, label, data, ...props}: WithInputParams<{label?: string}, metisPathType, metisPathType>) {
+export function MetisFolderInput({onChange, label, data, ...props}: WithInputParams<{}, metisPathType, metisPathType>) {
   return _MetisLocationInput({onChange, label, allowFiles: false, data, ...props})
 }

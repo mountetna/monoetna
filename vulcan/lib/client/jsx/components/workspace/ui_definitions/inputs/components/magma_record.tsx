@@ -17,9 +17,7 @@ function getFromData(key: string, data: DataEnvelope<any>, showError: (e:string)
   }, [data])
 }
 
-export function MagmaRecordInput({onChange, label, defaultValue, showError, data, ...props}: WithInputParams<{
-  label?: string,
-  }, string, string[] >
+export function MagmaRecordInput({onChange, label, defaultValue, showError, data, ...props}: WithInputParams<{}, string, string[] >
 ) {
   const value = useSetsDefault(defaultValue || null, props.value, onChange, 'record');
   const modelName = getFromData('modelName', data, (e) => showError(e))

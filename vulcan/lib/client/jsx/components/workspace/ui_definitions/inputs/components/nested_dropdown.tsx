@@ -9,7 +9,7 @@ import { NestedDropdownPieceRct } from '../pieces/nested_dropdown_piece';
 import { pullRecommendationIntoLabel } from './dropdown';
 import { useMemo } from 'react';
 
-export default function NestedDropdownInput({ label, data, onChange, ...props }: WithInputParams<{label?: string}, string|null, nestedOptionSet>) {
+export default function NestedDropdownInput({ label, data, onChange, ...props }: WithInputParams<{}, string|null, nestedOptionSet>) {
   const picked: string | null = useSetsDefault(null, props.value, onChange, 'picked');
   const allOptions = data.nestedOptions;
   const disp_label = useMemo(() => {

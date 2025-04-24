@@ -253,6 +253,7 @@ export type WithInputParams<
   onChange: (v: Maybe<Value>, destructure?: boolean) => void;
   value: Maybe<Value>;
   data: DataEnvelope<DataElement> | undefined | null;
+  label?: string;
   defaultValue?: any;
   showError: (e) => void
 };

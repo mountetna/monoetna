@@ -12,9 +12,7 @@ export default function DropdownMultiChoiceInput({
   onChange,
   ...props
 }: WithInputParams<
-  {
-    label?: string;
-  },
+  {},
   string[],
   string[]
 >) {

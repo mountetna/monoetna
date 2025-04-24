@@ -1,7 +1,8 @@
+import React from 'react';
 import {WithInputParams} from '../../input_types';
 import {maybeOfNullable, withDefault} from '../../../../../selectors/maybe';
 import {useSetsDefault} from '../../useSetsDefault';
-import { FloatPiece, IntegerPiece } from '../pieces/number_pieces';
+import { NumberPieceRct } from '../pieces/number_pieces';
 
 export function NumberInput(
   {
@@ -12,19 +13,22 @@ export function NumberInput(
     defaultValue,
     ...props
   }: WithInputParams<
-    {label?: string; minWidth?: number},
+    {minWidth?: number},
     number | null,
     number | null
   >,
   block_decimal = false
 ) {
   const value = useSetsDefault(defaultValue as number || 0, props.value, onChange, 'value'); // Had to replace selectDefaultNumber(data) with 0 due how the component can be cleared.  NaN was not an option because of cross-language conversion.
-  const UI = block_decimal ? IntegerPiece : FloatPiece;
-  return UI(
-    'input', (val: number | null) => {onChange({value: maybeOfNullable(val)})},
-    value,
-    label, minWidth
-  )
+  return <NumberPieceRct
+    name='number-input'
+    changeFxn={(val: number | null) => {onChange({value: maybeOfNullable(val)})}}
+    value={value}
+    label={label}
+    minWidth={minWidth}
+    fullWidth={true}
+    integer={block_decimal}
+  />
 }
 
 export default function FloatInput({
@@ -35,7 +39,7 @@ export default function FloatInput({
   defaultValue,
   ...props
 }: WithInputParams<
-  {label?: string; minWidth?: number},
+  {minWidth?: number},
   number | null,
   number | null
 >) {

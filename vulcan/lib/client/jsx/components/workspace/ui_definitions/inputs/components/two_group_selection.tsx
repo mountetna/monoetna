@@ -4,9 +4,11 @@ import {some} from '../../../../../selectors/maybe';
 import {useSetsDefault} from '../../useSetsDefault';
 import { emptySelectionDefinition, SelectionDefinitionPiece, SelectionDefinition, SelectionDefinitionPieceRct } from '../pieces/grouping_pieces';
 import Grid from '@material-ui/core/Grid';
+import InputLabel from '@material-ui/core/InputLabel';
 
 export default function TwoGroupSelection({
   data,
+  label,
   onChange,
   ...props
 }: WithInputParams<{}, DataEnvelope<any>, {data_summary: DataEnvelope<any>, all_column_options?: OptionSet}>) {
@@ -23,11 +25,14 @@ export default function TwoGroupSelection({
     'g2'
   );
 
+  const key = label || 'two-group-selection';
+
   // console.log({g1_value})
   // console.log({g2_value})
 
-  return (
-    <Grid container direction='column'>
+  return <div>
+    {label!=null && <InputLabel htmlFor={key} shrink>{label}</InputLabel>}
+    <Grid key={key} container direction='column'>
       <Grid item>
         {!!g1_value && <SelectionDefinitionPieceRct
           name='g1'
@@ -51,5 +56,5 @@ export default function TwoGroupSelection({
         />}
       </Grid>
     </Grid>
-  )
+  </div>
 }

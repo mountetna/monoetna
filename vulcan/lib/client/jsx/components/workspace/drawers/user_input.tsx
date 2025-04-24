@@ -42,7 +42,7 @@ export default function UserInput({
 }) {
   const [InputComponent, Validator] = backendComponentOf(input.ui_component);
   const {dispatch} = useContext(VulcanContext);
-  const {onChange, data, value, name, label, doc, valueKeyMap, defaultValue} = input;
+  const {onChange, data, value, name, label, doc, valueKeyMap, defaultValue, showError} = input;
 
   useEffect(() => {
     const firstValueKey = Object.keys(valueKeyMap)[0]
@@ -73,11 +73,15 @@ export default function UserInput({
               its interface correctly in all cases.
            */}
           <VulcanContext.Provider value={defaultContext}>
-            <InputComponent key={label}
+            <InputComponent
+              key={label}
+              label={hideLabel ? label : undefined}
               onChange={onChange}
               data={data}
               value={value}
-              defaultValue={defaultValue}/>
+              defaultValue={defaultValue}
+              showError={showError}
+            />
           </VulcanContext.Provider>
         </InputHelp>
       </div>

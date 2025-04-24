@@ -522,7 +522,11 @@ export function hasScheduledSteps(status: VulcanState['status']): boolean {
 }
 
 export const inputGroupName = (label: string) => {
-  let groupName = label.split('__')[0];
+  const __splits = label.split('__')
+  let groupName = __splits[0];
+  if (/^\d+$/.test(__splits[0]) && __splits.length > 2) {
+    groupName = __splits.slice(0,2).join('__');
+  }
   if (groupName === label) return null;
 
   return groupName;
