@@ -226,8 +226,6 @@ export const ColumnMap = ({value, update, modelName, classes}:ScriptItem) => {
   const {models} = useContext(MagmaContext);
   const model = models ? models[modelName] : null;
 
-  if (!model) return <div>No such model {modelName}</div>;
-
   const idAttribute: string = models?.[modelName]?.template?.identifier || '__error__'
   const parentAttribute: string = models?.[modelName]?.template?.parent || '__error__'
   // Determine if table.
