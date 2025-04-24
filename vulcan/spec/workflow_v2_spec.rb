@@ -91,7 +91,7 @@ describe VulcanV2Controller do
   end
 
 
-  context 'creates workspaces', long_running: true do
+  context 'creates workspaces' do
 
     before do
       auth_header(:superuser)
@@ -204,7 +204,7 @@ describe VulcanV2Controller do
 
   end
 
-  context 'saving configs', long_running: true do
+  context 'saving configs' do
 
     before do
       setup_workspace
@@ -347,7 +347,7 @@ describe VulcanV2Controller do
     end
   end
 
-  context 'list a specific workspace', long_running: true do
+  context 'list a specific workspace' do
     before do
       setup_workspace
     end
@@ -592,7 +592,7 @@ describe VulcanV2Controller do
   end
 
   
-  context 'running workflows', long_running: true do
+  context 'running workflows' do
 
     # Refer to /spec/fixtures/snakemake-repo/ as the workflow that is being run
 
@@ -917,7 +917,7 @@ describe VulcanV2Controller do
     end
   end
 
-  context 'status checking', long_running: true do
+  context 'status checking' do
 
     before do
       setup_workspace
@@ -935,7 +935,6 @@ describe VulcanV2Controller do
           uiFilesSent: [],
           paramsChanged: []
       }
-      # TODO: add a meta key that can switch profiles
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       config_id = json_body[:config_id]
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")

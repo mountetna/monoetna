@@ -47,7 +47,7 @@ class Vulcan
             raise e
           end
         else
-          raise "Could not create: #{boot_lg}, command is: #{command.to_s}"
+          raise "Could not create: #{boot_log}, command is: #{command.to_s}"
         end
         # We no longer need the boot.log
         @remote_manager.invoke_ssh_command(@remote_manager.build_command.add('rm', boot_log).to_s)
@@ -64,27 +64,14 @@ class Vulcan
       end
 
       def snakemake_is_running?(dir)
-        # Snakemake uses a lock file to ensure that only one instance of Snakemake is running in a particular working directory at a time.
-        # You will run into lock errors if you try to @remote_manager.invoke snakemake before the last process has finished running.
-        # The function checks if there are any open files in the .snakemake/log directory.
-        # If any files are open, it assumes that a Snakemake process is running.
-        snakemake_log_dir = "#{Shellwords.escape(dir)}/.snakemake/log"
-        return false unless @remote_manager.dir_exists?(snakemake_log_dir)
-        command = @remote_manager.build_command.add('lsof', '+D', snakemake_log_dir)
-        begin
-          result = @remote_manager.invoke_ssh_command(command.to_s)
-          # Return true if files are open, false otherwise
-          result[:exit_status] == 0
-        rescue RuntimeError => e
-          # @remote_manager.invoke_ssh_command raises an error for any return status != 0,
-          # and for some reason lsof seems to always return 1 even when there
-          # are open files. When there are files open lsof displays:
-          # COMMAND PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
-          # so we just search for this string in stdout.
-          return true if e.message.include?("COMMAND")
-          return false if e.message.include?("Command exited with status 1")
-          raise "Error checking if Snakemake is running: #{e.message}"
-        end
+        # Snakemake drops lock files into .snakemake/locks/ when running
+        # We check if the directory is empty to determine if Snakemake is running
+        snakemake_locks_dir = "#{Shellwords.escape(dir)}/.snakemake/locks"
+        return false unless @remote_manager.dir_exists?(snakemake_locks_dir)
+        !@remote_manager.list_files(snakemake_locks_dir).empty?
+      rescue => e
+        Vulcan.instance.logger.error("Error checking if Snakemake is running: #{e.message}")
+        false
       end
 
       def parse_log_for_slurm_ids(snakemake_log)
@@ -203,8 +190,10 @@ class Vulcan
           .add('cd', dir)
           .add('snakemake', '--configfile', config_path, '--d3dag')
           .redirect_to('rulegraph.json')
-        dag_output = @remote_manager.invoke_ssh_command(dag_command.to_s)
-        if dag_output[:exit_status] != 0
+        @remote_manager.invoke_ssh_command(dag_command.to_s)
+
+        if !@remote_manager.file_exists?("#{dir}/rulegraph.json", wait: true)
+          Vulcan.instance.logger.error("Failed to generate DAG: #{dag_output[:stderr_or_info]}")
           raise "Failed to generate DAG: #{dag_output[:stderr_or_info]}"
         end
 
