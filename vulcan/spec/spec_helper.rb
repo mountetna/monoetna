@@ -103,29 +103,8 @@ RSpec.configure do |config|
     # tests).  Thus, we are forced to manually handle the transaction wrapping of examples manually to set this option.
     # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
     #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
-    
-    # Don't wrap long running tests in a transaction, as it will cause the tests to hang.
-    # Make sure to group tests that are long running in the same context.
-    if example.metadata[:long_running]
-      retries = 3
-      begin
-        DatabaseCleaner.clean_with(:truncation)
-        example.run
-        DatabaseCleaner.clean_with(:truncation)
-      rescue Sequel::Error => e
-        Vulcan.instance.logger.error("Got a sequel error, retrying...")
-        retries -= 1
-        if retries > 0
-          sleep(1) # Add a small delay before retrying
-          retry
-        else
-          raise e # Re-raise if we've exhausted our retries
-        end
-      end
-    else
       Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
     end
-  end
 
   if ENV['RUN_E2E']=='1'
     config.filter_run e2e: true

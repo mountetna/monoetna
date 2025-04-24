@@ -191,8 +191,11 @@ class Vulcan
         end
         file_found
       else
-        remote_file_exists?(file_path)
+        file_found = remote_file_exists?(file_path)
       end
+      
+      Vulcan.instance.logger.info("File #{file_path} #{file_found ? 'found' : 'not found'}")
+      file_found
     end
 
     def invoke_and_close(command)
@@ -205,7 +208,7 @@ class Vulcan
       end
     end
 
-    def invoke_ssh_command(command, timeout: 10, retries: 2, retry_delay: 1)
+    def invoke_ssh_command(command, timeout: 10, retries: 3, retry_delay: 1)
       # This function runs a async command and keeps polling until the command has completed
       # or until the timeout occurs.
       # This function gathers metadata about a command, so is useful when you want
