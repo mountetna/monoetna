@@ -12,9 +12,9 @@ const NavBar = ({user}) => <div id='nav'>
   { isSuperEditor(user) && <div className='nav_item'><a href='/users'>Users</a></div> }
 </div>;
 
-const JanusNav = () => {
+const JanusNav = ({project_name}) => {
   let user = useReduxState( state => selectUser(state) );
-  return <Nav logo={Logo} user={user} app='janus'>
+  return <Nav logo={Logo} user={user} project_name={project_name} app='janus'>
     <NavBar user={user}/>
   </Nav>;
 };

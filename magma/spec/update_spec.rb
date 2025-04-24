@@ -20,6 +20,7 @@ describe UpdateController do
     stub_request(:post, /https:\/\/metis.test\/labors\/files\/copy?/).
       to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
     @project = create(:project, name: 'The Twelve Labors of Hercules')
+    stub_event_log
   end
 
   def update(revisions, user_type=:editor, params: {autolink: true})
@@ -117,6 +118,36 @@ describe UpdateController do
     expect(last_response.status).to eq(200)
     expect(skin.worth).to eq(8)
     #expect(json_document(:prize,skin.id.to_s)).to eq(worth: 8)
+  end
+
+  context 'boolean' do
+    it 'updates a boolean attribute' do
+      lion = create(:labor, name: 'Nemean Lion', completed: false)
+      update(labor: { 'Nemean Lion' => { completed: true } })
+
+      lion.refresh
+      expect(last_response.status).to eq(200)
+      expect(lion.completed).to eq(true)
+    end
+
+    it 'updates a boolean attribute from string tokens' do
+      lion = create(:labor, name: 'Nemean Lion', completed: false)
+      [ true, "true", "t", "yes", "y", "T", "TRUE", "YES", "Y", "1", 1 ].each do |true_val|
+        update(labor: { 'Nemean Lion' => { completed: true_val } })
+
+        lion.refresh
+        expect(last_response.status).to eq(200)
+        expect(lion.completed).to eq(true)
+      end
+
+      [ false, "false", "f", "no", "n", "F", "FALSE", "NO", "N", "0", 0 ].each do |false_val|
+        update(labor: { 'Nemean Lion' => { completed: false_val } })
+
+        lion.refresh
+        expect(last_response.status).to eq(200)
+        expect(lion.completed).to eq(false)
+      end
+    end
   end
 
   it 'updates a date-time attribute' do

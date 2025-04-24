@@ -27,7 +27,8 @@ def setup_app(server, layer=nil, config={ test: {} })
 
   application = Etna::Application.find(server)
 
-  config[:test].update( application.id.to_sym => { host: 'http://example.org' })
+  config[:test][ application.id.to_sym ] ||= {}
+  config[:test][ application.id.to_sym ][:host] ||= 'http://example.org'
 
   Etna::Application.find(server).configure(config)
   Rack::Builder.new do

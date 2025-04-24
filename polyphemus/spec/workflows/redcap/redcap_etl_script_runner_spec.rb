@@ -41,6 +41,10 @@ describe Polyphemus::RedcapEtlScriptRunner do
             weight: {
               redcap_field: "weight",
               value: "value"
+            },
+            model_two: {
+              redcap_field: "record_id",
+              value: "value"
             }
           }
         }
@@ -134,59 +138,10 @@ describe Polyphemus::RedcapEtlScriptRunner do
     },
   }
 
-  context 'dateshifts' do
-    before do
-      stub_magma_models
-      copy_redcap_project
-    end
-
-    it 'throws exception if salt not provided' do
-      expect {
-        Polyphemus::RedcapEtlScriptRunner.new(
-          project_name: 'test',
-          model_names: "all",
-          redcap_tokens: REDCAP_TOKEN,
-          dateshift_salt: nil,
-          redcap_host: REDCAP_HOST,
-          magma_host: MAGMA_HOST,
-          config: TEST_REDCAP_CONFIG
-        )
-      }.to raise_error(RuntimeError, "No dateshift_salt provided, please provide one.")
-    end
-
-    it 'uses the provided salt' do
-      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
-        project_name: 'test',
-        model_names: "all",
-        redcap_tokens: REDCAP_TOKEN,
-        dateshift_salt: '123',
-        redcap_host: REDCAP_HOST,
-        magma_host: MAGMA_HOST,
-        config: TEST_REDCAP_CONFIG
-      )
-
-      system_config = redcap_etl.system_config
-
-      expect(system_config[:dateshift_salt]).to eq('123')
-    end
-
-    it 'throws exception if model with date_time attribute does not define offset_id' do
-      stub_redcap_data(:essential_data)
-      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
-        project_name: 'test',
-        model_names: "all",
-        redcap_tokens: REDCAP_TOKEN,
-        dateshift_salt: '123',
-        redcap_host: REDCAP_HOST,
-        magma_host: MAGMA_HOST,
-        config: NO_OFFSET_ID_REDCAP_CONFIG
-      )
-
-      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
-
-      expect {
-        redcap_etl.run(magma_client: magma_client)
-      }.to raise_error(RuntimeError, "offset_id() needs to be implemented for the test project, bad_model class. It should return the patient / subject identifier.")
+  after(:each) do
+    ObjectSpace.each_object(Class).select { |klass| klass < Redcap::Model }.each do |model|
+      konst = model.name.split('::').last.to_sym
+      Kernel.send(:remove_const, konst) if Kernel.const_defined?(konst)
     end
   end
 
@@ -203,7 +158,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
           project_name: 'test',
           model_names: "all",
           redcap_tokens: [],
-          dateshift_salt: "123",
           redcap_host: REDCAP_HOST,
           magma_host: MAGMA_HOST,
           config: TEST_REDCAP_CONFIG
@@ -251,7 +205,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
         project_name: 'test',
         model_names: "all",
         redcap_tokens: REDCAP_TOKEN,
-        dateshift_salt: '123',
         redcap_host: REDCAP_HOST,
         magma_host: MAGMA_HOST,
         config: TEST_REDCAP_CONFIG
@@ -270,16 +223,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
       id_123 = "123"
       id_321 = "321"
 
-      # Dateshift checks
-      expect(records[:model_one][id_456][:birthday]).not_to eq(raw_data_456[:value])
-      expect(records[:model_one][id_456][:birthday].start_with?('1899')).to eq(true)
-      expect(records[:model_one][id_000][:graduation_date]).not_to eq(raw_data_000[:value])
-      expect(records[:model_one][id_000][:graduation_date].start_with?('2021')).to eq(true)
-      expect(records[:model_two][id_123][:yesterday]).not_to eq(raw_data_123[:value])
-      expect(records[:model_two][id_123][:yesterday].start_with?('2019')).to eq(true)
-      expect(records[:model_two][id_321][:yesterday]).not_to eq(raw_data_321[:value])
-      expect(records[:model_two][id_321][:yesterday].start_with?('2020')).to eq(true)
-
       # ensure containing records works for model_two
       injected_parent_id = "#{id_123}-one"
       expect(records[:model_one][injected_parent_id][:parent_model]).to eq("#{injected_parent_id}-parent")
@@ -290,7 +233,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
         project_name: 'test',
         model_names: "model_one",
         redcap_tokens: REDCAP_TOKEN,
-        dateshift_salt: '123',
         redcap_host: REDCAP_HOST,
         magma_host: MAGMA_HOST,
         config: TEST_REDCAP_CONFIG
@@ -305,12 +247,34 @@ describe Polyphemus::RedcapEtlScriptRunner do
       expect(records.keys.include?(:model_two)).to eq(false)
     end
 
+    it 'without a script file' do
+      stub_redcap_data(:essential_data)
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test_scriptless',
+        model_names: "all",
+        redcap_tokens: REDCAP_TOKEN,
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST,
+        config: TEST_REDCAP_CONFIG
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      expect(records.keys).to match_array([:model_one, :model_two, :stats, :citation])
+ 
+      expect(records[:model_one].keys).to eq(["456", "789", "000", "654", "987", "111"])
+      expect(records[:model_two].keys).to eq(["123", "321", "abc"])
+      expect(records[:stats].keys).to all(match(/::temp-/))
+      expect(records[:citation].keys).to eq([])
+    end
+
     it 'form label attributes' do
       redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
         project_name: 'test',
         model_names: "model_two",
         redcap_tokens: REDCAP_TOKEN,
-        dateshift_salt: '123',
         redcap_host: REDCAP_HOST,
         magma_host: MAGMA_HOST,
         config: TEST_REDCAP_CONFIG
@@ -333,7 +297,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
         project_name: 'test',
         model_names: "model_one",
         redcap_tokens: "#{REDCAP_TOKEN},#{REDCAP_TOKEN.reverse}",
-        dateshift_salt: '123',
         redcap_host: REDCAP_HOST,
         magma_host: MAGMA_HOST,
         config: TEST_REDCAP_CONFIG
@@ -355,7 +318,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
         project_name: 'test',
         model_names: "model_with_alternate_id",
         redcap_tokens: REDCAP_TOKEN,
-        dateshift_salt: '123',
         redcap_host: REDCAP_HOST,
         magma_host: MAGMA_HOST,
         config: ALTERNATE_ID_REDCAP_CONFIG
@@ -388,7 +350,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
         project_name: 'test',
         model_names: "all",
         redcap_tokens: REDCAP_TOKEN,
-        dateshift_salt: '123',
         redcap_host: REDCAP_HOST,
         magma_host: MAGMA_HOST,
         config: CONFIG_WITH_FILTERS
@@ -407,19 +368,16 @@ describe Polyphemus::RedcapEtlScriptRunner do
 
       # Verify that only record 000 for model one passes the filter
       expect(records[:model_one].keys.include?(id_456)).to eq(false)
-      expect(records[:model_one][id_000][:graduation_date]).not_to eq(raw_data_000[:value])
-      expect(records[:model_one][id_000][:graduation_date].start_with?('2021')).to eq(true)
+      expect(records[:model_one][id_000][:graduation_date]).to eq(raw_data_000[:value])
       expect(records[:model_one][id_000].keys.include?(:rain_date)).to eq(false) # filter attribute
 
       # Verify that only record 321 for model two passes the filter, and that
       # ensure containing records works for model_two still
       expect(records[:model_two].keys.include?(id_123)).to eq(false)
-      expect(records[:model_two][id_321][:yesterday]).not_to eq(raw_data_321[:value])
-      expect(records[:model_two][id_321][:yesterday].start_with?('2020')).to eq(true)
+      expect(records[:model_two][id_321][:yesterday]).to eq(raw_data_321[:value])
       expect(records[:model_two][id_321].keys.include?(:some_day)).to eq(false) # filter attribute
       injected_parent_id = "#{id_321}-one"
       expect(records[:model_one][injected_parent_id][:parent_model]).to eq("#{injected_parent_id}-parent")
-    
     end
 
     context("mode == nil") do
@@ -428,7 +386,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
           project_name: 'test',
           model_names: "all",
           redcap_tokens: REDCAP_TOKEN,
-          dateshift_salt: '123',
           redcap_host: REDCAP_HOST,
           magma_host: MAGMA_HOST,
           config: TEST_REDCAP_CONFIG
@@ -453,7 +410,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
           project_name: 'test',
           model_names: "stats",
           redcap_tokens: REDCAP_TOKEN,
-          dateshift_salt: '123',
           redcap_host: REDCAP_HOST,
           magma_host: MAGMA_HOST,
           config: TEST_REDCAP_CONFIG
@@ -480,7 +436,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
           project_name: 'test',
           model_names: "model_two",
           redcap_tokens: REDCAP_TOKEN,
-          dateshift_salt: '123',
           redcap_host: REDCAP_HOST,
           magma_host: MAGMA_HOST,
           mode: "existing",
@@ -504,7 +459,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
           project_name: 'test',
           model_names: "stats",
           redcap_tokens: REDCAP_TOKEN,
-          dateshift_salt: '123',
           redcap_host: REDCAP_HOST,
           magma_host: MAGMA_HOST,
           mode: 'existing',
@@ -528,7 +482,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
           project_name: 'test',
           model_names: "model_one",
           redcap_tokens: REDCAP_TOKEN,
-          dateshift_salt: '123',
           redcap_host: REDCAP_HOST,
           magma_host: MAGMA_HOST,
           mode: "strict",
@@ -551,7 +504,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
           project_name: 'test',
           model_names: "stats",
           redcap_tokens: REDCAP_TOKEN,
-          dateshift_salt: '123',
           redcap_host: REDCAP_HOST,
           magma_host: MAGMA_HOST,
           mode: "strict",
@@ -577,7 +529,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
           project_name: 'test',
           model_names: "stats",
           redcap_tokens: REDCAP_TOKEN,
-          dateshift_salt: '123',
           redcap_host: REDCAP_HOST,
           magma_host: MAGMA_HOST,
           mode: "strict",
@@ -605,7 +556,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
           project_name: 'test',
           model_names: "citation",
           redcap_tokens: REDCAP_TOKEN,
-          dateshift_salt: '123',
           redcap_host: REDCAP_HOST,
           magma_host: MAGMA_HOST,
           mode: "strict",

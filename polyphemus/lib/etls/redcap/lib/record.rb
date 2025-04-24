@@ -1,6 +1,7 @@
 module Redcap
   class Record
-    def initialize eavs, flat_record, identifier_fields_data
+    def initialize record_id, eavs, flat_record, identifier_fields_data
+      @record_id = record_id
       @eavs = eavs
       @flat_record = flat_record || {}
       @identifier_fields_data = identifier_fields_data || {}
@@ -31,7 +32,11 @@ module Redcap
         end
         rec
       end
-      record.empty? ? nil : record.update(lift(@identifier_fields_data))
+      record.empty? ? nil : record.merge(
+        lift(@identifier_fields_data)
+      ).merge(
+        record_id: @record_id
+      )
     end
 
     def lift(data)

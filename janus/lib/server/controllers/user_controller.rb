@@ -33,6 +33,8 @@ class UserController < Janus::Controller
 
     raise Etna::Forbidden, 'User not found' unless @janus_user
 
+    cannotCommunity = ! @janus_user.flags.nil? && @janus_user.flags.include?('external')
+
     projects = @janus_user.permissions.map do |perm|
       # Don't use proj.to_hash because we don't necessarily want to send back
       #   all the information.
@@ -45,7 +47,7 @@ class UserController < Janus::Controller
         requires_agreement: perm.project.requires_agreement,
         cc_text: perm.project.cc_text,
       }
-    end.concat(Project.where(resource: true).all.map do |proj|
+    end.concat( (cannotCommunity ? Project.where(resource: true, requires_agreement: false) : Project.where(resource: true)).all.map do |proj|
       {
         project_name: proj.project_name,
         project_name_full: proj.project_name_full,

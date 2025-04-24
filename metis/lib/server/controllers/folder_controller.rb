@@ -70,6 +70,16 @@ class FolderController < Metis::Controller
     raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:folder_path])
 
     folders = Metis::Folder.mkdir_p(bucket, @params[:folder_path], @params[:project_name], Metis::File.author(@user))
+
+    event_log(
+      event: 'create_folder',
+      message: "created folders in bucket #{@params[:bucket_name]}",
+      payload: {
+        folders: [ @params[:folder_path] ]
+      },
+      consolidate: true
+    )
+
     success_json(folders: [ folders.last.to_hash ])
   end
 
@@ -93,6 +103,15 @@ class FolderController < Metis::Controller
     # actually remove the folder
     folder.remove!
 
+    event_log(
+      event: 'remove_folder',
+      message: "removed folders in bucket #{@params[:bucket_name]}",
+      payload: {
+        folders: [ @params[:folder_path] ]
+      },
+      consolidate: true
+    )
+
     return success_json(response)
   end
 
@@ -100,10 +119,18 @@ class FolderController < Metis::Controller
     bucket = require_bucket
     folder = require_folder(bucket, @params[:folder_path])
 
-    # remove the folder
     raise Etna::Forbidden, 'Folder is read-only' if folder.read_only?
 
     folder.protect!
+
+    event_log(
+      event: 'protect_folder',
+      message: "protected folders in bucket #{@params[:bucket_name]}",
+      payload: {
+        folders: [ @params[:folder_path] ]
+      },
+      consolidate: true
+    )
 
     success_json(folders: [ folder.to_hash ])
   end
@@ -112,10 +139,18 @@ class FolderController < Metis::Controller
     bucket = require_bucket
     folder = require_folder(bucket, @params[:folder_path])
 
-    # remove the folder
     raise Etna::BadRequest, 'Folder is not protected' unless folder.read_only?
 
     folder.unprotect!
+
+    event_log(
+      event: 'unprotect_folder',
+      message: "unprotected folders in bucket #{@params[:bucket_name]}",
+      payload: {
+        folders: [ @params[:folder_path] ]
+      },
+      consolidate: true
+    )
 
     success_json(folders: [ folder.to_hash ])
   end
@@ -164,6 +199,15 @@ class FolderController < Metis::Controller
 
     return failure(422, errors: revision.errors) unless revision.valid?
 
+    event_log(
+      event: 'rename_folder',
+      message: "renamed folders in bucket #{@params[:bucket_name]}",
+      payload: {
+        folders: [ @params[:folder_path] ]
+      },
+      consolidate: true
+    )
+
     return success_json(folders: [ revision.revise!.to_hash ])
   end
 
@@ -205,6 +249,15 @@ class FolderController < Metis::Controller
     revision.validate
 
     return failure(422, errors: revision.errors) unless revision.valid?
+
+    event_log(
+      event: 'copy_folder',
+      message: "copied folders in bucket #{@params[:bucket_name]}",
+      payload: {
+        folders: [ @params[:folder_path] ]
+      },
+      consolidate: true
+    )
 
     return success_json(folders: [ revision.revise!.to_hash ])
   end

@@ -392,5 +392,19 @@ declare module 'etna-js/hooks/useAsyncWork' {
 }
 
 declare module 'etna-js/utils/janus' {
+  export type Permission = {
+    role: string;
+    privileged: boolean;
+    project_name: string;
+  }
+
+  export type Token = {
+    email: string;
+    name: string;
+    permissions: { [name: string]: Permission };
+    flags: string[];
+  }
+
   export function isGuest(user: any, project_name: string): boolean;
+  export function parseToken(token: string): Token;
 }

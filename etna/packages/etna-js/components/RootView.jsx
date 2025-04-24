@@ -8,6 +8,7 @@ import {selectProjects} from '../selectors/janus-selector';
 import {projectNameFull} from '../utils/janus';
 import {fetchProjectsAction} from '../actions/janus-actions';
 import {useActionInvoker} from '../hooks/useActionInvoker';
+import {useFeatureFlag} from '../hooks/useFeatureFlag';
 
 const Project = ({project_name, project_name_full, role, privileged}) => (
   <div className='project'>
@@ -48,6 +49,8 @@ const ProjectList = ({title, projects}) => {
 
 const RootView = () => {
   const invoke = useActionInvoker();
+  const canCommunity = !useFeatureFlag('external');
+
   const {my_projects, resourceProjects, communityProjects} = useReduxState(
     (state) => {
       let permissions = selectUserPermissions(state);
@@ -82,7 +85,7 @@ const RootView = () => {
     <div className='root-view'>
       <ProjectList title='Your Projects' projects={my_projects} />
       <ProjectList title='Resource Projects' projects={resourceProjects} />
-      <ProjectList title='Community Projects' projects={communityProjects} />
+      {canCommunity && <ProjectList title='Community Projects' projects={communityProjects} />}
     </div>
   );
 };

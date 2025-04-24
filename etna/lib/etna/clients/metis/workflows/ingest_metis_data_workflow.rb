@@ -36,7 +36,7 @@ module Etna
         def copy_file(dest:, src:, &block)
           ingest_filesystem.with_readable(src, "r") do |io|
             metis_filesystem.do_streaming_upload(io, dest, ingest_filesystem.stat(src).size)
-            yield dest, true if block_given?
+            yield src, true if block_given?
           end
         end
       end

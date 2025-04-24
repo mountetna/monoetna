@@ -3,21 +3,28 @@
     :default_tag: latest
   :janus:
     :host: https://janus.development.local
+    :hmac_key: haggis
   :timur:
     :host: https://timur.development.local
+    :hmac_key: haggis
   :magma:
     :host: https://magma.development.local
+    :hmac_key: haggis
   :vulcan:
     :host: https://vulcan.development.local
+    :hmac_key: haggis
   :metis:
     :host: https://metis.development.local
+    :hmac_key: haggis
     :release_bucket: this_is_releasable
     :restrict_bucket: dont_show_anyone
   :polyphemus:
     :host: https://polyphemus.development.local
+    :hmac_key: haggis
     :token: my-token # create a long lived token with janus
   :gnomon:
     :host: https://gnomon.development.local
+    :hmac_key: haggis
   :log_file: /dev/stdout
   :db:
     :adapter: postgres
@@ -41,7 +48,6 @@
     CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
     NQIDAQAB
     -----END PUBLIC KEY-----
-  :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.development.local
   :etl_secrets_key: A2345678901234567890123456789012
@@ -65,12 +71,15 @@
 :test:
   :magma:
     :host: https://magma.test
+    :hmac_key: haggis
   :metis:
     :host: https://metis.test
+    :hmac_key: haggis
     :release_bucket: release
     :restrict_bucket: restrict
   :polyphemus:
     :host: https://polyphemus.test
+    :hmac_key: haggis
     :token: e30=.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJmaXJzdCI6ImZpcnN0IiwibGFzdCI6Imxhc3QiLCJleHAiOjg2NDAxNjA4MTM2NjM1fQ==
     # This is a development token and is safe to make public, does not leak anything about production or staging values
     # and cannot be used in a sensitive way.
@@ -78,8 +87,10 @@
     # It is a Base64 version of {:email=>"user@example.com", :first=>"first", :last=>"last", :exp=>86401608136635}
   :janus:
     :host: https://janus.test
+    :hmac_key: haggis
   :timur:
     :host: https://timur.test
+    :hmac_key: haggis
   :db:
     :adapter: postgres
     :host: polyphemus_db
@@ -88,7 +99,6 @@
     :password: password
     :search_path: [ public ]
   :log_file: /dev/stdout
-  :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.test
   :etl_secrets_key: A2345678901234567890123456789012

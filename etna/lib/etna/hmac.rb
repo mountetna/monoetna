@@ -46,7 +46,7 @@ module Etna
     end
 
     def signature
-      @application.sign.hmac(text_to_sign, @application.config(:hmac_keys)[@id])
+      @application.sign.hmac(text_to_sign, @application.config(@id)[:hmac_key])
     end
 
     private
@@ -60,8 +60,8 @@ module Etna
     end
 
     def valid_id?
-      return false if !@application.config(:hmac_keys)
-      @application.config(:hmac_keys).key?(@id)
+      return false if !@application.config(@id)
+      @application.config(@id).key?(:hmac_key)
     end
 
     # This scheme is adapted from the Hawk spec

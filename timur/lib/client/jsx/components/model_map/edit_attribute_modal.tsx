@@ -89,6 +89,8 @@ export default function EditAttributeModal({
     [updatedAttribute]
   );
 
+  const validation_length_limit = 2000;
+
   return (
     <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Edit Attribute' saveDisabled={disabled}>
         <ShrinkingLabelTextField
@@ -136,26 +138,33 @@ export default function EditAttributeModal({
             updateAttribute([['format_hint', e.target.value]])
           }
         />
-        <ModalSelect
-          id='edit-attribute-validation-type'
-          label='Validation Type'
-          value={validationType}
-          onChange={(value: string) => {
-            setValidationValue('');
-            setValidationType(value);
-          }}
-          options={VALIDATION_TYPES}
-        />
+        {attribute.attribute_type!='matrix' && (
+          <ModalSelect
+            id='edit-attribute-validation-type'
+            label='Validation Type'
+            value={validationType}
+            onChange={(value: string) => {
+              setValidationValue('');
+              setValidationType(value);
+            }}
+            options={VALIDATION_TYPES}
+          />
+        )}
         {validationType && (
           <ShrinkingLabelTextField
             id='edit-attribute-validation-value'
             label={`Validation ${
-              isArrayValidation ? 'Array (comma-separated list)' : 'Regex'
+              isArrayValidation ?
+                attribute.attribute_type=='matrix' ?
+                  `Array (comma-separated list) -- UI length limit: ${validationValue.length} / 2000 characters` :
+                  'Array (comma-separated list)' :
+                'Regex'
             }`}
-            value={validationValue}
-            onChange={(e: React.ChangeEvent<any>) =>
-              setValidationValue(e.target.value)
-            }
+            disabled={validationValue.length > validation_length_limit}
+            value={validationValue.length <= validation_length_limit ? validationValue : 'Validation too long to edit here'}
+            onChange={(e: React.ChangeEvent<any>) => {
+              if (e.target.value.length <= validation_length_limit) setValidationValue(e.target.value)
+            }}
             pattern={isArrayValidation ? COMMA_SEP_WITH_SPACES : null}
           />
         )}

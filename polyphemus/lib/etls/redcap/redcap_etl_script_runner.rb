@@ -14,21 +14,35 @@ require_relative 'lib/filter'
 
 require_relative '../etl_script_runner'
 require_relative '../../magma_record_etl'
+require_relative '../../data_eng/workflow_manifests/redcap_loader'
 
 class Polyphemus
   class RedcapEtlScriptRunner < EtlScriptRunner
 
-    attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :dateshift_salt, :mode
+    def self.modes
+      Polyphemus::RedcapLoaderManifest.as_json.dig(
+        :runtime_params, :mode, :values
+      ).map do |value|
+        value[:value]
+      end
+    end
+
+    def self.default_mode
+      Polyphemus::RedcapLoaderManifest.as_json.dig(
+        :runtime_params, :mode, :default
+      )
+    end
+
+    attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :mode
 
     # Override initialize, user won't be passing in a filename directly as with other ETLs.
-    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:, mode: 'default', config:, page_size: 20000)
-      raise "No dateshift_salt provided, please provide one." unless dateshift_salt
-      raise "Mode must be \"default\", \"existing\", or \"strict\"." unless ['default', 'existing', 'strict'].include?(mode)
+    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, mode: Polyphemus::RedcapEtlScriptRunner.default_mode, config:, page_size: 20000)
+      raise "Mode must be one of #{Polyphemus::RedcapEtlScriptRunner.modes.join(", ")}." unless Polyphemus::RedcapEtlScriptRunner.modes.include?(mode)
       raise "Must provide at least one REDCap token." unless redcap_tokens && redcap_tokens.length > 0
 
       @file_path = File.join(File.dirname(__FILE__), 'projects', "#{project_name}.rb")
 
-      raise "Project configuration does not exist." unless File.file?(@file_path)
+      #raise "Project configuration does not exist." unless File.file?(@file_path)
 
       @project_name = project_name
       @model_names = model_names == 'all' ? model_names : model_names.split(/,\s*/)
@@ -40,7 +54,6 @@ class Polyphemus
 
       @redcap_host = redcap_host
       @magma_host = magma_host
-      @dateshift_salt = dateshift_salt
       @mode = mode # operating mode: nil, "strict", "existing"
       @page_size = page_size
     end
@@ -131,7 +144,7 @@ class Polyphemus
 
       # For some reason in the Puma environment, can't pass
       #   self.__binding__ here -- throws an UndefinedMethod exception.
-      run_script(self.get_binding)
+      run_script(self.get_binding) if File.file?(@file_path)
 
       loader = Redcap::Loader.new(system_config, @project_name, magma_client, logger)
 
@@ -173,7 +186,6 @@ class Polyphemus
     def system_config
       {
         tokens: redcap_tokens,
-        dateshift_salt: dateshift_salt,
         redcap_host: redcap_host,
         magma_host: magma_host,
         project_name: @project_name,

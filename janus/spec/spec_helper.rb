@@ -14,6 +14,7 @@ require_relative '../lib/server/throttle'
 require_relative '../lib/server/refresh_token'
 
 require 'etna/spec/vcr'
+require 'etna/spec/event_log'
 
 ENV['JANUS_ENV'] = 'test'
 

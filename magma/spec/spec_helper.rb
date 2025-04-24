@@ -12,6 +12,7 @@ require 'bundler'
 Bundler.require(:default, :test)
 
 require 'etna'
+require 'etna/spec/event_log'
 
 
 ENV['MAGMA_ENV'] = 'test'
@@ -29,7 +30,7 @@ Magma.instance.configure(YAML.load(File.read('config.yml')))
 # most reliable way to force migrations and project setup.  Furthermore, sequel requires object full reloads when performing
 # certain kinds of reflection + migrations during runtime, so we're forced to flush and reload a bunch all over the place.
 # This can get nicer with deeper plumbing of the way sequel is used in magma and improvements to the csv interface.
-def load_labors_project
+def reset_labors_project
   Magma.instance.db[:attributes].truncate
   Magma.instance.db[:models].truncate
 
@@ -48,6 +49,12 @@ BEGIN
 END
 $$;
   SQL
+end
+
+def load_labors_project
+  stub_event_log
+  reset_labors_project
+  WebMock.enable!
 
   Magma.instance.setup_sequel
   Magma.instance.setup_logger

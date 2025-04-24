@@ -5,7 +5,6 @@ describe Redcap::Loader do
         project_name: 'test2',
         models_to_build: models.keys.map(&:to_s),
         tokens: ["faketoken"],
-        dateshift_salt: '123',
         redcap_host: REDCAP_HOST,
         magma_host: MAGMA_HOST,
         config: models
