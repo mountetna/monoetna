@@ -33,7 +33,7 @@ export function useDataSync(
     if (update_files && !!workspaceId && !!projectName) {
       console.log("Using data buffering")
       let update = {output_files: [] as string[], file_contents: {} as {[k: string]: any}};
-      showErrors(getFileNames(projectName, workspaceId))
+      showErrors(getFileNames(projectName, workspaceId), (e) => {dispatch(updateFiles(update))})
       .then((fileNamesRaw) => {
         const fileNames = fileNamesRaw.files;
         update['output_files'] = fileNames;
@@ -53,7 +53,7 @@ export function useDataSync(
           // Grab non-stubbed files
           const files = filesReady.filter(f => !Object.keys(filesContent).includes(f));
           if (files.length > 0) {
-            showErrors(readFiles(projectName, workspaceId, files))
+            showErrors(readFiles(projectName, workspaceId, files), (e) => {dispatch(updateFiles(update))})
             .then((filesContentRaw) => {
               update['file_contents'] = {
                 ...filesContent,
