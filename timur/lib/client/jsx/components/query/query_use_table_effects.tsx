@@ -1,4 +1,5 @@
 import React, {useMemo, useCallback} from 'react';
+import {Attribute} from 'etna-js/models/magma-model';
 import * as _ from 'lodash';
 
 import {
@@ -49,9 +50,9 @@ const useTableEffects = ({
 
         if (!attribute) return acc;
 
-        let isMatrix: boolean = !!graph.models.model(column.model_name)
-          ?.attribute(column.attribute_name)
-          ?.isType('matrix');
+        let isMatrix: boolean = !!graph.models.attribute(
+          column.model_name, column.attribute_name
+        )?.isType('matrix');
 
         let matrixHeadings: string[] = [];
 
@@ -67,7 +68,7 @@ const useTableEffects = ({
               label: `${column.display_label}.${heading}`,
               colId: `${generateIdCol(column, index)}.${heading}`,
               modelName: column.model_name,
-              attribute,
+              attribute: attribute as Attribute,
               matrixHeadings,
               predicate: column.predicate
             });
@@ -77,7 +78,7 @@ const useTableEffects = ({
             label: column.display_label,
             colId: generateIdCol(column, index),
             modelName: column.model_name,
-            attribute,
+            attribute: attribute as Attribute,
             matrixHeadings,
             predicate: column.predicate
           });

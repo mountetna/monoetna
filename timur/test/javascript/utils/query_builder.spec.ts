@@ -75,7 +75,7 @@ describe('QueryBuilder', () => {
       expect(builder.query()).toEqual([
         'subject',
         [
-          'biospecimen',
+          'experiment',
           [
             'biospecimen_group',
             ['sc_seq', ['::has', 'tube_name'], '::any'],

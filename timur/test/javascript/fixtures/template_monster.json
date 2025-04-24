@@ -107,7 +107,7 @@
       "read_only": false,
       "hidden": false,
       "validation": null,
-      "attribute_type": "link"
+      "attribute_type": "child"
     }
   },
   "identifier": "name",

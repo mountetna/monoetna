@@ -2,7 +2,6 @@ import React from 'react';
 import nock from 'nock';
 import thunk from 'redux-thunk';
 import configureMockStore from 'redux-mock-store';
-import fetch from 'isomorphic-fetch';
 import {Provider} from 'react-redux';
 import {StylesOptions, StylesProvider} from '@material-ui/styles/';
 
@@ -63,7 +62,7 @@ export const mockDate = () => {
   global.Date = jest.fn(() => currentDate) as any;
 };
 
-export const mockFetch = () => (global.fetch = fetch);
+export const mockFetch = () => {};
 
 export const generateClassName: StylesOptions['generateClassName'] = (
   rule,

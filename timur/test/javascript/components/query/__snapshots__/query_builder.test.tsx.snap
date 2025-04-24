@@ -40,7 +40,7 @@ exports[`QueryBuilder renders 1`] = `
         <button
           aria-label="raw"
           aria-pressed="true"
-          class="MuiButtonBase-root MuiToggleButton-root MuiToggleButtonGroup-grouped MuiToggleButtonGroup-groupedHorizontal MuiToggleButton-selected MuiToggleButton-sizeSmall"
+          class="MuiButtonBase-root MuiToggleButton-root MuiToggleButtonGroup-grouped MuiToggleButtonGroup-groupedHorizontal MuiToggleButton-selected MuiToggleButton-sizeSmall MuiButtonBase-focusVisible"
           tabindex="0"
           type="button"
           value="raw"
@@ -81,6 +81,30 @@ exports[`QueryBuilder renders 1`] = `
             >
               <path
                 d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"
+              />
+            </svg>
+          </span>
+        </button>
+        <button
+          aria-label="history"
+          aria-pressed="false"
+          class="MuiButtonBase-root MuiToggleButton-root MuiToggleButtonGroup-grouped MuiToggleButtonGroup-groupedHorizontal MuiToggleButton-sizeSmall"
+          tabindex="0"
+          type="button"
+          value="history"
+        >
+          <span
+            class="MuiToggleButton-label"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
+              focusable="false"
+              title="Search History"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M17.01 14h-.8l-.27-.27c.98-1.14 1.57-2.61 1.57-4.23 0-3.59-2.91-6.5-6.5-6.5s-6.5 3-6.5 6.5H2l3.84 4 4.16-4H6.51C6.51 7 8.53 5 11.01 5s4.5 2.01 4.5 4.5c0 2.48-2.02 4.5-4.5 4.5-.65 0-1.26-.14-1.82-.38L7.71 15.1c.97.57 2.09.9 3.3.9 1.61 0 3.08-.59 4.22-1.57l.27.27v.79l5.01 4.99L22 19l-4.99-5z"
               />
             </svg>
           </span>
@@ -172,6 +196,20 @@ exports[`QueryBuilder renders 1`] = `
                 </svg>
               </span>
               Copy Link
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+          <button
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button MuiButton-textSecondary"
+            tabindex="0"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              Save Query
             </span>
             <span
               class="MuiTouchRipple-root"
@@ -565,11 +603,11 @@ exports[`QueryBuilder renders 1`] = `
                 data-rbd-droppable-id="columns"
               >
                 <div
-                  class="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-column"
+                  class="MuiGrid-root makeStyles-row MuiGrid-container"
                   style="text-decoration: none;"
                 >
                   <div
-                    class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
+                    class="MuiGrid-root makeStyles-attribute MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
                   >
                     <button
                       class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-number MuiButton-textSizeSmall MuiButton-sizeSmall"
@@ -607,11 +645,10 @@ exports[`QueryBuilder renders 1`] = `
                         name
                       </span>
                     </div>
-                    <p
-                      class="MuiTypography-root MuiTypography-body1"
-                    >
-                       as column 
-                    </p>
+                  </div>
+                  <div
+                    class="MuiGrid-root makeStyles-column MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
+                  >
                     <div
                       class="MuiFormControl-root MuiTextField-root makeStyles-column_input"
                     >
@@ -621,6 +658,7 @@ exports[`QueryBuilder renders 1`] = `
                         <input
                           aria-invalid="false"
                           class="MuiInputBase-input MuiInput-input MuiInputBase-inputMarginDense MuiInput-inputMarginDense"
+                          placeholder="column name"
                           type="text"
                           value="monster.name"
                         />
@@ -639,11 +677,11 @@ exports[`QueryBuilder renders 1`] = `
                   tabindex="0"
                 >
                   <div
-                    class="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-column"
+                    class="MuiGrid-root makeStyles-row MuiGrid-container"
                     style="text-decoration: none;"
                   >
                     <div
-                      class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
+                      class="MuiGrid-root makeStyles-attribute MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
                     >
                       <button
                         class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-number MuiButton-textPrimary MuiButton-textSizeSmall MuiButton-sizeSmall"
@@ -681,11 +719,10 @@ exports[`QueryBuilder renders 1`] = `
                           name
                         </span>
                       </div>
-                      <p
-                        class="MuiTypography-root MuiTypography-body1"
-                      >
-                         as column 
-                      </p>
+                    </div>
+                    <div
+                      class="MuiGrid-root makeStyles-column MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
+                    >
                       <div
                         class="MuiFormControl-root MuiTextField-root makeStyles-column_input"
                       >
@@ -695,6 +732,7 @@ exports[`QueryBuilder renders 1`] = `
                           <input
                             aria-invalid="false"
                             class="MuiInputBase-input MuiInput-input MuiInputBase-inputMarginDense MuiInput-inputMarginDense"
+                            placeholder="column name"
                             type="text"
                             value="prize.name"
                           />
@@ -917,11 +955,11 @@ exports[`QueryBuilder renders 1`] = `
                   tabindex="0"
                 >
                   <div
-                    class="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-column"
+                    class="MuiGrid-root makeStyles-row MuiGrid-container"
                     style="text-decoration: none;"
                   >
                     <div
-                      class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
+                      class="MuiGrid-root makeStyles-attribute MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
                     >
                       <button
                         class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-number MuiButton-textPrimary MuiButton-textSizeSmall MuiButton-sizeSmall"
@@ -959,11 +997,10 @@ exports[`QueryBuilder renders 1`] = `
                           name
                         </span>
                       </div>
-                      <p
-                        class="MuiTypography-root MuiTypography-body1"
-                      >
-                         as column 
-                      </p>
+                    </div>
+                    <div
+                      class="MuiGrid-root makeStyles-column MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
+                    >
                       <div
                         class="MuiFormControl-root MuiTextField-root makeStyles-column_input"
                       >
@@ -973,6 +1010,7 @@ exports[`QueryBuilder renders 1`] = `
                           <input
                             aria-invalid="false"
                             class="MuiInputBase-input MuiInput-input MuiInputBase-inputMarginDense MuiInput-inputMarginDense"
+                            placeholder="column name"
                             type="text"
                             value="prize.name"
                           />
@@ -1145,11 +1183,11 @@ exports[`QueryBuilder renders 1`] = `
                   tabindex="0"
                 >
                   <div
-                    class="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-column"
+                    class="MuiGrid-root makeStyles-row MuiGrid-container"
                     style="text-decoration: none;"
                   >
                     <div
-                      class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
+                      class="MuiGrid-root makeStyles-attribute MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
                     >
                       <button
                         class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-number MuiButton-textPrimary MuiButton-textSizeSmall MuiButton-sizeSmall"
@@ -1187,11 +1225,10 @@ exports[`QueryBuilder renders 1`] = `
                           country
                         </span>
                       </div>
-                      <p
-                        class="MuiTypography-root MuiTypography-body1"
-                      >
-                         as column 
-                      </p>
+                    </div>
+                    <div
+                      class="MuiGrid-root makeStyles-column MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
+                    >
                       <div
                         class="MuiFormControl-root MuiTextField-root makeStyles-column_input"
                       >
@@ -1201,6 +1238,7 @@ exports[`QueryBuilder renders 1`] = `
                           <input
                             aria-invalid="false"
                             class="MuiInputBase-input MuiInput-input MuiInputBase-inputMarginDense MuiInput-inputMarginDense"
+                            placeholder="column name"
                             type="text"
                             value="victim.country"
                           />

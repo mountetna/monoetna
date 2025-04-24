@@ -178,13 +178,7 @@ exports[`ModelMap for model with no records renders 1`] = `
         </div>
       </div>
       <div
-        className="MuiGrid-root makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
-        sx={
-          Object {
-            "flexWrap": "nowrap",
-            "width": "auto",
-          }
-        }
+        className="MuiGrid-root makeStyles-container-24 makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
       >
         <div
           className="MuiFormControl-root MuiTextField-root makeStyles-filter-23 MuiFormControl-fullWidth"
@@ -723,13 +717,7 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
         </div>
       </div>
       <div
-        className="MuiGrid-root makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
-        sx={
-          Object {
-            "flexWrap": "nowrap",
-            "width": "auto",
-          }
-        }
+        className="MuiGrid-root makeStyles-container-24 makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
       >
         <div
           className="MuiFormControl-root MuiTextField-root makeStyles-filter-23 MuiFormControl-fullWidth"
@@ -1292,7 +1280,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
         >
           <button
             aria-label="Add Attribute"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-58"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59"
             tabindex="0"
             title="Add Attribute"
             type="button"
@@ -1322,7 +1310,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
           </button>
           <button
             aria-label="Add Link"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-58"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59"
             tabindex="0"
             title="Add Link"
             type="button"
@@ -1352,7 +1340,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
           </button>
           <button
             aria-label="Add Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-58"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59"
             tabindex="0"
             title="Add Model"
             type="button"
@@ -1382,7 +1370,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
           </button>
           <button
             aria-label="Copy Model Attributes"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-58"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59"
             tabindex="0"
             title="Copy Model Attributes"
             type="button"
@@ -1416,7 +1404,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
             title="Reparent Model"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-58"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59"
               tabindex="0"
               type="button"
             >
@@ -1450,7 +1438,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
             title="Cannot remove a model with any attribute of the types: table, child, collection"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-58 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
@@ -1478,8 +1466,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
           </span>
         </div>
         <div
-          class="MuiGrid-root makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
-          sx="[object Object]"
+          class="MuiGrid-root makeStyles-container-24 makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
         >
           <div
             class="MuiFormControl-root MuiTextField-root makeStyles-filter-23 MuiFormControl-fullWidth"
@@ -2252,8 +2239,7 @@ exports[`ModelMap for model with no records renders with model action buttons fo
           </span>
         </div>
         <div
-          class="MuiGrid-root makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
-          sx="[object Object]"
+          class="MuiGrid-root makeStyles-container-24 makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
         >
           <div
             class="MuiFormControl-root MuiTextField-root makeStyles-filter-23 MuiFormControl-fullWidth"
@@ -2686,7 +2672,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
         >
           <button
             aria-label="Add Attribute"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-69"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-71"
             tabindex="0"
             title="Add Attribute"
             type="button"
@@ -2716,7 +2702,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
           </button>
           <button
             aria-label="Add Link"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-69"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-71"
             tabindex="0"
             title="Add Link"
             type="button"
@@ -2746,7 +2732,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
           </button>
           <button
             aria-label="Add Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-69"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-71"
             tabindex="0"
             title="Add Model"
             type="button"
@@ -2776,7 +2762,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
           </button>
           <button
             aria-label="Copy Model Attributes"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-69"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-71"
             tabindex="0"
             title="Copy Model Attributes"
             type="button"
@@ -2810,7 +2796,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
             title="Determining if reparenting is possible"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-69 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-71 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
@@ -2842,7 +2828,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
             title="Remove Model"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-69"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-71"
               tabindex="0"
               type="button"
             >
@@ -2872,8 +2858,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
           </span>
         </div>
         <div
-          class="MuiGrid-root makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
-          sx="[object Object]"
+          class="MuiGrid-root makeStyles-container-24 makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
         >
           <div
             class="MuiFormControl-root MuiTextField-root makeStyles-filter-23 MuiFormControl-fullWidth"
@@ -3248,8 +3233,7 @@ exports[`ModelMap for model with no records renders without model action buttons
           </div>
         </div>
         <div
-          class="MuiGrid-root makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
-          sx="[object Object]"
+          class="MuiGrid-root makeStyles-container-24 makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
         >
           <div
             class="MuiFormControl-root MuiTextField-root makeStyles-filter-23 MuiFormControl-fullWidth"

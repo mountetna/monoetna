@@ -31,21 +31,6 @@ export const selectAllowedModelAttributes = (
   );
 };
 
-export const selectMatrixAttributes = (
-  attributes: Attribute[],
-  selectedAttributes: QueryColumn[]
-): Attribute[] => {
-  const selectedAttributeNames = selectedAttributes.map(
-    (attr) => attr.attribute_name
-  );
-
-  return attributes.filter(
-    (attr) =>
-      'matrix' === attr.attribute_type &&
-      selectedAttributeNames.includes(attr.attribute_name)
-  );
-};
-
 export const getPath = (
   array: any[],
   heading: string,

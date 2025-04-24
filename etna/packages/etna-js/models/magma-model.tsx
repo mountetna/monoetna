@@ -41,7 +41,8 @@ export interface Attribute extends AttributeObject {};
 
 const LINK_TYPES = [ 'collection', 'table', 'child', 'parent', 'link' ];
 const LINK_FOREIGN_KEY_TYPES = [ 'parent', 'link' ];
-const LINK_COLLECTION_TYPES = [ 'collection', 'table', 'child' ];
+const LINK_COLLECTION_TYPES = [ 'collection', 'table' ];
+const LINK_CHILD_TYPES = [ 'collection', 'table', 'child' ];
 
 const FILE_TYPES = [ 'file', 'image', 'file_collection' ];
 
@@ -60,6 +61,10 @@ export class Attribute {
   }
 
   isChildLink(): boolean {
+    return LINK_CHILD_TYPES.includes(this.attribute_type);
+  }
+
+  isCollectionLink(): boolean {
     return LINK_COLLECTION_TYPES.includes(this.attribute_type);
   }
 
@@ -109,7 +114,7 @@ export class Model {
 
   collects(modelName: string): boolean {
     return this.hasAttribute(
-      (a: Attribute) => a.isChildLink() && a.link_model_name == modelName
+      (a: Attribute) => a.isCollectionLink() && a.link_model_name == modelName
     );
   }
 }

@@ -10,6 +10,14 @@ import {Blob as BlobPolyfill} from 'blob-polyfill';
 global.Response = Response;
 global.Blob = BlobPolyfill;
 
+global.fetch_orig = global.fetch;
+global.fetch = (url, ...params) => {
+  if (url.startsWith('http'))
+    return fetch_orig(url, ...params);
+  else
+    return fetch_orig(`http://localhost${url}`, ...params);
+}
+
 // To get CodeMirror to work correctly during tests:
 // https://github.com/jsdom/jsdom/issues/3002
 document.createRange = () => {

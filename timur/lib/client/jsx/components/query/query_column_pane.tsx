@@ -107,7 +107,7 @@ const QueryColumnPane = () => {
 
   const modelChoiceSet = useMemo(
     () => [
-      ...graph.subgraph(rootModel)
+      ...graph.connectedModelsAnd(rootModel)
     ],
     [graph, rootModel]
   );

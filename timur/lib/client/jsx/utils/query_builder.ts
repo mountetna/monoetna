@@ -335,9 +335,9 @@ export class QueryBuilder {
     // Probably only used for File / Image / FileCollection attributes?
     let predicate = [column.attribute_name];
     if (
-      this.graph.models.model(column.model_name)
-	?.attribute(column.attribute_name)
-	?.isFile()
+      this.graph.models.attribute(
+	column.model_name, column.attribute_name
+      )?.isFile()
     ) {
       predicate.push(`::${column.predicate || 'url'}`);
     }

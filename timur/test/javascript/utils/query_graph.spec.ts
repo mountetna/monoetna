@@ -1,49 +1,5 @@
 import {QueryGraph} from '../../../lib/client/jsx/utils/query_graph';
-
-const models = {
-  monster: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../fixtures/template_monster.json')
-  },
-  labor: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../fixtures/template_labor.json')
-  },
-  project: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../fixtures/template_project.json')
-  },
-  victim: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../fixtures/template_victim.json')
-  },
-  wound: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../fixtures/template_wound.json')
-  },
-  habitat: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../fixtures/template_habitat.json')
-  },
-  vegetation: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../fixtures/template_vegetation.json')
-  }
-};
+import {models} from '../fixtures/models';
 
 describe('QueryGraph', () => {
   let graph: QueryGraph;
@@ -61,8 +17,10 @@ describe('QueryGraph', () => {
     expect(Object.keys(graph.graph.children).includes('prize')).toEqual(true);
     expect(Object.keys(graph.graph.parents).includes('prize')).toEqual(true);
     expect(graph.pathsFrom('labor')).toEqual([
+      ['labor', 'monster', 'victim', 'demographics'],
       ['labor', 'monster', 'habitat', 'vegetation'],
       ['labor', 'monster', 'victim', 'wound'],
+      ['labor', 'monster', 'aspect'],
       ['labor', 'prize']
     ]);
   });
@@ -70,26 +28,36 @@ describe('QueryGraph', () => {
   it('provides all paths from a child model, up and down the graph', () => {
     expect(graph.allPaths('prize')).toEqual([
       ['labor', 'project'],
+      ['labor', 'monster', 'victim', 'demographics'],
       ['labor', 'monster', 'habitat', 'vegetation'],
       ['labor', 'monster', 'victim', 'wound'],
-      ['labor', 'prize']
+      ['labor', 'monster', 'aspect']
     ]);
   });
 
   it('correctly returns children and one-to-many status', () => {
     expect(graph.childrenMap('monster')).toEqual({
+      aspect: true,
       habitat: false,
-      victim: true,
-      monster: false
+      victim: true
     });
 
     expect(graph.childrenMap('habitat')).toEqual({
-      vegetation: true,
-      habitat: false
+      vegetation: true
     });
 
-    expect(graph.childrenMap('wound')).toEqual({
-      wound: false
+    expect(graph.childrenMap('wound')).toEqual({});
+  });
+
+  describe('sliceable', () => {
+    it('does not allow root models to be sliced', async () => {
+      expect(graph.sliceable('prize','prize')).toEqual(false);
+    });
+
+    it('allows non-root tables to be sliced', async () => {
+      expect(graph.sliceable('monster','monster')).toEqual(false);
+      expect(graph.sliceable('monster','prize')).toEqual(true);
+      expect(graph.sliceable('monster','aspect')).toEqual(true);
     });
   });
 
@@ -101,7 +69,7 @@ describe('QueryGraph', () => {
 
     it('handles the path laterally from subject -> sc_seq', () => {
       expect(graph.shortestPath('subject', 'sc_seq')).toEqual([
-        'biospecimen',
+        'experiment',
         'biospecimen_group',
         'sc_seq'
       ]);
@@ -110,7 +78,7 @@ describe('QueryGraph', () => {
     it('handles the path laterally from sc_seq -> subject', () => {
       expect(graph.shortestPath('sc_seq', 'subject')).toEqual([
         'biospecimen_group',
-        'biospecimen',
+	'experiment',
         'subject'
       ]);
     });

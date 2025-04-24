@@ -45,7 +45,7 @@ export default function useUriQueryParams({
   // Set current state to reflect query params only on component load
   useEffect(() => {
     const updateState = async () => {
-      if (search === '') return;
+      if (!search || search === '') return;
 
       const paramString = await packParams({rootModel, ...whereState, ...columnState});
       let serializedState = '#' + paramString;

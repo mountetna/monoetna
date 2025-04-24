@@ -33,11 +33,11 @@ export class QueryGraph {
     this.initialized = true;
   }
 
-  subgraph(modelName: string | null): Set<string> {
-    return modelName ? this.descendants(modelName).add(modelName) : new Set();
+  connectedModelsAnd(modelName: string | null): Set<string> {
+    return modelName ? this.connectedModels(modelName).add(modelName) : new Set();
   }
 
-  descendants(modelName: string | null): Set<string> {
+  connectedModels(modelName: string | null): Set<string> {
     return modelName ? new Set(this.allPaths(modelName).flat()) : new Set();
   }
 
@@ -143,10 +143,10 @@ export class QueryGraph {
         parentPaths.map((parentPath: string[]) =>
           parentPath.map((p: string, index: number) =>
             p == 'project' ? [] : this.pathsFrom(p).map(
-              path => parentPath.slice(0, index).concat(path)
+              path => path.includes(modelName) ? [] : parentPath.slice(0, index).concat(path)
             )
           ).flat(1)
-        ).flat(1)
+        ).flat(1).filter(path => path.length > 0)
       );
   }
 
@@ -188,12 +188,17 @@ export class QueryGraph {
     return selectableModels;
   }
 
+  subgraphMap(modelName: string): {[key: string]: boolean} {
+    return {
+      ...this.childrenMap( modelName ),
+      [ modelName ]: false
+    };
+  }
+
   childrenMap(modelName: string): {[key: string]: boolean} {
     // Returns the child models, with a boolean flag
     //   for one-to-many relationships. Includes original model for convenience.
-    let results: {[key: string]: boolean} = {
-      [modelName]: false
-    };
+    let results: {[key: string]: boolean} = { };
 
     Object.keys(this.graph.children[modelName] || {}).forEach(
       (childNeighbor: string) => {

@@ -118,11 +118,7 @@ const QueryFilterControl = ({
     [handlePatchClause]
   );
 
-  const modelChildren = useMemo(() => {
-    if (!filter.modelName || filter.modelName === '') return {};
-
-    return graph.childrenMap(filter.modelName);
-  }, [filter.modelName, graph]);
+  const filterModelsMap = graph.subgraphMap(filter.modelName);
 
   const [ removeHint, setRemoveHint ] = useState(false);
   const [ showControls, setShowControls ] = useState(false);
@@ -172,8 +168,8 @@ const QueryFilterControl = ({
                 key={index}
                 index={index}
                 clause={clause}
-                modelNames={Object.keys(modelChildren)}
-                hasModelChildren={!!modelChildren[clause.modelName]}
+                modelNames={Object.keys(filterModelsMap)}
+                hasModelChildren={!!filterModelsMap[clause.modelName]}
                 patchClause={(updatedClause: QueryClause) =>
                   handlePatchClause(updatedClause, index)
                 }

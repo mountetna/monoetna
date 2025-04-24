@@ -8,39 +8,7 @@ import {mockStore, querySpecWrapper, stubUrl} from '../../helpers';
 import QueryBuilder from '../../../../lib/client/jsx/components/query/query_builder';
 import {QueryGraph} from '../../../../lib/client/jsx/utils/query_graph';
 import {defaultQueryResultsParams} from '../../../../lib/client/jsx/contexts/query/query_results_context';
-
-const models = {
-  monster: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../../fixtures/template_monster.json')
-  },
-  prize: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../../fixtures/template_prize.json')
-  },
-  victim: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../../fixtures/template_victim.json')
-  },
-  labor: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../../fixtures/template_labor.json')
-  },
-  project: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../../fixtures/template_project.json')
-  }
-};
+import {models} from '../../fixtures/models';
 
 describe('QueryBuilder', () => {
   let store;
@@ -58,6 +26,16 @@ describe('QueryBuilder', () => {
       status: 200,
       times: 200,
       response: {answer: ['Greece', 'Italy', 'France']}
+    });
+
+    stubUrl({
+      verb: 'get',
+      host: 'http://localhost',
+      path: '/api/query_history/labors',
+      request: (body) => true,
+      status: 200,
+      times: 200,
+      response: {queries: []}
     });
 
     stubUrl({

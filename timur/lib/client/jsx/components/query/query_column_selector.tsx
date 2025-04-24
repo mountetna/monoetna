@@ -192,8 +192,6 @@ const QueryColumnSelector = React.memo(
       );
     }, [column, graph]);
 
-    console.log({showFilePredicates, column});
-
     const [ removeHint, setRemoveHint ] = useState(false);
     const [ showControls, setShowControls ] = useState(false);
 
