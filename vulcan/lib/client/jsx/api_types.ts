@@ -166,6 +166,7 @@ export const defaultWorkspace: Workspace = {
 export interface FileContentResponse {
   filename: string;
   content: string;
+  encoding: string;
 }
 
 export type MultiFileContentResponse = {files: FileContentResponse[]}

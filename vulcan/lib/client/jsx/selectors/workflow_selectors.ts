@@ -56,9 +56,12 @@ export function uniqueValues(original: any[]) {
   return Array.from(original).filter(onlyUnique);
 }
 
-export function parseIfCan(data: any) {
+export function parseIfCan(data: any, encoding: string) {
   // ToDo: REMOVE
   // console.log({raw: data, parse: data.replace(/\n$/, '').replaceAll(/:(\w+)=>/g, '"$1":').replaceAll(/nil/g, 'null')})
+  if (encoding=='base64') {
+    data = atob(data);
+  }
   try {
     return JSON.parse(data.replace(/\n$/, '').replaceAll(/:(\w+)=>/g, '"$1":').replaceAll(/nil/g, 'null'));
   } catch {
@@ -312,7 +315,7 @@ export function shouldDownloadOutput(
 export function filesReturnToMultiFileContent(filesContent: MultiFileContentResponse): MultiFileContent {
   const output: MultiFileContent = {};
   filesContent.files.forEach(f => {
-    output[f.filename] = parseIfCan(f.content)
+    output[f.filename] = parseIfCan(f.content, f.encoding)
   });
   return output;
 }
