@@ -85,6 +85,10 @@ class Metis
       }
     end
 
+    def size
+      Metis::File.total_size(bucket: self)
+    end
+
     def reserved?
       name == owner
     end
