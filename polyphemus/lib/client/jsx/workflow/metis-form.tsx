@@ -185,7 +185,7 @@ const ModelRow = ({
   children,
   title
 }: {
-  name: string;
+  name?: string;
   children: React.ReactNode;
   title?: string;
 }) => {
