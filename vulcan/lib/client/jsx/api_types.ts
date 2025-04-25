@@ -200,8 +200,8 @@ export type VulcanConfigElement = {
   default?: any;
   doc?: string;
   input?: InputConfig;
-  input_map?: string[];
   output?: OutputConfig;
+  await_files?: string[];
 }
 
 export type InputConfig = {

@@ -456,7 +456,8 @@ export function pendingUIInputStepReady(
   return (
     inputUINames(workspace).includes(step) &&
     pendingStepNames(workspace, status).concat(upcomingStepNames(workspace, status)).includes(step) &&
-    configIOValues(workspace.vulcan_config[step].input?.files).every((id) => id in status.file_contents)
+    configIOValues(workspace.vulcan_config[step].input?.files).every((id) => id in status.file_contents) &&
+    workspace.vulcan_config[step].await_files?.every((id) => id in status.output_files)
   );
 }
 
