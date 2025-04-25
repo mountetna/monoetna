@@ -36,7 +36,7 @@ export function useLocalSessionStorage(
           projectName: state.projectName
         }),
         // What should this look like???
-        JSON.stringify({workspace: {...workspace}, status: {...status}})
+        JSON.stringify({workspace: {...workspace}, status: {...status, file_contents: {}}})
       );
     }
   }, [storage, workflow, workspace, workspaceId, status]);
