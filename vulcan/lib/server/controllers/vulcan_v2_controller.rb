@@ -62,6 +62,7 @@ class VulcanV2Controller < Vulcan::Controller
         @remote_manager.checkout_version(workspace_dir, @escaped_params[:git_version])
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
         @remote_manager.mkdir(Vulcan::Path.workspace_output_dir(workspace_dir))
+        @remote_manager.touch("#{Vulcan::Path.workspace_output_dir(workspace_dir)}/.keep")
         @remote_manager.upload_dir(Vulcan.instance.config(:snakemake_profile_dir), workspace_dir, true)
         config = @remote_manager.read_yaml_file(Vulcan::Path.default_snakemake_config(workspace_dir))
         obj = Vulcan::Workspace.create(
