@@ -287,6 +287,11 @@ class TestRemoteServerManager < Vulcan::RemoteManager
     !result[:stdout].strip.empty?
   end
 
+  def cp_file(src, dest)
+    command = "cp #{src} #{dest}"
+    invoke_ssh_command(command)
+  end
+
 end
 
 

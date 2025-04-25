@@ -512,27 +512,37 @@ describe VulcanV2Controller do
       setup_workspace
     end
 
-    it 'requests a file from the workspace' do
-      # Write a file to the workspace
+    it 'requests a UTF-8 file from the workspace' do
       workspace_id = Vulcan::Workspace.all[0].id
+      utf8_content = "This is a test file, with UTF-8 content: こïv"
       request = {
         files: [{
-          filename: "test_file_name",
-          content: "This is a test file, with content 1"
+          filename: "utf8_file.txt",
+          content: utf8_content
         }]
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
       expect(last_response.status).to eq(200)
 
-      # Read that file
       request = {
-        file_names: ["test_file_name"]
+        file_names: ["utf8_file.txt"]
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/read", request)
-      expect(json_body[:files][0][:content]).to eq("This is a test file, with content 1")
       expect(last_response.status).to eq(200)
+      expect(json_body[:files][0][:content]).to eq(utf8_content)
+      expect(json_body[:files][0][:encoding]).to eq("utf-8")
     end
 
+    it 'handles binary file correctly' do
+      workspace = Vulcan::Workspace.all[0]
+      remote_manager.cp_file("/test-utils/example.bin","#{workspace.path}/output/example.bin")
+      request = {
+        file_names: ["example.bin"]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/read", request)
+      expect(last_response.status).to eq(200)
+      expect(json_body[:files][0][:encoding]).to eq("base64")
+    end
 
     it 'handles json correctly' do
       auth_header(:editor)
@@ -548,12 +558,12 @@ describe VulcanV2Controller do
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", request)
       expect(last_response.status).to eq(200)
 
-      # Read that file
       request = {
         file_names: ["test_file_name"]
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/read", request)
       expect(json_body[:files][0][:content]).to eq(json_content)
+      expect(json_body[:files][0][:encoding]).to eq("utf-8")
       expect(last_response.status).to eq(200)
     end
 
