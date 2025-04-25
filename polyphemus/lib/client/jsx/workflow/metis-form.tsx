@@ -20,6 +20,7 @@ import CopyIcon from '@material-ui/icons/FileCopy';
 import Pagination from '@material-ui/lab/Pagination';
 import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import {MagmaContext} from 'etna-js/contexts/magma-context';
 
 import {SchemaContext, SchemaProvider} from './schema-context';
 import {PickBucket} from 'etna-js/components/metis_exploration';
@@ -184,7 +185,7 @@ const ModelRow = ({
   children,
   title
 }: {
-  name: string;
+  name?: string;
   children: React.ReactNode;
   title?: string;
 }) => {
@@ -258,54 +259,62 @@ const MetisModel = ({
     [config, update, scripts]
   );
 
+  const {models} = useContext(MagmaContext);
+
   return (
     <Grid className={classes.model} container>
       <ModelRow name='remove'>
         <Button onClick={() => update(undefined)}>Remove model</Button>
       </ModelRow>
-      <ModelRow name='scripts'>
-        <Button
-          onClick={() =>
-            update({...config, scripts: [{}, ...scripts]})
-          }
-        >
-          <AddIcon fontSize='small' /> Add Script
-        </Button>
-        {(pages > 1 || pageSize != 5) && (
-          <>
-            <Typography className={classes.page_size}>Page size</Typography>
-            <Select
-              value={pageSize}
-              onChange={(e) => setPageSize(e.target.value as number)}
-            >
-              {[5, 10, 100].map((n) => (
-                <MenuItem key={n} value={n}>
-                  {n}
-                </MenuItem>
-              ))}
-            </Select>
-            <Pagination
-              count={pages}
-              page={page}
-              onChange={(e, v) => setPage(v)}
-            />
-          </>
-        )}
-        {page_scripts.map((script: Script | undefined, i: number) => (
-          <MetisScript
-            key={i}
-            script={script}
-            num={i + (page - 1) * pageSize + 1}
-            modelName={modelName}
-            projectName={projectName}
-            bucketName={bucketName}
-            update={(newScript: Script | undefined) =>
-              handleUpdateScript(i, newScript)
+      {
+        !(modelName in models) ?
+        <ModelRow>
+          <Typography color='error'>{modelName}</Typography>&nbsp;is not defined for this project.
+        </ModelRow> :
+        <ModelRow name='scripts'>
+          <Button
+            onClick={() =>
+              update({...config, scripts: [{}, ...scripts]})
             }
-            copy={() => handleCopyScript(i + (page - 1) * pageSize, script)}
-          />
-        ))}
-      </ModelRow>
+          >
+            <AddIcon fontSize='small' /> Add Script
+          </Button>
+          {(pages > 1 || pageSize != 5) && (
+            <>
+              <Typography className={classes.page_size}>Page size</Typography>
+              <Select
+                value={pageSize}
+                onChange={(e) => setPageSize(e.target.value as number)}
+              >
+                {[5, 10, 100].map((n) => (
+                  <MenuItem key={n} value={n}>
+                    {n}
+                  </MenuItem>
+                ))}
+              </Select>
+              <Pagination
+                count={pages}
+                page={page}
+                onChange={(e, v) => setPage(v)}
+              />
+            </>
+          )}
+          {page_scripts.map((script: Script | undefined, i: number) => (
+            <MetisScript
+              key={i}
+              script={script}
+              num={i + (page - 1) * pageSize + 1}
+              modelName={modelName}
+              projectName={projectName}
+              bucketName={bucketName}
+              update={(newScript: Script | undefined) =>
+                handleUpdateScript(i, newScript)
+              }
+              copy={() => handleCopyScript(i + (page - 1) * pageSize, script)}
+            />
+          ))}
+        </ModelRow>
+      }
     </Grid>
   );
 };
