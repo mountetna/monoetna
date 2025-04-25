@@ -297,13 +297,24 @@ class VulcanV2Controller < Vulcan::Controller
     raise Etna::BadRequest.new("No files provided") if file_names.empty?
     file_contents = file_names.map do |file_name|
       output_path = Vulcan::Path.workspace_output_dir(workspace.path)
-      content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
+      payload = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
+      utf8 = payload.dup.force_encoding('UTF-8')
+      if utf8.valid_encoding?
+        # safe to treat as UTF-8 text
+        encoding = 'utf-8'
+        content  = utf8.scrub.chomp
+      else
+        encoding = 'base64'
+        content  = Base64.strict_encode64(payload)
+      end
       {
         filename: file_name,
-        content: content.chomp
+        content:  content,
+        encoding: encoding
       }
     end
-    success_json({files: file_contents})
+
+    success_json(files: file_contents)
   end
 
   def get_files

@@ -45,8 +45,9 @@ class Vulcan
         # Optional flags and arguments
         cmd << "--workflow-profile #{@options[:workflow_profile_path]}" unless @options[:workflow_profile_path].nil?
         cmd << "--cores 1" if @options[:local]
+        cmd << "--use-singularity" # For now we always use singularity
+
         unless @options[:singularity_args].nil?
-          cmd << "--use-singularity"
           cmd << "--singularity-args '#{Shellwords.escape(@options[:singularity_args])}'"
         end
 
