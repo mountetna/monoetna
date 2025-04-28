@@ -335,6 +335,8 @@ describe VulcanV2Controller do
         expect(config_content_2[key.to_s]).to eq(expected_value)
       end
 
+      # Confirm that the params are returned in the response 
+      expect(json_body[:params]).to eq(request_2[:params])
     end
 
     it 'correctly returns scheduled and downstream jobs' do

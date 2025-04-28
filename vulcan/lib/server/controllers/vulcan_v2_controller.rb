@@ -202,7 +202,8 @@ class VulcanV2Controller < Vulcan::Controller
         {
           config_id: config.id,
           scheduled: jobs_to_run,
-          downstream: jobs_to_run.any? ? Vulcan::Snakemake::Inference.find_affected_downstream_jobs(workspace.dag, jobs_to_run) : []
+          downstream: jobs_to_run.any? ? Vulcan::Snakemake::Inference.find_affected_downstream_jobs(workspace.dag, jobs_to_run) : [],
+          params: JSON.parse(request_params_json)
         }
     )
     rescue Etna::TooManyRequests => e
