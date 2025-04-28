@@ -50,9 +50,9 @@
       "read_only": false,
       "hidden": false,
       "validation": null,
-      "attribute_type": "parent"
+      "attribute_type": "collection"
     }
   },
   "identifier": "name",
-  "parent": "monster"
+  "parent": "project"
 }

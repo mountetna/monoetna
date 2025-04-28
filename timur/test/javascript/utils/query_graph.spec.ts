@@ -18,7 +18,6 @@ describe('QueryGraph', () => {
     expect(Object.keys(graph.graph.parents).includes('prize')).toEqual(true);
     expect(graph.pathsFrom('labor')).toEqual([
       ['labor', 'monster', 'victim', 'demographics'],
-      ['labor', 'monster', 'habitat', 'vegetation'],
       ['labor', 'monster', 'victim', 'wound'],
       ['labor', 'monster', 'aspect'],
       ['labor', 'prize']
@@ -29,7 +28,6 @@ describe('QueryGraph', () => {
     expect(graph.allPaths('prize')).toEqual([
       ['labor', 'project'],
       ['labor', 'monster', 'victim', 'demographics'],
-      ['labor', 'monster', 'habitat', 'vegetation'],
       ['labor', 'monster', 'victim', 'wound'],
       ['labor', 'monster', 'aspect']
     ]);

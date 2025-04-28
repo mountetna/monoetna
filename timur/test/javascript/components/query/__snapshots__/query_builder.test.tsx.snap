@@ -40,7 +40,7 @@ exports[`QueryBuilder renders 1`] = `
         <button
           aria-label="raw"
           aria-pressed="true"
-          class="MuiButtonBase-root MuiToggleButton-root MuiToggleButtonGroup-grouped MuiToggleButtonGroup-groupedHorizontal MuiToggleButton-selected MuiToggleButton-sizeSmall MuiButtonBase-focusVisible"
+          class="MuiButtonBase-root MuiToggleButton-root MuiToggleButtonGroup-grouped MuiToggleButtonGroup-groupedHorizontal MuiToggleButton-selected MuiToggleButton-sizeSmall"
           tabindex="0"
           type="button"
           value="raw"

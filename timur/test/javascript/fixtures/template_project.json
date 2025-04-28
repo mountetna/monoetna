@@ -52,6 +52,19 @@
       "hidden": false,
       "validation": null,
       "attribute_type": "table"
+    },
+    "habitat": {
+      "name": "habitat",
+      "attribute_name": "habitat",
+      "model_name": "habitat",
+      "link_model_name": "habitat",
+      "link_attribute_name": "project",
+      "display_name": "Habitat",
+      "restricted": false,
+      "read_only": false,
+      "hidden": false,
+      "validation": null,
+      "attribute_type": "collection"
     }
   },
   "identifier": "name"
