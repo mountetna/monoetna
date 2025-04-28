@@ -41,6 +41,11 @@ class Vulcan
       invoke_ssh_command(command.to_s)[:stdout]
     end
 
+    def touch(remote_file_path)
+      command = build_command.add('touch', remote_file_path)
+      invoke_ssh_command(command.to_s)
+    end
+
     def read_yaml_file(remote_file_path)
       YAML.safe_load(read_file_to_memory(remote_file_path), permitted_classes: [Symbol])
     end
