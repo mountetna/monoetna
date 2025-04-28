@@ -59,8 +59,7 @@ const QueryBuilder = ({}) => {
   const reduxState = useReduxState();
 
   useQueryGraph(reduxState, graph, setGraph);
-
-  if (!graph || !graph.initialized) return null;
+  useUriQueryParams({});
 
   const classes = useStyles();
 
@@ -76,12 +75,12 @@ const QueryBuilder = ({}) => {
   const transitionStyle = {
     transform: showQuery ? 'none' : 'translate(calc( -1 * max(700px,40%)))',
     flex: showQuery ? '1 1 max(700px, 40%)' : '0',
-    transitionProperty: "transform, flex",
+    transitionProperty: 'transform, flex',
     transitionDuration: `${theme.transitions.duration.standard}ms`,
     transitionTimingFunction: `${theme.transitions.easing.easeIn}`
   };
 
-  useUriQueryParams({});
+  if (!graph || !graph.initialized) return null;
 
   return (
       <Grid style={{ overflow: 'hidden', height: '100%' }} direction='column' container>

@@ -29,12 +29,12 @@ const QueryModelAttributeSelector = ({setModel, modelNames, modelName, setAttrib
   setAttribute?: (modelName: string, attributeName: string) => void;
 }) => {
   const [ internalModelName, setInternalModel ] = useState(modelName);
+  const [ open, setOpen ] = useState(false);
 
   const updateAttribute = (modelName: string, attributeName: string) => {
     if (setAttribute) setAttribute(modelName, attributeName);
     setOpen(false);
   };
-  const [ open, setOpen ] = useState(false);
 
   const readOnly = !setModel && !setAttribute;
 

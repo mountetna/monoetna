@@ -40,8 +40,9 @@ const Selector = ({
 }) => {
   const classes = useStyles(color)();
 
-  if (!canEdit) return <Typography>{name}</Typography>;
   const theme = useTheme();
+
+  if (!canEdit) return <Typography>{name}</Typography>;
   return (
     <FormControl variant="standard" className={classes.select}>
       <Select

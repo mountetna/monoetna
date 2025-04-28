@@ -42,6 +42,7 @@ const MapSelector = ({setModel, open, onClose, modelNames=[], modelName, setAttr
   onClose: () => void;
 }) => {
   const [ width, height ] = [ 600, 600 ];
+  const [ selected, setSelected ] = useState({});
 
   let {model_names, templates} = useReduxState((state: any) => {
     let model_names: string[] = selectModelNames(state);
@@ -79,8 +80,6 @@ const MapSelector = ({setModel, open, onClose, modelNames=[], modelName, setAttr
   }, [ modelName, templates ] );
 
   const canSetAttribute = (setAttribute || setAttributes) && modelName && filteredTemplate
-
-  const [ selected, setSelected ] = useState({});
 
   const handleClose = useCallback(
     () => {

@@ -92,7 +92,7 @@ const utob = (str: string) => {
   str = str.replace(/-/g, '+').replace(/_/g, '/');
   while (str.length % 4) str += '=';
   return atob(str);
-}
+};
 
 export const decodeCompressedParams = async (params: string) => {
   const stream = new Blob([
@@ -102,7 +102,7 @@ export const decodeCompressedParams = async (params: string) => {
     )
   ]).stream();
   let decompressedStream = stream.pipeThrough(
-    new DecompressionStream("gzip")
+    new DecompressionStream('gzip')
   );
   const blob = await new Response(decompressedStream as BodyInit).blob();
   const text = await blob.text();
@@ -125,7 +125,7 @@ export const unpackParams = async (search: string) => {
       searchParams.get('orRecordFilterIndices') || '[]'
     ),
     columns: migrateSlices(JSON.parse(searchParams.get('columns') || '[]'))
-  }
+  };
 };
 
 export const packParams = async (params: any) => {
@@ -134,7 +134,7 @@ export const packParams = async (params: any) => {
     { type: 'applicaton/json' }
   ).stream();
 
-  const gzipStream = stream.pipeThrough(new CompressionStream("gzip"));
+  const gzipStream = stream.pipeThrough(new CompressionStream('gzip'));
 
   const compressedResponse = await new Response(gzipStream as BodyInit);
   const blob = await compressedResponse.blob();
@@ -147,7 +147,7 @@ export const packParams = async (params: any) => {
 
   const searchParams = new URLSearchParams();
 
-  searchParams.set('q', compressedBase64)
+  searchParams.set('q', compressedBase64);
 
   return searchParams.toString();
-}
+};

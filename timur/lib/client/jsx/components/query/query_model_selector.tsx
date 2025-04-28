@@ -28,11 +28,12 @@ const QueryModelSelector = ({setModel, modelNames, modelName}:{
   modelNames: string[];
   modelName: string;
 }) => {
+  const [ open, setOpen ] = useState(false);
+
   const updateModel = (newModelName: string) => {
     if (setModel) setModel(newModelName);
     setOpen(false);
   };
-  const [ open, setOpen ] = useState(false);
 
   const readOnly = !setModel;
 
