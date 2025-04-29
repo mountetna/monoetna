@@ -8,7 +8,7 @@ class LogController < Polyphemus::Controller
 
     if @params[:consolidate]
       entry = Polyphemus::Log.where(
-        application: @hmac.id.to_s,
+        application: @params[:application] || @hmac.id.to_s,
         project_name: @params[:project_name],
         user: @params[:user],
         event: @params[:event],
@@ -29,7 +29,7 @@ class LogController < Polyphemus::Controller
     end
 
     entry = Polyphemus::Log.create(
-      application: @hmac.id,
+      application: @params[:application] || @hmac.id.to_s,
       project_name: @params[:project_name],
       user: @params[:user],
       event: @params[:event],

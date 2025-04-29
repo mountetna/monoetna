@@ -16,7 +16,8 @@ class UpdateModelController < Magma::Controller
         message: "made model changes: #{@params[:actions].map{|a| a[:action_name]}.uniq.join(", ")}",
         payload: {
           actions: @params[:actions]
-        }
+        },
+        consolidate: true
       )
       success(@payload.to_hash.to_json, 'application/json')
     else

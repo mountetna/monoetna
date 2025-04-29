@@ -29,6 +29,14 @@ class GnomonController < Magma::Controller
       identifier: @params[:identifiers]
     ).delete
 
+    event_log(
+      event: 'delete_name',
+      message: "removed identifiers",
+      payload: {
+        identifiers: @params[:identifiers]
+      }
+    )
+
     success_json(success: "Deleted #{@params[:identifiers].count} identifiers")
   end
 
@@ -47,6 +55,11 @@ class GnomonController < Magma::Controller
       config: @params[:config],
       comment: @params[:comment],
       version_number: version_number
+    )
+
+    event_log(
+      event: 'update_rules',
+      message: "created version #{version_number} of rules"
     )
 
     return success_json(grammar.to_hash)
@@ -323,5 +336,13 @@ class GnomonController < Magma::Controller
 
   def rule_name
     @params[:rule_name]
+  end
+
+  def event_log(params)
+    super(
+      params.merge(
+        application: 'gnomon'
+      )
+    )
   end
 end
