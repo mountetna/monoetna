@@ -46,16 +46,19 @@ export class QueryGraph {
   }
 
   sliceable(modelName: string, selectedModel: string): boolean {
+    if (!this.models.has(modelName)) return false;
+
     return this.allPaths(modelName).some((path: string[]) => {
       for (let i = 0; i < path.length - 1; i++) {
         let current = path[i];
         let next = path[i + 1];
+
         if ((current === modelName && !next) ||
           next === modelName) continue;
 
         if (
           i === 0 &&
-          this.models.model(modelName)?.collects(current) &&
+          this.models.model(modelName).collects(current) &&
           selectedModel == current
         ) {
           return true;
