@@ -101,6 +101,10 @@ class Magma
       Magma::ValidationObject.build(validation&.symbolize_keys)
     end
 
+    def attribute_type
+      self.class.attribute_type
+    end
+
     def json_template
       {
         name: attribute_name,
@@ -108,7 +112,7 @@ class Magma
         model_name: self.is_a?(Magma::Link) ? link_model.model_name : nil,
         link_model_name: self.is_a?(Magma::Link) ? link_model.model_name : nil,
         link_attribute_name: self.is_a?(Magma::Link) ? link_attribute_name: nil,
-        link_attribute_type: self.is_a?(Magma::Link) ? link_attribute.class.attribute_type : nil,
+        link_attribute_type: self.is_a?(Magma::Link) ? link_attribute&.attribute_type : nil,
         description: description,
         display_name: display_name,
         attribute_group: attribute_group,
@@ -119,7 +123,7 @@ class Magma
         read_only: read_only?,
         hidden: hidden?,
         validation: validation_object,
-        attribute_type: self.class.attribute_type
+        attribute_type: attribute_type
       }.delete_if {|k,v| v.nil? }
     end
 
