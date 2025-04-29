@@ -36,11 +36,11 @@ describe('QueryGraph', () => {
   it('correctly returns children and one-to-many status', () => {
     expect(graph.childrenMap('monster')).toEqual({
       aspect: true,
-      habitat: false,
       victim: true
     });
 
     expect(graph.childrenMap('habitat')).toEqual({
+      monster: true,
       vegetation: true
     });
 
