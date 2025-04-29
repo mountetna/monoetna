@@ -23,11 +23,7 @@ const QueryPage = ({}) => {
         <QueryColumnProvider>
           <QueryWhereProvider>
             <QueryResultsProvider>
-              <Grid container direction='column' className='query-page'>
-                <Grid item xs={12}>
-                  <QueryBuilder />
-                </Grid>
-              </Grid>
+              <QueryBuilder />
             </QueryResultsProvider>
           </QueryWhereProvider>
         </QueryColumnProvider>

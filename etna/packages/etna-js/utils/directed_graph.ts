@@ -9,7 +9,7 @@ export class DirectedGraph {
     this.parents = {};
   }
 
-  fullParentage(n: string): string[] {
+  ancestors(n: string): string[] {
     let result: string[] = [];
 
     if (!this.parents[n]) return result;
@@ -47,7 +47,7 @@ export class DirectedGraph {
       if (seen.has(next)) continue;
       seen.add(next);
 
-      let parentage: string[] = this.fullParentage(next);
+      let parentage: string[] = this.ancestors(next);
 
       Object.keys(this.children[next]).forEach((childNode) => {
         q.push(childNode);
@@ -85,7 +85,7 @@ export class DirectedGraph {
     if (!this.children.hasOwnProperty(child)) {
       this.children[child] = {};
     }
-    this.children[parent][child] = this.children[child];
+    this.children[parent][child] = true
 
     if (!this.parents.hasOwnProperty(child)) {
       this.parents[child] = {};
@@ -93,7 +93,7 @@ export class DirectedGraph {
     if (!this.parents.hasOwnProperty(parent)) {
       this.parents[parent] = {};
     }
-    this.parents[child][parent] = this.parents[parent];
+    this.parents[child][parent] = true;
   }
 
   serializedPathFrom(root: string, includeRoot: boolean = true): string[] {

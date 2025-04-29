@@ -1,82 +1,59 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useContext} from 'react';
 import {QueryColumnState} from './query_column_context';
 import {QueryWhereState} from './query_where_context';
 import {QueryColumn} from './query_types';
 import {migrateSubclauses, migrateSlices} from '../../utils/query_uri_params';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
+import {QueryColumnContext} from '../../contexts/query/query_column_context';
+import {QueryWhereContext} from '../../contexts/query/query_where_context';
+import {QueryResultsContext} from '../../contexts/query/query_results_context';
+import {packParams, unpackParams} from '../../utils/query_uri_params';
 
 export default function useUriQueryParams({
-  columnState,
-  rootModel,
-  whereState,
-  setQueryColumns,
-  setRootModel,
-  setWhereState,
   search,
   pathname
 }: {
-  columnState: QueryColumnState;
-  rootModel: string;
-  whereState: QueryWhereState;
-  setQueryColumns: (columns: QueryColumn[]) => void;
-  setRootModel: (modelName: string) => void;
-  setWhereState: (whereState: QueryWhereState) => void;
   search?: string;
   pathname?: string;
 }) {
-  if (!search) search = window.location.search;
+  if (!search) search = window.location.hash || '';
   if (!pathname) pathname = window.location.pathname;
 
-  function serializeState(state: {[key: string]: any}, isJson: boolean = true) {
-    return Object.entries(state)
-      .map(([key, value]) => {
-        return `${key}=${encodeURIComponent(
-          isJson ? JSON.stringify(value) : value
-        )}`;
-      })
-      .join('&');
-  }
+  const {state: {rootModel=''}} = useContext(QueryGraphContext);
+  const {state: columnState} = useContext(QueryColumnContext);
+  const {state: whereState} = useContext(QueryWhereContext);
+  const {setQueryStateFromString} = useContext(QueryResultsContext);
 
   // Update the search params to reflect current state
   useEffect(() => {
-    let searchParams = new URLSearchParams(search);
-    searchParams.set('rootModel', rootModel);
-    Object.entries(whereState).forEach(([key, value]: [string, any]) => {
-      searchParams.set(key, JSON.stringify(value));
-    });
-    Object.entries(columnState).forEach(([key, value]: [string, any]) => {
-      searchParams.set(key, JSON.stringify(value));
-    });
-
-    if (search !== searchParams.toString()) {
-      history.pushState({}, '', `${pathname}?${searchParams.toString()}`);
+    const updateSearchParams = async () => {
+      let params = await unpackParams(search!.slice(1));
+      let paramString = await packParams({
+        ...params,
+        rootModel,
+        ...whereState,
+        ...columnState
+      });
+      if (search!.slice(1) !== paramString) {
+        history.pushState({}, '', `${pathname}#${paramString}`);
+      }
     }
+
+    updateSearchParams().catch(console.error);
   }, [rootModel, search, whereState, columnState, pathname]);
 
   // Set current state to reflect query params only on component load
   useEffect(() => {
-    if (search === '') return;
+    const updateState = async () => {
+      if (!search || search === '') return;
 
-    let searchParams = new URLSearchParams(search);
+      const paramString = await packParams({rootModel, ...whereState, ...columnState});
+      let serializedState = '#' + paramString;
 
-    let serializedState =
-      '?' +
-      serializeState({rootModel}, false) +
-      serializeState(whereState) +
-      serializeState(columnState);
+      if (serializedState === search) return;
+      await setQueryStateFromString(search.slice(1));
+    }
 
-    if (serializedState === search) return;
-
-    setQueryColumns(
-      migrateSlices(JSON.parse(searchParams.get('columns') || '[]'))
-    );
-    setRootModel(searchParams.get('rootModel') || '');
-    setWhereState({
-      recordFilters: migrateSubclauses(
-        JSON.parse(searchParams.get('recordFilters') || '[]')
-      ),
-      orRecordFilterIndices: JSON.parse(
-        searchParams.get('orRecordFilterIndices') || '[]'
-      )
-    });
+    updateState().catch(console.error);
   }, []);
 }

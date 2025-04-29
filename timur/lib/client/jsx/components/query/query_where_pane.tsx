@@ -1,40 +1,37 @@
 import React, {useMemo, useContext, useState, useCallback} from 'react';
 
-import Checkbox from '@material-ui/core/Checkbox';
 import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
-import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
-import AddIcon from '@material-ui/icons/Add';
 
 import {makeStyles} from '@material-ui/core/styles';
 
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import {QueryWhereContext} from '../../contexts/query/query_where_context';
-import QueryFilterControl from './query_filter_control';
 import {
   QueryFilter,
   QuerySlice,
   EmptyQueryClause
 } from '../../contexts/query/query_types';
 import QueryClause from './query_clause';
-import QueryAnyEverySelectorList from './query_any_every_selector_list';
+import QueryClauseSummaryControls from './query_clause_summary_controls';
+import QueryChevron from './query_chevron';
+import QueryFilterControl from './query_filter_control';
 
 const useStyles = makeStyles((theme) => ({
-  header: {
-    marginBottom: 10,
-    paddingLeft: '1rem',
-    paddingRight: '1rem'
+  folded: {
+    fontStyle: 'italic',
+    paddingLeft: '10px',
+    cursor: 'pointer'
   },
-  clauseHeading: {
-    paddingLeft: '0.25rem'
+  conditions: {
+    width: '100%',
+    paddingLeft: '30px'
   },
-  clauseSubheading: {
-    color: 'gray',
-    fontSize: '0.9rem'
+  title: {
+    fontWeight: 'bold'
   },
-  shimLeft: {
-    marginLeft: '-3px'
+  empty: {
+    paddingLeft: '5px'
   }
 }));
 
@@ -52,6 +49,7 @@ const QueryWherePane = () => {
     state: {orRecordFilterIndices, recordFilters},
     addRecordFilter,
     removeRecordFilter,
+    removeAllRecordFilters,
     patchRecordFilter,
     setOrRecordFilterIndices
   } = useContext(QueryWhereContext);
@@ -122,112 +120,52 @@ const QueryWherePane = () => {
   );
 
   const modelNames = useMemo(
-    () => [...new Set(graph.allPaths(rootModel).flat())].sort(),
+    () => [...graph.connectedModels(rootModel)].sort(),
     [graph, rootModel]
   );
+
+  const [ fold, setFold ] = useState(true);
 
   if (!rootModel) return null;
 
   return (
-    <QueryClause title='Where'>
-      {recordFilters.length > 0 ? (
-        <Grid container justify='center' className={classes.header}>
-          <Grid item xs={1}>
-            OR
-          </Grid>
-          <Grid item xs={1}>
-            Any / Every
-          </Grid>
-          <Grid item container xs={10}>
-            <Grid item xs={2}>
-              Model
-            </Grid>
-            <Grid item xs={9} className={classes.clauseHeading}>
-              <Typography>Clauses</Typography>
-              <Grid container item>
-                <Grid
-                  item
-                  container
-                  spacing={1}
-                  alignItems='center'
-                  className={classes.clauseSubheading}
-                >
-                  <Grid item xs={1}>
-                    Any/Every
-                  </Grid>
-                  <Grid item container xs={11}>
-                    <Grid item xs={3}>
-                      Model
-                    </Grid>
-                    <Grid item xs={8} container>
-                      <Grid item xs={4}>
-                        Attribute
-                      </Grid>
-                      <Grid item xs={3} className={classes.shimLeft}>
-                        Operator
-                      </Grid>
-                      <Grid item xs={4} className={classes.shimLeft}>
-                        Operand
-                      </Grid>
-                      <Grid item xs={1} />
-                    </Grid>
-                    <Grid item xs={1} />
-                  </Grid>
-                </Grid>
-              </Grid>
-            </Grid>
-            <Grid item xs={1} />
-          </Grid>
+    <QueryClause title=''>
+      <Grid container alignItems='center'>
+        <QueryChevron fold={fold} setFold={setFold}/>
+        <Typography className={classes.title}>Where:</Typography>
+        <QueryClauseSummaryControls
+          fold={fold}
+          setFold={setFold}
+          addHandler={addNewRecordFilter}
+          removeHandler={removeAllRecordFilters}
+          itemName='condition'
+          numItems={recordFilters.length}/>
+      </Grid>
+      {
+        !fold && <Grid container direction='column' className={classes.conditions}>
+          {!recordFilters.length && <Typography className={classes.empty} onClick={addNewRecordFilter} style={{ color:'gray' }}>no conditions</Typography> }
+          {recordFilters.map((filter: QueryFilter, index: number) => (
+            <QueryFilterControl
+              key={`${index}-${updateCounter}`}
+              or={orRecordFilterIndices.includes(index)}
+              setOr={() => handleChangeOrFilters(index)}
+              filterIndex={index}
+              filter={filter}
+              patchRecordFilter={patchRecordFilter}
+              modelNames={modelNames}
+              patchFilter={(updatedFilter: QueryFilter | QuerySlice) =>
+                handlePatchFilter(
+                  index,
+                  updatedFilter as QueryFilter,
+                  filter
+                )
+              }
+              removeFilter={() => handleRemoveFilter(index)}
+              copyFilter={() => handleCopyFilter(filter)}
+            />
+          ))}
         </Grid>
-      ) : null}
-      {recordFilters.map((filter: QueryFilter, index: number) => (
-        <Paper key={index}>
-          <Grid
-            container
-            alignItems='center'
-            justify='center'
-            className='query-where-selector'
-          >
-            <Grid item xs={1}>
-              <Checkbox
-                checked={orRecordFilterIndices.includes(index)}
-                color='primary'
-                onChange={(e, checked) => handleChangeOrFilters(index)}
-                inputProps={{'aria-label': 'secondary checkbox'}}
-              />
-            </Grid>
-            <Grid item xs={1}>
-              <QueryAnyEverySelectorList
-                filter={filter}
-                index={index}
-                patchRecordFilter={patchRecordFilter}
-              />
-            </Grid>
-            <Grid item container xs={10} direction='column'>
-              <Grid item container alignItems='center' justify='flex-start'>
-                <QueryFilterControl
-                  key={`${index}-${updateCounter}`}
-                  filter={filter}
-                  modelNames={modelNames}
-                  graph={graph}
-                  patchFilter={(updatedFilter: QueryFilter | QuerySlice) =>
-                    handlePatchFilter(
-                      index,
-                      updatedFilter as QueryFilter,
-                      filter
-                    )
-                  }
-                  removeFilter={() => handleRemoveFilter(index)}
-                  copyFilter={() => handleCopyFilter(filter)}
-                />
-              </Grid>
-            </Grid>
-          </Grid>
-        </Paper>
-      ))}
-      <Button onClick={addNewRecordFilter} startIcon={<AddIcon />}>
-        Filter
-      </Button>
+      }
     </QueryClause>
   );
 };

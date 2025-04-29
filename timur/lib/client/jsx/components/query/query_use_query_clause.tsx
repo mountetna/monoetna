@@ -19,11 +19,11 @@ const useQueryClause = ({
 
   const modelAttributes = useMemo(() => {
     if ('' !== modelName) {
-      const template = graph.template(modelName);
-      if (!template) return [];
+      const model = graph.models.model(modelName);
+      if (!model) return [];
 
       let sortedTemplateAttributes = visibleSortedAttributesWithUpdatedAt(
-        template.attributes
+        model.attributes
       );
 
       return selectAllowedModelAttributes(

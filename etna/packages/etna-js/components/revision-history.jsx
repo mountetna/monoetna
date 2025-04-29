@@ -85,6 +85,7 @@ const RevisionHistory = ({
   dateField='updated_at',
   update,
   open,
+  title='Revision History',
   onClose
 }) => {
   const [revisions, setRevisions] = useState(null);
@@ -132,7 +133,7 @@ const RevisionHistory = ({
       aria-labelledby='form-dialog-title'
     >
       <DialogTitle id='form-dialog-title'>
-        Revision History
+        {title}
         <Grid container className={classes.revision_header}>
           <Grid xs={6} item>
             Comment

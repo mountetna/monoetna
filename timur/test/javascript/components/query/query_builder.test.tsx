@@ -1,4 +1,5 @@
 import React from 'react';
+import nock from 'nock';
 import {render, screen, waitFor, fireEvent} from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import userEvent from '@testing-library/user-event';
@@ -7,39 +8,7 @@ import {mockStore, querySpecWrapper, stubUrl} from '../../helpers';
 import QueryBuilder from '../../../../lib/client/jsx/components/query/query_builder';
 import {QueryGraph} from '../../../../lib/client/jsx/utils/query_graph';
 import {defaultQueryResultsParams} from '../../../../lib/client/jsx/contexts/query/query_results_context';
-
-const models = {
-  monster: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../../fixtures/template_monster.json')
-  },
-  prize: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../../fixtures/template_prize.json')
-  },
-  victim: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../../fixtures/template_victim.json')
-  },
-  labor: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../../fixtures/template_labor.json')
-  },
-  project: {
-    documents: {},
-    revisions: {},
-    views: {},
-    template: require('../../fixtures/template_project.json')
-  }
-};
+import {models} from '../../fixtures/models';
 
 describe('QueryBuilder', () => {
   let store;
@@ -55,7 +24,18 @@ describe('QueryBuilder', () => {
       path: '/query',
       request: (body) => true,
       status: 200,
+      times: 200,
       response: {answer: ['Greece', 'Italy', 'France']}
+    });
+
+    stubUrl({
+      verb: 'get',
+      host: 'http://localhost',
+      path: '/api/query_history/labors',
+      request: (body) => true,
+      status: 200,
+      times: 200,
+      response: {queries: []}
     });
 
     stubUrl({
@@ -174,7 +154,7 @@ describe('QueryBuilder', () => {
     };
   });
 
-  it('renders with Plot button', async () => {
+  it('renders', async () => {
     store = mockStore({
       magma: {models},
       janus: {projects: require('../../fixtures/project_names.json')},
@@ -191,9 +171,18 @@ describe('QueryBuilder', () => {
       })
     });
 
+    await waitFor(() => screen.getByText('4 columns'));
+
+    userEvent.click(screen.getByText('4 columns'));
+
     await waitFor(() => screen.getByTestId('operand-autocomplete'));
 
-    const autocomplete = screen.getByTestId('operand-autocomplete');
+    userEvent.click(screen.getByLabelText('raw'));
+
+    await waitFor(() => screen.getByText(/"Sparta"/));
+
+    const autocomplete = screen.getAllByTestId('operand-autocomplete')[0];
+
     fireEvent.change(autocomplete.getElementsByTagName('input')[0], {
       target: {value: 'It'}
     });
@@ -203,10 +192,9 @@ describe('QueryBuilder', () => {
     userEvent.click(screen.getByText('Italy'));
 
     await waitFor(
-      () => screen.getByText(/"Italy"/) && screen.getByText(/user_columns/)
+      () => screen.getByText(/"Italy"/)
     );
 
-    expect(screen.queryByText(/Plot/)).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
-  });
+  }, 10000);
 });

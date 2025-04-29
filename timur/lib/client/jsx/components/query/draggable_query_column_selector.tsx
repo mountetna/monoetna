@@ -2,9 +2,9 @@ import React from 'react';
 
 import {Draggable} from 'react-beautiful-dnd';
 
-import QueryModelAttributeSelector from './query_model_attribute_selector';
+import QueryColumnSelector from './query_column_selector';
 
-const DraggableQueryModelAttributeSelector = (props: any) => {
+const DraggableQueryColumnSelector = (props: any) => {
   return (
     <Draggable
       draggableId={`column-${props.columnIndex}`}
@@ -16,11 +16,11 @@ const DraggableQueryModelAttributeSelector = (props: any) => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
         >
-          <QueryModelAttributeSelector {...props} />
+          <QueryColumnSelector {...props} />
         </div>
       )}
     </Draggable>
   );
 };
 
-export default DraggableQueryModelAttributeSelector;
+export default DraggableQueryColumnSelector;

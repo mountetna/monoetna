@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import {Attribute, Model} from '../models/model_types';
+import {Attribute, Model} from 'etna-js/models/magma-model';
 import {
   EmptyQueryClause,
   QueryColumn,
@@ -11,37 +11,6 @@ import {
   CreateFigurePayload
 } from '../contexts/query/query_types';
 import {QueryGraph} from '../utils/query_graph';
-
-export const modelHasAttribute = (
-  magmaModels: {[key: string]: Model},
-  modelName: string,
-  attributeName: string
-) => {
-  if (!magmaModels[modelName]) return false;
-
-  return !!magmaModels[modelName].template.attributes[attributeName];
-};
-
-const attributeIs = (
-  magmaModels: {[key: string]: Model},
-  modelName: string,
-  attributeName: string,
-  types: string[]
-) => {
-  if (!modelHasAttribute(magmaModels, modelName, attributeName)) return false;
-
-  return types.includes(
-    magmaModels[modelName].template.attributes[attributeName].attribute_type
-  );
-};
-
-export const attributeIsMatrix = (
-  magmaModels: {[key: string]: Model},
-  modelName: string,
-  attributeName: string
-) => {
-  return attributeIs(magmaModels, modelName, attributeName, ['matrix']);
-};
 
 export const selectAllowedModelAttributes = (
   attributes: Attribute[],
@@ -60,66 +29,6 @@ export const selectAllowedModelAttributes = (
   return attributes.filter(
     (attr: Attribute) => !unallowedAttributeTypes.includes(attr.attribute_type)
   );
-};
-
-export const selectMatrixAttributes = (
-  attributes: Attribute[],
-  selectedAttributes: QueryColumn[]
-): Attribute[] => {
-  const selectedAttributeNames = selectedAttributes.map(
-    (attr) => attr.attribute_name
-  );
-
-  return attributes.filter(
-    (attr) =>
-      'matrix' === attr.attribute_type &&
-      selectedAttributeNames.includes(attr.attribute_name)
-  );
-};
-
-export const selectMatrixModelNames = (
-  magmaModels: any,
-  columns: QueryColumn[]
-): string[] => {
-  return columns
-    .filter((column: QueryColumn) =>
-      attributeIsMatrix(magmaModels, column.model_name, column.attribute_name)
-    )
-    .map((column: QueryColumn) => column.model_name);
-};
-
-export const selectCollectionModelNames = (
-  graph: QueryGraph,
-  rootModelName: string,
-  selectedAttributeModelNames: string[]
-): string[] => {
-  let sliceableModelNames: Set<string> = new Set();
-
-  const fullParentage: string[] = graph.graph.fullParentage(rootModelName);
-
-  graph.allPaths(rootModelName).forEach((path: string[]) => {
-    for (let i = 0; i < path.length - 1; i++) {
-      let current = path[i];
-      let next = path[i + 1];
-      if ((current === rootModelName && !next) || next === rootModelName) {
-        continue;
-      } else if (
-        i === 0 &&
-        graph.stepIsOneToMany(rootModelName, current) &&
-        selectedAttributeModelNames.includes(current)
-      ) {
-        sliceableModelNames.add(current);
-      } else if (
-        graph.stepIsOneToMany(current, next) &&
-        !fullParentage.includes(next) &&
-        selectedAttributeModelNames.includes(next)
-      ) {
-        sliceableModelNames.add(next);
-      }
-    }
-  });
-
-  return [...sliceableModelNames];
 };
 
 export const getPath = (
@@ -191,29 +100,6 @@ export const pathToColumn = (
 
     return fullPath.length > 0 ? fullPath[0].toString() : '-1';
   }
-};
-
-export const stepIsOneToMany = (
-  magmaModels: {[key: string]: Model},
-  start: string,
-  end: string
-) => {
-  // For a single model relationship (start -> end),
-  //   returns `true` if it is a one-to-many
-  //   relationship.
-  return attributeIs(magmaModels, start, end, ['table', 'collection']);
-};
-
-export const attributeIsFile = (
-  magmaModels: {[key: string]: Model},
-  modelName: string,
-  attributeName: string
-) => {
-  return attributeIs(magmaModels, modelName, attributeName, [
-    'file',
-    'image',
-    'file_collection'
-  ]);
 };
 
 export const isMatrixSlice = (slice: QuerySlice) => {

@@ -32,6 +32,10 @@ class Metis
       return data_block
     end
 
+    def self.total_size(query)
+      Metis::DataBlock.where(query).select_map(:size).sum
+    end
+
     def set_file_data(file_path, copy = false)
       if copy
         ::FileUtils.copy(

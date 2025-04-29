@@ -14,7 +14,7 @@ class Magma
 
     def foreign_id
       if [Magma::ChildAttribute, Magma::CollectionAttribute].include?(self.class)
-        return link_model.attributes[link_attribute_name.to_sym].column_name.to_sym
+        return link_attribute.column_name.to_sym
       end
       
       :"#{attribute_name}_id"
@@ -22,6 +22,10 @@ class Magma
 
     def self_id
       :"#{@magma_model.name.snake_case.split('::')[1]}_id"
+    end
+
+    def link_attribute
+        return link_model.attributes[link_attribute_name.to_sym]
     end
 
     def link_record(identifier)

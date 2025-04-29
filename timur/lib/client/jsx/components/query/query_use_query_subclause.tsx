@@ -22,17 +22,9 @@ const useQuerySubclause = ({
   );
   const invoke = useActionInvoker();
 
-  const attributeType = useMemo(() => {
-    if ('' !== subclause.attributeName) {
-      const template = graph.template(modelName);
-      if (!template) return '';
-
-      return template.attributes[
-        subclause.attributeName
-      ].attribute_type.toLowerCase();
-    }
-    return '';
-  }, [subclause.attributeName, modelName, graph]);
+  const attributeType = useMemo(() => (
+    graph.models.attribute(modelName, subclause.attributeName)?.attribute_type || ''
+  ), [subclause.attributeName, modelName, graph]);
 
   const fetchDistinctAttributeValues = useCallback(() => {
     const cancellable = new Cancellable();

@@ -32,5 +32,5 @@ module.exports = {
   ],
   collectCoverageFrom: ['**/*.js?(x)'],
   setupFilesAfterEnv: ['./setup-jest.js'],
-  setupFiles: ['raf/polyfill']
+  setupFiles: ['raf/polyfill', 'web-streams-polyfill/dist/polyfill']
 };

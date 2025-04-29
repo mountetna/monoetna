@@ -186,7 +186,8 @@ const reportStyles = makeStyles((theme) => ({
     overflowY: 'auto'
   },
   attributes: {
-    flex: '1 1 auto'
+    overflow: 'hidden',
+    paddingBottom: '10px'
   },
   heading: {
     marginBottom: '10px'

@@ -28,4 +28,3 @@ class BrowseController < Timur::Controller
       )
   end
 end
-

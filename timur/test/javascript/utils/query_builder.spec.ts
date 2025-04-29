@@ -49,7 +49,7 @@ describe('QueryBuilder', () => {
       builder = new QueryBuilder(graph);
     });
 
-    it('handles https://www.notion.so/ucsfdatascience/6bf73d7edfad4bd38a8527049c9f1510?v=b689c4e7890d4d2dbe3d8c6acb51a6ca&p=6d87fdcbba89412782c8b5d7d3897b5b', () => {
+    it('handles biospecimen -> sc_seq', () => {
       builder.addRootModel('subject');
       builder.addRecordFilters([
         {
@@ -75,7 +75,7 @@ describe('QueryBuilder', () => {
       expect(builder.query()).toEqual([
         'subject',
         [
-          'biospecimen',
+          'experiment',
           [
             'biospecimen_group',
             ['sc_seq', ['::has', 'tube_name'], '::any'],
