@@ -60,6 +60,8 @@ export const validator = (schema: any): LintSource => {
       json = JsonMap.parse(text);
     } catch (error) {
       // parse the error message and report the line numbers
+      if (!(error instanceof SyntaxError)) throw error;
+
       const pos = getErrorPosition(error, view.state.doc);
 
       return [

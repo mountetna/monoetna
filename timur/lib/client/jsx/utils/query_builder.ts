@@ -10,7 +10,6 @@ import {QueryGraph} from './query_graph';
 import QuerySimplePathBuilder from './query_simple_path_builder';
 import QueryFilterPathBuilder from './query_filter_path_builder';
 import {
-  attributeIsFile,
   isMatrixSlice,
   getPath,
   isIdentifierQuery
@@ -336,11 +335,9 @@ export class QueryBuilder {
     // Probably only used for File / Image / FileCollection attributes?
     let predicate = [column.attribute_name];
     if (
-      attributeIsFile(
-        this.graph.models,
-        column.model_name,
-        column.attribute_name
-      )
+      this.graph.models.attribute(
+	column.model_name, column.attribute_name
+      )?.isFile()
     ) {
       predicate.push(`::${column.predicate || 'url'}`);
     }

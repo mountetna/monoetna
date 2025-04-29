@@ -37,7 +37,8 @@ const mapStyle = makeStyles((theme) => ({
   model_map: {
     position: 'relative',
     height: 'calc(100vh - 61px)',
-    overflowY: 'auto'
+    overflowY: 'auto',
+    flexWrap: 'nowrap'
   },
   map: {
     flexBasis: '600px'

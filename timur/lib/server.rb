@@ -4,6 +4,7 @@ require_relative './server/controllers/browse_controller'
 require_relative './server/controllers/documents_controller'
 require_relative './server/controllers/manifests_controller'
 require_relative './server/controllers/plots_controller'
+require_relative './server/controllers/query_history_controller'
 
 class Timur
   class Server < Etna::Server
@@ -16,6 +17,10 @@ class Timur
     get '/', as: :root do
       erb_view(:client)
     end
+
+    post 'api/query_history/:project_name/create', action: 'query_history#create', auth: { user: { can_view?: :project_name } }
+    get 'api/query_history/:project_name', action: 'query_history#list', auth: { user: { can_view?: :project_name } }
+    delete 'api/query_history/:project_name/:id', action: 'query_history#remove', auth: { user: { can_view?: :project_name } }
 
     with auth: { user: { can_view?: :project_name } } do
       # archimedes_controller.rb

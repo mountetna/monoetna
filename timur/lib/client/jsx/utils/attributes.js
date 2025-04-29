@@ -26,7 +26,12 @@ const order = (attribute, identifierFirst) => {
 
 const LINK_TYPES = [ 'collection', 'table', 'child', 'parent', 'link' ];
 
+const LINK_FOREIGN_KEY_TYPES = [ 'parent', 'link' ];
+const LINK_COLLECTION_TYPES = [ 'collection', 'table', 'child' ];
+
 export const isLink = attribute => LINK_TYPES.includes(attribute.attribute_type);
+export const isLinkForeignKey = attribute => LINK_FOREIGN_KEY_TYPES.includes(attribute.attribute_type);
+export const isLinkCollection = attribute => LINK_COLLECTION_TYPES.includes(attribute.attribute_type);
 
 export const sortAttributeList = (attributes, identifierFirst = false) => (
   attributes.sort(

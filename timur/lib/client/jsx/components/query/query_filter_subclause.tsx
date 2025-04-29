@@ -1,18 +1,22 @@
-import React, {useMemo, useCallback, useState, useEffect} from 'react';
+import React, {useMemo, useCallback, useState, useEffect, useContext} from 'react';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {Debouncer} from 'etna-js/utils/debouncer';
 import {QuerySubclause} from '../../contexts/query/query_types';
 import FilterOperator from './query_filter_operator';
 import useQuerySubclause from './query_use_query_subclause';
+import useQueryClause from './query_use_query_clause';
 import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
+import QueryNumber from './query_number';
 import RemoveIcon from './query_remove_icon';
 import Selector from './query_selector';
-import {Attribute} from '../../models/model_types';
+import {Attribute} from 'etna-js/models/magma-model';
 
 const useStyles = makeStyles((theme) => ({
   option: {
@@ -25,6 +29,9 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     width: 'max-content'
   },
+  filter_operand: {
+    flex: '1'
+  },
   operand: {
     paddingTop: '3px'
   }
@@ -34,8 +41,6 @@ const QueryFilterSubclause = ({
   subclause,
   subclauseIndex,
   modelName,
-  modelAttributes,
-  graph,
   waitTime,
   eager,
   isColumnFilter,
@@ -46,8 +51,6 @@ const QueryFilterSubclause = ({
   subclause: QuerySubclause;
   subclauseIndex: number;
   modelName: string;
-  modelAttributes: Attribute[];
-  graph: QueryGraph;
   waitTime?: number;
   eager?: boolean;
   isColumnFilter: boolean;
@@ -55,6 +58,12 @@ const QueryFilterSubclause = ({
   patchSubclause: (subclause: QuerySubclause) => void;
   removeSubclause: () => void;
 }) => {
+  const { state: {graph} } = useContext(QueryGraphContext);
+
+  const {modelAttributes} = useQueryClause({
+    modelName, graph, isColumnFilter
+  });
+
   const [operandValue, setOperandValue] = useState('' as string | number);
   const [previousOperandValue, setPreviousOperandValue] = useState(
     '' as string | number
@@ -178,77 +187,77 @@ const QueryFilterSubclause = ({
   let uniqId = (idType: string): string =>
     `${idType}-Select-${Math.random().toString()}`;
 
-  return (
-    <Grid container>
-      <Grid item xs={showRemoveIcon ? 4 : 5}>
-        {modelAttributes.length > 0 ? (
-          <Selector
-            canEdit={true}
-            label='attribute'
-            name={subclause.attributeName}
-            onSelect={handleAttributeSelect}
-            choiceSet={modelAttributes.map((a) => a.attribute_name)}
-          />
-        ) : null}
-      </Grid>
-      <Grid item xs={3}>
+  const [ removeHint, setRemoveHint ] = useState(false);
+
+  return <Grid item container alignItems='center' style={{ textDecoration: removeHint ? 'line-through' : 'none' }} >
+    {
+      !isColumnFilter && <>
+        <QueryNumber
+          setRemoveHint={ showRemoveIcon ? setRemoveHint : undefined }
+          onClick={ showRemoveIcon ? removeSubclause : undefined}
+          number={subclauseIndex}
+          level={2}/>
         <Selector
-          label={`operator-${subclauseIndex}`}
           canEdit={true}
-          name={filterOperator.prettify() || ''}
-          choiceSet={Object.keys(filterOperator.options())}
-          onSelect={handleOperatorSelect}
+          label='attribute'
+          placeholder='attribute'
+          color='secondary'
+          name={subclause.attributeName}
+          onSelect={handleAttributeSelect}
+          choiceSet={modelAttributes.map((a) => a.attribute_name)}
         />
-      </Grid>
-      <Grid item xs={4}>
-        {filterOperator.hasOperand() ? (
-          <FormControl fullWidth>
-            {filterOperator.hasPrepopulatedOperandOptions() &&
-            distinctAttributeValues.length > 0 ? (
-              <Autocomplete
-                classes={{
-                  option: classes.option,
-                  listbox: classes.listbox,
-                  paper: classes.paper,
-                  root: classes.operand
-                }}
-                id={uniqId(`operand-${subclauseIndex}`)}
-                freeSolo
-                fullWidth
-                options={distinctAttributeValues}
-                renderInput={(params) => <TextField {...params} />}
-                onInputChange={(e, v, r) => {
-                  // Only send event if user manually clears the value
-                  //   or selects a non-empty-string option.
-                  if ('' !== v || 'reset' !== r) {
-                    handleOperandChangeWithDebounce(v || '');
-                  }
-                }}
-                inputValue={operandValue.toString()}
-                data-testid='operand-autocomplete'
-              />
-            ) : (
-              <TextField
-                id={uniqId(`operand-${subclauseIndex}`)}
-                value={operandValue}
-                onChange={(e) =>
-                  handleOperandChangeWithDebounce(e.target.value as string)
-                }
-              />
-            )}
-          </FormControl>
-        ) : null}
-      </Grid>
-      {showRemoveIcon ? (
-        <Grid item xs={1} container justify='flex-end'>
-          <RemoveIcon
-            showRemoveIcon={showRemoveIcon}
-            onClick={removeSubclause}
-            label='subclause'
+      </>
+    }
+    <Selector
+      label={`operator-${subclauseIndex}`}
+      canEdit={true}
+      name={filterOperator.prettify() || ''}
+      placeholder='satisfies'
+      color='purple'
+      choiceSet={Object.keys(filterOperator.options())}
+      onSelect={handleOperatorSelect}
+    />
+    {
+      filterOperator.hasOperand() &&
+      <FormControl className={ classes.filter_operand } variant="standard">
+        {filterOperator.hasPrepopulatedOperandOptions() &&
+        distinctAttributeValues.length > 0 ? (
+          <Autocomplete
+            classes={{
+              option: classes.option,
+              listbox: classes.listbox,
+              paper: classes.paper,
+              root: classes.operand
+            }}
+            id={uniqId(`operand-${subclauseIndex}`)}
+            freeSolo
+            fullWidth
+            placeholder='value'
+            options={distinctAttributeValues}
+            renderInput={(params) => <TextField variant="standard" {...params} />}
+            onInputChange={(e, v, r) => {
+              // Only send event if user manually clears the value
+              //   or selects a non-empty-string option.
+              if ('' !== v || 'reset' !== r) {
+                handleOperandChangeWithDebounce(v || '');
+              }
+            }}
+            inputValue={operandValue.toString()}
+            data-testid='operand-autocomplete'
           />
-        </Grid>
-      ) : null}
-    </Grid>
-  );
+        ) : (
+          <TextField
+            variant="standard"
+            id={uniqId(`operand-${subclauseIndex}`)}
+            value={operandValue}
+            fullWidth
+            placeholder='value'
+            onChange={(e) =>
+              handleOperandChangeWithDebounce(e.target.value as string)
+            } />
+        )}
+      </FormControl>
+    }
+  </Grid>;
 };
 export default QueryFilterSubclause;

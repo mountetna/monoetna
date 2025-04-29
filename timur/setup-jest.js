@@ -3,6 +3,21 @@ require('etna-js/spec/setup');
 import ReactModal from 'react-modal';
 ReactModal.setAppElement('*'); // suppresses modal-related test warnings.
 
+import { Response } from 'node-fetch';
+import 'compression-streams-polyfill';
+import {Blob as BlobPolyfill} from 'blob-polyfill';
+
+global.Response = Response;
+global.Blob = BlobPolyfill;
+
+global.fetch_orig = global.fetch;
+global.fetch = (url, ...params) => {
+  if (url.startsWith('http'))
+    return fetch_orig(url, ...params);
+  else
+    return fetch_orig(`http://localhost${url}`, ...params);
+}
+
 // To get CodeMirror to work correctly during tests:
 // https://github.com/jsdom/jsdom/issues/3002
 document.createRange = () => {
@@ -25,6 +40,7 @@ document.createRange = () => {
 // https://github.com/mui-org/material-ui/issues/21293
 const mockMath = Object.create(global.Math);
 mockMath.random = () => 0.5;
+
 global.Math = mockMath;
 global.CONFIG = {
   project_name: 'labors',

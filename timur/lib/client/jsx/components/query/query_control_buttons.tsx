@@ -34,7 +34,7 @@ import {QueryBuilder} from '../../utils/query_builder';
 import useTableEffects from './query_use_table_effects';
 import useResultsActions from './query_use_results_actions';
 import QueryTsvOptionsModal from './query_tsv_options_modal';
-import QueryPlotMenu from './query_plot_menu';
+import SaveQueryModal from './save_query_modal';
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -62,6 +62,7 @@ const QueryControlButtons = () => {
       data,
       expandMatrices,
       flattenQuery,
+      showDisconnected,
       queryString,
       maxColumns
     },
@@ -80,6 +81,7 @@ const QueryControlButtons = () => {
     defaultQueryWhereParams.orRecordFilterIndices
   );
   const [lastExpandMatrices, setLastExpandMatrices] = useState(expandMatrices);
+  const [lastShowDisconnected, setLastShowDisconnected] = useState(showDisconnected);
   const [lastFlattenQuery, setLastFlattenQuery] = useState(flattenQuery);
   const [lastPage, setLastPage] = useState(page);
   const [lastPageSize, setLastPageSize] = useState(pageSize);
@@ -138,6 +140,7 @@ const QueryControlButtons = () => {
     pageSize,
     columns,
     expandMatrices,
+    showDisconnected,
     setDataAndNumRecords
   });
 
@@ -146,26 +149,18 @@ const QueryControlButtons = () => {
     //   fetch when needed?
     if (
       lastPage !== page ||
-      lastPageSize !== pageSize ||
-      lastExpandMatrices !== expandMatrices ||
-      lastFlattenQuery !== flattenQuery
+      lastPageSize !== pageSize
     ) {
       runQuery();
       setLastPage(page);
       setLastPageSize(pageSize);
-      setLastExpandMatrices(expandMatrices);
-      setLastFlattenQuery(flattenQuery);
     }
   }, [
     page,
     pageSize,
     lastPage,
     lastPageSize,
-    runQuery,
-    expandMatrices,
-    flattenQuery,
-    lastExpandMatrices,
-    lastFlattenQuery
+    runQuery
   ]);
 
   useEffect(() => {
@@ -184,11 +179,16 @@ const QueryControlButtons = () => {
     copyText(window.location.href);
   }
 
+  const [ showSaveQuery, setShowSaveQuery ] = useState(false);
+
   const disableQueryBtn = useMemo(() => {
-    return (
+    return !rootModel || (
       _.isEqual(columns, lastColumns) &&
       _.isEqual(recordFilters, lastFilters) &&
-      _.isEqual(orRecordFilterIndices, lastOrFilterIndices)
+      _.isEqual(orRecordFilterIndices, lastOrFilterIndices) &&
+      lastShowDisconnected === showDisconnected &&
+      lastExpandMatrices === expandMatrices &&
+      lastFlattenQuery === flattenQuery
     );
   }, [
     columns,
@@ -196,7 +196,13 @@ const QueryControlButtons = () => {
     recordFilters,
     lastFilters,
     orRecordFilterIndices,
-    lastOrFilterIndices
+    lastOrFilterIndices,
+    showDisconnected,
+    lastShowDisconnected,
+    flattenQuery,
+    lastFlattenQuery,
+    expandMatrices,
+    lastExpandMatrices
   ]);
 
   const handleRunQuery = useCallback(() => {
@@ -204,22 +210,16 @@ const QueryControlButtons = () => {
     setLastColumns(columns);
     setLastFilters(recordFilters);
     setLastOrFilterIndices(orRecordFilterIndices);
-  }, [runQuery, columns, recordFilters, orRecordFilterIndices]);
-
-  if (!rootModel) return null;
+    setLastExpandMatrices(expandMatrices);
+    setLastShowDisconnected(showDisconnected);
+    setLastFlattenQuery(flattenQuery);
+  }, [runQuery, columns, recordFilters, orRecordFilterIndices,expandMatrices,showDisconnected,flattenQuery]);
 
   return (
-    <Grid
-      item
-      container
-      direction='column'
-      justify='flex-end'
-      alignItems='flex-end'
-    >
+    <>
       <Grid item>
         <Button
           className={classes.button}
-          color='default'
           onClick={resetQuery}
           startIcon={<ReplayIcon />}
         >
@@ -248,19 +248,18 @@ const QueryControlButtons = () => {
         >
           Copy Link
         </Button>
-        <QueryPlotMenu />
+        <Button
+          className={classes.button}
+          color='secondary'
+          onClick={ () => setShowSaveQuery(true) }
+        >
+          Save Query
+        </Button>
+        <SaveQueryModal
+          open={ showSaveQuery }
+          onClose={ () => setShowSaveQuery(false) }/>
       </Grid>
-      <Grid item>
-        {formattedColumns.length > maxColumns ? (
-          <Typography align='right' color='error'>
-            *** NOTE ***{' '}
-            {(formattedColumns.length - maxColumns).toLocaleString()} columns
-            not rendered. Add slices to your matrix columns or download the TSV
-            to see the whole data frame.
-          </Typography>
-        ) : null}
-      </Grid>
-    </Grid>
+    </>
   );
 };
 
