@@ -84,7 +84,7 @@ function ParamInputIndividual({input}: {
     ])
 
   return <UserInput
-    input={bound}
+    input={bound} hideLabel={true}
   />
 }
 
