@@ -53,7 +53,7 @@ export default function InputFeed() {
   const groupedSteps = groupUiSteps(completed.concat(nextUiSteps), workspace);
 
   const stepInputs = useMemo(() => {
-    return update_files && Object.keys(status.file_contents).length<1 ?
+    return update_files ?
       <div>
         <LoadingIcon/>
         Refreshing Files

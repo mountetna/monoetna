@@ -15,7 +15,7 @@ export default function OutputFeed() {
   const {status, update_files} = state;
 
   const outputFeed = useMemo(() => {
-    return state.update_files && Object.keys(status.file_contents).length<1 ?
+    return state.update_files ?
       <div>
         <LoadingIcon/>
         Refreshing Files
