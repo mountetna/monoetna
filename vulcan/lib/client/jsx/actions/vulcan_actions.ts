@@ -61,9 +61,10 @@ export function setLastConfig(lastConfig: WorkspaceStatus['last_params']) {
 
 export function useUIAccounting(
   accounting: AccountingReturn,
-  submittingStep: Maybe<string> = null
+  submittingStep: Maybe<string> = null,
+  removeSync: boolean = false
 ) {
-  return actionObject('USE_UI_ACCOUNTING', {accounting, submittingStep});
+  return actionObject('USE_UI_ACCOUNTING', {accounting, submittingStep, removeSync});
 }
 
 export function setStatusFromStatuses(
@@ -107,10 +108,6 @@ export function startPolling() {
 
 export function finishPolling() {
   return actionObject('MODIFY_POLLING', {delta: -1});
-}
-
-export function removeSync(stepName: string) {
-  return actionObject('REMOVE_SYNC', {stepName});
 }
 
 export function updateFiles(statusUpdates: Pick<WorkspaceStatus, 'output_files' | 'file_contents'>) {

@@ -18,18 +18,6 @@ export function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function updateFromPostUIAccounting(
-  response: AccountingReturn,
-  dispatch: Dispatch<VulcanAction>,
-  status: WorkspaceStatus,
-  submittingStep: string | null
-) {
-  // if (submittingStep === null) {
-  //   dispatch(setLastConfig(paramValuesToRaw(status.params)))
-  // }
-  dispatch(useUIAccounting(response, submittingStep));
-}
-
 function updateFromRunRequest(
   response: RunReturn,
   dispatch: Dispatch<VulcanAction>,

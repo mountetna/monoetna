@@ -181,6 +181,7 @@ export type FlatParams = {
 
 export interface AccountingReturn {
   config_id: number,
+  params: {[k: string]: any},
   scheduled: string[],
   downstream: string[],
 }

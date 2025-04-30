@@ -291,27 +291,31 @@ export function useApi(
             );
           }
         })
-        // ToDo: Return error if errors
-        writeFiles(
+        return showErrors(writeFiles(
           projectName,
           workspaceId,
           {...filesContent}
-        )
+        ))
+        .then(() => {
+          return showErrors(setConfig(
+            projectName,
+            workspaceId,
+            paramsUse,
+            uiFilesSent,
+            paramsChanged
+          ))
+        })
       } else {
         paramsUse = paramValuesToRaw(status.params)
         paramsChanged = Object.keys(status.params[step]).filter((name) => !_.isEqual(paramsUse[name], status.last_params[name]))
+        return showErrors(setConfig(
+          projectName,
+          workspaceId,
+          paramsUse,
+          uiFilesSent,
+          paramsChanged
+        ));
       }
-
-      // Send params to request new accounting
-      return setConfig(
-        projectName,
-        workspaceId,
-        paramsUse,
-        uiFilesSent,
-        paramsChanged
-      )
-        .then(handleFetchSuccess)
-        .catch(handleFetchError);
     },
     [vulcanPost, vulcanPath, writeFiles, setConfig]
   );

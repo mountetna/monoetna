@@ -11,6 +11,7 @@ import {
 import {
   allUIStepNames,
   inputUINames,
+  paramValuesToRaw,
   uiContentsFromFiles,
   upcomingStepNames,
   vulcanConfigFromRaw,
@@ -72,7 +73,8 @@ function useAccounting(
   state: VulcanState,
   action: {type: 'USE_UI_ACCOUNTING'} & {
     accounting: AccountingReturn;
-    submittingStep: Maybe<string>;
+    submittingStep: string;
+    removeSync: boolean;
   }
 ): VulcanState {
   /*
@@ -85,34 +87,38 @@ function useAccounting(
   */
   const {workspace, status} = state;
   if (!workspace) return state;
-  
+
   let newStatus = {...status};
+  // Use returned params as source of truth
+  newStatus.last_params = action.accounting.params;
+  // Clear ui_content knowledge and output_files knowledge. We will fill it back in next via 'update_files: true' below.
+  newStatus.output_files = [];
+  newStatus.ui_contents = uiContentsFromFiles(workspace);
 
-  const staleSteps = action.accounting.downstream.concat(action.accounting.scheduled)
-  const staleUISteps = staleSteps.filter(name => inputUINames(state).includes(name))
-  const submittingStep: string | null = withDefault(action.submittingStep, null);
-
-  for (let step of Object.keys(newStatus.steps)) {
+  let newSteps = {...newStatus.steps};
+  for (let step of action.accounting.scheduled.concat(action.accounting.downstream)) {
     // The submitting step is pushing a new value from the client up, thus
     // it should not have its input made stale.
-    if (step === submittingStep || !staleSteps.includes(step)) continue;
-
-    // Clear ui_content knowledge, output_files knowledge. It will fill back in later via 'update_files: true' below.
-    newStatus.output_files = [];
-    newStatus.ui_contents = uiContentsFromFiles(workspace);
+    if (step === action.submittingStep || !Object.keys(newSteps).includes(step)) {
+      console.log(`${step} not tracked, skipping`)
+      continue;
+    }
 
     // Update steps' statuses
-    delete newStatus.steps[step].error;
-    newStatus.steps[step].statusFine = "NOT STARTED";
-    newStatus.steps[step].status = action.accounting.scheduled.includes(step) ? "upcoming" : "pending";
+    newSteps[step] = {
+      name: step,
+      statusFine: "NOT STARTED",
+      status: action.accounting.scheduled.includes(step) ? 'upcoming' : 'pending'
+    }
   }
-      
+
   return {
     ...state,
-    status: newStatus,
+    status: {...newStatus, steps: {...newSteps}},
     workQueueable: upcomingStepNames(workspace, newStatus).length > 0,
     configId: action.accounting.config_id,
-    update_files: true
+    update_files: true,
+    pushSteps: action.removeSync ? state.pushSteps.filter(s => s!=action.submittingStep) : state.pushSteps,
   };
 }
 

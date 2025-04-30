@@ -1,5 +1,5 @@
 import {Dispatch, useEffect} from 'react';
-import {removeSync, updateFiles, useUIAccounting, VulcanAction} from '../../actions/vulcan_actions';
+import {updateFiles, useUIAccounting, VulcanAction} from '../../actions/vulcan_actions';
 import {defaultApiHelpers} from '../../contexts/api';
 import {VulcanState} from '../../reducers/vulcan_reducer';
 import {allFilesToBuffer, filesReturnToMultiFileContent} from '../../selectors/workflow_selectors';
@@ -23,8 +23,7 @@ export function useDataSync(
       const pushStep = [...pushSteps][0]
       showErrors(postUIValues(projectName,workspaceId,status,pushStep))
       .then((accountingResponse) => {
-        dispatch(useUIAccounting(accountingResponse, pushStep));
-        dispatch(removeSync(pushStep));
+        dispatch(useUIAccounting(accountingResponse, pushStep, true));
       })
     }
   }, [pushSteps, postUIValues])
