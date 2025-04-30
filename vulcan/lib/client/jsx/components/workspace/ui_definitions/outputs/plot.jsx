@@ -107,17 +107,17 @@ export const PlotlyOutput = ({data: plots}) => {
 };
 
 export const PlotOutput = ({data, url}) => {
-  const plotlys = {...data}
-  const pngs = Object.fromEntries(
-    Object.entries(data).filter(([key, val]) => {
-      return typeof(val)=='string'
+  const plotlys = Object.fromEntries(
+    Object.entries(data).filter(([key, val])=> {
+      return typeof(val)==='object'
     })
   )
-  Object.keys(pngs).forEach( (key) => {
-    delete plotlys[key]
-  })
+  const pngs = Object.fromEntries(
+    Object.entries(data).filter(([key, val]) => {
+      return typeof(val)==='string' && val.length > 0
+    })
+  )
   return <React.Fragment>
-    {(Object.keys(plotlys).length>0) ? PlotlyOutput({data: plotlys}) : null}
-    {(Object.keys(pngs).length>0) ? PngOutput({data: pngs}) : null}
+    {(Object.keys(plotlys).length>0) ? PlotlyOutput({data: plotlys}) : PngOutput({data: pngs})}
   </React.Fragment>
 }
