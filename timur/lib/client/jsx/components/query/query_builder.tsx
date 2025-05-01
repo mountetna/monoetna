@@ -45,8 +45,10 @@ const useStyles = makeStyles((theme) => ({
   results: {
     boxShadow: '1px 1px 5px -2px #ccc inset',
     overflowX: 'auto',
+    overflowY: 'auto',
     flex: '1 1 calc(100% - max(700px, 40%))',
-    flexWrap: 'nowrap'
+    flexWrap: 'nowrap',
+    height: '100%'
   }
 }));
 
