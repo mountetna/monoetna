@@ -2,14 +2,14 @@ class QueryHistoryController < Timur::Controller
   def create
     require_params(:query, :comment)
 
-    QueryHistory.create(
+    query = QueryHistory.create(
       project_name: @params[:project_name],
       user: @user.email,
       query: @params[:query],
       comment: @params[:comment]
     )
 
-    success_json(success: true)
+    success_json(query: query.to_hash)
   end
 
   def list

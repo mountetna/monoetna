@@ -13,13 +13,9 @@ const useStyles = makeStyles((theme) => ({
   checkbox: {
     marginRight: '30px'
   },
-  result: {
-    width: '100%',
-    padding: 10,
-    margin: 10,
-    border: '1px solid #0f0',
-    borderRadius: 2,
-    backgroundColor: 'rgba(0,255,0,0.1)'
+  results: {
+    height: '100%',
+    overflowY: 'hidden'
   }
 }));
 
@@ -74,21 +70,19 @@ const QueryResults = () => {
   if (!rootModel) return null;
 
   return (
-    <>
-      <Grid xs={12} item container direction='column'>
-        <QueryTable
-          maxColumns={maxColumns}
-          columns={formattedColumns}
-          rows={rows}
-          pageSize={pageSize}
-          numRecords={numRecords}
-          page={page}
-          expandMatrices={expandMatrices}
-          handlePageChange={handlePageChange}
-          handlePageSizeChange={handlePageSizeChange}
-        />
-      </Grid>
-    </>
+    <Grid xs={12} item container direction='column' className={classes.results}>
+      <QueryTable
+        maxColumns={maxColumns}
+        columns={formattedColumns}
+        rows={rows}
+        pageSize={pageSize}
+        numRecords={numRecords}
+        page={page}
+        expandMatrices={expandMatrices}
+        handlePageChange={handlePageChange}
+        handlePageSizeChange={handlePageSizeChange}
+      />
+    </Grid>
   );
 };
 
