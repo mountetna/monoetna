@@ -8,6 +8,7 @@ export class QueryGraph {
   graph: DirectedGraph;
   includedLinkTypes: string[] = ['link'];
   initialized: boolean = false;
+  cache: { allPaths: any, childrenMap: any, shortestPath: any, sliceable: any };
 
   constructor(magmaModels: ModelsObject) {
     this.models = new Models(magmaModels);
@@ -30,7 +31,30 @@ export class QueryGraph {
       }
     );
 
+    this.cache = {
+      allPaths: {},
+      sliceable: {},
+      shortestPath: {},
+      childrenMap: {}
+    }
+
+    this.allPaths = this.memoize('allPaths', this.allPaths.bind(this));
+    this.sliceable = this.memoize('sliceable', this.sliceable.bind(this));
+    this.shortestPath = this.memoize('shortestPath', this.shortestPath.bind(this));
+    this.childrenMap = this.memoize('childrenMap', this.childrenMap.bind(this));
+
     this.initialized = true;
+  }
+
+  memoize<T extends Array<any>, U>(cacheName: keyof typeof this.cache, fn: (...args:T) => U) {
+    return (...args: T): U => {
+      const key = args.join('.');
+      if (key in this.cache[cacheName]) return this.cache[cacheName][key];
+
+      this.cache[cacheName][key] = fn(...args);
+
+      return this.cache[cacheName][key];
+    }
   }
 
   connectedModelsAnd(modelName: string | null): Set<string> {
