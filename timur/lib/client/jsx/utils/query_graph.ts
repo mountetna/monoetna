@@ -58,7 +58,7 @@ export class QueryGraph {
 
         if (
           i === 0 &&
-          this.models.model(modelName).collects(current) &&
+          this.models.model(modelName)!.collects(current) &&
           selectedModel == current
         ) {
           return true;
