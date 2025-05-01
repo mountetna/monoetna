@@ -36,26 +36,30 @@ const useResultsActions = ({
   const invoke = useActionInvoker();
   const {dismissModal} = useModal();
 
-  const runQuery = useCallback(() => {
+  const runQuery = useCallback((queryPage?: number) => {
     if ('' === countQuery || '' === query) return;
 
     let numRecords = 0;
+    
+    if (queryPage === undefined) queryPage = page;
 
     setDataAndNumRecords(EmptyQueryResponse, 0);
     invoke(requestAnswer({query: countQuery, show_disconnected: showDisconnected}))
       .then((countData: {answer: number}) => {
         numRecords = countData.answer;
         return invoke(
-          requestAnswer({query, page_size: pageSize, page: page + 1, show_disconnected: showDisconnected})
+          requestAnswer({query, page_size: pageSize, page: queryPage + 1, show_disconnected: showDisconnected})
         );
       })
       .then((answerData: QueryResponse) => {
         setDataAndNumRecords(answerData, numRecords);
-        // setQueries([...queries].splice(0, 0, builder));
       })
       .catch((e: any) => {
         Promise.resolve(e).then((error: {[key: string]: string[]}) => {
           console.error(error);
+          if (error.errors?.[0] == 'No results found') {
+            setDataAndNumRecords(EmptyQueryResponse, 0);
+          }
           invoke(showMessages(error.errors || [error.error] || error));
         });
       });
