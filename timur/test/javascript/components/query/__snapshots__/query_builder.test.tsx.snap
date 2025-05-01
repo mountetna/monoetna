@@ -531,6 +531,51 @@ exports[`QueryBuilder renders 1`] = `
                     viewBox="0 0 24 24"
                   >
                     <path
+                      d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                    />
+                  </svg>
+                </span>
+                <span
+                  class="MuiTouchRipple-root"
+                />
+              </button>
+              <p
+                class="MuiTypography-root makeStyles-title MuiTypography-body1"
+              >
+                Where:
+              </p>
+              <span
+                class="MuiTypography-root makeStyles-folded MuiTypography-body1"
+              >
+                1 condition
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root makeStyles-queryClause MuiGrid-container MuiGrid-align-items-xs-flex-start"
+        >
+          <div
+            class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-11"
+          >
+            <div
+              class="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
+            >
+              <button
+                class="MuiButtonBase-root MuiIconButton-root makeStyles-chevron MuiIconButton-sizeSmall"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
                       d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"
                     />
                   </svg>
@@ -1404,57 +1449,12 @@ exports[`QueryBuilder renders 1`] = `
             </div>
           </div>
         </div>
-        <div
-          class="MuiGrid-root makeStyles-queryClause MuiGrid-container MuiGrid-align-items-xs-flex-start"
-        >
-          <div
-            class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-11"
-          >
-            <div
-              class="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
-            >
-              <button
-                class="MuiButtonBase-root MuiIconButton-root makeStyles-chevron MuiIconButton-sizeSmall"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiIconButton-label"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
-                    />
-                  </svg>
-                </span>
-                <span
-                  class="MuiTouchRipple-root"
-                />
-              </button>
-              <p
-                class="MuiTypography-root makeStyles-title MuiTypography-body1"
-              >
-                Where:
-              </p>
-              <span
-                class="MuiTypography-root makeStyles-folded MuiTypography-body1"
-              >
-                1 condition
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
       <div
         class="MuiGrid-root makeStyles-results MuiGrid-container MuiGrid-direction-xs-column"
       >
         <div
-          class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-grid-xs-12"
+          class="MuiGrid-root makeStyles-results MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-grid-xs-12"
         >
           <div
             class="MuiGrid-root makeStyles-table_controls MuiGrid-container"
@@ -1571,11 +1571,11 @@ exports[`QueryBuilder renders 1`] = `
             </div>
           </div>
           <div
-            class="MuiTableContainer-root"
+            class="MuiTableContainer-root makeStyles-table_container"
           >
             <table
               aria-label="result table"
-              class="MuiTable-root makeStyles-table"
+              class="MuiTable-root makeStyles-table MuiTable-stickyHeader"
             >
               <thead
                 class="MuiTableHead-root"
@@ -1584,25 +1584,25 @@ exports[`QueryBuilder renders 1`] = `
                   class="MuiTableRow-root MuiTableRow-head"
                 >
                   <th
-                    class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                     scope="col"
                   >
                     monster.name
                   </th>
                   <th
-                    class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                     scope="col"
                   >
                     prize.name
                   </th>
                   <th
-                    class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                     scope="col"
                   >
                     prize.name
                   </th>
                   <th
-                    class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                     scope="col"
                   >
                     victim.country

@@ -30,9 +30,8 @@ describe QueryHistoryController do
 
       expect(last_response.status).to eq(200)
 
-      expect(json_body[:success]).to eq(true)
       expect(QueryHistory.count).to eq(1)
-      expect(QueryHistory.first.to_hash).to eq(
+      expect(json_body[:query]).to eq(
         comment: "test query",
         created_at: Time.now.iso8601,
         id: 1,

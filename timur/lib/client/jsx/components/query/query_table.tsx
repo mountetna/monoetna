@@ -19,6 +19,10 @@ const useStyles = makeStyles({
   table: {
     minWidth: 650
   },
+  table_container: {
+    flex: '1 0',
+    overflowY: 'scroll'
+  },
   table_controls: {
     padding: '0px 15px'
   },
@@ -83,8 +87,8 @@ const QueryTable = ({
           />
         </Grid>
       </Grid>
-      <TableContainer>
-        <Table className={classes.table} size='small' aria-label='result table'>
+      <TableContainer className={classes.table_container}>
+        <Table stickyHeader className={classes.table} size='small' aria-label='result table'>
           <TableHead>
             <TableRow>
               {columns

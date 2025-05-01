@@ -120,7 +120,7 @@ const QueryWherePane = () => {
   );
 
   const modelNames = useMemo(
-    () => [...graph.connectedModels(rootModel)].sort(),
+    () => [...graph.connectedModelsAnd(rootModel)].sort(),
     [graph, rootModel]
   );
 

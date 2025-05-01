@@ -343,7 +343,13 @@ class Magma
       bounds = to_table(page_bounds_query).map do |row|
         order_by_aliases.map { |c| row[c] }
       end
-      raise QuestionError, "Page #{@options[:page]} not found" if bounds.empty?
+      if bounds.empty?
+        if @options[:page] == 1
+          raise QuestionError, "No results found"
+        else
+          raise QuestionError, "Page #{@options[:page]} not found"
+        end
+      end
 
       apply_bounds(query, bounds[0], bounds[1])
     end

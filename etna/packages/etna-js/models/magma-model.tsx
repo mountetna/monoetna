@@ -113,6 +113,9 @@ export class Model {
   }
 
   collects(modelName: string): boolean {
+    // ignore self-references
+    if (this.name == modelName) return false;
+
     return this.hasAttribute(
       (a: Attribute) => a.isCollectionLink() && a.link_model_name == modelName
     );

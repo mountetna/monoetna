@@ -67,6 +67,7 @@ const QueryControlButtons = () => {
       maxColumns
     },
     setQueryString,
+    setPage,
     setDataAndNumRecords,
     setResultsState
   } = useContext(QueryResultsContext);
@@ -206,7 +207,9 @@ const QueryControlButtons = () => {
   ]);
 
   const handleRunQuery = useCallback(() => {
-    runQuery();
+    runQuery(0);
+    setPage(0);
+    setLastPage(0);
     setLastColumns(columns);
     setLastFilters(recordFilters);
     setLastOrFilterIndices(orRecordFilterIndices);
