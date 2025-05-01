@@ -106,3 +106,11 @@ export interface CreateFigurePayload {
   workflow_name: string;
   inputs: {[key: string]: any};
 }
+
+export interface SavedQuery {
+  id: number;
+  created_at: string;
+  comment: string;
+  query: string;
+  unpackedQuery?: string;
+}

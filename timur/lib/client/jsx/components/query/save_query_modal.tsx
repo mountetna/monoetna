@@ -2,6 +2,7 @@ import React, { useState, useContext, useCallback } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
 import {QueryResultsContext} from '../../contexts/query/query_results_context';
+import {SavedQuery} from '../../contexts/query/query_types';
 import Grid from '@material-ui/core/Grid';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -30,7 +31,7 @@ const QuerySaveModal = ({
   onClose: () => void;
 }) => {
   const classes = useStyles();
-  const { } = useContext(QueryResultsContext);
+  const { state: { savedQueries }, setSavedQueries } = useContext(QueryResultsContext);
 
   const [ comment, setComment ] = useState('');
 
@@ -55,6 +56,8 @@ const QuerySaveModal = ({
       json_post(`/api/query_history/${CONFIG.project_name}/create`, {
         comment,
         query
+      }).then( ({query}:{query: SavedQuery}) => {
+        setSavedQueries(savedQueries.concat(query));
       });
 
       handleClose();

@@ -18,8 +18,7 @@ import {json_get, json_delete} from 'etna-js/utils/fetch';
 import Editor from 'etna-js/components/editor';
 
 import {QueryResultsContext} from '../../contexts/query/query_results_context';
-
-import {decodeCompressedParams} from '../../utils/query_uri_params';
+import {QueryResponse, SavedQuery} from '../../contexts/query/query_types';
 
 const useStyles = makeStyles((theme) => ({
   query_header: {
@@ -69,31 +68,23 @@ const QueryHistory = ({
 }) => {
   const classes = useStyles();
 
-  const [queries, setQueries] = useState<any[]>([]);
   const [selectedIndex, setIndex] = useState(-1);
 
-  const {setQueryStateFromString} = useContext(QueryResultsContext);
-
-  const fetchQueries = async () => {
-    const { queries } = await json_get(`/api/query_history/${CONFIG.project_name}`);
-    const unpackedQueries = await Promise.all(queries.map(async (query: any) => ({
-      ...query,
-      unpackedQuery: JSON.stringify(await decodeCompressedParams(query.query), null, 2)
-    })));
-    setQueries(unpackedQueries);
-  }
+  const {state: { savedQueries }, setSavedQueries, setQueryStateFromString} = useContext(QueryResultsContext);
 
   useEffect(
     () => {
-      fetchQueries();
+      json_get(`/api/query_history/${CONFIG.project_name}`).then(
+        ({queries}) => setSavedQueries(queries)
+      )
     }, []
   );
 
-  const removeQuery = (query: any) => {
+  const removeQuery = (query: SavedQuery) => {
     json_delete(`/api/query_history/${CONFIG.project_name}/${query.id}`).then(
       () => {
-        setQueries(
-          queries.filter( (q,i) => i != selectedIndex )
+        setSavedQueries(
+          savedQueries.filter( (q,i) => i != selectedIndex )
         );
         setIndex(-1);
       }
@@ -105,7 +96,7 @@ const QueryHistory = ({
     onClose();
   }
 
-  const loadQuery = (query: any) => {
+  const loadQuery = (query: SavedQuery) => {
     const { pathname } = window.location;
     setQueryStateFromString( `q=${query.query}`);
     handleClose();
@@ -132,8 +123,8 @@ const QueryHistory = ({
         </Grid>
       </DialogTitle>
       <DialogContent>
-        {queries &&
-          queries.sort((a,b) => b.created_at.localeCompare(a.created_at)).map((query, i) => (
+        {savedQueries &&
+          savedQueries.sort((a,b) => b.created_at.localeCompare(a.created_at)).map((query, i) => (
             <React.Fragment key={i}>
               <Grid container alignItems='center'>
                 <Grid xs={6} item>
@@ -147,7 +138,7 @@ const QueryHistory = ({
               </Grid>
               <Collapse in={selectedIndex == i} timeout='auto' unmountOnExit>
                 <Grid container className={classes.diff}>
-                  {selectedIndex == i && (
+                  {selectedIndex == i && query.unpackedQuery && (
                     <Editor value={query.unpackedQuery}/>
                   )}
                 </Grid>
@@ -156,11 +147,11 @@ const QueryHistory = ({
           ))}
       </DialogContent>
       <DialogActions className={classes.actions}>
-        {queries && selectedIndex != -1 && (<>
-          <Button onClick={() => removeQuery(queries[selectedIndex])}>
+        {savedQueries && selectedIndex != -1 && (<>
+          <Button onClick={() => removeQuery(savedQueries[selectedIndex])}>
             Remove
           </Button>
-          <Button color='secondary' onClick={() => loadQuery(queries[selectedIndex])}>
+          <Button color='secondary' onClick={() => loadQuery(savedQueries[selectedIndex])}>
             Load
           </Button>
         </>)}
