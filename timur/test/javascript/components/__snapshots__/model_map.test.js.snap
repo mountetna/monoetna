@@ -1252,7 +1252,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
     class="MuiGrid-root makeStyles-model_map-2 MuiGrid-container"
   >
     <div
-      class="MuiGrid-root map MuiGrid-item"
+      class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column"
     >
       <div
         class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-4 MuiGrid-container"
@@ -1273,68 +1273,72 @@ exports[`ModelMap for model with no records renders with action buttons and repa
         />
       </div>
       <div
-        style="position: relative;"
+        class="MuiGrid-root makeStyles-map-3 MuiGrid-item"
       >
-        <svg
-          height="600"
-          id="map"
-          width="600"
+        <div
+          style="position: relative;"
         >
-          <defs>
-            <marker
-              id="arrow"
-              markerHeight="3"
-              markerUnits="strokeWidth"
-              markerWidth="3"
-              orient="auto"
-              refX="0"
-              refY="1"
+          <svg
+            height="600"
+            id="map"
+            width="600"
+          >
+            <defs>
+              <marker
+                id="arrow"
+                markerHeight="3"
+                markerUnits="strokeWidth"
+                markerWidth="3"
+                orient="auto"
+                refX="0"
+                refY="1"
+              >
+                <path
+                  d="M0,0 L0,2 L3,1 z"
+                />
+              </marker>
+            </defs>
+            <g
+              class="model_link"
             >
-              <path
-                d="M0,0 L0,2 L3,1 z"
+              <line
+                marker-end="url(#arrow)"
+                x1="300"
+                x2="300"
+                y1="150"
+                y2="280"
               />
-            </marker>
-          </defs>
-          <g
-            class="model_link"
+            </g>
+            <g
+              class="model_link"
+            >
+              <line
+                marker-end="url(#arrow)"
+                x1="300"
+                x2="300"
+                y1="300"
+                y2="430"
+              />
+            </g>
+          </svg>
+          <div
+            class="makeStyles-model_node-9  "
+            style="top: 300px; left: 300px; --model-width: 285px;"
           >
-            <line
-              marker-end="url(#arrow)"
-              x1="300"
-              x2="300"
-              y1="150"
-              y2="280"
-            />
-          </g>
-          <g
-            class="model_link"
+            labor
+          </div>
+          <div
+            class="makeStyles-model_node-9 makeStyles-selected-10 "
+            style="top: 450px; left: 300px; --model-width: 285px;"
           >
-            <line
-              marker-end="url(#arrow)"
-              x1="300"
-              x2="300"
-              y1="300"
-              y2="430"
-            />
-          </g>
-        </svg>
-        <div
-          class="makeStyles-model_node-9  "
-          style="top: 300px; left: 300px; --model-width: 285px;"
-        >
-          labor
-        </div>
-        <div
-          class="makeStyles-model_node-9 makeStyles-selected-10 "
-          style="top: 450px; left: 300px; --model-width: 285px;"
-        >
-          monster
-        </div>
-        <div
-          class="makeStyles-model_node-9  "
-          style="top: 150px; left: 300px; --model-width: 285px;"
-        >
-          project
+            monster
+          </div>
+          <div
+            class="makeStyles-model_node-9  "
+            style="top: 150px; left: 300px; --model-width: 285px;"
+          >
+            project
+          </div>
         </div>
       </div>
     </div>
