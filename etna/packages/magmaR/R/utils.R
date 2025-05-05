@@ -39,7 +39,7 @@
 }
 
 .perform_curl_get <- function(
-    fxn = c("/retrieve", "/query", "/update", "/projects"),
+    fxn = c("/retrieve", "/query", "/update", "/api/user/projects"),
     target,
     requestBody,
     parse = TRUE,
