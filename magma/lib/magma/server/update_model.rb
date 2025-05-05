@@ -11,6 +11,14 @@ class UpdateModelController < Magma::Controller
         retrieval = Magma::Retrieval.new(model, [], "all")
         @payload.add_model(model, retrieval.attribute_names)
       end
+      event_log(
+        event: 'model',
+        message: "made model changes: #{@params[:actions].map{|a| a[:action_name]}.uniq.join(", ")}",
+        payload: {
+          actions: @params[:actions]
+        },
+        consolidate: true
+      )
       success(@payload.to_hash.to_json, 'application/json')
     else
       failure(422, errors: model_update_actions.errors)

@@ -108,6 +108,7 @@ module Redcap
         [
           record_id,
           Redcap::Record.new(
+            record_id,
             record_eavs,
             flat_record(record_id),
             identifier_fields_data(record_id)

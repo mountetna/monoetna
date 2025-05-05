@@ -12,6 +12,7 @@ require 'yaml'
 require 'factory_bot'
 require 'database_cleaner'
 require 'rack/test'
+require 'etna/spec/event_log'
 
 require_relative '../lib/server'
 require_relative '../lib/timur'
@@ -141,6 +142,10 @@ FactoryBot.define do
         name { template[:name] }
       end
     end
+  end
+
+  factory :query_history do
+    to_create(&:save)
   end
 end
 

@@ -1,0 +1,1077 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Renderable homepage elements Hero 1`] = `
+<div>
+  <html
+    lang="en"
+  >
+    <body>
+      <main>
+        <div
+          class="MuiBox-root mui-139lcja"
+        >
+          <div
+            class="MuiContainer-root MuiContainer-maxWidthDesktopLg mui-1jg98ud-MuiContainer-root"
+          >
+            <div
+              class="MuiBox-root mui-mzes97"
+            >
+              <div
+                class="MuiBox-root mui-1giofh5"
+              >
+                <video
+                  autoplay=""
+                  playsinline=""
+                  style="width: 100%; height: auto; object-fit: cover; border-radius: 50%;"
+                >
+                  <source
+                    src="/videos/hero/oscc1-clipped.mp4"
+                    type="video/mp4"
+                  />
+                  <img
+                    alt="Picture of Spatial Transcriptomics"
+                    data-nimg="1"
+                    decoding="async"
+                    height="40"
+                    loading="lazy"
+                    src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                    srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                    style="color: transparent;"
+                    width="40"
+                  />
+                </video>
+                <div
+                  class="MuiBox-root mui-jz6po3"
+                >
+                  <div
+                    class="MuiBox-root mui-glypg7"
+                  />
+                  <button
+                    aria-label="Restart video"
+                    class="MuiButtonBase-root Mui-disabled mui-1ffx3aa-MuiButtonBase-root"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <img
+                      alt="Arrow counter clockwise"
+                      data-nimg="1"
+                      decoding="async"
+                      height="40"
+                      loading="lazy"
+                      src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                      srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                      style="color: transparent;"
+                      width="40"
+                    />
+                  </button>
+                  <button
+                    aria-label="Next video"
+                    class="MuiButtonBase-root Mui-disabled mui-1ffx3aa-MuiButtonBase-root"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <img
+                      alt="Arrow right"
+                      data-nimg="1"
+                      decoding="async"
+                      height="40"
+                      loading="lazy"
+                      src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                      srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                      style="color: transparent;"
+                      width="40"
+                    />
+                  </button>
+                </div>
+              </div>
+              <div
+                class="MuiBox-root mui-15yxpa7"
+              >
+                <h3
+                  class="MuiTypography-root MuiTypography-h3 mui-bzfrh0-MuiTypography-root"
+                >
+                  A library capturing, curating, and sharing biological data — creating a foundation for transformative collaborative research.
+                </h3>
+                <div
+                  class="MuiBox-root mui-0"
+                >
+                  <button
+                    class="MuiButtonBase-root mui-10d1a0h-MuiButtonBase-root"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiBox-root mui-2zprzl"
+                    >
+                      <img
+                        alt="Arrow pointing down"
+                        data-nimg="1"
+                        decoding="async"
+                        height="40"
+                        loading="lazy"
+                        src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                        srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                        style="color: transparent;"
+                        width="40"
+                      />
+                    </span>
+                    <span
+                      class="MuiTypography-root MuiTypography-pMedium mui-c3tgdv-MuiTypography-root"
+                    >
+                      Scroll to explore
+                    </span>
+                  </button>
+                </div>
+              </div>
+              <div
+                class="MuiBox-root mui-1gz1k8k"
+              >
+                <div
+                  class="MuiBox-root mui-1hibaip"
+                >
+                  <div
+                    class="stats-carousel MuiBox-root mui-ob771v"
+                  >
+                    <div
+                      class="MuiBox-root mui-17y7wj2"
+                    >
+                      <div
+                        data-testid="swiper-testid"
+                      >
+                        <div
+                          data-testid="swiper-slide-testid"
+                        >
+                          <div
+                            class="MuiBox-root mui-1vx1dtt"
+                          >
+                            <div
+                              class="stat-card MuiBox-root mui-19935ou"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Total Data Stored
+                              </h5>
+                              <div
+                                class="MuiBox-root mui-r7q7qr"
+                              >
+                                <div
+                                  class="stat stat-primary MuiBox-root mui-k008qs"
+                                >
+                                  <h3
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                  >
+                                    0TB
+                                  </h3>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          data-testid="swiper-slide-testid"
+                        >
+                          <div
+                            class="MuiBox-root mui-1vx1dtt"
+                          >
+                            <div
+                              class="stat-card MuiBox-root mui-1hsvz7x"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Assays
+                              </h5>
+                              <div
+                                class="MuiBox-root mui-r7q7qr"
+                              >
+                                <div
+                                  class="stat stat-primary MuiBox-root mui-k008qs"
+                                >
+                                  <h3
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                  >
+                                    100
+                                  </h3>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          data-testid="swiper-slide-testid"
+                        >
+                          <div
+                            class="MuiBox-root mui-1vx1dtt"
+                          >
+                            <div
+                              class="stat-card MuiBox-root mui-1hsvz7x"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Subjects
+                              </h5>
+                              <div
+                                class="MuiBox-root mui-r7q7qr"
+                              >
+                                <div
+                                  class="stat stat-primary MuiBox-root mui-k008qs"
+                                >
+                                  <h3
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                  >
+                                    148
+                                  </h3>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          data-testid="swiper-slide-testid"
+                        >
+                          <div
+                            class="MuiBox-root mui-1vx1dtt"
+                          >
+                            <div
+                              class="stat-card MuiBox-root mui-1hsvz7x"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Files
+                              </h5>
+                              <div
+                                class="MuiBox-root mui-r7q7qr"
+                              >
+                                <div
+                                  class="stat stat-primary MuiBox-root mui-k008qs"
+                                >
+                                  <h3
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                  >
+                                    597
+                                  </h3>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          data-testid="swiper-slide-testid"
+                        >
+                          <div
+                            class="MuiBox-root mui-1vx1dtt"
+                          >
+                            <div
+                              class="stat-card MuiBox-root mui-19935ou"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Samples
+                              </h5>
+                              <div
+                                class="MuiBox-root mui-r7q7qr"
+                              >
+                                <div
+                                  class="stat stat-primary MuiBox-root mui-k008qs"
+                                >
+                                  <h3
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                  >
+                                    1,000
+                                  </h3>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          data-testid="swiper-slide-testid"
+                        >
+                          <div
+                            class="MuiBox-root mui-1vx1dtt"
+                          >
+                            <div
+                              class="stat-card MuiBox-root mui-19935ou"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Users
+                              </h5>
+                              <div
+                                class="MuiBox-root mui-r7q7qr"
+                              >
+                                <div
+                                  class="stat stat-primary MuiBox-root mui-k008qs"
+                                >
+                                  <h3
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                  >
+                                    50
+                                  </h3>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="MuiBox-root mui-wiexpe"
+                    >
+                      <button
+                        class="MuiButtonBase-root carousel-index-indicator active mui-10d1a0h-MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      />
+                      <button
+                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      />
+                      <button
+                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      />
+                      <button
+                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      />
+                      <button
+                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      />
+                      <button
+                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        tabindex="0"
+                        type="button"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <a
+                  class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-ayjyg5-MuiTypography-root-MuiLink-root"
+                  href="https://example.com"
+                  tabindex="0"
+                >
+                  <h5
+                    class="MuiTypography-root MuiTypography-h5 mui-b15gk3-MuiTypography-root"
+                  >
+                    Get Access
+                  </h5>
+                  <div
+                    class="MuiBox-root mui-1bvc4cc"
+                  >
+                    <span
+                      class="MuiBox-root mui-1xyxjys"
+                    >
+                      <img
+                        alt="Arrow pointing up-right"
+                        data-nimg="1"
+                        decoding="async"
+                        height="40"
+                        loading="lazy"
+                        src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                        srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                        style="color: transparent;"
+                        width="40"
+                      />
+                    </span>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </body>
+  </html>
+</div>
+`;
+
+exports[`Renderable homepage elements ThemeShelf 1`] = `
+<div>
+  <html
+    lang="en"
+  >
+    <body>
+      <main>
+        <div
+          class="MuiBox-root mui-0"
+        >
+          <div
+            class="MuiContainer-root MuiContainer-maxWidthDesktopLg mui-1jg98ud-MuiContainer-root"
+          >
+            <h1
+              class="MuiTypography-root MuiTypography-h1 mui-hnozgm-MuiTypography-root"
+            >
+              Our Themes
+            </h1>
+            <div
+              class="MuiTypography-root MuiTypography-pLarge mui-1688cwk-MuiTypography-root"
+            >
+              Our research themes serve as broad categories that encompass the foundational biology of our projects.
+            </div>
+          </div>
+          <div
+            class="MuiContainer-root MuiContainer-maxWidthDesktopLg mui-avy1r0-MuiContainer-root"
+            role="list"
+          >
+            <div
+              class="MuiBox-root mui-615fv5"
+              role="listitem"
+            >
+              <button
+                class="MuiButtonBase-root mui-ystb2t-MuiButtonBase-root"
+                tabindex="0"
+                type="button"
+              >
+                <div
+                  class="MuiBox-root mui-221hns"
+                >
+                  <span
+                    class="MuiTypography-root MuiTypography-pSubtitleMonoCaps mui-ds0nlo-MuiTypography-root"
+                  >
+                    Infe
+                  </span>
+                  <span
+                    class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                  >
+                    Infection
+                  </span>
+                </div>
+              </button>
+              <div
+                class="MuiCollapse-root MuiCollapse-vertical MuiCollapse-entered mui-wz2cs5-MuiCollapse-root"
+                style="min-height: 0px;"
+              >
+                <div
+                  class="MuiCollapse-wrapper MuiCollapse-vertical mui-smkl36-MuiCollapse-wrapper"
+                >
+                  <div
+                    class="MuiCollapse-wrapperInner MuiCollapse-vertical mui-9l5vo-MuiCollapse-wrapperInner"
+                  >
+                    <div
+                      class="MuiBox-root mui-ha6v5"
+                      style="opacity: 1; webkit-transition: opacity 450ms cubic-bezier(0.92, 0, 0.06, 1) 0ms; transition: opacity 450ms cubic-bezier(0.92, 0, 0.06, 1) 0ms;"
+                    >
+                      <div
+                        class="MuiBox-root mui-2gyp5w"
+                      >
+                        <div
+                          class="MuiTypography-root MuiTypography-pMediumMonoCaps mui-1sjy41m-MuiTypography-root"
+                        >
+                          <span
+                            class="MuiBox-root mui-xi3ir8"
+                          >
+                            <span
+                              class="MuiBox-root mui-0"
+                            >
+                              1
+                            </span>
+                            <span
+                              class="MuiBox-root mui-0"
+                            >
+                              PROJECT
+                            </span>
+                          </span>
+                        </div>
+                        <div
+                          class="MuiBox-root mui-1dbfhm3"
+                        >
+                          <img
+                            alt="Infection theme abstract image"
+                            data-nimg="1"
+                            decoding="async"
+                            height="40"
+                            loading="lazy"
+                            src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                            srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                            style="color: transparent;"
+                            width="40"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="MuiBox-root mui-1i43dhb"
+                      >
+                        <div
+                          class="MuiBox-root mui-fccqxc"
+                        >
+                          <h5
+                            class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                          >
+                            Infection
+                          </h5>
+                          <span
+                            class="MuiTypography-root MuiTypography-pLarge mui-nhkwq8-MuiTypography-root"
+                          >
+                            Infection is bad
+                          </span>
+                        </div>
+                        <div
+                          class="MuiBox-root mui-1bvc4cc"
+                        >
+                          <a
+                            class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-4pgmj9-MuiTypography-root-MuiLink-root"
+                            href=""
+                            id=":r0:"
+                            tabindex="0"
+                          >
+                            <span
+                              class="MuiTypography-root MuiTypography-pLarge mui-1er6243-MuiTypography-root"
+                            >
+                              See projects
+                            </span>
+                            <div
+                              class="MuiBox-root mui-193w4t8"
+                            >
+                              <img
+                                alt="Arrow pointing up-right"
+                                data-nimg="1"
+                                decoding="async"
+                                height="40"
+                                loading="lazy"
+                                src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                                srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                                style="color: transparent;"
+                                width="40"
+                              />
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="MuiBox-root mui-615fv5"
+              role="listitem"
+            >
+              <button
+                class="MuiButtonBase-root mui-ystb2t-MuiButtonBase-root"
+                tabindex="0"
+                type="button"
+              >
+                <div
+                  class="MuiBox-root mui-221hns"
+                >
+                  <span
+                    class="MuiTypography-root MuiTypography-pSubtitleMonoCaps mui-ds0nlo-MuiTypography-root"
+                  >
+                    Canc
+                  </span>
+                  <span
+                    class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                  >
+                    Cancer
+                  </span>
+                </div>
+              </button>
+              <div
+                class="MuiCollapse-root MuiCollapse-vertical MuiCollapse-hidden mui-1ev76c2-MuiCollapse-root"
+                style="min-height: 0px;"
+              >
+                <div
+                  class="MuiCollapse-wrapper MuiCollapse-vertical mui-smkl36-MuiCollapse-wrapper"
+                >
+                  <div
+                    class="MuiCollapse-wrapperInner MuiCollapse-vertical mui-9l5vo-MuiCollapse-wrapperInner"
+                  >
+                    <div
+                      class="MuiBox-root mui-ha6v5"
+                      style="opacity: 0; visibility: hidden;"
+                    >
+                      <div
+                        class="MuiBox-root mui-6snbnz"
+                      >
+                        <div
+                          class="MuiTypography-root MuiTypography-pMediumMonoCaps mui-1sjy41m-MuiTypography-root"
+                        >
+                          <span
+                            class="MuiBox-root mui-xi3ir8"
+                          >
+                            <span
+                              class="MuiBox-root mui-0"
+                            >
+                              2
+                            </span>
+                            <span
+                              class="MuiBox-root mui-0"
+                            >
+                              PROJECTS
+                            </span>
+                          </span>
+                        </div>
+                        <div
+                          class="MuiBox-root mui-1dbfhm3"
+                        >
+                          <img
+                            alt="Cancer theme abstract image"
+                            data-nimg="1"
+                            decoding="async"
+                            height="40"
+                            loading="lazy"
+                            src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                            srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                            style="color: transparent;"
+                            width="40"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="MuiBox-root mui-1i43dhb"
+                      >
+                        <div
+                          class="MuiBox-root mui-fccqxc"
+                        >
+                          <h5
+                            class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                          >
+                            Cancer
+                          </h5>
+                          <span
+                            class="MuiTypography-root MuiTypography-pLarge mui-nhkwq8-MuiTypography-root"
+                          >
+                            cancer lorem ipsum
+                          </span>
+                        </div>
+                        <div
+                          class="MuiBox-root mui-1bvc4cc"
+                        >
+                          <a
+                            class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-4pgmj9-MuiTypography-root-MuiLink-root"
+                            href=""
+                            id=":r1:"
+                            tabindex="0"
+                          >
+                            <span
+                              class="MuiTypography-root MuiTypography-pLarge mui-1er6243-MuiTypography-root"
+                            >
+                              See projects
+                            </span>
+                            <div
+                              class="MuiBox-root mui-193w4t8"
+                            >
+                              <img
+                                alt="Arrow pointing up-right"
+                                data-nimg="1"
+                                decoding="async"
+                                height="40"
+                                loading="lazy"
+                                src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                                srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                                style="color: transparent;"
+                                width="40"
+                              />
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="MuiBox-root mui-ibdd19"
+          >
+            <div
+              class="MuiBox-root mui-1ivyz51"
+            >
+              <div
+                class="fade-mask fade-mask-left MuiBox-root mui-u66ts8"
+              />
+              <div
+                class="MuiBox-root mui-11ryugs"
+                role="list"
+              >
+                <div
+                  class="spacer MuiBox-root mui-0"
+                />
+                <div
+                  class="MuiTypography-root MuiTypography-h4SmallCaps mui-joas7g-MuiTypography-root"
+                >
+                  THEMES
+                </div>
+                <div
+                  class="MuiBox-root mui-1v8t9er"
+                  role="listitem"
+                >
+                  <div
+                    class="MuiCollapse-root MuiCollapse-horizontal MuiCollapse-entered mui-1vrhb3m-MuiCollapse-root"
+                    style="min-width: 0px;"
+                  >
+                    <div
+                      class="MuiCollapse-wrapper MuiCollapse-horizontal mui-1kjcp9i-MuiCollapse-wrapper"
+                    >
+                      <div
+                        class="MuiCollapse-wrapperInner MuiCollapse-horizontal mui-hrodc9-MuiCollapse-wrapperInner"
+                      >
+                        <div
+                          class="MuiBox-root mui-4nuj1i"
+                          style="opacity: 1; display: flex; webkit-transition: opacity 450ms cubic-bezier(0.92, 0, 0.06, 1) 0ms; transition: opacity 450ms cubic-bezier(0.92, 0, 0.06, 1) 0ms;"
+                        >
+                          <div
+                            class="MuiBox-root mui-1ak1ue6"
+                          >
+                            <div
+                              class="MuiBox-root mui-1r3tkmy"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Infection
+                              </h5>
+                              <div
+                                class="MuiTypography-root MuiTypography-pLarge mui-nhkwq8-MuiTypography-root"
+                              >
+                                Infection is bad
+                              </div>
+                            </div>
+                            <div
+                              class="MuiBox-root mui-1bvc4cc"
+                            >
+                              <a
+                                class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-4pgmj9-MuiTypography-root-MuiLink-root"
+                                href=""
+                                id=":r2:"
+                                tabindex="0"
+                              >
+                                <span
+                                  class="MuiTypography-root MuiTypography-pLarge mui-1er6243-MuiTypography-root"
+                                >
+                                  See projects
+                                </span>
+                                <div
+                                  class="MuiBox-root mui-193w4t8"
+                                >
+                                  <img
+                                    alt="Arrow pointing up-right"
+                                    data-nimg="1"
+                                    decoding="async"
+                                    height="40"
+                                    loading="lazy"
+                                    src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                                    srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                                    style="color: transparent;"
+                                    width="40"
+                                  />
+                                </div>
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="MuiBox-root mui-1xhj18k"
+                  >
+                    <button
+                      class="MuiButtonBase-root mui-84zxbe-MuiButtonBase-root"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <div
+                        class="MuiBox-root mui-ekljqq"
+                      >
+                        <span
+                          class="MuiTypography-root MuiTypography-h5 name mui-6sn1yr-MuiTypography-root"
+                        >
+                          Infection
+                        </span>
+                        <div
+                          class="MuiBox-root mui-n9l0x2"
+                        >
+                          <span
+                            class="MuiTypography-root MuiTypography-pSubtitleMonoCaps short-code mui-1cv4cul-MuiTypography-root"
+                          >
+                            Infe
+                          </span>
+                          <div
+                            class="MuiTypography-root MuiTypography-pSubtitleMonoCaps mui-jjcn81-MuiTypography-root"
+                          >
+                            <span
+                              class="MuiBox-root mui-xi3ir8"
+                            >
+                              <span
+                                class="MuiBox-root mui-0"
+                              >
+                                1
+                              </span>
+                              <span
+                                class="MuiBox-root mui-0"
+                              >
+                                PROJECT
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                    <div
+                      class="MuiCollapse-root MuiCollapse-horizontal MuiCollapse-entered mui-1vrhb3m-MuiCollapse-root"
+                      style="min-width: 0px;"
+                    >
+                      <div
+                        class="MuiCollapse-wrapper MuiCollapse-horizontal mui-1kjcp9i-MuiCollapse-wrapper"
+                      >
+                        <div
+                          class="MuiCollapse-wrapperInner MuiCollapse-horizontal mui-hrodc9-MuiCollapse-wrapperInner"
+                        >
+                          <div
+                            class="MuiBox-root mui-0"
+                            style="opacity: 1; display: flex; border-radius: 20px; border-top-left-radius: 0px; border-bottom-left-radius: 0px; background-color: rgb(137, 167, 206); webkit-transition: opacity 450ms cubic-bezier(0.92, 0, 0.06, 1) 0ms; transition: opacity 450ms cubic-bezier(0.92, 0, 0.06, 1) 0ms;"
+                          >
+                            <div
+                              class="MuiBox-root mui-m8ppd7"
+                            >
+                              <img
+                                alt="Infection theme abstract image"
+                                data-nimg="1"
+                                decoding="async"
+                                height="40"
+                                loading="lazy"
+                                src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                                srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                                style="color: transparent; width: 100%; height: 100%; object-fit: cover; object-position: center center; border-radius: 16px;"
+                                width="40"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="MuiBox-root mui-1g9pv5n"
+                  role="listitem"
+                >
+                  <div
+                    class="MuiCollapse-root MuiCollapse-horizontal MuiCollapse-hidden mui-1ssmexg-MuiCollapse-root"
+                    style="min-width: 0px;"
+                  >
+                    <div
+                      class="MuiCollapse-wrapper MuiCollapse-horizontal mui-1kjcp9i-MuiCollapse-wrapper"
+                    >
+                      <div
+                        class="MuiCollapse-wrapperInner MuiCollapse-horizontal mui-hrodc9-MuiCollapse-wrapperInner"
+                      >
+                        <div
+                          class="MuiBox-root mui-4nuj1i"
+                          style="opacity: 0; visibility: hidden; display: flex;"
+                        >
+                          <div
+                            class="MuiBox-root mui-1ak1ue6"
+                          >
+                            <div
+                              class="MuiBox-root mui-1r3tkmy"
+                            >
+                              <h5
+                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                              >
+                                Cancer
+                              </h5>
+                              <div
+                                class="MuiTypography-root MuiTypography-pLarge mui-nhkwq8-MuiTypography-root"
+                              >
+                                cancer lorem ipsum
+                              </div>
+                            </div>
+                            <div
+                              class="MuiBox-root mui-1bvc4cc"
+                            >
+                              <a
+                                class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-4pgmj9-MuiTypography-root-MuiLink-root"
+                                href=""
+                                id=":r3:"
+                                tabindex="0"
+                              >
+                                <span
+                                  class="MuiTypography-root MuiTypography-pLarge mui-1er6243-MuiTypography-root"
+                                >
+                                  See projects
+                                </span>
+                                <div
+                                  class="MuiBox-root mui-193w4t8"
+                                >
+                                  <img
+                                    alt="Arrow pointing up-right"
+                                    data-nimg="1"
+                                    decoding="async"
+                                    height="40"
+                                    loading="lazy"
+                                    src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                                    srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                                    style="color: transparent;"
+                                    width="40"
+                                  />
+                                </div>
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="MuiBox-root mui-1xhj18k"
+                  >
+                    <button
+                      class="MuiButtonBase-root mui-fklaf6-MuiButtonBase-root"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <div
+                        class="MuiBox-root mui-ekljqq"
+                      >
+                        <span
+                          class="MuiTypography-root MuiTypography-h5 name mui-1cmq3le-MuiTypography-root"
+                        >
+                          Cancer
+                        </span>
+                        <div
+                          class="MuiBox-root mui-n9l0x2"
+                        >
+                          <span
+                            class="MuiTypography-root MuiTypography-pSubtitleMonoCaps short-code mui-wytr79-MuiTypography-root"
+                          >
+                            Canc
+                          </span>
+                          <div
+                            class="MuiTypography-root MuiTypography-pSubtitleMonoCaps mui-jjcn81-MuiTypography-root"
+                          >
+                            <span
+                              class="MuiBox-root mui-xi3ir8"
+                            >
+                              <span
+                                class="MuiBox-root mui-0"
+                              >
+                                2
+                              </span>
+                              <span
+                                class="MuiBox-root mui-0"
+                              >
+                                PROJECTS
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                    <div
+                      class="MuiCollapse-root MuiCollapse-horizontal MuiCollapse-hidden mui-1ssmexg-MuiCollapse-root"
+                      style="min-width: 0px;"
+                    >
+                      <div
+                        class="MuiCollapse-wrapper MuiCollapse-horizontal mui-1kjcp9i-MuiCollapse-wrapper"
+                      >
+                        <div
+                          class="MuiCollapse-wrapperInner MuiCollapse-horizontal mui-hrodc9-MuiCollapse-wrapperInner"
+                        >
+                          <div
+                            class="MuiBox-root mui-0"
+                            style="opacity: 0; visibility: hidden; display: flex; border-radius: 20px; border-top-left-radius: 0px; border-bottom-left-radius: 0px; background-color: rgb(228, 184, 199);"
+                          >
+                            <div
+                              class="MuiBox-root mui-m8ppd7"
+                            >
+                              <img
+                                alt="Cancer theme abstract image"
+                                data-nimg="1"
+                                decoding="async"
+                                height="40"
+                                loading="lazy"
+                                src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                                srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                                style="color: transparent; width: 100%; height: 100%; object-fit: cover; object-position: center center; border-radius: 16px;"
+                                width="40"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="spacer MuiBox-root mui-0"
+                />
+              </div>
+              <div
+                class="fade-mask fade-mask-right MuiBox-root mui-f2g3ly"
+              />
+            </div>
+            <div
+              class="MuiContainer-root MuiContainer-maxWidthDesktopLg mui-1jg98ud-MuiContainer-root"
+            >
+              <div
+                class="MuiBox-root mui-k7uznk"
+              >
+                <div
+                  class="MuiTypography-root MuiTypography-h4SmallCaps mui-1ozyngy-MuiTypography-root"
+                >
+                  EXPLORE OUR THEMES
+                </div>
+                <div
+                  class="MuiBox-root mui-1i27l4i"
+                >
+                  <button
+                    class="MuiButtonBase-root Mui-disabled mui-wutn5a-MuiButtonBase-root"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <img
+                      alt="Arrow left"
+                      data-nimg="1"
+                      decoding="async"
+                      height="40"
+                      loading="lazy"
+                      src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                      srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                      style="color: transparent;"
+                      width="40"
+                    />
+                  </button>
+                  <button
+                    class="MuiButtonBase-root mui-1x95knz-MuiButtonBase-root"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <img
+                      alt="Arrow right"
+                      data-nimg="1"
+                      decoding="async"
+                      height="40"
+                      loading="lazy"
+                      src="/_next/image?url=%2Fimg.jpg&w=96&q=75"
+                      srcset="/_next/image?url=%2Fimg.jpg&w=48&q=75 1x, /_next/image?url=%2Fimg.jpg&w=96&q=75 2x"
+                      style="color: transparent;"
+                      width="40"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </body>
+  </html>
+</div>
+`;

@@ -1,3 +1,5 @@
+declare var CONFIG: { [key: string]: string };
+
 export type EtnaError = {
   error: string;
 };
@@ -5,26 +7,57 @@ export type EtnaError = {
 export type Job = {
   name: string;
   schema: any;
-  params: any;
+  runtime_params: any;
   secrets: any;
 };
 
-export type Etl = {
+export type Log = {
+  id: number;
+  application: string;
   project_name: string;
-  name: string;
-  config_id: number;
-  etl: string;
-  config: any;
-  ran_at: string;
-  updated_at: string;
-  run_interval: number;
-  output: string;
-  secrets: any;
-  params: any;
-  status: string;
+  user: string;
+  event: string;
+  message: string;
+  payload: boolean;
+  created_at: string;
 };
 
-type EtlRevision = {
+export type Workflow = {
+  project_name: string;
+  workflow_name: string;
+  config_id: number;
+  version_number: number;
+  workflow_type: string;
+  config: any;
+  secrets: any;
+  created_at: string;
+};
+
+export type Runtime = {
+  config_id: number;
+  config: any;
+  run_interval: number;
+};
+
+export type Run = {
+  run_id: number;
+  created_at: string;
+  config_id: number;
+  version_number: number;
+  status: string;
+  finished_at: string;
+};
+
+export type Status = {
+  workflow_type: string;
+  workflow_name: string;
+  config_id: number;
+  pipeline_state: string;
+  pipeline_started_at: string;
+  pipeline_finished_at: string;
+};
+
+type WorkflowRevision = {
   config: any;
   comment: string;
   updated_at: string;

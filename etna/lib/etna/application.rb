@@ -144,6 +144,24 @@ module Etna::Application
   # the application logger is available globally
   attr_reader :logger
 
+  def event_log(project_name:, user:, event:, message:, payload: nil, consolidate: nil)
+    @polyphemus_client ||= Etna::Clients::Polyphemus.new(
+      token: nil,
+      host: config(:polyphemus)[:host],
+      routes_available: true
+    )
+
+    @polyphemus_client.log(
+      project_name: project_name,
+      user: user.email,
+      event: event,
+      message: message,
+      payload: payload,
+      consolidate: consolidate,
+      signatory: self
+    )
+  end
+
   def config(type, env = environment)
     return nil if @config.nil?
     return nil if @config[env].nil?
@@ -172,6 +190,14 @@ module Etna::Application
 
   def id
     ENV["APP_NAME"] || self.class.name.snake_case.split(/::/).last
+  end
+
+  def host
+    URI(url).host
+  end
+
+  def url
+    config(id.to_sym)[:host]
   end
 
   def find_descendents(klass)

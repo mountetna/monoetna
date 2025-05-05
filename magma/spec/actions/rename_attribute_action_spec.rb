@@ -77,6 +77,7 @@ describe Magma::RenameAttributeAction do
         # Rollback in memory changes to the attribute
         Labors::Monster.attributes.delete(:victor)
         Labors::Monster.attributes[:victim] = @original_attribute
+        Labors::Victim.attributes[:monster].update(link_attribute_name: "victim")
       end
 
       let(:action_params) do

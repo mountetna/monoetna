@@ -8,7 +8,8 @@ const useStyles = makeStyles((theme) => ({
   },
   queryClause: {
     padding: '15px',
-    borderBottom: '1px solid #eee'
+    paddingLeft: '5px',
+    borderBottom: '1px solid #ccc'
   }
 }));
 
@@ -17,9 +18,6 @@ const QueryClause = ({title, children}: PropsWithChildren<{title: string}>) => {
 
   return (
     <Grid alignItems='flex-start' container className={classes.queryClause}>
-      <Grid xs={1} item className={classes.clauseTitle}>
-        {title}
-      </Grid>
       <Grid xs={11} item>
         {children}
       </Grid>

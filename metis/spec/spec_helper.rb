@@ -13,19 +13,13 @@ ENV['METIS_ENV'] = 'test'
 require_relative '../lib/metis'
 require_relative '../lib/server'
 
+require 'etna/spec/event_log'
+
 METIS_CONFIG=YAML.load(File.read("config.yml"))
 Metis.instance.configure(METIS_CONFIG)
 
 METIS_HOST="metis.#{Metis.instance.config(:token_domain)}"
 METIS_URL="https://#{METIS_HOST}"
-
-class Rack::Test::Session
-  alias_method :real_default_env, :default_env
-
-  def default_env
-    real_default_env.merge('HTTPS' => 'on')
-  end
-end
 
 module Rack::Test::Methods
   def build_rack_mock_session
@@ -398,6 +392,9 @@ EOT
 
 
 AUTH_USERS = {
+  supereditor: {
+    email: 'vesta@olympus.org', name: 'Vesta', perm: 'a:administration'
+  },
   editor: {
     email: 'metis@olympus.org', name: 'Metis', perm: 'e:athena,backup'
   },

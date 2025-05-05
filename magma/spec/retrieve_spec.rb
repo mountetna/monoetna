@@ -1378,7 +1378,7 @@ describe RetrieveController do
       )
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:errors]).to eq(["Page 1 not found"])
+      expect(json_body[:errors]).to eq(["No results found"])
     end
   end
 

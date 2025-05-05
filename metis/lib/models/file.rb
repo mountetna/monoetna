@@ -69,7 +69,7 @@ class Metis
     def self.upload_url(request, project_name, bucket_name, file_path, user)
       hmac_url(
         method: 'POST',
-        host: request.host,
+        host: Metis.instance.host,
         path: Metis::Server.route_path(
           request,
           :upload,
@@ -85,7 +85,7 @@ class Metis
     def self.download_url(request, project_name, bucket_name, file_path)
       hmac_url(
         method: 'GET',
-        host: request.host,
+        host: Metis.instance.host,
         path: Metis::Server.route_path(
           request,
           :download,
@@ -133,6 +133,14 @@ class Metis
           data_block: params[:source_data_block]
         )
       end
+    end
+
+    def self.total_size(query)
+      Metis::DataBlock.total_size(
+        id: Metis::File.where(
+          query
+        ).select_map(:data_block_id).uniq
+      )
     end
 
     private

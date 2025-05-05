@@ -2,6 +2,7 @@ import React, {useState, useCallback, useEffect, useMemo} from 'react';
 
 import {makeStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
 
 import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
@@ -16,6 +17,11 @@ import ModelAttributesTable from './model_attributes_table';
 import {isLink} from '../../utils/attributes';
 
 const useStyles = makeStyles((theme) => ({
+  container: {
+    overflow: 'hidden',
+    height: '100%',
+    width: '100%'
+  },
   switch: {
     marginTop: '1rem'
   },
@@ -23,8 +29,7 @@ const useStyles = makeStyles((theme) => ({
     height: '48px'
   },
   attributes: {
-    maxHeight: '400px',
-    border: '1px solid #888'
+    width: '100%'
   },
   selected_attribute_text: {
     margin: '10px 0px',
@@ -145,6 +150,7 @@ export default function CopyModelModal({
 
   return (
     <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Copy Model' saveDisabled={disabled}>
+      <Grid container direction='column' className={classes.container}>
       <SelectProjectModel
         project_name={templateProjectName}
         setProjectName={setTemplateProject}
@@ -159,12 +165,14 @@ export default function CopyModelModal({
             : <Typography className={classes.attribute_text}>{numAttributes > 0 ? 'Select' : 'No'} attributes to copy (links, identifiers and overlapping names are filtered automatically)</Typography>
         }
         { numAttributes > 0 && <ModelAttributesTable
+            className={ classes.attributes }
             template={template}
             selected={selected}
             setSelected={setSelected}
           />
         }
       </>}
+    </Grid>
       
     </ModelActionsModal>
   );

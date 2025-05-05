@@ -2,6 +2,10 @@
 import React, {useEffect, useState} from 'react';
 import {connect} from 'react-redux';
 
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
+import CloseIcon from '@material-ui/icons/Close';
+
 import {dismissMessages} from 'etna-js/actions/message_actions';
 import markdown from '../utils/markdown';
 import {useNotifications} from "etna-js/components/Notifications";
@@ -63,13 +67,8 @@ class Messages extends React.Component {
 
     return <MessagesToNotificationsBridge messages={messages}>
       <div id="messages">
-        <div id="quote">
-          <svg width="31" height="40">
-            <path d="M 2,40 20,25 18,40"/>
-          </svg>
-        </div>
         <div id="dismiss" onClick={this.dismissMessages.bind(this)}>
-          <span className="fas fa-check"> </span>
+          <IconButton color='secondary' size='small' onClick={this.dismissMessages.bind(this)}><CloseIcon/></IconButton>
         </div>
         <div id="message_viewer">
           {nav}

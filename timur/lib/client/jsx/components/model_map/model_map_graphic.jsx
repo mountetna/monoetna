@@ -26,7 +26,7 @@ const ModelMapGraphic = ({
   let layout = new Layout(templates, width, height);
 
   return (
-    <React.Fragment>
+    <div style={{ position: 'relative' }}>
       <svg id='map' width={width} height={height}>
         <defs>
           <Arrowhead />
@@ -67,7 +67,7 @@ const ModelMapGraphic = ({
           />
         );
       })}
-    </React.Fragment>
+    </div>
   );
 };
 

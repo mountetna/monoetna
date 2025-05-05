@@ -7,6 +7,39 @@ class GnomonController < Magma::Controller
     return success_json(grammar.to_hash)
   end
 
+  def delete
+    require_param(:identifiers)
+    identifiers = Magma::Gnomon::Identifier.where(
+      project_name: @params[:project_name],
+      identifier: @params[:identifiers]
+    ).select_map(:identifier)
+
+    unknown = @params[:identifiers] - identifiers
+
+    unless unknown.empty?
+      raise Etna::BadRequest, "Unknown identifier(s): #{unknown.join(', ')}"
+    end
+
+    confirmation = Digest::MD5.hexdigest(@params[:identifiers].join)
+
+    raise Etna::BadRequest, "Confirm deletion of #{@params[:identifiers].count} identifiers with code #{confirmation}" unless @params[:confirmation] == confirmation
+
+    Magma::Gnomon::Identifier.where(
+      project_name: @params[:project_name],
+      identifier: @params[:identifiers]
+    ).delete
+
+    event_log(
+      event: 'delete_name',
+      message: "removed identifiers",
+      payload: {
+        identifiers: @params[:identifiers]
+      }
+    )
+
+    success_json(success: "Deleted #{@params[:identifiers].count} identifiers")
+  end
+
   def set
     require_param(:config, :comment)
     old_grammar = Magma::Gnomon::Grammar.for_project(project_name)
@@ -22,6 +55,11 @@ class GnomonController < Magma::Controller
       config: @params[:config],
       comment: @params[:comment],
       version_number: version_number
+    )
+
+    event_log(
+      event: 'update_rules',
+      message: "created version #{version_number} of rules"
     )
 
     return success_json(grammar.to_hash)
@@ -127,6 +165,17 @@ class GnomonController < Magma::Controller
     end)
   end
 
+  def project_rules
+    grammar = Magma::Gnomon::Grammar.where(project_name: @params[:project_name])
+      .reverse(:version_number).first
+
+    success_json(rules: 
+      grammar.parser.rules.to_h do |rule_name, rule|
+        [ rule_name, rule.regex.source ]
+      end
+    )
+  end
+
   def generate
     grammar = require_grammar
     rule = require_rule(grammar)
@@ -152,6 +201,20 @@ class GnomonController < Magma::Controller
         author: @user.display_name,
         identifier: rule[:name],
         grammar: grammar
+      )
+    end
+
+    created_identifiers = decomposition[:rules].map do |rule_name, rule|
+      existing_identifiers[rule[:name]] ? nil : { rule_name: rule_name, name: rule[:name] }
+    end.compact
+
+    if created_identifiers
+      event_log(
+        event: 'create_name',
+        message: "created #{created_identifiers.count} identifiers",
+        payload: {
+          identifiers: created_identifiers
+        }
       )
     end
 
@@ -226,6 +289,16 @@ class GnomonController < Magma::Controller
     result = { created: created }
     result.update(existing: existing.uniq) unless existing.empty?
 
+    unless created.empty?
+      event_log(
+        event: 'create_name',
+        message: "created #{created.count} identifiers",
+        payload: {
+          identifiers: created
+        }
+      )
+    end
+
     success_json(result)
   end
 
@@ -263,5 +336,13 @@ class GnomonController < Magma::Controller
 
   def rule_name
     @params[:rule_name]
+  end
+
+  def event_log(params)
+    super(
+      params.merge(
+        application: 'gnomon'
+      )
+    )
   end
 end

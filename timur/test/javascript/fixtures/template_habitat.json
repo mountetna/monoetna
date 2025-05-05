@@ -35,7 +35,9 @@
       "read_only": false,
       "hidden": false,
       "validation": null,
-      "attribute_type": "collection"
+      "attribute_type": "collection",
+      "link_model_name": "vegetation",
+      "link_attribute_name": "habitat"
     },
     "monster": {
       "name": "monster",
@@ -52,5 +54,5 @@
     }
   },
   "identifier": "name",
-  "parent": "monster"
+  "parent": "project"
 }

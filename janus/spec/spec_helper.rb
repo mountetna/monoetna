@@ -14,6 +14,7 @@ require_relative '../lib/server/throttle'
 require_relative '../lib/server/refresh_token'
 
 require 'etna/spec/vcr'
+require 'etna/spec/event_log'
 
 ENV['JANUS_ENV'] = 'test'
 
@@ -192,15 +193,6 @@ FactoryBot.define do
   end
   factory :cc_agreement do
     to_create(&:save)
-  end
-end
-
-
-class Rack::Test::Session
-  alias_method :real_default_env, :default_env
-
-  def default_env
-    real_default_env.merge('HTTPS' => 'on')
   end
 end
 

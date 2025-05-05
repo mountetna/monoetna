@@ -53,9 +53,17 @@ body {
   width: 100%;
 
   #ui-container {
-    height: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     width: 100%;
     font-family: $body_font;
+  }
+
+  #app-area {
+    flex: 1 1 auto;
+    overflow: scroll;
   }
 }
 

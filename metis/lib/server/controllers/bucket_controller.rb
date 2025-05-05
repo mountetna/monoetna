@@ -14,7 +14,7 @@ class BucketController < Metis::Controller
 
     raise Etna::BadRequest, 'Illegal bucket name' unless Metis::Bucket.valid_bucket_name?(@params[:bucket_name])
 
-    raise Etna::BadRequest, 'Invalid owner' unless Metis.instance.config(:hmac_keys).keys.include?(@params[:owner].to_sym)
+    raise Etna::BadRequest, 'Invalid owner' unless Metis.instance.config(@params[:owner].to_sym)&.key?(:hmac_key)
 
     raise Etna::BadRequest, 'Invalid access' unless Metis::Bucket.valid_access?(@params[:access])
 
@@ -33,6 +33,11 @@ class BucketController < Metis::Controller
       owner: @params[:owner],
       description: @params[:description],
       access: @params[:access]
+    )
+
+    event_log(
+      event: 'create_bucket',
+      message: "created bucket #{@params[:bucket_name]}"
     )
     success_json(bucket: bucket.to_hash)
   end
@@ -65,44 +70,12 @@ class BucketController < Metis::Controller
     return success_json(response)
   end
 
-  def batch_query
-    batch_start = @params[:batch_start]
-    batch_end = @params[:batch_end]
-
-    return nil if batch_start.nil? or batch_end.nil?
-
-    begin
-      batch_start = DateTime.parse(batch_start)
-      batch_end = DateTime.parse(batch_end)
-    rescue
-      raise Etna::BadRequest, 'Invalid batch end or start'
-    end
-
-    ["head.updated_at >= :start AND head.updated_at <= :end", { start: batch_start, end: batch_end }]
-  end
-
-  def folder_query
-    folder_id = @params[:folder_id]
-
-    if folder_id.nil?
-      ["head.folder_id IS NULL", {}]
-    elsif folder_id.is_a?(Array)
-      ["head.folder_id IN :folder_ids", {folder_ids: folder_id.map(&:to_i)}]
-    else
-      ["head.folder_id = :folder_id", {folder_id: folder_id.to_i}]
-    end
-  end
-
-  def tail_query
-    batch_query || folder_query
-  end
-
   def tail
     bucket = require_bucket
     type = @params[:type]
     raise Etna::BadRequest, "Invalid type, must be one of 'folders' or 'files'" unless ['folders', 'files'].include?(type)
 
-    head_cond, head_params = tail_query
+    head_cond, head_params = batch_query(@params[:batch_start], @params[:batch_end]) || folder_query(@params[:folder_id])
 
     try_stream('application/x-json-stream') do |stream|
       if type == 'files'
@@ -140,6 +113,32 @@ QUERY
     end
   end
 
+  private
+
+  def batch_query(batch_start, batch_end)
+    return nil if batch_start.nil? or batch_end.nil?
+
+    begin
+      batch_start = DateTime.parse(batch_start)
+      batch_end = DateTime.parse(batch_end)
+    rescue
+      raise Etna::BadRequest, 'Invalid batch end or start'
+    end
+
+    ["head.updated_at >= :start AND head.updated_at <= :end", { start: batch_start, end: batch_end }]
+  end
+
+  def folder_query(folder_id)
+    if folder_id.nil?
+      ["head.folder_id IS NULL", {}]
+    elsif folder_id.is_a?(Array)
+      ["head.folder_id IN :folder_ids", {folder_ids: folder_id.map(&:to_i)}]
+    else
+      ["head.folder_id = :folder_id", {folder_id: folder_id.to_i}]
+    end
+  end
+
+  public
 
   def find
     bucket = require_bucket

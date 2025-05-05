@@ -37,17 +37,21 @@ const mapStyle = makeStyles((theme) => ({
   model_map: {
     position: 'relative',
     height: 'calc(100vh - 61px)',
-    overflowY: 'auto'
+    overflowY: 'auto',
+    flexWrap: 'nowrap'
   },
   map: {
-    flexBasis: '600px'
+    flex: '1 1 auto',
+    overflow: 'auto'
   },
   heading: {
     position: 'absolute',
     left: '15px',
     top: '0px',
     height: '48px',
-    width: '560px'
+    width: '560px',
+    background: 'white',
+    zIndex: '1'
   }
 }));
 
@@ -122,18 +126,20 @@ const ModelMap = ({}) => {
 
   return (
     <Grid className={classes.model_map} container>
-      <Grid item className='map'>
+      <Grid item container direction='column'>
         <MapHeading
           className={classes.heading}
           name='Project'
           title={full_name}
-        ></MapHeading>
-        <ModelMapGraphic
-          width={width}
-          height={height}
-          selected_models={[model]}
-          handler={updateModel}
         />
+        <Grid item className={classes.map}>
+          <ModelMapGraphic
+            width={width}
+            height={height}
+            selected_models={[model]}
+            handler={updateModel}
+          />
+        </Grid>
       </Grid>
       <Grid container direction='column' className={classes.report}>
         <ModelReport

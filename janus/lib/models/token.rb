@@ -28,7 +28,8 @@ module Token
         email: @janus_user.email,
         name: @janus_user.name,
         perm:  serialize_permissions(filters: filters),
-        flags: @janus_user.flags&.join(';')
+        flags: @janus_user.flags&.join(';'),
+        joined_at: @janus_user.created_at.iso8601,
       }.compact
     end
 
@@ -77,7 +78,7 @@ module Token
         payload[:perm] = payload[:perm].sub(/^[Aa]/) { |c| c == 'A' ? 'E' : 'e' }
       # permit supereditor
       elsif @janus_user.supereditor?
-        payload[:perm] = "e:#{project_name}"
+        payload[:perm] = "E:#{project_name}"
       end
 
       # Ensure the resulting permission is valid.
@@ -133,7 +134,7 @@ module Token
 
       # there must be only one project
       return false unless permissions.size == 1
-      
+
       token_permission = permissions.first
 
       return false unless token_permission[:projects].size == 1

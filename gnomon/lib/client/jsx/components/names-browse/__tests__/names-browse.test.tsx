@@ -17,7 +17,7 @@ const rules = ['rule1', 'rule2'];
 const namesByRule: Record<string, MagmaListName[]> = {};
 
 rules.forEach((rule, idx) => {
-    const names: MagmaListName[] = [`name${idx * 2 + 1}`, `name${(idx + 1) * 2}`].map(name => ({
+    const names: MagmaListName[] = [`name${idx * 2 + 1}`, `name${idx * 2 + 2}`].map(name => ({
         identifier: name,
         author: 'test_author',
         name_created_at: (new Date(1700499086877)).toISOString(),

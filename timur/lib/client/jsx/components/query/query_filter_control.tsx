@@ -1,18 +1,22 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState, useContext} from 'react';
 import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 import {makeStyles} from '@material-ui/core/styles';
 import Tooltip from '@material-ui/core/Tooltip';
+import Checkbox from '@material-ui/core/Checkbox';
+import Typography from '@material-ui/core/Typography';
 import AddIcon from '@material-ui/icons/Add';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 
 import {QueryClause, QueryFilter} from '../../contexts/query/query_types';
 import {emptyQueryClauseStamp} from '../../selectors/query_selector';
 import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import QueryFilterClause from './query_filter_clause';
+import QueryNumber from './query_number';
+import QueryAnyEverySelectorList from './query_any_every_selector_list';
 import RemoveIcon from './query_remove_icon';
-import CopyIcon from './query_copy_icon';
-import Selector from './query_selector';
+import QueryModelSelector from './query_model_selector';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -23,27 +27,39 @@ const useStyles = makeStyles((theme) => ({
   paddingLeft: {
     paddingLeft: 'calc(0.5rem - 4px)'
   },
+  and: {
+    padding: '10px 0px',
+    cursor: 'pointer'
+  },
   grid: {
-    paddingTop: '0.5rem'
+    paddingLeft: '25px'
   }
 }));
 
 const QueryFilterControl = ({
   filter,
   modelNames,
-  graph,
+  or,
+  setOr,
+  filterIndex,
+  patchRecordFilter,
   patchFilter,
   removeFilter,
   copyFilter
 }: {
   filter: QueryFilter;
+  patchRecordFilter: (index: number, updatedFilter: QueryFilter) => void;
+  or: boolean;
+  setOr: () => void;
+  filterIndex: number;
   modelNames: string[];
-  graph: QueryGraph;
   patchFilter: (filter: QueryFilter) => void;
   removeFilter: () => void;
   copyFilter: () => void;
 }) => {
   const classes = useStyles();
+
+  const { state: {graph} } = useContext(QueryGraphContext);
 
   const handleModelSelect = useCallback(
     (modelName: string) => {
@@ -102,84 +118,74 @@ const QueryFilterControl = ({
     [handlePatchClause]
   );
 
-  const modelChildren = useMemo(() => {
-    if (!filter.modelName || filter.modelName === '') return {};
+  const filterModelsMap = graph.subgraphMap(filter.modelName);
 
-    return graph.childrenMap(filter.modelName);
-  }, [filter.modelName, graph]);
+  const [ removeHint, setRemoveHint ] = useState(false);
+  const [ showControls, setShowControls ] = useState(false);
 
-  return (
-    <>
-      <Grid item xs={2}>
-        <Selector
-          canEdit={true}
-          name={filter.modelName}
-          onSelect={handleModelSelect}
-          choiceSet={modelNames}
-          label='model'
-        />
+  return <Grid
+    style={{ textDecoration: removeHint ? 'line-through' : 'none' }}
+    container
+    alignItems='center'
+    justifyContent='flex-start'
+    className='query-where-selector'
+    onMouseEnter={ () => setShowControls(true) }
+    onMouseLeave={ () => setShowControls(false) }
+  >
+    { filterIndex > 0 && <Grid className={classes.and} container>
+    <Typography style={{ color:'purple'}} onClick={setOr}>{ or ? 'or' : 'and' }</Typography>
+    </Grid>
+    }
+    <QueryNumber setRemoveHint={ setRemoveHint } onClick={ removeFilter } number={filterIndex} level={0}/>
+    <QueryAnyEverySelectorList
+      filter={filter}
+      index={filterIndex}
+      patchRecordFilter={patchRecordFilter}
+    />
+    <QueryModelSelector
+      modelName={filter.modelName}
+      setModel={handleModelSelect}
+      modelNames={modelNames}
+    />
+    { showControls && <>
+        <Tooltip title='Add clause' aria-label='Add clause'>
+          <IconButton size='small' onClick={handleAddClause} color='primary'>
+            <AddIcon fontSize='small'/>
+          </IconButton>
+        </Tooltip>
+        <Tooltip title='Copy filter' aria-label='Copy filter'>
+          <IconButton size='small' onClick={copyFilter} color='primary'>
+            <FileCopyIcon fontSize='small'/>
+          </IconButton>
+        </Tooltip>
+      </>
+      }
+    <Grid item container direction='column'>
+      <Grid container direction='column' className={classes.grid} alignItems='flex-start'>
+        {filter.clauses.map((clause: QueryClause, index: number) => {
+          return (
+              <QueryFilterClause
+                key={index}
+                index={index}
+                clause={clause}
+                modelNames={Object.keys(filterModelsMap)}
+                hasModelChildren={!!filterModelsMap[clause.modelName]}
+                patchClause={(updatedClause: QueryClause) =>
+                  handlePatchClause(updatedClause, index)
+                }
+                selectClause={ (val: string) =>
+                  handleClauseAnySelect(val, clause, index)
+                }
+                removeClause={() => handleRemoveClause(index)}
+                showRemoveIcon={
+                  !(0 === index && 1 === filter.clauses.length)
+                }
+                canAddSubclause={true}
+              />
+          );
+        })}
       </Grid>
-      <Grid item container xs={9} direction='column'>
-        <Grid container direction='column' className={classes.grid}>
-          {filter.clauses.map((clause: QueryClause, index: number) => {
-            return (
-              <Paper className={classes.paper} key={index}>
-                <Grid item container alignItems='center'>
-                  <Grid item xs={1}>
-                    {modelChildren[clause.modelName] ? (
-                      <Selector
-                        canEdit={true}
-                        name={clause.any ? 'Any' : 'Every'}
-                        onSelect={(val: string) =>
-                          handleClauseAnySelect(val, clause, index)
-                        }
-                        choiceSet={['Any', 'Every']}
-                        label='model'
-                      />
-                    ) : null}
-                  </Grid>
-                  <Grid item xs={11}>
-                    <QueryFilterClause
-                      clause={clause}
-                      graph={graph}
-                      modelNames={Object.keys(modelChildren)}
-                      isColumnFilter={false}
-                      patchClause={(updatedClause: QueryClause) =>
-                        handlePatchClause(updatedClause, index)
-                      }
-                      removeClause={() => handleRemoveClause(index)}
-                      showRemoveIcon={
-                        !(0 === index && 1 === filter.clauses.length)
-                      }
-                      canAddSubclause={true}
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-            );
-          })}
-        </Grid>
-        <Grid>
-          <Tooltip title='Add and clause' aria-label='Add and clause'>
-            <Button
-              className={classes.paddingLeft}
-              startIcon={<AddIcon />}
-              onClick={handleAddClause}
-            >
-              And Clause
-            </Button>
-          </Tooltip>
-        </Grid>
-      </Grid>
-      <Grid item xs={1} container justify='flex-end'>
-        <CopyIcon canEdit={true} onClick={copyFilter} label='filter' />
-        <RemoveIcon
-          showRemoveIcon={true}
-          onClick={removeFilter}
-          label='filter'
-        />
-      </Grid>
-    </>
-  );
+    </Grid>
+  </Grid>;
 };
 export default QueryFilterControl;

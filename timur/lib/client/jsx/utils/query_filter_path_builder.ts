@@ -1,16 +1,15 @@
 import * as _ from 'lodash';
-import {Model} from '../models/model_types';
-import {stepIsOneToMany} from '../selectors/query_selector';
+import {Model, Models} from 'etna-js/models/magma-model';
 import {injectValueAtPath} from './query_any_every_helpers';
 import {QueryFilterAnyMap} from '../contexts/query/query_types';
 
 export default class QueryFilterPathBuilder {
   path: string[];
-  models: { [key: string]: Model };
+  models: Models;
   rootModelName: string;
   anyMap: QueryFilterAnyMap;
 
-  constructor(path: string[], rootModelName: string, models: { [key: string]: Model }, anyMap: QueryFilterAnyMap) {
+  constructor(path: string[], rootModelName: string, models: Models, anyMap: QueryFilterAnyMap) {
     this.path = path;
     this.models = models;
     this.rootModelName = rootModelName;

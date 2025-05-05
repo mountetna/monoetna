@@ -10,7 +10,7 @@ ENV RUBY_MAJOR_VERSION 2.7.0
 # it causes issues with bundler... bleck.  So, so add an underscore at the end.
 ENV BUNDLER_VERSION_ 2.3.15
 ENV DOCKERIZE_VERSION 0.5.0
-ENV NODE_VERSION 12.18.1
+ENV NODE_VERSION 14.17.1
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
 ENV RACK_ENV development
 

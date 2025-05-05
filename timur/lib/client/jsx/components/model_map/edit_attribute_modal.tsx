@@ -3,11 +3,9 @@ import React, {useState, useCallback, useEffect} from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-
 import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 import {Attribute} from '../../api/magma_api';
-import {SNAKE_CASE, COMMA_SEP, VALIDATION_TYPES} from '../../utils/edit_map';
+import {SNAKE_CASE, COMMA_SEP, COMMA_SEP_WITH_SPACES, VALIDATION_TYPES} from '../../utils/edit_map';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 import ModalSelect from './modal_select';
 
@@ -39,6 +37,8 @@ export default function EditAttributeModal({
         value:
           isArrayValidation && !Array.isArray(validationValue)
             ? validationValue.split(',')
+              // ignore leading and trailing white-space per entry
+              .map((s: string) => s.trim())
             : validationValue
       };
     } else {
@@ -51,21 +51,26 @@ export default function EditAttributeModal({
     updatedAttribute,
     validationType,
     validationValue,
-    isArrayValidation
+    isArrayValidation,
+    onSave
   ]);
 
   const reset = useCallback(() => {
     setUpdatedAttribute({...attribute});
     setValidationType( attribute.validation ? attribute.validation.type : '');
     setValidationValue( attribute.validation ? attribute.validation.value : '');
-  }, []);
+  }, [attribute]);
+
+  useEffect(() => {
+    reset()
+  }, [attribute])
 
   const disabled = !updatedAttribute.attribute_name
 
   const handleOnCancel = useCallback(() => {
     onClose();
     reset();
-  }, []);
+  }, [onClose, reset]);
 
   const updateAttribute = useCallback(
     (updatePairs: [string, string | boolean][]) => {
@@ -83,6 +88,8 @@ export default function EditAttributeModal({
     },
     [updatedAttribute]
   );
+
+  const validation_length_limit = 2000;
 
   return (
     <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Edit Attribute' saveDisabled={disabled}>
@@ -131,27 +138,34 @@ export default function EditAttributeModal({
             updateAttribute([['format_hint', e.target.value]])
           }
         />
-        <ModalSelect
-          id='edit-attribute-validation-type'
-          label='Validation Type'
-          value={validationType}
-          onChange={(value: string) => {
-            setValidationValue('');
-            setValidationType(value);
-          }}
-          options={VALIDATION_TYPES}
-        />
+        {attribute.attribute_type!='matrix' && (
+          <ModalSelect
+            id='edit-attribute-validation-type'
+            label='Validation Type'
+            value={validationType}
+            onChange={(value: string) => {
+              setValidationValue('');
+              setValidationType(value);
+            }}
+            options={VALIDATION_TYPES}
+          />
+        )}
         {validationType && (
           <ShrinkingLabelTextField
             id='edit-attribute-validation-value'
             label={`Validation ${
-              isArrayValidation ? 'Array (comma-separated list)' : 'Regex'
+              isArrayValidation ?
+                attribute.attribute_type=='matrix' ?
+                  `Array (comma-separated list) -- UI length limit: ${validationValue.length} / 2000 characters` :
+                  'Array (comma-separated list)' :
+                'Regex'
             }`}
-            value={validationValue}
-            onChange={(e: React.ChangeEvent<any>) =>
-              setValidationValue(e.target.value)
-            }
-            pattern={isArrayValidation ? COMMA_SEP : null}
+            disabled={validationValue.length > validation_length_limit}
+            value={validationValue.length <= validation_length_limit ? validationValue : 'Validation too long to edit here'}
+            onChange={(e: React.ChangeEvent<any>) => {
+              if (e.target.value.length <= validation_length_limit) setValidationValue(e.target.value)
+            }}
+            pattern={isArrayValidation ? COMMA_SEP_WITH_SPACES : null}
           />
         )}
         <FormControlLabel
