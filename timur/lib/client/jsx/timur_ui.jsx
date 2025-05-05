@@ -164,7 +164,9 @@ class TimurUI extends React.Component {
               <Notifications />
               <TimurNav environment={environment} mode={mode} />
               <Messages />
-              <Component key={key} {...params} />
+              <div id='app-area'>
+                <Component key={key} {...params} />
+              </div>
             </div>
           </ModalDialogContainer>
         </ThemeProvider>
