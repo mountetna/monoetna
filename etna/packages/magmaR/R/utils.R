@@ -1,3 +1,43 @@
+.jsonify <- function(list) {
+    jsonlite::toJSON(list, auto_unbox = TRUE, null = 'null', na = 'string')
+}
+
+.match_expected_recName_structure <- function(values) {
+
+    if (identical(values,"[]")) {
+        return(I(list()))
+    }
+
+    .match_expected_common(values)
+}
+
+.match_expected_attName_structure <- function(values) {
+    # "identifier" -> stays this way
+    # anything else -> ["value1", "value2", etc.]
+
+    if (identical(values, "identifier")) {
+        return(values)
+    }
+
+    .match_expected_common(values)
+}
+
+.match_expected_common <- function(values) {
+    # all -> all
+    # vector -> I(vector)
+    # single -> I(list(single))
+
+    if (identical(values, "all")) {
+        return(values)
+    }
+
+    if (length(values) > 1) {
+        I(values)
+    } else {
+        I(list(values))
+    }
+}
+
 .perform_curl_get <- function(
     fxn = c("/retrieve", "/query", "/update", "/projects"),
     target,

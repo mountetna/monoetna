@@ -202,7 +202,7 @@ updateValues <- function(
         autolink = autolink,
         dry_run = dryRun)
     
-    requestBody <- jsonlite::toJSON(jsonParams, auto_unbox = TRUE)
+    requestBody <- .jsonify(jsonParams)
     
     ### Output here if requested.
     if (request.only) {
