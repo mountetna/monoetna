@@ -137,21 +137,64 @@ if (interactive()) {
     magma <- magmaRset()
     
     ### Note that you likely do not have write-permissions for the 'example'
-    # project, so this code can be expected to give an authorization error.
+    # project, so this code can be expected to give an authorization error,
+    # yet still provides a good example of how to structure your code.
     
-    ### Retrieve some data from magma, which will be in the proper format.
+    ### Case 1: A 'standard' model which has an identifier:
+    # Retrieving some example data from magma to use as our update
     df <- retrieve(
         magma, projectName = "example", modelName = "rna_seq",
         recordNames = "all",
         attributeNames = c("tube_name", "biospecimen", "cell_number")
         )
     df
+    # Keys to note:
+    # - the first column of this df holds the identifiers of all records we
+    #     wish to target.  (The fact that this column is properly named as
+    #     'tube_name' des not matter.)
+    # - all subsequent columns hold the new values and are named as the
+    #     attributes we wish to update.
     
+    # To update values of the 'standard'-type "rna_seq" model
     updateFromDF(
         target = magma,
         projectName = "example",
         modelName = "rna_seq",
         df = df)
+
+    ### Case 2: A 'table' model which has no identifiers:
+    # Retrieving some example data from magma to use as our update
+    table <- retrieve(
+        magma, projectName = "example", modelName = "demographic",
+        recordNames = "all",
+        attributeNames = c("subject", "name", "value")
+        )
+    table
+    # Keys to note:
+    # - the first column of this df holds the parent record identifiers we
+    #     wish to target. The fact that this column is properly named as
+    #     'subject' does matter, but this column does not need to have
+    #     been the first column.
+    # - all subsequent columns hold the new values and are named as the
+    #     attributes we wish to update.
+
+    ## Key decision:
+    # For table models, you must additionally decide whether to 'append' to
+    #  (meaning to add them in addition to all previous records which
+    #  attach to the same parents), or 'replace' (meaning clear all previous
+    #  records attaching to the same parents this update hits, so that only
+    #  the values within this update will exist) current values of the
+    #  target model with your update's values.
+    # This choice is given to the 'table.method' input.
+
+    # To update values of the 'table'-type "demographics" model
+    updateFromDF(
+        target = magma,
+        projectName = "example",
+        modelName = "demographic",
+        table.method = "replace",
+        df = table)
+
 }
 
 }

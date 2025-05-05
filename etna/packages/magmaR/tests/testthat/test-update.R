@@ -1,5 +1,6 @@
 # This code tests the updateValues & updateMatrix functions
-# library(magmaR); library(testthat); source("tests/testthat/helper-magmaR.R"); source("tests/testthat/test-update.R", chdir = TRUE)
+# library(magmaR); library(testthat); source("R/utils.R"); source("tests/testthat/helper-magmaR.R"); source("tests/testthat/test-update.R", chdir = TRUE)
+# setwd("tests/testthat")
 
 ### NOTE: updateValues() is currently used by updateMatrix(), so no direct tests are needed for that fxn.
 
@@ -263,9 +264,12 @@ vcr::use_cassette("update_5", {
             "For model \"subject\", this update will update 3 records",
             fixed = TRUE
         )
+        # Retrieve afterwards, and trim to targeted recs, then remove rownames so should be equal
         df_after <- retrieve(targ, "example", "demographic", "all",
                              c("subject", "name", "value")
         )
+        df_after <- df_after[df_after$subject %in% table_df$subject,]
+        rownames(df_after) <- NULL
         expect_identical(table_df, df_after)
 
         ### Errors as expected
