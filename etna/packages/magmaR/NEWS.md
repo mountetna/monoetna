@@ -1,6 +1,8 @@
 # magmaR 1.0.4
 
 * Added 'updateValues()' and 'updateFromDF()' compatibility for table-type models.
+* BugFix: Fixed how NULL values are converted to JSON (now as null instead of {}), which allows for data values to be blanked via 'updateValues()' and 'updateFromDF()'.  
+* BugFix: Fixed code and documentation for 'retrieveProjects()' after its target endpoint moved to <janus>/api/user/projects.
 
 # magmaR 1.0.3
 
