@@ -60,6 +60,11 @@ body {
     width: 100%;
     font-family: $body_font;
   }
+
+  #app-area {
+    flex: 1 1 auto;
+    overflow: scroll;
+  }
 }
 
 a {
