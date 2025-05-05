@@ -1,12 +1,12 @@
 http_interactions:
 - request:
     method: get
-    uri: https://janus.ucsf.edu/projects
+    uri: https://janus.ucsf.edu/api/user/projects
     body:
       encoding: ''
       string: ''
     headers:
-      User-Agent: libcurl/7.81.0 r-curl/5.2.1 crul/1.4.2
+      User-Agent: libcurl/7.81.0 r-curl/6.2.2 crul/1.5.0
       Accept-Encoding: gzip, deflate
       Accept: application/json, text/xml, application/xml, */*
       Content-Type: application/json
@@ -18,15 +18,14 @@ http_interactions:
       explanation: Object moved temporarily -- see URI list
     headers:
       status: HTTP/1.1 302 Found
-      date: Mon, 05 Aug 2024 14:06:15 GMT
-      server: Apache
-      strict-transport-security: max-age=31536000; includeSubDomains
-      location: https://janus.ucsf.edu/login?refer=http%3A%2F%2Fjanus.ucsf.edu%2Fprojects
-      service-worker-allowed: /
       content-length: '0'
+      date: Mon, 05 May 2025 20:05:21 GMT
+      location: https://janus.ucsf.edu/login?refer=https%3A%2F%2Fjanus.ucsf.edu%2Fapi%2Fuser%2Fprojects
+      server: Apache
+      service-worker-allowed: /
     body:
       encoding: ''
       file: no
       string: ''
-  recorded_at: 2024-08-05 14:06:15 GMT
-  recorded_with: vcr/1.6.0, webmockr/1.0.0
+  recorded_at: 2025-05-05 20:05:22 GMT
+  recorded_with: vcr/1.7.0, webmockr/2.0.0

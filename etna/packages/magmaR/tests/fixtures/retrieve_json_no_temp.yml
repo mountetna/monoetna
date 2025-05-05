@@ -6,7 +6,7 @@ http_interactions:
       encoding: ''
       string: ''
     headers:
-      User-Agent: libcurl/7.81.0 r-curl/5.2.1 crul/1.4.2
+      User-Agent: libcurl/7.81.0 r-curl/6.2.2 crul/1.5.0
       Accept-Encoding: gzip, deflate
       Accept: application/json, text/xml, application/xml, */*
       Content-Type: application/json
@@ -18,15 +18,12 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Mon, 05 Aug 2024 14:06:14 GMT
-      server: Apache
-      strict-transport-security: max-age=31536000; includeSubDomains
-      content-type: application/json
       content-length: '109'
-      service-worker-allowed: /
+      content-type: application/json
+      date: Mon, 05 May 2025 18:12:15 GMT
     body:
       encoding: ''
       file: no
       string: '{"models":{"subject":{"documents":{"EXAMPLE-HS1":{"name":"EXAMPLE-HS1","biospecimen":["EXAMPLE-HS1-WB1"]}}}}}'
-  recorded_at: 2024-08-05 14:06:14 GMT
-  recorded_with: vcr/1.6.0, webmockr/1.0.0
+  recorded_at: 2025-05-05 18:12:15 GMT
+  recorded_with: vcr/1.7.0, webmockr/2.0.0
