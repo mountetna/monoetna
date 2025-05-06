@@ -932,7 +932,7 @@ EOT
         return
       end
 
-      dirname.sub!(%r!(?<=.)/$!,'')
+      dirname = dirname.sub(%r!(?<=.)/$!,'')
 
       path = @shell.relative_path(dirname)
 
@@ -952,7 +952,7 @@ EOT
       raise ShellError, 'No destination file selected!' unless destination_file_path
 
       if !source_file_path.start_with?('metis://')
-        source_file_path.sub!(%r!(?<=.)/$!,'')
+        source_file_path = source_file_path.sub(%r!(?<=.)/$!,'')
         source_file_path = @shell.relative_path(source_file_path)
 
         source_folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(source_file_path))
@@ -967,7 +967,7 @@ EOT
       end
 
       if !destination_file_path.start_with?('metis://')
-        destination_file_path.sub!(%r!(?<=.)/$!,'')
+        destination_file_path = destination_file_path.sub(%r!(?<=.)/$!,'')
         destination_file_path = @shell.relative_path(destination_file_path)
 
         # Need to account for user providing a directory without a filename...
