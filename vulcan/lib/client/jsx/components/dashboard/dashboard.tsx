@@ -12,6 +12,7 @@ import WorkspacesControls from './workspace_control/workspaces_controls';
 import WorkflowControls from './workflow_control/workflow_controls';
 import ProjectHeader from 'etna-js/components/project-header';
 import { VulcanContext } from '../../contexts/vulcan_context';
+import {useFeatureFlag} from "etna-js/hooks/useFeatureFlag";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -32,6 +33,21 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Dashboard({project_name}: {project_name: string}) {
+
+  if (!useFeatureFlag('vulcan')) {
+    return <div style={{padding: '10px'}}>
+      <Typography variant='h3'>
+        Vulcan is under development
+      </Typography>
+      <Typography>
+        Access is restricted to a small group of testers at this stage, and it appears that you are not one of these testers.
+      </Typography>
+      <Typography>
+        Contact the engineering team if you believe you are seeing this message in error.
+      </Typography>
+    </div>
+  }
+
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(
     null
   );
