@@ -11,7 +11,7 @@ const StepIconName = ({
 }: {
   step: WorkspaceStep | WorkspaceStepGroup
 }) => {
-  const label = labelOfStepOrGroupedStep(step);
+  const label = labelOfStepOrGroupedStep(step).replaceAll('_', ' ');
 
   return (
     <div className='step-name'>

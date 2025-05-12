@@ -298,6 +298,7 @@ export default function WorkspaceManager() {
   //   return figure.id !== session.reference_figure_id;
   // }, [figure, session]);
 
+  const canSave = false
   // const canSave = useMemo(() => {
   //   return (
   //     (titleChanged || inputsChanged || tagsChanged) &&
@@ -425,6 +426,14 @@ export default function WorkspaceManager() {
         )}
         {editor ?
           <>
+            <FlatButton
+              className='header-btn save'
+              icon='save'
+              label='Save'
+              title='Coming by Beta, create a Save Point you can return to later'
+              // onClick={saveSession}
+              disabled={!canSave || updating}
+            />
             <FlatButton
               className='header-btn public-private'
               icon={updatingTags ? 'spinner fa-spin' : isPublic ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'}

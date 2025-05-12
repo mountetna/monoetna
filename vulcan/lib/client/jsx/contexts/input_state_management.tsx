@@ -26,9 +26,14 @@ import {
 import {VulcanContext} from './vulcan_context';
 
 import Button from '@material-ui/core/Button';
-import {FormControlLabel, Grid, Switch} from '@material-ui/core';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Tooltip from '@material-ui/core/Tooltip';
+import Grid from '@material-ui/core/Grid';
+import Switch from '@material-ui/core/Switch';
 import { Workspace } from '../api_types';
 import { DataEnvelope } from '../components/workspace/ui_definitions/input_types';
+import { makeStyles } from '@material-ui/core/styles';
+import FlatButton from 'etna-js/components/flat-button';
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(
@@ -75,6 +80,7 @@ export function WithBufferedInputs({
   invoke: ReturnType<typeof useActionInvoker>,
   stepName: string;
 }>) {
+
   const {stateRef, state} = useContext(VulcanContext);
   const valuesRef = useRef({} as DataEnvelope<Maybe<any>>);
   const [values, setValuesState] = useState(valuesRef.current);
@@ -157,25 +163,38 @@ export function WithBufferedInputs({
   }, [])
 
   const commit_reset_buttons = hasNewValues ? (
-    <div className='reset-or-commit-inputs'>
-      <Button onClick={cancelValueUpdates} disabled={!!state.pollingState}>
-        Reset
-      </Button>
-      <Button
-        onClick={commitValueUpdates}
-        style={{
-          background: 'linear-gradient(135deg, #6e8efb, #a777e3)',
-          textAlign: 'center',
-          fontWeight: 'bold',
-          fontSize: 14,
-          border: '3px solid black'
-          //outline: '#4CAF50 solid 2px'
-        }}
-        disabled={!!state.pollingState}
-      >
-        Confirm
-      </Button>
-    </div>
+    <Grid container direction='row' className={'ui-controls'} justifyContent='flex-end'>
+      <Grid item>
+        <FlatButton
+          className={'control-btn clear'}
+          icon='eraser'
+          label='Clear'
+          title='Coming Soon, Reset to original (blank or defaulted) state'
+          onClick={() => {}}
+          disabled={true}
+        />
+      </Grid>
+      <Grid item>
+        <FlatButton
+          className={'control-btn reset'}
+          icon='backward'
+          label='Back'
+          title='Reset to last saved state'
+          onClick={cancelValueUpdates}
+          disabled={!!state.pollingState}
+        />
+      </Grid>
+      <Grid item>
+        <FlatButton
+          className={'control-btn confirm'}
+          icon='save'
+          label='Save Choices'
+          title='Save choices to workspace on computation server'
+          onClick={commitValueUpdates}
+          disabled={!!state.pollingState}
+        />
+      </Grid>
+    </Grid>
   ) : null;
 
   const autopass_switch = isPassableUIStep(

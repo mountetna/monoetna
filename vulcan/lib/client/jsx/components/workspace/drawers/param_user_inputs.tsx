@@ -175,7 +175,7 @@ export default function ParamInputs() {
         onClick={() => setOpen(!open)}
       >
         <Grid item>
-          <Typography variant='h6'>Config Params</Typography>
+          <Typography variant='h6'>Analysis Setup</Typography>
         </Grid>
         <Grid item>
           <IconButton size='small'>

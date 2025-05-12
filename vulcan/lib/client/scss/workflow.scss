@@ -183,7 +183,11 @@
         color: goldenrod;
       }
       &.run {
+        &.disabled {
+          background: lightgray;
+        }
         color: #9f2727;
+        background: goldenrod;
 
         &.validation-errors {
           background: repeating-linear-gradient(
@@ -214,6 +218,9 @@
       &.edit-tags {
         color: dodgerblue;
       }
+      &.public-private {
+        color: dodgerblue;
+      }
 
       &.disabled {
         &:hover {
@@ -237,6 +244,25 @@
 
     .session-input-feed {
       flex: 0 0 500px;
+
+      .ui-controls {
+        .control-btn {
+          border: 1px solid lightgray;
+
+          &.confirm {
+            background: goldenrod;
+          }
+
+          &.disabled {
+            &:hover {
+              background: rgba(lightgray, 0.5);
+            }
+            color: grey;
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+        }
+      }
 
       .step-user-input {
         .step-name {
