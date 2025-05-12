@@ -55,7 +55,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
   const classes = useStyles();
 
   const [searchString, setSearchString] = useState('');
-  const [tags, setTags] = useState<string[]>(['public']);
+  const [tags, setTags] = useState<string[]>(['highlighted']);
 
   let {state} = useContext(VulcanContext);
   const {workflows, workspaces} = useMemo(() => {
