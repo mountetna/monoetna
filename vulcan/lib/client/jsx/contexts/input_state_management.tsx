@@ -25,14 +25,11 @@ import {
 } from '../selectors/maybe';
 import {VulcanContext} from './vulcan_context';
 
-import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Tooltip from '@material-ui/core/Tooltip';
 import Grid from '@material-ui/core/Grid';
 import Switch from '@material-ui/core/Switch';
 import { Workspace } from '../api_types';
 import { DataEnvelope } from '../components/workspace/ui_definitions/input_types';
-import { makeStyles } from '@material-ui/core/styles';
 import FlatButton from 'etna-js/components/flat-button';
 
 export const defaultInputStateManagement = {
