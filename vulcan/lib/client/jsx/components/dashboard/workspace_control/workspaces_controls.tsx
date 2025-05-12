@@ -46,7 +46,7 @@ export default function WorkspacesControls({
       ...new Set(
         workspaces.reduce(
           (acc: string[], f) => acc.concat(f.tags || []),
-          ['public']
+          ['published','highlighted']
         )
       )
     ];

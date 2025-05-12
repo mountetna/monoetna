@@ -13,6 +13,7 @@ import WorkflowControls from './workflow_control/workflow_controls';
 import ProjectHeader from 'etna-js/components/project-header';
 import { VulcanContext } from '../../contexts/vulcan_context';
 import {useFeatureFlag} from "etna-js/hooks/useFeatureFlag";
+import useUserHooks from '../../contexts/useUserHooks';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -61,12 +62,13 @@ export default function Dashboard({project_name}: {project_name: string}) {
     return state
   }, [state.workflows, state.workspaces])
 
-  function trim_workspaces_to_project(wflows, p_name, wpaces) {
-    const projectWorkflowIds = wflows.filter(w => w.project_name == p_name).map(w => w.id)
-    return wpaces.filter((w) => projectWorkflowIds.includes(w.workflow_id))
-  }
-  const projectWorkspaces = useMemo(() => trim_workspaces_to_project(workflows, project_name, workspaces),
-  [workflows, workspaces, project_name]);
+  const {canEdit} = useUserHooks();
+  const visibleWorkspaces = useMemo(() => {
+    const projectWorkflowIds = workflows.filter(w => w.project_name == project_name).map(w => w.id)
+    return workspaces.filter((w) => projectWorkflowIds.includes(w.workflow_id)
+      && canEdit(w) || (w.tags || []).includes('published')
+    )
+  }, [workflows, workspaces, project_name]);
 
   return (
     <main className='vulcan-dashboard'>
@@ -108,7 +110,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
             <WorkspacesControls
               setSearchString={setSearchString}
               setTags={setTags}
-              workspaces={projectWorkspaces}
+              workspaces={visibleWorkspaces}
               tags={tags}
               searchString={searchString}
             />
@@ -120,7 +122,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
           tags={tags}
           searchString={searchString}
           allWorkflows={workflows}
-          allWorkspaces={projectWorkspaces}
+          accessibleWorkspaces={visibleWorkspaces}
         />
       </Grid>
     </main>

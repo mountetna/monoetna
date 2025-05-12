@@ -94,6 +94,7 @@ export default function WorkspaceManager() {
     // createFigure,
     // clearLocalSession
   } = useContext(VulcanContext);
+  
   const {workflow, workspace, workspaceId, hasPendingEdits, complete} = useWorkspace();
   const {canEdit, guest} = useUserHooks();
   console.log({state});
@@ -258,7 +259,7 @@ export default function WorkspaceManager() {
   }, []);
 
   function togglePublicTag() {
-    const newTags = localTags.includes('public') ? localTags.filter((v)=>v!='public') : [...localTags, 'public']
+    const newTags = localTags.includes('published') ? localTags.filter((v)=>v!='published') : [...localTags, 'published']
     setLocalTags(newTags);
     setUpdatingTags(true);
     handleUpdateWorkspace(undefined, newTags);
@@ -317,7 +318,7 @@ export default function WorkspaceManager() {
     canEdit
   ]);
 
-  const isPublic = useMemo(() => (workspace.tags || []).includes('public'), [workspace.tags]);
+  const isPublic = useMemo(() => (workspace.tags || []).includes('published'), [workspace.tags]);
 
   if (!workflow_name || !workspace) return null;
 
@@ -426,10 +427,10 @@ export default function WorkspaceManager() {
           <>
             <FlatButton
               className='header-btn public-private'
-              icon={updatingTags ? 'spinner fa-spin' : isPublic ? 'lock' : 'unlock'}
-              label={`Make ${isPublic ? 'private' : 'public'}`}
+              icon={updatingTags ? 'spinner fa-spin' : isPublic ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'}
+              label={`${isPublic ? 'Unpublish' : 'Publish'}`}
               title={`Make the current figure ${
-                isPublic ? 'private' : 'public'
+                isPublic ? 'private to you' : 'public to all with project access'
               }`}
               onClick={() => {
                 togglePublicTag();
@@ -461,7 +462,7 @@ export default function WorkspaceManager() {
                   }}
                   defaultValue={workspace.tags}
                   id='figure-edit-tags-filter'
-                  options={workspace.tags}
+                  options={workspace.tags.filter((t) => t!='published' && t!='highlighted').concat('highlighted')}
                   renderInput={(params: any) => (
                     <TextField {...params} label='Tags' variant='outlined' />
                   )}
@@ -506,14 +507,6 @@ export default function WorkspaceManager() {
         }
         {/* editor ? (
           <>
-            <FlatButton
-              className='header-btn save'
-              icon='save'
-              label='Save'
-              title='Save current workflow parameters to current figure'
-              onClick={saveSession}
-              disabled={!canSave}
-            />
             <FlatButton
               className='header-btn edit-tags'
               icon='history'

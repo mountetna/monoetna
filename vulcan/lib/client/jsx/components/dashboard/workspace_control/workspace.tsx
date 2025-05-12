@@ -22,7 +22,7 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Grid from '@material-ui/core/Grid';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {Workflow, Workspace} from '../../../api_types';
+import {Workflow, Workspace, WorkspaceMinimal} from '../../../api_types';
 import useUserHooks from '../../../contexts/useUserHooks';
 
 import Tag from '../tag';
@@ -92,7 +92,7 @@ const workspaceStyles = makeStyles((theme) => ({
   }
 }));
 
-const authorInitials = ({user_email}: Workspace) => {
+const authorInitials = ({user_email}: WorkspaceMinimalmal) => {
   if (!user_email) return '';
 
   let names = user_email.split("@")[0].split(/[^a-zA-Z]+/).map((n: string) => n.toUpperCase());
@@ -103,7 +103,7 @@ const authorInitials = ({user_email}: Workspace) => {
 
 const workspaceImage = (
   workflow: Workflow | null,
-  workspace: Workspace
+  workspace: WorkspaceMinimal
 ): [Boolean, string] =>
   workspace.thumbnails && workspace.thumbnails.length > 0
     ? [false, workspace.thumbnails[0]]
@@ -118,7 +118,7 @@ const WorkspaceCard = ({
   onRename,
   onRemove
 }: {
-  workspace: Workspace;
+  workspace: WorkspaceMinimal;
   // onCopy: () => void;
   onRename: () => void;
   onRemove: () => void;

@@ -16,7 +16,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {Workflow, WorkflowsResponse, Workspace, Workspaces} from '../../../api_types';
+import {Workflow, WorkspaceMinimal} from '../../../api_types';
 import WorkspaceCard from './workspace';
 import Grid from '@material-ui/core/Grid';
 import { workflowByIdFromWorkflows } from '../../../selectors/workflow_selectors';
@@ -34,14 +34,14 @@ export default function WorkspacesGrid({
   tags,
   searchString,
   allWorkflows,
-  allWorkspaces
+  accessibleWorkspaces
 }: {
   project_name: string;
   workflowId?: number | null;
   tags?: string[];
   searchString?: string;
   allWorkflows: Workflow[];
-  allWorkspaces: Workspace[];
+  accessibleWorkspaces: WorkspaceMinimal[];
 }) {
   const {
     showErrors,
@@ -50,8 +50,8 @@ export default function WorkspacesGrid({
     dispatch
   } = useContext(VulcanContext);
 
-  if (!allWorkspaces) return null;
-  const [filteredWorkspaces, setFilteredWorkspaces] = useState<Workspace[]>(allWorkspaces);
+  if (!accessibleWorkspaces) return null;
+  const [filteredWorkspaces, setFilteredWorkspaces] = useState<WorkspaceMinimal[]>(accessibleWorkspaces);
 
   const classes = useStyles();
 
@@ -82,7 +82,7 @@ export default function WorkspacesGrid({
   // );
 
   const handleOnRename = useCallback(
-    (workspace: Workspace) => {
+    (workspace: WorkspaceMinimal) => {
       if (!workspace.workspace_id) return;
       const newTitle = prompt(
         'Please enter a new workspace title',
@@ -94,7 +94,7 @@ export default function WorkspacesGrid({
       showErrors(
         updateWorkspace(project_name, workspace.workspace_id, newTitle, workspace.tags)
         .then((updatedWorkspace) => {
-          const updated = allWorkspaces.map((oldWorkspace) => {
+          const updated = accessibleWorkspaces.map((oldWorkspace) => {
             if (oldWorkspace.workspace_id === updatedWorkspace.workspace_id) {
               return updatedWorkspace;
             }
@@ -105,11 +105,11 @@ export default function WorkspacesGrid({
       );
       dispatch(updateWorkflowsWorkspaces());
     },
-    [showErrors, updateWorkspace, project_name, allWorkspaces]
+    [showErrors, updateWorkspace, project_name, accessibleWorkspaces]
   );
 
   const handleOnRemove = useCallback(
-    (workspace: Workspace) => {
+    (workspace: WorkspaceMinimal) => {
       if (!workspace.workspace_id) return;
       const doDelete = confirm(
         'This action will permanently delete this workspace its files, a non-reversible action.'
@@ -118,11 +118,11 @@ export default function WorkspacesGrid({
       showErrors(deleteWorkspace(project_name, workspace.workspace_id));
       dispatch(updateWorkflowsWorkspaces());
     },
-    [dispatch, showErrors, deleteWorkspace, project_name, allWorkspaces]
+    [dispatch, showErrors, deleteWorkspace, project_name, accessibleWorkspaces]
   );
 
   const hasTag = useCallback(
-    (workspace: Workspace) => {
+    (workspace: WorkspaceMinimal) => {
       if (!tags || 0 === tags.length) return true;
       if (!workspace.tags || 0 === workspace.tags.length) return false;
 
@@ -132,7 +132,7 @@ export default function WorkspacesGrid({
   );
 
   const matchesSearch = useCallback(
-    (workspace: Workspace) => {
+    (workspace: WorkspaceMinimal) => {
       if (!searchString || '' === searchString) return true;
 
       const regex = new RegExp(searchString, 'i');
@@ -146,7 +146,7 @@ export default function WorkspacesGrid({
   );
 
   useEffect(() => {
-    let results = allWorkspaces
+    let results = accessibleWorkspaces
       .filter((workspace) => matchesSearch(workspace) && hasTag(workspace))
       .sort((a, b) => {
         if (null == a.workspace_id) return -1;
@@ -161,12 +161,12 @@ export default function WorkspacesGrid({
     } else {
       setFilteredWorkspaces([...results]);
     }
-  }, [allWorkspaces, matchesSearch, hasTag, workflowId]);
+  }, [accessibleWorkspaces, matchesSearch, hasTag, workflowId]);
 
   return (
     <Grid className={classes.workspaces} container direction='row'>
       {filteredWorkspaces.map(
-        (workspace: Workspace, index: number) => {
+        (workspace: WorkspaceMinimal, index: number) => {
           return (
             <WorkspaceCard
               key={index}

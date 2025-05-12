@@ -100,12 +100,14 @@ export interface WorkspaceMinimalMinusInconsistent {
   workflow_name: string;
   workflow_id: number | null;
   user_email: string;
-  tags: string[];
+  tags: string[] | null;
   git_version: string;
   dag: string[];
   created_at: string;
   updated_at: string;
   workspace_path: string;
+  // NEEDED
+  thumbnails: any[]
 }
 // ToDo: Remove these if the final version is stably not edited!
 // Not currently in the minimal: none
