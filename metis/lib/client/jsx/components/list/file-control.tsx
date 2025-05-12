@@ -25,6 +25,14 @@ const FileControl = ({
     invoke({type: 'PROTECT_FILE', file, bucket_name});
   }, [file, bucket_name, invoke]);
 
+  const unrestrictFile = useCallback(() => {
+    invoke({type: 'UNRESTRICT_FILE', file, bucket_name});
+  }, [file, bucket_name, invoke]);
+
+  const restrictFile = useCallback(() => {
+    invoke({type: 'RESTRICT_FILE', file, bucket_name});
+  }, [file, bucket_name, invoke]);
+
   const renameFile = useCallback(() => {
     let new_file_name = prompt(
       'What is the new name of this file?',
@@ -156,6 +164,22 @@ const FileControl = ({
           {
             label: 'Move file',
             callback: moveFileDialog,
+            role: 'editor'
+          }
+        ]
+  ).concat(
+    file.restricted
+      ? [
+          {
+            label: 'Unrestrict file',
+            callback: unrestrictFile,
+            role: 'editor'
+          }
+        ]
+      : [
+          {
+            label: 'Restrict file',
+            callback: restrictFile,
             role: 'editor'
           }
         ]

@@ -1817,4 +1817,61 @@ describe FileController do
       expect(@wisdom_file.updated_at.iso8601).to eq(@creation_time.iso8601)
     end
   end
+
+  context '#restrict' do
+    before(:each) do
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+    end
+
+    def restrict_file path, params={}
+      json_post("/athena/file/restrict/files/#{path}", params)
+    end
+
+    it 'restricts a file' do
+      token_header(:restricted_editor)
+      restrict_file('wisdom.txt')
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(200)
+      expect(json_body[:files].first[:restricted]).to eq(true)
+      expect(@wisdom_file).to be_restricted
+    end
+
+    it 'refuses to restrict a file without permissions' do
+      token_header(:editor)
+      restrict_file('wisdom.txt')
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(403)
+      expect(@wisdom_file).not_to be_restricted
+    end
+
+    it 'refuses to restrict a non-existent file' do
+      # we attempt to restrict a file that does not exist
+      token_header(:restricted_editor)
+      restrict_file('folly.txt')
+
+      expect(last_response.status).to eq(404)
+      expect(json_body[:error]).to eq('File not found')
+
+      # the actual file is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file).not_to be_restricted
+    end
+
+    it 'refuses to restrict a restricted file' do
+      @wisdom_file.restricted = true
+      @wisdom_file.save
+      @wisdom_file.refresh
+
+      token_header(:restricted_editor)
+      restrict_file('wisdom.txt')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('File is already restricted')
+      @wisdom_file.refresh
+      expect(@wisdom_file).to be_restricted
+    end
+  end
 end

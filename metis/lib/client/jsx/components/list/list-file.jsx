@@ -22,6 +22,7 @@ const ListEntryFileStatusColumn = ({file, widths}) => (
   <ListEntryColumn className='status' widths={widths}>
     { file.file_hash && !file.file_hash.match(/^temp-/) && <Icon icon='shield-alt' title={`MD5: ${file.file_hash}`}/> }
     { file.archive_id && <Icon icon='cubes' title='Backed up'/> }
+    { file.restricted && <Icon icon='radiation' title='Restricted'/> }
   </ListEntryColumn>
 );
 

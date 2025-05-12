@@ -176,6 +176,10 @@ class Metis
       read_only
     end
 
+    def restricted?
+      restricted
+    end
+
     def to_hash(request: nil, file_path: nil, with_path: true)
 
       params = {
@@ -189,6 +193,7 @@ class Metis
         file_hash: file_hash,
         archive_id: current_data_block.archive_id,
         read_only: read_only?,
+        restricted: restricted?,
         size: current_data_block.size,
       }
 
@@ -228,6 +233,14 @@ class Metis
 
     def unprotect!
       update(read_only: false)
+    end
+
+    def restrict!
+      update(restricted: true)
+    end
+
+    def unrestrict!
+      update(restricted: false)
     end
 
     def rename!(new_folder, new_file_name, user=nil)

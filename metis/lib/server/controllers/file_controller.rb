@@ -27,6 +27,50 @@ class FileController < Metis::Controller
     return success_json(response)
   end
 
+  def restrict
+    bucket = require_bucket
+    file = Metis::File.from_path(bucket, @params[:file_path])
+
+    raise Etna::Error.new('File not found', 404) unless file&.has_data?
+
+    raise Etna::BadRequest, 'File is already restricted' if file.restricted?
+
+    file.restrict!
+
+    event_log(
+      event: 'restrict_file',
+      message: "restricted files in bucket #{@params[:bucket_name]}",
+      payload: {
+        files: [ @params[:file_path] ]
+      },
+      consolidate: true
+    )
+
+    success_json(files: [ file.to_hash(request: @request) ])
+  end
+
+  def unrestrict
+    bucket = require_bucket
+    file = Metis::File.from_path(bucket, @params[:file_path])
+
+    raise Etna::Error.new('File not found', 404) unless file&.has_data?
+
+    raise Etna::BadRequest, 'File is not restricted' unless file.restricted?
+
+    file.unrestrict!
+
+    event_log(
+      event: 'unrestrict_file',
+      message: "unrestricted files in bucket #{@params[:bucket_name]}",
+      payload: {
+        files: [ @params[:file_path] ]
+      },
+      consolidate: true
+    )
+
+    success_json(files: [ file.to_hash(request: @request) ])
+  end
+
   def protect
     bucket = require_bucket
     file = Metis::File.from_path(bucket, @params[:file_path])

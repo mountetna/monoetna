@@ -12,6 +12,12 @@ export const postProtectFile = (project_name, bucket_name, file_name) =>
 export const postUnprotectFile = (project_name, bucket_name, file_name) =>
   json_post(`/${project_name}/file/unprotect/${bucket_name}/${file_name}`);
 
+export const postRestrictFile = (project_name, bucket_name, file_name) =>
+  json_post(`/${project_name}/file/restrict/${bucket_name}/${file_name}`);
+
+export const postUnrestrictFile = (project_name, bucket_name, file_name) =>
+  json_post(`/${project_name}/file/unrestrict/${bucket_name}/${file_name}`);
+
 export const postRenameFile = (
   project_name,
   bucket_name,

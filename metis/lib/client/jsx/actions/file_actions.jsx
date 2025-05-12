@@ -2,6 +2,8 @@ import {
   postRetrieveFiles,
   postProtectFile,
   postUnprotectFile,
+  postRestrictFile,
+  postUnrestrictFile,
   postRenameFile,
   deleteFile,
   getTouchFile
@@ -149,6 +151,39 @@ export const unprotectFile =
           dispatch,
           'warning',
           'File unprotection failed',
+          (error) => error
+        )
+      );
+  };
+
+export const restrictFile =
+  ({file, bucket_name}) =>
+  (dispatch) => {
+    postRestrictFile(CONFIG.project_name, bucket_name, file.file_path)
+      .then(({files}) => dispatch(addFiles(files)))
+      .catch(
+        errorMessage(
+          dispatch,
+          'warning',
+          'File restriction failed',
+          (error) => error
+        )
+      );
+  };
+
+export const unrestrictFile =
+  ({file, bucket_name}) =>
+  (dispatch) => {
+    if (!confirm(`Are you sure you want to unrestrict ${file.file_path}?`))
+      return;
+
+    postUnrestrictFile(CONFIG.project_name, bucket_name, file.file_path)
+      .then(({files}) => dispatch(addFiles(files)))
+      .catch(
+        errorMessage(
+          dispatch,
+          'warning',
+          'File unrestriction failed',
           (error) => error
         )
       );
