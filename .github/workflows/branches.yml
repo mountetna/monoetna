@@ -92,7 +92,7 @@ jobs:
           docker compose up -d vulcan_db
           sleep 1
           # Run migrations
-          docker compose run --rm vulcan_app bundle exec rake db:migrate
+          docker compose run --rm -e UPDATE_STATE=1 vulcan_app
           # Run tests
           docker compose run --rm vulcan_app rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb
           docker compose down
