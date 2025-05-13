@@ -92,9 +92,9 @@ jobs:
           docker compose up -d vulcan_db
           sleep 1
           # Install dependencies
-          docker compose run --rm -e BUNDLE_PATH=/bundle vulcan_app bundle install
+          docker compose run --rm -e BUNDLE_PATH=/bundle vulcan_app bundle install --path /bundle
           # Run migrations
-          docker compose run --rm -e UPDATE_STATE=1 -e BUNDLE_PATH=/bundle vulcan_app
+          docker compose run --rm -e BUNDLE_PATH=/bundle vulcan_app ./bin/vulcan migrate
           # Run tests
           docker compose run --rm -e BUNDLE_PATH=/bundle vulcan_app rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb
           docker compose down
