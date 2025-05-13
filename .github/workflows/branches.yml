@@ -89,14 +89,12 @@ jobs:
           docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
           # Start services and run tests
           cd vulcan
-          docker compose up -d vulcan_db
+          docker compose up -d vulcan_db vulcan_c4_env
           sleep 1
-          # Install dependencies
-          docker compose run --rm -e BUNDLE_PATH=/bundle vulcan_app sh -c 'bundle config set --local path /bundle && bundle install'
-          # Debug bundle configuration
-          docker compose run --rm -e BUNDLE_PATH=/bundle vulcan_app bundle list
-          # Run migrations
-          docker compose run --rm -e BUNDLE_PATH=/bundle vulcan_app ./bin/vulcan migrate
-          # Run tests
-          docker compose run --rm -e BUNDLE_PATH=/bundle vulcan_app rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb
+          # Run all commands in a single container
+          docker compose run --rm vulcan_app sh -c '
+            bundle install && 
+            ./bin/vulcan migrate && 
+            rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb
+          '
           docker compose down
