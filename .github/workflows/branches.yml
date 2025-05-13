@@ -82,7 +82,7 @@ jobs:
           VULCAN_ENV: test
         run: |
           # Pull required base image
-          docker pull etnaagent/etna-base:latest && docker pull etnaagent/development-psql:latest
+          docker pull etnaagent/etna-base:master && docker pull etnaagent/development-psql:master
           # Build the app image
           docker build -t vulcan_app -f vulcan/Dockerfile vulcan
           # Start services and run tests
