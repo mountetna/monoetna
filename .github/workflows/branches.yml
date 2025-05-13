@@ -72,7 +72,7 @@ jobs:
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
       - name: Pull vulcan_c4_env image
         run: docker pull etnaagent/vulcan_c4_env:latest
-      - name: Run Vulcan tests
+      - name: Build and run tests
         id: vulcan_test_run
         env:
           IMAGES_PREFIX: etnaagent/
@@ -80,10 +80,16 @@ jobs:
           CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
           VULCAN_ENV: test
-          NO_TEST: 1
         run: |
-          make -C vulcan release
-          cd vulcan
-          docker compose build vulcan_app vulcan_db
+          # Build the development-psql image
+          docker build -t development-psql -f docker/development-psql/Dockerfile docker/development-psql
+          # Build the app image
+          docker build -t vulcan_app -f vulcan/Dockerfile vulcan
+          # Start services and run tests
+          docker compose up -d vulcan_db
+          sleep 1
+          # Run migrations
+          docker compose run --rm vulcan_app bundle exec rake db:migrate
+          # Run tests
           docker compose run --rm vulcan_app rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb
           docker compose down
