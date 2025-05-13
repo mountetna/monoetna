@@ -81,8 +81,8 @@ jobs:
           IMAGES_POSTFIX: :master
           VULCAN_ENV: test
         run: |
-          # Build the development-psql image
-          docker build -t development-psql -f docker/development-psql/Dockerfile docker/development-psql
+          # Pull required base image
+          docker pull etnaagent/etna-base:latest && docker pull etnaagent/development-psql:latest
           # Build the app image
           docker build -t vulcan_app -f vulcan/Dockerfile vulcan
           # Start services and run tests
