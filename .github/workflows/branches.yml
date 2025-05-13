@@ -91,6 +91,8 @@ jobs:
           cd vulcan
           docker compose up -d vulcan_db
           sleep 1
+          # Install dependencies
+          docker compose run --rm vulcan_app bundle install
           # Run migrations
           docker compose run --rm -e UPDATE_STATE=1 vulcan_app
           # Run tests
