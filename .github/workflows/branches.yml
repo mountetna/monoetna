@@ -62,3 +62,24 @@ jobs:
         run: |
           make -C vesta release
           make -f Makefile-mac vesta-ui-test
+  test-vulcan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: docker login
+        env:
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
+      - name: Pull vulcan_c4_env image
+        run: docker pull etnaagent/vulcan_c4_env:latest
+      - name: Run Vulcan tests
+        id: vulcan_test_run
+        env:
+          IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
+          IMAGES_POSTFIX: :master
+          VULCAN_ENV: test
+          #RSPEC_FILES: "spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb"
+        run: |
+          make -C vulcan release
