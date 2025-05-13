@@ -83,6 +83,8 @@ jobs:
         run: |
           # Pull required base image
           docker pull etnaagent/etna-base:master && docker pull etnaagent/development-psql:master
+          docker tag etnaagent/etna-base:master etna-base
+          docker tag etnaagent/development-psql:master development-psql
           # Build the app image
           docker build -t vulcan_app -f vulcan/Dockerfile vulcan
           # Start services and run tests
