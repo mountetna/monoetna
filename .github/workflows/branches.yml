@@ -92,7 +92,7 @@ jobs:
           docker compose up -d vulcan_db
           sleep 1
           # Install dependencies
-          docker compose run --rm -e BUNDLE_PATH=/bundle vulcan_app bundle install --path /bundle
+          docker compose run --rm -e BUNDLE_PATH=/bundle vulcan_app sh -c 'bundle config set --local path /bundle && bundle install'
           # Run migrations
           docker compose run --rm -e BUNDLE_PATH=/bundle vulcan_app ./bin/vulcan migrate
           # Run tests
