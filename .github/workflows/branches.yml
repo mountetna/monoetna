@@ -88,6 +88,7 @@ jobs:
           # Build the app image
           docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
           # Start services and run tests
+          cd vulcan
           docker compose up -d vulcan_db
           sleep 1
           # Run migrations
