@@ -86,7 +86,7 @@ jobs:
           docker tag etnaagent/etna-base:master etna-base
           docker tag etnaagent/development-psql:master development-psql
           # Build the app image
-          docker build -t vulcan_app -f vulcan/Dockerfile vulcan
+          docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
           # Start services and run tests
           docker compose up -d vulcan_db
           sleep 1
