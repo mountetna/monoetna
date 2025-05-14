@@ -82,13 +82,12 @@ jobs:
       - name: Build vulcan_app image
         run: docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
       - name: Install, migrate & run tests
-      - name: Install, migrate & run tests
         run: |
           cd vulcan
-          docker compose run --rm vulcan_app bash -lc '
+          docker compose run --rm vulcan_app bash -lc "
             bundle install &&
             ./bin/vulcan migrate &&
             rspec spec/workflow_v2_spec.rb \
             spec/snakemake_parser_spec.rb \
             spec/snakemake_inference_spec.rb
-            '
+          "
