@@ -81,7 +81,25 @@ jobs:
           docker tag etnaagent/vulcan_c4_env:latest vulcan_c4_env
       - name: Build vulcan_app image
         run: docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
-      - name: Install, migrate & run tests
+      - name: Write one-off test runner
         run: |
-          cd vulcan
-          docker compose run --rm vulcan_app bash -lc 'bundle install && ./bin/vulcan migrate && rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb'
+          cat > vulcan/test-all.sh << 'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          echo "=== Installing gems ==="
+          bundle install
+
+          echo "=== Running migrations ==="
+          ./bin/vulcan migrate
+
+          echo "=== Running specs ==="
+          rspec spec/workflow_v2_spec.rb \
+          spec/snakemake_parser_spec.rb \
+          spec/snakemake_inference_spec.rb
+          EOF
+          chmod +x vulcan/test-all.sh
+      - name: Install, migrate & run tests
+        working-directory: vulcan
+        run: |
+          docker compose run --rm vulcan_app ./test-all.sh
