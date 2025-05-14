@@ -62,6 +62,7 @@ jobs:
         run: |
           make -C vesta release
           make -f Makefile-mac vesta-ui-test
+
   test-vulcan:
     runs-on: ubuntu-latest
     steps:
@@ -70,34 +71,22 @@ jobs:
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
-      - name: Pull vulcan_c4_env image
-        run: docker pull etnaagent/vulcan_c4_env:latest
-      - name: Build and run tests
-        id: vulcan_test_run
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          CI_SECRET: ${{ secrets.CI_SECRET }}
-          IMAGES_POSTFIX: :master
-          VULCAN_ENV: test
+      - name: Pull base images
         run: |
-          # Pull required base image
-          docker pull etnaagent/etna-base:master && docker pull etnaagent/development-psql:master
+          docker pull etnaagent/vulcan_c4_env:latest
+          docker pull etnaagent/etna-base:master
+          docker pull etnaagent/development-psql:master
           docker tag etnaagent/etna-base:master etna-base
           docker tag etnaagent/development-psql:master development-psql
-          #docker tag etnaagent/vulcan_c4_env:latest vulcan_c4_env
-          # List images to verify
-          docker images
-          # Build the app image
-          docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
-          # Start services and run tests
+          docker tag etnaagent/vulcan_c4_env:latest vulcan_c4_env
+      - name: Build vulcan_app image
+        run: docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
+      - name: Install, migrate & run tests
+        run: |
           cd vulcan
-          docker compose up -d vulcan_db #vulcan_c4_env
-          sleep 1
-          # Run all commands in a single container
-          docker compose run --rm vulcan_app sh -c '
-            bundle install && 
-            ./bin/vulcan migrate && 
-            rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb
-          '
-          docker compose down
+          docker compose run --rm vulcan_app bash -lc "\
+            bundle install && \
+            echo '=== Running migrations ===' && ./bin/vulcan migrate && \
+            echo '=== Running specs ===' && \
+            rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb\
+          "
