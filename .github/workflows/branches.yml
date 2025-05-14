@@ -84,9 +84,10 @@ jobs:
       - name: Install, migrate & run tests
         run: |
           cd vulcan
-          docker compose run --rm vulcan_app bash -lc "\
-            bundle install && \
-            echo '=== Running migrations ===' && ./bin/vulcan migrate && \
-            echo '=== Running specs ===' && \
-            rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb\
-          "
+          docker compose run --rm vulcan_app \
+            bash -lc "bundle install && \
+                ./bin/vulcan migrate && \
+                rspec spec/workflow_v2_spec.rb \
+                     spec/snakemake_parser_spec.rb \
+                     spec/snakemake_inference_spec.rb"
+
