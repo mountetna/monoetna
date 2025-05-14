@@ -85,12 +85,14 @@ jobs:
           docker pull etnaagent/etna-base:master && docker pull etnaagent/development-psql:master
           docker tag etnaagent/etna-base:master etna-base
           docker tag etnaagent/development-psql:master development-psql
-          docker tag etnaagent/vulcan_c4_env:latest vulcan_c4_env
+          #docker tag etnaagent/vulcan_c4_env:latest vulcan_c4_env
+          # List images to verify
+          docker images
           # Build the app image
           docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
           # Start services and run tests
           cd vulcan
-          docker compose up -d vulcan_db vulcan_c4_env
+          docker compose up -d vulcan_db #vulcan_c4_env
           sleep 1
           # Run all commands in a single container
           docker compose run --rm vulcan_app sh -c '
