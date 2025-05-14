@@ -34,6 +34,17 @@ class Metis
         errors_found = true
       end
 
+      target_files = Metis::File.where(
+        bucket: target_folder.bucket,
+        project_name: target_folder.project_name,
+        folder_id: [ target_folder.id ] + target_folder.child_folders.map(&:id)
+      ).all
+
+      if target_files.any? { |f| f.restricted }
+        @errors.push("Folder \"#{mpath_w_objs.mpath.path}\" contains restricted files")
+        errors_found = true
+      end
+
       return errors_found
     end
 

@@ -95,6 +95,20 @@ describe FileController do
       expect(Metis::File.all).to include(@wisdom_file)
     end
 
+    it 'refuses to remove a restricted file' do
+      @wisdom_file.restricted = true
+      @wisdom_file.save
+      @wisdom_file.refresh
+
+      token_header(:editor)
+      remove_file('wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('File is restricted')
+      expect(@wisdom_file).to be_has_data
+      expect(Metis::File.all).to include(@wisdom_file)
+    end
+
     it 'refuses to remove a read-only file even for an admin' do
       @wisdom_file.read_only = true
       @wisdom_file.save
@@ -167,6 +181,20 @@ describe FileController do
       @wisdom_file.refresh
       expect(@wisdom_file).to be_read_only
     end
+
+    it 'refuses to protect a restricted file' do
+      @wisdom_file.restricted = true
+      @wisdom_file.save
+      @wisdom_file.refresh
+
+      token_header(:admin)
+      protect_file('wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('File is restricted')
+      @wisdom_file.refresh
+      expect(@wisdom_file).not_to be_read_only
+    end
   end
 
   context '#unprotect' do
@@ -224,6 +252,20 @@ describe FileController do
       expect(json_body[:error]).to eq('File is not protected')
       @wisdom_file.refresh
       expect(@wisdom_file).not_to be_read_only
+    end
+
+    it 'refuses to unprotect a restricted file' do
+      @wisdom_file.read_only = true
+      @wisdom_file.restricted = true
+      @wisdom_file.save
+
+      token_header(:admin)
+      unprotect_file('wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('File is restricted')
+      @wisdom_file.refresh
+      expect(@wisdom_file).to be_read_only
     end
   end
 
@@ -355,6 +397,21 @@ describe FileController do
       expect(@wisdom_file).to be_has_data
     end
 
+    it 'refuses to rename a restricted file' do
+      @wisdom_file.restricted = true
+      @wisdom_file.save
+
+      token_header(:editor)
+      rename_file('wisdom.txt', 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(
+        ["File \"metis://athena/files/wisdom.txt\" is restricted"])
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_path).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+    end
+
     it 'can move a file to a new folder' do
       contents_folder = create_folder('athena', 'contents')
       stubs.create_folder('athena', 'files', 'contents')
@@ -478,6 +535,28 @@ describe FileController do
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
         "Invalid path: \"metis://athena/files/learn\nwisdom.txt\""
+      )
+
+      # the original is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file created
+      expect(Metis::File.count).to eq(1)
+    end
+
+    it 'refuses to copy a restricted file' do
+      @wisdom_file.restricted = true
+      @wisdom_file.save
+
+      token_header(:editor)
+      copy_file('wisdom.txt', "learn-wisdom.txt")
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "File \"metis://athena/files/wisdom.txt\" is restricted"
       )
 
       # the original is untouched
@@ -957,6 +1036,38 @@ describe FileController do
       expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
       orig_helmet_file = Metis::File.last
       expect(orig_helmet_file.file_name).to eq('helmet.jpg')
+    end
+
+    it 'refuses to copy a restricted file' do
+      @wisdom_file.restricted = true
+      @wisdom_file.save
+      token_header(:editor)
+
+      expect(Metis::File.count).to eq(2)
+
+      bulk_copy([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: "metis://athena/files/learn-wisdom.txt"
+      }])
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        {"dest": "metis://athena/files/learn-wisdom.txt",
+         "errors": ["File \"metis://athena/files/wisdom.txt\" is restricted"],
+         "source": "metis://athena/files/wisdom.txt"}
+      )
+
+      # the original is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(2)
+      expect(Metis::File.select_map(:file_name)).to match_array(
+        [ 'wisdom.txt', 'helmet.jpg' ]
+      )
     end
 
     it 'refuses to copy a file without permissions' do
@@ -1756,6 +1867,23 @@ describe FileController do
       expect(@helmet_file.updated_at.iso8601).to eq(@creation_time.iso8601)
 
     end
+
+    it 'throws exception if file is restricted' do
+      expect(@helmet_file.updated_at.iso8601).to eq(@creation_time.iso8601)
+      @helmet_file.restricted = true
+      @helmet_file.save
+      @helmet_file.refresh
+
+      @update_time = DateTime.now
+      Timecop.freeze(@update_time)
+
+      token_header(:editor)
+      touch_file('blueprints/helmet.jpg')
+
+      @helmet_file.refresh
+      expect(last_response.status).to eq(403)
+      expect(@helmet_file.updated_at.iso8601).to eq(@creation_time.iso8601)
+    end
   end
 
   context '#touch_files' do
@@ -1801,6 +1929,24 @@ describe FileController do
 
     it 'throws exception if file is read only' do
       @helmet_file.read_only = true
+      @helmet_file.save
+      @helmet_file.refresh
+
+      @update_time = DateTime.now
+      Timecop.freeze(@update_time)
+
+      token_header(:editor)
+      touch_files('blueprints/helmet.jpg', 'blueprints/wisdom.txt')
+
+      @helmet_file.refresh
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(403)
+      expect(@helmet_file.updated_at.iso8601).to eq(@creation_time.iso8601)
+      expect(@wisdom_file.updated_at.iso8601).to eq(@creation_time.iso8601)
+    end
+
+    it 'throws exception if file is restricted' do
+      @helmet_file.restricted = true
       @helmet_file.save
       @helmet_file.refresh
 

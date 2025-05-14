@@ -82,12 +82,12 @@ class Metis
       )
     end
 
-    def self.download_url(request, project_name, bucket_name, file_path)
+    def self.download_url(project_name, bucket_name, file_path)
       hmac_url(
         method: 'GET',
         host: Metis.instance.host,
         path: Metis::Server.route_path(
-          request,
+          nil,
           :download,
           project_name: project_name,
           bucket_name: bucket_name,
@@ -180,7 +180,11 @@ class Metis
       restricted
     end
 
-    def to_hash(request: nil, file_path: nil, with_path: true)
+    def restrict_user?(user)
+      restricted? && !(user && user.can_see_restricted?(project_name))
+    end
+
+    def to_hash(user: nil, file_path: nil, with_path: true)
 
       params = {
         folder_id: folder_id,
@@ -200,15 +204,18 @@ class Metis
       if with_path
         file_path ||= self.file_path
         params[:file_path] = file_path
-        params[:download_url] = request ? Metis::File.download_url(
-          request,
-          project_name,
-          bucket.name,
-          file_path
-        ) : nil
+        params[:download_url] = download_url(user)
       end
 
       params
+    end
+
+    def download_url(user)
+      !restrict_user?(user) ? Metis::File.download_url(
+        project_name,
+        bucket.name,
+        file_path
+      ) : nil
     end
 
     def file_path

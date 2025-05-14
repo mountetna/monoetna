@@ -11,7 +11,7 @@ describe DownloadController do
       @tips = "1. Burn the hydra's neck after cutting.\n2. Use a river to clean the stables."
       @location = stubs.create_file('athena', 'files', 'readme_hercules.txt', @tips)
       default_bucket('athena')
-      create_file('athena', 'readme_hercules.txt', @tips)
+      @file = create_file('athena', 'readme_hercules.txt', @tips)
     end
 
     after(:each) do
@@ -20,6 +20,67 @@ describe DownloadController do
 
     it 'creates an hmac download url for the given requested file path' do
       token_header(:viewer)
+
+      json_post('/authorize/download', {
+        file_path: 'readme_hercules.txt',
+        project_name: 'athena',
+        bucket_name: 'files'
+      })
+
+      url = json_body[:download_url]
+      get(url)
+
+      expect(last_response.status).to eq(200)
+      expect(last_response.headers['X-Sendfile']).to eq(@location)
+    end
+
+    it 'does not create a download url for nonexistent files' do
+      token_header(:viewer)
+
+      json_post('/authorize/download', {
+        file_path: 'readme_iolaus.txt',
+        project_name: 'athena',
+        bucket_name: 'files'
+      })
+
+      expect(last_response.status).to eq(404)
+      expect(json_body).not_to have_key(:download_url)
+    end
+
+    it 'does not create a download url for the requested file path without permission' do
+      token_header(:non_user)
+
+      json_post('/authorize/download', {
+        file_path: 'readme_hercules.txt',
+        project_name: 'athena',
+        bucket_name: 'files'
+      })
+
+      expect(last_response.status).to eq(403)
+      expect(json_body).not_to have_key(:download_url)
+    end
+
+    it 'does not create a download url for a restricted file' do
+      @file.restricted = true
+      @file.save
+
+      token_header(:viewer)
+
+      json_post('/authorize/download', {
+        file_path: 'readme_hercules.txt',
+        project_name: 'athena',
+        bucket_name: 'files'
+      })
+
+      expect(last_response.status).to eq(403)
+      expect(json_body).not_to have_key(:download_url)
+    end
+
+    it 'creates a download url for a restricted file with permission' do
+      @file.restricted = true
+      @file.save
+
+      token_header(:restricted_editor)
 
       json_post('/authorize/download', {
         file_path: 'readme_hercules.txt',
