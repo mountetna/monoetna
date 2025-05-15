@@ -86,6 +86,7 @@ jobs:
           cat > vulcan/test-all.sh << 'EOF'
           #!/usr/bin/env bash
           set -euo pipefail
+          export VULCAN_ENV=test
 
           echo "=== Installing gems ==="
           bundle install
