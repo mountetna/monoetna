@@ -132,15 +132,14 @@ interface WorkspaceMinusInconsistent {
   last_config_id: number | null;
   last_job_status: {[k: string]: StatusStringFine} | null;
   last_run_id: number | null;
+  tags: string[] | null;
 }
 export interface WorkspaceRaw extends WorkspaceMinusInconsistent {
   vulcan_config: VulcanConfigElement[];
-  tags: string[] | null;
   // target_mapping: {[k: string]: WorkspaceStep};
 }
 export interface Workspace extends WorkspaceMinusInconsistent {
   vulcan_config: VulcanConfig;
-  tags: string[];
   // project?: string;
   vignette?: string;
   thumbnails?: string[];

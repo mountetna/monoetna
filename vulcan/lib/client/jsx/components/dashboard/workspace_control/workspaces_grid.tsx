@@ -92,7 +92,7 @@ export default function WorkspacesGrid({
       if (!newTitle) return;
 
       showErrors(
-        updateWorkspace(project_name, workspace.workspace_id, newTitle, workspace.tags)
+        updateWorkspace(project_name, workspace.workspace_id, newTitle, undefined)
         .then((updatedWorkspace) => {
           const updated = accessibleWorkspaces.map((oldWorkspace) => {
             if (oldWorkspace.workspace_id === updatedWorkspace.workspace_id) {

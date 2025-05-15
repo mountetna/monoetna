@@ -114,8 +114,12 @@ export default function WorkspaceManager() {
   useEffect(() => {
     setLocalTitle(workspace.name);
   }, [workspace.name])
-  useEffect(() => {
+
+  function resetTags() {
     setLocalTags(workspace.tags || []);
+  }
+  useEffect(() => {
+    resetTags();
   }, [workspace.tags])
 
   useDataSync(state, dispatch, showErrors, getFileNames, readFiles, postUIValues);
@@ -254,12 +258,16 @@ export default function WorkspaceManager() {
   }, [projectName, workspaceId])
 
   const handleCloseEditTags = useCallback(() => {
-    setLocalTags(workspace.tags || [])
+    resetTags();
     setOpenTagEditor(false);
   }, []);
 
+  const isPublic = useMemo(() => (workspace.tags || []).includes('published'), [workspace.tags]);
   function togglePublicTag() {
-    const newTags = localTags.includes('published') ? localTags.filter((v)=>v!='published') : [...localTags, 'published']
+    const currentTags = workspace.tags || [];
+    const newTags = currentTags.includes('published') ?
+    currentTags.filter((v)=>v!='published') :
+      [...currentTags, 'published']
     setLocalTags(newTags);
     setUpdatingTags(true);
     handleUpdateWorkspace(undefined, newTags);
@@ -318,8 +326,6 @@ export default function WorkspaceManager() {
     workspace,
     canEdit
   ]);
-
-  const isPublic = useMemo(() => (workspace.tags || []).includes('published'), [workspace.tags]);
 
   if (!workflow_name || !workspace) return null;
 
@@ -469,9 +475,9 @@ export default function WorkspaceManager() {
                   classes={{
                     input: classes.tags
                   }}
-                  defaultValue={workspace.tags}
+                  defaultValue={localTags}
                   id='figure-edit-tags-filter'
-                  options={workspace.tags.filter((t) => t!='published' && t!='highlighted').concat('highlighted')}
+                  options={localTags.filter((t) => t!='published' && t!='highlighted').concat('highlighted')}
                   renderInput={(params: any) => (
                     <TextField {...params} label='Tags' variant='outlined' />
                   )}
@@ -497,6 +503,7 @@ export default function WorkspaceManager() {
                   handleCloseEditTags()
                   }}
                   color='primary'
+                  disabled={_.isEqual(localTags,workspace.tags)}
                 >
                   Save Tags
                 </Button>

@@ -153,6 +153,10 @@ export function useApi(
     });
   }, []);
 
+  const showError = useCallback((e: any) => {
+    console.error(e);
+    invoke(showMessages(e));
+  }, [invoke]);
   const showErrors = useCallback(
     <T>(work: Promise<T>, additional: (e: any) => void = (e) => {}): Promise<T> => {
       work.catch((e) => {
@@ -212,6 +216,9 @@ export function useApi(
       const params = {};
       if (!!name) params['name'] = name;
       if (!!tags) params['tags'] = tags;
+      if (Object.keys(params).length < 1) {
+        showError('Possible Error: updateWorkspace was called without any updates provided.')
+      }
       return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/update`),
         params
