@@ -111,6 +111,14 @@ jobs:
           spec/snakemake_inference_spec.rb
           EOF
           chmod +x vulcan/test-all.sh
+      - name: debug
+        run: |
+          docker ps
+          docker network inspect vulcan_default
+          docker compose run --rm vulcan_app bash -lc "\
+            echo '--- getent vulcan_c4_env ---';    getent hosts vulcan_c4_env || echo 'not found'; \
+            echo '--- getent vulcan-vulcan_c4_env-1 ---'; getent hosts vulcan-vulcan_c4_env-1 || echo 'not found'; \
+          "
       - name: Install, migrate & run tests
         working-directory: vulcan
         run: |
