@@ -26,10 +26,10 @@ class Metis
 
       if !target_folder
         @errors.push("Folder not found: \"#{mpath_w_objs.mpath.path}\"")
-        errors_found = true
+        return errors_found = true
       end
 
-      if target_folder&.read_only?
+      if target_folder.read_only?
         @errors.push("Folder \"#{mpath_w_objs.mpath.path}\" is read-only")
         errors_found = true
       end
