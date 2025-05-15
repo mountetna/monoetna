@@ -83,6 +83,10 @@ jobs:
           docker tag etnaagent/vulcan_c4_env:latest vulcan_c4_env
       - name: Build vulcan_app image
         run: docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
+      - name: Start DB & c4_env
+        working-directory: vulcan
+        run: |
+          docker compose up -d vulcan_db vulcan_c4_env
       - name: Create script to run tests
         run: |
           cat > vulcan/test-all.sh << 'EOF'
