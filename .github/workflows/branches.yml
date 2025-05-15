@@ -89,7 +89,8 @@ jobs:
           #!/usr/bin/env bash
 
           echo "=== Setting up test config ==="
-          cp vulcan/config.yml.test vulcan/config.yml
+          cp config.yml.test config.yml
+          cat config.yml
           set -euo pipefail
           export VULCAN_ENV=test
 
