@@ -114,7 +114,4 @@ jobs:
       - name: Install, migrate & run tests
         working-directory: vulcan
         run: |
-        docker compose run --rm \
-            -e VULCAN_ENV=test \
-            vulcan_app \
-            bash -lc "./test-all.sh"
+          docker compose run --rm -e VULCAN_ENV=test vulcan_app ./test-all.sh
