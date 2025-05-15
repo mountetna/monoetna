@@ -11,7 +11,7 @@ const theme = createEtnaTheme('#ffaa44', '#948f8e');
 
 // Components.
 import Browser from './components/browser.tsx';
-import Dashboard from './components/dashboard';
+import Dashboard from './components/dashboard/dashboard';
 import VulcanNav from './components/vulcan_nav';
 import Messages from 'etna-js/components/messages';
 import {selectUser} from 'etna-js/selectors/user-selector';
@@ -36,17 +36,11 @@ const ROUTES = [
     mode: ''
   },
   {
-    name: 'new_figure',
-    template: ':project_name/figure/new/:workflow_name',
+    name: 'workspace',
+    template: ':project_name/workspace/:workspace_id',
     component: Browser,
     mode: 'workflow'
   },
-  {
-    name: 'figure',
-    template: ':project_name/figure/:figure_id',
-    component: Browser,
-    mode: 'workflow'
-  }
 ];
 
 setRoutes(ROUTES);

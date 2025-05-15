@@ -1,0 +1,67 @@
+Bootstrap: docker
+From: python:3.8-slim-buster
+
+%labels
+    Author Daniel Bunis
+    Maintainer Daniel Bunis
+    python_version 3.8
+    poetry_version 1.1.15
+
+%environment
+    export DOCKER_VERSION=19.03.12
+    export PYTHON_VERSION=3.8
+    export POETRY_VERSION=1.1.15
+    export PATH="/app/bin:/opt/poetry/bin:$PATH"
+    export POETRY_HOME="/opt/poetry"
+    export POETRY_CACHE_DIR="/app/.cache/pypoetry"
+
+%setup
+    # This stage is for setting up dependencies or pulling external images
+    # Create the working directory
+    mkdir -p /app
+
+%post
+    # Set up the working directory
+    mkdir -p /app
+
+    # Software versions & environment variables
+    export DOCKER_VERSION=19.03.12
+    echo "export DOCKER_VERSION=${DOCKER_VERSION}" >> $SINGULARITY_ENVIRONMENT
+    export PYTHON_VERSION=3.8
+    echo "export PYTHON_VERSION=${PYTHON_VERSION}" >> $SINGULARITY_ENVIRONMENT
+    export POETRY_VERSION=1.1.15
+    echo "export POETRY_VERSION=${POETRY_VERSION}" >> $SINGULARITY_ENVIRONMENT
+    export PATH="/app/bin:/opt/poetry/bin:$PATH"
+    export POETRY_HOME="/opt/poetry"
+    echo "export POETRY_HOME=${POETRY_HOME}" >> $SINGULARITY_ENVIRONMENT
+    export PYTHON_VERSION=4.4
+    echo "export PYTHON_VERSION=${PYTHON_VERSION}" >> $SINGULARITY_ENVIRONMENT
+    export POETRY_CACHE_DIR="/app/.cache/pypoetry"
+    echo "export POETRY_CACHE_DIR=${PYTHON_VERSION}" >> $SINGULARITY_ENVIRONMENT
+    
+    # Install dependencies
+    apt-get update && \
+    apt-get install -y \
+      curl \
+      libopenblas-base \
+      libcurl4-openssl-dev \
+      libssl-dev \
+      wget \
+      gnupg \
+      bash-completion \
+      git \
+      tk \
+      --no-install-recommends
+
+    # Install Poetry
+    curl -sSL https://install.python-poetry.org > /opt/install-poetry.py && \
+    python /opt/install-poetry.py --version $POETRY_VERSION
+
+    # Improve bash experience inside the container
+    git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
+    bash ~/.bash_it/install.sh --silent && \
+    echo "export SCM_CHECK=false" >> ~/.bashrc
+
+%runscript
+    cd /app
+    exec "${@}"
