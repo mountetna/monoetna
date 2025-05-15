@@ -181,8 +181,8 @@ describe Metis::FolderCopyRevision do
 
   it 'adds error message if a source file is restricted' do
     @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, folder: @wisdom_folder)
-    @wisdom_file.restricted = true
-    @wisdom_file.save
+    @wisdom_file.data_block.restricted = true
+    @wisdom_file.data_block.save
     stubs.create_file('athena', 'files', 'wisdom/wisdom.txt', WISDOM)
 
     revision = Metis::FolderCopyRevision.new({

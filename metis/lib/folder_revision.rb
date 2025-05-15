@@ -40,7 +40,7 @@ class Metis
         folder_id: [ target_folder.id ] + target_folder.child_folders.map(&:id)
       ).all
 
-      if target_files.any? { |f| f.restricted }
+      if target_files.any? { |f| f.restricted? }
         @errors.push("Folder \"#{mpath_w_objs.mpath.path}\" contains restricted files")
         errors_found = true
       end

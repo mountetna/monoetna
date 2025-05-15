@@ -96,8 +96,8 @@ describe FileController do
     end
 
     it 'refuses to remove a restricted file' do
-      @wisdom_file.restricted = true
-      @wisdom_file.save
+      @wisdom_file.data_block.restricted = true
+      @wisdom_file.data_block.save
       @wisdom_file.refresh
 
       token_header(:editor)
@@ -183,9 +183,9 @@ describe FileController do
     end
 
     it 'refuses to protect a restricted file' do
-      @wisdom_file.restricted = true
-      @wisdom_file.save
-      @wisdom_file.refresh
+      @wisdom_file.data_block.restricted = true
+      @wisdom_file.data_block.save
+      @wisdom_file.data_block.refresh
 
       token_header(:admin)
       protect_file('wisdom.txt')
@@ -256,7 +256,8 @@ describe FileController do
 
     it 'refuses to unprotect a restricted file' do
       @wisdom_file.read_only = true
-      @wisdom_file.restricted = true
+      @wisdom_file.data_block.restricted = true
+      @wisdom_file.data_block.save
       @wisdom_file.save
 
       token_header(:admin)
@@ -398,8 +399,8 @@ describe FileController do
     end
 
     it 'refuses to rename a restricted file' do
-      @wisdom_file.restricted = true
-      @wisdom_file.save
+      @wisdom_file.data_block.restricted = true
+      @wisdom_file.data_block.save
 
       token_header(:editor)
       rename_file('wisdom.txt', 'learn-wisdom.txt')
@@ -546,8 +547,8 @@ describe FileController do
     end
 
     it 'refuses to copy a restricted file' do
-      @wisdom_file.restricted = true
-      @wisdom_file.save
+      @wisdom_file.data_block.restricted = true
+      @wisdom_file.data_block.save
 
       token_header(:editor)
       copy_file('wisdom.txt', "learn-wisdom.txt")
@@ -1039,8 +1040,8 @@ describe FileController do
     end
 
     it 'refuses to copy a restricted file' do
-      @wisdom_file.restricted = true
-      @wisdom_file.save
+      @wisdom_file.data_block.restricted = true
+      @wisdom_file.data_block.save
       token_header(:editor)
 
       expect(Metis::File.count).to eq(2)
@@ -1056,6 +1057,38 @@ describe FileController do
       expect(json_body[:errors][0]).to eq(
         {"dest": "metis://athena/files/learn-wisdom.txt",
          "errors": ["File \"metis://athena/files/wisdom.txt\" is restricted"],
+         "source": "metis://athena/files/wisdom.txt"}
+      )
+
+      # the original is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(2)
+      expect(Metis::File.select_map(:file_name)).to match_array(
+        [ 'wisdom.txt', 'helmet.jpg' ]
+      )
+    end
+
+    xit 'refuses to copy a restricted file to an unrestricted location' do
+      @wisdom_file.data_block.restricted = true
+      @wisdom_file.data_block.save
+      token_header(:editor)
+
+      expect(Metis::File.count).to eq(2)
+
+      bulk_copy([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: "metis://athena/files/learn-wisdom.txt"
+      }], dest_restriction: 'unrestricted')
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        {"dest": "metis://athena/files/learn-wisdom.txt",
+         "errors": ["Restricted file \"metis://athena/files/wisdom.txt\" cannot be copied to an unrestricted destination"],
          "source": "metis://athena/files/wisdom.txt"}
       )
 
@@ -1870,8 +1903,8 @@ describe FileController do
 
     it 'throws exception if file is restricted' do
       expect(@helmet_file.updated_at.iso8601).to eq(@creation_time.iso8601)
-      @helmet_file.restricted = true
-      @helmet_file.save
+      @helmet_file.data_block.restricted = true
+      @helmet_file.data_block.save
       @helmet_file.refresh
 
       @update_time = DateTime.now
@@ -1946,8 +1979,8 @@ describe FileController do
     end
 
     it 'throws exception if file is restricted' do
-      @helmet_file.restricted = true
-      @helmet_file.save
+      @helmet_file.data_block.restricted = true
+      @helmet_file.data_block.save
       @helmet_file.refresh
 
       @update_time = DateTime.now
@@ -2007,8 +2040,8 @@ describe FileController do
     end
 
     it 'refuses to restrict a restricted file' do
-      @wisdom_file.restricted = true
-      @wisdom_file.save
+      @wisdom_file.data_block.restricted = true
+      @wisdom_file.data_block.save
       @wisdom_file.refresh
 
       token_header(:restricted_editor)

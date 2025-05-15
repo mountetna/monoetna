@@ -161,8 +161,8 @@ describe FolderController do
     end
 
     it 'should list files without a download url if restricted' do
-      @helmet_file.restricted = true
-      @helmet_file.save
+      @helmet_file.data_block.restricted = true
+      @helmet_file.data_block.save
 
       # our files
       token_header(:editor)

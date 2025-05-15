@@ -177,7 +177,7 @@ class Metis
     end
 
     def restricted?
-      restricted
+      current_data_block.restricted
     end
 
     def restrict_user?(user)
@@ -243,11 +243,11 @@ class Metis
     end
 
     def restrict!
-      update(restricted: true)
+      current_data_block.restrict!
     end
 
     def unrestrict!
-      update(restricted: false)
+      current_data_block.unrestrict!
     end
 
     def rename!(new_folder, new_file_name, user=nil)

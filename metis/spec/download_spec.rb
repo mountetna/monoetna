@@ -61,8 +61,8 @@ describe DownloadController do
     end
 
     it 'does not create a download url for a restricted file' do
-      @file.restricted = true
-      @file.save
+      @file.data_block.restricted = true
+      @file.data_block.save
 
       token_header(:viewer)
 
@@ -77,8 +77,8 @@ describe DownloadController do
     end
 
     it 'creates a download url for a restricted file with permission' do
-      @file.restricted = true
-      @file.save
+      @file.data_block.restricted = true
+      @file.data_block.save
 
       token_header(:restricted_editor)
 
