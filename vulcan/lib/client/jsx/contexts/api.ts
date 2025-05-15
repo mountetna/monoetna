@@ -234,7 +234,7 @@ export function useApi(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/file/write`),
         {files:
           Object.entries(files_content).map(([name, contents]) => {
-            return {filename: name, content: contents}
+            return {filename: name, content: JSON.stringify(contents)}
           })
         }
       );
