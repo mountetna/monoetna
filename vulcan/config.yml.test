@@ -7,7 +7,7 @@
     :password: password
     :database: vulcan_development
   :ssh:
-    :host: vulcan_c4_env
+    :host: vulcan-vulcan_c4_env-1
     :username: root
     :password: root
     :use_ssh_config: false
