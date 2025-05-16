@@ -84,9 +84,9 @@ jobs:
       - name: Build vulcan_app image
         run: docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
       - name: Start DB & c4_env
-        working-directory: vulcan
         run: |
-          docker compose up -d vulcan_db vulcan_c4_env 
+          cd vulcan
+          docker compose up -f docker-compose.yml vulcan_db vulcan_c4_env 
           sleep 5
       - name: Create script to run tests
         run: |
@@ -113,13 +113,16 @@ jobs:
           chmod +x vulcan/test-all.sh
       - name: debug
         run: |
+          cd vulcan
+          docker images
           docker ps
           docker network inspect vulcan_default
+          cd vulcan
           docker compose run --rm vulcan_app bash -lc "\
             echo '--- getent vulcan_c4_env ---';    getent hosts vulcan_c4_env || echo 'not found'; \
             echo '--- getent vulcan-vulcan_c4_env-1 ---'; getent hosts vulcan-vulcan_c4_env-1 || echo 'not found'; \
           "
       - name: Install, migrate & run tests
-        working-directory: vulcan
         run: |
-          docker compose run --rm -e VULCAN_ENV=test vulcan_app ./test-all.sh
+          cd vulcan
+          docker compose run --rm -f docker-compose.yml -e VULCAN_ENV=test vulcan_app ./test-all.sh
