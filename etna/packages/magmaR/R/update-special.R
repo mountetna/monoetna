@@ -79,6 +79,7 @@ updateMatrix <- function(
     separator = ",",
     auto.proceed = FALSE,
     revisions.only = FALSE,
+    template = NULL,
     ...) {
     
     ### Read in matrix if passed as a string (file-location)
@@ -96,9 +97,11 @@ updateMatrix <- function(
     
     ### Validate rownames (genes / value names)
     # Obtain 'validation' / rowname options
-    temp <- retrieveTemplate(target, projectName)
+    if (identical(template, NULL)) {
+        template <- retrieveTemplate(target, projectName)
+    }
     row_options <- 
-        temp$models[[modelName]]$template$attributes[[attributeName]]$validation$value
+        template$models[[modelName]]$template$attributes[[attributeName]]$validation$value
     
     if (length(row_options)<1) {
         cat("WARNING: Target attribute does not have 'validation' info: no feature-names validation can be performed.\n\n")
@@ -145,6 +148,7 @@ updateMatrix <- function(
         auto.proceed = auto.proceed,
         autolink = autolink,
         dryRun = dryRun,
+        template = template,
         ...)
 }
 
@@ -161,7 +165,13 @@ updateMatrix <- function(
 #' @param separator String indicating the field separator to use if providing \code{df} as a file path.
 #' Default = \code{","}.
 #' Use \code{"\t"} for tsvs.
-#' @param auto.proceed Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.
+#' @param show.df Logical which sets whether the \code{df}-data should be printed out.
+#' @param table.method "replace" or "append".
+#' Sets the methodology used for building the \code{revisions} to request for table-type model updates:
+#' \itemize{
+#' \item "append": Add the currently defined records, attaching them to parents defined in the \code{df}.
+#' \item "replace": Add the currently defined records, attaching them to parents defined in the \code{df}, AND unlink / remove all current records, of \code{modelName}, attached to parent records defined in the \code{df}.
+#' }
 #' @return None directly.
 #' 
 #' The function sends data to magma, and the only outputs are information reported via the console.
@@ -169,12 +179,25 @@ updateMatrix <- function(
 #' It utilizes the magma/query function, documented here \url{https://mountetna.github.io/magma.html#update},
 #' to upload data after converting to the format required by that function.
 #' 
-#' Upload targets the \code{df}'s row-indicated records and column-indicated attributes of the \code{modelName} model of \code{projectName} project.
+#' The user-indicated \code{df} is read in, presented to the user for inspection, then transformed to the necessary format and passed along to \code{\link{updateValues}}.
 #' 
-#' \code{df} data are provided either as a dataframe, or file path which points toward such data.
+#' The \code{updateValues()} function will then summarize records to be updated and allow the user to double-check this information before proceeding.
+#' 
+#' This user-prompt step can be bypassed (useful when running in a non-interactive way) by setting \code{auto.proceed = TRUE}, but NOTE:
+#' It is a good idea to always check carefully before proceeding, if possible.
+#' Data can be overwritten with NAs or zeros or the like, or disconnected from parent records, but improperly named records cannot be easily removed.
+#' 
+#' For "standard" models with explicit identifiers, the function targets the \code{df}'s row-indicated records and column-indicated attributes of the \code{modelName} model of \code{projectName} project.
+#' In such cases, the first column of \code{df} must contain the identifiers of the records your wish to update.
+#' 
+#' For table-type models which do not have explicit identifiers, the function creates records per each row of the given \code{df} with the requested values filled in for column-indicated attributes of the \code{modelName} model of \code{projectName} project, and attaches these records to the indicated parent records.
+#' In such cases, a column named as the parent model must exist in \code{df} to provide the parent identifiers of all requested new data.
+#' In such cases, \code{table.method} must also be given as either \code{"append"} or \code{"replace"}.
+#' 
+#' \code{df} can be provided either as a data.frame directly, or as a file path pointing to a file containing such data.
 #' If given as a file path, the \code{separator} input can be used to adjust for whether the file is a csv (the default, \code{separator = ","}), or tsv, \code{separator = "\t"}, or other format.
 #' 
-#' The data structure:
+#' The \code{df} data structure when targeting 'standard' models:
 #' \itemize{
 #' \item Rows = records, with the first column indicating the record identifiers.
 #' \item Columns = represent the data desired to be given for each attribute.
@@ -182,13 +205,13 @@ updateMatrix <- function(
 #' Except for the first column (ignored as this column's data are used as identifiers), all column names must be valid attribute names of the target \code{modelName}.
 #' }
 #' 
-#' This data is read in, presented to the user for inspection, then transformed to the necessary format and passed along to \code{\link{updateValues}}.
-#' 
-#' The \code{updateValues()} function will then summarize records to be updated and allow the user to double-check this information before proceeding.
-#' 
-#' This user-prompt step can be bypassed (useful when running in a non-interactive way) by setting \code{auto.proceed = TRUE}, but NOTE:
-#' It is a good idea to always check carefully before proceeding, if possible.
-#' Data can be overwritten with NAs or zeros or the like, but improperly named records cannot be easily removed.
+#' The \code{df} data structure when targeting table-type models:
+#' \itemize{
+#' \item Rows = records, but no identifiers are needed.
+#' \item Columns = represent the data desired to be given for each attribute.
+#' \item Column Names (or the top row when providing a file) = attribute names.
+#' At least one column must be named after the parent model and must represent parent model identifiers.
+#' }
 #' 
 #' @section Use Case. Using this function to change records' identifiers:
 #' 
@@ -217,34 +240,81 @@ updateMatrix <- function(
 #'     magma <- magmaRset()
 #'     
 #'     ### Note that you likely do not have write-permissions for the 'example'
-#'     # project, so this code can be expected to give an authorization error.
+#'     # project, so this code can be expected to give an authorization error,
+#'     # yet still provides a good example of how to structure your code.
 #'     
-#'     ### Retrieve some data from magma, which will be in the proper format.
+#'     ### Case 1: A 'standard' model which has an identifier:
+#'     # Retrieving some example data from magma to use as our update
 #'     df <- retrieve(
 #'         magma, projectName = "example", modelName = "rna_seq",
 #'         recordNames = "all",
 #'         attributeNames = c("tube_name", "biospecimen", "cell_number")
 #'         )
 #'     df
+#'     # Keys to note:
+#'     # - the first column of this df holds the identifiers of all records we
+#'     #     wish to target.  (The fact that this column is properly named as
+#'     #     'tube_name' des not matter.)
+#'     # - all subsequent columns hold the new values and are named as the
+#'     #     attributes we wish to update.
 #'     
+#'     # To update values of the 'standard'-type "rna_seq" model
 #'     updateFromDF(
 #'         target = magma,
 #'         projectName = "example",
 #'         modelName = "rna_seq",
 #'         df = df)
+#'
+#'     ### Case 2: A 'table' model which has no identifiers:
+#'     # Retrieving some example data from magma to use as our update
+#'     table <- retrieve(
+#'         magma, projectName = "example", modelName = "demographic",
+#'         recordNames = "all",
+#'         attributeNames = c("subject", "name", "value")
+#'         )
+#'     table
+#'     # Keys to note:
+#'     # - the first column of this df holds the parent record identifiers we
+#'     #     wish to target. The fact that this column is properly named as
+#'     #     'subject' does matter, but this column does not need to have
+#'     #     been the first column.
+#'     # - all subsequent columns hold the new values and are named as the
+#'     #     attributes we wish to update.
+#'
+#'     ## Key decision:
+#'     # For table models, you must additionally decide whether to 'append' to
+#'     #  (meaning to add them in addition to all previous records which
+#'     #  attach to the same parents), or 'replace' (meaning clear all previous
+#'     #  records attaching to the same parents this update hits, so that only
+#'     #  the values within this update will exist) current values of the
+#'     #  target model with your update's values.
+#'     # This choice is given to the 'table.method' input.
+#'
+#'     # To update values of the 'table'-type "demographics" model
+#'     updateFromDF(
+#'         target = magma,
+#'         projectName = "example",
+#'         modelName = "demographic",
+#'         table.method = "replace",
+#'         df = table)
+#'
 #' }
 #'
 #' @importFrom utils read.csv
+#' @importFrom stats setNames
 updateFromDF <- function(
     target,
     projectName,
     modelName,
     df,
+    table.method = NULL,
     autolink = FALSE,
     dryRun = FALSE,
     separator = ",",
+    show.df = TRUE,
     auto.proceed = FALSE,
     revisions.only = FALSE,
+    template = NULL,
     ...) {
     
     ### Read in df if passed as a string (file-location)
@@ -255,44 +325,60 @@ updateFromDF <- function(
             stop("Parsing error. Is 'separator' correct?")
         }
     }
-    # Validate that 1st column, which should be IDs, is all unique values
-    if (any(duplicated(df[,1]))) {
-        stop("Values of 1st column (record identifiers) must be unique.")
-    }
-    if (ncol(df) < 2) {
-        stop("df has one column, but at least 2 are required.")
+    if (show.df) {
+        cat("Data recieved:\n")
+        print(df)
     }
     
-    cat("Data recieved:\n")
-    print(df)
-    
-    # Transform into the nested list format
-    # Note: Do not supply recordNames directly to vapply as any "-" will be
-    #   converted to "."
-    df_to_revs <- function(DF) {
-        
-        DF_noID <- DF[, seq_len(ncol(DF))[-1], drop = FALSE]
-        # For each row of the DataFrame...
-        recs <- lapply(
-            seq_len(nrow(DF_noID)),
-            function(x) {
-                # Make the contents of cols 2:end a list of attribute values, and for each
-                # attribute value slot, make it a list if length is >1.
-                atts <- lapply(
-                    seq_len(ncol(DF_noID)),
-                    function(y) {
-                            DF_noID[x,y]
-                        })
-                names(atts) <- colnames(DF_noID)
-                atts
-            })
-        names(recs) <- DF[,1, drop = TRUE]
-        recs
+    if (identical(template, NULL)) {
+        template <- retrieveTemplate(target, projectName)
     }
+    isTable <- .is_table_model(target, projectName, modelName, template)
     
-    revs <- list(df_to_revs(df))
-    # Because list(modelName = ...) would not substitute the value of modelName
-    names(revs) <- modelName
+    ### Validation & convert revisions
+    if (isTable) {
+        ### Targeting table models, no identifiers and special replace case
+        if (identical(table.method, NULL)) {
+            stop("'", modelName, "' model of '", projectName, "' project is a table-type model, but 'table.method' input is not set. Set it to \"append\" or \"replace\".")
+        }
+        if (!table.method %in% c("append", "replace")) {
+            stop("'table.method' must be \"append\" or \"replace\", but is: \"", table.method, "\".")
+        }
+        parentModelName <- template$models[[modelName]]$template$parent
+        if (!parentModelName %in% names(df)) {
+            stop("Parent attribute, ", parentModelName, ", must be given when updating records of table-type models.")
+        }
+
+        # Prep revisions
+        tempIDs <- paste0("::temp-id-", seq_len(nrow(df)))
+        df <- cbind('__IDS__' = tempIDs, df)
+        revs <- .df_to_revisions(df, modelName = modelName)
+
+        # Add to revisions for 'replace' method
+        if (table.method=="replace") {
+            parents <- unique(df[[parentModelName]])
+            parent_revs <- lapply(
+                parents,
+                function(this) {
+                    setNames(list(tempIDs[df[[parentModelName]]==this]), modelName)
+                }
+            )
+            names(parent_revs) <- parents
+            revs[[parentModelName]] <- parent_revs
+        }
+    } else {
+        ### Targeting "standard" models, with identifiers
+        # Validate that 1st column, which should be IDs, is all unique values
+        if (any(duplicated(df[,1]))) {
+            stop("Values of 1st column (record identifiers) must be unique.")
+        }
+        if (ncol(df) < 2) {
+            stop("df has one column, but at least 2 are required.")
+        }
+
+        # Prep revisions
+        revs <- .df_to_revisions(df, modelName = modelName)
+    }
     
     if (revisions.only) {
         return(revs)
@@ -308,5 +394,6 @@ updateFromDF <- function(
         autolink = autolink,
         dryRun = dryRun,
         auto.proceed = auto.proceed,
+        template = template,
         ...)
 }

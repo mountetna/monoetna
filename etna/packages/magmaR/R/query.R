@@ -101,7 +101,7 @@ query <- function(
         project_name = projectName,
         query = queryTerms)
 
-    requestBody <- jsonlite::toJSON(jsonParams, auto_unbox = TRUE)
+    requestBody <- .jsonify(jsonParams)
     
     ### Output here if requested.
     if (request.only) {

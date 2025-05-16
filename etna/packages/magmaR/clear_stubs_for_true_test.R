@@ -11,3 +11,11 @@ usethis::edit_r_environ(scope = "project")
 casette_path <- file.path("tests","fixtures")
 casettes <- file.path(casette_path, list.files(casette_path))
 file.remove(casettes, path = casette_path)
+
+### Afterwards:
+# 1. Manually trim the first fixture of 'tests/fixtures/Download-vignette.yml'
+#    - Goal is removing lots of true project data from the stubs.
+#    - the fixture should target: https://janus.ucsf.edu/api/user/projects
+#    - replace the response/body/string with:
+'{"projects":[{"project_name":"example","project_name_full":"Example
+        project","role":"administrator","privileged":false,"resource":true,"requires_agreement":false,"cc_text":""}]}'

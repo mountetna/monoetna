@@ -6,7 +6,7 @@ http_interactions:
       encoding: ''
       string: ''
     headers:
-      User-Agent: libcurl/7.64.1 r-curl/4.3 crul/1.1.0
+      User-Agent: libcurl/7.81.0 r-curl/6.2.2 crul/1.5.0
       Accept-Encoding: gzip, deflate
       Accept: application/json, text/xml, application/xml, */*
       Content-Type: application/json
@@ -18,20 +18,64 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 08 Apr 2021 00:11:16 GMT
-      server: Apache
-      strict-transport-security: max-age=31536000; includeSubDomains
+      content-length: '12530'
       content-type: application/json
-      content-length: '3015'
-      service-worker-allowed: /
+      date: Mon, 05 May 2025 18:12:14 GMT
     body:
-      encoding: UTF-8
+      encoding: ''
       file: no
-      string: '{"models":{"subject":{"documents":{"EXAMPLE-HS1":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS1","project":"example","biospecimen":["EXAMPLE-HS1-WB1"],"group":"g1"},"EXAMPLE-HS10":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS10","project":"example","biospecimen":["EXAMPLE-HS10-WB1"],"group":"g3"},"EXAMPLE-HS11":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS11","project":"example","biospecimen":["EXAMPLE-HS11-WB1"],"group":"g3"},"EXAMPLE-HS12":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS12","project":"example","biospecimen":["EXAMPLE-HS12-WB1"],"group":"g3"},"EXAMPLE-HS2":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS2","project":"example","biospecimen":["EXAMPLE-HS2-WB1"],"group":"g1"},"EXAMPLE-HS3":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS3","project":"example","biospecimen":["EXAMPLE-HS3-WB1"],"group":"g1"},"EXAMPLE-HS4":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS4","project":"example","biospecimen":["EXAMPLE-HS4-WB1"],"group":"g1"},"EXAMPLE-HS5":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS5","project":"example","biospecimen":["EXAMPLE-HS5-WB1"],"group":"g2"},"EXAMPLE-HS6":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS6","project":"example","biospecimen":["EXAMPLE-HS6-WB1"],"group":"g2"},"EXAMPLE-HS7":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS7","project":"example","biospecimen":["EXAMPLE-HS7-WB1"],"group":"g2"},"EXAMPLE-HS8":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS8","project":"example","biospecimen":["EXAMPLE-HS8-WB1"],"group":"g2"},"EXAMPLE-HS9":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS9","project":"example","biospecimen":["EXAMPLE-HS9-WB1"],"group":"g3"}},"template":{"name":"subject","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
+      string: '{"models":{"subject":{"documents":{"EXAMPLE-HS1":{"created_at":null,"updated_at":"2024-10-07T19:49:30+00:00","name":"EXAMPLE-HS1","group":"g1","project":"Example
+        project","biospecimen":["EXAMPLE-HS1-WB1"],"demographic":[157,169,181,193]},"EXAMPLE-HS10":{"created_at":null,"updated_at":"2024-10-07T19:49:30+00:00","name":"EXAMPLE-HS10","group":"g3","project":"Example
+        project","biospecimen":["EXAMPLE-HS10-WB1"],"demographic":[166,178,190]},"EXAMPLE-HS11":{"created_at":null,"updated_at":"2024-10-07T19:49:30+00:00","name":"EXAMPLE-HS11","group":"g3","project":"Example
+        project","biospecimen":["EXAMPLE-HS11-WB1"],"demographic":[167,179,191]},"EXAMPLE-HS12":{"created_at":null,"updated_at":"2024-10-07T19:49:30+00:00","name":"EXAMPLE-HS12","group":"g3","project":"Example
+        project","biospecimen":["EXAMPLE-HS12-WB1"],"demographic":[168,180,192]},"EXAMPLE-HS2":{"created_at":null,"updated_at":"2024-10-07T19:49:30+00:00","name":"EXAMPLE-HS2","group":"g1","project":"Example
+        project","biospecimen":["EXAMPLE-HS2-WB1"],"demographic":[158,170,182,194]},"EXAMPLE-HS3":{"created_at":null,"updated_at":"2024-10-07T19:49:30+00:00","name":"EXAMPLE-HS3","group":"g1","project":"Example
+        project","biospecimen":["EXAMPLE-HS3-WB1"],"demographic":[159,171,183,195]},"EXAMPLE-HS4":{"created_at":null,"updated_at":"2024-10-07T19:49:30+00:00","name":"EXAMPLE-HS4","group":"g1","project":"Example
+        project","biospecimen":["EXAMPLE-HS4-WB1"],"demographic":[160,172,184]},"EXAMPLE-HS5":{"created_at":null,"updated_at":"2024-10-07T19:49:30+00:00","name":"EXAMPLE-HS5","group":"g2","project":"Example
+        project","biospecimen":["EXAMPLE-HS5-WB1"],"demographic":[161,173,185]},"EXAMPLE-HS6":{"created_at":null,"updated_at":"2024-10-07T19:49:30+00:00","name":"EXAMPLE-HS6","group":"g2","project":"Example
+        project","biospecimen":["EXAMPLE-HS6-WB1"],"demographic":[162,174,186]},"EXAMPLE-HS7":{"created_at":null,"updated_at":"2024-10-07T19:49:30+00:00","name":"EXAMPLE-HS7","group":"g2","project":"Example
+        project","biospecimen":["EXAMPLE-HS7-WB1"],"demographic":[163,175,187]},"EXAMPLE-HS8":{"created_at":null,"updated_at":"2024-10-07T19:49:30+00:00","name":"EXAMPLE-HS8","group":"g2","project":"Example
+        project","biospecimen":["EXAMPLE-HS8-WB1"],"demographic":[164,176,188]},"EXAMPLE-HS9":{"created_at":null,"updated_at":"2024-10-07T19:49:30+00:00","name":"EXAMPLE-HS9","group":"g3","project":"Example
+        project","biospecimen":["EXAMPLE-HS9-WB1"],"demographic":[165,177,189]}},"template":{"name":"subject","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
         At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","display_name":"Updated
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"name":{"name":"name","attribute_name":"name","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"project":{"name":"project","attribute_name":"project","model_name":"project","link_model_name":"project","display_name":"Project","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"},"group":{"name":"group","attribute_name":"group","display_name":"Group","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"}},"identifier":"name","parent":"project"}}}}'
-  recorded_at: 2021-04-08 00:11:16 GMT
-  recorded_with: vcr/0.6.0, webmockr/0.8.0
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"name":{"name":"name","attribute_name":"name","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"group":{"name":"group","attribute_name":"group","display_name":"Group","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"project":{"name":"project","attribute_name":"project","model_name":"project","link_model_name":"project","link_attribute_name":"subject","link_attribute_type":"collection","display_name":"Project","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","link_attribute_name":"subject","link_attribute_type":"parent","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"},"demographic":{"name":"demographic","attribute_name":"demographic","model_name":"demographic","link_model_name":"demographic","link_attribute_name":"subject","link_attribute_type":"parent","display_name":"Demographic","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"table"}},"identifier":"name","parent":"project"}},"demographic":{"documents":{"157":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS1","name":"Sex
+        at Birth","notes":null,"value":"Male","id":157},"158":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS2","name":"Sex
+        at Birth","notes":null,"value":"Male","id":158},"159":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS3","name":"Sex
+        at Birth","notes":null,"value":"Female","id":159},"160":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS4","name":"Sex
+        at Birth","notes":null,"value":"Female","id":160},"161":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS5","name":"Sex
+        at Birth","notes":null,"value":"Male","id":161},"162":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS6","name":"Sex
+        at Birth","notes":null,"value":"Female","id":162},"163":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS7","name":"Sex
+        at Birth","notes":null,"value":"Male","id":163},"164":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS8","name":"Sex
+        at Birth","notes":null,"value":"Female","id":164},"165":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS9","name":"Sex
+        at Birth","notes":null,"value":"Male","id":165},"166":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS10","name":"Sex
+        at Birth","notes":null,"value":"Male","id":166},"167":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS11","name":"Sex
+        at Birth","notes":null,"value":"Female","id":167},"168":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS12","name":"Sex
+        at Birth","notes":null,"value":"Female","id":168},"169":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS1","name":"Race","notes":null,"value":"White","id":169},"170":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS2","name":"Race","notes":null,"value":"Black
+        or African American","id":170},"171":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS3","name":"Race","notes":null,"value":"American
+        Indian/ Alaskan Native","id":171},"172":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS4","name":"Race","notes":null,"value":"White","id":172},"173":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS5","name":"Race","notes":null,"value":"White","id":173},"174":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS6","name":"Race","notes":null,"value":"White","id":174},"175":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS7","name":"Race","notes":null,"value":"Black
+        or African American","id":175},"176":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS8","name":"Race","notes":null,"value":"Asian","id":176},"177":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS9","name":"Race","notes":null,"value":"Black
+        or African American","id":177},"178":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS10","name":"Race","notes":null,"value":"Decline
+        to answer","id":178},"179":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS11","name":"Race","notes":null,"value":"Native
+        Hawaiian or other Pacific Islander","id":179},"180":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS12","name":"Race","notes":null,"value":"Other","id":180},"181":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS1","name":"Ethnicity","notes":null,"value":"Not
+        Hispanic or Latino","id":181},"182":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS2","name":"Ethnicity","notes":null,"value":"Not
+        Hispanic or Latino","id":182},"183":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS3","name":"Ethnicity","notes":null,"value":"Hispanic
+        or Latino","id":183},"184":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS4","name":"Ethnicity","notes":null,"value":"Not
+        Hispanic or Latino","id":184},"185":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS5","name":"Ethnicity","notes":null,"value":"Hispanic
+        or Latino","id":185},"186":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS6","name":"Ethnicity","notes":null,"value":"Not
+        Hispanic or Latino","id":186},"187":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS7","name":"Ethnicity","notes":null,"value":"Not
+        Hispanic or Latino","id":187},"188":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS8","name":"Ethnicity","notes":null,"value":"Other","id":188},"189":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS9","name":"Ethnicity","notes":null,"value":"Hispanic
+        or Latino","id":189},"190":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS10","name":"Ethnicity","notes":null,"value":"Decline
+        to answer","id":190},"191":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS11","name":"Ethnicity","notes":null,"value":"Decline
+        to answer","id":191},"192":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS12","name":"Ethnicity","notes":null,"value":"Decline
+        to answer","id":192},"193":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS1","name":"Age
+        at Diagnosis","notes":null,"value":"34","id":193},"194":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS2","name":"Age
+        at Diagnosis","notes":null,"value":"42","id":194},"195":{"created_at":"2024-10-07T19:49:29+00:00","updated_at":"2024-10-07T19:49:29+00:00","subject":"EXAMPLE-HS3","name":"Age
+        at Diagnosis","notes":null,"value":"30","id":195}},"template":{"name":"demographic","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
+        At","hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","display_name":"Updated
+        At","hidden":true,"validation":null,"attribute_type":"date_time"},"subject":{"name":"subject","attribute_name":"subject","model_name":"subject","link_model_name":"subject","link_attribute_name":"demographic","link_attribute_type":"table","display_name":"Subject","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"name":{"name":"name","attribute_name":"name","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"notes":{"name":"notes","attribute_name":"notes","description":"General
+        notes about this value","display_name":"Notes","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"value":{"name":"value","attribute_name":"value","display_name":"Value","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"id":{"name":"id","attribute_name":"id","display_name":"Id","hidden":true,"validation":null,"attribute_type":"identifier"}},"identifier":"id","parent":"subject"}}}}'
+  recorded_at: 2025-05-05 18:12:15 GMT
+  recorded_with: vcr/1.7.0, webmockr/2.0.0
 - request:
     method: get
     uri: https://magma.ucsf.edu/retrieve
@@ -39,7 +83,7 @@ http_interactions:
       encoding: ''
       string: ''
     headers:
-      User-Agent: libcurl/7.64.1 r-curl/4.3 crul/1.1.0
+      User-Agent: libcurl/7.81.0 r-curl/6.2.2 crul/1.5.0
       Accept-Encoding: gzip, deflate
       Accept: application/json, text/xml, application/xml, */*
       Content-Type: application/json
@@ -51,16 +95,19 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 08 Apr 2021 00:11:16 GMT
-      server: Apache
-      strict-transport-security: max-age=31536000; includeSubDomains
+      content-disposition: inline; filename="example_subject_results_2025_05_05_18_12_15.tsv"
       content-type: text/tsv
-      content-disposition: inline; filename="results.tsv
-      service-worker-allowed: /
+      date: Mon, 05 May 2025 18:12:15 GMT
       transfer-encoding: chunked
     body:
-      encoding: UTF-8
+      encoding: ''
       file: no
-      string: "name\tproject\tbiospecimen\tgroup\nEXAMPLE-HS1\texample\tEXAMPLE-HS1-WB1\tg1\nEXAMPLE-HS10\texample\tEXAMPLE-HS10-WB1\tg3\nEXAMPLE-HS11\texample\tEXAMPLE-HS11-WB1\tg3\nEXAMPLE-HS12\texample\tEXAMPLE-HS12-WB1\tg3\nEXAMPLE-HS2\texample\tEXAMPLE-HS2-WB1\tg1\nEXAMPLE-HS3\texample\tEXAMPLE-HS3-WB1\tg1\nEXAMPLE-HS4\texample\tEXAMPLE-HS4-WB1\tg1\nEXAMPLE-HS5\texample\tEXAMPLE-HS5-WB1\tg2\nEXAMPLE-HS6\texample\tEXAMPLE-HS6-WB1\tg2\nEXAMPLE-HS7\texample\tEXAMPLE-HS7-WB1\tg2\nEXAMPLE-HS8\texample\tEXAMPLE-HS8-WB1\tg2\nEXAMPLE-HS9\texample\tEXAMPLE-HS9-WB1\tg3\n"
-  recorded_at: 2021-04-08 00:11:16 GMT
-  recorded_with: vcr/0.6.0, webmockr/0.8.0
+      string: "name\tgroup\tproject\tbiospecimen\nEXAMPLE-HS1\tg1\tExample project\tEXAMPLE-HS1-WB1\nEXAMPLE-HS10\tg3\tExample
+        project\tEXAMPLE-HS10-WB1\nEXAMPLE-HS11\tg3\tExample project\tEXAMPLE-HS11-WB1\nEXAMPLE-HS12\tg3\tExample
+        project\tEXAMPLE-HS12-WB1\nEXAMPLE-HS2\tg1\tExample project\tEXAMPLE-HS2-WB1\nEXAMPLE-HS3\tg1\tExample
+        project\tEXAMPLE-HS3-WB1\nEXAMPLE-HS4\tg1\tExample project\tEXAMPLE-HS4-WB1\nEXAMPLE-HS5\tg2\tExample
+        project\tEXAMPLE-HS5-WB1\nEXAMPLE-HS6\tg2\tExample project\tEXAMPLE-HS6-WB1\nEXAMPLE-HS7\tg2\tExample
+        project\tEXAMPLE-HS7-WB1\nEXAMPLE-HS8\tg2\tExample project\tEXAMPLE-HS8-WB1\nEXAMPLE-HS9\tg3\tExample
+        project\tEXAMPLE-HS9-WB1\n"
+  recorded_at: 2025-05-05 18:12:15 GMT
+  recorded_with: vcr/1.7.0, webmockr/2.0.0

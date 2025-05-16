@@ -6,7 +6,7 @@ http_interactions:
       encoding: ''
       string: ''
     headers:
-      User-Agent: libcurl/7.64.1 r-curl/4.3 crul/1.1.0
+      User-Agent: libcurl/7.81.0 r-curl/6.2.2 crul/1.5.0
       Accept-Encoding: gzip, deflate
       Accept: application/json, text/xml, application/xml, */*
       Content-Type: application/json
@@ -18,15 +18,12 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 08 Apr 2021 00:11:17 GMT
-      server: Apache
-      strict-transport-security: max-age=31536000; includeSubDomains
+      content-disposition: inline; filename="example_subject_results_2025_05_05_18_12_16.tsv"
       content-type: text/tsv
-      content-disposition: inline; filename="results.tsv
-      service-worker-allowed: /
+      date: Mon, 05 May 2025 18:12:16 GMT
       transfer-encoding: chunked
     body:
-      encoding: UTF-8
+      encoding: ''
       file: no
       string: |
         name
@@ -42,8 +39,8 @@ http_interactions:
         EXAMPLE-HS7
         EXAMPLE-HS8
         EXAMPLE-HS9
-  recorded_at: 2021-04-08 00:11:17 GMT
-  recorded_with: vcr/0.6.0, webmockr/0.8.0
+  recorded_at: 2025-05-05 18:12:16 GMT
+  recorded_with: vcr/1.7.0, webmockr/2.0.0
 - request:
     method: get
     uri: https://magma.ucsf.edu/retrieve
@@ -51,7 +48,7 @@ http_interactions:
       encoding: ''
       string: ''
     headers:
-      User-Agent: libcurl/7.64.1 r-curl/4.3 crul/1.1.0
+      User-Agent: libcurl/7.81.0 r-curl/6.2.2 crul/1.5.0
       Accept-Encoding: gzip, deflate
       Accept: application/json, text/xml, application/xml, */*
       Content-Type: application/json
@@ -63,16 +60,13 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 08 Apr 2021 00:11:17 GMT
-      server: Apache
-      strict-transport-security: max-age=31536000; includeSubDomains
+      content-disposition: inline; filename="example_subject_results_2025_05_05_18_12_16.tsv"
       content-type: text/tsv
-      content-disposition: inline; filename="results.tsv
-      service-worker-allowed: /
+      date: Mon, 05 May 2025 18:12:16 GMT
       transfer-encoding: chunked
     body:
-      encoding: UTF-8
+      encoding: ''
       file: no
-      string: "name\tproject\tbiospecimen\tgroup\nEXAMPLE-HS1\texample\tEXAMPLE-HS1-WB1\tg1\n"
-  recorded_at: 2021-04-08 00:11:17 GMT
-  recorded_with: vcr/0.6.0, webmockr/0.8.0
+      string: "name\tgroup\tproject\tbiospecimen\nEXAMPLE-HS1\tg1\tExample project\tEXAMPLE-HS1-WB1\n"
+  recorded_at: 2025-05-05 18:12:16 GMT
+  recorded_with: vcr/1.7.0, webmockr/2.0.0

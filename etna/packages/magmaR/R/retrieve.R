@@ -196,7 +196,7 @@ retrieveJSON <- function(
         jsonParams$page_size <- pageSize
     }
     
-    requestBody <- jsonlite::toJSON(jsonParams, auto_unbox = TRUE)
+    requestBody <- .jsonify(jsonParams)
     
     ### Output here if requested.
     if (request.only) {
@@ -221,39 +221,5 @@ retrieveJSON <- function(
         } else {
             jsonlite::fromJSON(curl_out)
         }
-    }
-}
-
-.match_expected_recName_structure <- function(values) {
-    
-    if (identical(values,"[]")) {
-        return(I(list()))
-    }
-    
-    .match_expected_common(values)
-}
-
-.match_expected_attName_structure <- function(values) {
-    
-    if (identical(values, "identifier")) {
-        return(values)
-    }
-    
-    .match_expected_common(values)
-}
-
-.match_expected_common <- function(values) {
-    # all -> all
-    # vector -> I(vector)
-    # single -> I(list(single))
-    
-    if (identical(values, "all")) {
-        return(values)
-    }
-    
-    if (length(values) > 1) {
-        I(values)
-    } else {
-        I(list(values))
     }
 }

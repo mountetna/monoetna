@@ -15,6 +15,7 @@ updateMatrix(
   separator = ",",
   auto.proceed = FALSE,
   revisions.only = FALSE,
+  template = NULL,
   ...
 )
 }
@@ -51,6 +52,8 @@ Default = \code{","}.}
 
 \item{revisions.only}{Logical. For troubleshooting purposes, when set to \code{TRUE}, no data will be sent to magma.
 Instead, the list structure that would have been passed to the \code{revisions} input of \code{\link{updateValues}} is returned as output.}
+
+\item{template}{For internal use in minimizing excess http requests to magma, NULL or the return of \code{retrieveTemplate(target, projectName)}.}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{

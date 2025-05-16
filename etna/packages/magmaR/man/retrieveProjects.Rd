@@ -4,12 +4,14 @@
 \alias{retrieveProjects}
 \title{Helper function that retrieves all the projectName options which a user has access to, from janus.}
 \usage{
-retrieveProjects(target, verbose = FALSE)
+retrieveProjects(target, all_cols = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{target}{A list, which can be created using \code{\link{magmaRset}}, containing your authorization 'token' (a string), a 'url' of magma to target (a string), and optional 'opts' for specifying additions parameters for curl requests (a named list).}
 
-\item{verbose}{Logical. Sets whether to report the status of the '/projects' curl request sent to janus.}
+\item{all_cols}{Logical. Sets whether to report back the entire table instead of the default behavior where the column 'cc_text' is removed for brevity.}
+
+\item{verbose}{Logical. Sets whether to report the status of the '/api/user/projects' curl request sent to janus.}
 }
 \value{
 A data.frame where elements of the 'project_name' column reflect what can be given to \code{projectName} inputs of other magmaR functions.
@@ -19,7 +21,7 @@ Helper function that retrieves all the projectName options which a user has acce
 }
 \details{
 This function takes in the user's \code{target} containing their authorization token, and a url targeting either magma or janus.
-It then converts the given url to target janus, and makes a curl request to <janus-url>/projects in order to return which projects a user can access.
+It then converts the given url to target janus, and makes a curl request to <janus-url>/api/user/projects in order to return which projects a user can access.
 }
 \examples{
 
