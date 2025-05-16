@@ -152,7 +152,7 @@ class UploadController < Metis::Controller
     # we will embed the new file hash inside the
     # upload hash
     upload_hash = upload.to_hash
-    upload_hash[:file] = new_file.to_hash(request: @request)
+    upload_hash[:file] = new_file.to_hash
 
     event_log(
       event: 'upload',

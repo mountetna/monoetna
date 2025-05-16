@@ -64,6 +64,8 @@ class Metis
     delete '/:project_name/file/remove/:bucket_name/*file_path', action: 'file#remove', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/file/protect/:bucket_name/*file_path', action: 'file#protect', auth: { user: { is_admin?: :project_name } }
     post '/:project_name/file/unprotect/:bucket_name/*file_path', action: 'file#unprotect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/file/restrict/:bucket_name/*file_path', action: 'file#restrict', auth: { user: { can_edit?: :project_name, can_see_restricted?: :project_name } }
+    post '/:project_name/file/unrestrict/:bucket_name/*file_path', action: 'file#unrestrict', auth: { user: { can_edit?: :project_name, can_see_restricted?: :project_name } }
     post '/:project_name/file/rename/:bucket_name/*file_path', action: 'file#rename', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/file/copy/:bucket_name/*file_path', action: 'file#copy', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/files/copy', action: 'file#bulk_copy', auth: { user: { can_edit?: :project_name } }

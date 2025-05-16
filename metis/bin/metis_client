@@ -442,6 +442,16 @@ class MetisClient < Client
     raise MetisClient::Error, "Could not remove file #{file_path}\n#{error(response)}" unless response.code == "200"
   end
 
+  def restrict_file(project_name, file_path)
+    response = json_post("/#{project_name}/file/restrict/#{encode_path(file_path)}")
+    raise MetisClient::Error, "Could not restrict file #{file_path}\n#{error(response)}" unless response.code == "200"
+  end
+
+  def unrestrict_file(project_name, file_path)
+    response = json_post("/#{project_name}/file/unrestrict/#{encode_path(file_path)}")
+    raise MetisClient::Error, "Could not unrestrict file #{file_path}\n#{error(response)}" unless response.code == "200"
+  end
+
   def copy_file(project_name, file_path, proposed_file_path)
     if proposed_file_path.start_with?('metis://')
       new_bucket_name = nil # not used
@@ -1028,6 +1038,54 @@ EOT
       end
 
       raise ShellError, "Invalid path, cannot remove: #{path}" unless file || folder
+    end
+  end
+
+  class Restrict < Command
+    usage "restrict <remote_path>"
+
+    def run(path)
+      raise ShellError, 'No project is selected' if !@shell.project_name
+
+      path = @shell.relative_path(path)
+
+      name = ::File.basename(path)
+
+      folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(path))
+
+      raise ShellError, "Invalid path, cannot restrict #{path}" unless folder
+
+      file = folder[:files].find do |f|
+        f[:file_name] == name
+      end
+
+      raise ShellError, "Invalid path, cannot restrict #{path}" unless file
+
+      @shell.client.restrict_file(@shell.project_name, path)
+    end
+  end
+
+  class Unrestrict < Command
+    usage "unrestrict <remote_path>"
+
+    def run(path)
+      raise ShellError, 'No project is selected' if !@shell.project_name
+
+      path = @shell.relative_path(path)
+
+      name = ::File.basename(path)
+
+      folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(path))
+
+      raise ShellError, "Invalid path, cannot unrestrict #{path}" unless folder
+
+      file = folder[:files].find do |f|
+        f[:file_name] == name
+      end
+
+      raise ShellError, "Invalid path, cannot unrestrict #{path}" unless file
+
+      @shell.client.unrestrict_file(@shell.project_name, path)
     end
   end
 

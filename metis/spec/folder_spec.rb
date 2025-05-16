@@ -159,6 +159,27 @@ describe FolderController do
 
       expect(json_body[:error]).to eq('Invalid folder: "nonexistent"')
     end
+
+    it 'should list files without a download url if restricted' do
+      @helmet_file.data_block.restricted = true
+      @helmet_file.data_block.save
+
+      # our files
+      token_header(:editor)
+      get('/athena/list/files/blueprints/helmet')
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:files].first).to include(
+        file_name: 'helmet.jpg',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        size: HELMET.length,
+        file_hash: Digest::MD5.hexdigest(HELMET),
+        restricted: true,
+        download_url: nil
+      )
+    end
   end
 
   context '#list_all_folders' do

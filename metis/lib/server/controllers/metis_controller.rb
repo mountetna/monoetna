@@ -73,7 +73,7 @@ class Metis
           path = file.file_name
         end
 
-        file_hash = file.to_hash(file_path: path, request: @request)
+        file_hash = file.to_hash(file_path: path, user: @user)
         file_hash
       }
     end
