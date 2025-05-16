@@ -1071,17 +1071,64 @@ describe FileController do
       )
     end
 
-    xit 'refuses to copy a restricted file to an unrestricted location' do
+    it 'copes a restricted file to a restricted location' do
       @wisdom_file.data_block.restricted = true
       @wisdom_file.data_block.save
-      token_header(:editor)
+      token_header(:restricted_editor)
 
       expect(Metis::File.count).to eq(2)
 
       bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
-        dest: "metis://athena/files/learn-wisdom.txt"
-      }], dest_restriction: 'unrestricted')
+        dest: "metis://athena/files/learn-wisdom.txt",
+        restriction: 'restricted'
+      }])
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(200)
+
+      # the original is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is a new file
+      expect(Metis::File.count).to eq(3)
+    end
+
+    it 'copes an unrestricted file to an unrestricted location' do
+      token_header(:restricted_editor)
+
+      expect(Metis::File.count).to eq(2)
+
+      bulk_copy([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: "metis://athena/files/learn-wisdom.txt",
+        restriction: 'unrestricted'
+      }])
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(200)
+
+      # the original is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is a new file
+      expect(Metis::File.count).to eq(3)
+    end
+
+    it 'refuses to copy a restricted file to an unrestricted location' do
+      @wisdom_file.data_block.restricted = true
+      @wisdom_file.data_block.save
+      token_header(:restricted_editor)
+
+      expect(Metis::File.count).to eq(2)
+
+      bulk_copy([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: "metis://athena/files/learn-wisdom.txt",
+        restriction: 'unrestricted'
+      }])
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(422)
@@ -1089,6 +1136,37 @@ describe FileController do
       expect(json_body[:errors][0]).to eq(
         {"dest": "metis://athena/files/learn-wisdom.txt",
          "errors": ["Restricted file \"metis://athena/files/wisdom.txt\" cannot be copied to an unrestricted destination"],
+         "source": "metis://athena/files/wisdom.txt"}
+      )
+
+      # the original is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(2)
+      expect(Metis::File.select_map(:file_name)).to match_array(
+        [ 'wisdom.txt', 'helmet.jpg' ]
+      )
+    end
+
+    it 'refuses to copy an unrestricted file to an restricted location' do
+      token_header(:restricted_editor)
+
+      expect(Metis::File.count).to eq(2)
+
+      bulk_copy([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: "metis://athena/files/learn-wisdom.txt",
+        restriction: 'restricted'
+      }])
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        {"dest": "metis://athena/files/learn-wisdom.txt",
+         "errors": ["Unrestricted file \"metis://athena/files/wisdom.txt\" cannot be copied to a restricted destination"],
          "source": "metis://athena/files/wisdom.txt"}
       )
 
