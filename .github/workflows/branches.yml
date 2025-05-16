@@ -86,7 +86,7 @@ jobs:
       - name: Start DB & c4_env
         run: |
           cd vulcan
-          docker compose up -f docker-compose.yml vulcan_db vulcan_c4_env 
+          docker compose up vulcan_db vulcan_c4_env 
           sleep 5
       - name: Create script to run tests
         run: |
@@ -117,6 +117,8 @@ jobs:
           docker images
           docker ps
           docker network inspect vulcan_default
+          docker compose logs vulcan_c4_env
+          docker compose logs vulcan_db
           cd vulcan
           docker compose run --rm vulcan_app bash -lc "\
             echo '--- getent vulcan_c4_env ---';    getent hosts vulcan_c4_env || echo 'not found'; \
