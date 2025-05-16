@@ -8,8 +8,11 @@ class Magma
     end
 
     def bulk_copy_files
-      revisions = attribute_copy_revisions.values.map(&:to_a).flatten(1).map{|rev|
-        {source: rev[0], dest: rev[1]}}
+      revisions = attribute_copy_revisions.map do |attribute, revisions|
+        revisions.map do |source, dest|
+          {source: source, dest: dest, restriction: attribute.restricted ? 'restricted' : 'unrestricted'}
+        end
+      end.flatten
 
       host = Magma.instance.config(:storage).fetch(:host)
 

@@ -8,6 +8,8 @@ class FileController < Metis::Controller
 
     raise Etna::Error.new('File not found', 404) unless file&.has_data?
 
+    raise Etna::Forbidden, 'File is restricted' if file.restrict_user?(@user)
+
     raise Etna::Forbidden, 'File is read-only' if file.read_only?
 
     raise Etna::Forbidden, 'Folder is read-only' if file.folder&.read_only?
@@ -27,11 +29,57 @@ class FileController < Metis::Controller
     return success_json(response)
   end
 
+  def restrict
+    bucket = require_bucket
+    file = Metis::File.from_path(bucket, @params[:file_path])
+
+    raise Etna::Error.new('File not found', 404) unless file&.has_data?
+
+    raise Etna::BadRequest, 'File is already restricted' if file.restricted?
+
+    file.restrict!
+
+    event_log(
+      event: 'restrict_file',
+      message: "restricted files in bucket #{@params[:bucket_name]}",
+      payload: {
+        files: [ @params[:file_path] ]
+      },
+      consolidate: true
+    )
+
+    success_json(files: [ file.to_hash(user: @user) ])
+  end
+
+  def unrestrict
+    bucket = require_bucket
+    file = Metis::File.from_path(bucket, @params[:file_path])
+
+    raise Etna::Error.new('File not found', 404) unless file&.has_data?
+
+    raise Etna::BadRequest, 'File is not restricted' unless file.restricted?
+
+    file.unrestrict!
+
+    event_log(
+      event: 'unrestrict_file',
+      message: "unrestricted files in bucket #{@params[:bucket_name]}",
+      payload: {
+        files: [ @params[:file_path] ]
+      },
+      consolidate: true
+    )
+
+    success_json(files: [ file.to_hash(user: @user) ])
+  end
+
   def protect
     bucket = require_bucket
     file = Metis::File.from_path(bucket, @params[:file_path])
 
     raise Etna::Error.new('File not found', 404) unless file&.has_data?
+
+    raise Etna::Forbidden, 'File is restricted' if file.restrict_user?(@user)
 
     raise Etna::BadRequest, 'File is already read-only' if file.read_only?
 
@@ -46,7 +94,7 @@ class FileController < Metis::Controller
       consolidate: true
     )
 
-    success_json(files: [ file.to_hash(request: @request) ])
+    success_json(files: [ file.to_hash(user: @user) ])
   end
 
   def unprotect
@@ -54,6 +102,8 @@ class FileController < Metis::Controller
     file = Metis::File.from_path(bucket, @params[:file_path])
 
     raise Etna::Error.new('File not found', 404) unless file&.has_data?
+
+    raise Etna::Forbidden, 'File is restricted' if file.restrict_user?(@user)
 
     raise Etna::BadRequest, 'File is not protected' unless file.read_only?
 
@@ -68,7 +118,7 @@ class FileController < Metis::Controller
       consolidate: true
     )
 
-    success_json(files: [ file.to_hash(request: @request) ])
+    success_json(files: [ file.to_hash(user: @user) ])
   end
 
   def touch_files
@@ -86,6 +136,14 @@ class FileController < Metis::Controller
     return failure(404, errors: missing_files.map do |file_path, file|
       "File not found #{file_path}"
     end) unless missing_files.empty?
+
+    files, restricted_files = files.partition do |file_path, file|
+      !file.restrict_user?(@user)
+    end.map(&:to_h)
+
+    return failure(403, errors: restricted_files.map do |file_path, file|
+      "File is restricted #{file_path}"
+    end) unless restricted_files.empty?
 
     files, read_only_files = files.partition do |file_path, file|
       !file.read_only?
@@ -114,6 +172,8 @@ class FileController < Metis::Controller
     file = Metis::File.from_path(bucket, @params[:file_path])
 
     raise Etna::NotFound, 'File not found' unless file&.has_data?
+
+    raise Etna::Forbidden, 'File is restricted' if file.restrict_user?(@user)
 
     raise Etna::Forbidden, 'File is read only' if file.read_only?
 
@@ -219,7 +279,7 @@ class FileController < Metis::Controller
       consolidate: true
     )
 
-    return success_json(files: [ revision.revise!.to_hash(request: @request) ])
+    return success_json(files: [ revision.revise!.to_hash(user: @user) ])
   end
 
   def bulk_copy
@@ -276,7 +336,7 @@ class FileController < Metis::Controller
     # If we've gotten here, every revision looks good and we can execute them!
     return success_json(
       files: revisions.map(&:revise!).
-        map {|new_file| new_file.to_hash(request: @request)}
+        map {|new_file| new_file.to_hash(user: @user)}
     )
   end
 
