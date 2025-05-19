@@ -17,6 +17,7 @@ describe VulcanV2Controller do
   }}
 
   before do
+    stub_generate_token(PROJECT)
     remove_all_dirs
   end
 
@@ -148,6 +149,24 @@ describe VulcanV2Controller do
       post("/api/v2/#{PROJECT}/workspace/create", request)
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
       expect(remote_manager.tag_exists?(obj.path, "v1")).to be_truthy
+    end
+
+    it 'successfully creates the dl_config.yaml file' do
+      auth_header(:editor)
+      request = {
+        workflow_id: json_body[:workflow_id],
+        workspace_name: "running-tiger",
+        branch: "main",
+        git_version: "v1",
+      }
+      post("/api/v2/#{PROJECT}/workspace/create", request)
+      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
+      expect(remote_manager.file_exists?("#{obj.path}/dl_config.yaml")).to be_truthy
+      expect(remote_manager.read_yaml_file("#{obj.path}/dl_config.yaml")).to eq({
+        "project_name" => "#{PROJECT}",
+        "token" => "stubbed_token",
+        "magma_url" => "#{Vulcan.instance.config(:magma)[:host]}",
+      })
     end
 
     it 'successfully uploads the profiles directory' do
@@ -451,6 +470,13 @@ describe VulcanV2Controller do
       expect(json_body[:last_job_status]).to be_nil
     end
 
+    it 'updates the token in the dl_config.yaml' do
+      workspace_id = json_body[:workspace_id]
+      stub_generate_token(PROJECT, "another_token")
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(200)
+      expect(remote_manager.read_yaml_file(Vulcan::Path.dl_config(json_body[:workspace_path]))["token"]).to eq("another_token")
+    end
 
   end
 

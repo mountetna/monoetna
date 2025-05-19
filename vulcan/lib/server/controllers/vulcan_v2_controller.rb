@@ -64,6 +64,10 @@ class VulcanV2Controller < Vulcan::Controller
         @remote_manager.mkdir(Vulcan::Path.workspace_output_dir(workspace_dir))
         @remote_manager.touch("#{Vulcan::Path.workspace_output_dir(workspace_dir)}/.keep")
         @remote_manager.upload_dir(Vulcan.instance.config(:snakemake_profile_dir), workspace_dir, true)
+        @remote_manager.write_file(
+          Vulcan::Path.dl_config(workspace_dir), 
+          Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
+        )
         config = @remote_manager.read_yaml_file(Vulcan::Path.default_snakemake_config(workspace_dir))
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
@@ -118,6 +122,12 @@ class VulcanV2Controller < Vulcan::Controller
     unless last_config
       last_config = Vulcan::Config.where(workspace_id: workspace.id).order(Sequel.desc(:created_at)).first
     end
+
+    # We update the dl_config token
+    @remote_manager.write_file(
+      Vulcan::Path.dl_config(workspace.path), 
+      Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
+    )
 
     response = workspace.to_hash.merge({
       dag: workspace.dag,

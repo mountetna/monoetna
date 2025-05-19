@@ -8,12 +8,11 @@ $(sort \
 			$(wildcard \
 				$(filter-out \
 					$(addsuffix /airflow%,. .. ../.. ../../..) \
-					$(addsuffix /vulcan%,. .. ../.. ../../..) \
 					$(addsuffix /archimedes%,. .. ../.. ../../..), \
 					$(wildcard $(addsuffix /*/$(1),. .. ../.. ../../..)) \
 				) \
 				$(filter-out \
-					$(addsuffix /docker/vulcan%,. .. ../.. ../../..) \ oddly filters vulcan/vulcan_app_fe
+					$(addsuffix /docker/vulcan_c4_env%,. .. ../.. ../../..) \
 					$(addsuffix /docker/archimedes%,. .. ../.. ../../..), \
 					$(wildcard $(addsuffix /docker/*/$(1),. .. ../.. ../../..)) \
 				) \
