@@ -13,8 +13,6 @@
     "build": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --node-env production",
     "build-dev": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js",
     "webpack": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --node-env production --watch",
-    "webpack-dev": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --node-env development --watch",
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "webpack-dev": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --node-env development --watch"
   }
 }
