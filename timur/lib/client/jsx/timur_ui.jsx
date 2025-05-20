@@ -6,7 +6,6 @@ import {ThemeProvider} from '@material-ui/core/styles';
 
 // Components.
 import Manifests from './components/manifest/manifests';
-import Dashboard from './components/dashboard/dashboard';
 import Browser from './components/browser/browser';
 import Plotter from './components/plotter/plotter';
 import RootView from 'etna-js/components/RootView';
@@ -35,10 +34,10 @@ const ROUTES = [
     mode: 'home'
   },
   {
-    name: 'dashboard',
+    name: 'browse',
     template: ':project_name/',
-    component: Dashboard,
-    mode: 'dashboard'
+    component: Browser,
+    mode: 'browse'
   },
   {
     name: 'browse',

@@ -16,6 +16,7 @@ import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 import Header from '../header';
 import ViewTabBar from './view_tab_bar';
 import ViewTab from './view_tab';
+import Dashboard from '../dashboard/dashboard';
 
 import {setLocation} from 'etna-js/actions/location_actions';
 import {requestView} from '../../actions/view_actions';
@@ -257,6 +258,7 @@ export default function Browser({model_name, record_name, tab_name}) {
       <ViewTab
         {...{model_name, record_name, template, record, revision, mode, tab}}
       />
+      <Dashboard project_name={CONFIG.project_name}/>
     </div>
   );
 }
