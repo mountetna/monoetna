@@ -32,5 +32,4 @@ From: /home/danb/archimedes-py-base/archimedes-py-base.sif
     poetry install
 
 %runscript
-    cd /app
     exec "${@}"

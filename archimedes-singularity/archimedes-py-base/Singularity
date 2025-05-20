@@ -61,7 +61,3 @@ From: python:3.8-slim-buster
     git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
     bash ~/.bash_it/install.sh --silent && \
     echo "export SCM_CHECK=false" >> ~/.bashrc
-
-%runscript
-    cd /app
-    exec "${@}"

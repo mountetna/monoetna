@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from typing import Any, Callable
 
-def _can_base(x: Any, converter: Callable[[Any], Any | float], na_ok=True):
+def _can_base(x: Any, converter: Callable[[Any], Any], na_ok=True):
     x_series = pd.Series(x)
     coerced = x_series.apply(converter)
     result = ~coerced.isna()
