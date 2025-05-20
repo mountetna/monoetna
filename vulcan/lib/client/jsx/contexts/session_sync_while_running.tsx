@@ -41,9 +41,9 @@ export function useSessionSyncWhileRunning(
   dispatch: Dispatch<VulcanAction>,
 ): typeof defaultSessionSyncHelpers {
   /*
-    Initiates a hand-over of inputs' source of truth to the calculation server until either cancellation or there are no running jobs.
+    Initiates a hand-over of workspaces' source of truth to the calculation server until either cancellation or there are no running jobs.
 
-    If post == true: Ensures ui values were synced from session to server.
+    Submission of inputs is handled elsewhere now.
     If startwork == true: Begins the scheduling of work.
     Afterwards / always: requests step status updates regularly from server until all work completes.
     Note: only step statuses are updated automatically.  New file outputs are not retrieved here.
