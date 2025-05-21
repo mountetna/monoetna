@@ -36,12 +36,6 @@ default: &default
   :token_algo: RS256
   :token_name: JANUS_DEV_TOKEN
   :log_level: info
-  :archimedes_run_image: etnaagent/archimedes
-  :archimedes_interpreters:
-    :r: etnaagent/archimedes-r:production
-    :node: etnaagent/archimedes-node:production
-    :python: etnaagent/archimedes:production
-  :archimedes_exec_volume: archimedes-exec
   :log_file: /dev/stdout
   :rsa_public: |
     -----BEGIN PUBLIC KEY-----
@@ -58,6 +52,17 @@ default: &default
     :database: vulcan_development
   :advisory_lock_file: /app/storage.lock
   :ignore_dependencies: false
+  :ssh:
+    :host: vulcan_c4_env
+    :username: root
+    :password: root
+    :port: 22
+    :use_ssh_config: false
+    :settings:
+      :verify_host_key: :never
+  :base_dir: /app/vulcan
+  :conda_env: conda-vulcan
+  :snakemake_profile_dir: /app/spec/fixtures/v2/profiles/
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
