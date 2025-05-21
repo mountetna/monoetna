@@ -393,3 +393,19 @@ def run_with_retry(max_attempts = 5, base_delay = 15)
     end
   end
 end
+
+
+def stub_generate_token(project_name, token_name = 'stubbed_token')
+  stub_request(:post, /#{Vulcan.instance.config(:janus)[:host]}\/api\/tokens\/generate/)
+    .with(
+      body: {
+        token_type: 'task',
+        project_name: project_name,
+        read_only: true
+      }
+    )
+    .to_return({
+      status: 200,
+      body: token_name
+    })
+end

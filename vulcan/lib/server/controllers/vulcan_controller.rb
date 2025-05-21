@@ -13,6 +13,11 @@ class Vulcan
 
     private
 
+    def task_token
+      janus_client = Etna::Clients::Janus.new(token: @user.token, host: Vulcan.instance.config(:janus)[:host])
+      janus_client.generate_token("task", project_name: @params[:project_name], read_only: true)
+    end
+
     def escaped_params
       @escaped_params ||= @params.transform_values { |value| Shellwords.escape(value.to_s) }
     end

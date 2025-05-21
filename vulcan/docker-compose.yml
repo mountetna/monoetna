@@ -97,7 +97,6 @@ x-base-etna-services:
       # rm -r -f /test-utils/available-workflows/snakemake-repo/.git
       # ./test-utils/entrypoints/git-init.sh
       - ./spec/fixtures/v2/snakemake-repo:/test-utils/available-workflows/snakemake-repo
-      - ./spec/fixtures/v2/vulcan-files:/test-utils/vulcan-files
       - ./spec/fixtures/v2/git-init.sh:/test-utils/entrypoints/git-init.sh
       - ./spec/fixtures/v2/slurm/slurm-db-init.sh:/test-utils/entrypoints/slurm-db-init.sh
       - ./spec/fixtures/v2/slurm/slurm.conf:/usr/local/etc/slurm.conf
@@ -111,8 +110,10 @@ x-base-etna-services:
     entrypoint: >
       bash -c " service munge start &&
                service mariadb start &&
+               git config --global --add safe.directory /test-utils/available-workflows/snakemake-repo &&
                ./test-utils/entrypoints/git-init.sh &&
                ./test-utils/entrypoints/slurm-db-init.sh &&
+               chown root:root /usr/local/etc/slurmdbd.conf &&
                chmod 600 /usr/local/etc/slurmdbd.conf &&
                /usr/local/sbin/slurmdbd &&
                 sleep 5 &&  # The timeout here the db to start and slurmctld to connect to it
