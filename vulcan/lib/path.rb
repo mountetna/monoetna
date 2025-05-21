@@ -34,10 +34,6 @@ class Vulcan
       "#{workspace_dir}/vulcan_config.yaml"
     end
 
-    def self.dl_config(workspace_dir)
-      "#{workspace_dir}/dl_config.yaml"
-    end
-
     def self.default_snakemake_config(workspace_dir)
       "#{workspace_dir}/default-config.json"
     end
@@ -59,13 +55,6 @@ class Vulcan
     end
 
     # Other
-    def self.dl_config_yaml(project_name, token, magma_url)
-      yaml_content = <<~YAML
-      project_name: "#{project_name}"
-      token: "#{token}"
-      magma_url: "#{magma_url}"
-    YAML
-    end
 
     def self.allowed_directories
       [self.workspace_base_dir]
