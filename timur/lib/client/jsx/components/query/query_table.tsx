@@ -59,6 +59,7 @@ const QueryTable = ({
 }) => {
   const classes = useStyles();
 
+  const stickyStyle = index => index == 0 ? { position: 'sticky', left: 0, zIndex: 100 } : {};
   return (
     <React.Fragment>
       <Grid className={classes.table_controls} container>
@@ -94,7 +95,7 @@ const QueryTable = ({
               {columns
                 ?.slice(0, maxColumns)
                 .map(({label}: {label: string}, index: number) => (
-                  <TableCell key={index}>{label}</TableCell>
+                  <TableCell key={index} style={{ ...stickyStyle(index), background: '#fafafa' }}>{label}</TableCell>
                 ))}
             </TableRow>
           </TableHead>
@@ -103,7 +104,7 @@ const QueryTable = ({
               return (
                 <TableRow hover tabIndex={-1} key={row[0]}>
                   {row.slice(0, maxColumns).map((datum: any, index: number) => (
-                    <TableCell key={index} scope='row'>
+                    <TableCell key={index} scope='row' style={{ ...stickyStyle(index), background: 'white'}}>
                       <QueryTableAttributeViewer
                         tableColumn={columns[index]}
                         expandMatrices={expandMatrices}
