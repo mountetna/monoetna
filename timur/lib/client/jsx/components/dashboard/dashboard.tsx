@@ -50,8 +50,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Dashboard = ({project_name}:{project_name: string}) => {
-  const [ showDrawer, setShowDrawer ] = useState(true);
+const Dashboard = ({project_name, model_name}:{project_name: string, model_name?: string}) => {
+  const [ showDrawer, setShowDrawer ] = useState(model_name == 'project');
   const [ tab, setTab ] = useState(0);
 
   const classes = useStyles();
