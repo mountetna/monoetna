@@ -1054,4 +1054,39 @@ describe VulcanV2Controller do
     
   end
 
+  context 'download file' do
+
+    before do
+      setup_workspace
+    end
+
+    it 'returns the file for download' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/download/poem.txt")
+      expect(last_response.status).to eq(200)
+      # Check headers
+      expect(last_response.headers["content-type"]).to eq({file_type: "application/octet-stream", disposition: "attachment; filename=poem.txt"})
+      expect(last_response.headers["content-length"]).to eq("142")
+    end
+
+    it 'returns a file nested in a directory' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_nested_file_to_workspace(workspace.id)
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/download/nested_dir/poem.txt")
+      expect(last_response.status).to eq(200)
+      # Check headers for nested file
+      expect(last_response.headers["content-type"]).to eq({file_type: "application/octet-stream", disposition: "attachment; filename=nested_dir/poem.txt"})
+      expect(last_response.headers["content-length"]).to eq("142")
+    end
+
+    it 'raises an error if the file does not exist' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/download/does_not_exist.txt") 
+      expect(last_response.status).to eq(422)
+    end
+  end
 end

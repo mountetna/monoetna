@@ -41,6 +41,7 @@ class Vulcan
     post 'api/v2/:project_name/workspace/:workspace_id/file/read', action: 'vulcan_v2#read_files', auth: { user: { can_view?: :project_name }}
     get'api/v2/:project_name/workspace/:workspace_id/file/', action: 'vulcan_v2#get_files', auth: { user: { can_view?: :project_name }}
     post 'api/v2/:project_name/workspace/:workspace_id/image/read', action: 'vulcan_v2#read_image', auth: { user: { can_view?: :project_name }}
+    get 'api/v2/:project_name/workspace/:workspace_id/file/download/*file_name', action: 'vulcan_v2#download_file', auth: { user: { can_view?: :project_name }}
 
     # Is running endpoint
     get'api/v2/:project_name/workspace/:workspace_id/running', action: 'vulcan_v2#is_running',  auth: { user: { can_view?: :project_name }}

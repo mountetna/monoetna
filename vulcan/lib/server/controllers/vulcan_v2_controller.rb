@@ -335,19 +335,6 @@ class VulcanV2Controller < Vulcan::Controller
     success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path))})
   end
 
-  def read_image
-    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
-    raise Etna::BadRequest.new("Workspace not found") unless workspace
-    file_name = @params[:file_name] || []
-    raise Etna:BadRequest.new("No file provided" ) if file_name.nil? || file_name.empty?
-    output_path = Vulcan::Path.workspace_output_dir(workspace.path)
-    unless @remote_manager.file_exists?("#{output_path}#{file_name}")
-      raise Etna::BadRequest.new("File not found")
-    end
-    content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
-    success(content, file_type="image/png")
-  end
-
   def is_running
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     unless workspace
@@ -357,6 +344,28 @@ class VulcanV2Controller < Vulcan::Controller
     success_json({running: @snakemake_manager.snakemake_is_running?(workspace.path)})
   end
 
+  def read_image
+    retrieve_file(@params[:file_name], "image/png")
+  end
+
+  def download_file
+    retrieve_file(@params[:file_name], "application/octet-stream", disposition: "attachment; filename=#{@params[:file_name]}")
+  end
+
   private
+
+  def retrieve_file(file_name, file_type, disposition: nil)
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    raise Etna::BadRequest.new("Workspace not found") unless workspace
+    raise Etna::BadRequest.new("No file provided") if file_name.nil? || file_name.empty?
+    
+    output_path = Vulcan::Path.workspace_output_dir(workspace.path)
+    unless @remote_manager.file_exists?("#{output_path}#{file_name}")
+      raise Etna::BadRequest.new("File not found")
+    end
+    
+    content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
+    success(content, file_type: file_type, disposition: disposition)
+  end
 
 end

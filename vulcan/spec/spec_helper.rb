@@ -330,6 +330,19 @@ def write_files_to_workspace(workspace_id)
   expect(last_response.status).to eq(200)
 end
 
+def write_nested_file_to_workspace(workspace_id)
+  # The first step in the test workflow involves the UI writing files to the workspace
+  auth_header(:editor)
+  request = {
+    files: [{
+      filename: "nested_dir/poem.txt",
+      content: poem_1_text
+    }]
+  }
+  post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
+  expect(last_response.status).to eq(200)
+end
+
 def write_image_to_workspace(workspace_id)
   auth_header(:editor)
   request = {
