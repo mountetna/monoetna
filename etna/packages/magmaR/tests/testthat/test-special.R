@@ -32,3 +32,10 @@ test_that("retrieveAttributes", {
   })
   expect_type(ret, "character")
 })
+
+test_that("retrieveParentName", {
+    vcr::use_cassette("parentName", {
+        ret <- retrieveParentName(targ, "example", "demographic")
+    })
+    expect_equal(ret, "subject")
+})
