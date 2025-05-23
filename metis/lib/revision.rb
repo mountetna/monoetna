@@ -95,6 +95,12 @@ class Metis
         errors_found = true
       end
 
+      if file&.restrict_user?(@user) && file_check_type == 'source'
+        @errors.push("File \"#{mpath_w_objs.mpath.path}\" is restricted")
+        errors_found = true
+      end
+
+
       if file&.read_only? && file_check_type == 'dest'
         @errors.push("File \"#{mpath_w_objs.mpath.path}\" is read-only")
         errors_found = true

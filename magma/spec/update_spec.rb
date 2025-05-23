@@ -1893,7 +1893,8 @@ describe UpdateController do
         }), body: hash_including({
           "revisions": [{
             "source": "metis://labors/files/lion-stats.txt",
-            "dest": "metis://labors/magma/monster-Nemean Lion-stats.txt"
+            "dest": "metis://labors/magma/monster-Nemean Lion-stats.txt",
+            "restriction": "unrestricted"
           }]
         }))
 
@@ -2139,7 +2140,8 @@ describe UpdateController do
         }), body: hash_including({
           "revisions": [{
             "source": "metis://labors/files/lion.jpg",
-            "dest": "metis://labors/magma/monster-Nemean Lion-selfie.jpg"
+            "dest": "metis://labors/magma/monster-Nemean Lion-selfie.jpg",
+            "restriction": "unrestricted"
           }]
         }))
 
@@ -2572,13 +2574,16 @@ describe UpdateController do
         }), body: hash_including({
           "revisions": [{
             "source":"metis://labors/magma/monster-Nemean Lion-certificates-0.txt",
-            "dest":"metis://labors/magma/monster-Nemean Lion-certificates-0.txt"
+            "dest":"metis://labors/magma/monster-Nemean Lion-certificates-0.txt",
+            "restriction": "unrestricted"
           }, {
             "source":"metis://labors/magma/monster-Nemean Lion-certificates-1.txt",
-            "dest":"metis://labors/magma/monster-Nemean Lion-certificates-1.txt"
+            "dest":"metis://labors/magma/monster-Nemean Lion-certificates-1.txt",
+            "restriction": "unrestricted"
           }, {
             "source": "metis://labors/files/CharmSchool.pdf",
-            "dest": "metis://labors/magma/monster-Nemean Lion-certificates-2.pdf"
+            "dest": "metis://labors/magma/monster-Nemean Lion-certificates-2.pdf",
+            "restriction": "unrestricted"
           }]
         }))
 

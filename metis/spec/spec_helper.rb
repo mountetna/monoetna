@@ -398,6 +398,9 @@ AUTH_USERS = {
   editor: {
     email: 'metis@olympus.org', name: 'Metis', perm: 'e:athena,backup'
   },
+  restricted_editor: {
+    email: 'metis@olympus.org', name: 'Metis', perm: 'E:athena,backup'
+  },
   viewer: {
     email: 'athena@olympus.org', name: 'Athena', perm: 'v:athena'
   },

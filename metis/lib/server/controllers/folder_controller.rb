@@ -270,7 +270,7 @@ class FolderController < Metis::Controller
       bucket: bucket,
       folder_id: folder ? folder.id : nil
     ).all.map do |file|
-      file.to_hash(request: @request)
+      file.to_hash(user: @user)
     end
 
     folders = Metis::Folder.where(

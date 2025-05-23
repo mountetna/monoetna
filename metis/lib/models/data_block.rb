@@ -131,6 +131,14 @@ class Metis
       Metis.instance.archiver.archive(self)
     end
 
+    def restrict!
+      update(restricted: true)
+    end
+
+    def unrestrict!
+      update(restricted: false)
+    end
+
     def actual_size
       has_data? ? ::File.size(location) : nil
     end
