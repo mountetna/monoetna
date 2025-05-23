@@ -94,7 +94,7 @@ const QueryTable = ({
               {columns
                 ?.slice(0, maxColumns)
                 .map(({label}: {label: string}, index: number) => (
-                  <TableCell key={index}>{label}</TableCell>
+                  <TableCell key={index} style={{ ...(index == 0) ? { position: 'sticky', left: 0, top: 0, zIndex: 102 } : {} } as React.CSSProperties}>{label}</TableCell>
                 ))}
             </TableRow>
           </TableHead>
@@ -103,7 +103,7 @@ const QueryTable = ({
               return (
                 <TableRow hover tabIndex={-1} key={row[0]}>
                   {row.slice(0, maxColumns).map((datum: any, index: number) => (
-                    <TableCell key={index} scope='row'>
+                    <TableCell key={index} scope='row' style={{ ...(index == 0) ? { position: 'sticky', left: 0, zIndex: 101, background: 'white'} : {} } as React.CSSProperties}>
                       <QueryTableAttributeViewer
                         tableColumn={columns[index]}
                         expandMatrices={expandMatrices}

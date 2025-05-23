@@ -165,12 +165,22 @@ const QueryColumnPane = () => {
     },
     [columns, setQueryColumns, columnsModel]
   );
+
+  const removeColumns = useCallback(
+    () => {
+      removeAllQueryColumns(rootModel || '', graph);
+    }, [rootModel, graph]
+  );
     
   const [ fold, setFold ] = useState(true);
 
   const [ showAttributesModal, setShowAttributesModal ] = useState(false);
 
   if (!rootModel) return null;
+
+  const model = graph.models.model(rootModel);
+
+  const fixed = (index: number) => (0 === index || (1 === index && model?.isTable));
 
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
@@ -182,7 +192,7 @@ const QueryColumnPane = () => {
             fold={fold}
             setFold={setFold}
             addHandler={ () => setShowAttributesModal(true) }
-            removeHandler={removeAllQueryColumns}
+            removeHandler={removeColumns}
             itemName='column'
             numItems={columns.length}/>
           <MapSelector
@@ -203,7 +213,7 @@ const QueryColumnPane = () => {
                 <div ref={provided.innerRef} {...provided.droppableProps}>
                   {columns.map((column: QueryColumn, index: number) => {
                     const ColumnComponent =
-                      0 === index
+                      fixed(index)
                         ? QueryColumnSelector
                         : DraggableQueryColumnSelector;
                     return (
@@ -213,7 +223,7 @@ const QueryColumnPane = () => {
                         column={column}
                         modelChoiceSet={modelChoiceSet}
                         columnIndex={index}
-                        canEdit={0 !== index}
+                        canEdit={!fixed(index)}
                         onSelectModel={(modelName: string) =>
                           handleOnSelectModel(index, modelName, '')
                         }

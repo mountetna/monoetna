@@ -95,7 +95,7 @@ export class Model {
   }
 
   attribute(attributeName: string): Attribute | undefined {
-    return undefined;
+    return this.attributes[ attributeName ];
   }
 
   selectAttributes(filter: (attribute: Attribute) => boolean): Attribute[] {
@@ -119,6 +119,10 @@ export class Model {
     return this.hasAttribute(
       (a: Attribute) => a.isCollectionLink() && a.link_model_name == modelName
     );
+  }
+
+  get isTable(): boolean {
+    return this.attributes[ this.parent ]?.link_attribute_type == 'table' 
   }
 }
 
