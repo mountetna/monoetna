@@ -58,10 +58,17 @@ export const QueryColumnProvider = (
   );
 
   const removeAllQueryColumns = useCallback(
-    () => {
+    (rootModel, graph) => {
       setState({
         ...state,
-        columns: [ state.columns[0] ]
+        columns: [
+          state.columns[0],
+          ...(
+            graph.models.model(rootModel).isTable
+              ? [ state.columns[1] ]
+              : []
+          )
+        ]
       });
     },
     [state]

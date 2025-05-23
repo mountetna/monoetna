@@ -78,6 +78,7 @@ const QueryResults = () => {
         pageSize={pageSize}
         numRecords={numRecords}
         page={page}
+        isTable={graph.models.model(rootModel)?.isTable}
         expandMatrices={expandMatrices}
         handlePageChange={handlePageChange}
         handlePageSizeChange={handlePageSizeChange}
