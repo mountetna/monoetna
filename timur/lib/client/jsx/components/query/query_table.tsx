@@ -38,7 +38,6 @@ const QueryTable = ({
   page,
   pageSize,
   maxColumns,
-  isTable,
   expandMatrices,
   handlePageChange,
   handlePageSizeChange
@@ -49,7 +48,6 @@ const QueryTable = ({
   page: number;
   pageSize: number;
   maxColumns: number;
-  isTable: boolean;
   expandMatrices: boolean;
   handlePageChange: (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent> | null,

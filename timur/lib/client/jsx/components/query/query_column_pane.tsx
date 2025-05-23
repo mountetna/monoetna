@@ -168,7 +168,7 @@ const QueryColumnPane = () => {
 
   const removeColumns = useCallback(
     () => {
-      removeAllQueryColumns(rootModel, graph);
+      removeAllQueryColumns(rootModel || '', graph);
     }, [rootModel, graph]
   );
     
@@ -180,7 +180,7 @@ const QueryColumnPane = () => {
 
   const model = graph.models.model(rootModel);
 
-  const fixed = (index: number) => (0 === index || (1 === index && model.isTable));
+  const fixed = (index: number) => (0 === index || (1 === index && model?.isTable));
 
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>

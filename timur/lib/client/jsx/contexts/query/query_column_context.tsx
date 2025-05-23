@@ -1,6 +1,7 @@
 import React, {useState, createContext, useCallback} from 'react';
 
 import {QueryColumn} from './query_types';
+import {QueryGraph} from '../../utils/query_graph';
 
 export const defaultQueryColumnParams = {
   columns: [] as QueryColumn[]
@@ -16,7 +17,7 @@ export const defaultQueryColumnContext = {
   state: defaultQueryColumnState as QueryColumnState,
   addQueryColumn: (column: QueryColumn) => {},
   removeQueryColumn: (index: number) => {},
-  removeAllQueryColumns: () => {},
+  removeAllQueryColumns: (rootModel: string, graph: QueryGraph) => {},
   patchQueryColumn: (index: number, column: QueryColumn) => {},
   setRootIdentifierColumn: (column: QueryColumn) => {},
   setQueryColumns: (columns: QueryColumn[]) => {}
