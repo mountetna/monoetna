@@ -169,18 +169,20 @@ describe VulcanV2Controller do
       })
     end
 
-    it 'successfully uploads the profiles directory' do
-      auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_version: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
-      expect(remote_manager.dir_exists?("#{obj.path}/profiles/generic")).to be_truthy
-    end
+    # For now we are just using the default profile
+
+    # it 'successfully uploads the profiles directory' do
+    #   auth_header(:editor)
+    #   request = {
+    #     workflow_id: json_body[:workflow_id],
+    #     workspace_name: "running-tiger",
+    #     branch: "main",
+    #     git_version: "v1"
+    #   }
+    #   post("/api/v2/#{PROJECT}/workspace/create", request)
+    #   obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
+    #   expect(remote_manager.dir_exists?("#{obj.path}/profiles/generic")).to be_truthy
+    # end
 
     it 'successfully creates the workspace object' do
       auth_header(:editor)

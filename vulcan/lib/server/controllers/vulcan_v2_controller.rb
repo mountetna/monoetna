@@ -63,7 +63,7 @@ class VulcanV2Controller < Vulcan::Controller
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
         @remote_manager.mkdir(Vulcan::Path.workspace_output_dir(workspace_dir))
         @remote_manager.touch("#{Vulcan::Path.workspace_output_dir(workspace_dir)}/.keep")
-        @remote_manager.upload_dir(Vulcan.instance.config(:snakemake_profile_dir), workspace_dir, true)
+        # @remote_manager.upload_dir(Vulcan.instance.config(:snakemake_profile_dir), workspace_dir, true) # TODO: for now we are just using the default profile
         @remote_manager.write_file(
           Vulcan::Path.dl_config(workspace_dir), 
           Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
@@ -203,7 +203,7 @@ class VulcanV2Controller < Vulcan::Controller
       )
       command.options = {
         config_path: config.path,
-        profile_path: Vulcan::Path.profile_dir(workspace.path, "generic"), # only one profile for now
+        profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
         dry_run: true,
       }
       jobs_to_run = @snakemake_manager.dry_run_snakemake(workspace.path, command.build)
@@ -246,7 +246,7 @@ class VulcanV2Controller < Vulcan::Controller
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(workspace.target_mapping, params, available_files)
       command.options = {
         config_path: config.path,
-        profile_path: Vulcan::Path.profile_dir(workspace.path, "generic"), # only one profile for now
+        profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
       }
       slurm_run_uuid = @snakemake_manager.run_snakemake(workspace.path, command.build)
       log = @snakemake_manager.get_snakemake_log(workspace.path, slurm_run_uuid)
