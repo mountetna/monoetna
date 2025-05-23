@@ -6,15 +6,18 @@
 \alias{retrieveModels}
 \alias{retrieveIds}
 \alias{retrieveAttributes}
+\alias{retrieveParentName}
 \title{Helper functions that utilize special cases of magma /retrieve}
 \usage{
 retrieveTemplate(target, projectName, ...)
 
-retrieveModels(target, projectName, ...)
+retrieveModels(target, projectName, template = NULL, ...)
 
 retrieveIds(target, projectName, modelName, ...)
 
 retrieveAttributes(target, projectName, modelName, ...)
+
+retrieveParentName(target, projectName, modelName, template = NULL, ...)
 }
 \arguments{
 \item{target}{A list, which can be created using \code{\link{magmaRset}}, containing your authorization 'token' (a string), a 'url' of magma to target (a string), and optional 'opts' for specifying additions parameters for curl requests (a named list).}
@@ -26,6 +29,8 @@ for troubleshooting or advanced-user purposes only: \itemize{
 \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which 1) stop the function before its main curl request to magma and 2) returns the values that would have been sent to magma in either of two formats.
 \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
 }}
+
+\item{template}{For internal use in minimizing excess http requests to magma, NULL or the return of \code{retrieveTemplate(target, projectName)}.}
 
 \item{modelName}{Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
 For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.}
@@ -59,6 +64,8 @@ or by returning a targeted portion of a subsequent single-record call to \code{\
 \item \code{retrieveIds()}: Retrieve all the identifiers/recordNames for a given project-model pair.
 
 \item \code{retrieveAttributes()}: Retrieve all the attribute options for a given project-model pair.
+
+\item \code{retrieveParentName()}: Retrieve the parent modelName / attributeName for a given project-model pair.
 
 }}
 \examples{
