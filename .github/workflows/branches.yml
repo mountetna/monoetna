@@ -62,3 +62,61 @@ jobs:
         run: |
           make -C vesta release
           make -f Makefile-mac vesta-ui-test
+
+  # We emulate how we run the tests in development on the CI server.
+  # The key point here is that the vulcan tests use a live c4_env container.
+  # TODO: eventually we might want to hook these tests into the existing app framework
+  test-vulcan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: docker login
+        env:
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
+      - name: Pull base images
+        run: |
+          docker pull etnaagent/vulcan_c4_env:latest
+          docker pull etnaagent/etna-base:master
+          docker pull etnaagent/development-psql:master
+          docker tag etnaagent/etna-base:master etna-base
+          docker tag etnaagent/development-psql:master development-psql
+          docker tag etnaagent/vulcan_c4_env:latest vulcan_c4_env
+      - name: Build vulcan_app image
+        run: docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
+      - name: Start DB & c4_env
+        run: |
+          cd vulcan
+          docker compose up -d vulcan_db vulcan_c4_env
+          sleep 10
+      - name: Create script to run tests
+        run: |
+          cat > vulcan/test-all.sh << 'EOF'
+          #!/usr/bin/env bash
+
+          echo "=== Setting up test config ==="
+          cp config.yml.test config.yml
+          cat config.yml
+          set -euo pipefail
+          export VULCAN_ENV=test
+
+          echo "=== Installing gems ==="
+          bundle install
+
+          echo "=== Running migrations ==="
+          ./bin/vulcan migrate
+
+          echo "=== Running specs ==="
+          bundle exec rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb
+          EOF
+          chmod +x vulcan/test-all.sh
+      - name: Services check 
+        run: |
+          cd vulcan
+          docker images
+          docker ps
+          docker compose exec vulcan_c4_env ps aux | grep [s]shd
+      - name: Install, migrate & run tests
+        run: |
+          cd vulcan
+          docker compose run --rm -e VULCAN_ENV=test vulcan_app ./test-all.sh
