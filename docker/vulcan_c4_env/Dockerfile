@@ -48,8 +48,3 @@ RUN wget https://download.schedmd.com/slurm/slurm-21.08.8.tar.bz2 && \
     make install && \
     cd .. && \
     rm -rf slurm-21.08.8.tar.bz2 slurm-21.08.8
-
-# Add slurm dbd config file
-COPY slurmdbd.conf /usr/local/etc/slurmdbd.conf
-RUN chown root /usr/local/etc/slurmdbd.conf
-RUN chmod 600 /usr/local/etc/slurmdbd.conf

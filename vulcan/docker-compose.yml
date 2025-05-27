@@ -102,6 +102,7 @@ x-base-etna-services:
       - ./spec/fixtures/v2/slurm/slurm.conf:/usr/local/etc/slurm.conf
       - ./spec/fixtures/v2/slurm/cgroup.conf:/usr/local/etc/cgroup.conf
       - ./spec/fixtures/v2/bashrc_conda.sh:/root/.bashrc
+      - ./spec/fixtures/v2/slurm/slurmdbd.conf:/usr/local/etc/slurmdbd.conf
       - ./spec/fixtures/v2/example.bin:/test-utils/example.bin
     depends_on:
       - 'vulcan_app'
