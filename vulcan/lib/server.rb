@@ -16,7 +16,7 @@ class Vulcan
     # Vulcan V2 endpoints
 
     # Workflow API
-    post 'api/v2/:project_name/workflows/create', action: 'vulcan_v2#create_workflow', auth: { user: { is_admin?: :project_name }}
+    post 'api/v2/:project_name/workflows/create', action: 'vulcan_v2#create_workflow', auth: { user: { is_superuser?: :project_name }}
     get 'api/v2/:project_name/workflows/', action: 'vulcan_v2#list_workflows', auth: { user: { can_view?: :project_name }}
 
     # Workspace API
