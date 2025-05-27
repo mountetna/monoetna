@@ -1,0 +1,5 @@
+executor: slurm
+
+# Slurm specific
+default-resources:
+  runtime: 2 # in min

@@ -140,11 +140,30 @@ We just want to delete the files associated with ui_job_3.
 
 In order to solve this problem, we build a file tree and use the two UI params `uiFilesSent` and `paramsChanged` to remove any downstream UI files.
 
-# SSH
+# SSH 
 
-### Using the c4 env
+### Using the c4_env container in dev
 
-- Specify username and password in the config.yaml
+Host and password are all that are needed
+
+Ex:
+
+```yaml
+:ssh:
+    :host: vulcan_c4_env
+    :username: root
+    :password: root
+    :use_ssh_config: false
+```
+
+### Connecting to a cluster (c4) via dev
+
+To do live testing against c4, you need to:
+
+- Specify the host/user/password in your config.yaml
+- Enable `use_ssh_config` (assumes you have a .ssh/config file, an entry for the host you are connecting to, and an existing identity file)
+  - Because there are proxy jumps required for connecting - have an existing config makes it easy and convenient to setup
+  - When you use the vulcan_app from the docker-compose, it copies your .ssh/config dir into the container (safely)
 
 Ex:
 
@@ -153,24 +172,20 @@ Ex:
     :host: ahost
     :username: user2
     :password: some-password
-    :use_ssh_config: false
+    :use_ssh_config: true
 ```
 
 ### Connecting to Prod
 
-- Use a ssh config file and SSH key pair for the host you want to connect to
 
-```yaml
-  :ssh: &default_ssh
-    :host: ahost
-    :username: user2
-    :password: 
-    :use_ssh_config: true
-```
+### Bashrc
 
-### Conda
+Everytime we make an ssh connection - we load the .bashrc. There is a existing .bashrc for the vulcan user. 
 
-TODO:
+#### Conda
+
+This code sets up a function in your `.bashrc` that lazy-loads the conda environment.
+This approach speeds up shell startup by only initializing conda when it's actually needed.
 
 ```bashrc
 # Define your conda paths at the top

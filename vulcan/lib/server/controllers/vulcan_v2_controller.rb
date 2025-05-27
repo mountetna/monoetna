@@ -63,7 +63,7 @@ class VulcanV2Controller < Vulcan::Controller
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
         @remote_manager.mkdir(Vulcan::Path.workspace_output_dir(workspace_dir))
         @remote_manager.touch("#{Vulcan::Path.workspace_output_dir(workspace_dir)}/.keep")
-        @remote_manager.upload_dir(Vulcan.instance.config(:snakemake_profile_dir), workspace_dir, true)
+        # @remote_manager.upload_dir(Vulcan.instance.config(:snakemake_profile_dir), workspace_dir, true) # TODO: for now we are just using the default profile
         @remote_manager.write_file(
           Vulcan::Path.dl_config(workspace_dir), 
           Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
@@ -203,7 +203,7 @@ class VulcanV2Controller < Vulcan::Controller
       )
       command.options = {
         config_path: config.path,
-        profile_path: Vulcan::Path.profile_dir(workspace.path, "generic"), # only one profile for now
+        profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
         dry_run: true,
       }
       jobs_to_run = @snakemake_manager.dry_run_snakemake(workspace.path, command.build)
@@ -246,7 +246,7 @@ class VulcanV2Controller < Vulcan::Controller
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(workspace.target_mapping, params, available_files)
       command.options = {
         config_path: config.path,
-        profile_path: Vulcan::Path.profile_dir(workspace.path, "generic"), # only one profile for now
+        profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
       }
       slurm_run_uuid = @snakemake_manager.run_snakemake(workspace.path, command.build)
       log = @snakemake_manager.get_snakemake_log(workspace.path, slurm_run_uuid)
@@ -335,19 +335,6 @@ class VulcanV2Controller < Vulcan::Controller
     success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path))})
   end
 
-  def read_image
-    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
-    raise Etna::BadRequest.new("Workspace not found") unless workspace
-    file_name = @params[:file_name] || []
-    raise Etna:BadRequest.new("No file provided" ) if file_name.nil? || file_name.empty?
-    output_path = Vulcan::Path.workspace_output_dir(workspace.path)
-    unless @remote_manager.file_exists?("#{output_path}#{file_name}")
-      raise Etna::BadRequest.new("File not found")
-    end
-    content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
-    success(content, file_type="image/png")
-  end
-
   def is_running
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     unless workspace
@@ -357,6 +344,28 @@ class VulcanV2Controller < Vulcan::Controller
     success_json({running: @snakemake_manager.snakemake_is_running?(workspace.path)})
   end
 
+  def read_image
+    retrieve_file(@params[:file_name], "image/png")
+  end
+
+  def download_file
+    retrieve_file(@params[:file_name], "application/octet-stream", disposition: "attachment; filename=#{@params[:file_name]}")
+  end
+
   private
+
+  def retrieve_file(file_name, file_type, disposition: nil)
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    raise Etna::BadRequest.new("Workspace not found") unless workspace
+    raise Etna::BadRequest.new("No file provided") if file_name.nil? || file_name.empty?
+    
+    output_path = Vulcan::Path.workspace_output_dir(workspace.path)
+    unless @remote_manager.file_exists?("#{output_path}#{file_name}")
+      raise Etna::BadRequest.new("File not found")
+    end
+    
+    content = @remote_manager.read_file_to_memory("#{output_path}#{file_name}")
+    success(content, file_type: file_type, disposition: disposition)
+  end
 
 end
