@@ -135,6 +135,7 @@ exports[`QueryResults expands and nests matrix columns 1`] = `
             <th
               class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
               scope="col"
+              style="position: sticky; left: 0px; top: 0px; z-index: 102;"
             >
               monster.name
             </th>
@@ -302,6 +303,7 @@ exports[`QueryResults renders 1`] = `
             <th
               class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
               scope="col"
+              style="position: sticky; left: 0px; top: 0px; z-index: 102;"
             >
               monster.name
             </th>
