@@ -3,7 +3,6 @@ import {
   STATUS,
   StepStatus,
   Workflow,
-  WorkflowsResponse,
   WorkspaceStep,
   Workspace,
   VulcanConfigElement,
@@ -18,9 +17,6 @@ import {
   RunStatus,
   StatusStringBroaden,
   WorkspaceRaw,
-  WorkspaceMinimalRaw,
-  WorkspaceMinimal,
-  InputConfig,
   WorkspacesResponse,
   WorkspacesResponseRaw
 } from '../api_types';
@@ -37,7 +33,6 @@ import {
   some,
   withDefault
 } from './maybe';
-import { dontDownloadForOutputTypes } from '../components/ui_components';
 
 export function pick<T extends DataEnvelope<any>, K extends keyof T>(obj: T, keys: K[]) {
   return Object.fromEntries(
@@ -279,7 +274,7 @@ export function uiNamesToBufferData(
   let uiNames = inputUINames(workspace);
   // Some outputUIs (based on the ui_component used)
   for (const out of outputUINames(workspace)) {
-    if (!dontDownloadForOutputTypes.includes(workspace.vulcan_config[out].ui_component)) uiNames.push(out);
+    uiNames.push(out);
   }
   return uiNames;
 }

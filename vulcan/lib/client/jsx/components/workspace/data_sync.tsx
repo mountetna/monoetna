@@ -6,6 +6,7 @@ import {allFilesToBuffer, filesReturnToMultiFileContent} from '../../selectors/w
 import { MultiFileContent } from '../../api_types';
 
 const imageExtRegEx = /\.(png|tiff?|jpe?g|bmp|svg|gif|webp)$/
+const largeFileExtRegEx = /\.(gz|zip|Rds|rds|Rdata|RData|rdata|h5ad|h5mu|h5)$/
 
 export function useDataSync(
     state: VulcanState,
@@ -47,6 +48,13 @@ export function useDataSync(
           if (images.length > 0) {
             for (let ind in images) {
               filesContent[images[ind]] = '__IMAGE_CONTENT_STUB__'
+            }
+          }
+          // Stub files meant only for download
+          const largeFiles = filesReady.filter(f => largeFileExtRegEx.test(f));
+          if (largeFiles.length > 0) {
+            for (let ind in largeFiles) {
+              filesContent[largeFiles[ind]] = '__LARGE_FILE_CONTENT_STUB__'
             }
           }
           // Grab non-stubbed files

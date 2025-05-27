@@ -135,11 +135,8 @@ Outputs: For Output_Feed, cannot produce an output, NOT tracked as a step by sna
 How they work:
 - Defined through a jsx definition of the component only.
 - key in OUTPUTS object is the string used to invoke this ui_component in a vulcan_config.
-- Additionally, if the input data might be large, and is downloaded by a mechanism in the component code, adding this key to 'dontDownloadForOutputTypes' is a VERY good idea.
+- Additionally, note that per data_sync.tsx, certain file extensions will have their contents stubbed instead of truly pre-grabbed.  Such files can only be used with UIs which manage their own true pull!
 */
-
-export const dontDownloadForOutputTypes = ['default', 'link'];
-export const dataAndUrlForOutputTypes = [] as string[];
 
 export const OUTPUTS = {
   'default': LinkOutput,
