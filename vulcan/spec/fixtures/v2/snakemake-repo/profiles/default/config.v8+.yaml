@@ -2,4 +2,12 @@ executor: slurm
 
 # Slurm specific
 default-resources:
-  runtime: 2 # in min
+  slurm_account: "root"
+  slurm_partition: "debug"
+  runtime: 3 # in min
+  mem_mb: 5 # 4gbs
+  nodes: 1
+
+jobs: 5 # How many jobs can we execute in parallel
+printshellcmds: True
+restart-times: 0 # How many times do retry jobs that fail
