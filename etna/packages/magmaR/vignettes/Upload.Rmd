@@ -234,25 +234,24 @@ head(matrix, n = c(6,2))
 
 ### updateFromDF()
 
-This function allows easy update of a set of attributes for of multiple records, via a rectangular data input structure.
-
-Utility: When aiming to update the same set of attributes for many different records, which is probably the most common case when wanting to upload data, use this function.
-
-Internally, the function performs some necessary validations, adjusts the df into the rigid `revisions`-input format of `updateValues()`, then passes its payload along to `updateValues()` where all the common update functionality is housed.
+This function allows easy update of a multiple attributes and multiple records, via a rectangular data.frame input structure.  It's the ideal method for uploading to table-type models, but is just as convenient for standard models.
 
 #### Necessary inputs:
 
 In addition to the normal `target` and `projectName` inputs, here a `modelName` is also needed in order to direct where to upload your data.
 
-A separate `df` input then takes in the target data. `df` can be given as data.frame directly, or as a string representing the path to a csv or tsv file containing such data. In all cases, `df` must be formatted to have:
+A separate `df` input then takes in the target data. `df` can be given as a data.frame directly, or as a string representing the path to a csv or tsv file containing such data. In all cases, `df` must be formatted to have:
 
-- Rows = records, with the first column indicating the record identifiers.
-- Columns = represent the data desired to be given for each attribute.
-- Column Names (or the first row when providing a file) = attribute names. Except for the first column (ignored as this column's data are used as identifiers), all column names must be valid attribute names of the target modelName.
+- Rows: represent records, with the first column indicating the record identifiers.
+- Columns: represent the data desired to be given for each attribute.
+- Column Names (or the top row when providing a file): attribute names.
+  - When `modelName` targets a 'standard' model that uses identifiers, the first column must provide current identifiers.  A separate column can be named as the identifier attribute if there is need to update record names.
+  - When `modelName` targets a 'table' model that does not rely on identifiers, at least one column must be named after the parent model
+Except for the first column (ignored as this column's data are used as identifiers), all column names must be valid attribute names of the target modelName.
 
 When `df` points to a file, the optional `separator` input can be used to indicate between csv (default assumption) versus tsv parsing.
 
-**Example:**
+**Example1, 'standard' model:**
 
 To update multiple attributes of multiple records of our "rna_seq" model from either a csv, a tsv, or directly from a data.frame, we could use the code below:
 
@@ -299,6 +298,38 @@ head(df, n = c(6,3))
 ```
 
 *One final note:* The identifier column's name, though accurately the name of the identifier attribute here, does not actually matter. 'tube_name' is the name of the identifier attribute of this "rna_seq" model, but we could have named the column anything. This is an intended feature as it allows users to adjust records' identifiers with this function by providing a separate data column, of new identifiers, with the identifier attribute name as its name!
+
+**Example2, 'table'-type model:**
+
+To update multiple entries of a table-type "demographics" model from a data.frame...
+
+```{r}
+df <- data.frame(
+    "subject" = paste0("EXAMPLE-HS", c(1:4,1:4)),
+    "name" = rep(c("Sex at Birth", "Race"), each = 4),
+    "value" = c("Male", "Male", "Female", "Female",
+                "White", "Black or African American",
+                "Asian", "Decline to answer")
+)
+df
+```
+
+there is one extra decision to be made:
+
+Is your goal extending the data that already exists for the targeted subjects? Or else is the current upload comprehensive for these subjects to where all previous data, in this table, attached to targeted parent records, should be cleared? The answer to this question determines what options to set for the `table.method` parameter. It must either be set to "append", or "replace".
+
+In the code below, we exemplify an "append" case:
+
+```{r, eval = FALSE}
+updateFromDF(
+    target = prod,
+    projectName = "example",
+    modelName = "demographic",
+    table.method = "append",
+    df = df)
+```
+
+Note: When using `table.method = "append"`, running the same code multiple times WILL create multiple instances of the same data being put into the model. This is allowed by design. In the example here, it's likely that you would never want to have multiple entries for a single individual's "Sex at Birth", but this same model-type can also be used for treatment information. Having multiple table entries with same name="drug_name" and and different value="drug1" or "drug2" attached to the same parent record does make sense.
 
 ### updateValues()
 

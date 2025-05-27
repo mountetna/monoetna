@@ -17,7 +17,7 @@ export const defaultQueryResultsParams = {
   numRecords: 0,
   queryString: '',
   savedQueries: [] as SavedQuery[],
-  maxColumns: 10
+  maxColumns: 100
 };
 
 const defaultQueryResultsState = {
