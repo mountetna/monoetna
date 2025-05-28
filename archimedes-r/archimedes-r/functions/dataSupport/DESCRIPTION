@@ -1,7 +1,0 @@
-Package: dataSupport
-Type: package
-Title: Support functions for handling and exploring data within archimedes-r.
-Version: 0.1.0
-Imports: dittoViz,
-    dittoSeq
-Encoding: UTF-8
