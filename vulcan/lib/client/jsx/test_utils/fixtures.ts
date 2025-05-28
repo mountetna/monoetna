@@ -1,16 +1,16 @@
 import {setStatus, setWorkflow, setWorkflows, VulcanAction} from '../actions/vulcan_actions';
 import {workflowsResponse} from './fixtures/workflows-response';
-import {statusWithoutDownloads} from './fixtures/status-without-downloads';
+import {statusCompleted} from './fixtures/status';
 import {
     defaultFigure,
     defaultSessionStatusResponse,
     defaultStepStatus,
-    defaultWorkflowStep,
+    defaultWorkspaceStep,
     SessionStatusResponse,
     StepStatus, VulcanFigure, VulcanSession,
     Workflow,
     WorkflowsResponse,
-    WorkflowStep
+    WorkspaceStep
 } from '../api_types';
 import {defaultSession, VulcanState} from '../reducers/vulcan_reducer';
 
@@ -18,8 +18,8 @@ export function createWorkflowFixture(workflow: Partial<Workflow>): Workflow {
     return { ...workflowsResponse['workflows'][0], projects: ['test'], ...workflow };
 }
 
-export function createStepFixture(step: Partial<WorkflowStep>): WorkflowStep {
-    return { ...defaultWorkflowStep, ...step };
+export function createStepFixture(step: Partial<WorkspaceStep>): WorkspaceStep {
+    return { ...defaultWorkspaceStep, ...step };
 }
 
 export function createStepStatusFixture(stepStatus: Partial<StepStatus>): StepStatus {

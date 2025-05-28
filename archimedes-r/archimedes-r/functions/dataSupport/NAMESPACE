@@ -1,2 +1,0 @@
-export(subsetDF_index_targets)
-export(subset__scObj)

@@ -50,7 +50,7 @@ export enum ExternalProjectStatus {
     init = 'Initial Launch',
     sampling = 'Sampling',
     analysis = 'Data Analysis',
-    public = 'Public',
+    public = 'Community',
 }
 
 export function getExternalProjectStatus(proj: Project): ExternalProjectStatus {

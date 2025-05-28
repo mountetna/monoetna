@@ -1,0 +1,36 @@
+# Lets assume that a ui component fetches some files from metis to populate in a dropdown
+- display: "location of files on metis to count"
+  ui_component: "metis_file_selector_dropdown"
+  output:
+    params: ["poem", "poem_2"] # These are the names of the params that would contain the file names down below
+                               # So the UI would send {poem: poem.txt and poem_2: poem_2.txt}
+    files: ["poem.txt", "poem_2.txt"] # Here the UI would call the /write API to write these files to the workspace
+
+- display: "count selector to perform on files"
+  ui_component: "boolean_selector"
+  output:
+    params: ["count_bytes", "count_chars"] # These are the names of the params
+
+- display: "type of numeric arithmetic to perform"
+  ui_component: "boolean_selector"
+  output:
+    params: ["add", "add_and_multiply"]
+
+- display: "some ui component that does a job"
+  ui_component: "text_box"
+  input:
+    files: ["check.txt"] # Here the UI would call the /write API to write these files to the workspace
+  output:
+    files: ["ui_job_one.txt"]
+
+- display: "some ui component 2 that does a job"
+  ui_component: "text_box"
+  output:
+    files: ["ui_job_two.txt"] # Here the UI would call the /write API to write these files to the workspace
+
+- display: "some ui component 3 that does a job"
+  ui_component: "text_box"
+  input:
+    files: ["ui_job_one.txt", "ui_job_two.txt", "summary.txt"]
+  output:
+    files: ["ui_summary.txt"]

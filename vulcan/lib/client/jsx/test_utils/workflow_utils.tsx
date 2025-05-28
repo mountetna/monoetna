@@ -7,34 +7,31 @@ import {
   setSessionAndFigure
 } from '../actions/vulcan_actions';
 import {
-  defaultFigure,
   defaultStepStatus,
   defaultWorkflow,
   defaultWorkflowInput,
-  defaultWorkflowStep,
+  defaultWorkspaceStep,
   StatusString,
   StepStatus,
   Workflow,
   WorkflowInput,
-  WorkflowStep
+  WorkspaceStep
 } from '../api_types';
 import {createStepStatusFixture, createUpdatedStatusFixture} from './fixtures';
 import VulcanReducer, {
-  defaultSession,
   defaultVulcanState,
   VulcanState
 } from '../reducers/vulcan_reducer';
 import {VulcanContext} from '../contexts/vulcan_context';
 import {useContext, useState} from 'react';
 import {
-  selectFigure,
   splitSource,
   statusOfStep
 } from '../selectors/workflow_selectors';
 
 export class WorkflowUtils {
   public workflow: Readonly<Workflow> = defaultWorkflow;
-  public steps: {[k: string]: WorkflowStep} = {};
+  public steps: {[k: string]: WorkspaceStep} = {};
 
   constructor(
     private dispatch: (action: VulcanAction) => void,
@@ -62,8 +59,8 @@ export class WorkflowUtils {
     this.dispatch(setWorkflow(this.workflow, projectName));
   }
 
-  addStep(name: string, attributes: Partial<WorkflowStep> = {}) {
-    const step = {...defaultWorkflowStep, name, ...attributes};
+  addStep(name: string, attributes: Partial<WorkspaceStep> = {}) {
+    const step = {...defaultWorkspaceStep, name, ...attributes};
     ({name} = step);
 
     let workflow = this.workflow;
@@ -82,7 +79,7 @@ export class WorkflowUtils {
   }
 
   setStatus(
-    step: WorkflowStep | string,
+    step: WorkspaceStep | string,
     statusPart: StatusString | Partial<StepStatus>
   ) {
     const stepName = typeof step !== 'string' ? step.name : step;
