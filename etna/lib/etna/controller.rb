@@ -177,8 +177,9 @@ MESSAGE_END
       self.class.name.sub("Kernel::", "").sub("Controller", "").downcase
     end
 
-    def success(msg, content_type='text/plain')
+    def success(msg, content_type='text/plain', disposition='not given')
       @response['Content-Type'] = content_type
+      @response['Content-Disposition'] = disposition unless disposition=='not given'
       @response.write(msg)
       @response.finish
     end

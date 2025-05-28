@@ -11,21 +11,21 @@
     <link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.1/dist/handsontable.full.min.css" />
     <script type='text/javascript'>
       // All these Routes are mocked for development only.
-      const ROUTES = Object.assign(
-        window.ROUTES || {},
-        {
-          workflow: (project_name, workflow_name) => (`/workflow/${project_name}/${workflow_name}`),
-          workflow_vignette: (workflow_name) => (`/workflow/${workflow_name}/vignette`),
-          fetch_workflows: () => (`/api/workflows`),
-          submit: (project_name, workflow_name) => (`/api/${project_name}/session/${workflow_name}`),
-          status: (project_name, workflow_name) => (`/api/${project_name}/session/${workflow_name}/status`),
-          fetch_figures: (project_name) => (`/api/${project_name}/figures`),
-          fetch_figure: (project_name, figure_id) => (`/api/${project_name}/figure/${figure_id}`),
-          create_figure: (project_name) => (`/api/${project_name}/figure/create`),
-          update_figure: (project_name, figure_id) => (`/api/${project_name}/figure/${figure_id}/update`),
-          delete_figure: (project_name, figure_id) => (`/api/${project_name}/figure/${figure_id}`),
-        }
-      );
+      // const ROUTES = Object.assign(
+      //   window.ROUTES || {},
+      //   {
+      //     workflow: (project_name, workflow_name) => (`/workflow/${project_name}/${workflow_name}`),
+      //     workflow_vignette: (workflow_name) => (`/workflow/${workflow_name}/vignette`),
+      //     fetch_workflows: () => (`/api/workflows`),
+      //     submit: (project_name, workflow_name) => (`/api/${project_name}/session/${workflow_name}`),
+      //     status: (project_name, workflow_name) => (`/api/${project_name}/session/${workflow_name}/status`),
+      //     fetch_figures: (project_name) => (`/api/${project_name}/figures`),
+      //     fetch_figure: (project_name, figure_id) => (`/api/${project_name}/figure/${figure_id}`),
+      //     create_figure: (project_name) => (`/api/${project_name}/figure/create`),
+      //     update_figure: (project_name, figure_id) => (`/api/${project_name}/figure/${figure_id}/update`),
+      //     delete_figure: (project_name, figure_id) => (`/api/${project_name}/figure/${figure_id}`),
+      //   }
+      // );
     </script>
     <script src='/js/vulcan.bundle.js'></script>
   </head>

@@ -9,6 +9,13 @@ if [ -z "$RELEASE_TEST" ]; then
   /entrypoints/build.sh
 fi
 
+# If SSH keys directory exists and setup script exists, run it
+if [ -d "/etc/ssh-keys-ro" ] && [ -x "/entrypoints/ssh-setup.sh" ]; then
+  echo "Running SSH setup script"
+  /entrypoints/ssh-setup.sh
+  echo "SSH setup script completed"
+fi
+
 rm -f tmp/pids/*.pid
 
 if [ -n "$WAIT_FOR_DB" ]; then

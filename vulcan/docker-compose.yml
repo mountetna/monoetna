@@ -42,7 +42,16 @@ x-base-etna-services:
       MONOETNA_SHA: ${MONOETNA_SHA}
     depends_on:
       - 'vulcan_db'
-
+    volumes:  # Override volumes to combine the base volumes with your new mount.
+      - .:/app:delegated
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - vulcan-log-dir:/app/log:rw
+      - vulcan-tmp-dir:/app/tmp:rw
+      - vulcan-public-dir:/app/public:rw
+      - vulcan-opt-dir:/usr/opt:rw
+      - ../etna:/etna:delegated
+      - ~/.ssh:/etc/ssh-keys-ro:ro # this will trigger the ssh-setup.sh script to run
+      - ./spec/fixtures/v2/ssh-setup.sh:/entrypoints/ssh-setup.sh:ro # this will trigger the ssh-setup.sh script to run
   'vulcan_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
     <<: *base-etna-service
@@ -51,6 +60,7 @@ x-base-etna-services:
   'vulcan_db':
     &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
     image: development-psql
+    command: postgres -c max_connections=200
     volumes:
       - vulcan-db-data:/var/lib/postgresql/data
     environment:
@@ -73,6 +83,46 @@ x-base-etna-services:
     command: ['httpd', '-DFOREGROUND']
     environment:
       APP_NAME: 'vulcan_app_fe'
+
+  'vulcan_c4_env':
+    image: vulcan_c4_env
+    ports:
+      - "2223:22"  # for ssh
+    networks:
+      - default
+      - edge_net
+    volumes:
+      # Note that if you make changes to /spec/fixtures/v2/snakemake-repo
+      # you must remove the .git file in the c4_env container and re-run git-init.sh
+      # rm -r -f /test-utils/available-workflows/snakemake-repo/.git
+      # ./test-utils/entrypoints/git-init.sh
+      - ./spec/fixtures/v2/snakemake-repo:/test-utils/available-workflows/snakemake-repo
+      - ./spec/fixtures/v2/git-init.sh:/test-utils/entrypoints/git-init.sh
+      - ./spec/fixtures/v2/slurm/slurm-db-init.sh:/test-utils/entrypoints/slurm-db-init.sh
+      - ./spec/fixtures/v2/slurm/slurm.conf:/usr/local/etc/slurm.conf
+      - ./spec/fixtures/v2/slurm/cgroup.conf:/usr/local/etc/cgroup.conf
+      - ./spec/fixtures/v2/bashrc_conda.sh:/root/.bashrc
+      - ./spec/fixtures/v2/slurm/slurmdbd.conf:/usr/local/etc/slurmdbd_temp.conf
+      - ./spec/fixtures/v2/example.bin:/test-utils/example.bin
+    depends_on:
+      - 'vulcan_app'
+    environment:
+      - USER=root
+    entrypoint: >
+      bash -c " service munge start &&
+               service mariadb start &&
+               git config --global --add safe.directory /test-utils/available-workflows/snakemake-repo &&
+               ./test-utils/entrypoints/git-init.sh &&
+               ./test-utils/entrypoints/slurm-db-init.sh &&
+               cp /usr/local/etc/slurmdbd_temp.conf /usr/local/etc/slurmdbd.conf && # This was necessary for local linux environments?
+               chown root:root /usr/local/etc/slurmdbd.conf &&
+               chmod 600 /usr/local/etc/slurmdbd.conf &&
+               /usr/local/sbin/slurmdbd &&
+                sleep 5 &&  # The timeout here the db to start and slurmctld to connect to it
+               /usr/local/sbin/slurmctld && 
+               /usr/local/sbin/slurmd &&
+               /usr/sbin/sshd -D "
+      
 
 volumes:
   vulcan-db-data:
