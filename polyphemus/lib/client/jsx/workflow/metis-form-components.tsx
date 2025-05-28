@@ -254,7 +254,7 @@ export const ColumnMap = ({value, update, modelName, classes}:ScriptItem) => {
       }
     }
     // Removed attributes
-    const removedKeys = Object.keys(value).filter( v => ![...userChoice, idAttribute].includes(v))
+    const removedKeys = Object.keys(value).filter( v => ![...userChoice, autoAttribute].includes(v))
     if (removedKeys.length > 0) {
       for (let remove of removedKeys) {
         delete nextValues[remove]
