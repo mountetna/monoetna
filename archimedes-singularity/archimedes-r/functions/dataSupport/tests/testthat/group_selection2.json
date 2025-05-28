@@ -1,0 +1,37 @@
+[
+    {
+        "col": "gene1",
+        "def": [
+            "exactly",
+            0,
+            "below",
+            4
+        ],
+        "logic": null
+    },
+    {
+        "col": "cell_type",
+        "def": [
+            "T",
+            "B"
+        ],
+        "logic": "AND"
+    },
+    {
+        "col": "cell_type",
+        "def": [
+            "Myeloid"
+        ],
+        "logic": "OR"
+    },
+    {
+        "col": "gene2",
+        "def": [
+            "above",
+            0,
+            "exactly",
+            3
+        ],
+        "logic": "AND"
+    }
+]

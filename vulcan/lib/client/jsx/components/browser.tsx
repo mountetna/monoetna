@@ -1,9 +1,11 @@
 // Framework libraries.
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 import 'regenerator-runtime/runtime';
 import {VulcanContext} from '../contexts/vulcan_context';
+import {useFeatureFlag} from "etna-js/hooks/useFeatureFlag";
 
-import WorkflowManager from './workflow/workflow_manager';
+import WorkspaceInitializer from './workspace/workspace_initializer';
+import Typography from '@material-ui/core/Typography';
 
 interface Props {
   workflowName: string;
@@ -11,14 +13,27 @@ interface Props {
 }
 
 export default function Browser({
-  workflow_name,
   project_name,
-  figure_id
+  workspace_id
 }: {
-  workflow_name: string;
   project_name: string;
-  figure_id: number;
+  workspace_id: number;
 }) {
+
+  if (!useFeatureFlag('vulcan')) {
+    return <div style={{padding: '10px'}}>
+      <Typography variant='h3'>
+        Vulcan is under development
+      </Typography>
+      <Typography>
+        Access is restricted to a small group of testers at this stage, and it appears that you are not one of these testers.
+      </Typography>
+      <Typography>
+        Contact the engineering team if you believe you are seeing this message in error.
+      </Typography>
+    </div>
+  }
+
   const {
     state: {workflows}
   } = useContext(VulcanContext);
@@ -27,9 +42,8 @@ export default function Browser({
 
   return (
     <main className='vulcan-browser browser'>
-      <WorkflowManager
-        workflowName={workflow_name}
-        figureId={figure_id}
+      <WorkspaceInitializer
+        workspaceId={workspace_id}
         projectName={project_name}
       />
     </main>

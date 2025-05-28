@@ -64,14 +64,20 @@ polyphemus/.bundle/config
 *.DS_Store
 
 # For magmaR dev via RStudio.
-etna/packages/magmaR/.Rproj.user
-etna/packages/magmaR/.Rhistory
-etna/packages/magmaR/.RData
-etna/packages/magmaR/.Ruserdata
 etna/packages/magmaR*.tar.gz
-.Rproj.user
-etna/packages/magmaR/.Renviron
-etna/packages/magmaR.Rcheck*
+
+# For archimedes-r dev via RStudio
+archimedes**/*.tar.gz
+**/.Rhistory
+**/.RData
+**/.Ruserdata
+**/.Rproj.user
+**/.Renviron
+**/*.Rcheck*
+
+# For possible Singularity dev work
+archimedes-singularity/transfer
+**.sif
 
 **/venv/
 **/__pycache__
