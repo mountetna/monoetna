@@ -179,6 +179,28 @@ describe Metis::FolderCopyRevision do
       )
   end
 
+  it 'adds error message if a source file is restricted' do
+    @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, folder: @wisdom_folder)
+    @wisdom_file.data_block.restricted = true
+    @wisdom_file.data_block.save
+    stubs.create_file('athena', 'files', 'wisdom/wisdom.txt', WISDOM)
+
+    revision = Metis::FolderCopyRevision.new({
+      source: 'metis://athena/files/wisdom',
+      dest: 'metis://athena/files/wisdom2.txt',
+      user: @user
+    })
+
+    revision.source.bucket = default_bucket('athena')
+    revision.dest.bucket = default_bucket('athena')
+    expect(revision.errors).to eq(nil)
+    revision.validate
+    expect(revision.errors.length).to eq(1)
+    expect(revision.errors[0]).to eq(
+      "Folder \"metis://athena/files/wisdom\" contains restricted files"
+    )
+  end
+
   it 'reports multiple errors from validation' do
       revision = Metis::FolderCopyRevision.new({
           source: 'metis://athena/files/helmet',

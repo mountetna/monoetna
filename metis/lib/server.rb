@@ -33,6 +33,8 @@ class Metis
     post '/:project_name/tail/:bucket_name', action: 'bucket#tail', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/:bucket_name/*folder_path', action: 'folder#list', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/:bucket_name', action: 'folder#list', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/size/:bucket_name/*folder_path', action: 'folder#size', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/size/:bucket_name', action: 'folder#size', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list_all_folders/:bucket_name', action: 'folder#list_all_folders', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/', action: 'bucket#list', auth: { user: { can_view?: :project_name } }
     # To make ETLs work better, we let you list a folder by just an ID
@@ -62,6 +64,8 @@ class Metis
     delete '/:project_name/file/remove/:bucket_name/*file_path', action: 'file#remove', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/file/protect/:bucket_name/*file_path', action: 'file#protect', auth: { user: { is_admin?: :project_name } }
     post '/:project_name/file/unprotect/:bucket_name/*file_path', action: 'file#unprotect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/file/restrict/:bucket_name/*file_path', action: 'file#restrict', auth: { user: { can_edit?: :project_name, can_see_restricted?: :project_name } }
+    post '/:project_name/file/unrestrict/:bucket_name/*file_path', action: 'file#unrestrict', auth: { user: { can_edit?: :project_name, can_see_restricted?: :project_name } }
     post '/:project_name/file/rename/:bucket_name/*file_path', action: 'file#rename', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/file/copy/:bucket_name/*file_path', action: 'file#copy', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/files/copy', action: 'file#bulk_copy', auth: { user: { can_edit?: :project_name } }

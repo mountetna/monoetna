@@ -1,7 +1,8 @@
 import React, {useState, useCallback} from 'react';
 
-import Select from '@material-ui/core/Select';
+import Selector from './query_selector';
 import MenuItem from '@material-ui/core/MenuItem';
+import Typography from '@material-ui/core/Typography';
 
 import {makeStyles} from '@material-ui/core/styles';
 
@@ -13,10 +14,6 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1),
     minWidth: 120,
     paddingLeft: '1rem'
-  },
-  fullWidth: {
-    width: '80%',
-    minWidth: 120
   }
 }));
 
@@ -50,20 +47,26 @@ const QueryAnyEverySelectorList = ({
     setAnyMap(filter.anyMap);
   }, [filter.anyMap]);
 
+  const anyList = Object.entries(anyMap || {});
+
   return (
     <React.Fragment>
-      {Object.entries(anyMap || {}).map(([modelName, value], index: number) => {
-        return (
-          <Select
-            key={index}
-            className={classes.fullWidth}
-            value={value.toString()}
-            onChange={() => handlePatchFilter(modelName)}
-            name={`any-every-filter-toggle-${index}`}
-          >
-            <MenuItem value={'true'}>Any {modelName}</MenuItem>
-            <MenuItem value={'false'}>Every {modelName}</MenuItem>
-          </Select>
+      <Typography>{anyList.length ? 'For' : 'For the'}&nbsp;</Typography>
+      {anyList.map(([modelName, value], index: number) => {
+        return ( <React.Fragment key={index}>
+          <Selector
+            canEdit={true}
+            name={value.toString()}
+            onSelect={() => handlePatchFilter(modelName)}
+            choiceSet={ [
+              [ `any ${ (index < anyList.length - 1) ? modelName : ''}`, true ],
+              [ `every ${ (index < anyList.length - 1) ? modelName : ''}`, false ]
+            ]}
+          />
+          {
+            (index < anyList.length - 1) && <Typography>and&nbsp;</Typography>
+          }
+        </React.Fragment>
         );
       })}
     </React.Fragment>

@@ -36,7 +36,7 @@ const MockComponent = ({
     setWhereState,
     setQueryColumns,
     setRootModel,
-    search: convertToQueryString(input)
+    search: '#' + convertToQueryString(input)
   });
 
   return <>Rendered</>;

@@ -285,6 +285,10 @@ class WorkflowController < Polyphemus::Controller
     # Get all unique workflows created by the user (unique workflow_names)
     configs = Polyphemus::Config.current.where(project_name: @params[:project_name]).select(:config_id, :workflow_type, :workflow_name).distinct(:workflow_name).all
 
+    configs = configs.reject do |config|
+      config.runtime_config.disabled
+    end
+
     statuses = configs.map do |config|
       # Get the latest run for this config
       # All workflows that have been launched should have a run object

@@ -9,11 +9,14 @@ updateFromDF(
   projectName,
   modelName,
   df,
+  table.method = NULL,
   autolink = FALSE,
   dryRun = FALSE,
   separator = ",",
+  show.df = TRUE,
   auto.proceed = FALSE,
   revisions.only = FALSE,
+  template = NULL,
   ...
 )
 }
@@ -31,6 +34,13 @@ Alternatively, a String specifying the file path of a file containing such data.
 
 See below for additional formatting details.}
 
+\item{table.method}{"replace" or "append".
+Sets the methodology used for building the \code{revisions} to request for table-type model updates:
+\itemize{
+\item "append": Add the currently defined records, attaching them to parents defined in the \code{df}.
+\item "replace": Add the currently defined records, attaching them to parents defined in the \code{df}, AND unlink / remove all current records, of \code{modelName}, attached to parent records defined in the \code{df}.
+}}
+
 \item{autolink}{Logical. FALSE by default for safety, but often you will want to set it to TRUE. Passed through to magma, this parameter controls whether the system will attempt to connect all targeted records up with the project's root.
 Specifically, this means the system will 
 1) determine parent records of all targeted records if it can, based on the project's gnomon grammar, 
@@ -44,10 +54,14 @@ and finally 4) creates all the assumed parent-child linkages}
 Default = \code{","}.
 Use \code{"\t"} for tsvs.}
 
+\item{show.df}{Logical which sets whether the \code{df}-data should be printed out.}
+
 \item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.}
 
 \item{revisions.only}{Logical. For troubleshooting purposes, when set to \code{TRUE}, no data will be sent to magma.
 Instead, the list structure that would have been passed to the \code{revisions} input of \code{\link{updateValues}} is returned as output.}
+
+\item{template}{For internal use in minimizing excess http requests to magma, NULL or the return of \code{retrieveTemplate(target, projectName)}.}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
@@ -68,12 +82,25 @@ This function provides a simple method for updating multiple attributes of multi
 It utilizes the magma/query function, documented here \url{https://mountetna.github.io/magma.html#update},
 to upload data after converting to the format required by that function.
 
-Upload targets the \code{df}'s row-indicated records and column-indicated attributes of the \code{modelName} model of \code{projectName} project.
+The user-indicated \code{df} is read in, presented to the user for inspection, then transformed to the necessary format and passed along to \code{\link{updateValues}}.
 
-\code{df} data are provided either as a dataframe, or file path which points toward such data.
+The \code{updateValues()} function will then summarize records to be updated and allow the user to double-check this information before proceeding.
+
+This user-prompt step can be bypassed (useful when running in a non-interactive way) by setting \code{auto.proceed = TRUE}, but NOTE:
+It is a good idea to always check carefully before proceeding, if possible.
+Data can be overwritten with NAs or zeros or the like, or disconnected from parent records, but improperly named records cannot be easily removed.
+
+For "standard" models with explicit identifiers, the function targets the \code{df}'s row-indicated records and column-indicated attributes of the \code{modelName} model of \code{projectName} project.
+In such cases, the first column of \code{df} must contain the identifiers of the records your wish to update.
+
+For table-type models which do not have explicit identifiers, the function creates records per each row of the given \code{df} with the requested values filled in for column-indicated attributes of the \code{modelName} model of \code{projectName} project, and attaches these records to the indicated parent records.
+In such cases, a column named as the parent model must exist in \code{df} to provide the parent identifiers of all requested new data.
+In such cases, \code{table.method} must also be given as either \code{"append"} or \code{"replace"}.
+
+\code{df} can be provided either as a data.frame directly, or as a file path pointing to a file containing such data.
 If given as a file path, the \code{separator} input can be used to adjust for whether the file is a csv (the default, \code{separator = ","}), or tsv, \code{separator = "\t"}, or other format.
 
-The data structure:
+The \code{df} data structure when targeting 'standard' models:
 \itemize{
 \item Rows = records, with the first column indicating the record identifiers.
 \item Columns = represent the data desired to be given for each attribute.
@@ -81,13 +108,13 @@ The data structure:
 Except for the first column (ignored as this column's data are used as identifiers), all column names must be valid attribute names of the target \code{modelName}.
 }
 
-This data is read in, presented to the user for inspection, then transformed to the necessary format and passed along to \code{\link{updateValues}}.
-
-The \code{updateValues()} function will then summarize records to be updated and allow the user to double-check this information before proceeding.
-
-This user-prompt step can be bypassed (useful when running in a non-interactive way) by setting \code{auto.proceed = TRUE}, but NOTE:
-It is a good idea to always check carefully before proceeding, if possible.
-Data can be overwritten with NAs or zeros or the like, but improperly named records cannot be easily removed.
+The \code{df} data structure when targeting table-type models:
+\itemize{
+\item Rows = records, but no identifiers are needed.
+\item Columns = represent the data desired to be given for each attribute.
+\item Column Names (or the top row when providing a file) = attribute names.
+At least one column must be named after the parent model and must represent parent model identifiers.
+}
 }
 \section{Use Case. Using this function to change records' identifiers}{
 
@@ -110,21 +137,64 @@ if (interactive()) {
     magma <- magmaRset()
     
     ### Note that you likely do not have write-permissions for the 'example'
-    # project, so this code can be expected to give an authorization error.
+    # project, so this code can be expected to give an authorization error,
+    # yet still provides a good example of how to structure your code.
     
-    ### Retrieve some data from magma, which will be in the proper format.
+    ### Case 1: A 'standard' model which has an identifier:
+    # Retrieving some example data from magma to use as our update
     df <- retrieve(
         magma, projectName = "example", modelName = "rna_seq",
         recordNames = "all",
         attributeNames = c("tube_name", "biospecimen", "cell_number")
         )
     df
+    # Keys to note:
+    # - the first column of this df holds the identifiers of all records we
+    #     wish to target.  (The fact that this column is properly named as
+    #     'tube_name' des not matter.)
+    # - all subsequent columns hold the new values and are named as the
+    #     attributes we wish to update.
     
+    # To update values of the 'standard'-type "rna_seq" model
     updateFromDF(
         target = magma,
         projectName = "example",
         modelName = "rna_seq",
         df = df)
+
+    ### Case 2: A 'table' model which has no identifiers:
+    # Retrieving some example data from magma to use as our update
+    table <- retrieve(
+        magma, projectName = "example", modelName = "demographic",
+        recordNames = "all",
+        attributeNames = c("subject", "name", "value")
+        )
+    table
+    # Keys to note:
+    # - the first column of this df holds the parent record identifiers we
+    #     wish to target. The fact that this column is properly named as
+    #     'subject' does matter, but this column does not need to have
+    #     been the first column.
+    # - all subsequent columns hold the new values and are named as the
+    #     attributes we wish to update.
+
+    ## Key decision:
+    # For table models, you must additionally decide whether to 'append' to
+    #  (meaning to add them in addition to all previous records which
+    #  attach to the same parents), or 'replace' (meaning clear all previous
+    #  records attaching to the same parents this update hits, so that only
+    #  the values within this update will exist) current values of the
+    #  target model with your update's values.
+    # This choice is given to the 'table.method' input.
+
+    # To update values of the 'table'-type "demographics" model
+    updateFromDF(
+        target = magma,
+        projectName = "example",
+        modelName = "demographic",
+        table.method = "replace",
+        df = table)
+
 }
 
 }

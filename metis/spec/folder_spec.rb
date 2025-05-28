@@ -21,6 +21,38 @@ describe FolderController do
     expect(stubs.contents(:athena)).to be_empty
   end
 
+  context '#size' do
+    before(:each) do
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
+
+      @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet')
+
+      @second_helmet_folder = create_folder('athena', 'helmet')
+      stubs.create_folder('athena', 'files', 'helmet')
+
+      @helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @helmet_folder)
+      stubs.create_file('athena', 'files', 'blueprints/helmet/helmet.jpg', HELMET)
+    end
+    it 'returns total size of a bucket' do
+      token_header(:editor)
+      get('/athena/size/files/')
+      expect(last_response.status).to eq(200)
+      expect(json_body[:size]).to eq(79)
+    end
+
+    it 'returns total size of a folder' do
+      token_header(:editor)
+      get('/athena/size/files/blueprints')
+      expect(last_response.status).to eq(200)
+      expect(json_body[:size]).to eq(13)
+    end
+  end
+
   context '#list' do
     before(:each) do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
@@ -126,6 +158,27 @@ describe FolderController do
       expect(last_response.status).to eq(422)
 
       expect(json_body[:error]).to eq('Invalid folder: "nonexistent"')
+    end
+
+    it 'should list files without a download url if restricted' do
+      @helmet_file.data_block.restricted = true
+      @helmet_file.data_block.save
+
+      # our files
+      token_header(:editor)
+      get('/athena/list/files/blueprints/helmet')
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:files].first).to include(
+        file_name: 'helmet.jpg',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        size: HELMET.length,
+        file_hash: Digest::MD5.hexdigest(HELMET),
+        restricted: true,
+        download_url: nil
+      )
     end
   end
 

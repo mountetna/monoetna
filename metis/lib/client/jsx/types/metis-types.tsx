@@ -12,6 +12,7 @@ export type File = {
   bucket_name: string;
   project_name: string;
   read_only: boolean;
+  restricted: boolean;
   download_url: string;
 };
 

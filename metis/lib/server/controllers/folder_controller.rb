@@ -9,6 +9,15 @@ class FolderController < Metis::Controller
     success_json(list_folder_contents(bucket, folder))
   end
 
+  def size
+    bucket = require_bucket
+    folder = require_folder(bucket, @params[:folder_path])
+
+    success_json(
+      size: folder ? folder.size : bucket.size
+    )
+  end
+
   def list_by_id
     bucket = require_bucket
     folder = require_folder_by_id(bucket, @params[:folder_id])
@@ -261,7 +270,7 @@ class FolderController < Metis::Controller
       bucket: bucket,
       folder_id: folder ? folder.id : nil
     ).all.map do |file|
-      file.to_hash(request: @request)
+      file.to_hash(user: @user)
     end
 
     folders = Metis::Folder.where(

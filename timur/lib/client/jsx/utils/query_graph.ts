@@ -1,72 +1,118 @@
 // Construct a query graph from the Magma Models,
 //   so we can traverse and ask it questions.
 import {DirectedGraph} from 'etna-js/utils/directed_graph';
-import {Model, Template, Attribute} from '../models/model_types';
+import {Model, Attribute, Models, ModelsObject} from 'etna-js/models/magma-model';
 
 export class QueryGraph {
-  models: {[key: string]: Model};
+  models: Models;
   graph: DirectedGraph;
-  unallowedModels: string[] = ['project'];
-  includedLinkTypes: string[] = ['link', 'table'];
-  allowedModels: Set<string>;
+  includedLinkTypes: string[] = ['link'];
   initialized: boolean = false;
+  cache: { allPaths: any, childrenMap: any, shortestPath: any, sliceable: any };
 
-  constructor(magmaModels: {[key: string]: Model}) {
-    this.models = magmaModels;
+  constructor(magmaModels: ModelsObject) {
+    this.models = new Models(magmaModels);
     this.graph = new DirectedGraph();
-    this.allowedModels = new Set();
 
     // We ignore the project model and any links
     //   to project, for querying purposes only.
     // Also include linked models, to capture those paths.
-    Object.entries(magmaModels).forEach(
-      ([modelName, modelDefinition]: [string, Model]) => {
-        if (this.unallowedModels.includes(modelName)) return;
+    this.models.each(
+      (modelName: string, model: Model) => {
+        if (model.parent) this.graph.addConnection(model.parent, modelName);
 
-        let template: Template = modelDefinition.template;
-        this.allowedModels.add(modelName);
-
-        if (!this.unallowedModels.includes(template.parent))
-          {this.graph.addConnection(template.parent, modelName);}
-
-        Object.values(template.attributes)
-          .filter(
+        model.selectAttributes(
             (attr: Attribute) =>
-              this.includedLinkTypes.includes(attr.attribute_type) &&
-              attr.link_model_name
+              !!(this.includedLinkTypes.includes(attr.attribute_type) && attr.link_model_name)
           )
           .forEach((link: Attribute) => {
-            if (link.link_model_name) {
-              this.allowedModels.add(link.link_model_name);
-              this.graph.addConnection(modelName, link.link_model_name);
-            }
+            this.graph.addConnection(link.link_model_name as string, modelName);
           });
       }
     );
 
+    this.cache = {
+      allPaths: {},
+      sliceable: {},
+      shortestPath: {},
+      childrenMap: {}
+    }
+
+    this.allPaths = this.memoize('allPaths', this.allPaths.bind(this));
+    this.sliceable = this.memoize('sliceable', this.sliceable.bind(this));
+    this.shortestPath = this.memoize('shortestPath', this.shortestPath.bind(this));
+    this.childrenMap = this.memoize('childrenMap', this.childrenMap.bind(this));
+
     this.initialized = true;
   }
 
-  template(modelName: string): any {
-    if (!Object.keys(this.models).includes(modelName)) return null;
+  memoize<T extends Array<any>, U>(cacheName: keyof typeof this.cache, fn: (...args:T) => U) {
+    return (...args: T): U => {
+      const key = args.join('.');
+      if (key in this.cache[cacheName]) return this.cache[cacheName][key];
 
-    return this.models[modelName].template;
+      this.cache[cacheName][key] = fn(...args);
+
+      return this.cache[cacheName][key];
+    }
   }
 
-  parentRelationship(modelName: string): string | null {
-    if (!Object.keys(this.models).includes(modelName)) return null;
+  connectedModelsAnd(modelName: string | null): Set<string> {
+    return modelName ? this.connectedModels(modelName).add(modelName) : new Set();
+  }
 
-    const parentModelName = this.models[modelName].template.parent;
+  connectedModels(modelName: string | null): Set<string> {
+    return modelName ? new Set(this.allPaths(modelName).flat()) : new Set();
+  }
 
-    if (!Object.keys(this.models).includes(parentModelName)) return null;
+  ancestors(modelName: string | null): Set<string> {
+    return modelName ? new Set(this.graph.ancestors(modelName)) : new Set();
+  }
 
-    return this.models[parentModelName].template.attributes[modelName]
-      .attribute_type;
+  sliceable(modelName: string, selectedModel: string): boolean {
+    if (!this.models.has(modelName)) return false;
+
+    return this.allPaths(modelName).some((path: string[]) => {
+      for (let i = 0; i < path.length - 1; i++) {
+        let current = path[i];
+        let next = path[i + 1];
+
+        if ((current === modelName && !next) ||
+          next === modelName) continue;
+
+        if (
+          i === 0 &&
+          this.models.model(modelName)!.collects(current) &&
+          selectedModel == current
+        ) {
+          return true;
+        } else if (
+          this.models.model(current)?.collects(next) &&
+          !this.graph.ancestors(modelName).includes(next) &&
+          selectedModel == next
+        ) {
+          return true;
+        }
+      }
+      return false;
+    });
+  }
+
+  parentRelationship(modelName: string): string | undefined {
+    const model = this.models.model(modelName);
+
+    if (!model) return undefined;
+
+    const parent: Attribute =  model.selectAttributes(
+      (a: Attribute) => a.attribute_type == 'parent'
+    )[0];
+
+    if (!parent) return undefined;
+
+    return parent.link_attribute_type;
   }
 
   pathsFrom(modelName: string): string[][] {
-    // this.allowedModels could have disconnected models that
-    //   where only connected to models in the unallowedModels list,
     //   so they won't appear in the graph, but the user may query on
     //   them and we have to account for that.
     // An immediate example is "document".
@@ -75,11 +121,6 @@ export class QueryGraph {
   }
 
   asNormalizedHash(modelName: string): {[key: string]: string[]} {
-    // this.allowedModels could have disconnected models that
-    //   where only connected to models in the unallowedModels list,
-    //   so they won't appear in the graph, but the user may query on
-    //   them and we have to account for that.
-    // An immediate example is "document".
     if (!Object.keys(this.graph.children).includes(modelName)) return {};
     return this.graph.asNormalizedHash(modelName);
   }
@@ -87,7 +128,7 @@ export class QueryGraph {
   // Here we calculate parent paths as separate entities, instead
   //   of allowing them to be in a single, flattened array.
   parentPaths(modelName: string): string[][] {
-    if (!Object.keys(this.graph.parents).includes(modelName)) return [];
+    if (!(modelName in this.graph.parents)) return [];
 
     let results: string[][] = [];
 
@@ -126,43 +167,14 @@ export class QueryGraph {
       )
       .concat(
         // paths routing up through parents then down
-        parentPaths
-          .map((parentPath: string[]) =>
-            parentPath
-              .map((p: string, index: number) =>
-                this.pathsFrom(p).map((path) =>
-                  parentPath.slice(0, index).concat(path)
-                )
-              )
-              .flat(1)
-          )
-          .flat(1)
+        parentPaths.map((parentPath: string[]) =>
+          parentPath.map((p: string, index: number) =>
+            p == 'project' ? [] : this.pathsFrom(p).map(
+              path => path.includes(modelName) ? [] : parentPath.slice(0, index).concat(path)
+            )
+          ).flat(1)
+        ).flat(1).filter(path => path.length > 0)
       );
-  }
-
-  modelHasAttribute(modelName: string, attributeName: string) {
-    if (!this.models[modelName]) return false;
-
-    return !!this.models[modelName].template.attributes[attributeName];
-  }
-
-  stepIsOneToMany(start: string, end: string) {
-    // For a single model relationship (start -> end),
-    //   returns `true` if it is a one-to-many
-    //   relationship.
-    if (!this.modelHasAttribute(start, end)) return false;
-
-    return ['table', 'collection'].includes(
-      this.models[start].template.attributes[end].attribute_type
-    );
-  }
-
-  attributeIsFile(modelName: string, attributeName: string) {
-    if (!this.modelHasAttribute(modelName, attributeName)) return false;
-
-    return ['file', 'image', 'file_collection'].includes(
-      this.models[modelName].template.attributes[attributeName].attribute_type
-    );
   }
 
   shortestPath(rootModel: string, targetModel: string): string[] | undefined {
@@ -194,7 +206,7 @@ export class QueryGraph {
     let selectableModels: string[] = [];
 
     modelsInPath?.forEach((modelName) => {
-      if (this.stepIsOneToMany(previousModelName, modelName)) {
+      if (this.models.model(previousModelName)?.collects(modelName)) {
         selectableModels.push(modelName);
       }
       previousModelName = modelName;
@@ -203,16 +215,21 @@ export class QueryGraph {
     return selectableModels;
   }
 
+  subgraphMap(modelName: string): {[key: string]: boolean} {
+    return {
+      ...this.childrenMap( modelName ),
+      [ modelName ]: false
+    };
+  }
+
   childrenMap(modelName: string): {[key: string]: boolean} {
     // Returns the child models, with a boolean flag
     //   for one-to-many relationships. Includes original model for convenience.
-    let results: {[key: string]: boolean} = {
-      [modelName]: false
-    };
+    let results: {[key: string]: boolean} = { };
 
     Object.keys(this.graph.children[modelName] || {}).forEach(
       (childNeighbor: string) => {
-        results[childNeighbor] = this.stepIsOneToMany(modelName, childNeighbor);
+        results[childNeighbor] = !!this.models.model(modelName)?.collects(childNeighbor);
       }
     );
 

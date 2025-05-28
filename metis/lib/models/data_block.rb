@@ -32,6 +32,10 @@ class Metis
       return data_block
     end
 
+    def self.total_size(query)
+      Metis::DataBlock.where(query).select_map(:size).sum
+    end
+
     def set_file_data(file_path, copy = false)
       if copy
         ::FileUtils.copy(
@@ -125,6 +129,14 @@ class Metis
       return if temp_hash? || archive_id
 
       Metis.instance.archiver.archive(self)
+    end
+
+    def restrict!
+      update(restricted: true)
+    end
+
+    def unrestrict!
+      update(restricted: false)
     end
 
     def actual_size

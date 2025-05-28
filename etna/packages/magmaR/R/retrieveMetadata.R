@@ -2,7 +2,7 @@
 #' @description Retrieve data from one model ("meta") transformed into the shape of linked records of a different model ("target").
 #' For example, one could get subject-level information for an RNAseq counts matrix with this function.
 #' The output would contain columns of subject-level attributes, and rows that are the RNAseq-model records.
-#' @inheritParams retrieve
+#' @inheritParams retrieve_SpecialCases
 #' @param target_modelName,target_recordNames Strings which indicate the "target" data that meta-data is desired to be reshaped into.
 #' They work the same as inputs of other functions without the \code{target_} portion, and
 #' these inputs ultimately set which records of "meta" model data to actually obtain.
@@ -52,12 +52,15 @@ retrieveMetadata <- function(
     meta_attributeNames = "all",
     target_modelName,
     target_recordNames = "all",
+    template = NULL,
     ...) {
     
-    temp <- retrieveTemplate(target, projectName)
+    if (identical(template, NULL)) {
+        template <- retrieveTemplate(target, projectName)
+    }
     
     ### Establish linkage and retrieve identifier mappings
-    paths <- .obtain_linkage_paths(target_modelName, meta_modelName, temp)
+    paths <- .obtain_linkage_paths(target_modelName, meta_modelName, template)
     separate_branches <- length(paths) == 2
     
     ### Target data
@@ -102,7 +105,7 @@ retrieveMetadata <- function(
     
     ### Ensure metadata has 1 row per linked target data row
     # Find identifier column
-    meta_id_col_name <- temp$models[[meta_modelName]]$template$identifier
+    meta_id_col_name <- template$models[[meta_modelName]]$template$identifier
     id_col_index <- match(meta_id_col_name, colnames(meta_raw))
     # Expand
     meta <- if (separate_branches) {

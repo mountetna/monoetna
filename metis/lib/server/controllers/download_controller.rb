@@ -3,7 +3,14 @@ class DownloadController < Metis::Controller
   # You may call this with a token
   def authorize
     bucket = require_bucket
-    success_json(download_url: Metis::File.download_url(@request, bucket.project_name, bucket.name, @params[:file_path]))
+
+    file = Metis::File.from_path(bucket, @params[:file_path])
+
+    raise Etna::NotFound, "File not found" unless file
+
+    raise Etna::Forbidden, "File is restricted" if file.restrict_user?(@user)
+
+    success_json(download_url: Metis::File.download_url(bucket.project_name, bucket.name, @params[:file_path]))
   end
 
   def download

@@ -55,7 +55,7 @@ describe UpdateModelController do
 
       response_json = JSON.parse(last_response.body)
       attribute_json = response_json["models"]["monster"]["template"]["attributes"]["name"]
-      expect(attribute_json["desc"]).to eq("The monster's name")
+      expect(attribute_json["description"]).to eq("The monster's name")
       expect(attribute_json["display_name"]).to eq("NAME")
     end
   end

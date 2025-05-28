@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
@@ -224,17 +224,23 @@ export const ValuesToIgnore = ({value, update, modelName, classes}:ScriptItem) =
 export const ColumnMap = ({value, update, modelName, classes}:ScriptItem) => {
 
   const {models} = useContext(MagmaContext);
-  const idAttribute: string = models ? models[modelName]?.template?.identifier : '__error__'
-  const parentAttribute: string = models ? models[modelName]?.template?.parent : '__error__'
+  const model = models ? models[modelName] : null;
+
+  const idAttribute: string = models?.[modelName]?.template?.identifier || '__error__'
+  const parentAttribute: string = models?.[modelName]?.template?.parent || '__error__'
   // Determine if table.
   const isTable: boolean = parentAttribute!='project' && models[parentAttribute]?.template?.attributes[modelName].attribute_type=='table'
   const autoAttribute: string = isTable ? parentAttribute : idAttribute
 
-  if (value==undefined) {
-    update({[autoAttribute]: autoAttribute})
-  } else if (!Object.keys(value).includes(autoAttribute)) {
-    update({[autoAttribute]: autoAttribute, ...value})
-  }
+  useEffect( () => {
+    if (autoAttribute && !(autoAttribute in value)) {
+      update({
+        [autoAttribute]: autoAttribute,
+        ...value
+      });
+    }
+  }, []);
+
   const attributesChosen = Object.keys(value).filter((val)=>val!=autoAttribute)
   const attributesToFilter = [autoAttribute]
 

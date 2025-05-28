@@ -1071,7 +1071,7 @@ const RedcapModel = ({
 }) => {
   const classes = useStyles();
   const {each, invert, scripts, identifier_fields} = config;
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(100);
 
   const pages = Math.ceil(scripts.length / pageSize);
   const [page, setPage] = useState(1);

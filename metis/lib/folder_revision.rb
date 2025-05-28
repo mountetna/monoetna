@@ -26,11 +26,22 @@ class Metis
 
       if !target_folder
         @errors.push("Folder not found: \"#{mpath_w_objs.mpath.path}\"")
+        return errors_found = true
+      end
+
+      if target_folder.read_only?
+        @errors.push("Folder \"#{mpath_w_objs.mpath.path}\" is read-only")
         errors_found = true
       end
 
-      if target_folder&.read_only?
-        @errors.push("Folder \"#{mpath_w_objs.mpath.path}\" is read-only")
+      target_files = Metis::File.where(
+        bucket: target_folder.bucket,
+        project_name: target_folder.project_name,
+        folder_id: [ target_folder.id ] + target_folder.child_folders.map(&:id)
+      ).all
+
+      if target_files.any? { |f| f.restricted? }
+        @errors.push("Folder \"#{mpath_w_objs.mpath.path}\" contains restricted files")
         errors_found = true
       end
 

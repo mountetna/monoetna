@@ -109,6 +109,12 @@ const ROUTES = [
     template: ':project_name/query',
     component: QueryPage,
     mode: 'query'
+  },
+  {
+    name: 'query',
+    template: ':project_name/query#*query_terms',
+    component: QueryPage,
+    mode: 'query'
   }
 ];
 
@@ -158,7 +164,9 @@ class TimurUI extends React.Component {
               <Notifications />
               <TimurNav environment={environment} mode={mode} />
               <Messages />
-              <Component key={key} {...params} />
+              <div id='app-area'>
+                <Component key={key} {...params} />
+              </div>
             </div>
           </ModalDialogContainer>
         </ThemeProvider>
