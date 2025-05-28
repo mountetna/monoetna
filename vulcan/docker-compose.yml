@@ -50,7 +50,7 @@ x-base-etna-services:
       - vulcan-public-dir:/app/public:rw
       - vulcan-opt-dir:/usr/opt:rw
       - ../etna:/etna:delegated
-      - ${HOME}/.ssh:/etc/ssh-keys-ro:ro # this will trigger the ssh-setup.sh script to run
+      - ~/.ssh:/etc/ssh-keys-ro:ro # this will trigger the ssh-setup.sh script to run
       - ./spec/fixtures/v2/ssh-setup.sh:/entrypoints/ssh-setup.sh:ro # this will trigger the ssh-setup.sh script to run
   'vulcan_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
