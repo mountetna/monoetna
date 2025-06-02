@@ -14,8 +14,8 @@ export class VestaApiClient {
             globalStatsRes,
             projectStatsRes,
         ] = await Promise.all([
-            fetch(this.#createUrl('stats')),
-            fetch(this.#createUrl('stats/projects')),
+            fetch(this.#createUrl('stats'), { next: { revalidate: 300 } }),
+            fetch(this.#createUrl('stats/projects'), { next: { revalidate: 300 } }),
         ])
 
         let globalStats: ApiStatsInstance[]
