@@ -12,6 +12,8 @@ class Vulcan
         user_email: user_email,
         tags: tags,
         workspace_path: path,
+        git_request_by: git_request_by,
+        git_request: git_request,
         git_version: git_version,
         created_at: created_at,
         updated_at: updated_at
