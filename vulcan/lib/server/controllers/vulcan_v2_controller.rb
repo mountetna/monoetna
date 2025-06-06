@@ -59,7 +59,7 @@ class VulcanV2Controller < Vulcan::Controller
     begin
         @remote_manager.mkdir(workspace_dir)
         @remote_manager.clone(workflow.repo_remote_url, workspace_dir)
-        @remote_manager.checkout_version(workspace_dir, @escaped_params[:git_version])
+        git_version = @remote_manager.checkout_version(workspace_dir, @params[:branch].empty? ? @escaped_params[:git_version] : @escaped_params[:branch])
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
         @remote_manager.mkdir(Vulcan::Path.workspace_output_dir(workspace_dir))
         @remote_manager.touch("#{Vulcan::Path.workspace_output_dir(workspace_dir)}/.keep")
@@ -76,7 +76,9 @@ class VulcanV2Controller < Vulcan::Controller
           target_mapping: @snakemake_manager.generate_target_mapping(workspace_dir, config),
           path: workspace_dir,
           user_email: @user.email,
-          git_version: @escaped_params[:git_version],
+          git_request_by: @params[:branch].empty? ? 'tag_or_sha' : 'branch',
+          git_request: @params[:branch].empty? ? @escaped_params[:git_version] : @escaped_params[:branch],
+          git_version: git_version,
           created_at: Time.now,
           updated_at: Time.now
         )
