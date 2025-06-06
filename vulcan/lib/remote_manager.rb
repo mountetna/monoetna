@@ -146,12 +146,19 @@ class Vulcan
       invoke_ssh_command(command.to_s)
     end
 
-    def checkout_version(dir, sha_or_tag)
+    def checkout_version(dir, sha_or_tag_or_branch)
       command = build_command
         .add('cd', dir)
-        .add('git', 'checkout', sha_or_tag)
+        .add('git', 'checkout', sha_or_tag_or_branch)
 
       invoke_ssh_command(command.to_s)
+
+      command = build_command
+        .add('cd', dir)
+        .add('git', 'rev-parse', '--short', 'HEAD')
+
+      result = invoke_ssh_command(command.to_s)
+      result[:stdout].chomp
     end
 
     def get_repo_remote_url(repo_dir)
