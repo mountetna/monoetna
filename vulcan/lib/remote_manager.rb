@@ -154,6 +154,7 @@ class Vulcan
       invoke_ssh_command(command.to_s)
 
       command = build_command
+        .add('cd', dir)
         .add('git', 'rev-parse', '--short', 'HEAD')
 
       result = invoke_ssh_command(command.to_s)
