@@ -25,6 +25,9 @@ import LoadingIcon from '../loading_icon';
 import Switch from '@material-ui/core/Switch';
 import InputLabel from '@material-ui/core/InputLabel';
 
+import git from "isomorphic-git";
+import http from "isomorphic-git/http/web";
+
 const useStyles = makeStyles((theme) => ({
   dialog: {
     maxWidth: '90vw',
@@ -63,6 +66,8 @@ export default function WorkspaceCreateButtonModal({
 
   const [workspaceName, setWorkspaceName] = useState('');
   const [valUse, setValUse] = useState({version: '...awaiting...', lastUsed: 'never'});
+  const [branches, setBranches] = useState<string[]>([]);
+  // const [tags, setTags] = useState<string[]>([]);
   const [requestBy, setRequestBy] = useState<'branch' | 'tagOrSha'>('branch');
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -88,6 +93,14 @@ export default function WorkspaceCreateButtonModal({
     return workflow ? workflow.name : ''
   }, [workflow])
 
+  useEffect(() => {
+    git.getRemoteInfo({ http, url: workflow.repo_remote_url, corsProxy: 'https://cors.isomorphic-git.org' })
+    .then(remote => {
+      setBranches(Object.keys(remote['refs']['heads']))
+      // if ('tags' in remote['refs']) setTags(Object.keys(remote['refs']['heads']))
+    })
+  }, [workflow])
+
   //ToDo: grab past tags & split out tag as requestBy option?
   const pastShas: {version: string, lastUsed: string}[] = useMemo(() => {
     const wspaces: WorkspaceMinimal[] = workspaces.filter((w: WorkspaceMinimal) => w.workflow_id == workflow.id);
@@ -101,34 +114,34 @@ export default function WorkspaceCreateButtonModal({
       }
     })
   }, [workflow, workspaces])
-  const pastBranches: {version: string, lastUsed: string}[] = useMemo(() => {
+  const availBranches: {version: string, lastUsed: string}[] = useMemo(() => {
     const wspaces: WorkspaceMinimal[] = workspaces.filter((w: WorkspaceMinimal) => w.workflow_id == workflow.id);
-    const branches = [...new Set(wspaces
-      .filter((w: WorkspaceMinimal) => w.git_request_by=='branch')
+    const branchesUsed = [...new Set(wspaces
+      .filter((w: WorkspaceMinimal) => branches.includes(w.git_request))
       .map((w: WorkspaceMinimal) => w.git_request) as string[]
     )];
-    return branches.map((version) => {
-      const used = wspaces.filter((w: WorkspaceMinimal) => w.git_request_by=='branch' && w.git_request == version)
-        .map((w: WorkspaceMinimal) => w.created_at)
+    return branches.map((name) => {
+      const used = !branchesUsed.includes(name) ? 'never' : wspaces.filter((w: WorkspaceMinimal) => w.git_request_by=='branch' && w.git_request == name)
+        .map((w: WorkspaceMinimal) => w.created_at).sort((a,b) => a < b ? 1 : -1)[0].split(' +')[0]
       return {
-        version: version,
-        lastUsed: used.sort((a,b) => a < b ? 1 : -1)[0].split(' +')[0]
+        version: name,
+        lastUsed: used
       }
-    })
-  }, [workflow, workspaces]);
+    }).sort(((a,b) => b.lastUsed=='never' || a.lastUsed < b.lastUsed ? 1 : -1))
+  }, [branches, workflow, workspaces]);
   useEffect(() => {
     // Find 'main' if exists for last used element
-    if (requestBy == 'branch' && valUse.version == '...awaiting...' && pastBranches.length !== undefined) {
-      const pastMain = pastBranches.filter(b => b.version=='main')
+    if (requestBy == 'branch' && valUse.version == '...awaiting...' && availBranches.length !== undefined) {
+      const pastMain = availBranches.filter(b => b.version=='main')
       const newBranch = {version: 'main', lastUsed: pastMain.length>0 ? pastMain[0].lastUsed : 'never'}
       setValUse(newBranch);
       setCreateTag('Create Workspace');
     }
-  }, [requestBy, valUse, pastBranches])
+  }, [requestBy, valUse, availBranches])
 
   // versionUI
   const helperBase = requestBy == 'branch' ? 'Branch name (e.g. main)' : 'Tag or Commit SHA';
-  const pastUse = requestBy == 'branch' ? pastBranches : pastShas;
+  const pastUse = requestBy == 'branch' ? availBranches : pastShas;
   const optsUse = [...pastUse, {version: requestBy == 'branch' ? '...awaiting...' : '', lastUsed: 'never'}]
   const optionDisplay = (option: typeof valUse, state: object) => {
     return <Grid container spacing={3}>
@@ -139,7 +152,7 @@ export default function WorkspaceCreateButtonModal({
       </Grid>
       <Grid item>
         <Typography color='secondary'>
-          {`Last Used: ${option.lastUsed}`}
+          {`Last Requested Directly: ${option.lastUsed}`}
         </Typography>
       </Grid>
     </Grid>
