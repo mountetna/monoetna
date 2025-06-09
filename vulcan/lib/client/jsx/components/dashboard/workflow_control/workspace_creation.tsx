@@ -56,7 +56,7 @@ export default function WorkspaceCreateButtonModal({
   if (!workflow || !workflow.id) return null;
   const classes = useStyles();
   const invoke = useActionInvoker();
-  let {state,
+  const {
     showErrors,
     createWorkspace
   } = useContext(VulcanContext);
@@ -73,7 +73,7 @@ export default function WorkspaceCreateButtonModal({
   const [handleCreateWorkspace] = useAsyncCallback(function* (name: string, version: string, request_by: 'branch' | 'tagOsSha') {
     if (!workflow || !workflow.id) return;
     setCreating(true);
-    showErrors(createWorkspace(projectName, workflow.id, name, version, request_by))
+    showErrors(createWorkspace(projectName, workflow.id, name, version, request_by), (e) => {setCreating(false); setOpen(false)})
     .then((newSession) => {
       setCreating(false);
       invoke(
@@ -81,16 +81,7 @@ export default function WorkspaceCreateButtonModal({
           `/${projectName}/workspace/${newSession.workspace_id}`
         )
       );
-    })
-    .catch((e) => {
-      setCreating(false)
-      // ToDo: Make use of error to highlight when the user gets their branch or version wrong.
-      // if (e[0].includes(`branch ${branch} not found`)) {
-      //   setBranchError(true)
-      // } else if (e[0].includes('did not match any file(s) known to git')) {
-      //   setVersionError(true)
-      // }
-    })
+    });
   }, [invoke, projectName, workflow, workspaceName]);
 
   const defaultName = useMemo(() => {
@@ -103,11 +94,10 @@ export default function WorkspaceCreateButtonModal({
     const versions = [...new Set(wspaces.map((w: WorkspaceMinimal) => w.git_version) as string[])]
     return versions.map((version) => {
       const used = wspaces.filter((w: WorkspaceMinimal) => w.git_version == version)
-        .map((w: WorkspaceMinimal) => w.created_at.split(' ')[0])
+        .map((w: WorkspaceMinimal) => w.created_at)
       return {
         version: version,
-        // ToDo: better selection of latest!
-        lastUsed: used[used.length-1]
+        lastUsed: used.sort((a,b) => a < b ? 1 : -1)[0].split(' +')[0]
       }
     })
   }, [workflow, workspaces])
@@ -119,11 +109,10 @@ export default function WorkspaceCreateButtonModal({
     )];
     return branches.map((version) => {
       const used = wspaces.filter((w: WorkspaceMinimal) => w.git_request_by=='branch' && w.git_request == version)
-        .map((w: WorkspaceMinimal) => w.created_at.split(' ')[0])
+        .map((w: WorkspaceMinimal) => w.created_at)
       return {
         version: version,
-        // ToDo: better selection of latest!
-        lastUsed: used[used.length-1]
+        lastUsed: used.sort((a,b) => a < b ? 1 : -1)[0].split(' +')[0]
       }
     })
   }, [workflow, workspaces]);
@@ -137,9 +126,38 @@ export default function WorkspaceCreateButtonModal({
     }
   }, [requestBy, valUse, pastBranches])
 
+  // versionUI
   const helperBase = requestBy == 'branch' ? 'Branch name (e.g. main)' : 'Tag or Commit SHA';
   const pastUse = requestBy == 'branch' ? pastBranches : pastShas;
   const optsUse = [...pastUse, {version: requestBy == 'branch' ? '...awaiting...' : '', lastUsed: 'never'}]
+  const optionDisplay = (option: typeof valUse, state: object) => {
+    return <Grid container spacing={3}>
+      <Grid item>
+        <Typography>
+          {option.version}
+        </Typography>
+      </Grid>
+      <Grid item>
+        <Typography color='secondary'>
+          {`Last Used: ${option.lastUsed}`}
+        </Typography>
+      </Grid>
+    </Grid>
+  };
+  const onSelect = (e: any, v: typeof valUse | string | null) => {
+    if (v != null && typeof v === 'object') {
+      setVersionHelperText(helperBase);
+      setValUse(v);
+    };
+    if (typeof v === 'string' && v != '') {
+      const match = pastUse.filter(p => p.version==v);
+      if (match.length>0) {
+        setValUse(match[0]);
+      } else {
+        setValUse({version: v, lastUsed: 'never'});
+      }
+    }
+  };
   const versionUI = <Autocomplete
     key={`git-version-request by-${requestBy}`}
     freeSolo
@@ -159,35 +177,19 @@ export default function WorkspaceCreateButtonModal({
         size="small"
       />
     )}
-    getOptionLabel={(option) => option.version}
-    renderOption={
-      (option: typeof valUse, state: object) => {
-      return <Tooltip title={'last used: ' + option.lastUsed} placement='right'>
-        <Typography>
-          {option.version}
-        </Typography>
-      </Tooltip>
+    getOptionLabel={(option) => {
+      if (typeof option === 'string') return option
+      return option.version
     }}
+    renderOption={optionDisplay}
     filterOptions={(options: typeof pastShas, state: any) => {
       let regex = new RegExp(state.inputValue);
-      return options.filter((o) => regex.test(o.version) && o.version!='' && o.version!='...awaiting...');
+      return options.filter((o) => regex.test(o.version) && o.version!='' && o.version!='...awaiting...').sort((a,b) => a < b ? 1 : -1);
     }}
-    onChange={(e: any, v: {version: string, lastUsed: string} | string | null) => {
-      if (v != null && typeof v === 'object') {
-        setVersionHelperText(helperBase);
-        setValUse(v);
-      };
-      if (typeof v === 'string' && v != '') {
-        const match = pastUse.filter(p => p.version==v);
-        if (match.length>0) {
-          setValUse(match[0]);
-        } else {
-          setValUse({version: v, lastUsed: 'never'});
-        }
-      }
-    }}
+    onChange={onSelect}
   />
 
+  // Creation button label & disabling, and update versionUI helper text
   useEffect(() => {
     if (valUse.version === '' || valUse.version == '...awaiting...') {
       setCreateTag('Workflow Version not set')
