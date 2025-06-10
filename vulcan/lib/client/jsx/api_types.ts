@@ -126,6 +126,7 @@ interface WorkspaceMinusInconsistent {
   user_email: string;
   workspace_path: string;
   dag: string[];
+  git_request: string;
   git_version: string;
   created_at: string;
   updated_at: string;
