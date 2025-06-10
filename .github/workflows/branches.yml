@@ -85,7 +85,7 @@ jobs:
       - name: Build etna-base image
         run: |
           docker build -t etna -f etna/Dockerfile --build-arg APP_NAME=etna etna
-          docker build -t etna-base -f docker/etna-base/Dockerfile --build-arg APP_NAME=etna-base etna-base
+          docker build -t etna-base -f docker/etna-base/Dockerfile --build-arg APP_NAME=etna-base docker/etna-base
       - name: Build vulcan_app image
         run: docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
       - name: Start DB & c4_env
