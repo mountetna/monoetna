@@ -83,7 +83,9 @@ jobs:
           docker tag etnaagent/development-psql:master development-psql
           docker tag etnaagent/vulcan_c4_env:latest vulcan_c4_env
       - name: Build etna-base image
-        run: docker build -t etna-base -f etna/Dockerfile --build-arg APP_NAME=etna etna
+        run: |
+          docker build -t etna -f etna/Dockerfile --build-arg APP_NAME=etna etna
+          docker build -t etna-base -f docker/etna-base/Dockerfile --build-arg APP_NAME=etna-base etna-base
       - name: Build vulcan_app image
         run: docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
       - name: Start DB & c4_env
