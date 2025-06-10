@@ -101,7 +101,6 @@ export interface WorkspaceMinimalMinusInconsistent {
   workflow_id: number | null;
   user_email: string;
   tags: string[] | null;
-  git_request_by: string;
   git_request: string;
   git_version: string;
   dag: string[];

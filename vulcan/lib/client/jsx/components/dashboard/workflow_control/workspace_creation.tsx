@@ -67,7 +67,7 @@ export default function WorkspaceCreateButtonModal({
   const [workspaceName, setWorkspaceName] = useState('');
   const [valUse, setValUse] = useState({version: '...awaiting...', lastUsed: 'never'});
   const [branches, setBranches] = useState<string[]>([]);
-  // const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
   const [requestBy, setRequestBy] = useState<'branch' | 'tagOrSha'>('branch');
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -75,10 +75,10 @@ export default function WorkspaceCreateButtonModal({
   const [versionHelperText, setVersionHelperText] = useState('Branch name (e.g. main)');
   const [createTag, setCreateTag] = useState('Create Workspace');
 
-  const [handleCreateWorkspace] = useAsyncCallback(function* (name: string, version: string, request_by: 'branch' | 'tagOsSha') {
+  const [handleCreateWorkspace] = useAsyncCallback(function* (name: string, version: string) {
     if (!workflow || !workflow.id) return;
     setCreating(true);
-    showErrors(createWorkspace(projectName, workflow.id, name, version, request_by), (e) => {setCreating(false); setOpen(false)})
+    showErrors(createWorkspace(projectName, workflow.id, name, version), (e) => {setCreating(false); setOpen(false)})
     .then((newSession) => {
       setCreating(false);
       invoke(
@@ -94,54 +94,75 @@ export default function WorkspaceCreateButtonModal({
   }, [workflow])
 
   useEffect(() => {
-    git.getRemoteInfo({ http, url: workflow.repo_remote_url, corsProxy: 'https://cors.isomorphic-git.org' })
-    .then(remote => {
+    showErrors(
+      git.getRemoteInfo({ http, url: workflow.repo_remote_url, corsProxy: 'https://cors.isomorphic-git.org' }),
+      (e) => {
+        setBranches(['main'])
+        setTags([])
+      }
+    )
+    .then((remote: any) => {
       setBranches(Object.keys(remote['refs']['heads']))
-      // if ('tags' in remote['refs']) setTags(Object.keys(remote['refs']['heads']))
+      setTags( ('tags' in remote['refs']) ? Object.keys(remote['refs']['tags']) : []);
     })
   }, [workflow])
 
-  //ToDo: grab past tags & split out tag as requestBy option?
-  const pastShas: {version: string, lastUsed: string}[] = useMemo(() => {
-    const wspaces: WorkspaceMinimal[] = workspaces.filter((w: WorkspaceMinimal) => w.workflow_id == workflow.id);
-    const versions = [...new Set(wspaces.map((w: WorkspaceMinimal) => w.git_version) as string[])]
-    return versions.map((version) => {
-      const used = wspaces.filter((w: WorkspaceMinimal) => w.git_version == version)
+  // Options to show
+  type VersionOpts = {
+    branches: {version: string, lastUsed: string}[];
+    tags_or_commits: {version: string, lastUsed: string}[];
+  };
+  const versionOpts: VersionOpts = useMemo(() => {
+    const wspaces: WorkspaceMinimal[] = workspaces
+      .filter((w: WorkspaceMinimal) => w.workflow_id == workflow.id)
+      .sort((a,b) => a.created_at < b.created_at ? 1 : -1);
+    const versions: string[] = [...new Set(wspaces.map((w: WorkspaceMinimal) => w.git_version) as string[])]
+    const unusedBranches = [...branches];
+    const unusedTags = [...tags];
+    const out: VersionOpts = {branches: [], tags_or_commits: []}
+    for (let ind in versions) {
+      let v = versions[ind];
+      let k: 'branches' | 'tags_or_commits' = 'tags_or_commits'
+      if (v in branches) {
+        k = 'branches';
+        unusedBranches.splice(unusedBranches.indexOf(v), 1);
+      }
+      if (v in tags) {
+        unusedTags.splice(unusedTags.indexOf(v), 1);
+      }
+      let used = wspaces
+        .filter((w: WorkspaceMinimal) => w.git_version == v)
         .map((w: WorkspaceMinimal) => w.created_at)
-      return {
-        version: version,
-        lastUsed: used.sort((a,b) => a < b ? 1 : -1)[0].split(' +')[0]
+        // .sort((a,b) => a < b ? 1 : -1)
+        [0].split(' +')[0]
+      out[k].push({version: v, lastUsed: used})
+    };
+    if (unusedBranches.length>0) {
+      for (let ind in unusedBranches) {
+        out['branches'].push({version: unusedBranches[ind], lastUsed: 'never'})
       }
-    })
-  }, [workflow, workspaces])
-  const availBranches: {version: string, lastUsed: string}[] = useMemo(() => {
-    const wspaces: WorkspaceMinimal[] = workspaces.filter((w: WorkspaceMinimal) => w.workflow_id == workflow.id);
-    const branchesUsed = [...new Set(wspaces
-      .filter((w: WorkspaceMinimal) => branches.includes(w.git_request))
-      .map((w: WorkspaceMinimal) => w.git_request) as string[]
-    )];
-    return branches.map((name) => {
-      const used = !branchesUsed.includes(name) ? 'never' : wspaces.filter((w: WorkspaceMinimal) => w.git_request_by=='branch' && w.git_request == name)
-        .map((w: WorkspaceMinimal) => w.created_at).sort((a,b) => a < b ? 1 : -1)[0].split(' +')[0]
-      return {
-        version: name,
-        lastUsed: used
+    }
+    if (unusedTags.length>0) {
+      for (let ind in unusedTags) {
+        out['tags_or_commits'].push({version: unusedTags[ind], lastUsed: 'never'})
       }
-    }).sort(((a,b) => b.lastUsed=='never' || a.lastUsed < b.lastUsed ? 1 : -1))
-  }, [branches, workflow, workspaces]);
+    }
+    return out;
+  }, [workflow, workspaces, branches, tags])
+
   useEffect(() => {
     // Find 'main' if exists for last used element
-    if (requestBy == 'branch' && valUse.version == '...awaiting...' && availBranches.length !== undefined) {
-      const pastMain = availBranches.filter(b => b.version=='main')
+    if (valUse.version == '...awaiting...' && requestBy == 'branch' && versionOpts['branches'].length > 0) {
+      const pastMain = versionOpts['branches'].filter(b => b.version=='main')
       const newBranch = {version: 'main', lastUsed: pastMain.length>0 ? pastMain[0].lastUsed : 'never'}
       setValUse(newBranch);
       setCreateTag('Create Workspace');
     }
-  }, [requestBy, valUse, availBranches])
+  }, [requestBy, valUse, versionOpts])
 
   // versionUI
   const helperBase = requestBy == 'branch' ? 'Branch name (e.g. main)' : 'Tag or Commit SHA';
-  const pastUse = requestBy == 'branch' ? availBranches : pastShas;
+  const pastUse = requestBy == 'branch' ? versionOpts['branches'] : versionOpts['tags_or_commits'];
   const optsUse = [...pastUse, {version: requestBy == 'branch' ? '...awaiting...' : '', lastUsed: 'never'}]
   const optionDisplay = (option: typeof valUse, state: object) => {
     return <Grid container spacing={3}>
@@ -286,7 +307,7 @@ export default function WorkspaceCreateButtonModal({
             <Button
               className={classes.propagateButton}
               onClick={() => {
-                if (!disableCreate) handleCreateWorkspace(workspaceName, valUse.version, requestBy)
+                if (!disableCreate) handleCreateWorkspace(workspaceName, valUse.version)
               }}
               startIcon={creating ? <LoadingIcon/> : <SaveIcon/>}
               color={disableCreate ? 'secondary' : 'primary'}
