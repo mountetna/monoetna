@@ -59,10 +59,6 @@ class Vulcan
     else
       Vulcan.instance.logger.error("Please specify a conda environment in the config...")
     end
-
-    unless config(:snakemake_profile_dir)
-      Vulcan.instance.logger.error("Please specify a snakemake profile directory in the config...")
-    end
   end
 
 
