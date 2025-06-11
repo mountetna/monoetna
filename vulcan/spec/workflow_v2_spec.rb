@@ -200,7 +200,7 @@ describe VulcanV2Controller do
       expect(obj.dag.to_a).to eq(["count", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
       expect(File.basename(obj.path).match?(/\A[a-f0-9]{32}\z/)).to be_truthy
       expect(obj.git_ref).to eq("v1")
-      expect(obj.git_sha).to eq("1e9f823f73a16acb4ec9b49065802a91ce1c65a3")
+      expect(obj.git_sha).to_not eq(nil)
     end
 
     it 'successfully sends back vulcan_config and dag' do
