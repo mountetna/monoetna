@@ -426,7 +426,7 @@ export default function WorkspaceManager() {
             className={'header-btn'}
             icon='stop'
             label='Stop'
-            title='Coming soo, Cancel running work'
+            title='Coming soon, Cancel running work'
             onClick={stop}
             disabled={true}
           />
