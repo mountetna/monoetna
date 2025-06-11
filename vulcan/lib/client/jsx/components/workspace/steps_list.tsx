@@ -22,7 +22,7 @@ export default function StepsList() {
   }, [workspace, status.file_contents]);
 
   useEffect(() => {
-    setOpen(!hasCompletedOutputs || !!state.pollingState);
+    setOpen(!hasCompletedOutputs || state.pollingState);
   }, [state.pollingState, hasCompletedOutputs]);
 
   if (!workspace) return null;

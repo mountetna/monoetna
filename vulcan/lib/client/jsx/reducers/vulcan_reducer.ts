@@ -62,7 +62,7 @@ export const defaultVulcanState = {
 
   // Request Run and trigger polling state
   triggerRun: [] as (string | null)[],
-  pollingState: 0,
+  pollingState: false,
   
   validationErrors: defaultValidationErrors,
 };
@@ -147,7 +147,7 @@ export default function VulcanReducer(
     case 'MODIFY_POLLING':
       return {
         ...state,
-        pollingState: Math.max(state.pollingState + action.delta, 0)
+        pollingState: action.to
       };
     case 'SET_WORKFLOW':
       const workflowProject = action.workflow.project_name;
@@ -216,7 +216,8 @@ export default function VulcanReducer(
     case 'SET_RUN_ID':
       return {
         ...state,
-        runId: action.runId
+        runId: action.runId,
+        isRunning: true,
       };
     case 'SET_LAST_CONFIG':
       return {

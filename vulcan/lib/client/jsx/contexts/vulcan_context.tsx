@@ -79,7 +79,7 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
     const apiHelpers = withOverrides(useApi(invoker), props);
     const {showErrors, getWorkflows, getWorkspaces, requestRun, pullRunStatus, getIsRunning} = apiHelpers;
     const sessionSyncHelpers = withOverrides(
-      useSessionSyncWhileRunning(showErrors, requestRun, pullRunStatus, getIsRunning, dispatch),
+      useSessionSyncWhileRunning(useApi(invoker), showErrors, requestRun, pullRunStatus, getIsRunning, dispatch),
       props
     );
     useWorkspacesWorkflowLoading(state.update_workflows, dispatch, getWorkflows, getWorkspaces, showErrors, state.projectName);

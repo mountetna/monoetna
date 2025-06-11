@@ -32,6 +32,7 @@ import {
   clearRunning,
   clearRunTriggers,
   setWorkspace,
+  startPolling,
   updateWorkflowsWorkspaces,
 } from '../../actions/vulcan_actions';
 import InputFeed from './input_feed';
@@ -125,8 +126,8 @@ export default function WorkspaceManager() {
   useDataSync(state, dispatch, showErrors, getFileNames, readFiles, postUIValues);
 
   useEffect(() => {
-    if (state.configId && state.isRunning && state.pollingState < 1) {
-      requestPoll(state, true);
+    if (!!state.configId && state.isRunning && !state.pollingState) {
+      requestPoll(state, false);
     }
   }, [state.isRunning, state.pollingState])
 
@@ -143,8 +144,9 @@ export default function WorkspaceManager() {
     dispatch(clearCommittedStepPending());
   }, [requestPoll, dispatch, showErrors]);
   const stop = useCallback(() => {
-    cancelPolling()
-    dispatch(clearRunning());
+    // ToDo: Make and hook up a cancel_running api!
+    // This does nothing currently
+    cancelPolling();
   }, [cancelPolling]);
 
   // ToDo Later: once we figure out revisions.
@@ -273,9 +275,16 @@ export default function WorkspaceManager() {
     handleUpdateWorkspace(undefined, newTags);
   }
 
-  const running = useMemo(() => state.pollingState > 0, [state.pollingState]);
+  const running = useMemo(() => state.isRunning, [state.isRunning]);
   const disableRunButton =
-    complete || running || (hasPendingEdits && !committedStepPending);
+    complete || running || (hasPendingEdits && !committedStepPending) || state.pollingState;
+  const disableRunReason = running ?
+    'Workspace is already runnning' :
+    hasPendingEdits && !committedStepPending ?
+    'An input is has pending edits' :
+    state.pollingState ?
+    'Awaiting sync from remote workspace' :
+    'no remaining work to run'
 
   // Catch auto-pass 'Run' trigger
   useEffect(() => {
@@ -412,20 +421,21 @@ export default function WorkspaceManager() {
             </ReactModal>
           </React.Fragment>
         )} */}
-        {state.pollingState ? (
+        {running ? (
           <FlatButton
             className={'header-btn'}
             icon='stop'
             label='Stop'
-            title='Stop workflow'
+            title='Coming soo, Cancel running work'
             onClick={stop}
+            disabled={true}
           />
         ) : (
           <FlatButton
             className={'header-btn run'}
             icon='play'
             label='Run'
-            title='Run workflow'
+            title={disableRunButton ? disableRunReason : 'Run workflow'}
             onClick={() => run(state)}
             disabled={disableRunButton}
           />

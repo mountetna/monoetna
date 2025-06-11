@@ -103,11 +103,11 @@ export function removeValidationErrors(errors: string[]) {
 }
 
 export function startPolling() {
-  return actionObject('MODIFY_POLLING', {delta: 1});
+  return actionObject('MODIFY_POLLING', {to: true});
 }
 
 export function finishPolling() {
-  return actionObject('MODIFY_POLLING', {delta: -1});
+  return actionObject('MODIFY_POLLING', {to: false});
 }
 
 export function updateFiles(statusUpdates: Pick<WorkspaceStatus, 'output_files' | 'file_contents'>) {

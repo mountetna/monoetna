@@ -6,6 +6,8 @@ import {AccountingReturn, RunReturn, RunStatus, WorkspaceStatus} from '../api_ty
 import { hasRunningSteps, paramValuesToRaw } from '../selectors/workflow_selectors';
 import {runPromise, useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
 import {Maybe} from '../selectors/maybe';
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {showMessages} from 'etna-js/actions/message_actions';
 
 export const defaultSessionSyncHelpers = {
   requestPoll(state: VulcanState, startWork = false): Promise<unknown> {
@@ -34,6 +36,7 @@ function updateFromRunStatus(
 }
 
 export function useSessionSyncWhileRunning(
+  invoke: ReturnType<typeof useActionInvoker>,
   showErrors: typeof defaultApiHelpers.showErrors,
   requestRun: typeof defaultApiHelpers.requestRun,
   pullRunStatus: typeof defaultApiHelpers.pullRunStatus,
@@ -59,48 +62,48 @@ export function useSessionSyncWhileRunning(
     state: VulcanState,
     startWork = false,
   ) {
-    const {projectName, workspaceId, status} = state;
-    let {configId, runId} = state;
-    let isRunning = false;
+    const {projectName, workspaceId, configId} = state;
+    let {runId, isRunning} = state;
+    const showError = (e: string) => {
+      // invoke(dismissMessages());
+      console.error(`likely a bug, please alert Dan! requestPoll Error: ${e}`)
+      invoke(showMessages([`Error: ${e}`]))
+    };
 
-    dispatch(startPolling());
     if (!workspaceId) {
-      console.log("Skipping post or work, no workspace_id")
+      showError("Skipping polling request, workspaceId unknown")
       return;
     }
 
     if (startWork) {
-      if (!configId) {
-        console.log("Skipping work, no configId")
-        return;
+      if (isRunning) {
+        showError("Skipping new 'Run' request and awaiting what is already running to finish");
+      } else {
+        if (!configId) {
+          showError("Skipping 'Run' request, configId unknown");
+          return;
+        }
+        const runResponse: RunReturn = yield* runPromise(showErrors(requestRun(projectName,workspaceId,configId)));
+        updateFromRunRequest(runResponse, dispatch);
+        runId = runResponse.run_id;
       }
-      const response2: RunReturn = yield* runPromise(showErrors(requestRun(projectName,workspaceId,configId)));
-      updateFromRunRequest(response2, dispatch);
-      runId = response2.run_id;
-      isRunning = true;
-    } else {
-      const runningResponse = yield* runPromise(showErrors(getIsRunning(projectName,workspaceId)));
-      isRunning = runningResponse['running'];
     }
 
+    isRunning = true;
     while (isRunning) {
       yield delay(3000);
-      if (!runId) {
-        console.log("Skipping polling, no runId, ending polling")
-        isRunning = true;
+      if (runId==null) {
+        showError("Polling run status not possible, runId unknown")
         return;
       }
       const runningResponse = yield* runPromise(showErrors(getIsRunning(projectName,workspaceId)));
       isRunning = runningResponse['running'];
       const response: RunStatus = yield* runPromise(showErrors(pullRunStatus(projectName,workspaceId,runId)));
-      // Notably, after the first submission, changes in hash that occur do not have authority
-      // to clear stale inputs.
       updateFromRunStatus(response, dispatch, isRunning);
     }
   }, [dispatch, requestRun, getIsRunning, pullRunStatus], () => {
-    dispatch(finishPolling());
+    // ToDo: cancelRunning!
   });
-  
 
   return {
     requestPoll, cancelPolling

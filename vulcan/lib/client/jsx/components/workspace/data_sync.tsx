@@ -1,5 +1,5 @@
 import {Dispatch, useEffect} from 'react';
-import {updateFiles, useUIAccounting, VulcanAction} from '../../actions/vulcan_actions';
+import {finishPolling, startPolling, updateFiles, useUIAccounting, VulcanAction} from '../../actions/vulcan_actions';
 import {defaultApiHelpers} from '../../contexts/api';
 import {VulcanState} from '../../reducers/vulcan_reducer';
 import {allFilesToBuffer, filesReturnToMultiFileContent} from '../../selectors/workflow_selectors';
@@ -22,9 +22,11 @@ export function useDataSync(
     if (pushSteps.length > 0 && !!workspaceId) {
       // Push files / params to compute server for step
       const pushStep = [...pushSteps][0]
-      showErrors(postUIValues(projectName,workspaceId,status,pushStep))
+      dispatch(startPolling())
+      showErrors(postUIValues(projectName,workspaceId,status,pushStep), (e) => {dispatch(finishPolling())})
       .then((accountingResponse) => {
         dispatch(useUIAccounting(accountingResponse, pushStep, true));
+        dispatch(finishPolling())
       })
     }
   }, [pushSteps, postUIValues])
