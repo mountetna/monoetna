@@ -57,7 +57,7 @@ export const defaultApiHelpers = {
   getWorkflows(projectName: string): Promise<WorkflowsResponse> {
     return new Promise(() => null);
   },
-  createWorkspace(projectName: string, workflowId: number, workspaceName: string, branch: string, git_version: string): Promise<CreateWorkspaceResponse> {
+  createWorkspace(projectName: string, workflowId: number, workspaceName: string, git_request: string): Promise<CreateWorkspaceResponse> {
     return new Promise(() => null);
   },
   getWorkspaces(projectName: string): Promise<WorkspacesResponse> {
@@ -188,14 +188,13 @@ export function useApi(
       });
   }, [vulcanPost, vulcanPath]);
 
-  const createWorkspace = useCallback((projectName: string, workflowId: number, workspaceName: string, branch: string, git_version: string): Promise<CreateWorkspaceResponse> => {
+  const createWorkspace = useCallback((projectName: string, workflowId: number, workspaceName: string, git_request: string): Promise<CreateWorkspaceResponse> => {
     return vulcanPost(
       vulcanPath(`/api/v2/${projectName}/workspace/create`),
       {
         workflow_id: workflowId,
-        branch: branch,
+        git_request: git_request,
         workspace_name: workspaceName,
-        git_version: git_version,
       });
   }, [vulcanPost, vulcanPath]);
 

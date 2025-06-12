@@ -101,7 +101,8 @@ export interface WorkspaceMinimalMinusInconsistent {
   workflow_id: number | null;
   user_email: string;
   tags: string[] | null;
-  git_version: string;
+  git_ref: string;
+  git_sha: string;
   dag: string[];
   created_at: string;
   updated_at: string;
@@ -125,7 +126,8 @@ interface WorkspaceMinusInconsistent {
   user_email: string;
   workspace_path: string;
   dag: string[];
-  git_version: string;
+  git_ref: string;
+  git_sha: string;
   created_at: string;
   updated_at: string;
   last_config: {[k: string]: any} | null;
@@ -154,7 +156,8 @@ export const defaultWorkspace: Workspace = {
   workspace_path: '',
   tags: [],
   dag: [],
-  git_version: '',
+  git_ref: 'main',
+  git_sha: '',
   vulcan_config: {},
   created_at: '',
   updated_at: '',
