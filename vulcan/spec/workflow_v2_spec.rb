@@ -29,7 +29,7 @@ describe VulcanV2Controller do
       workflow_id: json_body[:workflow_id],
       workspace_name: "running-tiger",
       branch: "main",
-      git_version: "v1"
+      git_request: "v1"
     }
     post("/api/v2/#{PROJECT}/workspace/create", request)
     expect(last_response.status).to eq(200)
@@ -105,7 +105,7 @@ describe VulcanV2Controller do
         workflow_id: json_body[:workflow_id],
         workspace_name: "running-tiger",
         branch: "main",
-        git_version: "v1",
+        git_request: "v1",
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
@@ -118,7 +118,7 @@ describe VulcanV2Controller do
         workflow_id: json_body[:workflow_id],
         workspace_name: "running-tiger",
         branch: "main",
-        git_version: "v1",
+        git_request: "v1",
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
@@ -131,7 +131,7 @@ describe VulcanV2Controller do
         workflow_id: json_body[:workflow_id],
         workspace_name: "running-tiger",
         branch: "main",
-        git_version: "v1",
+        git_request: "v1",
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
@@ -144,7 +144,7 @@ describe VulcanV2Controller do
         workflow_id: json_body[:workflow_id],
         workspace_name: "running-tiger",
         branch: "main",
-        git_version: "v1",
+        git_request: "v1",
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
@@ -157,7 +157,7 @@ describe VulcanV2Controller do
         workflow_id: json_body[:workflow_id],
         workspace_name: "running-tiger",
         branch: "main",
-        git_version: "v1",
+        git_request: "v1",
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
@@ -177,7 +177,7 @@ describe VulcanV2Controller do
     #     workflow_id: json_body[:workflow_id],
     #     workspace_name: "running-tiger",
     #     branch: "main",
-    #     git_version: "v1"
+    #     git_request: "v1"
     #   }
     #   post("/api/v2/#{PROJECT}/workspace/create", request)
     #   obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
@@ -190,7 +190,7 @@ describe VulcanV2Controller do
           workflow_id: json_body[:workflow_id],
           workspace_name: "running-tiger",
           branch: "main",
-          git_version: "v1"
+          git_request: "v1"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       expect(last_response.status).to eq(200)
@@ -199,7 +199,8 @@ describe VulcanV2Controller do
       expect(obj).to_not be_nil
       expect(obj.dag.to_a).to eq(["count", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
       expect(File.basename(obj.path).match?(/\A[a-f0-9]{32}\z/)).to be_truthy
-      expect(obj.git_version).to eq("v1")
+      expect(obj.git_ref).to eq("v1")
+      expect(obj.git_sha).to_not eq(nil)
     end
 
     it 'successfully sends back vulcan_config and dag' do
@@ -208,7 +209,7 @@ describe VulcanV2Controller do
           workflow_id: json_body[:workflow_id],
           workspace_name: "running-tiger",
           branch: "main",
-          git_version: "v1"
+          git_request: "v1"
       }
       post("/api/v2/#{PROJECT}/workspace/create", request)
       expect(last_response.status).to eq(200)

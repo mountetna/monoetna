@@ -77,11 +77,15 @@ jobs:
       - name: Pull base images
         run: |
           docker pull etnaagent/vulcan_c4_env:latest
-          docker pull etnaagent/etna-base:master
+          docker pull etnaagent/etna-base-dev:master
           docker pull etnaagent/development-psql:master
-          docker tag etnaagent/etna-base:master etna-base
+          docker tag etnaagent/etna-base-dev:master etna-base-dev
           docker tag etnaagent/development-psql:master development-psql
           docker tag etnaagent/vulcan_c4_env:latest vulcan_c4_env
+      - name: Build etna-base image
+        run: |
+          docker build -t etna -f etna/Dockerfile --build-arg APP_NAME=etna etna
+          docker build -t etna-base -f docker/etna-base/Dockerfile --build-arg APP_NAME=etna-base docker/etna-base
       - name: Build vulcan_app image
         run: docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
       - name: Start DB & c4_env
