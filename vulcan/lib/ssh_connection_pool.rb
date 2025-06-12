@@ -38,7 +38,7 @@ class Vulcan
           Vulcan.instance.logger.info("Reading SSH config from ~/.ssh/config ...")
           Net::SSH.start(@host, @username, config: true, **@settings)
         end
-      rescue Net::SSH::AuthenticationFailed, Net::SSH::ConnectionTimeout, Net::SSH::Disconnect, Errno::ECONNREFUSED, IOError => e
+      rescue Net::SSH::Exception, Errno::ECONNREFUSED, IOError => e
         retries += 1
         if retries <= @max_retries
           Vulcan.instance.logger.warn("SSH connection attempt #{retries}/#{@max_retries} failed: #{e.message}. Retrying in #{@retry_delay} seconds...")
