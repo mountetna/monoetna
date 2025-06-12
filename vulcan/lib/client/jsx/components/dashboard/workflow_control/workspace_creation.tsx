@@ -116,22 +116,22 @@ export default function WorkspaceCreateButtonModal({
     const wspaces: WorkspaceMinimal[] = workspaces
       .filter((w: WorkspaceMinimal) => w.workflow_id == workflow.id)
       .sort((a,b) => a.created_at < b.created_at ? 1 : -1);
-    const versions: string[] = [...new Set(wspaces.map((w: WorkspaceMinimal) => w.git_version) as string[])]
+    const versions: string[] = [...new Set(wspaces.map((w: WorkspaceMinimal) => w.git_ref) as string[])]
     const unusedBranches = [...branches];
     const unusedTags = [...tags];
     const out: VersionOpts = {branches: [], tags_or_commits: []}
     for (let ind in versions) {
       let v = versions[ind];
       let k: 'branches' | 'tags_or_commits' = 'tags_or_commits'
-      if (v in branches) {
+      if (branches.includes(v)) {
         k = 'branches';
         unusedBranches.splice(unusedBranches.indexOf(v), 1);
       }
-      if (v in tags) {
+      if (tags.includes(v)) {
         unusedTags.splice(unusedTags.indexOf(v), 1);
       }
       let used = wspaces
-        .filter((w: WorkspaceMinimal) => w.git_version == v)
+        .filter((w: WorkspaceMinimal) => w.git_ref == v)
         .map((w: WorkspaceMinimal) => w.created_at)
         // .sort((a,b) => a < b ? 1 : -1)
         [0].split(' +')[0]
@@ -173,7 +173,7 @@ export default function WorkspaceCreateButtonModal({
       </Grid>
       <Grid item>
         <Typography color='secondary'>
-          {`Last Requested Directly: ${option.lastUsed}`}
+          {`Last Requested: ${option.lastUsed}`}
         </Typography>
       </Grid>
     </Grid>
@@ -216,9 +216,9 @@ export default function WorkspaceCreateButtonModal({
       return option.version
     }}
     renderOption={optionDisplay}
-    filterOptions={(options: typeof pastShas, state: any) => {
+    filterOptions={(options: typeof optsUse, state: any) => {
       let regex = new RegExp(state.inputValue);
-      return options.filter((o) => regex.test(o.version) && o.version!='' && o.version!='...awaiting...').sort((a,b) => a < b ? 1 : -1);
+      return options.filter((o) => regex.test(o.version) && !['','...awaiting...'].includes(o.version))
     }}
     onChange={onSelect}
   />
