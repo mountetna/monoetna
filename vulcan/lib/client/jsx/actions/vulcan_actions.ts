@@ -50,9 +50,12 @@ export function setWorkspaceStateSyncd() {
 export function setConfigId(configId: Workspace['workspace_id']) {
   return actionObject('SET_CONFIG_ID', {configId});
 }
+export function setAttemptingToRun(to: boolean) {
+  return actionObject('SET_ATTEMPTING_RUN', {to});
+}
 
-export function setRunId(runId: Workspace['workspace_id']) {
-  return actionObject('SET_RUN_ID', {runId});
+export function setRunning(runId: Workspace['workspace_id']) {
+  return actionObject('SET_RUNNING', {runId});
 }
 
 export function setLastConfig(lastConfig: WorkspaceStatus['last_params']) {
@@ -62,9 +65,8 @@ export function setLastConfig(lastConfig: WorkspaceStatus['last_params']) {
 export function useUIAccounting(
   accounting: AccountingReturn,
   submittingStep: Maybe<string> = null,
-  removeSync: boolean = false
 ) {
-  return actionObject('USE_UI_ACCOUNTING', {accounting, submittingStep, removeSync});
+  return actionObject('USE_UI_ACCOUNTING', {accounting, submittingStep});
 }
 
 export function setStatusFromStatuses(
@@ -102,12 +104,12 @@ export function removeValidationErrors(errors: string[]) {
   return actionObject('REMOVE_VALIDATION_ERRORS', {errors});
 }
 
-export function startPolling() {
-  return actionObject('MODIFY_POLLING', {to: true});
+export function startSyncing() {
+  return actionObject('MODIFY_SYNCING', {to: true, submittingStep: undefined});
 }
 
-export function finishPolling() {
-  return actionObject('MODIFY_POLLING', {to: false});
+export function endSyncing(submittingStep: string) {
+  return actionObject('MODIFY_SYNCING', {to: false, submittingStep: submittingStep});
 }
 
 export function updateFiles(statusUpdates: Pick<WorkspaceStatus, 'output_files' | 'file_contents'>) {
@@ -160,15 +162,15 @@ export type VulcanAction =
   | ReturnType<typeof setStateFromStorage>
   | ReturnType<typeof setWorkspaceStateSyncd>
   | ReturnType<typeof setConfigId>
-  | ReturnType<typeof setRunId>
+  | ReturnType<typeof setAttemptingToRun>
+  | ReturnType<typeof setRunning>
   | ReturnType<typeof setLastConfig>
   | ReturnType<typeof useUIAccounting>
   | ReturnType<typeof setStatusFromStatuses>
   | ReturnType<typeof setWorkspaceFiles>
   | ReturnType<typeof setUIValues>
-  | ReturnType<typeof startPolling>
-  | ReturnType<typeof finishPolling>
-  | ReturnType<typeof removeSync>
+  | ReturnType<typeof startSyncing>
+  | ReturnType<typeof endSyncing>
   | ReturnType<typeof updateFiles>
   | ReturnType<typeof addValidationErrors>
   | ReturnType<typeof removeValidationErrors>

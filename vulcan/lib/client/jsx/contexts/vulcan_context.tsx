@@ -3,7 +3,6 @@ import VulcanReducer, {defaultVulcanState, VulcanState} from '../reducers/vulcan
 import {VulcanAction} from '../actions/vulcan_actions';
 import {defaultSessionStorageHelpers, useLocalSessionStorage} from './session_storage';
 import {defaultApiHelpers, useApi} from './api';
-import {defaultSessionSyncHelpers, useSessionSyncWhileRunning} from './session_sync_while_running';
 import {defaultInputStateManagement, useInputStateManagement} from './input_state_management';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {defaultConfirmationHelpers, useConfirmation} from './confirmation';
@@ -14,7 +13,7 @@ export const defaultContext = {
   stateRef: {current: defaultVulcanState}, // This would be set with a context dispatch when the provide is actually
                                            // installed.
   dispatch: (a: VulcanAction) => console.warn('action dispatched but not handled', a),
-  useActionInvoker: (() => () => null) as typeof useActionInvoker, ...defaultConfirmationHelpers, ...defaultSessionStorageHelpers, ...defaultApiHelpers, ...defaultSessionSyncHelpers, ...defaultInputStateManagement,
+  useActionInvoker: (() => () => null) as typeof useActionInvoker, ...defaultConfirmationHelpers, ...defaultSessionStorageHelpers, ...defaultApiHelpers, ...defaultInputStateManagement,
 };
 
 export type VulcanContextData = typeof defaultContext;
@@ -78,10 +77,6 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
     const localSessionHelpers = withOverrides(useLocalSessionStorage(state, props), props);
     const apiHelpers = withOverrides(useApi(invoker), props);
     const {showErrors, getWorkflows, getWorkspaces, requestRun, pullRunStatus, getIsRunning} = apiHelpers;
-    const sessionSyncHelpers = withOverrides(
-      useSessionSyncWhileRunning(useApi(invoker), showErrors, requestRun, pullRunStatus, getIsRunning, dispatch),
-      props
-    );
     useWorkspacesWorkflowLoading(state.update_workflows, dispatch, getWorkflows, getWorkspaces, showErrors, state.projectName);
     const confirmationHelpers = withOverrides(useConfirmation(), props);
     const inputHelpers = useInputStateManagement(invoker, dispatch, stateRef);
@@ -94,7 +89,6 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
       ...actionInvokerHelpers,
       ...localSessionHelpers,
       ...apiHelpers,
-      ...sessionSyncHelpers,
       ...inputHelpers,
     }}>
       {props.children}

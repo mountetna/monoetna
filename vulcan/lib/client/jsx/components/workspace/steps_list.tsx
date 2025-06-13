@@ -22,8 +22,8 @@ export default function StepsList() {
   }, [workspace, status.file_contents]);
 
   useEffect(() => {
-    setOpen(!hasCompletedOutputs || state.pollingState);
-  }, [state.pollingState, hasCompletedOutputs]);
+    setOpen(!hasCompletedOutputs || state.isSyncing);
+  }, [state.isSyncing, hasCompletedOutputs]);
 
   if (!workspace) return null;
   const stepNamesToStepIconNames = (step, index) => (

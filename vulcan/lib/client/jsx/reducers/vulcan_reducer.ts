@@ -36,6 +36,8 @@ export const defaultVulcanState = {
   workspaceId: defaultId,
   configId: defaultId,
   runId: defaultId,
+
+  attemptingToRun: false,
   isRunning: false,
 
   // rule/step statuses, ui&param contents per local, file&param contents per server 
@@ -62,7 +64,7 @@ export const defaultVulcanState = {
 
   // Request Run and trigger polling state
   triggerRun: [] as (string | null)[],
-  pollingState: false,
+  isSyncing: false,
   
   validationErrors: defaultValidationErrors,
 };
@@ -118,7 +120,8 @@ function useAccounting(
     workQueueable: upcomingStepNames(workspace, newStatus).length > 0,
     configId: action.accounting.config_id,
     update_files: true,
-    pushSteps: action.removeSync ? state.pushSteps.filter(s => s!=action.submittingStep) : state.pushSteps,
+    isSyncing: false,
+    pushSteps: state.pushSteps.filter(s => s!=action.submittingStep),
   };
 }
 
@@ -144,10 +147,11 @@ export default function VulcanReducer(
     //     ...state,
     //     workspaces: action.workspaces
     //   };
-    case 'MODIFY_POLLING':
+    case 'MODIFY_SYNCING':
       return {
         ...state,
-        pollingState: action.to
+        isSyncing: action.to,
+        pushSteps: !!action.submittingStep ? state.pushSteps.filter(s => s!=action.submittingStep) : state.pushSteps,
       };
     case 'SET_WORKFLOW':
       const workflowProject = action.workflow.project_name;
@@ -213,11 +217,18 @@ export default function VulcanReducer(
         ...state,
         configId: action.configId
       };
-    case 'SET_RUN_ID':
+    case 'SET_ATTEMPTING_RUN':
+      return {
+        ...state,
+        attemptingToRun: action.to
+      }
+    case 'SET_RUNNING':
       return {
         ...state,
         runId: action.runId,
+        attemptingToRun: false,
         isRunning: true,
+        workQueueable: false
       };
     case 'SET_LAST_CONFIG':
       return {
@@ -348,8 +359,8 @@ export default function VulcanReducer(
       };
 
     case 'SET_UI_VALUES':
-      if (state.pollingState) {
-        console.error('cannot change inputs while polling...');
+      if (state.isSyncing) {
+        console.error('cannot change inputs while already syncing...');
         return state;
       }
 
