@@ -102,7 +102,7 @@ function useAccounting(
     // The submitting step is pushing a new value from the client up, thus
     // it should not have its input made stale.
     if (step === action.submittingStep || !Object.keys(newSteps).includes(step)) {
-      console.log(`${step} not tracked, skipping`)
+      // console.log(`${step} not tracked, skipping`)
       continue;
     }
 
