@@ -62,9 +62,11 @@ default: &default
       :verify_host_key: :never
   :base_dir: /app/vulcan
   :conda_env: conda-vulcan
+  :snakemake_profile_dir: /app/spec/fixtures/v2/profiles/
+  # # Alternates for connecting local development with c4
+  # change 'default' below to something specific to you in order to avoid possibility of conflicts with other engineers
   # :base_dir: /dscolab/vulcan/development/default
   # :conda_env: snakemake_env
-  :snakemake_profile_dir: /app/spec/fixtures/v2/profiles/
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
