@@ -62,6 +62,8 @@ default: &default
       :verify_host_key: :never
   :base_dir: /app/vulcan
   :conda_env: conda-vulcan
+  # :base_dir: /dscolab/vulcan/development/default
+  # :conda_env: snakemake_env
   :snakemake_profile_dir: /app/spec/fixtures/v2/profiles/
 
 # Warning: The database defined as "test" will be erased and
