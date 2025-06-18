@@ -1,5 +1,5 @@
 import {useCallback, useRef, useState} from 'react';
-import {showMessages} from 'etna-js/actions/message_actions';
+import {showMessages, dismissMessages} from 'etna-js/actions/message_actions';
 import {
   checkStatus,
   handleFetchError,
@@ -33,6 +33,9 @@ import * as _ from 'lodash';
 export const defaultApiHelpers = {
   vulcanPath(endpoint: string): string {
     return `${CONFIG.vulcan_host}${endpoint}`
+  },
+  showError(e: string, dismissOld = false) {
+    console.error(e);
   },
   showErrors<T>(work: Promise<T>, additional: (e: any) => void = (e) => {}): Promise<T> {
     work.catch((e) => {
@@ -153,7 +156,8 @@ export function useApi(
     });
   }, []);
 
-  const showError = useCallback((e: any) => {
+  const showError = useCallback((e: any, dismissOld: boolean = false) => {
+    if (dismissOld) invoke(dismissMessages());
     console.error(e);
     invoke(showMessages(e));
   }, [invoke]);
@@ -216,7 +220,7 @@ export function useApi(
       if (!!name) params['name'] = name;
       if (!!tags) params['tags'] = tags;
       if (Object.keys(params).length < 1) {
-        showError('Possible Error: updateWorkspace was called without any updates provided.')
+        showError('UI Error: updateWorkspace was called without any updates to send.')
       }
       return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/update`),
@@ -345,6 +349,7 @@ export function useApi(
 
   return {
     vulcanPath,
+    showError,
     showErrors,
     createWorkflow,
     getWorkflows,
