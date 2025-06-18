@@ -423,6 +423,7 @@ describe WorkflowController do
 
     it 'returns all previous states available when requested' do
       create_run(state: { current_labor: "The Nemean Lion" }, created_at: Time.now - 20)
+      create_run(state: { }, created_at: Time.now - 20, run_id: "argo_run_state_22")
       create_run(state: { current_labor: "The Lernaean Hydra" }, created_at: Time.now, run_id: "argo_run_state_23")
       auth_header(:editor)
       post("/api/workflows/labors/run/previous/#{config_id}",
