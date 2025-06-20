@@ -9,6 +9,7 @@ import RelatedResourcesMenu from './related-resources-menu';
 import NavLink from './nav-link';
 import { toSearchParamsString } from '@/lib/utils/uri';
 import { ABOUT_SERACH_PARAMS_KEY, AboutSearchParamsState } from '../about/models';
+import { TypographyVariant } from '@/lib/utils/types'
 
 
 export enum Classes {
