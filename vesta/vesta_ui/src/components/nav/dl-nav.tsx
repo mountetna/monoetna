@@ -3,10 +3,10 @@ import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
 import { SxProps, Typography, useTheme } from '@mui/material';
 
-import { TypographyVariant } from '@/lib/utils/types'
 import { Heights as NavBarHeights } from './nav-bar';
 import { useBreakpoint } from '@/lib/utils/responsive';
-import Link from '../link/link';
+import RelatedResourcesMenu from './related-resources-menu';
+import NavLink from './nav-link';
 import { toSearchParamsString } from '@/lib/utils/uri';
 import { ABOUT_SERACH_PARAMS_KEY, AboutSearchParamsState } from '../about/models';
 
@@ -16,52 +16,6 @@ export enum Classes {
     linkContainer = 'link-container',
     link = 'link',
 }
-
-
-function NavLink({
-    text,
-    href,
-    onClick,
-    typography,
-}: {
-    text: string,
-    href: string,
-    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void,
-    typography: TypographyVariant,
-}) {
-    const theme = useTheme()
-
-    return (
-        <Box
-            className={Classes.linkContainer}
-            component='li'
-        >
-            <Link
-                className={Classes.link}
-                href={href}
-                tabIndex={0}
-                onClick={onClick}
-                sx={{
-                    '&:hover, &:focus': {
-                        color: 'blue.grade50',
-                    },
-                    transition: theme.transitions.create(
-                        ['color'],
-                        {
-                            easing: theme.transitions.easing.ease,
-                            duration: theme.transitions.duration.ease,
-                        },
-                    ),
-                }}
-            >
-                <Typography variant={typography}>
-                    {text}
-                </Typography>
-            </Link>
-        </Box>
-    )
-}
-
 
 export default function DLNav({
     sx = {},
@@ -83,7 +37,8 @@ export default function DLNav({
         const elId = href.split('#')[1]
         const el = document.getElementById(elId)
 
-        router.push(href, { scroll: false })
+        if (href.startsWith('/')) router.push(href, { scroll: false })
+        else window.open(href, '_blank');
 
         if (el) {
             window.scrollTo({
@@ -94,6 +49,10 @@ export default function DLNav({
 
         onClickNavLink && onClickNavLink()
     }
+
+    const [anchorEl, setAnchorEl] = React.useState(null);
+    const handleClick = event => setAnchorEl(event.currentTarget);
+    const handleClose = () => setAnchorEl(null);
 
     const aboutSearchParams: AboutSearchParamsState = { index: 0 }
     const aboutHref = '/?' + toSearchParamsString({ [ABOUT_SERACH_PARAMS_KEY]: aboutSearchParams }) + '#about'
@@ -136,10 +95,16 @@ export default function DLNav({
                 typography={linkTypography}
             />
             <NavLink
-                text='Legacy Version'
-                href={'https://datalibraryarchive.ucsf.edu/'}
-                onClick={handleClickNavLink}
+                text='Related Resources'
+                href={'/'}
+                onClick={handleClick}
                 typography={linkTypography}
+            />
+            <RelatedResourcesMenu
+              anchorEl={anchorEl}
+              typography={linkTypography}
+              onClick={handleClickNavLink}
+              onClose={handleClose}
             />
         </Box>
     )
