@@ -1,9 +1,13 @@
 import {Dispatch, useEffect} from 'react';
-import {updateFiles, useUIAccounting, VulcanAction} from '../../actions/vulcan_actions';
+import {endSyncing, startSyncing, updateFiles, useUIAccounting, VulcanAction, setStatusFromStatuses} from '../../actions/vulcan_actions';
 import {defaultApiHelpers} from '../../contexts/api';
 import {VulcanState} from '../../reducers/vulcan_reducer';
 import {allFilesToBuffer, filesReturnToMultiFileContent} from '../../selectors/workflow_selectors';
-import { MultiFileContent } from '../../api_types';
+import {MultiFileContent, RunStatus} from '../../api_types';
+
+import {runPromise, useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
+
+const refreshSuggestionText = 'Try Refreshing to fix the previous error.  Alert the Data Library Team if this continues to happen.';
 
 const imageExtRegEx = /\.(png|tiff?|jpe?g|bmp|svg|gif|webp)$/
 const largeFileExtRegEx = /\.(gz|zip|Rds|rds|Rdata|RData|rdata|h5ad|h5mu|h5)$/
@@ -11,6 +15,7 @@ const largeFileExtRegEx = /\.(gz|zip|Rds|rds|Rdata|RData|rdata|h5ad|h5mu|h5)$/
 export function useDataSync(
     state: VulcanState,
     dispatch: Dispatch<VulcanAction>,
+    showError: typeof defaultApiHelpers.showError,
     showErrors: typeof defaultApiHelpers.showErrors,
     getFileNames: typeof defaultApiHelpers.getFileNames,
     readFiles: typeof defaultApiHelpers.readFiles,
@@ -22,9 +27,13 @@ export function useDataSync(
     if (pushSteps.length > 0 && !!workspaceId) {
       // Push files / params to compute server for step
       const pushStep = [...pushSteps][0]
-      showErrors(postUIValues(projectName,workspaceId,status,pushStep))
+      dispatch(startSyncing())
+      showErrors(postUIValues(projectName,workspaceId,status,pushStep), (e) => {
+        dispatch(endSyncing(pushStep));
+        showError(refreshSuggestionText);
+      })
       .then((accountingResponse) => {
-        dispatch(useUIAccounting(accountingResponse, pushStep, true));
+        dispatch(useUIAccounting(accountingResponse, pushStep));
       })
     }
   }, [pushSteps, postUIValues])
@@ -75,4 +84,46 @@ export function useDataSync(
       })
     }
   }, [update_files, workspaceId, projectName, getFileNames, readFiles]);
+}
+
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function useRunSyncing(
+  projectName: string,
+  workspaceId: number | null,
+  runId: number | null,
+  showError: typeof defaultApiHelpers.showError,
+  showErrors: typeof defaultApiHelpers.showErrors,
+  pullRunStatus: typeof defaultApiHelpers.pullRunStatus,
+  getIsRunning: typeof defaultApiHelpers.getIsRunning,
+  dispatch: Dispatch<VulcanAction>,
+): {
+  requestRunPolling: () => Promise<unknown>,
+  cancelRunning: () => {}
+} {
+  function suggestRefresh(e: any) {showError(refreshSuggestionText)};
+  const [requestRunPolling, cancelRunning] = useAsyncCallback(function* () {
+    if (!workspaceId || !runId) {
+      showError('Possible UI Bug?: Missing info needed for checking workspace run')
+      return
+    };
+    let isRunning = true;
+    while (isRunning) {
+      yield delay(3000);
+      const runningResponse = yield* runPromise(showErrors(getIsRunning(projectName,workspaceId), suggestRefresh));
+      isRunning = runningResponse['running'];
+      const response: RunStatus = yield* runPromise(showErrors(pullRunStatus(projectName,workspaceId,runId), suggestRefresh));
+      dispatch(setStatusFromStatuses(response, isRunning));
+    }
+  },
+  [projectName, workspaceId, runId, showError, showErrors, pullRunStatus, getIsRunning, dispatch],
+  () => {
+    // ToDo: cancelRunning!
+  });
+
+  return {
+    requestRunPolling, cancelRunning
+  };
 }
