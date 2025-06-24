@@ -1,78 +1,51 @@
 require "connection_pool"
+require "net/ssh"
 
 class Vulcan
-
   class SSHConnectionPool
-    def initialize(host, username, password, use_ssh_config, settings: {}, pool_size: 5, timeout: 600, max_retries: 3, retry_delay: 5)
-      @host = host
-      @username = username
-      @password = password
+    def initialize(host, username, password, use_ssh_config,
+                   settings: {}, pool_size: 5, timeout: 600,
+                   max_retries: 3, retry_delay: 5)
+
+      @host           = host
+      @username       = username
+      @password       = password
       @use_ssh_config = use_ssh_config
+
+      # 1) Tune keep-alive for faster dead-socket detection (~30s total)
       @settings = settings.merge(
-        keepalive: true,
-        keepalive_interval: 30,
+        keepalive:          true,
+        keepalive_interval: 10,
         keepalive_maxcount: 3,
-        timeout: timeout
+        timeout:            timeout
       )
-      @max_retries = max_retries
-      @retry_delay = retry_delay
-      
-      @pool = ConnectionPool.new(size: pool_size, timeout: timeout) do
-        create_connection
-      end
+
+      @max_retries  = max_retries
+      @retry_delay  = retry_delay
+      @pool_size    = pool_size
+      @pool_timeout = timeout
+
+      # 2) Build initial pool
+      @pool = build_pool
     end
 
-    def create_connection
-      retries = 0
-      begin
-        if @password
-          Vulcan.instance.logger.info("Establishing SSH connection to #{@host} with username: #{@username} and password ...")
-          if @use_ssh_config
-            Vulcan.instance.logger.info("Reading ssh config from ~/.ssh/config ...")
-            Net::SSH.start(@host, @username, password: @password, config: true, **@settings)
-          else
-            Net::SSH.start(@host, @username, password: @password, config: false, **@settings)
-          end
-        else
-          Vulcan.instance.logger.info("Establishing SSH connection to #{@host} with user #{@username} and SSH config ...")
-          Vulcan.instance.logger.info("Reading SSH config from ~/.ssh/config ...")
-          Net::SSH.start(@host, @username, config: true, **@settings)
-        end
-      rescue Net::SSH::Exception, Errno::ECONNREFUSED, IOError => e
-        retries += 1
-        if retries <= @max_retries
-          Vulcan.instance.logger.warn("SSH connection attempt #{retries}/#{@max_retries} failed: #{e.message}. Retrying in #{@retry_delay} seconds...")
-          sleep @retry_delay
-          retry
-        else
-          Vulcan.instance.logger.error("Failed to establish SSH connection after #{@max_retries} attempts: #{e.message}")
-          raise e
-        end
-      end
-    end
-
+    # Borrow a session, validate it, and yield; on session-level errors rebuild once
     def with_conn
       @pool.with do |ssh|
         begin
-          begin
-            channel = ssh.open_channel do |ch|
-              ch.exec("echo 'connection test'") do |ch, success|
-                raise "Could not execute command" unless success
-              end
-            end
-            channel.wait
-          rescue Net::SSH::Exception, IOError => e
-            Vulcan.instance.logger.warn("SSH connection validation failed: #{e.message}")
-            raise e
-          end
+          health_check(ssh)
+          yield ssh
+        rescue Net::SSH::Disconnect,
+               Errno::ECONNREFUSED,
+               Errno::ECONNRESET,
+               Errno::EBADF,
+               IOError => e
 
-          yield ssh
-        rescue Net::SSH::Disconnect, Errno::ECONNREFUSED, IOError => e
-          Vulcan.instance.logger.warn("SSH connection lost: #{e.message}, attempting to reconnect...")
-          # Force pool to create a new connection
-          @pool.shutdown { |conn| conn.close rescue nil }
-          ssh = create_connection
-          yield ssh
+          Vulcan.instance.logger.warn(
+            "SSH session error (#{e.class}: #{e.message}), recreating pool…"
+          )
+          recreate_pool
+          retry
         end
       end
     end
@@ -80,6 +53,58 @@ class Vulcan
     def close_all
       @pool.shutdown { |conn| conn.close rescue nil }
     end
-  end
 
+    private
+
+    # 2) Pool builder
+    def build_pool
+      ConnectionPool.new(size: @pool_size, timeout: @pool_timeout) do
+        create_connection
+      end
+    end
+
+    # 2) Centralized pool teardown + rebuild
+    def recreate_pool
+      Vulcan.instance.logger.info("Recreating SSH connection pool for #{@host}…")
+      @pool.shutdown { |conn| conn.close rescue nil }
+      @pool = build_pool
+    end
+
+    # 3) Extracted health check into its own method
+    def health_check(ssh)
+      ch = ssh.open_channel do |c|
+        c.exec("echo 'connection test'") do |_, success|
+          raise "SSH health check failed" unless success
+        end
+      end
+      ch.wait
+    end
+
+    # 4) Unified connection opts & retry loop
+    def create_connection
+      tries = 0
+      begin
+        Vulcan.instance.logger.info("Establishing SSH to #{@host} as #{@username}…")
+        opts = @settings.dup
+        opts[:config] = @use_ssh_config
+        opts[:password] = @password if @password
+        Net::SSH.start(@host, @username, **opts)
+      rescue Net::SSH::Exception, Errno::ECONNREFUSED, Errno::ECONNRESET, IOError => e
+        tries += 1
+        if tries <= @max_retries
+          Vulcan.instance.logger.warn(
+            "SSH connect attempt #{tries}/#{@max_retries} failed: #{e.message}. "\
+            "Retrying in #{@retry_delay}s…"
+          )
+          sleep @retry_delay
+          retry
+        else
+          Vulcan.instance.logger.error(
+            "Failed to establish SSH after #{@max_retries} attempts: #{e.message}"
+          )
+          raise
+        end
+      end
+    end
+  end
 end
