@@ -46,6 +46,9 @@ class Vulcan
     # Is running endpoint
     get'api/v2/:project_name/workspace/:workspace_id/running', action: 'vulcan_v2#is_running',  auth: { user: { can_view?: :project_name }}
   
+    # Cluster latency endpoint
+    get 'api/v2/:project_name/cluster-latency', action: 'vulcan_v2#cluster_latency', auth: { user: { can_view?: :project_name }}
+  
     # Vulcan V1 endpoints - to eventually remove
     get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
 
