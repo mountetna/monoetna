@@ -1,7 +1,4 @@
 require_relative 'commands'
-require_relative 'storage'
-require_relative 'orchestration'
-require_relative 'dependency_manager'
 require_relative 'ssh_connection_pool'
 
 class Vulcan
@@ -59,41 +56,5 @@ class Vulcan
     else
       Vulcan.instance.logger.error("Please specify a conda environment in the config...")
     end
-  end
-
-
-  def setup_yabeda
-    Yabeda.configure do
-      group :vulcan do
-        histogram :job_runtime do
-          comment "Time spent by each cell, including storage and docker execution."
-          unit :seconds
-          tags [:script_hash]
-          buckets [1, 5, 15, 60, 150, 300]
-        end
-
-        gauge :storage_disk_usage do
-          comment "Amount (in bytes) used by vulcan storage directories"
-          tags [:dir]
-        end
-      end
-
-      collect do
-        output = `du #{Vulcan.instance.config(:data_folder)} --max-depth 1` rescue ""
-        output.split("\n").each do |line|
-          parts = line.split("\t")
-          if parts.length > 1
-            bytes, dir = parts
-            vulcan.storage_disk_usage.set({dir: dir}, bytes.to_i)
-          end
-        end
-      end
-    end
-
-    super
-  end
-
-  def dependency_manager
-    @dependency_manager ||= Vulcan::DependencyManager.new
   end
 end
