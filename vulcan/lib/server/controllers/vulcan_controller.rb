@@ -37,10 +37,6 @@ class Vulcan
       }.merge(config_hosts).to_json
     end
 
-    def storage
-      @storage ||= Vulcan::Storage.new
-    end
-
     def token
       @token ||= @request.cookies[Vulcan.instance.config(:token_name)]
     end
