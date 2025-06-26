@@ -51,8 +51,8 @@ export default function DLNav({
         onClickNavLink && onClickNavLink()
     }
 
-    const [anchorEl, setAnchorEl] = React.useState(null);
-    const handleClick = event => setAnchorEl(event.currentTarget);
+    const [anchorEl, setAnchorEl] = React.useState<HTMLAnchorElement|null>(null);
+    const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => setAnchorEl(event.currentTarget);
     const handleClose = () => setAnchorEl(null);
 
     const aboutSearchParams: AboutSearchParamsState = { index: 0 }
