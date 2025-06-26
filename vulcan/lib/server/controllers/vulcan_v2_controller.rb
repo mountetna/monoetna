@@ -353,6 +353,17 @@ class VulcanV2Controller < Vulcan::Controller
     retrieve_file(@params[:file_name], "application/octet-stream", disposition: "attachment; filename=#{@params[:file_name]}")
   end
 
+  def cluster_latency
+    begin
+      # Measure SSH latency using the remote_manager's measure_latency method
+      median_latency = @remote_manager.measure_latency
+      success_json({latency: "#{median_latency}ms"})
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
+  end
+
   private
 
   def retrieve_file(file_name, file_type, disposition: nil)

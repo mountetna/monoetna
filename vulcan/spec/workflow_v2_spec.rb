@@ -1092,4 +1092,14 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(422)
     end
   end
+
+  context 'cluster latency' do
+    it 'returns SSH latency measurement' do
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/cluster-latency")
+      expect(last_response.status).to eq(200)
+      expect(json_body).to have_key(:latency)
+      expect(json_body[:latency]).to match(/^\d+\.?\d*ms$/)
+    end
+  end
 end

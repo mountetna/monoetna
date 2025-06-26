@@ -1,9 +1,4 @@
 require_relative './server/controllers/vulcan_controller'
-require_relative './server/controllers/browse_controller'
-require_relative './server/controllers/workflows_controller'
-require_relative './server/controllers/figure_controller'
-require_relative './server/controllers/data_controller'
-require_relative './server/controllers/sessions_controller'
 require_relative './server/controllers/vulcan_v2_controller'
 
 class Vulcan
@@ -12,8 +7,6 @@ class Vulcan
     get 'no_auth', as: :no_auth do
       erb_view(:no_auth)
     end
-
-    # Vulcan V2 endpoints
 
     # Workflow API
     post 'api/v2/:project_name/workflows/create', action: 'vulcan_v2#create_workflow', auth: { user: { is_superuser?: :project_name }}
@@ -46,27 +39,9 @@ class Vulcan
     # Is running endpoint
     get'api/v2/:project_name/workspace/:workspace_id/running', action: 'vulcan_v2#is_running',  auth: { user: { can_view?: :project_name }}
   
-    # Vulcan V1 endpoints - to eventually remove
-    get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
-
-    with auth: { user: { can_view?: :project_name } } do
-      get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true
-      post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true
-      post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true
-      get 'api/:project_name/workflows', action: 'workflows#fetch_for_project'
-
-      get 'api/:project_name/figures', action: 'figure#fetch'
-      get 'api/:project_name/figure/:figure_id', action: 'figure#get'
-      get 'api/:project_name/figure/:figure_id/revisions', action: 'figure#revisions'
-      post 'api/:project_name/figure/create', action: 'figure#create'
-      post 'api/:project_name/figure/:figure_id/update', action: 'figure#update'
-      delete 'api/:project_name/figure/:figure_id', action: 'figure#delete'
-
-      # remaining view routes are parsed by the client and must be set there
-      get '/:project_name', as: :project_root do erb_view(:client) end
-      get '/:project_name/*client_path', as: :client_view do erb_view(:client) end
-    end
-
+    # Cluster latency endpoint
+    get 'api/v2/:project_name/cluster-latency', action: 'vulcan_v2#cluster_latency', auth: { user: { can_view?: :project_name }}
+  
     # root path
     get '/', as: :root do erb_view(:client) end
 
