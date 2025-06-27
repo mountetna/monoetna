@@ -39,7 +39,7 @@ describe Vulcan::Snakemake::TargetParser do
     it 'correctly maps the targets with the inputs' do
         expect(parsed_core["output/count_poem.txt"]["inputs"]).to contain_exactly("output/poem.txt", "output/poem_2.txt")
         expect(parsed_core["output/count_poem_2.txt"]["inputs"]).to contain_exactly("output/poem.txt", "output/poem_2.txt")
-        expect(parsed_core["output/arithmetic.txt"]["inputs"]).to contain_exactly("output/count_poem.txt", "output/count_poem_2.txt")
+        expect(parsed_core["output/arithmetic.txt"]["inputs"]).to contain_exactly("output/count_poem.txt", "output/count_poem_2.txt", "resources/number_to_add.txt")
         expect(parsed_core["output/check.txt"]["inputs"]).to contain_exactly("output/arithmetic.txt")
   end
 

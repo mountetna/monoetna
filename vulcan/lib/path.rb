@@ -54,6 +54,10 @@ class Vulcan
       "#{workspace_dir}/output/"
     end
 
+    def self.workspace_resources_dir(workspace_dir)
+      "#{workspace_dir}/resources/"
+    end
+
     def self.profile_dir(workspace_dir, profile_name)
       "#{workspace_dir}/profiles/#{profile_name}/"
     end
