@@ -6,14 +6,14 @@ import { TypographyVariant } from '@/lib/utils/types'
 import NavLink from './nav-link';
 
 export default function RelatedResourcesMenu({
-    linkTypography = 'pBody',
+    typography = 'pBody',
     anchorEl,
     onClick,
     onClose
 }: {
-    linkTypography?: TypographyVariant,
+    typography?: TypographyVariant,
     anchorEl: any,
-    onClick: () => void,
+    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void,
     onClose: () => void,
 }) {
     const open = Boolean(anchorEl);
@@ -24,7 +24,7 @@ export default function RelatedResourcesMenu({
           text='Legacy Version'
           href={'https://datalibraryarchive.ucsf.edu/'}
           onClick={onClick}
-          typography={linkTypography}
+          typography={typography}
         />
       </MenuItem>
       <MenuItem onClick={onClose} sx={{ '&:hover': { backgroundColor: 'white' } }}>
@@ -32,7 +32,7 @@ export default function RelatedResourcesMenu({
           text='QuIPI'
           href={'https://quipi.org/'}
           onClick={onClick}
-          typography={linkTypography}
+          typography={typography}
         />
       </MenuItem>
     </Menu>
