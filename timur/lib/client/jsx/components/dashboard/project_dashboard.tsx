@@ -23,8 +23,17 @@ import CardMedia from '@material-ui/core/CardMedia';
 
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectUser} from 'etna-js/selectors/user-selector';
-
-import {json_get, json_delete} from 'etna-js/utils/fetch';
+import {
+  addUsersSensor,
+  editModelsSensor,
+  editRulesSensor,
+  createBucketsSensor,
+  addFilesSensor,
+  linkRecordsSensor,
+  createLoadersSensor,
+  addWorkflowsSensor,
+  runWorkflowsSensor
+} from './sensors';
 
 const STAR = [
   StarBorderIcon,
@@ -79,20 +88,21 @@ type Info = {
   text: string;
 }
 
-const AppDashboard = ({app,title,action,help,helpLink,children}:{
+const AppDashboard = ({app,title,help,helpLink,children}:{
   app: string;
   title: string;
-  action: string;
   children: any;
+  help: string;
+  helpLink: string;
 }) => {
   const classes = useStyles();
 
-  const user = useReduxState((state) => selectUser(state));
+  const user = useReduxState((state:any) => selectUser(state));
   const userRole = 'viewer';//user.permissions[CONFIG.project_name].role;
 
   const shownChildren = React.Children.map(
-    children, child => ROLES[child.props.role] > ROLES[userRole] ? null : child
-  ).filter(_=>_)
+    children, child => ROLES[child.props.role as keyof typeof ROLES] > ROLES[userRole] ? null : child
+  ).filter((_:any)=>_)
 
   if (!shownChildren.length) return null;
 
@@ -136,11 +146,17 @@ const ROLES = {
   administrator: 3
 };
 
-const AppInfo = ({sensor,action,role,action_role=role,action_link}:{sensor: Function, action: string, role: string})=> {
+const AppInfo = ({sensor,action,role,actionRole=role,actionLink}:{
+  sensor: Function,
+  action: string,
+  role: string,
+  actionLink: string,
+  actionRole?: string
+})=> {
   const classes = useStyles();
   const [ info, setInfo ] = useState({ level: 0, text: undefined });
 
-  const user = useReduxState((state) => selectUser(state));
+  const user = useReduxState((state:any) => selectUser(state));
   const userRole =  'viewer';//user.permissions[CONFIG.project_name].role;
 
   useEffect( () => {
@@ -155,9 +171,9 @@ const AppInfo = ({sensor,action,role,action_role=role,action_link}:{sensor: Func
     </ListItemIcon>
     { info.text
       ? <ListItemText secondary={
-          ROLES[action_role] > ROLES[userRole]
+          ROLES[actionRole as keyof typeof ROLES] > ROLES[userRole]
             ? info.text
-            : <a className={classes.link} title={action} href={action_link}>{info.text}</a>
+            : <a className={classes.link} title={action} href={actionLink}>{info.text}</a>
         } />
       : <div style={{width: '50px'}}><LinearProgress/></div> }
   </ListItem>
@@ -167,23 +183,8 @@ const JanusAppDashboard = ({project_name}:{project_name: string}) => {
   return <AppDashboard app='janus' title='access' help='Guide to Managing User Access' helpLink='https://mountetna.github.io/access.html'>
     <AppInfo action='Add users'
       role='administrator'
-      sensor={ (setInfo: Function) => json_get(`${CONFIG.janus_host}/api/admin/${project_name}/info`).then(
-        ({project}) => {
-          const summary = project.permissions.map( ({role}:{role: string}) => role ).reduce(
-            (s: any,r: string) => {
-              s[r] = (s[r] || 0) + 1;
-              s.count = (s.count || 0) + 1;
-              return s
-            }, {}
-          );
-          const count = (c: number,r: string) => c == 1 ? `1 ${r}` : `${c} ${r}s`;
-          const level = (summary.count < 3) ? (summary.count < 2 ? 0 : 1) : 2;
-          const text = [ 'administrator', 'editor', 'viewer', 'guest' ].map(
-            role => role in summary ? count(summary[role], role) : ''
-          ).filter(_=>_).join(', ')
-          setInfo({level, text})
-        }
-      ) }
+      actionLink={ `https://${CONFIG.janus_host}/${project_name}` }
+      sensor={addUsersSensor}
     />
   </AppDashboard>
 }
@@ -192,11 +193,10 @@ const TimurAppDashboard = ({project_name}:{project_name: string}) => {
   return <AppDashboard app='timur' title='modeling' help='Guide to Modeling' helpLink='https://mountetna.github.io/modeling.html'>
     <AppInfo
       role='editor'
-      action_role='administrator'
-      action_link={ `/${project_name}/map` }
-      action='Edit models' sensor={ (setInfo: Function) => setInfo(
-      { level: 1, text: '1 out of 3 models with attributes' }
-    ) }/>
+      actionRole='administrator'
+      actionLink={ `/${project_name}/map` }
+      action='Edit models'
+      sensor={editModelsSensor}/>
   </AppDashboard>
 }
 
@@ -204,10 +204,8 @@ const GnomonAppDashboard = ({project_name}:{project_name: string}) => {
   return <AppDashboard app='gnomon' title='naming' help='Guide to Naming' helpLink='https://mountetna.github.io/naming.html'>
     <AppInfo
       role='editor'
-      action_link={ `https://${CONFIG.gnomon_host}/${project_name}/rules` }
-      action='Edit rules' sensor={ (setInfo: Function) => setInfo(
-      { level: 0, text: '1 of 12 models have identifier rules' }
-    ) }/>
+      actionLink={ `https://${CONFIG.gnomon_host}/${project_name}/rules` }
+      action='Edit rules' sensor={editRulesSensor}/>
   </AppDashboard>
 }
 
@@ -215,18 +213,16 @@ const MetisAppDashboard = ({project_name}:{project_name: string}) => {
   return <AppDashboard app='metis' title='files' help='Guide to Ingesting Files' helpLink='https://mountetna.github.io/ingestion.html'>
     <AppInfo
       role='editor'
-      action_role='administrator'
-      action_link={`https://${CONFIG.metis_host}/${project_name}/`}
-      action='Create buckets' sensor={ (setInfo: Function) => setInfo(
-      { level: 2, text: '2 buckets created' }
-    ) }/>
+      actionRole='administrator'
+      actionLink={`https://${CONFIG.metis_host}/${project_name}/`}
+      action='Create buckets'
+      sensor={ createBucketsSensor }/>
     <AppInfo
       role='viewer'
-      action_role='editor'
-      action_link={`https://${CONFIG.metis_host}/${project_name}/`}
-      action='Add files' sensor={ (setInfo: Function) => setInfo(
-      { level: 2, text: '572 files, 2.03 TB stored'}
-    ) }/>
+      actionRole='editor'
+      actionLink={`https://${CONFIG.metis_host}/${project_name}/`}
+      action='Add files'
+      sensor={ addFilesSensor }/>
   </AppDashboard>
 }
 
@@ -234,34 +230,29 @@ const PolyphemusAppDashboard = ({project_name}:{project_name: string}) => {
   return <AppDashboard app='polyphemus' title='linking' help='Guide to Linking Records' helpLink='https://mountetna.github.io/linking.html'>
     <AppInfo
       role='viewer'
-      action_role='editor'
-      action_link={`https://${CONFIG.polyphemus_host}/${project_name}`}
-      action='Link records' sensor={ (setInfo: Function) => setInfo(
-      { level: 2, text: '200 records created' }
-    ) }/>
+      actionRole='editor'
+      actionLink={`https://${CONFIG.polyphemus_host}/${project_name}`}
+      action='Link records' 
+      sensor={ linkRecordsSensor }/>
     <AppInfo
       role='editor'
-      action_link={`https://${CONFIG.polyphemus_host}/${project_name}`}
-      action='Create loaders' sensor={ (setInfo: Function) => setInfo(
-      { level: 2, text: '1 data loader, last run 2025-02-02' }
-    ) }/>
+      actionLink={`https://${CONFIG.polyphemus_host}/${project_name}`}
+      action='Create loaders'
+      sensor={ createLoadersSensor }/>
   </AppDashboard>
 }
 
 const VulcanAppDashboard = ({project_name}:{project_name: string}) => {
   return <AppDashboard app='vulcan' title='analysis' help='Guide to Analysis Workflows' helpLink='https://mountetna.github.io/analysis.html'>
     <AppInfo
-      action_role='administrator'
-      action_link={`https://${CONFIG.vulcan_host}/${project_name}`}
-      role='viewer' action='Add workflows' sensor={ (setInfo: Function) => setInfo(
-      { level: 2, text: '1 workflow' }
-    ) }/>
+      actionRole='administrator'
+      actionLink={`https://${CONFIG.vulcan_host}/${project_name}`}
+      role='viewer' action='Add workflows'
+      sensor={ addWorkflowsSensor }/>
     <AppInfo
       role='viewer'
-      action_link={`https://${CONFIG.vulcan_host}/${project_name}`}
-      action='Run workflows' sensor={ (setInfo: Function) => setInfo(
-      { level: 2, text: '1 workspace, last run 2025-03-03' }
-    ) }/>
+      actionLink={`https://${CONFIG.vulcan_host}/${project_name}`}
+      action='Run workflows' sensor={ runWorkflowsSensor }/>
   </AppDashboard>
 }
 
