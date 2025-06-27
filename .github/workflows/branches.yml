@@ -111,7 +111,7 @@ jobs:
           ./bin/vulcan migrate
 
           echo "=== Running specs ==="
-          bundle exec rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb
+          bundle exec rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb spec/command_builder_spec.rb
           EOF
           chmod +x vulcan/test-all.sh
       - name: Services check 
