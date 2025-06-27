@@ -27,6 +27,7 @@ rule arithmetic:
     input:
         poem_count="output/count_poem.txt",
         poem_count_2="output/count_poem_2.txt"
+        number_to_add="resources/number_to_add.txt"
     output:
         "output/arithmetic.txt"
     params:
@@ -37,11 +38,13 @@ rule arithmetic:
             count1 = int(f.read().strip())
         with open(input.poem_count_2, "r") as f:
             count2 = int(f.read().strip())
+        with open(input.number_to_add, "r") as f:
+            number = int(f.read().strip())
 
         if params.add:
-            result = count1 + count2
+            result = count1 + count2 + number
         else:
-            result = (count1 + count2) * params.add_and_multiply_by
+            result = (count1 + count2 + number) * params.add_and_multiply_by
 
         with open(output[0], "w") as f:
             f.write(str(result))
