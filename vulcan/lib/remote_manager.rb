@@ -146,12 +146,19 @@ class Vulcan
       invoke_ssh_command(command.to_s)
     end
 
-    def checkout_version(dir, sha_or_tag)
+    def checkout_version(dir, sha_or_tag_or_branch)
       command = build_command
         .add('cd', dir)
-        .add('git', 'checkout', sha_or_tag)
+        .add('git', 'checkout', sha_or_tag_or_branch)
 
       invoke_ssh_command(command.to_s)
+
+      command = build_command
+        .add('cd', dir)
+        .add('git', 'rev-parse', '--short', 'HEAD')
+
+      result = invoke_ssh_command(command.to_s)
+      result[:stdout].chomp
     end
 
     def get_repo_remote_url(repo_dir)
@@ -213,86 +220,102 @@ class Vulcan
       end
     end
 
-    def invoke_ssh_command(command, timeout: 10, retries: 3, retry_delay: 1)
-      # This function runs a async command and keeps polling until the command has completed
-      # or until the timeout occurs.
-      # This function gathers metadata about a command, so is useful when you want
-      # explicit return information.
-      last_error = nil
-      retry_count = 0
-
-      def execute_command(command, timeout)
-        stdout_data = ""
-        stderr_data = ""
-        exit_status = nil
-        completed = false
-
-        @ssh_pool.with_conn do |ssh|
-          ssh.open_channel do |channel|
-            channel.exec(command) do |ch, success|
-              unless success
-                raise "Command execution failed: #{command}"
-              end
-
-              ch.on_data do |_, data|
-                stdout_data += data
-              end
-
-              ch.on_extended_data do |_, _, data|
-                stderr_data += data
-              end
-
-              ch.on_request("exit-status") do |_, data|
-                exit_status = data.read_long
-                completed = true
-              end
-
-              ch.on_close do
-                completed = true
-              end
-            end
-          end
-
-          # Start a separate thread to monitor the timeout
-          timeout_thread = Thread.new do
-            sleep timeout
-            unless completed
-              ssh.close
-              raise "Command execution timed out: #{command}"
-            end
-          end
-
-          until completed
-            ssh.loop(0.1) # 0.1 second loop interval
-          end
-
-          # Ensure the timeout thread is terminated
-          timeout_thread.kill
-
-          if exit_status != 0
-            raise "Command exited with status #{exit_status}. \n Command: #{command} \n Msg: #{stderr_data} \n Stdout: #{stdout_data}"
-          end
-
-          return {command: command, stdout: stdout_data, stderr_or_info: stderr_data, exit_status: exit_status }
-        end
+    def measure_latency(runs: 15)
+      # Measure SSH latency by running a simple command multiple times and taking the median
+      latencies = []
+      runs.times do
+        start_time = Time.now
+        command = build_command.add('echo', 'latency_test')
+        result = invoke_ssh_command(command.to_s)
+        end_time = Time.now
+        
+        latency_ms = ((end_time - start_time) * 1000).round(2)
+        latencies << latency_ms
       end
+      
+      # Calculate median
+      sorted_latencies = latencies.sort
+      median_latency = if sorted_latencies.length.odd?
+        sorted_latencies[sorted_latencies.length / 2]
+      else
+        (sorted_latencies[sorted_latencies.length / 2 - 1] + sorted_latencies[sorted_latencies.length / 2]) / 2.0
+      end
+      
+      median_latency.round(2)
+    end
+    
+    def invoke_ssh_command(command, timeout: 10, retries: 5, retry_delay: 2)
+      last_error  = nil
+      retry_count = 0
+      backoff     = retry_delay
 
       while retry_count < retries
         begin
-          return execute_command(command, timeout)
+          return exec_with_timeout(command, timeout)
         rescue => e
-          last_error = e
+          last_error  = e
           retry_count += 1
-          Vulcan.instance.logger.warn("Command #{command} failed on attempt #{retry_count}/#{retries}. Retrying in #{retry_delay} seconds...")
-          if retry_count < retries
-            sleep retry_delay
-            retry_delay *= 2 # Exponential backoff
-          end
+          Vulcan.instance.logger.warn(
+            "Command `#{command}` failed (#{e.class}: #{e.message}) " \
+            "– attempt #{retry_count}/#{retries}, retrying in #{backoff}s…"
+          )
+          sleep(backoff) if retry_count < retries
+          backoff *= 2
         end
       end
 
-      raise "Command failed after #{retries} attempts. Last error: #{last_error.message}"
+      raise "Command failed after #{retries} attempts. Last error: #{last_error.class}: #{last_error.message}"
     end
 
+    private
+
+    def exec_with_timeout(command, timeout)
+      stdout_data  = ""
+      stderr_data  = ""
+      exit_status  = nil
+      completed    = false
+      timed_out    = false
+
+      @ssh_pool.with_conn do |ssh|
+        channel = ssh.open_channel do |ch|
+          ch.exec(command) { |_, ok| raise "exec failed" unless ok }
+
+          ch.on_data          { |_, data| stdout_data << data }
+          ch.on_extended_data { |_, _, data| stderr_data << data }
+          ch.on_request("exit-status") do |_, data|
+            exit_status = data.read_long
+            completed   = true
+          end
+          ch.on_close { completed = true }
+        end
+
+        # watcher thread only closes the one channel and marks timed_out
+        watcher = Thread.new do
+          sleep(timeout)
+          unless completed
+            channel.close
+            timed_out = true
+          end
+        end
+
+        until completed
+          ssh.loop(0.1)
+        end
+
+        watcher.kill
+        raise "Command execution timed out: #{command}" if timed_out
+
+        if exit_status != 0
+          raise "Command exited #{exit_status}: #{stderr_data}"
+        end
+
+        {
+          command:        command,
+          stdout:         stdout_data,
+          stderr_or_info: stderr_data,
+          exit_status:    exit_status
+        }
+      end
+    end
   end
 end

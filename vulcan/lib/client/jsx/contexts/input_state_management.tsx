@@ -178,7 +178,6 @@ export function WithBufferedInputs({
           label='Back'
           title='Reset to last saved state'
           onClick={cancelValueUpdates}
-          disabled={!!state.pollingState}
         />
       </Grid>
       <Grid item>
@@ -186,9 +185,13 @@ export function WithBufferedInputs({
           className={'control-btn confirm'}
           icon='save'
           label='Save Choices'
-          title='Save choices to workspace on computation server'
+          title={state.attemptingToRun || state.isRunning ?
+            'Cannot save new choices to workspace while work is running' :
+            state.isSyncing ?
+            'Awaiting sync from remote workspace' :
+            'Save choices to workspace on computation server'}
           onClick={commitValueUpdates}
-          disabled={!!state.pollingState}
+          disabled={state.isSyncing || state.isRunning}
         />
       </Grid>
     </Grid>
@@ -204,7 +207,7 @@ export function WithBufferedInputs({
           checked={stateRef.current.autoPassSteps.includes(stepName)}
           onChange={setAutoPass}
           color='primary'
-          disabled={!!state.pollingState}
+          disabled={state.isSyncing}
         />
       }
       label='Auto-Confirm in future'
