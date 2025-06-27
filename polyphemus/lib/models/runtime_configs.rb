@@ -13,10 +13,6 @@ class Polyphemus
         .all.select(&:should_run?)
     end
 
-    def last_run
-      Polyphemus::Run.where(config_id: config_id).order(:created_at).last
-    end
-
     def workflow_config
       Polyphemus::Config.current.where(config_id: config_id).first
     end
