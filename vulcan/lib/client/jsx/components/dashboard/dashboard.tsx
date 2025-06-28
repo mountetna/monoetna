@@ -65,9 +65,8 @@ export default function Dashboard({project_name}: {project_name: string}) {
   const {canEdit} = useUserHooks();
   const visibleWorkspaces = useMemo(() => {
     const projectWorkflowIds = workflows.filter(w => w.project_name == project_name).map(w => w.id)
-    return workspaces.filter((w) => projectWorkflowIds.includes(w.workflow_id)
-      && canEdit(w) || (w.tags || []).includes('published')
-    )
+    const projectWorkspaces = workspaces.filter((w) => projectWorkflowIds.includes(w.workflow_id))
+    return projectWorkspaces.filter((w) => canEdit(w) || (w.tags || []).includes('published'))
   }, [workflows, workspaces, project_name]);
 
   return (
