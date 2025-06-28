@@ -13,6 +13,10 @@ class Polyphemus
         .all.select(&:should_run?)
     end
 
+    def workflow_config
+      Polyphemus::Config.current.where(config_id: config_id).first
+    end
+
     def self.for_config(config_id)
       Polyphemus::RuntimeConfig.where(
         config_id: config_id
