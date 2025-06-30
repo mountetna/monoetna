@@ -45,6 +45,12 @@ class Vulcan
     # root path
     get '/', as: :root do erb_view(:client) end
 
+    # Project-specific routes - needed for frontend to work with project URLs
+    with auth: { user: { can_view?: :project_name } } do
+      get '/:project_name', as: :project_root do erb_view(:client) end
+      get '/:project_name/*client_path', as: :client_view do erb_view(:client) end
+    end
+
     def initialize
       super
       application.setup_db
