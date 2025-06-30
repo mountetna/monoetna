@@ -197,7 +197,7 @@ class WorkflowController < Polyphemus::Controller
       result = @params[:collect] ?
         runs.map do |run|
           run.state.dig(state_key)
-        end : runs.find do |run|
+        end.compact : runs.find do |run|
           run.state.has_key?(state_key)
         end&.state&.dig(state_key)
       [ state_key, result ]

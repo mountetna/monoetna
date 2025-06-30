@@ -59,7 +59,7 @@ class VulcanV2Controller < Vulcan::Controller
     begin
         @remote_manager.mkdir(workspace_dir)
         @remote_manager.clone(workflow.repo_remote_url, workspace_dir)
-        @remote_manager.checkout_version(workspace_dir, @escaped_params[:git_version])
+        git_sha = @remote_manager.checkout_version(workspace_dir, @escaped_params[:git_request])
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
         @remote_manager.mkdir(Vulcan::Path.workspace_output_dir(workspace_dir))
         @remote_manager.touch("#{Vulcan::Path.workspace_output_dir(workspace_dir)}/.keep")
@@ -76,7 +76,8 @@ class VulcanV2Controller < Vulcan::Controller
           target_mapping: @snakemake_manager.generate_target_mapping(workspace_dir, config),
           path: workspace_dir,
           user_email: @user.email,
-          git_version: @escaped_params[:git_version],
+          git_ref: @escaped_params[:git_request],
+          git_sha: git_sha,
           created_at: Time.now,
           updated_at: Time.now
         )
@@ -350,6 +351,17 @@ class VulcanV2Controller < Vulcan::Controller
 
   def download_file
     retrieve_file(@params[:file_name], "application/octet-stream", disposition: "attachment; filename=#{@params[:file_name]}")
+  end
+
+  def cluster_latency
+    begin
+      # Measure SSH latency using the remote_manager's measure_latency method
+      median_latency = @remote_manager.measure_latency
+      success_json({latency: "#{median_latency}ms"})
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
   end
 
   private
