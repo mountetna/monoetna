@@ -26,7 +26,7 @@ rule count:
 rule arithmetic:
     input:
         poem_count="output/count_poem.txt",
-        poem_count_2="output/count_poem_2.txt"
+        poem_count_2="output/count_poem_2.txt",
         number_to_add="resources/number_to_add.txt"
     output:
         "output/arithmetic.txt"
