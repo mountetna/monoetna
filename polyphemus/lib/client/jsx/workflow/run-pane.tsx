@@ -331,7 +331,7 @@ const RunPane = ({
           </Grid>
           { dryRun && 
             <Grid item>
-              <Tooltip title="Parsed updates will not be 'commit'ed to the database">
+              <Tooltip title="Parsed updates will not be committed to the database">
                 <Grid item container alignItems='center' spacing={0}>
                   <Grid item>
                     <ReportProblemOutlinedIcon/>
