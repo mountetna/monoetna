@@ -236,7 +236,7 @@ export default function WorkspaceCreateButtonModal({
       setCreateTag('Create Workspace');
     }
   }, [valUse, versionText, createTag])
-  const disableCreate = createTag!='Create Workspace';
+  const disableCreate = createTag!='Create Workspace' || creating;
 
   return (
     <>
