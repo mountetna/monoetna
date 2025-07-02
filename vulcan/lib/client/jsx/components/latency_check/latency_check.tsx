@@ -13,22 +13,18 @@ export default function LatencyCheckButton({projectName}: {
   const [latency, setLatency] = useState<number | null>(null);
 
   let {showErrors,
-    showError,
     getConnectionLatency
   } = useContext(VulcanContext);
 
   const handleCheck = useCallback( () => {
-    // Check if workflow name is available
     setChecking(true);
     showErrors(getConnectionLatency(projectName), () => {setChecking(false)})
     .then( (latencyReturn) => {
       setChecking(false);
       const latencyString = latencyReturn.latency;
-      setLatency(parseFloat(latencyString.replace('ns', '')))
+      setLatency(parseFloat(latencyString))
     })
   }, [projectName, getConnectionLatency]);
-
-  console.log({latency})
 
   const valShow = 'Latency: ' + (latency!=null ? latency + 'ms' : '???ms');
   const actionIcon = checking ? <LoadingIcon/> : <TimerIcon/>;
