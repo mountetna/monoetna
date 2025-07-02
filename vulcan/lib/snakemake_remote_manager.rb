@@ -262,6 +262,19 @@ class Vulcan
           @remote_manager.rm_file(File.join(workspace.path, target))
         end
       end
+
+      def cancel_snakemake(dir, command)
+        # Use Snakemake's built-in cancellation mechanism with --cluster-cancel
+        # This is more reliable than directly calling scancel
+        command = @remote_manager.build_command
+          .add('conda', 'activate', Vulcan.instance.config(:conda_env))
+          .add('cd', dir)
+          .add_raw(command)
+        out = @remote_manager.invoke_ssh_command(command.to_s)
+        require 'pry'; binding.pry
+      rescue => e
+         Vulcan.instance.logger.error("Error canceling Snakemake workflow: #{e.message}")
+      end
     end
   end
 end

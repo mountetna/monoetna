@@ -63,5 +63,13 @@ class Vulcan
         cmd.join(' ')
       end
     end
+
+    def cancel
+      cmd = ['snakemake']
+      cmd << "--configfile #{@options[:config_path]}"
+      cmd << "--profile #{@options[:profile_path]}"
+      cmd << "--jobs 0"
+      cmd.join(' ')
+    end
   end
 end

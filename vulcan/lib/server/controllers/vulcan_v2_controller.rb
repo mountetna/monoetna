@@ -289,6 +289,51 @@ class VulcanV2Controller < Vulcan::Controller
     end
   end
 
+  def cancel_workflow
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    unless workspace
+      msg = "Workspace for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+
+    # Get the specific run to cancel
+    run = Vulcan::Run.first(id: @params[:run_id], workspace_id: @params[:workspace_id])
+    unless run
+      msg = "Run #{@params[:run_id]} not found for workspace: #{workspace.name}"
+      raise Etna::BadRequest.new(msg)
+    end
+
+    begin
+      # Check if the workflow is currently running
+      unless @snakemake_manager.snakemake_is_running?(workspace.path)
+        msg = "No workflow is currently running for workspace: #{workspace.name}"
+        raise Etna::BadRequest.new(msg)
+      end
+
+      # Cancel the workflow
+      config = Vulcan::Config.first(id: @params[:config_id], workspace_id: @params[:workspace_id])
+      unless config
+        msg = "Config for workspace: #{workspace.path} does not exist."
+        raise Etna::BadRequest.new(msg)
+      end
+      command = Vulcan::Snakemake::CommandBuilder.new
+      command.options = {
+        config_path: config.path,
+        profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
+      }
+      success = @snakemake_manager.cancel_snakemake(workspace.path, command.cancel.to_s)
+      if success
+        success_json({message: "Workflow canceled successfully", run_id: run.id})
+      else
+        raise Etna::BadRequest.new("Failed to cancel workflow")
+      end
+    rescue Etna::BadRequest => e
+      raise e
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
+  end
 
   def write_files
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
