@@ -1,45 +1,34 @@
 import {json_get, json_delete} from 'etna-js/utils/fetch';
+import {DashboardContext} from '../../contexts/dashboard_context';
+import React, {useContext} from 'react';
 
-export const addUsersSensor = (setInfo: Function) => json_get(
-  `${CONFIG.janus_host}/api/admin/${CONFIG.project_name}/info`
-).then(
-  ({project}) => {
-    const summary = project.permissions.map( ({role}:{role: string}) => role ).reduce(
-      (s: any,r: string) => {
-        s[r] = (s[r] || 0) + 1;
-        s.count = (s.count || 0) + 1;
-        return s
-      }, {}
-    );
-    const count = (c: number,r: string) => c == 1 ? `1 ${r}` : `${c} ${r}s`;
-    const level = (summary.count < 3) ? (summary.count < 2 ? 0 : 1) : 2;
-    const text = [ 'administrator', 'editor', 'viewer', 'guest' ].map(
-      role => role in summary ? count(summary[role], role) : ''
-    ).filter(_=>_).join(', ')
-    setInfo({level, text})
-  }
-) 
+export const addUsersSensor = (setInfo: Function) => {
+  const { projectInfo } = useContext(DashboardContext);
 
+  const summary = projectInfo.permissions.map( ({role}:{role: string}) => role ).reduce(
+    (s: any,r: string) => {
+      s[r] = (s[r] || 0) + 1;
+      s.count = (s.count || 0) + 1;
+      return s
+    }, {}
+  );
+  const count = (c: number,r: string) => c == 1 ? `1 ${r}` : `${c} ${r}s`;
+  const level = (summary.count < 3) ? (summary.count < 2 ? 0 : 1) : 2;
+  const text = [ 'administrator', 'editor', 'viewer', 'guest' ].map(
+    role => role in summary ? count(summary[role], role) : ''
+  ).filter(_=>_).join(', ');
 
-export const editModelsSensor = (setInfo: Function) => json_get(
-  `${CONFIG.janus_host}/api/admin/${CONFIG.project_name}/info`
-).then(
-  ({project}) => {
-    const summary = project.permissions.map( ({role}:{role: string}) => role ).reduce(
-      (s: any,r: string) => {
-        s[r] = (s[r] || 0) + 1;
-        s.count = (s.count || 0) + 1;
-        return s
-      }, {}
-    );
-    const count = (c: number,r: string) => c == 1 ? `1 ${r}` : `${c} ${r}s`;
-    const level = (summary.count < 3) ? (summary.count < 2 ? 0 : 1) : 2;
-    const text = [ 'administrator', 'editor', 'viewer', 'guest' ].map(
-      role => role in summary ? count(summary[role], role) : ''
-    ).filter(_=>_).join(', ')
-    setInfo({level, text})
-  }
-) 
+  setInfo({level, text})
+}
+
+export const editModelsSensor = (setInfo: Function) => {
+  const { models } = useContext(DashboardContext);
+
+  const modelCount = Object.values(models).length;
+
+  console.log({modelCount});
+  setInfo({ level: 0, text: '1 of 12 models have identifier rules' })
+} 
 
 export const editRulesSensor = (setInfo: Function) => setInfo(
   { level: 0, text: '1 of 12 models have identifier rules' }
@@ -66,5 +55,5 @@ export const addWorkflowsSensor = (setInfo: Function) => setInfo(
 );
 
 export const runWorkflowsSensor = (setInfo: Function) => setInfo(
-      { level: 2, text: '1 workspace, last run 2025-03-03' }
-    );
+  { level: 2, text: '1 workspace, last run 2025-03-03' }
+);

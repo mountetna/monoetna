@@ -98,7 +98,7 @@ const AppDashboard = ({app,title,help,helpLink,children}:{
   const classes = useStyles();
 
   const user = useReduxState((state:any) => selectUser(state));
-  const userRole = 'viewer';//user.permissions[CONFIG.project_name].role;
+  const userRole = user.permissions[CONFIG.project_name].role;
 
   const shownChildren = React.Children.map(
     children, child => ROLES[child.props.role as keyof typeof ROLES] > ROLES[userRole] ? null : child

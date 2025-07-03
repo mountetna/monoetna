@@ -2,6 +2,7 @@ import React, {useState, useCallback, useEffect, useMemo} from 'react';
 
 import ProjectDashboard from './project_dashboard';
 import ModelMapGraphic from '../model_map/model_map_graphic';
+import {DashboardProvider} from '../../contexts/dashboard_context';
 
 import { useTheme, makeStyles } from '@material-ui/core/styles';
 import IconButton from '@material-ui/core/IconButton';
@@ -64,44 +65,46 @@ const Dashboard = ({project_name, model_name}:{project_name: string, model_name?
     transitionTimingFunction: `${theme.transitions.easing.easeIn}`
   };
 
-  return <Grid
-      style={transitionStyle}
-      item
-      container
-      className={classes.slide}
-      justifyContent='flex-start'
-    >
-      <Grid container className={classes.topshadow} alignItems='flex-start' >
-        <Grid container direction='column' className={ classes.controls }>
-          <Tabs value={tab} onChange={ (e, tab) => {
-            setTab(tab); setShowDrawer(true);
-          } } orientation='vertical'
-          className={ classes.tabs }>
-            <Tab className={ classes.tab } disableRipple icon={
-              <Tooltip title="dashboard"><BuildIcon/></Tooltip>
-            } />
-            <Tab className={ classes.tab } disableRipple icon={
-              <Tooltip title="map"><MapIcon/></Tooltip>
-            } />
-          </Tabs>
+  return <DashboardProvider>
+    <Grid
+        style={transitionStyle}
+        item
+        container
+        className={classes.slide}
+        justifyContent='flex-start'
+      >
+        <Grid container className={classes.topshadow} alignItems='flex-start' >
+          <Grid container direction='column' className={ classes.controls }>
+            <Tabs value={tab} onChange={ (e, tab) => {
+              setTab(tab); setShowDrawer(true);
+            } } orientation='vertical'
+            className={ classes.tabs }>
+              <Tab className={ classes.tab } disableRipple icon={
+                <Tooltip title="dashboard"><BuildIcon/></Tooltip>
+              } />
+              <Tab className={ classes.tab } disableRipple icon={
+                <Tooltip title="map"><MapIcon/></Tooltip>
+              } />
+            </Tabs>
+            {
+              showDrawer && <IconButton onClick={ () => setShowDrawer(false) }><CloseIcon/></IconButton>
+            }
+          </Grid>
+          <Grid className={classes.tab_panel}>
           {
-            showDrawer && <IconButton onClick={ () => setShowDrawer(false) }><CloseIcon/></IconButton>
+            tab == 0 && <ProjectDashboard project_name={project_name}/>
           }
-        </Grid>
-        <Grid className={classes.tab_panel}>
-        {
-          tab == 0 && <ProjectDashboard project_name={project_name}/>
-        }
-        {
-          tab == 1 && <ModelMapGraphic
-              width={600}
-              height={600}
-              selected_models={[]}
-            />
-        }
+          {
+            tab == 1 && <ModelMapGraphic
+                width={600}
+                height={600}
+                selected_models={[]}
+              />
+          }
         </Grid>
       </Grid>
     </Grid>
+  </DashboardProvider>
 }
 
 export default Dashboard;
