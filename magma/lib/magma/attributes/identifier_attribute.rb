@@ -37,7 +37,7 @@ class Magma
 
             rule = grammar.parser.rules[@model.model_name.to_s]
             raise "No such rule #{@model.model_name} for #{@model.project_name}" unless rule
-            raise "The identifier '#{value}' does not conform to a grammar in Gnomon." unless rule.valid?(value)
+            raise "The identifier '#{value}' does not conform to the rule for #{@model.model_name} in Gnomon." unless rule.valid?(value)
           end
         rescue Exception => e
           yield "#{e.message}"
