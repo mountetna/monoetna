@@ -23,7 +23,8 @@ import {
   WorkflowCreateResponse,
   CreateWorkspaceResponse,
   isRunningReturn,
-  WorkspacesResponseRaw
+  WorkspacesResponseRaw,
+  LatencyReturn
 } from '../api_types';
 import { paramValuesToRaw, workspacesFromResponse } from '../selectors/workflow_selectors';
 import { isSome } from '../selectors/maybe';
@@ -100,6 +101,9 @@ export const defaultApiHelpers = {
     return new Promise(() => null);
   },
   pullRunStatus(projectName: string, workspaceId: number, runId: number): Promise<RunStatus> {
+    return new Promise(() => null);
+  },
+  getConnectionLatency(projectName: string): Promise<LatencyReturn> {
     return new Promise(() => null);
   }
 };
@@ -347,6 +351,10 @@ export function useApi(
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/run/${runId}`))
   }, [vulcanGet, vulcanPath]);
 
+  const getConnectionLatency = useCallback((projectName: string): Promise<LatencyReturn> => {
+    return vulcanGet(vulcanPath(`/api/v2/${projectName}/cluster-latency`))
+  }, [vulcanGet, vulcanPath]);
+
   return {
     vulcanPath,
     showError,
@@ -366,6 +374,7 @@ export function useApi(
     requestRun,
     getIsRunning,
     pullRunStatus,
-    getImage
+    getImage,
+    getConnectionLatency
   };
 }
