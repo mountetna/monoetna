@@ -357,6 +357,13 @@ class VulcanV2Controller < Vulcan::Controller
     retrieve_file(@params[:file_name], "application/octet-stream", disposition: "attachment; filename=#{@params[:file_name]}")
   end
 
+  def cluster_status
+    success_json({
+      expected_down: Vulcan.instance.config(:ssh)[:downage_expected],
+      message: Vulcan.instance.config(:ssh)[:downage_message],
+    })
+  end
+
   def cluster_latency
     begin
       # Measure SSH latency using the remote_manager's measure_latency method

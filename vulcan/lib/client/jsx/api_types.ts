@@ -323,3 +323,8 @@ export const defaultVulcanStorage: VulcanStorage = {
 export type LatencyReturn = {
   latency:  string // of form "#{median_latency}ms"
 };
+
+export type ClusterStatusReturn = {
+  expected_down: boolean;
+  message: string; // of form "#{median_latency}ms"
+};

@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useContext} from 'react';
+import React, {useCallback, useState, useContext, useEffect} from 'react';
 
 import Tooltip from '@material-ui/core/Tooltip';
 import Button from '@material-ui/core/Button';
@@ -13,18 +13,18 @@ export default function LatencyCheckButton({projectName}: {
   const [latency, setLatency] = useState<number | null>(null);
 
   let {showErrors,
-    getConnectionLatency
+    getClusterLatency
   } = useContext(VulcanContext);
 
   const handleCheck = useCallback( () => {
     setChecking(true);
-    showErrors(getConnectionLatency(projectName), () => {setChecking(false)})
+    showErrors(getClusterLatency(projectName), () => {setChecking(false)})
     .then( (latencyReturn) => {
       setChecking(false);
       const latencyString = latencyReturn.latency;
       setLatency(parseFloat(latencyString))
     })
-  }, [projectName, getConnectionLatency]);
+  }, [projectName, getClusterLatency]);
 
   const valShow = 'Latency: ' + (latency!=null ? latency + 'ms' : '???ms');
   const actionIcon = checking ? <LoadingIcon/> : <TimerIcon/>;

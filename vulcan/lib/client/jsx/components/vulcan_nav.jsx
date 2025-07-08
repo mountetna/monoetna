@@ -8,6 +8,8 @@ import Nav from 'etna-js/components/Nav';
 import Link from 'etna-js/components/link';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import LatencyCheckButton from './latency_check/latency_check';
+import ClusterKnownStatusReport from './cluster_check'
+import Grid from '@material-ui/core/Grid';
 
 const {sin, cos, PI, random, max, min, pow, abs, sqrt} = Math;
 
@@ -145,17 +147,24 @@ const getTabs = (workspace) => ({
 });
 
 const ModeBar = ({mode, workspace}) => (
-  <div id='nav'>
-    {Object.entries(getTabs(workspace)).map(([tab_name, route]) => (
-      <div
-        key={tab_name}
-        className={`nav_tab ${mode == tab_name ? 'selected' : ''}`}
-      >
-        <Link link={route}>{tab_name}</Link>
-      </div>
-    ))}
-    <LatencyCheckButton/>
-  </div>
+  <Grid id='nav' container alignItems='center' spacing={2}>
+    <Grid item>
+      {Object.entries(getTabs(workspace)).map(([tab_name, route]) => (
+        <div
+          key={tab_name}
+          className={`nav_tab ${mode == tab_name ? 'selected' : ''}`}
+        >
+          <Link link={route}>{tab_name}</Link>
+        </div>
+      ))}
+    </Grid>
+    <Grid item>
+      <ClusterKnownStatusReport/>
+    </Grid>
+    <Grid item>
+      <LatencyCheckButton/>
+    </Grid>
+  </Grid>
 );
 
 const VulcanNav = ({mode, user}) => {
