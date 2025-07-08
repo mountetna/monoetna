@@ -325,6 +325,7 @@ export type LatencyReturn = {
 };
 
 export type ClusterStatusReturn = {
+  connection_success: boolean;
   expected_down: boolean;
   message: string; // of form "#{median_latency}ms"
 };

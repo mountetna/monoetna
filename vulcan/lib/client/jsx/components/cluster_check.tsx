@@ -1,11 +1,13 @@
 import React, {useCallback, useState, useContext, useEffect} from 'react';
 
 import {VulcanContext} from '../contexts/vulcan_context';
-import Alert from '@material-ui/lab/Alert'
+import Alert from '@material-ui/lab/Alert';
+import AlertTitle from '@material-ui/lab/AlertTitle';
 
-export default function ClusterKnownStatusReport({projectName}: {
+export default function ClusterStatusReport({projectName}: {
   projectName: string;
 }) {
+  const [connected, setConnected] = useState(true);
   const [message, setMessage] = useState('');
   const [expectedDown, setExpectedDown] = useState(false);
 
@@ -16,6 +18,7 @@ export default function ClusterKnownStatusReport({projectName}: {
   const handleCheck = useCallback( () => {
     showErrors(getClusterStatus(projectName))
     .then( (StatusReturn) => {
+      setConnected(StatusReturn.connection_success)
       setExpectedDown(StatusReturn.expected_down)
       setMessage(StatusReturn.message)
     })
@@ -25,8 +28,15 @@ export default function ClusterKnownStatusReport({projectName}: {
     handleCheck()
   }, [])
 
-  if (message==='') return null
-  return <Alert severity={expectedDown ? 'warning' : 'info'}>
+  if (message==='' && connected) return null
+
+  let connectionMessage = !connected ? (expectedDown ? 'Expected' : 'Unexpected') + ' Connection Failure. Workspaces are inaccessible.' :
+    undefined;
+
+  return <Alert severity={!connected && expectedDown ? 'warning' : connected ? 'info' : 'error'} style={{maxHeight: '44px', overflowY: 'auto'}}>
+    {connectionMessage && <AlertTitle>
+      {connectionMessage}
+    </AlertTitle>}
     {message}
   </Alert>
 }

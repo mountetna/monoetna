@@ -359,6 +359,7 @@ class VulcanV2Controller < Vulcan::Controller
 
   def cluster_status
     success_json({
+      connection_success: @remote_manager.check_connection,
       expected_down: Vulcan.instance.config(:ssh)[:downage_expected],
       message: Vulcan.instance.config(:ssh)[:downage_message],
     })
