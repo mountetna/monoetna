@@ -70,7 +70,7 @@ NOTE: It is easier and more efficient for snakemake if we tell snakemake which t
 ```ruby
 {"output/count_poem.txt"=>{"inputs"=>["output/poem.txt", "output/poem_2.txt"], "params"=>["count_bytes", "count_chars"]},
  "output/count_poem_2.txt"=>{"inputs"=>["output/poem.txt", "output/poem_2.txt"], "params"=>["count_bytes", "count_chars"]},
- "output/arithmetic.txt"=>{"inputs"=>["output/count_poem.txt", "output/count_poem_2.txt"], "params"=>["add", "add_and_multiply_by"]},
+ "output/arithmetic.txt"=>{"inputs"=>["output/count_poem.txt", "output/count_poem_2.txt", "resources/number_to_add.txt"], "params"=>["add", "add_and_multiply_by"]},
  "output/check.txt"=>{"inputs"=>["output/arithmetic.txt"], "params"=>[]},
  "output/summary.txt"=>{"inputs"=>["output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt", "output/ui_job_one.txt", "output/ui_job_two.txt"], "params"=>[]},
  "output/final.txt"=>{"inputs"=>["output/ui_summary.txt"], "params"=>[]}}
@@ -139,6 +139,13 @@ Now lets say we change a param in comp_job_2. We do not want to delete ui_job_1,
 We just want to delete the files associated with ui_job_3.
 
 In order to solve this problem, we build a file tree and use the two UI params `uiFilesSent` and `paramsChanged` to remove any downstream UI files.
+
+### workspace directories 
+
+`output/`: all files that get used in the snakemake workflow get written to and from this location. Note: small exception for fixed files.
+
+`resources/`: standard place for FIXED files in Snakemake projects. Include files like reference genomes, etc...
+
 
 # SSH 
 

@@ -23,14 +23,14 @@ describe Vulcan::Snakemake::Inference do
       # once they are built they contribute to the list of available files 
       # and "output/arithmetic.txt", "output/check.txt" become buildable.
       provided_params = ["count_bytes", "count_chars", "add", "add_and_multiply_by"]
-      available_files = ["output/poem.txt", "output/poem_2.txt"]
+      available_files = ["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"]
       targets = Vulcan::Snakemake::Inference.find_buildable_targets(target_mapping, provided_params, available_files)
       expect(targets).to eq(["output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt"])
     end
 
     it 'correctly finds all targets with all params' do
       provided_params = ["count_bytes", "count_chars", "add", "add_and_multiply_by", "ui"]
-      available_files = ["output/poem.txt", "output/poem_2.txt", "output/ui_job_one.txt", "output/ui_job_two.txt"]
+      available_files = ["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt", "output/ui_job_one.txt", "output/ui_job_two.txt"]
       targets = Vulcan::Snakemake::Inference.find_buildable_targets(target_mapping, provided_params, available_files)
       expect(targets).to eq(["output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt", "output/summary.txt"])
     end
