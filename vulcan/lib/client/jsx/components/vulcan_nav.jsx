@@ -7,6 +7,7 @@ import {hasRunningSteps} from '../selectors/workflow_selectors';
 import Nav from 'etna-js/components/Nav';
 import Link from 'etna-js/components/link';
 import {selectUser} from 'etna-js/selectors/user-selector';
+import LatencyCheckButton from './latency_check/latency_check';
 
 const {sin, cos, PI, random, max, min, pow, abs, sqrt} = Math;
 
@@ -153,6 +154,7 @@ const ModeBar = ({mode, workspace}) => (
         <Link link={route}>{tab_name}</Link>
       </div>
     ))}
+    <LatencyCheckButton/>
   </div>
 );
 
