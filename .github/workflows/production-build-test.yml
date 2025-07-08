@@ -1,0 +1,40 @@
+name: Build and upload production artifacts
+on:
+  push:
+    branches:
+      - graft/production-build-test
+
+# Ensure only one of these builds at a given time.
+concurrency:
+  group: production-build-test
+  cancel-in-progress: true
+
+jobs:
+  build-production-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-app:
+          - polyphemus
+          - etna
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+      - name: docker login
+        env:
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
+      - name: Build & Push production tag images to dockerhub
+        env:
+          IS_CI: 1
+          PUSH_IMAGES: 1
+          IMAGES_PREFIX: etnaagent/
+          IMAGES_POSTFIX: :production
+          NO_TEST: 1
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          make -C ${{ matrix.test-app }} release
