@@ -15,8 +15,11 @@ jobs:
     strategy:
       matrix:
         test-app:
-          - polyphemus
-          - etna
+          - metis
+          - magma
+          - janus
+          - gnomon
+          - timur
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
