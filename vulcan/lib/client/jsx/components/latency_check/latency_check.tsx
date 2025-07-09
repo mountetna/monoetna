@@ -36,8 +36,8 @@ export default function LatencyCheckButton({projectName}: {
       color='primary'
       variant='contained'
     >
-      {valShow}
       {actionIcon}
+      {valShow}
     </Button>
   </Tooltip>
 }
