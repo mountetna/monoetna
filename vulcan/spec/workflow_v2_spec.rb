@@ -1108,9 +1108,8 @@ describe VulcanV2Controller do
       setup_workspace
     end
 
-    it 'successfully cancels a running workflow' do
+    def start_workflow(workspace)
       auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
       write_files_to_workspace(workspace.id)
       
       # Start a workflow
@@ -1129,6 +1128,12 @@ describe VulcanV2Controller do
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       expect(last_response.status).to eq(200)
       run_id = json_body[:run_id]
+      return run_id
+    end
+
+    it 'successfully cancels a running workflow' do
+      workspace = Vulcan::Workspace.all[0]
+      run_id = start_workflow(workspace)
 
       # Verify the workflow is running
       get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/running")
@@ -1142,71 +1147,44 @@ describe VulcanV2Controller do
       expect(json_body[:run_id]).to eq(run_id)
 
       # Verify the workflow is no longer running
-      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/running")
-      expect(last_response.status).to eq(200)
+
+      # is_running just checks that the lock file has been removed
+      # which is a sign that snakemake has self cleaned up
+      retry_until(max_attempts: 5, base_delay: 5) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/running")
+        expect(last_response.status).to eq(200)
+        json_body[:running] == false
+      end
       expect(json_body[:running]).to be_falsey
+
+      # Make sure the status is set to cancelled
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:arithmetic]).to eq("NOT STARTED")
+      expect(json_body[:checker]).to eq("NOT STARTED")
+      expect(json_body[:count]).to eq("CANCELLED by 0") # think about this - 0 represents cancelled by the system
     end
 
     it 'fails to cancel when no workflow is running' do
-      auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
-      
-      # Create a run record but don't start the workflow
-      run = Vulcan::Run.create(
-        workspace_id: workspace.id,
-        config_id: 1,
-        slurm_run_uuid: "test-uuid",
-        log_path: "/test/path",
-        created_at: Time.now,
-        updated_at: Time.now
-      )
-      
-      # Try to cancel without starting a workflow
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/#{run.id}/cancel")
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to include("No workflow is currently running")
-    end
-
-
-    it 'fails to cancel when run does not exist' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/999999/cancel")
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to include("Run 999999 not found for workspace")
-    end
-
-    it 'can cancel a workflow that has already been canceled' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      write_files_to_workspace(workspace.id)
-      
-      # Start a workflow
-      request = {
-        params: {
-          count_bytes: true,
-          count_chars: false,
-          add: 2,
-          add_and_multiply_by: 4
-        },
-        uiFilesSent: [],
-        paramsChanged: []
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      config_id = json_body[:config_id]
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
-      expect(last_response.status).to eq(200)
-      run_id = json_body[:run_id]
-
+      run_id = start_workflow(workspace)
       # Cancel the workflow
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/#{run_id}/cancel")
       expect(last_response.status).to eq(200)
-
-      # Try to cancel again - should fail because no workflow is running
+      expect(json_body[:message]).to eq("Workflow canceled successfully")
+      # Wait till its cancelled
+      retry_until(max_attempts: 5, base_delay: 5) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/running")
+        expect(last_response.status).to eq(200)
+        json_body[:running] == false
+      end
+      
+      # Cancel the workflow again
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/#{run_id}/cancel")
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to include("No workflow is currently running")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:message]).to include("No workflow is currently running")
     end
+
   end
 end

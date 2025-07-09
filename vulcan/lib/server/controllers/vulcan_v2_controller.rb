@@ -306,22 +306,19 @@ class VulcanV2Controller < Vulcan::Controller
     begin
       # Check if the workflow is currently running
       unless @snakemake_manager.snakemake_is_running?(workspace.path)
-        msg = "No workflow is currently running for workspace: #{workspace.name}"
-        raise Etna::BadRequest.new(msg)
+        return success_json({
+          message: "No workflow is currently running for workspace: #{workspace.name}",
+          run_id: run.id
+        })
       end
 
       # Cancel the workflow
-      config = Vulcan::Config.first(id: @params[:config_id], workspace_id: @params[:workspace_id])
+      config = Vulcan::Config.first(id: run.config_id)
       unless config
         msg = "Config for workspace: #{workspace.path} does not exist."
         raise Etna::BadRequest.new(msg)
       end
-      command = Vulcan::Snakemake::CommandBuilder.new
-      command.options = {
-        config_path: config.path,
-        profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
-      }
-      success = @snakemake_manager.cancel_snakemake(workspace.path, command.cancel.to_s)
+      success = @snakemake_manager.cancel_snakemake(workspace.path, run.slurm_run_uuid)
       if success
         success_json({message: "Workflow canceled successfully", run_id: run.id})
       else
