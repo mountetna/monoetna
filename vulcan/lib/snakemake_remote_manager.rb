@@ -114,7 +114,7 @@ class Vulcan
             status_hash[job_name] = "NOT STARTED"
           else
             command = @remote_manager.build_command
-              .add('sacct', "--name=#{slurm_uuid}", '-j', job_id, '-X', '-o', 'State', '-n')
+              .add('sacct', "--name=#{slurm_uuid}", '-j', job_id, '-X', '-o', 'State%20', '-n')
             out = @remote_manager.invoke_ssh_command(command.to_s)
             status_hash[job_name] = out[:stdout].empty? ? "NOT STARTED" : out[:stdout].strip
           end
@@ -261,6 +261,48 @@ class Vulcan
           Vulcan.instance.logger.info("Removing UI target: #{target}")
           @remote_manager.rm_file(File.join(workspace.path, target))
         end
+      end
+
+      def cancel_snakemake(dir, slurm_run_uuid) 
+        # Find the snakemake controller process PID
+        find_pid_command = @remote_manager.build_command
+          .add('ps', '-eo', 'pid,cmd', '--no-headers')
+          .pipe_to('awk', '/snakemake/ && /python/ && !/bash/ {print $1; exit}')
+        
+        pid_result = @remote_manager.invoke_ssh_command(find_pid_command.to_s)
+        controller_pid = pid_result[:stdout].strip
+        
+        Vulcan.instance.logger.info("Found snakemake controller PID: #{controller_pid}")
+        if controller_pid.empty?
+          raise "No snakemake controller process found"
+        end
+        
+        # Kill the controller process
+        kill_command = @remote_manager.build_command
+          .add('kill', '-2', controller_pid)
+        @remote_manager.invoke_ssh_command(kill_command.to_s)
+        Vulcan.instance.logger.info("Sent kill signal to PID: #{controller_pid}")
+        
+        # Find any left over job IDs associated with the slurm_run_uuid
+        find_job_ids_command = @remote_manager.build_command
+          .add('sacct', '-X', "--name=#{slurm_run_uuid}", '--format=JobID', '--noheader')
+          .pipe_to('awk', 'NF')
+        
+        job_ids_result = @remote_manager.invoke_ssh_command(find_job_ids_command.to_s)
+        job_ids = job_ids_result[:stdout].strip
+        Vulcan.instance.logger.info("Found SLURM job IDs: #{job_ids}")
+        
+        # Cancel all the jobs using scancel
+        if !job_ids.empty?
+          scancel_command = @remote_manager.build_command
+            .add('scancel', *job_ids.split)
+          @remote_manager.invoke_ssh_command(scancel_command.to_s)
+          Vulcan.instance.logger.info("Cancelled SLURM jobs for UUID: #{slurm_run_uuid}")
+        else
+          Vulcan.instance.logger.info("No SLURM jobs found for UUID: #{slurm_run_uuid}")
+        end
+      rescue => e
+         Vulcan.instance.logger.error("Error canceling Snakemake workflow: #{e.message}")
       end
     end
   end
