@@ -410,6 +410,50 @@ class VulcanV2Controller < Vulcan::Controller
     end
   end
 
+  def delete_workspace
+    # Check if user is admin for the project
+    unless @user.is_admin?(@params[:project_name])
+      raise Etna::Forbidden.new("Only admin users can delete workspaces")
+    end
+
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    unless workspace
+      msg = "Workspace #{@params[:workspace_id]} for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+
+    begin
+      # Check if the workflow is currently running
+      if @snakemake_manager.snakemake_is_running?(workspace.path)
+        raise Etna::BadRequest.new("Cannot delete workspace while workflow is running")
+      end
+
+      # Delete all runs associated with this workspace
+      Vulcan::Run.where(workspace_id: workspace.id).delete
+
+      # Delete all configs associated with this workspace
+      Vulcan::Config.where(workspace_id: workspace.id).delete
+
+      # Delete the workspace directory on the remote server
+      if @remote_manager.dir_exists?(workspace.path)
+        @remote_manager.rmdir(workspace.path)
+      end
+
+      # Delete the workspace record from the database
+      workspace.delete
+
+      success_json({
+        message: "Workspace #{workspace.name} deleted successfully",
+        workspace_id: @params[:workspace_id]
+      })
+    rescue Etna::BadRequest => e
+      raise e
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
+  end
+
   private
 
   def retrieve_file(file_name, file_type, disposition: nil)

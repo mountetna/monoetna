@@ -1187,4 +1187,70 @@ describe VulcanV2Controller do
     end
 
   end
+
+  context 'delete workspace' do
+    before do
+      setup_workspace
+    end
+
+    it 'successfully deletes a workspace when user is admin' do
+      auth_header(:admin)
+      workspace = Vulcan::Workspace.all[0]
+      workspace_id = workspace.id
+      workspace_path = workspace.path
+      
+      # Delete the workspace
+      delete("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:message]).to eq("Workspace #{workspace.name} deleted successfully")
+      expect(json_body[:workspace_id]).to eq(workspace_id)
+      
+      # Verify workspace directory is deleted
+      expect(remote_manager.dir_exists?(workspace_path)).to be_falsey
+
+      # Workspace, configs, and runs should be deleted
+      expect(Vulcan::Workspace.first(id: workspace_id)).to be_nil
+      expect(Vulcan::Config.where(workspace_id: workspace_id).count).to eq(0)
+      expect(Vulcan::Run.where(workspace_id: workspace_id).count).to eq(0)
+    end
+
+    it 'fails to delete workspace when user is not admin' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      workspace_id = workspace.id
+      
+      # Try to delete the workspace
+      delete("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq("Only admin users can delete workspaces")
+      
+      # Verify workspace still exists
+      expect(Vulcan::Workspace.first(id: workspace_id)).to_not be_nil
+    end
+
+    it 'fails to delete workspace when user is viewer' do
+      auth_header(:viewer)
+      workspace = Vulcan::Workspace.all[0]
+      workspace_id = workspace.id
+      
+      # Try to delete the workspace
+      delete("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq("Only admin users can delete workspaces")
+      
+      # Verify workspace still exists
+      expect(Vulcan::Workspace.first(id: workspace_id)).to_not be_nil
+    end
+
+    it 'fails to delete non-existent workspace' do
+      auth_header(:admin)
+      non_existent_id = 99999
+      
+      # Try to delete non-existent workspace
+      delete("/api/v2/#{PROJECT}/workspace/#{non_existent_id}")
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to include("does not exist")
+    end
+
+  end
 end
