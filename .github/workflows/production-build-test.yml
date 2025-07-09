@@ -15,11 +15,8 @@ jobs:
     strategy:
       matrix:
         test-app:
-          - metis
-          - magma
-          - janus
-          - gnomon
-          - timur
+          - vesta
+          - vesta_ui
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
