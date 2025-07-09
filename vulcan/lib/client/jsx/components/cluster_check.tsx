@@ -43,7 +43,7 @@ export default function ClusterStatusReport({projectName}: {
   let messageUse: string = message;
   // Disconnected, but expectedly
   if (!connected && expectedDown) {
-    messageUse = `Expected Vulcan Connection Failure. Workspaces are inaccessible.\n${message}`;
+    messageUse = `Expected Vulcan Connection Failure. Workspaces are inaccessible.\n\n${message}`;
   }
   // Disconnected and unexpectedly so
   if (!connected && !expectedDown) {
