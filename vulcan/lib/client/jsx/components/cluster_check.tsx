@@ -24,19 +24,34 @@ export default function ClusterStatusReport({projectName}: {
     })
   }, [projectName, getClusterStatus]);
 
+  // Run once, automatically on page load
   useEffect(() => {
     handleCheck()
   }, [])
 
+  // Connected with no message to show
   if (message==='' && connected) return null
 
-  let connectionMessage = !connected ? (expectedDown ? 'Expected' : 'Unexpected') + ' Connection Failure. Workspaces are inaccessible.' :
-    undefined;
+  // Connected, but message to show (likely: planned downage on the horizon)
+  let level: 'info' | 'error' | 'warning' | 'success' = 'info';
+  let highlight: string | undefined;
+  let messageShow = <>{message}</>;
+  // Disconnected, but expectedly
+  if (!connected && expectedDown) {
+    level = 'warning';
+    highlight = 'Expected Connection Failure. Workspaces are inaccessible.';
+  }
+  // Disconnected and unexpectedly so
+  if (!connected && !expectedDown) {
+    level = 'error';
+    highlight = 'Unexpected Connection Failure. Workspaces are inaccessible.';
+    messageShow = <>Try again in a few minutes, but let the Data Library team know if this issue persists.<p>{'Also note: '+message}</p></>
+  }
 
-  return <Alert severity={!connected && expectedDown ? 'warning' : connected ? 'info' : 'error'} style={{maxHeight: '44px', overflowY: 'auto'}}>
-    {connectionMessage && <AlertTitle>
-      {connectionMessage}
+  return <Alert severity={level} style={{maxHeight: '44px', overflowY: 'auto'}}>
+    {highlight && <AlertTitle>
+      {highlight}
     </AlertTitle>}
-    {message}
+    {messageShow}
   </Alert>
 }
