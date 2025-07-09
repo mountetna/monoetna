@@ -148,7 +148,7 @@ const getTabs = (workspace) => ({
 
 const ModeBar = ({mode, workspace}) => (
   <Grid id='nav' container alignItems='center' spacing={2} style={{paddingLeft: '5px', paddingRight: '5px'}}>
-    <Grid item xs={1}>
+    <Grid item>
       {Object.entries(getTabs(workspace)).map(([tab_name, route]) => (
         <div
           key={tab_name}
@@ -158,10 +158,8 @@ const ModeBar = ({mode, workspace}) => (
         </div>
       ))}
     </Grid>
-    <Grid item xs={2}>
+    <Grid item>
       <LatencyCheckButton/>
-    </Grid>
-    <Grid item xs={9}>
       <ClusterStatusReport/>
     </Grid>
   </Grid>

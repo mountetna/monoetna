@@ -12,6 +12,7 @@ export default function ClusterStatusReport({projectName}: {
   const [expectedDown, setExpectedDown] = useState(false);
 
   let {showErrors,
+    showError,
     getClusterStatus
   } = useContext(VulcanContext);
 
@@ -29,29 +30,26 @@ export default function ClusterStatusReport({projectName}: {
     handleCheck()
   }, [])
 
+  console.log({
+    connected,
+    expectedDown,
+    message
+  })
+
   // Connected with no message to show
   if (message==='' && connected) return null
 
   // Connected, but message to show (likely: planned downage on the horizon)
-  let level: 'info' | 'error' | 'warning' | 'success' = 'info';
-  let highlight: string | undefined;
-  let messageShow = <>{message}</>;
+  let messageUse: string = message;
   // Disconnected, but expectedly
   if (!connected && expectedDown) {
-    level = 'warning';
-    highlight = 'Expected Connection Failure. Workspaces are inaccessible.';
+    messageUse = `Expected Vulcan Connection Failure. Workspaces are inaccessible.\n${message}`;
   }
   // Disconnected and unexpectedly so
   if (!connected && !expectedDown) {
-    level = 'error';
-    highlight = 'Unexpected Connection Failure. Workspaces are inaccessible.';
-    messageShow = <>Try again in a few minutes, but let the Data Library team know if this issue persists.<p>{'Also note: '+message}</p></>
+    messageUse = 'Unexpected Vulcan Connection Failure. Workspaces are inaccessible.\n\n' +
+      `Try again in a few minutes, but let the Data Library team know if the issue persists.\n\nAlso note: ${message}`
   }
-
-  return <Alert severity={level} style={{maxHeight: '44px', overflowY: 'auto'}}>
-    {highlight && <AlertTitle>
-      {highlight}
-    </AlertTitle>}
-    {messageShow}
-  </Alert>
+  showError(messageUse);
+  return null
 }
