@@ -35,7 +35,7 @@ jobs:
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
-      - name: Build & Push production tag images to dockerhub
+      - name: Build master tag images
         env:
           IS_CI: 1
           PUSH_IMAGES: 0
@@ -57,7 +57,6 @@ jobs:
           then
             cd $APP
             docker build -t $TAG .
-            docker push $TAG
           else
             make -C ${{ matrix.test-app }} release
           fi
