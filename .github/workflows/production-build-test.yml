@@ -10,13 +10,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-production-test:
+  make-production-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         test-app:
-          - vesta
-          - vesta_ui
+          - metis/metis_app_fe
+          - janus/janus_app_fe
+          - gnomon/gnomon_app_fe
+          - polyphemus/polyphemus_app_fe
+          - timur/timur_app_fe
+          - vulcan/vulcan_app_fe
+          - vesta/vesta_ui
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
@@ -31,10 +36,22 @@ jobs:
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :production
           NO_TEST: 1
+        shell: bash
         run: |
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          make -C ${{ matrix.test-app }} release
+          APP="${{ matrix.test-app }}"
+          PARTS=(${APP/\// })
+          IMGNAME=${PARTS[1]}
+          TAG=${IMAGES_PREFIX}${IMGNAME}${IMAGES_POSTFIX} .
+          if [[ ! $APP =~ "/" ]]
+          then
+            make -C ${{ matrix.test-app }} release
+          else
+            cd $APP
+            docker build -t $TAG .
+            docker push $TAG
+          fi
