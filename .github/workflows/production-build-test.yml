@@ -46,7 +46,7 @@ jobs:
           APP="${{ matrix.test-app }}"
           PARTS=(${APP/\// })
           IMGNAME=${PARTS[1]}
-          TAG=${IMAGES_PREFIX}${IMGNAME}${IMAGES_POSTFIX} .
+          TAG=${IMAGES_PREFIX}${IMGNAME}${IMAGES_POSTFIX}
           if [[ ! $APP =~ "/" ]]
           then
             make -C ${{ matrix.test-app }} release
