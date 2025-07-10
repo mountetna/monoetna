@@ -16,11 +16,6 @@ jobs:
       matrix:
         test-app:
           - metis/metis_app_fe
-          - janus/janus_app_fe
-          - gnomon/gnomon_app_fe
-          - polyphemus/polyphemus_app_fe
-          - timur/timur_app_fe
-          - vulcan/vulcan_app_fe
           - vesta/vesta_ui
       fail-fast: false
     steps:
@@ -47,11 +42,11 @@ jobs:
           PARTS=(${APP/\// })
           IMGNAME=${PARTS[1]}
           TAG=${IMAGES_PREFIX}${IMGNAME}${IMAGES_POSTFIX}
-          if [[ ! $APP =~ "/" ]]
+          if [[ $APP =~ "vesta_ui" ]]
           then
-            make -C ${{ matrix.test-app }} release
-          else
             cd $APP
             docker build -t $TAG .
             docker push $TAG
+          else
+            make -C ${{ matrix.test-app }} release
           fi
