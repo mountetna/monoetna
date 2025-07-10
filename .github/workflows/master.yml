@@ -11,26 +11,53 @@ concurrency:
 jobs:
   push-staging:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-app:
+          - etna
+          - metis
+          - magma
+          - janus
+          - gnomon
+          - timur
+          - vesta
+          - janus/janus_app_fe
+          - gnomon/gnomon_app_fe
+          - polyphemus/polyphemus_app_fe
+          - timur/timur_app_fe
+          - vulcan/vulcan_app_fe
+          - metis/metis_app_fe
+          - vesta/vesta_ui
+      fail-fast: false
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 1
       - name: docker login
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
-      - name: Build & Push master tag images to dockerhub
+      - name: Build & Push production tag images to dockerhub
         env:
           IS_CI: 1
           PUSH_IMAGES: 0
           IMAGES_PREFIX: etnaagent/
-          NO_TEST: 1
           IMAGES_POSTFIX: :master
+          NO_TEST: 1
+        shell: bash
         run: |
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          make -C etna release
-          make -j 4 release
+          APP="${{ matrix.test-app }}"
+          PARTS=(${APP/\// })
+          IMGNAME=${PARTS[1]}
+          TAG=${IMAGES_PREFIX}${IMGNAME}${IMAGES_POSTFIX}
+          if [[ $APP =~ "vesta_ui" ]]
+          then
+            cd $APP
+            docker build -t $TAG .
+            docker push $TAG
+          else
+            make -C ${{ matrix.test-app }} release
+          fi
