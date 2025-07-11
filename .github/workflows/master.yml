@@ -15,10 +15,12 @@ jobs:
       matrix:
         test-app:
           - etna
-          - metis
           - magma
+          - metis
           - janus
           - gnomon
+          - polyphemus
+          - vulcan
           - timur
           - vesta
           - janus/janus_app_fe
