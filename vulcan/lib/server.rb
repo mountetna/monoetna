@@ -41,6 +41,7 @@ class Vulcan
   
     # Cluster latency endpoint
     get 'api/v2/:project_name/cluster-latency', action: 'vulcan_v2#cluster_latency', auth: { user: { can_view?: :project_name }}
+    get 'api/v2/:project_name/cluster-status', action: 'vulcan_v2#cluster_status', auth: { user: { can_view?: :project_name }}
   
     # root path
     get '/', as: :root do erb_view(:client) end
