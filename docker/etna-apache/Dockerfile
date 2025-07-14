@@ -1,6 +1,6 @@
 FROM development-certs
 
-FROM library/httpd:2.4.43
+FROM library/httpd:2.4.64
 WORKDIR /app
 
 ENV DOCKERIZE_VERSION 0.6.1
