@@ -24,7 +24,8 @@ import {
   CreateWorkspaceResponse,
   isRunningReturn,
   WorkspacesResponseRaw,
-  LatencyReturn
+  LatencyReturn,
+  ClusterStatusReturn
 } from '../api_types';
 import { paramValuesToRaw, workspacesFromResponse } from '../selectors/workflow_selectors';
 import { isSome } from '../selectors/maybe';
@@ -103,7 +104,10 @@ export const defaultApiHelpers = {
   pullRunStatus(projectName: string, workspaceId: number, runId: number): Promise<RunStatus> {
     return new Promise(() => null);
   },
-  getConnectionLatency(projectName: string): Promise<LatencyReturn> {
+  getClusterLatency(projectName: string): Promise<LatencyReturn> {
+    return new Promise(() => null);
+  },
+  getClusterStatus(projectName: string): Promise<ClusterStatusReturn> {
     return new Promise(() => null);
   }
 };
@@ -163,7 +167,7 @@ export function useApi(
   const showError = useCallback((e: any, dismissOld: boolean = false) => {
     if (dismissOld) invoke(dismissMessages());
     console.error(e);
-    invoke(showMessages(e));
+    invoke(showMessages([e]));
   }, [invoke]);
   const showErrors = useCallback(
     <T>(work: Promise<T>, additional: (e: any) => void = (e) => {}): Promise<T> => {
@@ -351,8 +355,12 @@ export function useApi(
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/run/${runId}`))
   }, [vulcanGet, vulcanPath]);
 
-  const getConnectionLatency = useCallback((projectName: string): Promise<LatencyReturn> => {
+  const getClusterLatency = useCallback((projectName: string): Promise<LatencyReturn> => {
     return vulcanGet(vulcanPath(`/api/v2/${projectName}/cluster-latency`))
+  }, [vulcanGet, vulcanPath]);
+
+  const getClusterStatus = useCallback((projectName: string): Promise<ClusterStatusReturn> => {
+    return vulcanGet(vulcanPath(`/api/v2/${projectName}/cluster-status`))
   }, [vulcanGet, vulcanPath]);
 
   return {
@@ -375,6 +383,7 @@ export function useApi(
     getIsRunning,
     pullRunStatus,
     getImage,
-    getConnectionLatency
+    getClusterLatency,
+    getClusterStatus,
   };
 }
