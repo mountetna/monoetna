@@ -13,6 +13,15 @@ class StatsController < Metis::Controller
     success_json(count_detached!(file_count_by_project))
   end
 
+  def file_count
+    success_json(
+      @params[:project_name] =>
+      Metis::File
+      .where(project_name: @params[:project_name])
+      .distinct(:data_block_id).count
+    )
+  end
+
   def byte_count_by_project
     projects_to_include = @params[:projects]
 
@@ -29,6 +38,15 @@ class StatsController < Metis::Controller
     success_json(count_detached!(byte_count_by_project))
   end
 
+  def byte_count
+    success_json(
+      @params[:project_name] => Metis::DataBlock.where(
+        id: Metis::File.where(
+          project_name: @params[:project_name]
+        ).distinct(:data_block_id).select(:data_block_id)
+      ).select_map(:size).sum
+    )
+  end
   private
 
   def count_detached!(count_by_project)
