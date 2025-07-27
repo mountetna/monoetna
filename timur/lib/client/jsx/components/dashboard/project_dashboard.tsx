@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useEffect, useMemo} from 'react';
+import React, {useState, useCallback, useContext, useEffect, useMemo} from 'react';
 
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
@@ -23,6 +23,7 @@ import CardMedia from '@material-ui/core/CardMedia';
 
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectUser} from 'etna-js/selectors/user-selector';
+import {DashboardContext} from '../../contexts/dashboard_context';
 import {
   addUsersSensor,
   editModelsSensor,
@@ -159,9 +160,10 @@ const AppInfo = ({sensor,action,role,actionRole=role,actionLink}:{
   const user = useReduxState((state:any) => selectUser(state));
   const userRole =  'viewer';//user.permissions[CONFIG.project_name].role;
 
+  const dashboardState = useContext(DashboardContext);
   useEffect( () => {
-    sensor(setInfo);
-  }, [] );
+    sensor(setInfo, dashboardState);
+  }, [dashboardState] );
 
   const Star = STAR[info.level];
 

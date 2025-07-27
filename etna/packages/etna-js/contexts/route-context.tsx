@@ -7,6 +7,7 @@ export const RouteProvider = ({children, state}:{
   children: React.ReactNode;
 }) => {
   return (<RouteContext.Provider value={{
+    state
   }}>
     {children}
   </RouteContext.Provider>);
