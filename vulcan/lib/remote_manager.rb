@@ -220,6 +220,16 @@ class Vulcan
       end
     end
 
+    def check_connection()
+      command = build_command.add('echo', 'connection_check')
+      begin
+        invoke_ssh_command(command.to_s)
+        return true
+      rescue => e
+        return false
+      end
+    end
+
     def measure_latency(runs: 15)
       # Measure SSH latency by running a simple command multiple times and taking the median
       latencies = []
