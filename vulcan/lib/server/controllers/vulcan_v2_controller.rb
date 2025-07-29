@@ -411,11 +411,6 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   def delete_workspace
-    # Check if user is admin for the project
-    unless @user.is_admin?(@params[:project_name])
-      raise Etna::Forbidden.new("Only admin users can delete workspaces")
-    end
-
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     unless workspace
       msg = "Workspace #{@params[:workspace_id]} for project: #{@params[:project_name]} does not exist."

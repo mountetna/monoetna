@@ -1203,7 +1203,7 @@ describe VulcanV2Controller do
       delete("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
       expect(last_response.status).to eq(200)
       expect(json_body[:message]).to eq("Workspace #{workspace.name} deleted successfully")
-      expect(json_body[:workspace_id]).to eq(workspace_id)
+      expect(json_body[:workspace_id]).to eq(workspace_id.to_s)
       
       # Verify workspace directory is deleted
       expect(remote_manager.dir_exists?(workspace_path)).to be_falsey
@@ -1222,7 +1222,7 @@ describe VulcanV2Controller do
       # Try to delete the workspace
       delete("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq("Only admin users can delete workspaces")
+      expect(json_body[:error]).to eq("You are forbidden from performing this action.")
       
       # Verify workspace still exists
       expect(Vulcan::Workspace.first(id: workspace_id)).to_not be_nil
@@ -1236,7 +1236,7 @@ describe VulcanV2Controller do
       # Try to delete the workspace
       delete("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq("Only admin users can delete workspaces")
+      expect(json_body[:error]).to eq("You are forbidden from performing this action.")
       
       # Verify workspace still exists
       expect(Vulcan::Workspace.first(id: workspace_id)).to_not be_nil
