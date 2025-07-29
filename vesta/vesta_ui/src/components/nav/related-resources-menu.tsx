@@ -29,8 +29,16 @@ export default function RelatedResourcesMenu({
       </MenuItem>
       <MenuItem onClick={onClose} sx={{ '&:hover': { backgroundColor: 'white' } }}>
         <NavLink
-          text='QuIPI'
-          href={'https://quipi.org/'}
+          text='Biobanks'
+          href={'https://ocr.ucsf.edu/biobanks'}
+          onClick={onClick}
+          typography={typography}
+        />
+      </MenuItem>
+      <MenuItem onClick={onClose} sx={{ '&:hover': { backgroundColor: 'white' } }}>
+        <NavLink
+          text='Analysis Tools'
+          href={'https://ocr.ucsf.edu/analysis-tools'}
           onClick={onClick}
           typography={typography}
         />

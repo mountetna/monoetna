@@ -320,45 +320,6 @@ export const defaultVulcanStorage: VulcanStorage = {
   status: {...defaultWorkspaceStatus},
 };
 
-// export const defaultSessionStatusResponse = {
-//   session: defaultVulcanSession,
-//   status: [[]] as [StepStatus[]],
-//   files: [] as string[],
-// };
-
-// export type SessionStatusResponse = typeof defaultSessionStatusResponse;
-
-// // Update me!
-// export interface VulcanFigure {
-//   id: number | null;
-//   figure_id?: number | null;
-//   inputs: {[k: string]: any};
-//   title?: string;
-//   author?: string;
-//   thumbnails?: string[];
-//   comment?: string;
-//   tags?: string[];
-//   workflow_snapshot?: Workflow;
-// }
-
-// export type VulcanFigureSession = VulcanSession & VulcanFigure;
-
-// export interface VulcanRevision {
-//   inputs: {[k: string]: any};
-//   title?: string;
-//   tags?: string[];
-//   id: number;
-//   workflow_snapshot?: Workflow;
-//   dependencies: {[key: string]: string};
-// }
-
-// export const defaultFigure = {
-//   id: null,
-//   figure_id: null,
-//   inputs: {},
-//   workflow_snapshot: defaultWorkflow
-// };
-
-// export interface FiguresResponse {
-//   figures: VulcanFigureSession[];
-// }
+export type LatencyReturn = {
+  latency:  string // of form "#{median_latency}ms"
+};
