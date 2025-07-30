@@ -1,7 +1,7 @@
 import React, {useState, useContext, useEffect, createContext, useCallback} from 'react';
 import { Models } from 'etna-js/models/magma-model';
 import { MagmaContext } from 'etna-js/contexts/magma-context';
-import { getModels, magmaPath } from 'etna-js/api/magma_api';
+import { getModels, getAnswer, magmaPath } from 'etna-js/api/magma_api';
 import {json_get, json_delete} from 'etna-js/utils/fetch';
 
 const defaultDashboardState = {
@@ -67,12 +67,49 @@ export const DashboardProvider = (
 
   const [ records, setRecords ] = useState(null);
   useEffect( () => {
+    const getRecords = async () => {
+      let count = 0;
+      const modelNames = Object.keys(models).filter( n => n != 'project' );
+
+      for (const modelName of modelNames) {
+        const { answer } = await getAnswer({query: [ modelName, '::count' ], project_name: CONFIG.project_name});
+        count += answer;
+      }
+      setRecords(count);
+    }
+
+    if (Object.keys(models).length == 0) return;
+
+    getRecords();
+  }, [models] );
+
+  const [ loaders, setLoaders ] = useState(null);
+  useEffect( () => {
+    json_get(`${CONFIG.polyphemus_host}/api/workflows/${CONFIG.project_name}/status`).then(
+      loaders => setLoaders(loaders.map(({pipeline_finished_at})=>pipeline_finished_at))
+    );
+  }, [] );
+
+  const [ workflows, setWorkflows ] = useState(null);
+  useEffect( () => {
+    json_get(`${CONFIG.vulcan_host}/api/v2/${CONFIG.project_name}/workflows`).then(
+      ({workflows}) => setWorkflows(workflows.length)
+    );
+  }, [] );
+
+  const [ workspaces, setWorkspaces ] = useState(null);
+  useEffect( () => {
+    json_get(`${CONFIG.vulcan_host}/api/v2/${CONFIG.project_name}/workspace`).then(
+      ({workspaces}) => {
+        setWorkspaces(workspaces)
+      }
+    );
   }, [] );
 
   return (
     <DashboardContext.Provider
       value={ {
-        models, rules, bytes, files, projectInfo, buckets
+        models, rules, bytes, files, projectInfo, buckets, records, loaders, workflows, workspaces
       }}
     >
       {props.children}

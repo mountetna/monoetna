@@ -82,18 +82,54 @@ export const addFilesSensor = (setInfo: Function, state: any) => {
   });
 };
 
-export const linkRecordsSensor = (setInfo: Function, state: any) => setInfo(
-      { level: 0, text: '200 records created' }
-    );
+export const linkRecordsSensor = (setInfo: Function, state: any) => {
+  const { records } = state;
 
-export const createLoadersSensor = (setInfo: Function, state: any) => setInfo(
-  { level: 0, text: '1 data loader, last run 2025-02-02' }
-);
+  if (records == null) return;
 
-export const addWorkflowsSensor = (setInfo: Function, state: any) => setInfo(
-  { level: 0, text: '1 workflow' }
-);
+  setInfo({
+    level: records < 5 ? 0 : records < 20 ? 1 : 2,
+    text: `${records} ${plural('record',records)} created`
+  });
+}
 
-export const runWorkflowsSensor = (setInfo: Function, state: any) => setInfo(
-  { level: 0, text: '1 workspace, last run 2025-03-03' }
-);
+export const createLoadersSensor = (setInfo: Function, state: any) => {
+  const { loaders } = state;
+
+  if (loaders == null) return;
+
+  const lastRan = Math.max(...loaders.filter( _ => _ ));
+
+  setInfo(
+    {
+      level: loaders.length == 0 ? 0 : lastRan < 0 ? 1 : 2,
+      text: `${loaders.length} data ${plural('loader',loaders.length)}, ${lastRan < 0 ? 'never run' : `last run ${lastRan.slice(0,10)}`}`
+    }
+  );
+}
+
+export const addWorkflowsSensor = (setInfo: Function, state: any) => {
+  const { workflows } = state;
+
+  if (workflows == null) return;
+
+  setInfo({
+    level: workflows == 0 ? 0 : workflows == 1 ? 1 : 2,
+    text: `${workflows} ${plural('workflow',workflows)}`
+  });
+}
+
+export const runWorkflowsSensor = (setInfo: Function, state: any) => {
+  const { workspaces } = state;
+
+  if (workspaces == null) return;
+
+  const lastRan = workspaces.reduce( (min,w) => min < w.updated_at ? w.updated_at : min, '' );
+
+  setInfo(
+    {
+      level: workspaces.length == 0 ? 0 : !lastRan ? 1 : 2,
+      text: `${workspaces.length} ${plural('workspace',workspaces.length)}, ${!lastRan ? 'never run' : `last run ${lastRan.slice(0,10)}`}`
+    }
+  );
+}

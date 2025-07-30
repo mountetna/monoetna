@@ -158,7 +158,7 @@ const AppInfo = ({sensor,action,role,actionRole=role,actionLink}:{
   const [ info, setInfo ] = useState({ level: 0, text: undefined });
 
   const user = useReduxState((state:any) => selectUser(state));
-  const userRole =  'viewer';//user.permissions[CONFIG.project_name].role;
+  const userRole =  user.permissions[CONFIG.project_name].role;
 
   const dashboardState = useContext(DashboardContext);
   useEffect( () => {

@@ -95,6 +95,6 @@ export const postRevisions = (revision_data, fetch=window.fetch) => {
   return magmaPost('update', fetch, revision_data);
 };
 
-export const getAnswer = (question, fetch) => {
+export const getAnswer = (question, fetch=window.fetch) => {
   return magmaPost('query', fetch, question);
 };
