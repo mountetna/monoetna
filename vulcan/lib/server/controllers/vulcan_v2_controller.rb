@@ -91,15 +91,17 @@ class VulcanV2Controller < Vulcan::Controller
       rescue => e
         @remote_manager.rmdir(workspace_dir)
         Vulcan.instance.logger.log_error(e)
-        raise Etna::BadRequest.new(e.message)
+        raise Etna::ServerError.new(e.message)
       end
   end
 
   def list_workspaces
     success_json(
-      workspaces: Vulcan::Workspace.all.map do |w|
-        w.to_hash
-      end
+      workspaces: Vulcan::Workspace.where(
+        workflow_id: Vulcan::WorkflowV2.where(
+          project_name: @params[:project_name]
+        ).select(:id)
+      ).all.map(&:to_hash)
     )
   end
 
