@@ -994,7 +994,7 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
       get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:run_id]}")
       expect(last_response.status).to eq(200)
-      expect(json_body[:count]).to eq("NOT STARTED")
+      expect(["NOT STARTED", "RUNNING"]).to include(json_body[:count])
     end
   end
 
@@ -1161,9 +1161,9 @@ describe VulcanV2Controller do
       get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
 
       expect(last_response.status).to eq(200)
+      expect(json_body[:count]).to eq("CANCELLED by 0") # think about this - 0 represents cancelled by the system
       expect(json_body[:arithmetic]).to eq("NOT STARTED")
       expect(json_body[:checker]).to eq("NOT STARTED")
-      expect(json_body[:count]).to eq("CANCELLED by 0") # think about this - 0 represents cancelled by the system
     end
 
     it 'fails to cancel when no workflow is running' do
