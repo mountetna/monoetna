@@ -42,6 +42,19 @@ const STAR = [
   StarIcon
 ];
 
+const STAR_STYLES = [
+  { color: 'red' },
+  { color: 'goldenrod' },
+  { color: 'green' }
+]
+
+const ROLES = {
+  guest: 0,
+  viewer: 1,
+  editor: 2,
+  administrator: 3
+};
+
 const size = '35px';
 const useStyles = makeStyles((theme) => ({
   app: {
@@ -133,19 +146,6 @@ const AppDashboard = ({app,title,help,helpLink,children}:{
     </Grid>
   </Grid>
 }
-
-const STAR_STYLES = [
-  { color: 'red' },
-  { color: 'goldenrod' },
-  { color: 'green' }
-]
-
-const ROLES = {
-  guest: 0,
-  viewer: 1,
-  editor: 2,
-  administrator: 3
-};
 
 const AppInfo = ({sensor,action,role,actionRole=role,actionLink}:{
   sensor: Function,

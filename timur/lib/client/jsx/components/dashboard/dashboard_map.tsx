@@ -94,14 +94,14 @@ const ModelMiniReport = ({modelEl, modelName, open}:{
         <Grid className={classes.model_name}>
           { modelName ? `${counts[modelName] == undefined ? '??' : counts[modelName]} ${plural('record',counts[modelName])}` : null }
         </Grid>
-        <Tooltip title={ model?.isTable ? `Browse via ${model.parent} model` : counts[modelName] == 0 ? "No records" : "Show ids" }>
+        <Tooltip title={ model?.isTable ? `Browse via ${model.parent} model` : counts[modelName] == 0 ? 'No records' : 'Show ids' }>
           <span>
           <IconButton size='small' disabled={ model?.isTable || counts[modelName] == 0 } onClick={ () => setFold(!fold) }>
             { fold ? <ChevronRightIcon fontSize='small'/> : <ExpandMoreIcon fontSize='small'/> }
           </IconButton>
           </span>
         </Tooltip>
-        <Tooltip title={ model && counts[modelName] == 0 ? "No records" : "Query and Download" }>
+        <Tooltip title={ model && counts[modelName] == 0 ? 'No records' : 'Query and Download' }>
           <span>
             <IconButton size='small' disabled={ counts[modelName] == 0 } onClick={
               setQueryLocation
