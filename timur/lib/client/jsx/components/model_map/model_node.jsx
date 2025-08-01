@@ -52,8 +52,8 @@ const ModelNode = ({model_name, center, size, selected, handler, disabled, numSi
         maxWidth: `${600 / (numSiblings + 1) - 15}px`
       }}
 
-      onClick={() => {
-        if (!disabled) handler(model_name);
+      onClick={(e) => {
+        if (!disabled) handler(model_name, e.target);
       }}
     >
       {model_name}

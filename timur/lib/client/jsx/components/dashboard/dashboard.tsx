@@ -1,6 +1,7 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 
 import ProjectDashboard from './project_dashboard';
+import DashboardMap from './dashboard_map';
 import ModelMapGraphic from '../model_map/model_map_graphic';
 import {DashboardProvider} from '../../contexts/dashboard_context';
 
@@ -51,9 +52,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+type ModelState = [ modelName: string|null, modelEl: HTMLElement|null ];
+
 const Dashboard = ({project_name, model_name}:{project_name: string, model_name?: string}) => {
   const [ showDrawer, setShowDrawer ] = useState(model_name == 'project');
   const [ tab, setTab ] = useState(0);
+  const [ modelState, setModelState ] = useState<ModelState>([null, null]);
 
   const classes = useStyles();
   const theme = useTheme();
@@ -87,7 +91,7 @@ const Dashboard = ({project_name, model_name}:{project_name: string, model_name?
               } />
             </Tabs>
             {
-              showDrawer && <IconButton onClick={ () => setShowDrawer(false) }><CloseIcon/></IconButton>
+              showDrawer && <IconButton onClick={ () => { setShowDrawer(false); setModelState([null,null]); } }><CloseIcon/></IconButton>
             }
           </Grid>
           <Grid className={classes.tab_panel}>
@@ -95,11 +99,7 @@ const Dashboard = ({project_name, model_name}:{project_name: string, model_name?
             tab == 0 && <ProjectDashboard project_name={project_name}/>
           }
           {
-            tab == 1 && <ModelMapGraphic
-                width={600}
-                height={600}
-                selected_models={[]}
-              />
+            tab == 1 && <DashboardMap modelState={modelState} setModelState={setModelState}/>
           }
         </Grid>
       </Grid>

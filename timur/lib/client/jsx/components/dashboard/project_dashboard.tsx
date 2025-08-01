@@ -102,7 +102,7 @@ const AppDashboard = ({app,title,help,helpLink,children}:{
   const userRole = user.permissions[CONFIG.project_name].role;
 
   const shownChildren = React.Children.map(
-    children, child => ROLES[child.props.role as keyof typeof ROLES] > ROLES[userRole] ? null : child
+    children, child => ROLES[child.props.role as keyof typeof ROLES] > ROLES[userRole as keyof typeof ROLES] ? null : child
   ).filter((_:any)=>_)
 
   if (!shownChildren.length) return null;
@@ -173,7 +173,7 @@ const AppInfo = ({sensor,action,role,actionRole=role,actionLink}:{
     </ListItemIcon>
     { info.text
       ? <ListItemText secondary={
-          ROLES[actionRole as keyof typeof ROLES] > ROLES[userRole]
+          ROLES[actionRole as keyof typeof ROLES] > ROLES[userRole as keyof typeof ROLES]
             ? info.text
             : <a className={classes.link} title={action} href={actionLink}>{info.text}</a>
         } />

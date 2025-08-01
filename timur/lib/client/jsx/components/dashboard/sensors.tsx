@@ -1,8 +1,8 @@
 import {json_get, json_delete} from 'etna-js/utils/fetch';
-import {byteFormat} from 'etna-js/utils/format';
+import {plural, byteFormat} from 'etna-js/utils/format';
+import {DashboardState} from '../../contexts/dashboard_context';
 
-const plural = (word,count) => count == 1 ? word : word + 's';
-export const addUsersSensor = (setInfo: Function, state: any) => {
+export const addUsersSensor = (setInfo: Function, state: DashboardState) => {
   const { projectInfo } = state;
 
   if (!projectInfo) return;
@@ -22,7 +22,7 @@ export const addUsersSensor = (setInfo: Function, state: any) => {
   setInfo({level, text})
 }
 
-export const editModelsSensor = (setInfo: Function, state: any) => {
+export const editModelsSensor = (setInfo: Function, state: DashboardState) => {
   const { models } = state;
 
   if (!models) return;
@@ -41,7 +41,7 @@ export const editModelsSensor = (setInfo: Function, state: any) => {
   });
 } 
 
-export const editRulesSensor = (setInfo: Function, state: any) => {
+export const editRulesSensor = (setInfo: Function, state: DashboardState) => {
   const { models, rules } = state;
 
   if (!models || !rules) return;
@@ -65,13 +65,13 @@ export const editRulesSensor = (setInfo: Function, state: any) => {
   });
 }
 
-export const createBucketsSensor = (setInfo: Function, state: any) => {
+export const createBucketsSensor = (setInfo: Function, state: DashboardState) => {
   const { buckets } = state;
   if (!buckets) return;
   setInfo({ level: !buckets.length ? 0 : 2, text: `${buckets.length} ${plural('bucket',buckets.length)} created` });
 };
 
-export const addFilesSensor = (setInfo: Function, state: any) => {
+export const addFilesSensor = (setInfo: Function, state: DashboardState) => {
   const { files, bytes } = state;
   console.log({state});
 
@@ -82,10 +82,12 @@ export const addFilesSensor = (setInfo: Function, state: any) => {
   });
 };
 
-export const linkRecordsSensor = (setInfo: Function, state: any) => {
-  const { records } = state;
+export const linkRecordsSensor = (setInfo: Function, state: DashboardState) => {
+  const { counts } = state;
 
-  if (records == null) return;
+  if (counts == null || !Object.keys(counts).length) return;
+
+  const records = Object.values(counts).reduce( (sum,count) => sum + count, 0 );
 
   setInfo({
     level: records < 5 ? 0 : records < 20 ? 1 : 2,
@@ -93,22 +95,22 @@ export const linkRecordsSensor = (setInfo: Function, state: any) => {
   });
 }
 
-export const createLoadersSensor = (setInfo: Function, state: any) => {
+export const createLoadersSensor = (setInfo: Function, state: DashboardState) => {
   const { loaders } = state;
 
   if (loaders == null) return;
 
-  const lastRan = Math.max(...loaders.filter( _ => _ ));
+  const lastRan = loaders.reduce( (min,l) => min < l.pipeline_finished_at ? l.pipeline_finished_at : min, '' );
 
   setInfo(
     {
-      level: loaders.length == 0 ? 0 : lastRan < 0 ? 1 : 2,
-      text: `${loaders.length} data ${plural('loader',loaders.length)}, ${lastRan < 0 ? 'never run' : `last run ${lastRan.slice(0,10)}`}`
+      level: loaders.length == 0 ? 0 : !lastRan ? 1 : 2,
+      text: `${loaders.length} data ${plural('loader',loaders.length)}, ${!lastRan ? 'never run' : `last run ${lastRan.slice(0,10)}`}`
     }
   );
 }
 
-export const addWorkflowsSensor = (setInfo: Function, state: any) => {
+export const addWorkflowsSensor = (setInfo: Function, state: DashboardState) => {
   const { workflows } = state;
 
   if (workflows == null) return;
@@ -119,7 +121,7 @@ export const addWorkflowsSensor = (setInfo: Function, state: any) => {
   });
 }
 
-export const runWorkflowsSensor = (setInfo: Function, state: any) => {
+export const runWorkflowsSensor = (setInfo: Function, state: DashboardState) => {
   const { workspaces } = state;
 
   if (workspaces == null) return;

@@ -1,17 +1,34 @@
 import React, {useState, useContext, useEffect, createContext, useCallback} from 'react';
-import { Models } from 'etna-js/models/magma-model';
-import { MagmaContext } from 'etna-js/contexts/magma-context';
-import { getModels, getAnswer, magmaPath } from 'etna-js/api/magma_api';
+import { Models, ModelsObject } from 'etna-js/models/magma-model';
+import { CountsObject, MagmaContext } from 'etna-js/contexts/magma-context';
+import { getModels, getAnswer, getIdentifiers, magmaPath } from 'etna-js/api/magma_api';
 import {json_get, json_delete} from 'etna-js/utils/fetch';
 
+type Workspace = {
+  updated_at: string,
+};
+
+type Loader = {
+  pipeline_finished_at: string,
+}
+
 const defaultDashboardState = {
-  models: null as Models | null,
+  models: null as ModelsObject | null,
+  rules: null as any | null,
+  bytes: null as number | null,
+  files: null as number | null,
+  projectInfo: null as any | null,
+  buckets: null as any | null,
+  counts: null as CountsObject | null,
+  loaders: null as Loader[] | null,
+  workflows: null as any | null,
+  workspaces: null as Workspace[] | null,
 };
 
 export type DashboardState = Readonly<typeof defaultDashboardState>;
 
 export const defaultDashboardContext = {
-  state: defaultDashboardState as DashboardState,
+  ...defaultDashboardState as DashboardState,
 };
 
 export type DashboardContextData = typeof defaultDashboardContext;
@@ -23,11 +40,18 @@ export type ProviderProps = {params?: {}; children: any};
 export const DashboardProvider = (
   props: ProviderProps & Partial<DashboardContextData>
 ) => {
-  const { models, setModels } = useContext(MagmaContext);
+  const { models, setModels, mergeModels, counts, setCounts } = useContext(MagmaContext);
   useEffect( () => {
-    if (Object.keys(models).length == 0) {
-      getModels(CONFIG.project_name).then(({models}) => setModels(models));
+    const getMagmaData = async () => {
+      const { models: m1 } = await getModels(CONFIG.project_name);
+      const { models: m2 } = await getIdentifiers(CONFIG.project_name);
+      const mergedModels = mergeModels(m1,m2);
+      setModels(mergedModels);
     }
+
+    if (Object.keys(models).length != 0) return;
+
+    getMagmaData();
   }, [models] );
 
   const [ rules, setRules ] = useState(null);
@@ -65,17 +89,18 @@ export const DashboardProvider = (
     );
   }, [] );
 
-  const [ records, setRecords ] = useState(null);
   useEffect( () => {
     const getRecords = async () => {
       let count = 0;
       const modelNames = Object.keys(models).filter( n => n != 'project' );
 
+      let newCounts: CountsObject = {};
+
       for (const modelName of modelNames) {
         const { answer } = await getAnswer({query: [ modelName, '::count' ], project_name: CONFIG.project_name});
-        count += answer;
+        newCounts[ modelName ] = answer;
       }
-      setRecords(count);
+      setCounts({ ...counts, ...newCounts });
     }
 
     if (Object.keys(models).length == 0) return;
@@ -83,10 +108,10 @@ export const DashboardProvider = (
     getRecords();
   }, [models] );
 
-  const [ loaders, setLoaders ] = useState(null);
+  const [ loaders, setLoaders ] = useState<Loader[] | null>(null);
   useEffect( () => {
     json_get(`${CONFIG.polyphemus_host}/api/workflows/${CONFIG.project_name}/status`).then(
-      loaders => setLoaders(loaders.map(({pipeline_finished_at})=>pipeline_finished_at))
+      loaders => setLoaders(loaders)
     );
   }, [] );
 
@@ -109,7 +134,7 @@ export const DashboardProvider = (
   return (
     <DashboardContext.Provider
       value={ {
-        models, rules, bytes, files, projectInfo, buckets, records, loaders, workflows, workspaces
+        models, rules, bytes, files, projectInfo, buckets, counts, loaders, workflows, workspaces
       }}
     >
       {props.children}
