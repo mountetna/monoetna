@@ -389,6 +389,22 @@ SHINY_HELMET=<<EOT
   xXx
  xO|Ox
 EOT
+LABORS_LIST=<<EOT
+The Twelve Labors of Hercules
+- The Nemean Lion
+- The Lernaean Hydra
+- The Ceryneian Hind
+- The Erymanthian Boar
+- The Augean Stables
+- The Stymphalian Birds
+- The Cretan Bull
+- The Mares of Diomedes
+- The Belt of Hippolyta
+- The Cattle of Geryon
+- The Golden Apples of the Hesperides
+- Cerberus
+EOT
+
 
 
 AUTH_USERS = {

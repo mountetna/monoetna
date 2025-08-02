@@ -2,6 +2,8 @@ import React, {useState, createContext, useCallback} from 'react';
 
 import {QueryColumn} from './query_types';
 import {QueryGraph} from '../../utils/query_graph';
+import {Attribute, Model, Models} from 'etna-js/models/magma-model';
+import {isLinkForeignKey, isLinkCollection, sortAttributeList} from '../../utils/attributes';
 
 export const defaultQueryColumnParams = {
   columns: [] as QueryColumn[]
@@ -28,6 +30,47 @@ export type QueryColumnContextData = typeof defaultQueryColumnContext;
 export const QueryColumnContext = createContext(defaultQueryColumnContext);
 export type QueryColumnContext = typeof QueryColumnContext;
 export type ProviderProps = {params?: {}; children: any};
+
+export const columnsForModel = (model: Model, models: Models) => {
+  let column_attrs = sortAttributeList(
+    model.selectAttributes(
+      (attribute: Attribute) => !(isLinkCollection( attribute )
+        || attribute.hidden
+        || attribute.attribute_type == 'identifier'
+      )
+    ),
+    true
+  )
+  return [
+    {
+      model_name: model.name,
+      attribute_name: model.identifier,
+      display_label: `${model.name}.${model.identifier}`,
+      slices: []
+    },
+    ...column_attrs.map(
+      (attribute:Attribute) => {
+        if (isLinkForeignKey(attribute)) {
+          const linkModel = models.model(attribute.link_model_name as string) as Model;
+
+          return {
+            model_name: attribute.link_model_name,
+            attribute_name: linkModel.identifier,
+            display_label: `${attribute.link_model_name}.${linkModel.identifier}`,
+            slices: []
+          }
+        }
+
+        return {
+          model_name: model.name,
+          attribute_name: attribute.attribute_name,
+          display_label: attribute.attribute_name,
+          slices: []
+        }
+      }
+    )
+  ];
+}
 
 export const QueryColumnProvider = (
   props: ProviderProps & Partial<QueryColumnContextData>
