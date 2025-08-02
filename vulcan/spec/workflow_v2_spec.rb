@@ -220,7 +220,7 @@ describe VulcanV2Controller do
       get("/api/v2/#{PROJECT}/workspace")
       expect(last_response.status).to eq(200)
       expect(json_body[:workspaces].length).to eq(1)
-      expect(json_body[:workspaces]).to all(include(:workspace_path => a_string_starting_with("/workspace/#{PROJECT}")))
+      expect(json_body[:workspaces]).to all(include(:workspace_path => a_string_starting_with("#{Vulcan.instance.config(:base_dir)}/workspace/#{PROJECT}")))
     end
 
     it 'should return an empty list if no workspaces exist' do

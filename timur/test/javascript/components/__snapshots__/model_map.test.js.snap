@@ -1282,7 +1282,8 @@ exports[`ModelMap for model with no records renders with action buttons and repa
         class="MuiGrid-root makeStyles-map-3 MuiGrid-item"
       >
         <div
-          style="position: relative;"
+          class="MuiGrid-root"
+          style="width: 600px; height: 600px; position: relative;"
         >
           <svg
             height="600"
@@ -1311,8 +1312,8 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                 marker-end="url(#arrow)"
                 x1="300"
                 x2="300"
-                y1="150"
-                y2="280"
+                y1="75"
+                y2="205"
               />
             </g>
             <g
@@ -1322,26 +1323,26 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                 marker-end="url(#arrow)"
                 x1="300"
                 x2="300"
-                y1="300"
-                y2="430"
+                y1="225"
+                y2="355"
               />
             </g>
           </svg>
           <div
             class="makeStyles-model_node-9  "
-            style="top: 300px; left: 300px; --model-width: 285px;"
+            style="top: 225px; left: 300px; max-width: 285px;"
           >
             labor
           </div>
           <div
             class="makeStyles-model_node-9 makeStyles-selected-10 "
-            style="top: 450px; left: 300px; --model-width: 285px;"
+            style="top: 375px; left: 300px; max-width: 285px;"
           >
             monster
           </div>
           <div
             class="makeStyles-model_node-9  "
-            style="top: 150px; left: 300px; --model-width: 285px;"
+            style="top: 75px; left: 300px; max-width: 285px;"
           >
             project
           </div>
