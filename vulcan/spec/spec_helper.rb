@@ -266,6 +266,27 @@ def run_with_retry(max_attempts = 5, base_delay = 15)
   end
 end
 
+def retry_until(max_attempts: 5, base_delay: 2, &block)
+  attempts = 0
+
+  loop do
+    attempts += 1
+    result = yield
+    Vulcan.instance.logger.info("last response: #{json_body}") 
+    if result
+      break
+    end
+    
+    if attempts >= max_attempts
+      raise "Timeout: Condition not met after #{max_attempts} attempts"
+    end
+    
+    # Exponential backoff
+    sleep_duration = base_delay * (2 ** (attempts - 1))
+    sleep(sleep_duration)
+  end
+end
+
 
 def stub_generate_token(project_name, token_name = 'stubbed_token')
   stub_request(:post, /#{Vulcan.instance.config(:janus)[:host]}\/api\/tokens\/generate/)

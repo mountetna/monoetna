@@ -27,7 +27,7 @@ class Polyphemus
         "| sed 's/uid:/Workflow UID:/'"
       ]
 
-      logger.info("Submitting workflow #{config.workflow_name}, for project: #{config.project_name}, workflow_type: #{config.workflow_type}, config_id: #{config.config_id}...")
+      logger.info("Submitting workflow #{config.workflow_name}, for project: #{config.project_name}, workflow_type: #{config.workflow_type}, config_id: #{config.config_id}")
       logger.info("Submitting Argo workflow with command: #{cmd.join(" ")}")
       stdout, stderr, status = Open3.capture3(cmd.join(" "))
 

@@ -291,6 +291,48 @@ class VulcanV2Controller < Vulcan::Controller
     end
   end
 
+  def cancel_workflow
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    unless workspace
+      msg = "Workspace for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+
+    # Get the specific run to cancel
+    run = Vulcan::Run.first(id: @params[:run_id], workspace_id: @params[:workspace_id])
+    unless run
+      msg = "Run #{@params[:run_id]} not found for workspace: #{workspace.name}"
+      raise Etna::BadRequest.new(msg)
+    end
+
+    begin
+      # Check if the workflow is currently running
+      unless @snakemake_manager.snakemake_is_running?(workspace.path)
+        return success_json({
+          message: "No workflow is currently running for workspace: #{workspace.name}",
+          run_id: run.id
+        })
+      end
+
+      # Cancel the workflow
+      config = Vulcan::Config.first(id: run.config_id)
+      unless config
+        msg = "Config for workspace: #{workspace.path} does not exist."
+        raise Etna::BadRequest.new(msg)
+      end
+      success = @snakemake_manager.cancel_snakemake(workspace.path, run.slurm_run_uuid)
+      if success
+        success_json({message: "Workflow canceled successfully", run_id: run.id})
+      else
+        raise Etna::BadRequest.new("Failed to cancel workflow")
+      end
+    rescue Etna::BadRequest => e
+      raise e
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
+  end
 
   def write_files
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
@@ -364,6 +406,45 @@ class VulcanV2Controller < Vulcan::Controller
       # Measure SSH latency using the remote_manager's measure_latency method
       median_latency = @remote_manager.measure_latency
       success_json({latency: "#{median_latency}ms"})
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
+  end
+
+  def delete_workspace
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    unless workspace
+      msg = "Workspace #{@params[:workspace_id]} for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+
+    begin
+      # Check if the workflow is currently running
+      if @snakemake_manager.snakemake_is_running?(workspace.path)
+        raise Etna::BadRequest.new("Cannot delete workspace while workflow is running")
+      end
+
+      # Delete all runs associated with this workspace
+      Vulcan::Run.where(workspace_id: workspace.id).delete
+
+      # Delete all configs associated with this workspace
+      Vulcan::Config.where(workspace_id: workspace.id).delete
+
+      # Delete the workspace directory on the remote server
+      if @remote_manager.dir_exists?(workspace.path)
+        @remote_manager.rmdir(workspace.path)
+      end
+
+      # Delete the workspace record from the database
+      workspace.delete
+
+      success_json({
+        message: "Workspace #{workspace.name} deleted successfully",
+        workspace_id: @params[:workspace_id]
+      })
+    rescue Etna::BadRequest => e
+      raise e
     rescue => e
       Vulcan.instance.logger.log_error(e)
       raise Etna::BadRequest.new(e.message)
