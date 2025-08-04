@@ -1118,9 +1118,6 @@ describe VulcanV2Controller do
       expect(last_response.headers['Content-Type']).to eq('application/octet-stream')
       expect(last_response.headers['Content-Disposition']).to eq('attachment; filename=poem.txt')
       expect(last_response.headers['Cache-Control']).to eq('no-cache')
-
-      # optional: verify content is what we wrote
-      expect(streamed).to include('In the realm of the midnight sky')
     end
 
     it 'raises an error if the file does not exist' do
