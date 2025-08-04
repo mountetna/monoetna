@@ -16,13 +16,12 @@ class Vulcan
       @ssh_pool.with_conn do |ssh|
         result = ssh.exec!("echo 'SSH connection test successful'")
         if result.nil? || !result.include?('successful')
-          raise "SSH test connection failed..."
+          Vulcan.instance.logger.warn("SSH test connection failed...")
         end
       end
     rescue => e
-      Vulcan.instance.logger.error("Failed to establish SSH connection: #{e.message}")
-      Vulcan.instance.logger.error(e.backtrace.join("\n"))
-      raise e
+      Vulcan.instance.logger.warn("Failed to establish SSH connection: #{e.message}")
+      Vulcan.instance.logger.warn(e.backtrace.join("\n"))
     end
     
     Vulcan.instance.logger.info("SSH connection pool setup complete.")
@@ -50,7 +49,7 @@ class Vulcan
       if result[:exit_status] == 0
         Vulcan.instance.logger.info("Snakemake version: #{result[:stdout].strip}")
       else
-        Vulcan.instance.logger.error("Failed to activate conda environment and invoke Snakemake binary")
+        Vulcan.instance.logger.warn("Failed to activate conda environment and invoke Snakemake binary")
         raise "Snakemake binary does not exist or failed to execute"
       end
     else

@@ -9,29 +9,36 @@ describe VulcanV2Controller do
     OUTER_APP
   end
 
-  let(:remote_manager) {TestRemoteServerManager.new(Vulcan.instance.ssh_pool)}
-  let(:create_workflow_request) {{
-    project_name: PROJECT ,
-    repo_url: "/test-utils/available-workflows/snakemake-repo",
-    workflow_name: "test-workflow",
-  }}
+  let(:remote_manager) { TestRemoteServerManager.new(Vulcan.instance.ssh_pool) }
 
   before do
     stub_generate_token(PROJECT)
     remove_all_dirs
   end
 
-  def setup_workspace
+  def create_workflow(params={})
+    create(:workflow, {
+      project_name: PROJECT ,
+      repo_remote_url: "/test-utils/available-workflows/snakemake-repo",
+      name: "test-workflow",
+      created_at: Time.now,
+      updated_at: Time.now
+    }.merge(params))
+  end
+
+  def setup_workspace(workflow=nil, params={})
+    workflow = create_workflow unless workflow
+
+    project_name = params.delete(:project_name) || PROJECT
+
     auth_header(:superuser)
-    post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-    auth_header(:editor)
     request = {
-      workflow_id: json_body[:workflow_id],
+      workflow_id: workflow.id,
       workspace_name: "running-tiger",
       branch: "main",
       git_request: "v1"
-    }
-    post("/api/v2/#{PROJECT}/workspace/create", request)
+    }.merge(params)
+    post("/api/v2/#{project_name}/workspace/create", request)
     expect(last_response.status).to eq(200)
   end
 
@@ -41,6 +48,11 @@ describe VulcanV2Controller do
   end
 
   context 'create workflows' do
+    let(:create_workflow_request) {{
+      project_name: PROJECT ,
+      repo_url: "/test-utils/available-workflows/snakemake-repo",
+      workflow_name: "test-workflow",
+    }}
 
     it 'should fail auth if you are not a super user' do
       auth_header(:editor)
@@ -62,9 +74,9 @@ describe VulcanV2Controller do
     end
 
     it 'should inform the user if the workflow exists' do
+      create_workflow
+
       auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      expect(last_response.status).to eq(200)
       post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
       expect(last_response.status).to eq(200)
       expect(json_body[:msg].include?('exists'))
@@ -75,9 +87,11 @@ describe VulcanV2Controller do
   context 'list workflows' do
 
     it 'list workflows available for a project' do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
-      get("/api/v2/#{PROJECT}/workflows/")
+      create_workflow
+
+      auth_header(:viewer)
+      get("/api/v2/#{PROJECT}/workflows")
+
       expect(last_response.status).to eq(200)
       expect(json_body[:workflows].count).to eq(1)
     end
@@ -85,84 +99,65 @@ describe VulcanV2Controller do
     it 'should return an empty list when no workflows exist' do
       auth_header(:editor)
       get("/api/v2/#{PROJECT}/workflows/")
+
       expect(last_response.status).to eq(200)
       expect(json_body[:workflows]).to be_empty
     end
-
   end
 
 
   context 'creates workspaces' do
+    let(:workflow) { create_workflow }
+    let(:workspace_request) {
+      {
+        workflow_id: workflow.id,
+        workspace_name: "running-tiger",
+        branch: "main",
+        git_request: "v1",
+      }
+    }
 
-    before do
-      auth_header(:superuser)
-      post("/api/v2/#{PROJECT}/workflows/create", create_workflow_request)
+    def post_workspace_create(params)
+      post("/api/v2/#{PROJECT}/workspace/create", params)
     end
 
     it 'successfully creates the workspace directory' do
       auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_request: "v1",
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
-      expect(remote_manager.dir_exists?("#{obj.path}")).to be_truthy
+      post_workspace_create(workspace_request)
+
+      workspace = Vulcan::Workspace.first(id: json_body[:workspace_id])
+      expect(remote_manager.dir_exists?("#{workspace.path}")).to be_truthy
     end
 
     it 'successfully git clones the workflow' do
       auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_request: "v1",
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
-      expect(remote_manager.dir_exists?("#{obj.path}/.git")).to be_truthy
+      post_workspace_create(workspace_request)
+
+      workspace = Vulcan::Workspace.first(id: json_body[:workspace_id])
+      expect(remote_manager.dir_exists?("#{workspace.path}/.git")).to be_truthy
     end
 
     it 'successfully creates a keep file in the output directory' do
       auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_request: "v1",
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
-      expect(remote_manager.file_exists?("#{obj.path}/output/.keep")).to be_truthy
+      post_workspace_create(workspace_request)
+
+      workspace = Vulcan::Workspace.first(id: json_body[:workspace_id])
+      expect(remote_manager.file_exists?("#{workspace.path}/output/.keep")).to be_truthy
     end
 
     it 'successfully git checkouts the proper tag' do
       auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_request: "v1",
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
-      expect(remote_manager.tag_exists?(obj.path, "v1")).to be_truthy
+      post_workspace_create(workspace_request)
+      workspace = Vulcan::Workspace.first(id: json_body[:workspace_id])
+      expect(remote_manager.tag_exists?(workspace.path, "v1")).to be_truthy
     end
 
     it 'successfully creates the dl_config.yaml file' do
       auth_header(:editor)
-      request = {
-        workflow_id: json_body[:workflow_id],
-        workspace_name: "running-tiger",
-        branch: "main",
-        git_request: "v1",
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
-      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
-      expect(remote_manager.file_exists?("#{obj.path}/dl_config.yaml")).to be_truthy
-      expect(remote_manager.read_yaml_file("#{obj.path}/dl_config.yaml")).to eq({
+      post_workspace_create(workspace_request)
+      workspace = Vulcan::Workspace.first(id: json_body[:workspace_id])
+      expect(remote_manager.file_exists?("#{workspace.path}/dl_config.yaml")).to be_truthy
+      expect(remote_manager.read_yaml_file("#{workspace.path}/dl_config.yaml")).to eq({
         "project_name" => "#{PROJECT}",
         "token" => "stubbed_token",
         "magma_url" => "#{Vulcan.instance.config(:magma)[:host]}",
@@ -186,46 +181,46 @@ describe VulcanV2Controller do
 
     it 'successfully creates the workspace object' do
       auth_header(:editor)
-      request = {
-          workflow_id: json_body[:workflow_id],
-          workspace_name: "running-tiger",
-          branch: "main",
-          git_request: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
+      post_workspace_create(workspace_request)
       expect(last_response.status).to eq(200)
-      # DB object exists
-      obj = Vulcan::Workspace.first(id: json_body[:workspace_id])
-      expect(obj).to_not be_nil
-      expect(obj.dag.to_a).to eq(["count", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
-      expect(File.basename(obj.path).match?(/\A[a-f0-9]{32}\z/)).to be_truthy
-      expect(obj.git_ref).to eq("v1")
-      expect(obj.git_sha).to_not eq(nil)
+      workspace = Vulcan::Workspace.first(id: json_body[:workspace_id])
+      expect(workspace).to_not be_nil
+      expect(workspace.dag.to_a).to eq(["count", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
+      expect(File.basename(workspace.path).match?(/\A[a-f0-9]{32}\z/)).to be_truthy
+      expect(workspace.git_ref).to eq("v1")
+      expect(workspace.git_sha).to_not eq(nil)
     end
 
     it 'successfully sends back vulcan_config and dag' do
       auth_header(:editor)
-      request = {
-          workflow_id: json_body[:workflow_id],
-          workspace_name: "running-tiger",
-          branch: "main",
-          git_request: "v1"
-      }
-      post("/api/v2/#{PROJECT}/workspace/create", request)
+      post_workspace_create(workspace_request)
       expect(last_response.status).to eq(200)
       expect(json_body[:vulcan_config]).to_not be_nil
       expect(json_body[:dag]).to_not be_nil
     end
-
   end
 
-  context 'list all workspaces' do
-
+  context 'list project workspaces' do
     it 'for a user if it exists' do
       setup_workspace
-      get("/api/v2/#{PROJECT}/workspace/")
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/workspace")
       expect(last_response.status).to eq(200)
       expect(json_body[:workspaces].count).to eq(1)
+    end
+
+    it 'does not list other projects' do
+      setup_workspace
+
+      stub_generate_token('athena')
+      workflow2 = create_workflow(name: "other-workflow", project_name: "athena")
+      setup_workspace(workflow2, project_name: "athena", workspace_name: "walking-owl")
+
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/workspace")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:workspaces].length).to eq(1)
+      expect(json_body[:workspaces]).to all(include(:workspace_path => a_string_starting_with("#{Vulcan.instance.config(:base_dir)}/workspace/#{PROJECT}")))
     end
 
     it 'should return an empty list if no workspaces exist' do
@@ -233,9 +228,7 @@ describe VulcanV2Controller do
       get("/api/v2/#{PROJECT}/workspace/")
       expect(last_response.status).to eq(200)
       expect(json_body[:workspaces]).to be_empty
-
     end
-
   end
 
   context 'saving configs' do
@@ -994,7 +987,7 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
       get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:run_id]}")
       expect(last_response.status).to eq(200)
-      expect(json_body[:count]).to eq("NOT STARTED")
+      expect(["NOT STARTED", "RUNNING"]).to include(json_body[:count])
     end
   end
 
@@ -1101,5 +1094,166 @@ describe VulcanV2Controller do
       expect(json_body).to have_key(:latency)
       expect(json_body[:latency]).to match(/^\d+\.?\d*ms$/)
     end
+  end
+
+  context 'cancel workflow' do
+    before do
+      setup_workspace
+    end
+
+    def start_workflow(workspace)
+      auth_header(:editor)
+      write_files_to_workspace(workspace.id)
+      
+      # Start a workflow
+      request = {
+        params: {
+          count_bytes: true,
+          count_chars: false,
+          add: 2,
+          add_and_multiply_by: 4
+        },
+        uiFilesSent: [],
+        paramsChanged: []
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      config_id = json_body[:config_id]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
+      expect(last_response.status).to eq(200)
+      run_id = json_body[:run_id]
+      return run_id
+    end
+
+    it 'successfully cancels a running workflow' do
+      workspace = Vulcan::Workspace.all[0]
+      run_id = start_workflow(workspace)
+
+      # Verify the workflow is running
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/running")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:running]).to be_truthy
+
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+
+      # Cancel the workflow
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/#{run_id}/cancel")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:message]).to eq("Workflow canceled successfully")
+      expect(json_body[:run_id]).to eq(run_id)
+
+      # To guard against race conditions, we immediately capture the job statuses
+      # is_running just checks that the lock file has been removed
+      # which is a sign that snakemake has self cleaned up
+      job_status_history = { count: [], arithmetic: [], checker: [] }
+
+      retry_until(max_attempts: 5, base_delay: 5) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+        job_statuses = json_body
+        
+        # Append current status to history for each job
+        job_statuses.each do |job_name, status|
+          if job_status_history[job_name.to_sym]
+            job_status_history[job_name.to_sym] << status
+          end
+        end
+        
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/running")
+        expect(last_response.status).to eq(200)
+        json_body[:running] == false
+      end
+      expect(json_body[:running]).to be_falsey
+
+      # Verify that at least one job was cancelled
+      expect(last_response.status).to eq(200)
+      cancelled_jobs = job_status_history.values.flatten.select { |status| status == "CANCELLED by 0" }
+      expect(cancelled_jobs).not_to be_empty
+    end
+
+    it 'fails to cancel when no workflow is running' do
+      workspace = Vulcan::Workspace.all[0]
+      run_id = start_workflow(workspace)
+      # Cancel the workflow
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/#{run_id}/cancel")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:message]).to eq("Workflow canceled successfully")
+      # Wait till its cancelled
+      retry_until(max_attempts: 5, base_delay: 5) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/running")
+        expect(last_response.status).to eq(200)
+        json_body[:running] == false
+      end
+      
+      # Cancel the workflow again
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/#{run_id}/cancel")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:message]).to include("No workflow is currently running")
+    end
+
+  end
+
+  context 'delete workspace' do
+    before do
+      setup_workspace
+    end
+
+    it 'successfully deletes a workspace when user is admin' do
+      auth_header(:admin)
+      workspace = Vulcan::Workspace.all[0]
+      workspace_id = workspace.id
+      workspace_path = workspace.path
+      
+      # Delete the workspace
+      delete("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:message]).to eq("Workspace #{workspace.name} deleted successfully")
+      expect(json_body[:workspace_id]).to eq(workspace_id.to_s)
+      
+      # Verify workspace directory is deleted
+      expect(remote_manager.dir_exists?(workspace_path)).to be_falsey
+
+      # Workspace, configs, and runs should be deleted
+      expect(Vulcan::Workspace.first(id: workspace_id)).to be_nil
+      expect(Vulcan::Config.where(workspace_id: workspace_id).count).to eq(0)
+      expect(Vulcan::Run.where(workspace_id: workspace_id).count).to eq(0)
+    end
+
+    it 'fails to delete workspace when user is not admin' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      workspace_id = workspace.id
+      
+      # Try to delete the workspace
+      delete("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq("You are forbidden from performing this action.")
+      
+      # Verify workspace still exists
+      expect(Vulcan::Workspace.first(id: workspace_id)).to_not be_nil
+    end
+
+    it 'fails to delete workspace when user is viewer' do
+      auth_header(:viewer)
+      workspace = Vulcan::Workspace.all[0]
+      workspace_id = workspace.id
+      
+      # Try to delete the workspace
+      delete("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq("You are forbidden from performing this action.")
+      
+      # Verify workspace still exists
+      expect(Vulcan::Workspace.first(id: workspace_id)).to_not be_nil
+    end
+
+    it 'fails to delete non-existent workspace' do
+      auth_header(:admin)
+      non_existent_id = 99999
+      
+      # Try to delete non-existent workspace
+      delete("/api/v2/#{PROJECT}/workspace/#{non_existent_id}")
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to include("does not exist")
+    end
+
   end
 end

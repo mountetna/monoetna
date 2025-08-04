@@ -29,9 +29,12 @@ exports[`ModelMap for model with no records renders 1`] = `
       className="MuiGrid-root makeStyles-map-3 MuiGrid-item"
     >
       <div
+        className="MuiGrid-root"
         style={
           Object {
+            "height": 600,
             "position": "relative",
+            "width": 600,
           }
         }
       >
@@ -62,8 +65,8 @@ exports[`ModelMap for model with no records renders 1`] = `
               markerEnd="url(#arrow)"
               x1={300}
               x2={300}
-              y1={150}
-              y2={280}
+              y1={75}
+              y2={205}
             />
           </g>
           <g
@@ -73,8 +76,8 @@ exports[`ModelMap for model with no records renders 1`] = `
               markerEnd="url(#arrow)"
               x1={300}
               x2={300}
-              y1={300}
-              y2={430}
+              y1={225}
+              y2={355}
             />
           </g>
         </svg>
@@ -83,9 +86,9 @@ exports[`ModelMap for model with no records renders 1`] = `
           onClick={[Function]}
           style={
             Object {
-              "--model-width": "285px",
               "left": 300,
-              "top": 300,
+              "maxWidth": "285px",
+              "top": 225,
             }
           }
         >
@@ -96,9 +99,9 @@ exports[`ModelMap for model with no records renders 1`] = `
           onClick={[Function]}
           style={
             Object {
-              "--model-width": "285px",
               "left": 300,
-              "top": 450,
+              "maxWidth": "285px",
+              "top": 375,
             }
           }
         >
@@ -109,9 +112,9 @@ exports[`ModelMap for model with no records renders 1`] = `
           onClick={[Function]}
           style={
             Object {
-              "--model-width": "285px",
               "left": 300,
-              "top": 150,
+              "maxWidth": "285px",
+              "top": 75,
             }
           }
         >
@@ -676,9 +679,12 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
       className="MuiGrid-root makeStyles-map-3 MuiGrid-item"
     >
       <div
+        className="MuiGrid-root"
         style={
           Object {
+            "height": 600,
             "position": "relative",
+            "width": 600,
           }
         }
       >
@@ -708,9 +714,9 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
           onClick={[Function]}
           style={
             Object {
-              "--model-width": "285px",
               "left": 300,
-              "top": 300,
+              "maxWidth": "285px",
+              "top": 150,
             }
           }
         >
@@ -1276,7 +1282,8 @@ exports[`ModelMap for model with no records renders with action buttons and repa
         class="MuiGrid-root makeStyles-map-3 MuiGrid-item"
       >
         <div
-          style="position: relative;"
+          class="MuiGrid-root"
+          style="width: 600px; height: 600px; position: relative;"
         >
           <svg
             height="600"
@@ -1305,8 +1312,8 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                 marker-end="url(#arrow)"
                 x1="300"
                 x2="300"
-                y1="150"
-                y2="280"
+                y1="75"
+                y2="205"
               />
             </g>
             <g
@@ -1316,26 +1323,26 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                 marker-end="url(#arrow)"
                 x1="300"
                 x2="300"
-                y1="300"
-                y2="430"
+                y1="225"
+                y2="355"
               />
             </g>
           </svg>
           <div
             class="makeStyles-model_node-9  "
-            style="top: 300px; left: 300px; --model-width: 285px;"
+            style="top: 225px; left: 300px; max-width: 285px;"
           >
             labor
           </div>
           <div
             class="makeStyles-model_node-9 makeStyles-selected-10 "
-            style="top: 450px; left: 300px; --model-width: 285px;"
+            style="top: 375px; left: 300px; max-width: 285px;"
           >
             monster
           </div>
           <div
             class="makeStyles-model_node-9  "
-            style="top: 150px; left: 300px; --model-width: 285px;"
+            style="top: 75px; left: 300px; max-width: 285px;"
           >
             project
           </div>
@@ -2064,7 +2071,8 @@ exports[`ModelMap for model with no records renders with model action buttons fo
         class="MuiGrid-root makeStyles-map-3 MuiGrid-item"
       >
         <div
-          style="position: relative;"
+          class="MuiGrid-root"
+          style="width: 600px; height: 600px; position: relative;"
         >
           <svg
             height="600"
@@ -2093,8 +2101,8 @@ exports[`ModelMap for model with no records renders with model action buttons fo
                 marker-end="url(#arrow)"
                 x1="300"
                 x2="300"
-                y1="150"
-                y2="280"
+                y1="75"
+                y2="205"
               />
             </g>
             <g
@@ -2104,26 +2112,26 @@ exports[`ModelMap for model with no records renders with model action buttons fo
                 marker-end="url(#arrow)"
                 x1="300"
                 x2="300"
-                y1="300"
-                y2="430"
+                y1="225"
+                y2="355"
               />
             </g>
           </svg>
           <div
             class="makeStyles-model_node-9  "
-            style="top: 300px; left: 300px; --model-width: 285px;"
+            style="top: 225px; left: 300px; max-width: 285px;"
           >
             labor
           </div>
           <div
             class="makeStyles-model_node-9  "
-            style="top: 450px; left: 300px; --model-width: 285px;"
+            style="top: 375px; left: 300px; max-width: 285px;"
           >
             monster
           </div>
           <div
             class="makeStyles-model_node-9 makeStyles-selected-10 "
-            style="top: 150px; left: 300px; --model-width: 285px;"
+            style="top: 75px; left: 300px; max-width: 285px;"
           >
             project
           </div>
@@ -2703,7 +2711,8 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
         class="MuiGrid-root makeStyles-map-3 MuiGrid-item"
       >
         <div
-          style="position: relative;"
+          class="MuiGrid-root"
+          style="width: 600px; height: 600px; position: relative;"
         >
           <svg
             height="600"
@@ -2732,8 +2741,8 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
                 marker-end="url(#arrow)"
                 x1="300"
                 x2="300"
-                y1="360"
-                y2="460"
+                y1="300"
+                y2="400"
               />
             </g>
             <g
@@ -2743,8 +2752,8 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
                 marker-end="url(#arrow)"
                 x1="300"
                 x2="300"
-                y1="120"
-                y2="220"
+                y1="60"
+                y2="160"
               />
             </g>
             <g
@@ -2754,32 +2763,32 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
                 marker-end="url(#arrow)"
                 x1="300"
                 x2="300"
-                y1="240"
-                y2="340"
+                y1="180"
+                y2="280"
               />
             </g>
           </svg>
           <div
             class="makeStyles-model_node-9 makeStyles-selected-10 "
-            style="top: 480px; left: 300px; --model-width: 285px;"
+            style="top: 420px; left: 300px; max-width: 285px;"
           >
             aspect
           </div>
           <div
             class="makeStyles-model_node-9  "
-            style="top: 240px; left: 300px; --model-width: 285px;"
+            style="top: 180px; left: 300px; max-width: 285px;"
           >
             labor
           </div>
           <div
             class="makeStyles-model_node-9  "
-            style="top: 360px; left: 300px; --model-width: 285px;"
+            style="top: 300px; left: 300px; max-width: 285px;"
           >
             monster
           </div>
           <div
             class="makeStyles-model_node-9  "
-            style="top: 120px; left: 300px; --model-width: 285px;"
+            style="top: 60px; left: 300px; max-width: 285px;"
           >
             project
           </div>
@@ -3289,7 +3298,8 @@ exports[`ModelMap for model with no records renders without model action buttons
         class="MuiGrid-root makeStyles-map-3 MuiGrid-item"
       >
         <div
-          style="position: relative;"
+          class="MuiGrid-root"
+          style="width: 600px; height: 600px; position: relative;"
         >
           <svg
             height="600"
@@ -3318,8 +3328,8 @@ exports[`ModelMap for model with no records renders without model action buttons
                 marker-end="url(#arrow)"
                 x1="300"
                 x2="300"
-                y1="150"
-                y2="280"
+                y1="75"
+                y2="205"
               />
             </g>
             <g
@@ -3329,26 +3339,26 @@ exports[`ModelMap for model with no records renders without model action buttons
                 marker-end="url(#arrow)"
                 x1="300"
                 x2="300"
-                y1="300"
-                y2="430"
+                y1="225"
+                y2="355"
               />
             </g>
           </svg>
           <div
             class="makeStyles-model_node-9  "
-            style="top: 300px; left: 300px; --model-width: 285px;"
+            style="top: 225px; left: 300px; max-width: 285px;"
           >
             labor
           </div>
           <div
             class="makeStyles-model_node-9  "
-            style="top: 450px; left: 300px; --model-width: 285px;"
+            style="top: 375px; left: 300px; max-width: 285px;"
           >
             monster
           </div>
           <div
             class="makeStyles-model_node-9 makeStyles-selected-10 "
-            style="top: 150px; left: 300px; --model-width: 285px;"
+            style="top: 75px; left: 300px; max-width: 285px;"
           >
             project
           </div>

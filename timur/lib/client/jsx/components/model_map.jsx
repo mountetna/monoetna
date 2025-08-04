@@ -45,9 +45,8 @@ const mapStyle = makeStyles((theme) => ({
     overflow: 'auto'
   },
   heading: {
-    position: 'absolute',
-    left: '15px',
-    top: '0px',
+    margin: '0px 10px',
+    width: 'calc(100% - 20px)',
     height: '48px',
     width: '560px',
     background: 'white',

@@ -9,17 +9,15 @@
  * shown).
  */
 
-// Framework libraries.
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import 'regenerator-runtime/runtime';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
-// Class imports.
 import Header from '../header';
 import ViewTabBar from './view_tab_bar';
 import ViewTab from './view_tab';
+import Dashboard from '../dashboard/dashboard';
 
-// Module imports.
 import {setLocation} from 'etna-js/actions/location_actions';
 import {requestView} from '../../actions/view_actions';
 import {
@@ -260,6 +258,7 @@ export default function Browser({model_name, record_name, tab_name}) {
       <ViewTab
         {...{model_name, record_name, template, record, revision, mode, tab}}
       />
+      <Dashboard project_name={CONFIG.project_name} model_name={model_name} />
     </div>
   );
 }
