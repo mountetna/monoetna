@@ -399,6 +399,26 @@ class VulcanV2Controller < Vulcan::Controller
     retrieve_file(@params[:file_name], "application/octet-stream", disposition: "attachment; filename=#{@params[:file_name]}")
   end
 
+  def stream_download_file
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id]) or
+                raise Etna::BadRequest, "Workspace not found"
+
+    file_name = @params[:file_name].to_s
+    raise Etna::BadRequest, "No file provided" if file_name.empty?
+
+    file_path = File.join(Vulcan::Path.workspace_output_dir(workspace.path), file_name)
+    raise Etna::BadRequest, "File not found" unless @remote_manager.file_exists?(file_path)
+
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = "attachment; filename=#{File.basename(file_name)}"
+    response['Cache-Control'] = 'no-cache'
+    response.delete_header('Content-Length') if response.respond_to?(:delete_header)
+
+    response.body = Enumerator.new do |yielder|
+      @remote_manager.stream_file_simple(file_path) { |chunk| yielder << chunk }
+    end
+  end
+
   def cluster_latency
     begin
       # Measure SSH latency using the remote_manager's measure_latency method

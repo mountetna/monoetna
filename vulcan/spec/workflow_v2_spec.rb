@@ -1093,6 +1093,44 @@ describe VulcanV2Controller do
     end
   end
 
+  context 'stream file' do
+
+    before do
+      setup_workspace
+    end
+
+    it 'streams the file for download' do
+      auth_header(:editor)
+
+      workspace = Vulcan::Workspace.first
+      write_files_to_workspace(workspace.id)
+
+      get "/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/stream-download/poem.txt"
+
+      # --- force the body to be consumed (two equivalent ways) ---
+      streamed = +""
+      last_response.body.each { |chunk| streamed << chunk }      # explicit
+      # streamed = last_response.body                            # implicit join
+
+      expect(last_response.status).to eq(200)
+
+      # headers: rack sets canonical case
+      expect(last_response.headers['Content-Type']).to eq('application/octet-stream')
+      expect(last_response.headers['Content-Disposition']).to eq('attachment; filename=poem.txt')
+      expect(last_response.headers['Cache-Control']).to eq('no-cache')
+
+      # optional: verify content is what we wrote
+      expect(streamed).to include('In the realm of the midnight sky')
+    end
+
+    it 'raises an error if the file does not exist' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/stream-download/does_not_exist.txt") 
+      expect(last_response.status).to eq(422)
+    end
+  end
+
   context 'cluster latency' do
     it 'returns SSH latency measurement' do
       auth_header(:editor)
