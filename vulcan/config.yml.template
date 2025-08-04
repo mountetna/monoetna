@@ -81,9 +81,20 @@ default: &default
   :vulcan:
     :host: https://vulcan.test
     :hmac_key: haggis
+  :janus:
+    :host: https://janus.test
+    :hmac_key: haggis
   :polyphemus:
     :host: https://polyphemus.test
     :hmac_key: haggis
+  :ssh:
+    :host: vulcan_c4_env
+    :username: root
+    :password: root
+    :use_ssh_config: false
+    :settings:
+      :verify_host_key: :never
+  :conda_env: conda-vulcan
   :data_folder: /app/spec/data
   :workflows_folder: /app/spec/fixtures
   :archimedes_run_image: etnaagent/archimedes

@@ -20,6 +20,9 @@ class Metis
     get '/api/stats/files', action: 'stats#file_count_by_project', auth: { user: { is_supereditor?: true } }
     get '/api/stats/bytes', action: 'stats#byte_count_by_project', auth: { user: { is_supereditor?: true } }
 
+    get '/api/stats/files/:project_name', action: 'stats#file_count', auth: { user: { can_view?: :project_name } }
+    get '/api/stats/bytes/:project_name', action: 'stats#byte_count', auth: { user: { can_view?: :project_name } }
+
     get '/:project_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
     get '/:project_name/browse/:bucket_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
     get '/:project_name/browse/:bucket_name/*folder_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
