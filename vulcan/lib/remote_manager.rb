@@ -220,28 +220,16 @@ class Vulcan
       end
     end
 
-    def measure_latency(runs: 15)
+    def measure_latency
       # Measure SSH latency by running a simple command multiple times and taking the median
-      latencies = []
-      runs.times do
-        start_time = Time.now
-        command = build_command.add('echo', 'latency_test')
-        result = invoke_ssh_command(command.to_s)
-        end_time = Time.now
-        
-        latency_ms = ((end_time - start_time) * 1000).round(2)
-        latencies << latency_ms
-      end
+      start_time = Time.now
+      command = build_command.add('echo', 'latency_test')
+      result = invoke_ssh_command(command.to_s)
+      end_time = Time.now
       
-      # Calculate median
-      sorted_latencies = latencies.sort
-      median_latency = if sorted_latencies.length.odd?
-        sorted_latencies[sorted_latencies.length / 2]
-      else
-        (sorted_latencies[sorted_latencies.length / 2 - 1] + sorted_latencies[sorted_latencies.length / 2]) / 2.0
-      end
-      
-      median_latency.round(2)
+      latency_ms = ((end_time - start_time) * 1000).round(2)
+
+      return latency_ms
     end
     
     def invoke_ssh_command(command, timeout: 10, retries: 5, retry_delay: 2)

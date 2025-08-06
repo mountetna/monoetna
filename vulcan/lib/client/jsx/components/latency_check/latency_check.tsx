@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useContext} from 'react';
+import React, {useCallback, useState, useContext, useEffect} from 'react';
 
 import Tooltip from '@material-ui/core/Tooltip';
 import Button from '@material-ui/core/Button';
@@ -12,27 +12,26 @@ export default function LatencyCheckButton({projectName}: {
   const [checking, setChecking] = useState(false);
   const [latency, setLatency] = useState<number | null>(null);
 
-  let {showErrors,
-    getConnectionLatency
-  } = useContext(VulcanContext);
+  let { getConnectionLatency } = useContext(VulcanContext);
 
-  const handleCheck = useCallback( () => {
-    setChecking(true);
-    showErrors(getConnectionLatency(projectName), () => {setChecking(false)})
-    .then( (latencyReturn) => {
-      setChecking(false);
-      const latencyString = latencyReturn.latency;
-      setLatency(parseFloat(latencyString))
-    })
-  }, [projectName, getConnectionLatency]);
+  useEffect( () => {
+    const getLatency = async () => {
+      const { latency } = await getConnectionLatency(projectName);
+      setLatency( Math.round(latency / 10) / 100 );
+    }
 
-  const valShow = 'Latency: ' + (latency!=null ? latency + 'ms' : '???ms');
+    getLatency();
+    const timer = setInterval( getLatency, 5000 );
+
+    return () => clearInterval(timer);
+  }, [] );
+
+  const valShow = 'Latency: ' + (latency!=null ? latency + 's' : '???s');
   const actionIcon = checking ? <LoadingIcon/> : <TimerIcon/>;
   const tooltipText = (checking ? 'Measuring' : latency!=null ? 'Re-measure' : 'Measure') + ' latency in calculation server connection';
 
   return <Tooltip title={tooltipText}>
     <Button
-      onClick={handleCheck}
       color='primary'
       variant='contained'
     >
@@ -41,4 +40,3 @@ export default function LatencyCheckButton({projectName}: {
     </Button>
   </Tooltip>
 }
-
