@@ -15,6 +15,7 @@
       :verify_host_key: :never
   :base_dir: /dscolab/vulcan
   :conda_env: conda-vulcan
+  :latency_time: 600
   :magma:
     :host: https://magma.test
   :vulcan:
