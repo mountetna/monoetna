@@ -162,6 +162,9 @@ export function useApi(
 
   const showError = useCallback((e: any, dismissOld: boolean = false) => {
     if (dismissOld) invoke(dismissMessages());
+    if (!(e instanceof Array)) {
+      e = [`${e}`];
+    }
     console.error(e);
     invoke(showMessages(e));
   }, [invoke]);
@@ -234,7 +237,7 @@ export function useApi(
 
   const deleteWorkspace = useCallback(
     (projectName: string, workspaceId: number): Promise<Response> => {
-      return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/delete`));
+      return vulcanDelete(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}`));
   }, [vulcanGet, vulcanPath]);
 
   const getFileNames = useCallback(
