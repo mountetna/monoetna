@@ -1,6 +1,8 @@
 import React from 'react';
 import AutorenewIcon from '@material-ui/icons/Autorenew';
 import {makeStyles} from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
 
 const useStyles = makeStyles((theme) => ({
     loadingIcon: {
@@ -20,3 +22,14 @@ export default function LoadingIcon({}) {
         <AutorenewIcon className={classes.loadingIcon}/>
     )
 }
+
+export function LoadingIconWithText({text=''}: {text:string}) {
+    return <Grid container>
+        <Grid item>
+            <LoadingIcon/>
+        </Grid>
+        <Grid item>
+            <Typography>{text}</Typography>
+        </Grid>
+    </Grid>
+};
