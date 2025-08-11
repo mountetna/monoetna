@@ -44,6 +44,7 @@ import useUserHooks from '../../contexts/useUserHooks';
 import Tag from '../dashboard/tag';
 import Grid from '@material-ui/core/Grid';
 import { useDataSync, useRunSyncing } from './data_sync';
+import Vignette from './drawers/vignette';
 
 // import RevisionHistory from 'etna-js/components/revision-history';
 
@@ -100,6 +101,7 @@ export default function WorkspaceManager() {
 
   // const [modalIsOpen, setIsOpen] = useState(false);
   const [vulcanHelpIsOpen, setVulcanHelpIsOpen] = useState(false);
+  const [workspaceHelpIsOpen, setWorkspaceHelpIsOpen] = useState(false);
   const {workQueueable: committedStepPending, projectName, configId, isRunning} = state;
 
   const [localTags, setLocalTags] = useState<string[]>(workspace.tags || []);
@@ -147,7 +149,7 @@ export default function WorkspaceManager() {
     .then(runResponse => {
       dispatch(setRunning(runResponse.run_id));
     })
-  }, [workspaceId, configId])
+  }, [workspaceId, configId, isRunning, projectName])
   useEffect(() => {
     if (state.isRunning) {
       showErrors(requestRunPolling());
