@@ -3,22 +3,24 @@ import React, {useContext, useEffect, useState} from 'react';
 import markdown from 'etna-js/utils/markdown';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {workflowByName} from '../../../selectors/workflow_selectors';
 
-export default function Vignette({workflowName}: {workflowName: string}) {
+export default function Vignette({}) {
   let {state} = useContext(VulcanContext);
-  const workflow = workflowByName(workflowName, state);
   const [text, setText] = useState('');
 
   useEffect(() => {
-    if (workflow) {
+    if ('vignette.md' in state.status.file_contents) {
       setText(
-        workflow.vignette
-          ? workflow.vignette
-          : 'No vignette provided.'
+        state.status.file_contents['vignette.md']
       );
     }
-  }, [workflow, setText]);
+
+    if ('readme.md' in state.status.file_contents) {
+      setText(
+        state.status.file_contents['readme.md']
+      );
+    }
+  }, [state.status.file_contents]);
 
   return (
     <div

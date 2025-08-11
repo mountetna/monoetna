@@ -404,14 +404,32 @@ export default function WorkspaceManager() {
           <FlatButton
             icon='book'
             className='header-btn vignette'
+            label='Workflow'
+            title={'Coming Soon: Workspace Readme'}
+            onClick={() => {setWorkspaceHelpIsOpen(true)}}
+          />
+          <ReactModal
+            isOpen={workspaceHelpIsOpen}
+            onRequestClose={() => setWorkspaceHelpIsOpen(false)}
+            style={modalStyles}
+            contentLabel='Workspace Vignette'
+          >
+            <Vignette/>
+          </ReactModal>
+        </React.Fragment>
+        <React.Fragment>
+          <FlatButton
+            icon='book'
+            className='header-btn vignette'
             label='Vulcan'
+            title='Vulcan Interface Overview'
             onClick={() => setVulcanHelpIsOpen(true)}
           />
           <ReactModal
             isOpen={vulcanHelpIsOpen}
             onRequestClose={() => setVulcanHelpIsOpen(false)}
             style={modalStyles}
-            contentLabel='Vignette'
+            contentLabel='Vulcan Interface Overview'
           >
             <VulcanHelp/>
           </ReactModal>
