@@ -37,6 +37,14 @@ export default function RelatedResourcesMenu({
       </MenuItem>
       <MenuItem onClick={onClose} sx={{ '&:hover': { backgroundColor: 'white' } }}>
         <NavLink
+          text='ImmunoX Data Commons'
+          href={'https://immunox.notion.site/ImmunoX-Data-Commons-118f8b14a9b780478de8c1e084d577bc?pvs=74'}
+          onClick={onClick}
+          typography={typography}
+        />
+      </MenuItem>
+      <MenuItem onClick={onClose} sx={{ '&:hover': { backgroundColor: 'white' } }}>
+        <NavLink
           text='Analysis Tools'
           href={'https://ocr.ucsf.edu/analysis-tools'}
           onClick={onClick}
