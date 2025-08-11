@@ -6,11 +6,13 @@ import {outputUINames, outputUIsWithInputsReady, stepOfName} from '../../selecto
 import {useWorkspace} from '../../contexts/workspace_context';
 import { VulcanConfig } from '../../api_types';
 import StepIconName from './drawers/step_elements/step_icon_name';
+import FlatButton from 'etna-js/components/flat-button'
+import Grid from '@material-ui/core/Grid';
 
 export default function StepsList() {
   const [open, setOpen] = useState(false);
   const {state} = useContext(VulcanContext);
-  const {status, workspace} = state;
+  const {status, workspace, refreshingProgress} = state;
 
   function handleToggle() {
     setOpen(!open);
@@ -42,10 +44,21 @@ export default function StepsList() {
       <div className='steps-list-wrapper'>
         {workspace.dag.map(stepNamesToStepIconNames)}
       </div>
-      <div className='steps-list-subheader'>Outputs</div>
+      <Grid className='steps-list-subheader' container direction='row' justifyContent='space-between' alignItems='flex-end'>
+        <Grid item>Output</Grid>
+        <Grid item><FlatButton
+          className='header-btn-name-save'
+          icon={false? 'spinner fa-spin' : 'circle-notch'}
+          label='Refresh'
+          title={false? 'Coming Soon: Assess Output Validity' : 'Coming Soon: Assessing Output Validity'}
+          disabled={true}
+          onClick={() => {
+          }}
+        /></Grid>
+      </Grid>
       <div className='steps-list-wrapper'>
         {outputUINames(workspace).map(stepNamesToStepIconNames)}
       </div>
     </div>
   );
-}
+};
