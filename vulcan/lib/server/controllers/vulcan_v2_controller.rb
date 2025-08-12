@@ -1,5 +1,6 @@
 require 'etna'
 require 'digest'
+require 'json'
 require_relative "./vulcan_controller"
 require_relative "./../../path"
 require_relative './../../remote_manager'
@@ -197,13 +198,15 @@ class VulcanV2Controller < Vulcan::Controller
         )
       end
       @snakemake_manager.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged], workspace)
+
+      # Dry run to determine rules to run
       output_files = @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path)).map { |file| "output/#{file}" }
       resources_files = @remote_manager.list_files(Vulcan::Path.workspace_resources_dir(workspace.path)).map { |file| "resources/#{file}" }
       available_files = output_files + resources_files
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(
         workspace.target_mapping,
-        request_params.keys.map(&:to_s),
+        request_params.compact.keys.map(&:to_s),
         available_files
       )
       command.options = {
@@ -211,13 +214,38 @@ class VulcanV2Controller < Vulcan::Controller
         profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
         dry_run: true,
       }
-      jobs_to_run = @snakemake_manager.dry_run_snakemake(workspace.path, command.build)
+      if command.targets.empty?
+        return success_json({
+          config_id: config.id,
+          scheduled: [],
+          downstream: [],
+          params: JSON.parse(request_params_json)
+        })
+      end
+      dry_out = @snakemake_manager.dry_run_snakemake(workspace.path, command.build)
+      jobs_to_run = @snakemake_manager.get_rules_from_run(dry_out)
       jobs_to_run = Vulcan::Snakemake::Inference.filter_ui_targets(jobs_to_run, workspace.target_mapping)
+      downstream_jobs = jobs_to_run.any? ? Vulcan::Snakemake::Inference.find_affected_downstream_jobs(workspace.dag, jobs_to_run) : []
+
+      # Dry run to determine files output by those rules
+      command = Vulcan::Snakemake::CommandBuilder.new
+      command.targets = jobs_to_run.concat(downstream_jobs)
+      command.options = {
+        config_path: config.path,
+        profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
+        dry_run: true,
+      }
+      dry_out2 = @snakemake_manager.dry_run_snakemake(workspace.path, command.build)
+      files_to_build = @snakemake_manager.get_files_from_run(dry_out2)
+      Vulcan.instance.logger.info("Files to re-build: #{files_to_build}")
+      invalid_files = @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path)).filter { |file| files_to_build.include?("output/#{file}") }
+      @remote_manager.write_file("#{Vulcan::Path.workspace_output_dir(workspace.path)}.invalid_files.json", JSON.pretty_generate(invalid_files))
+
       success_json(
         {
           config_id: config.id,
           scheduled: jobs_to_run,
-          downstream: jobs_to_run.any? ? Vulcan::Snakemake::Inference.find_affected_downstream_jobs(workspace.dag, jobs_to_run) : [],
+          downstream: downstream_jobs,
           params: JSON.parse(request_params_json)
         }
     )
@@ -248,9 +276,10 @@ class VulcanV2Controller < Vulcan::Controller
       output_files = @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path)).map { |file| "output/#{file}" }
       resources_files = @remote_manager.list_files(Vulcan::Path.workspace_resources_dir(workspace.path)).map { |file| "resources/#{file}" }
       available_files = output_files + resources_files
-      params = @remote_manager.read_yaml_file(config.path).keys
+      params = @remote_manager.read_yaml_file(config.path).compact.keys
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(workspace.target_mapping, params, available_files)
+      raise Etna::BadRequest.new("Nothing to Run") if command.targets.empty?
       command.options = {
         config_path: config.path,
         profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
@@ -381,7 +410,19 @@ class VulcanV2Controller < Vulcan::Controller
   def get_files
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
-    success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path))})
+    invalid_files_json = "#{Vulcan::Path.workspace_output_dir(workspace.path)}.invalid_files.json"
+    if @remote_manager.file_exists?(invalid_files_json)
+      content = @remote_manager.read_file_to_memory(invalid_files_json)
+      Vulcan.instance.logger.info(".invalid_files.json: #{content}")
+      invalids = JSON.parse(content)
+      success_json({
+        files: @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path)).reject { |file| invalids.include?(file) }
+      })
+    else
+      success_json({
+        files: @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path))
+      })
+    end
   end
 
   def is_running
