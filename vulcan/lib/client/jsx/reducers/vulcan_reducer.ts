@@ -36,9 +36,11 @@ export const defaultVulcanState = {
   workspaceId: defaultId,
   configId: defaultId,
   runId: defaultId,
+  runConfigId: defaultId,
 
   attemptingToRun: false,
   isRunning: false,
+  attemptingToCancel: false,
 
   // rule/step statuses, ui&param contents per local, file&param contents per server 
   status: defaultStatus, // Only filled input/outputs in here
@@ -221,6 +223,11 @@ export default function VulcanReducer(
       return {
         ...state,
         attemptingToRun: action.to
+      }
+    case 'SET_ATTEMPTING_CANCELLATION':
+       return {
+        ...state,
+        attemptingToCancel: action.to
       }
     case 'SET_RUNNING':
       return {

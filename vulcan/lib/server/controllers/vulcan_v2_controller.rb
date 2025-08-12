@@ -121,10 +121,8 @@ class VulcanV2Controller < Vulcan::Controller
     end
     # Fetch the last config
     # If we dont have a config associated with the last run, just grab the most recent config
-    last_config = last_run ? Vulcan::Config.where(workspace_id: workspace.id, id: last_run.config_id).first : nil
-    unless last_config
-      last_config = Vulcan::Config.where(workspace_id: workspace.id).order(Sequel.desc(:created_at)).first
-    end
+    last_config_ran = last_run ? Vulcan::Config.where(workspace_id: workspace.id, id: last_run.config_id).first : nil
+    last_config = Vulcan::Config.where(workspace_id: workspace.id).order(Sequel.desc(:created_at)).first
 
     # We update the dl_config token
     @remote_manager.write_file(
@@ -138,6 +136,7 @@ class VulcanV2Controller < Vulcan::Controller
       last_config: last_config ? @remote_manager.read_json_file(last_config.path) : nil,
       last_config_id: last_config ? last_config.id : nil,
       last_run_id: last_run ? last_run.id : nil,
+      last_run_config_id: last_config_ran ? last_config_ran.id : nil,
       last_job_status: last_run ? slurm_status : nil
     })
     success_json(response)

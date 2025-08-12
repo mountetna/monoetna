@@ -54,6 +54,10 @@ export function setAttemptingToRun(to: boolean) {
   return actionObject('SET_ATTEMPTING_RUN', {to});
 }
 
+export function setAttemptingToCancel(to: boolean) {
+  return actionObject('SET_ATTEMPTING_CANCELLATION', {to});
+}
+
 export function setRunning(runId: Workspace['workspace_id']) {
   return actionObject('SET_RUNNING', {runId});
 }
@@ -164,6 +168,7 @@ export type VulcanAction =
   | ReturnType<typeof setConfigId>
   | ReturnType<typeof setAttemptingToRun>
   | ReturnType<typeof setRunning>
+  | ReturnType<typeof setAttemptingToCancel>
   | ReturnType<typeof setLastConfig>
   | ReturnType<typeof useUIAccounting>
   | ReturnType<typeof setStatusFromStatuses>

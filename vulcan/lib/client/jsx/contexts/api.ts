@@ -103,9 +103,13 @@ export const defaultApiHelpers = {
   pullRunStatus(projectName: string, workspaceId: number, runId: number): Promise<RunStatus> {
     return new Promise(() => null);
   },
+  cancelRunning(projectName: string, workspaceId: number, runId: number): Promise<Response> {
+    // api/v2/:project_name/workspace/:workspace_id/:run_id/cancel
+    return new Promise(() => null);
+  },
   getConnectionLatency(projectName: string): Promise<LatencyReturn> {
     return new Promise(() => null);
-  }
+  },
 };
 
 export function useApi(
@@ -351,6 +355,14 @@ export function useApi(
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/run/${runId}`))
   }, [vulcanGet, vulcanPath]);
 
+  const cancelRunning = useCallback(
+    (projectName: string, workspaceId: number, runId: number): Promise<cancelRunningResponse> => {
+      // api/v2/:project_name/workspace/:workspace_id/:run_id/cancel
+      return vulcanPost(
+      vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/${runId}/cancel`),
+      {});
+  }, [vulcanPost, vulcanPath]);
+
   const getConnectionLatency = useCallback((projectName: string): Promise<LatencyReturn> => {
     return vulcanGet(vulcanPath(`/api/v2/${projectName}/cluster-latency`))
   }, [vulcanGet, vulcanPath]);
@@ -374,6 +386,7 @@ export function useApi(
     requestRun,
     getIsRunning,
     pullRunStatus,
+    cancelRunning,
     getImage,
     getConnectionLatency
   };

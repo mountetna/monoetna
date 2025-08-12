@@ -30,7 +30,8 @@ export function useDataSync(
       dispatch(startSyncing())
       showErrors(postUIValues(projectName,workspaceId,status,pushStep), (e) => {
         dispatch(endSyncing(pushStep));
-        showError(refreshSuggestionText);
+        showError(e);
+        showError(refreshSuggestionText, false);
       })
       .then((accountingResponse) => {
         dispatch(useUIAccounting(accountingResponse, pushStep));
@@ -101,10 +102,10 @@ export function useRunSyncing(
   dispatch: Dispatch<VulcanAction>,
 ): {
   requestRunPolling: () => Promise<unknown>,
-  cancelRunning: () => {}
+  onCancelRunPolling: () => {}
 } {
   function suggestRefresh(e: any) {showError(refreshSuggestionText)};
-  const [requestRunPolling, cancelRunning] = useAsyncCallback(function* () {
+  const [requestRunPolling, onCancelRunPolling] = useAsyncCallback(function* () {
     if (!workspaceId || !runId) {
       showError('Possible UI Bug?: Missing info needed for checking workspace run')
       return
@@ -124,6 +125,6 @@ export function useRunSyncing(
   });
 
   return {
-    requestRunPolling, cancelRunning
+    requestRunPolling, onCancelRunPolling
   };
 }

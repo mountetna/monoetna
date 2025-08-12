@@ -134,6 +134,7 @@ interface WorkspaceMinusInconsistent {
   last_config_id: number | null;
   last_job_status: {[k: string]: StatusStringFine} | null;
   last_run_id: number | null;
+  last_run_config_id: number | null;
   tags: string[] | null;
 }
 export interface WorkspaceRaw extends WorkspaceMinusInconsistent {
@@ -165,6 +166,7 @@ export const defaultWorkspace: Workspace = {
   last_config_id: null,
   last_job_status: {},
   last_run_id: null,
+  last_run_config_id: null,
 };
 
 export interface FileContentResponse {
@@ -192,6 +194,11 @@ export interface AccountingReturn {
 
 export interface isRunningReturn {
   running: boolean
+}
+
+export interface cancelWorkflowReturn {
+  message: string; // "No workflow is currently running for workspace: #{workspace.name}",
+  run_id: number
 }
 
 // export type VulcanConfig = VulcanConfigElement[]

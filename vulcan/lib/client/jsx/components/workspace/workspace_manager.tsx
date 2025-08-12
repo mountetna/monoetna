@@ -29,6 +29,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {
   clearRunTriggers,
+  setAttemptingToCancel,
   setAttemptingToRun,
   setRunning,
   setWorkspace,
@@ -89,6 +90,7 @@ export default function WorkspaceManager() {
     pullRunStatus,
     getIsRunning,
     requestRun,
+    cancelRunning,
     // updateFigure,
     // createFigure,
     // clearLocalSession
@@ -100,7 +102,12 @@ export default function WorkspaceManager() {
 
   // const [modalIsOpen, setIsOpen] = useState(false);
   const [vulcanHelpIsOpen, setVulcanHelpIsOpen] = useState(false);
+<<<<<<< Updated upstream
   const {workQueueable: committedStepPending, projectName, configId, isRunning} = state;
+=======
+  const [workspaceHelpIsOpen, setWorkspaceHelpIsOpen] = useState(false);
+  const {workQueueable: committedStepPending, projectName, configId, isRunning, attemptingToCancel, runId} = state;
+>>>>>>> Stashed changes
 
   const [localTags, setLocalTags] = useState<string[]>(workspace.tags || []);
   const [openTagEditor, setOpenTagEditor] = useState(false);
@@ -123,9 +130,8 @@ export default function WorkspaceManager() {
 
   useDataSync(state, dispatch, showError, showErrors, getFileNames, readFiles, postUIValues);
   const {
-    requestRunPolling,
-    cancelRunning
-  } = useRunSyncing(projectName, workspaceId, state.runId, showError, showErrors, pullRunStatus, getIsRunning, dispatch);
+    requestRunPolling
+  } = useRunSyncing(projectName, workspaceId, runId, showError, showErrors, pullRunStatus, getIsRunning, dispatch);
 
   const classes = useStyles();
 
@@ -155,10 +161,21 @@ export default function WorkspaceManager() {
   }, [state.isRunning, state.isSyncing, requestRunPolling])
 
   const stop = useCallback(() => {
-    // ToDo: Make and hook up a cancel_running api!
-    // This does nothing currently
-    cancelRunning();
-  }, [cancelRunning]);
+    if (!workspaceId || !runId) {
+      showError('Possible UI Bug?: Missing info needed for requesting workspace run')
+      return
+    };
+    showError('Cancellation is in the works, but not yet ready.');
+    // dispatch(setAttemptingToCancel(true));
+    // showErrors(cancelRunning(projectName, workspaceId, runId)
+    // .then(() => {
+    //   dispatch(setAttemptingToCancel(false));
+    //   showError('Cancellation signal sent successfully. Please allow a few seconds for the workspace state to re-settle.');
+    // }), (e) => {
+    //   dispatch(setAttemptingToCancel(false));
+    // });
+    // This sends a signal to cancel the snakemake run, but actual run status polling is managed separately and should NOT be cancelled here.
+  }, [cancelRunning, workspaceId, runId, projectName]);
 
   // ToDo Later: once we figure out revisions.
   // const cancelSaving = useCallback(() => {
@@ -439,9 +456,9 @@ export default function WorkspaceManager() {
             className={'header-btn'}
             icon='stop'
             label='Stop'
-            title='Coming soon, Cancel running work'
+            title={attemptingToCancel ? 'Sending Cancellation Signal' : 'Cancel running work'}
             onClick={stop}
-            disabled={true}
+            disabled={attemptingToCancel}
           />
         ) : (
           <FlatButton
