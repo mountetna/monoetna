@@ -413,7 +413,6 @@ class VulcanV2Controller < Vulcan::Controller
     invalid_files_json = "#{Vulcan::Path.workspace_output_dir(workspace.path)}.invalid_files.json"
     if @remote_manager.file_exists?(invalid_files_json)
       content = @remote_manager.read_file_to_memory(invalid_files_json)
-      Vulcan.instance.logger.info(".invalid_files.json: #{content}")
       invalids = JSON.parse(content)
       success_json({
         files: @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path)).reject { |file| invalids.include?(file) }

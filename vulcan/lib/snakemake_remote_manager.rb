@@ -59,7 +59,6 @@ class Vulcan
           .add('conda', 'activate', Vulcan.instance.config(:conda_env))
           .add('cd', dir)
           .add_raw(snakemake_command)
-        Vulcan.instance.logger.info("snakemake dryrun: #{command.to_s}")
         out = @remote_manager.invoke_ssh_command(command.to_s)
         out[:stdout]
       end
