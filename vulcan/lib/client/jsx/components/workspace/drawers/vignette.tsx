@@ -14,12 +14,6 @@ export default function Vignette({}) {
         state.status.file_contents['vignette.md']
       );
     }
-
-    if ('readme.md' in state.status.file_contents) {
-      setText(
-        state.status.file_contents['readme.md']
-      );
-    }
   }, [state.status.file_contents]);
 
   return (

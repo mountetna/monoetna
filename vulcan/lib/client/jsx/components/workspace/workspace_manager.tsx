@@ -407,7 +407,8 @@ export default function WorkspaceManager() {
             icon='book'
             className='header-btn vignette'
             label='Workflow'
-            title={'Coming Soon: Workspace Readme'}
+            title={'vignette.md' in state.status.file_contents ? 'Workflow Readme' : 'Workflow Readme Unavailable'}
+            disabled={!('vignette.md' in state.status.file_contents)}
             onClick={() => {setWorkspaceHelpIsOpen(true)}}
           />
           <ReactModal
