@@ -23,6 +23,7 @@ import CardMedia from '@material-ui/core/CardMedia';
 
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectUser} from 'etna-js/selectors/user-selector';
+import {User, isSuperViewer} from 'etna-js/utils/janus';
 import {DashboardContext} from '../../contexts/dashboard_context';
 import {
   addUsersSensor,
@@ -36,24 +37,6 @@ import {
   runWorkflowsSensor
 } from './sensors';
 
-const STAR = [
-  StarBorderIcon,
-  StarHalfIcon,
-  StarIcon
-];
-
-const STAR_STYLES = [
-  { color: 'red' },
-  { color: 'goldenrod' },
-  { color: 'green' }
-]
-
-const ROLES = {
-  guest: 0,
-  viewer: 1,
-  editor: 2,
-  administrator: 3
-};
 
 const size = '35px';
 const useStyles = makeStyles((theme) => ({
@@ -94,12 +77,34 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const APPLICATIONS = {
-}
+const STAR = [
+  StarBorderIcon,
+  StarHalfIcon,
+  StarIcon
+];
+
+const STAR_STYLES = [
+  { color: 'red' },
+  { color: 'goldenrod' },
+  { color: 'green' }
+]
+
+const ROLES = {
+  guest: 0,
+  viewer: 1,
+  editor: 2,
+  administrator: 3
+};
 
 type Info = {
   level: number;
   text: string;
+}
+
+const getUserRole = (user:User) => {
+  if (isSuperViewer(user)) return 'administrator';
+  if (CONFIG.project_name in user.permissions) return user.permissions[CONFIG.project_name].role;
+  return null;
 }
 
 const AppDashboard = ({app,title,help,helpLink,children}:{
@@ -112,7 +117,9 @@ const AppDashboard = ({app,title,help,helpLink,children}:{
   const classes = useStyles();
 
   const user = useReduxState((state:any) => selectUser(state));
-  const userRole = user.permissions[CONFIG.project_name].role;
+  const userRole = getUserRole(user);
+
+  if (!userRole) return null;
 
   const shownChildren = React.Children.map(
     children, child => ROLES[child.props.role as keyof typeof ROLES] > ROLES[userRole as keyof typeof ROLES] ? null : child
@@ -158,7 +165,9 @@ const AppInfo = ({sensor,action,role,actionRole=role,actionLink}:{
   const [ info, setInfo ] = useState({ level: 0, text: undefined });
 
   const user = useReduxState((state:any) => selectUser(state));
-  const userRole =  user.permissions[CONFIG.project_name].role;
+  const userRole = getUserRole(user);
+
+  if (!userRole) return null;
 
   const dashboardState = useContext(DashboardContext);
   useEffect( () => {
@@ -185,7 +194,7 @@ const JanusAppDashboard = ({project_name}:{project_name: string}) => {
   return <AppDashboard app='janus' title='access' help='Guide to Managing User Access' helpLink='https://mountetna.github.io/access.html'>
     <AppInfo action='Add users'
       role='administrator'
-      actionLink={ `https://${CONFIG.janus_host}/${project_name}` }
+      actionLink={ `${CONFIG.janus_host}/${project_name}` }
       sensor={addUsersSensor}
     />
   </AppDashboard>
@@ -206,7 +215,7 @@ const GnomonAppDashboard = ({project_name}:{project_name: string}) => {
   return <AppDashboard app='gnomon' title='naming' help='Guide to Naming' helpLink='https://mountetna.github.io/naming.html'>
     <AppInfo
       role='editor'
-      actionLink={ `https://${CONFIG.gnomon_host}/${project_name}/rules` }
+      actionLink={ `${CONFIG.gnomon_host}/${project_name}/rules` }
       action='Edit rules' sensor={editRulesSensor}/>
   </AppDashboard>
 }
@@ -216,13 +225,13 @@ const MetisAppDashboard = ({project_name}:{project_name: string}) => {
     <AppInfo
       role='editor'
       actionRole='administrator'
-      actionLink={`https://${CONFIG.metis_host}/${project_name}/`}
+      actionLink={`${CONFIG.metis_host}/${project_name}/`}
       action='Create buckets'
       sensor={ createBucketsSensor }/>
     <AppInfo
       role='viewer'
       actionRole='editor'
-      actionLink={`https://${CONFIG.metis_host}/${project_name}/`}
+      actionLink={`${CONFIG.metis_host}/${project_name}/`}
       action='Add files'
       sensor={ addFilesSensor }/>
   </AppDashboard>
@@ -233,12 +242,12 @@ const PolyphemusAppDashboard = ({project_name}:{project_name: string}) => {
     <AppInfo
       role='viewer'
       actionRole='editor'
-      actionLink={`https://${CONFIG.polyphemus_host}/${project_name}`}
+      actionLink={`${CONFIG.polyphemus_host}/${project_name}`}
       action='Link records' 
       sensor={ linkRecordsSensor }/>
     <AppInfo
       role='editor'
-      actionLink={`https://${CONFIG.polyphemus_host}/${project_name}`}
+      actionLink={`${CONFIG.polyphemus_host}/${project_name}`}
       action='Create loaders'
       sensor={ createLoadersSensor }/>
   </AppDashboard>
@@ -248,12 +257,12 @@ const VulcanAppDashboard = ({project_name}:{project_name: string}) => {
   return <AppDashboard app='vulcan' title='analysis' help='Guide to Analysis Workflows' helpLink='https://mountetna.github.io/analysis.html'>
     <AppInfo
       actionRole='administrator'
-      actionLink={`https://${CONFIG.vulcan_host}/${project_name}`}
+      actionLink={`${CONFIG.vulcan_host}/${project_name}`}
       role='viewer' action='Add workflows'
       sensor={ addWorkflowsSensor }/>
     <AppInfo
       role='viewer'
-      actionLink={`https://${CONFIG.vulcan_host}/${project_name}`}
+      actionLink={`${CONFIG.vulcan_host}/${project_name}`}
       action='Run workflows' sensor={ runWorkflowsSensor }/>
   </AppDashboard>
 }
