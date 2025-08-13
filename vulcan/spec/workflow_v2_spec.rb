@@ -374,6 +374,49 @@ describe VulcanV2Controller do
       expect(json_body[:scheduled]).to match_array(["arithmetic", "checker", "count"])
       expect(json_body[:downstream]).to match_array(["ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
     end
+
+    it 'returns a list of files that are not stale' do
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
+      request_first_jobs = {
+        params: {
+          count_bytes: true,
+          count_chars: false,
+          add: 2,
+          add_and_multiply_by: 4
+        },
+        uiFilesSent: [],
+        paramsChanged: []
+      }
+
+      # Run the first 3 jobs
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request_first_jobs)
+      expect(json_body[:available_files]).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
+      config_id = json_body[:config_id]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
+      run_id = json_body[:run_id]
+      check_jobs_status(["count", "arithmetic", "checker"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
+      expect(last_response.status).to eq(200)
+
+      # Now change a param
+      request_second_jobs = {
+        params: {
+          count_bytes: true,
+          count_chars: false,
+          add: 2,
+          add_and_multiply_by: 2 # Change the param
+        }, 
+        uiFilesSent: [],
+        paramsChanged: []
+      }
+
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request_second_jobs)
+      config_id = json_body[:config_id]
+      expect(json_body[:available_files]).to eq(["output/count_poem.txt", "output/count_poem_2.txt", "output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
+    end
+
   end
 
   context 'list a specific workspace' do
@@ -618,7 +661,6 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
       expect(json_body[:files]).to eq(["poem.txt", "poem_2.txt"])
     end
-
   end
 
   context 'update workspace' do
@@ -925,6 +967,9 @@ describe VulcanV2Controller do
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_one.txt")).to be_falsey
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_truthy
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_summary.txt")).to be_falsey
+
+      # Also make sure that available files are updated
+      expect(json_body[:available_files]).to eq(["output/count_poem.txt", "output/count_poem_2.txt", "output/poem.txt", "output/poem_2.txt", "output/ui_job_two.txt", "resources/number_to_add.txt"])
     end
 
     it 'halts execution of a UI step after a UI step has changed' do

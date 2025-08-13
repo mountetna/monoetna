@@ -89,6 +89,20 @@ class Vulcan
         visited
       end
 
+      def find_affected_downstream_files(target_mapping, files_to_be_updated)
+        # Find all downstream files that will be affected by the files that are being updated
+        # This uses the existing downstream_nodes method to traverse the dependency graph
+        
+        # Build the file dependency graph (input -> outputs)
+        file_graph = file_graph(target_mapping)
+        
+        # Find all downstream nodes from the files being updated
+        downstream_files = downstream_nodes(file_graph, files_to_be_updated)
+        
+        # Convert Set to Array and return
+        downstream_files.to_a
+      end
+
       def filter_ui_targets(jobs_to_run, target_mapping)
         # There is a small snakemake bug, where if a rule runs and generates a file and then
         # you quickly save a UI file - the timestamp in between the file might be too small
@@ -110,7 +124,7 @@ class Vulcan
         target_mapping.reject { |target, requirements| requirements["params"].include?("ui") }
       end
 
-      module_function :find_affected_downstream_jobs, :find_buildable_targets, :match, :ui_targets, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes
+      module_function :find_affected_downstream_jobs, :find_buildable_targets, :match, :ui_targets, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes, :find_affected_downstream_files
     end
   end
 end
