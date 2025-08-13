@@ -287,7 +287,7 @@ export function allFilesToBuffer(
   if (!workspace) return [];
   const {vulcan_config} = workspace;
 
-  let inputFiles: string[] = [];
+  let inputFiles: string[] = ['vignette.md'];
   const uiNames = uiNamesToBufferData(workspace);
   uiNames.forEach((step) => {
     inputFiles = inputFiles.concat(configIOValues(vulcan_config[step].input?.files));
@@ -365,10 +365,13 @@ export function statusOfStep(
   workspace: VulcanState['workspace']
 ): StepStatus | undefined {
   const stepName = typeof step === 'string' ? step : step.name;
-  return (stepName in status.steps) ? status.steps[stepName] :
+  const complete: StepStatus = {name: stepName, status: 'complete', statusFine: 'COMPLETED'};
+  // Input UI's status is not tracked as well by snakemake, and easy to track here.
+  return inputUINamesWithOutputs(workspace, status.file_contents).includes(stepName) ? complete :
+    (stepName in status.steps) ? status.steps[stepName] :
     // outputUIs that won't be tracked as a step...
     workspace!=null && outputUINamesWithInputsReady(workspace, status.file_contents).includes(stepName) ?
-    {name: stepName, status: 'complete', statusFine: 'COMPLETED'} : undefined;
+    complete : undefined;
 }
 
 export function statusStringOfStepOrGroupedStep(
@@ -461,6 +464,16 @@ export function pendingUIInputStepReady(
   return (
     configIOValues(workspace.vulcan_config[step].input?.files).every((id) => id in status.file_contents)
   );
+}
+
+export function inputUINamesWithOutputs(
+  workspace: Workspace | null,
+  file_contents: WorkspaceStatus['file_contents']
+) {
+  if (!workspace) return [];
+  return inputUINames(workspace).filter((step: string) => 
+    configIOValues(workspace.vulcan_config[step].output?.files).every((id) => id in file_contents)
+  )
 }
 
 export function configIOValues(input: string[] | {[k:string]: string} | undefined): string[] {
