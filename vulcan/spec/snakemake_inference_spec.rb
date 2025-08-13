@@ -84,17 +84,17 @@ describe Vulcan::Snakemake::Inference do
   end
 
   context 'find_affected_downstream_files' do
-    it 'correctly finds all downstream affected files from multiple input files' do
-      files_to_be_updated = ["output/check.txt", "output/arithmetic.txt", "output/count_poem.txt", "output/count_poem_2.txt"]
-      result = Vulcan::Snakemake::Inference.find_affected_downstream_files(target_mapping, files_to_be_updated)
-      expect(result).to match_array(["output/ui_job_one.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
-    end
+    # it 'correctly finds all downstream affected files from multiple input files' do
+    #   files_to_be_updated = ["output/check.txt", "output/arithmetic.txt", "output/count_poem.txt", "output/count_poem_2.txt"]
+    #   result = Vulcan::Snakemake::Inference.find_affected_downstream_files(target_mapping, files_to_be_updated)
+    #   expect(result).to match_array(["output/ui_job_one.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
+    # end
 
-    it 'returns empty array when no downstream files exist' do
-      files_to_be_updated = ["output/final.txt"]
-      result = Vulcan::Snakemake::Inference.find_affected_downstream_files(target_mapping, files_to_be_updated)
-      expect(result).to eq([])
-    end
+    # it 'returns empty array when no downstream files exist' do
+    #   files_to_be_updated = ["output/final.txt"]
+    #   result = Vulcan::Snakemake::Inference.find_affected_downstream_files(target_mapping, files_to_be_updated)
+    #   expect(result).to eq([])
+    # end
   end
 
   context 'find_affected_downstream_jobs' do

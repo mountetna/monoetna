@@ -100,7 +100,7 @@ class Vulcan
         downstream_files = downstream_nodes(file_graph, files_to_be_updated)
         
         # Convert Set to Array and exclude the input files themselves
-        downstream_files.to_a - files_to_be_updated
+        downstream_files.to_a
       end
 
       def filter_ui_targets(jobs_to_run, target_mapping)

@@ -221,13 +221,18 @@ class VulcanV2Controller < Vulcan::Controller
       downstream = jobs_to_run.any? ? Vulcan::Snakemake::Inference.find_affected_downstream_jobs(workspace.dag, jobs_to_run) : []
 
       # Get the files that will be updated
+      # TODO: refactor this
       files_after_config = []
       if jobs_to_run.any?
         command.options[:summary] = true
         files_to_be_updated = @snakemake_manager.dry_run_snakemake_files(workspace.path, command.build)
+        if !@remote_manager.file_exists?(Vulcan::Path.workspace_available_files(workspace.path))
+          files_after_config = available_files + files_to_be_updated
+        else
         # we need to grab these because of the UI
         downstream_files = Vulcan::Snakemake::Inference.find_affected_downstream_files(workspace.target_mapping, files_to_be_updated) 
         files_after_config = available_files - (files_to_be_updated + downstream_files)
+        end
       else
         files_after_config = available_files
       end
