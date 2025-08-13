@@ -93,15 +93,7 @@ export default function WorkspacesGrid({
 
       showErrors(
         updateWorkspace(project_name, workspace.workspace_id, newTitle, undefined)
-        .then((updatedWorkspace) => {
-          const updated = accessibleWorkspaces.map((oldWorkspace) => {
-            if (oldWorkspace.workspace_id === updatedWorkspace.workspace_id) {
-              return updatedWorkspace;
-            }
-
-            return oldWorkspace;
-          });
-        })
+        .then((updatedWorkspace) => {dispatch(updateWorkflowsWorkspaces())})
       );
       dispatch(updateWorkflowsWorkspaces());
     },
@@ -112,11 +104,11 @@ export default function WorkspacesGrid({
     (workspace: WorkspaceMinimal) => {
       if (!workspace.workspace_id) return;
       const doDelete = confirm(
-        'This action will permanently delete this workspace its files, a non-reversible action.'
+        'This action will permanently delete this workspace and all of its files, a non-reversible action.'
       );
       if (!doDelete) return
-      showErrors(deleteWorkspace(project_name, workspace.workspace_id));
-      dispatch(updateWorkflowsWorkspaces());
+      showErrors(deleteWorkspace(project_name, workspace.workspace_id))
+      .then(() => {dispatch(updateWorkflowsWorkspaces())});
     },
     [dispatch, showErrors, deleteWorkspace, project_name, accessibleWorkspaces]
   );
