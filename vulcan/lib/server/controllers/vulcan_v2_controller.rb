@@ -231,6 +231,7 @@ class VulcanV2Controller < Vulcan::Controller
       else
         files_after_config = available_files
       end
+      @remote_manager.write_file(Vulcan::Path.workspace_available_files(workspace.path), files_after_config.join("\n"))
       success_json(
         {
           config_id: config.id,
@@ -400,7 +401,12 @@ class VulcanV2Controller < Vulcan::Controller
   def get_files
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
-    success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path))})
+    if @remote_manager.file_exists?(Vulcan::Path.workspace_available_files(workspace.path))
+      available_files = @remote_manager.read_file_to_memory(Vulcan::Path.workspace_available_files(workspace.path)).split("\n")
+    else
+      available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path))
+    end
+    success_json({files: available_files})
   end
 
   def is_running

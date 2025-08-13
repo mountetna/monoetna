@@ -62,6 +62,10 @@ class Vulcan
       "#{workspace_dir}/profiles/#{profile_name}/"
     end
 
+    def self.workspace_available_files(workspace_dir) 
+      "#{workspace_dir}/.available_files.txt"
+    end
+
     # Other
     def self.dl_config_yaml(project_name, token, magma_url)
       yaml_content = <<~YAML
