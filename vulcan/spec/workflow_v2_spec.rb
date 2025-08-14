@@ -1091,9 +1091,14 @@ describe VulcanV2Controller do
       Vulcan.instance.remove_instance_variable('@latency') if Vulcan.instance.instance_variable_defined?('@latency')
     end
 
+    it 'fails without auth' do
+      get("/api/v2/cluster-latency")
+      expect(last_response.status).to eq(401)
+    end
+
     it 'returns SSH latency measurement' do
       auth_header(:editor)
-      get("/api/v2/#{PROJECT}/cluster-latency")
+      get("/api/v2/cluster-latency")
       expect(last_response.status).to eq(200)
       expect(json_body[:latency]).to be_a(Float)
     end
@@ -1101,7 +1106,7 @@ describe VulcanV2Controller do
     it 'actually measures latency' do
       allow_any_instance_of(Vulcan::RemoteManager).to receive(:measure_latency).and_return(2)
       auth_header(:editor)
-      get("/api/v2/#{PROJECT}/cluster-latency")
+      get("/api/v2/cluster-latency")
       expect(last_response.status).to eq(200)
       expect(json_body[:latency]).to be_a(Float)
       expect(Vulcan.instance.instance_variable_get('@remote_manager')).to have_received(:measure_latency)
@@ -1115,7 +1120,7 @@ describe VulcanV2Controller do
         Vulcan.instance.instance_variable_set("@latency", 5.times.map do { latency: 2, date: Time.now } end)
 
         auth_header(:editor)
-        get("/api/v2/#{PROJECT}/cluster-latency")
+        get("/api/v2/cluster-latency")
         expect(last_response.status).to eq(200)
         expect(manager).not_to have_received(:measure_latency)
       end
@@ -1127,7 +1132,7 @@ describe VulcanV2Controller do
         Vulcan.instance.instance_variable_set("@latency", 5.times.map do { latency: 2, date: Time.now } end)
 
         auth_header(:editor)
-        get("/api/v2/#{PROJECT}/cluster-latency?recompute=true")
+        get("/api/v2/cluster-latency?recompute=true")
         expect(last_response.status).to eq(200)
         expect(manager).not_to have_received(:measure_latency)
       end
@@ -1139,7 +1144,7 @@ describe VulcanV2Controller do
         Vulcan.instance.instance_variable_set("@latency", 5.times.map do { latency: 2, date: Time.now - Vulcan.instance.config(:latency_time) * 2 } end)
 
         auth_header(:editor)
-        get("/api/v2/#{PROJECT}/cluster-latency?recompute=true")
+        get("/api/v2/cluster-latency?recompute=true")
         expect(last_response.status).to eq(200)
         expect(manager).to have_received(:measure_latency)
       end

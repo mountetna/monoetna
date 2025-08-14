@@ -37,15 +37,16 @@ class Vulcan
   end
 
   LATENCY_SAMPLES=5
+  LATENCY_TIME=600
 
   def update_latency!
     @latency ||= []
 
     @latency = @latency.select do |latency_sample|
-      latency_sample[:date] > Time.now - (config(:latency_time) || 600)
+      latency_sample[:date] > Time.now - (config(:latency_time) || LATENCY_TIME)
     end
 
-    if @latency.length < LATENCY_SAMPLES
+    if @latency.length < (config(:latency_samples) || LATENCY_SAMPLES)
       @remote_manager ||= Vulcan::RemoteManager.new(Vulcan.instance.ssh_pool)
 
       @latency.push({
