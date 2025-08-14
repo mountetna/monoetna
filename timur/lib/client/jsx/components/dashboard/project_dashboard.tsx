@@ -167,14 +167,14 @@ const AppInfo = ({sensor,action,role,actionRole=role,actionLink}:{
   const user = useReduxState((state:any) => selectUser(state));
   const userRole = getUserRole(user);
 
-  if (!userRole) return null;
-
   const dashboardState = useContext(DashboardContext);
   useEffect( () => {
     sensor(setInfo, dashboardState);
   }, [dashboardState] );
 
   const Star = STAR[info.level];
+
+  if (!userRole) return null;
 
   return <ListItem className={classes.list_item}>
     <ListItemIcon>
