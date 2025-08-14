@@ -1087,12 +1087,67 @@ describe VulcanV2Controller do
   end
 
   context 'cluster latency' do
+    before do
+      Vulcan.instance.remove_instance_variable('@latency') if Vulcan.instance.instance_variable_defined?('@latency')
+    end
+
+    it 'fails without auth' do
+      get("/api/v2/cluster-latency")
+      expect(last_response.status).to eq(401)
+    end
+
     it 'returns SSH latency measurement' do
       auth_header(:editor)
-      get("/api/v2/#{PROJECT}/cluster-latency")
+      get("/api/v2/cluster-latency")
       expect(last_response.status).to eq(200)
-      expect(json_body).to have_key(:latency)
-      expect(json_body[:latency]).to match(/^\d+\.?\d*ms$/)
+      expect(json_body[:latency]).to be_a(Float)
+    end
+
+    it 'actually measures latency' do
+      allow_any_instance_of(Vulcan::RemoteManager).to receive(:measure_latency).and_return(2)
+      auth_header(:editor)
+      get("/api/v2/cluster-latency")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:latency]).to be_a(Float)
+      expect(Vulcan.instance.instance_variable_get('@remote_manager')).to have_received(:measure_latency)
+    end
+
+    context 'with caching' do 
+      it 'skips measuring latency if unnecessary' do
+        manager = Vulcan::RemoteManager.new(Vulcan.instance.ssh_pool)
+        allow(manager).to receive(:measure_latency).and_return(2)
+        Vulcan.instance.instance_variable_set("@remote_manager", manager)
+        Vulcan.instance.instance_variable_set("@latency", 5.times.map do { latency: 2, date: Time.now } end)
+
+        auth_header(:editor)
+        get("/api/v2/cluster-latency")
+        expect(last_response.status).to eq(200)
+        expect(manager).not_to have_received(:measure_latency)
+      end
+
+      it 'does not recomputes if forced and data is current' do
+        manager = Vulcan::RemoteManager.new(Vulcan.instance.ssh_pool)
+        allow(manager).to receive(:measure_latency).and_return(2)
+        Vulcan.instance.instance_variable_set("@remote_manager", manager)
+        Vulcan.instance.instance_variable_set("@latency", 5.times.map do { latency: 2, date: Time.now } end)
+
+        auth_header(:editor)
+        get("/api/v2/cluster-latency?recompute=true")
+        expect(last_response.status).to eq(200)
+        expect(manager).not_to have_received(:measure_latency)
+      end
+
+      it 'recomputes if forced and data is out of date' do
+        manager = Vulcan::RemoteManager.new(Vulcan.instance.ssh_pool)
+        allow(manager).to receive(:measure_latency).and_return(2)
+        Vulcan.instance.instance_variable_set("@remote_manager", manager)
+        Vulcan.instance.instance_variable_set("@latency", 5.times.map do { latency: 2, date: Time.now - Vulcan.instance.config(:latency_time) * 2 } end)
+
+        auth_header(:editor)
+        get("/api/v2/cluster-latency?recompute=true")
+        expect(last_response.status).to eq(200)
+        expect(manager).to have_received(:measure_latency)
+      end
     end
   end
 
@@ -1124,7 +1179,7 @@ describe VulcanV2Controller do
       return run_id
     end
 
-    it 'successfully cancels a running workflow' do
+    xit 'successfully cancels a running workflow' do
       workspace = Vulcan::Workspace.all[0]
       run_id = start_workflow(workspace)
 

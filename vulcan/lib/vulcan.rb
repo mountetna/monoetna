@@ -36,8 +36,38 @@ class Vulcan
     require_relative 'models' if load_models
   end
 
+  LATENCY_SAMPLES=5
+  LATENCY_TIME=600
+
+  def update_latency!
+    @latency ||= []
+
+    @latency = @latency.select do |latency_sample|
+      latency_sample[:date] > Time.now - (config(:latency_time) || LATENCY_TIME)
+    end
+
+    if @latency.length < (config(:latency_samples) || LATENCY_SAMPLES)
+      @remote_manager ||= Vulcan::RemoteManager.new(Vulcan.instance.ssh_pool)
+
+      @latency.push({
+        date: Time.now,
+        latency: @remote_manager.measure_latency
+      })
+    end
+  end
+
+  def median_latency
+    latencies = @latency.map{|l| l[:latency]}.sort
+
+    (latencies[ latencies.length / 2 ] + latencies[ (latencies.length - 1) / 2 ]) / 2.0
+  end
+
+  def has_latency?
+    @latency && !@latency.empty?
+  end
+
   def vulcan_checks
-    @remote_manager = Vulcan::RemoteManager.new(Vulcan.instance.ssh_pool)
+    @remote_manager ||= Vulcan::RemoteManager.new(Vulcan.instance.ssh_pool)
     if config(:conda_env)
       Vulcan.instance.logger.info("Vulcan conda env: #{config(:conda_env)}")
       Vulcan.instance.logger.info("Attempting to activate conda environment...")

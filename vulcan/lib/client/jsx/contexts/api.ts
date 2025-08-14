@@ -354,8 +354,8 @@ export function useApi(
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/run/${runId}`))
   }, [vulcanGet, vulcanPath]);
 
-  const getConnectionLatency = useCallback((projectName: string): Promise<LatencyReturn> => {
-    return vulcanGet(vulcanPath(`/api/v2/${projectName}/cluster-latency`))
+  const getConnectionLatency = useCallback((): Promise<LatencyReturn> => {
+    return vulcanGet(vulcanPath(`/api/v2/cluster-latency`))
   }, [vulcanGet, vulcanPath]);
 
   return {
