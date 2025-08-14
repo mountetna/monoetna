@@ -403,14 +403,9 @@ class VulcanV2Controller < Vulcan::Controller
   end
 
   def cluster_latency
-    begin
-      # Measure SSH latency using the remote_manager's measure_latency method
-      median_latency = @remote_manager.measure_latency
-      success_json({latency: "#{median_latency}ms"})
-    rescue => e
-      Vulcan.instance.logger.log_error(e)
-      raise Etna::BadRequest.new(e.message)
-    end
+    Vulcan.instance.update_latency! unless Vulcan.instance.has_latency? && !@params[:recompute]
+
+    return success_json(latency: Vulcan.instance.median_latency)
   end
 
   def delete_workspace
