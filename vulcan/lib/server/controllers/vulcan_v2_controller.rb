@@ -19,6 +19,7 @@ class VulcanV2Controller < Vulcan::Controller
   def create_workflow
     workflow = Vulcan::WorkflowV2.first(
       repo_remote_url: @params[:repo_url],
+      project_name: @params[:project_name]
     )
     if workflow
       return success_json({'msg': "Workflow: #{workflow.name} for project: #{@params[:project_name]} already exists."})

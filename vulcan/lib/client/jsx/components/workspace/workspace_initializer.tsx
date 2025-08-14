@@ -22,6 +22,7 @@ import {
   defaultStepStatus,
 } from '../../api_types';
 import {runPromise, useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
+import { LoadingIconWithText } from '../dashboard/loading_icon';
 
 export default function WorkspaceInitializer({
   workspaceId,
@@ -126,8 +127,10 @@ export default function WorkspaceInitializer({
     }
   }, [state.workspace, state.workflow.name]);
 
-  if (!state.workflow) {
-    return null;
+  if (!state.workspace) {
+    return (
+      <LoadingIconWithText text='Retrieving Workspace Context'/>
+    );
   }
 
   return (
