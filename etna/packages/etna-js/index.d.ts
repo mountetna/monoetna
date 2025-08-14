@@ -404,6 +404,9 @@ declare module 'etna-js/utils/janus' {
     flags: string[];
   }
 
+  export type User = Token;
+
   export function isGuest(user: any, project_name: string): boolean;
+  export function isSuperViewer(user: any): boolean;
   export function parseToken(token: string): Token;
 }
