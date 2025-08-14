@@ -67,6 +67,10 @@ describe Vulcan::Snakemake::TargetParser do
       end
     end
 
+    it 'uses the config variable names as params instead of named params' do
+      expect(parsed_sc_viz["output/scdata.Rds"]["params"]).to contain_exactly("dataset_name")
+    end
+
   end
 
   context 'summary snakefile' do

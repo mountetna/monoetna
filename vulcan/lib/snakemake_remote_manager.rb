@@ -63,6 +63,48 @@ class Vulcan
         get_rules_from_run(out[:stdout])
       end
 
+      def dry_run_snakemake_files(dir, snakemake_command)
+        command = @remote_manager.build_command
+          .add('conda', 'activate', Vulcan.instance.config(:conda_env))
+          .add('cd', dir)
+          .add_raw(snakemake_command)
+        out = @remote_manager.invoke_ssh_command(command.to_s)
+        get_files_from_run(out[:stdout])
+      end
+
+      def get_files_from_run(snakemake_log)
+        # Parse the snakemake log output to extract output file names
+        # The log contains a table with columns: output_file, date, rule, log-file(s), status, plan
+        # We need to extract only the output_file values where plan is "update pending"
+        
+        output_files = []
+        
+        # Split the log into lines and process each line
+        snakemake_log.each_line do |line|
+          line = line.strip
+          next if line.empty?
+          
+          # Skip header lines that contain column names or separators
+          next if line.match?(/^output_file\s+date\s+rule\s+log-file\(s\)\s+status\s+plan$/)
+          next if line.match?(/^-+$/) # Skip separator lines
+          next if line.match?(/^Building DAG of jobs\.\.\.$/) # Skip the header line
+          
+          # Split the line on tabs to get the proper columns
+          parts = line.split("\t")
+          if parts.length >= 6
+            output_file = parts[0]
+            plan = parts[5] # The plan column (6th column, index 5)
+            
+            # Only add files that have "update pending" plan
+            if plan == "update pending"
+              output_files << output_file unless output_file.empty?
+            end
+          end
+        end
+        
+        output_files
+      end
+
       def snakemake_is_running?(dir)
         # Snakemake drops lock files into .snakemake/locks/ when running
         # We check if the directory is empty to determine if Snakemake is running

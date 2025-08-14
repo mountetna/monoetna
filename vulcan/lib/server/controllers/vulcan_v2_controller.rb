@@ -197,10 +197,15 @@ class VulcanV2Controller < Vulcan::Controller
           updated_at: Time.now
         )
       end
+      # Remove the existing ui targets
       @snakemake_manager.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged], workspace)
+
+      # We need some files for dry running
       output_files = @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path)).map { |file| "output/#{file}" }
       resources_files = @remote_manager.list_files(Vulcan::Path.workspace_resources_dir(workspace.path)).map { |file| "resources/#{file}" }
       available_files = output_files + resources_files
+
+      # Get the jobs that will be run
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(
         workspace.target_mapping,
@@ -214,11 +219,31 @@ class VulcanV2Controller < Vulcan::Controller
       }
       jobs_to_run = @snakemake_manager.dry_run_snakemake(workspace.path, command.build)
       jobs_to_run = Vulcan::Snakemake::Inference.filter_ui_targets(jobs_to_run, workspace.target_mapping)
+      downstream = jobs_to_run.any? ? Vulcan::Snakemake::Inference.find_affected_downstream_jobs(workspace.dag, jobs_to_run) : []
+
+      # Get the files that will be updated
+      # TODO: refactor this
+      files_after_config = []
+      if jobs_to_run.any?
+        command.options[:summary] = true
+        files_to_be_updated = @snakemake_manager.dry_run_snakemake_files(workspace.path, command.build)
+        if !@remote_manager.file_exists?(Vulcan::Path.workspace_available_files(workspace.path))
+          files_after_config = available_files + files_to_be_updated
+        else
+        # we need to grab these because of the UI
+        downstream_files = Vulcan::Snakemake::Inference.find_affected_downstream_files(workspace.target_mapping, files_to_be_updated) 
+        files_after_config = available_files - (files_to_be_updated + downstream_files)
+        end
+      else
+        files_after_config = available_files
+      end
+      @remote_manager.write_file(Vulcan::Path.workspace_available_files(workspace.path), files_after_config.join("\n"))
       success_json(
         {
           config_id: config.id,
           scheduled: jobs_to_run,
-          downstream: jobs_to_run.any? ? Vulcan::Snakemake::Inference.find_affected_downstream_jobs(workspace.dag, jobs_to_run) : [],
+          downstream: downstream,
+          available_files: files_after_config,
           params: JSON.parse(request_params_json)
         }
     )
@@ -382,7 +407,12 @@ class VulcanV2Controller < Vulcan::Controller
   def get_files
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
-    success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path))})
+    if @remote_manager.file_exists?(Vulcan::Path.workspace_available_files(workspace.path))
+      available_files = @remote_manager.read_file_to_memory(Vulcan::Path.workspace_available_files(workspace.path)).split("\n")
+    else
+      available_files = @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path))
+    end
+    success_json({files: available_files})
   end
 
   def is_running

@@ -7,7 +7,7 @@ rule all:
 
 rule get_dataset_and_summarize:
     params:
-        dataset_name=config["dataset_name"]
+        the_dataset_name=config["dataset_name"]
     output:
         scdata="output/scdata.Rds",
         plotting_options="output/plotting_options.json",
