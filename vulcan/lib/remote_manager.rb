@@ -41,6 +41,20 @@ class Vulcan
       invoke_ssh_command(command.to_s)[:stdout]
     end
 
+    def stream_file_simple(remote_path, chunk: 64 * 1024)
+      @ssh_pool.with_conn do |ssh|
+        ssh.sftp.file.open(remote_path, 'r') do |file|
+          loop do
+            data = file.read(chunk)
+            break if data.nil? || data.empty?
+            yield data
+          end
+        end
+      end
+    rescue Net::SFTP::StatusException => e
+      raise "Remote file error: #{e.description}"
+    end
+
     def touch(remote_file_path)
       command = build_command.add('touch', remote_file_path)
       invoke_ssh_command(command.to_s)
@@ -205,8 +219,10 @@ class Vulcan
       else
         file_found = remote_file_exists?(file_path)
       end
-      
-      Vulcan.instance.logger.info("File #{file_path} #{file_found ? 'found' : 'not found'}")
+     
+      if !file_found
+        Vulcan.instance.logger.warn("File #{file_path} not found")
+      end
       file_found
     end
 
