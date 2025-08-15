@@ -60,7 +60,7 @@ class Vulcan
           .add('cd', dir)
           .add_raw(snakemake_command)
         out = @remote_manager.invoke_ssh_command(command.to_s)
-        get_rules_from_run(out[:stdout])
+        out[:stdout]
       end
 
       def snakemake_is_running?(dir)
@@ -104,6 +104,21 @@ class Vulcan
         
         # Reject the 'total' entry and extract only the job names
         jobs.reject { |job, _| job.downcase == 'total' }.map { |job, _| job }
+      end
+
+      def get_files_from_run(snakemake_log)
+        # Extract each line starting with '    outputs: ' up to end of line
+        output_lines = snakemake_log.scan(/    output: .*?(?=\n)/m)
+        return [] unless output_lines
+
+        output_files = []
+        output_lines.each do |line|
+          line.split(", ").each do |match|
+            match = match.sub("    output: ", "")
+            output_files << match unless output_files.include?(match)
+          end
+        end
+        output_files
       end
 
 

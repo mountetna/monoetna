@@ -132,8 +132,14 @@ class Vulcan
 
       # Extracts parameters from a line
       def extract_params(line, params)
-        line.scan(/(\w+)\s*=/).map(&:first).each do |param|
-          params << param unless params.include?(param)
+        # Grab name in config file for key-value like poem1=config["poem"]
+        line.scan(/["']([^"']+)["']/).each do |match|
+          params << match.first unless params.include?(match.first)
+        end
+
+        # Grab key for key-value of ui=True
+        line.scan(/^ui=True$/).each do |match|
+          params << 'ui' unless params.include?('ui')
         end
       end
 
