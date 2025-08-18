@@ -29,23 +29,39 @@ class Vulcan
       @pool = build_pool
     end
 
-    # Borrow a session and yield; on session-level errors rebuild once
+    # Borrow a session and yield; on session-level errors, rebuild and retry a few times.
     def with_conn
+      attempts = 0
       begin
         @pool.with do |ssh|
           yield ssh
         end
-      rescue Net::SSH::Disconnect,
-             Errno::ECONNREFUSED,
-             Errno::ECONNRESET,
-             Errno::EBADF,
-             IOError => e
+      rescue Net::SSH::AuthenticationFailed, Net::SSH::HostKeyMismatch => e
+        Vulcan.instance.logger.error("SSH auth/hostkey error: #{e.class}: #{e.message}")
+        raise
+      rescue Net::SSH::Disconnect,Errno::ECONNREFUSED, Errno::ECONNRESET, Errno::EBADF, IOError, SocketError, Timeout::Error => e
+        attempts += 1
+        if attempts <= @max_retries
+          Vulcan.instance.logger.warn(
+            "SSH session error (#{e.class}: #{e.message}), attempt #{attempts}/#{@max_retries}. "\
+            "Recreating pool and retrying in #{@retry_delay}s…"
+          )
+          recreate_pool_once
+          sleep @retry_delay
+          retry
+        else
+          Vulcan.instance.logger.error("Giving up after #{attempts} attempts: #{e.class}: #{e.message}")
+          raise
+        end
+      end
+    end
 
-        Vulcan.instance.logger.warn(
-          "SSH session error (#{e.class}: #{e.message}), recreating pool…"
-        )
-        recreate_pool
-        retry
+    def recreate_pool_once
+      @rebuild_mutex ||= Mutex.new
+      @rebuild_mutex.synchronize do
+        Vulcan.instance.logger.info("Recreating SSH connection pool for #{@host}…")
+        @pool.shutdown { |conn| conn.close rescue nil }
+        @pool = build_pool
       end
     end
 
@@ -55,23 +71,13 @@ class Vulcan
 
     private
 
-    # 2) Pool builder
     def build_pool
       ConnectionPool.new(size: @pool_size, timeout: @pool_timeout) do
         create_connection
       end
     end
 
-    # 2) Centralized pool teardown + rebuild
-    def recreate_pool
-      Vulcan.instance.logger.info("Recreating SSH connection pool for #{@host}…")
-      @pool.shutdown { |conn| conn.close rescue nil }
-      @pool = build_pool
-    end
 
-
-
-    # 4) Unified connection opts & retry loop
     def create_connection
       tries = 0
       begin
@@ -80,7 +86,7 @@ class Vulcan
         opts[:config] = @use_ssh_config
         opts[:password] = @password if @password
         Net::SSH.start(@host, @username, **opts)
-      rescue Net::SSH::Exception, Errno::ECONNREFUSED, Errno::ECONNRESET, IOError => e
+      rescue Net::SSH::Exception, Errno::ECONNREFUSED, Errno::ECONNRESET, IOError, Errno::ETIMEDOUT, SocketError => e
         tries += 1
         if tries <= @max_retries
           Vulcan.instance.logger.warn(
