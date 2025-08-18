@@ -31,21 +31,21 @@ class Vulcan
 
     # Borrow a session and yield; on session-level errors rebuild once
     def with_conn
-      @pool.with do |ssh|
-        begin
+      begin
+        @pool.with do |ssh|
           yield ssh
-        rescue Net::SSH::Disconnect,
-               Errno::ECONNREFUSED,
-               Errno::ECONNRESET,
-               Errno::EBADF,
-               IOError => e
-
-          Vulcan.instance.logger.warn(
-            "SSH session error (#{e.class}: #{e.message}), recreating pool…"
-          )
-          recreate_pool
-          retry
         end
+      rescue Net::SSH::Disconnect,
+             Errno::ECONNREFUSED,
+             Errno::ECONNRESET,
+             Errno::EBADF,
+             IOError => e
+
+        Vulcan.instance.logger.warn(
+          "SSH session error (#{e.class}: #{e.message}), recreating pool…"
+        )
+        recreate_pool
+        retry
       end
     end
 
