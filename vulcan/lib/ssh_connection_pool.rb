@@ -29,11 +29,10 @@ class Vulcan
       @pool = build_pool
     end
 
-    # Borrow a session, validate it, and yield; on session-level errors rebuild once
+    # Borrow a session and yield; on session-level errors rebuild once
     def with_conn
       @pool.with do |ssh|
         begin
-          health_check(ssh)
           yield ssh
         rescue Net::SSH::Disconnect,
                Errno::ECONNREFUSED,
@@ -70,15 +69,7 @@ class Vulcan
       @pool = build_pool
     end
 
-    # 3) Extracted health check into its own method
-    def health_check(ssh)
-      ch = ssh.open_channel do |c|
-        c.exec("echo 'connection test'") do |_, success|
-          raise "SSH health check failed" unless success
-        end
-      end
-      ch.wait
-    end
+
 
     # 4) Unified connection opts & retry loop
     def create_connection
