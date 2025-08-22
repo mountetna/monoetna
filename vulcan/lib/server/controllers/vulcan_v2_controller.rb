@@ -63,7 +63,12 @@ class VulcanV2Controller < Vulcan::Controller
         git_sha = @remote_manager.checkout_version(workspace_dir, @escaped_params[:git_request])
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
         @remote_manager.mkdir(Vulcan::Path.workspace_output_dir(workspace_dir))
-        @remote_manager.touch("#{Vulcan::Path.workspace_output_dir(workspace_dir)}/.keep")
+        if @remote_manager.file_exists?("#{Vulcan::Path.workspace_resources_dir(workspace_dir)}/vignette.md", false)
+          vignette = @remote_manager.read_file_to_memory("#{Vulcan::Path.workspace_resources_dir(workspace_dir)}/vignette.md")
+          @remote_manager.write_file("#{Vulcan::Path.workspace_output_dir(workspace_dir)}/vignette.md", vignette)
+        else
+          @remote_manager.touch("#{Vulcan::Path.workspace_output_dir(workspace_dir)}/.keep")
+        end
         # @remote_manager.upload_dir(Vulcan.instance.config(:snakemake_profile_dir), workspace_dir, true) # TODO: for now we are just using the default profile
         @remote_manager.write_file(
           Vulcan::Path.dl_config(workspace_dir), 
