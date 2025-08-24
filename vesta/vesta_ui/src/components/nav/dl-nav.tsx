@@ -38,21 +38,27 @@ export default function DLNav({
         const elId = href.split('#')[1]
         const el = document.getElementById(elId)
 
-        if (href.startsWith('/')) router.push(href, { scroll: false })
-        else window.open(href, '_blank');
-
-        if (el) {
-            window.scrollTo({
-                top: el.offsetTop - NavBarHeights[breakpoint].condensed,
-                behavior: 'smooth',
-            })
+        if (!el) {
+            // no element to scroll to, so it's a normal link
+            window.open(href, '_blank');
+            return
         }
+
+        router.push(href, { scroll: false })
+        window.scrollTo({
+            top: el.offsetTop - NavBarHeights[breakpoint].condensed,
+            behavior: 'smooth',
+        })
 
         onClickNavLink && onClickNavLink()
     }
 
-    const [anchorEl, setAnchorEl] = React.useState<HTMLAnchorElement|null>(null);
-    const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => setAnchorEl(event.currentTarget);
+    const [anchorEl, setAnchorEl] = React.useState<HTMLAnchorElement | null>(null);
+    const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+        // prevent scrolling to the top of the page
+        event.preventDefault()
+        setAnchorEl(event.currentTarget);
+    }
     const handleClose = () => setAnchorEl(null);
 
     const aboutSearchParams: AboutSearchParamsState = { index: 0 }
@@ -102,10 +108,10 @@ export default function DLNav({
                 typography={linkTypography}
             />
             <RelatedResourcesMenu
-              anchorEl={anchorEl}
-              typography={linkTypography}
-              onClick={handleClickNavLink}
-              onClose={handleClose}
+                anchorEl={anchorEl}
+                typography={linkTypography}
+                onClick={handleClickNavLink}
+                onClose={handleClose}
             />
         </Box>
     )
