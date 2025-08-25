@@ -6,6 +6,7 @@ require_relative './../../remote_manager'
 require_relative './../../snakemake_remote_manager'
 require_relative './../../snakemake_command'
 require_relative './../../snakemake_inference'
+require_relative './../../workspace_state'
 
 
 class VulcanV2Controller < Vulcan::Controller
@@ -73,7 +74,7 @@ class VulcanV2Controller < Vulcan::Controller
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
           name: @params[:workspace_name],
-          dag: "{#{@snakemake_manager.get_dag(workspace_dir).join(',')}}",
+          dag: @snakemake_manager.get_dag(workspace_dir).to_json,
           target_mapping: @snakemake_manager.generate_target_mapping(workspace_dir, config),
           path: workspace_dir,
           user_email: @user.email,
@@ -197,28 +198,19 @@ class VulcanV2Controller < Vulcan::Controller
           updated_at: Time.now
         )
       end
-      @snakemake_manager.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged], workspace)
-      output_files = @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path)).map { |file| "output/#{file}" }
-      resources_files = @remote_manager.list_files(Vulcan::Path.workspace_resources_dir(workspace.path)).map { |file| "resources/#{file}" }
-      available_files = output_files + resources_files
-      command = Vulcan::Snakemake::CommandBuilder.new
-      command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(
-        workspace.target_mapping,
-        request_params.keys.map(&:to_s),
-        available_files
-      )
-      command.options = {
-        config_path: config.path,
-        profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
-        dry_run: true,
-      }
-      jobs_to_run = @snakemake_manager.dry_run_snakemake(workspace.path, command.build)
-      jobs_to_run = Vulcan::Snakemake::Inference.filter_ui_targets(jobs_to_run, workspace.target_mapping)
+
+      # Anytime a config is saved, we need to clean up UI targets
+      workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
+      workspace_state.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged])
+      future_state = workspace_state.future_state(config)
+      
       success_json(
         {
           config_id: config.id,
-          scheduled: jobs_to_run,
-          downstream: jobs_to_run.any? ? Vulcan::Snakemake::Inference.find_affected_downstream_jobs(workspace.dag, jobs_to_run) : [],
+          targets_scheduled: future_state[:targets_scheduled],
+          jobs_scheduled: future_state[:jobs_scheduled],
+          unaffected_downstream_files: future_state[:unaffected_downstream_files],
+          #unaffected_downstream_jobs: future_state[:unaffected_downstream_jobs],
           params: JSON.parse(request_params_json)
         }
     )
@@ -245,10 +237,9 @@ class VulcanV2Controller < Vulcan::Controller
         msg = "Config for workspace: #{workspace.path} does not exist."
         raise Etna::BadRequest.new(msg)
       end
-      # Build snakemake command
-      output_files = @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path)).map { |file| "output/#{file}" }
-      resources_files = @remote_manager.list_files(Vulcan::Path.workspace_resources_dir(workspace.path)).map { |file| "resources/#{file}" }
-      available_files = output_files + resources_files
+      # Build snakemake command for execution
+      workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
+      available_files = workspace_state.get_available_files
       params = @remote_manager.read_yaml_file(config.path).keys
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(workspace.target_mapping, params, available_files)

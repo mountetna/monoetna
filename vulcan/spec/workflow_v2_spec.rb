@@ -374,6 +374,50 @@ describe VulcanV2Controller do
       expect(json_body[:scheduled]).to match_array(["arithmetic", "checker", "count"])
       expect(json_body[:downstream]).to match_array(["ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
     end
+
+    it 'correctly returns state after a config has been run and then changed' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      # We need to write some initial input files to the workspace.
+      write_files_to_workspace(workspace.id)
+      # Next we run the first snakemake job
+      request = {
+          params: {
+            count_bytes: false,
+            count_chars: true,
+            add: 2,
+            add_and_multiply_by: 2
+          },
+          paramsChanged: [],
+          uiFilesSent: []
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
+      run_id = json_body[:run_id]
+      check_jobs_status(["count", "arithmetic", "checker"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}") 
+      end 
+      expect(last_response.status).to eq(200)
+      # Now we change the config and run the workflow again
+      request_2 = {
+        params: {
+          count_bytes: false,
+          count_chars: true,
+          add: 4, # Change the add param
+          add_and_multiply_by: 2
+        },
+        paramsChanged: ["add"],
+        uiFilesSent: []
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request_2)
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
+      run_id = json_body[:run_id]
+      check_jobs_status(["count", "arithmetic", "checker"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}") 
+      end 
+      expect(last_response.status).to eq(200)
+    end
+
   end
 
   context 'list a specific workspace' do
