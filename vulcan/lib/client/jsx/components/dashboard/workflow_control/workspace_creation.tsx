@@ -24,6 +24,7 @@ import { VulcanState } from '../../../reducers/vulcan_reducer';
 import LoadingIcon from '../loading_icon';
 import Switch from '@material-ui/core/Switch';
 import InputLabel from '@material-ui/core/InputLabel';
+import FlatButton from 'etna-js/components/flat-button';
 
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/web";
@@ -56,7 +57,6 @@ export default function WorkspaceCreateButtonModal({
   workflow: VulcanState['workflow'] | null;
   workspaces: VulcanState['workspaces'];
 }) {
-  if (!workflow || !workflow.id) return null;
   const classes = useStyles();
   const invoke = useActionInvoker();
   const {
@@ -74,6 +74,7 @@ export default function WorkspaceCreateButtonModal({
   const [versionText, setVersionText] = useState('main');
   const [versionHelperText, setVersionHelperText] = useState('Branch name (e.g. main)');
   const [createTag, setCreateTag] = useState('Create Workspace');
+  const [advanced, setAdvanced] = useState(false);
 
   const [handleCreateWorkspace] = useAsyncCallback(function* (name: string, version: string) {
     if (!workflow || !workflow.id) return;
@@ -94,6 +95,7 @@ export default function WorkspaceCreateButtonModal({
   }, [workflow])
 
   useEffect(() => {
+    if (!workflow) return;
     showErrors(
       git.getRemoteInfo({ http, url: workflow.repo_remote_url, corsProxy: 'https://cors.isomorphic-git.org' }),
       (e) => {
@@ -113,13 +115,14 @@ export default function WorkspaceCreateButtonModal({
     tags_or_commits: {version: string, lastUsed: string}[];
   };
   const versionOpts: VersionOpts = useMemo(() => {
+    const out: VersionOpts = {branches: [], tags_or_commits: []}
+    if (!workflow) return out;
     const wspaces: WorkspaceMinimal[] = workspaces
       .filter((w: WorkspaceMinimal) => w.workflow_id == workflow.id)
       .sort((a,b) => a.created_at < b.created_at ? 1 : -1);
     const versions: string[] = [...new Set(wspaces.map((w: WorkspaceMinimal) => w.git_ref) as string[])]
     const unusedBranches = [...branches];
     const unusedTags = [...tags];
-    const out: VersionOpts = {branches: [], tags_or_commits: []}
     for (let ind in versions) {
       let v = versions[ind];
       let k: 'branches' | 'tags_or_commits' = 'tags_or_commits'
@@ -160,6 +163,34 @@ export default function WorkspaceCreateButtonModal({
     }
   }, [requestBy, valUse, versionOpts])
 
+  // Creation button label & disabling, and update versionUI helper text
+  useEffect(() => {
+    if (valUse.version === '' || valUse.version == '...awaiting...') {
+      setCreateTag('Workflow Version not set')
+      setVersionHelperText(helperBase + ', *Hit Enter/Return to use the current value*')
+    } else if (valUse.version != versionText) {
+      setCreateTag('Workflow Version input in error sate')
+      setVersionHelperText(helperBase + ', *Hit Enter/Return to use the current value*')
+    } else if (createTag!='Create Workspace') {
+      setVersionHelperText(helperBase);
+      setCreateTag('Create Workspace');
+    }
+  }, [valUse, versionText, createTag])
+
+  if (!workflow || !workflow.id) {
+    return <Tooltip title='Select a Workflow to enable'>
+        <Button
+          className={classes.button}
+          onClick={() => {}}
+          size='large'
+          startIcon={<WorkIcon />}
+          color='secondary'
+        >
+          Create New Workspace
+        </Button>
+      </Tooltip>
+  };
+
   // versionUI
   const helperBase = requestBy == 'branch' ? 'Branch name (e.g. main)' : 'Tag or Commit SHA';
   const pastUse = requestBy == 'branch' ? versionOpts['branches'] : versionOpts['tags_or_commits'];
@@ -172,7 +203,7 @@ export default function WorkspaceCreateButtonModal({
         </Typography>
       </Grid>
       <Grid item>
-        <Typography color='secondary'>
+        <Typography color='secondary' variant='body2'>
           {`Last Requested: ${option.lastUsed}`}
         </Typography>
       </Grid>
@@ -192,55 +223,68 @@ export default function WorkspaceCreateButtonModal({
       }
     }
   };
-  const versionUI = <Autocomplete
-    key={`git-version-request by-${requestBy}`}
-    freeSolo
-    value={valUse}
-    options={optsUse}
-    inputValue={versionText}
-    onInputChange={(event: any, value: string) => {
-      setVersionText(value)
-    }}
-    renderInput={(params: any) => (
-      <TextField
-        {...params}
-        label='Workflow Version'
-        helperText={versionHelperText}
-        error={valUse.version == '...awaiting...' || valUse.version==='' || valUse.version != versionText}
-        InputLabelProps={{shrink: true}}
-        size="small"
+  const advancedVersionUI = <Grid container style={{paddingLeft: '20px'}}>
+    <Grid item xs={5}>
+      <InputLabel htmlFor='request-by-switch' disabled={!advanced} shrink>Request Workflow Version By</InputLabel>
+      <Typography component="div" key='request-by-switch' variant='body2' color={advanced ? 'textPrimary' : 'textSecondary'}>
+        <Grid component="label" container alignItems="center">
+          <Grid item>Branch</Grid>
+          <Grid item>
+            <Switch
+              checked={requestBy=='tagOrSha'}
+              color="default"
+              disabled={!advanced}
+              onChange={() => {
+                setValUse({version: requestBy != 'branch' ? '...awaiting...' : '', lastUsed: 'never'});
+                setVersionText(requestBy != 'branch' ? 'main' : '');
+                setRequestBy(requestBy!='branch' ? 'branch' : 'tagOrSha');
+              }}
+            />
+          </Grid>
+          <Grid item>TagOrSha</Grid>
+        </Grid>
+      </Typography>
+    </Grid>
+    <Grid item xs={7}>
+      <Autocomplete
+        key={`git-version-request by-${requestBy}`}
+        freeSolo
+        fullWidth
+        value={valUse}
+        disabled={!advanced}
+        options={optsUse}
+        inputValue={versionText}
+        onInputChange={(event: any, value: string) => {
+          setVersionText(value)
+        }}
+        renderInput={(params: any) => (
+          <TextField
+            {...params}
+            label='Workflow Version'
+            helperText={versionHelperText}
+            error={valUse.version == '...awaiting...' || valUse.version==='' || valUse.version != versionText}
+            InputLabelProps={{shrink: true}}
+            size="small"
+          />
+        )}
+        getOptionLabel={(option) => {
+          if (typeof option === 'string') return option
+          return option.version
+        }}
+        renderOption={optionDisplay}
+        filterOptions={(options: typeof optsUse, state: any) => {
+          let regex = new RegExp(state.inputValue);
+          return options.filter((o) => regex.test(o.version) && !['','...awaiting...'].includes(o.version))
+        }}
+        onChange={onSelect}
       />
-    )}
-    getOptionLabel={(option) => {
-      if (typeof option === 'string') return option
-      return option.version
-    }}
-    renderOption={optionDisplay}
-    filterOptions={(options: typeof optsUse, state: any) => {
-      let regex = new RegExp(state.inputValue);
-      return options.filter((o) => regex.test(o.version) && !['','...awaiting...'].includes(o.version))
-    }}
-    onChange={onSelect}
-  />
-
-  // Creation button label & disabling, and update versionUI helper text
-  useEffect(() => {
-    if (valUse.version === '' || valUse.version == '...awaiting...') {
-      setCreateTag('Workflow Version not set')
-      setVersionHelperText(helperBase + ', *Hit Enter/Return to use the current value*')
-    } else if (valUse.version != versionText) {
-      setCreateTag('Workflow Version input in error sate')
-      setVersionHelperText(helperBase + ', *Hit Enter/Return to use the current value*')
-    } else if (createTag!='Create Workspace') {
-      setVersionHelperText(helperBase);
-      setCreateTag('Create Workspace');
-    }
-  }, [valUse, versionText, createTag])
+    </Grid>
+  </Grid>
   const disableCreate = createTag!='Create Workspace' || creating;
 
   return (
     <>
-      <Tooltip title='Create Workspace'>
+      <Tooltip title={`Create New \'${workflow.name}\' Workspace`}>
         <Button
           className={classes.button}
           disabled={!workflow}
@@ -248,10 +292,11 @@ export default function WorkspaceCreateButtonModal({
             setWorkspaceName(defaultName);
             setOpen(true);
           }}
+          size='large'
           color='primary'
           startIcon={<WorkIcon />}
         >
-          Create Workspace
+          Create New Workspace
         </Button>
       </Tooltip>
       <Dialog
@@ -260,12 +305,13 @@ export default function WorkspaceCreateButtonModal({
           maxWidth='xl'
         >
         <DialogTitle>
-          Create New {workflow.name} Workspace 
+          {`Create New \'${workflow.name}\' Workspace`} 
         </DialogTitle>
         <DialogContent className={classes.dialog}>
           <Grid container direction='column' spacing={2}>
             <Grid item>
-              <Typography className={classes.helpdoc}>This will establish a working directory on the remote compute server, and lauch a browser session where you will be able to run the workflow.</Typography>
+              <Typography className={classes.helpdoc}><strong>The choices below are optional.</strong></Typography>
+              <Typography className={classes.helpdoc} variant='body2'>This will set up a "workspace", a folder on our compute server where you can run the workflow.  After it's ready, we'll send you over to your Workspace Control Panel.</Typography>
             </Grid>
             <Grid item>
               <TextField
@@ -279,26 +325,35 @@ export default function WorkspaceCreateButtonModal({
               />
             </Grid>
             <Grid item>
-              <InputLabel htmlFor='request-by-switch' shrink>Request Workspace Version By</InputLabel>
-              <Typography component="div" key='request-by-switch'>
-                <Grid component="label" container alignItems="center" spacing={1}>
-                  <Grid item>Branch</Grid>
+              <InputLabel htmlFor='version-basic-advanced' shrink>Workflow Version Selection</InputLabel>
+                <Grid
+                  key='version-basic-advanced'
+                  container alignItems='center'
+                  justifyContent='flex-start'
+                >
+                  <Grid item>
+                    <Typography variant='body2' color={advanced ? 'textSecondary' : 'textPrimary'}>
+                      Default
+                    </Typography>
+                  </Grid>
                   <Grid item>
                     <Switch
-                      checked={requestBy=='tagOrSha'}
+                      checked={advanced}
                       onChange={() => {
-                        setValUse({version: requestBy != 'branch' ? '...awaiting...' : '', lastUsed: 'never'});
-                        setVersionText(requestBy != 'branch' ? 'main' : '');
-                        setRequestBy(requestBy!='branch' ? 'branch' : 'tagOrSha');
+                        setValUse({version: '...awaiting...' , lastUsed: 'never'});
+                        setVersionText('main');
+                        setRequestBy('branch');
+                        setAdvanced(!advanced)
                       }}
                     />
                   </Grid>
-                  <Grid item>TagOrSha</Grid>
+                  <Grid item>
+                    <Typography variant='body2' color={advanced ? 'textPrimary' : 'textSecondary'}>
+                      Advanced
+                    </Typography>
+                  </Grid>
                 </Grid>
-              </Typography>
-            </Grid>
-            <Grid item>
-              {versionUI}
+              {advancedVersionUI}
             </Grid>
           </Grid>
         </DialogContent>
@@ -313,7 +368,7 @@ export default function WorkspaceCreateButtonModal({
               color={disableCreate ? 'secondary' : 'primary'}
               variant='contained'
             >
-              Create Workspace
+              <strong>Create Workspace</strong>
             </Button>
           </Tooltip>
           <Tooltip title='Cancel' placement='top'>

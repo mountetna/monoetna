@@ -27,6 +27,7 @@ import useUserHooks from '../../../contexts/useUserHooks';
 
 import Tag from '../tag';
 import { workflowName } from '../../../selectors/workflow_selectors';
+import Typography from '@material-ui/core/Typography';
 
 const workspaceStyles = makeStyles((theme) => ({
   content: {
@@ -92,7 +93,7 @@ const workspaceStyles = makeStyles((theme) => ({
   }
 }));
 
-const authorInitials = ({user_email}: WorkspaceMinimalmal) => {
+const authorInitials = ({user_email}: WorkspaceMinimal) => {
   if (!user_email) return '';
 
   let names = user_email.split("@")[0].split(/[^a-zA-Z]+/).map((n: string) => n.toUpperCase());
@@ -173,8 +174,6 @@ const WorkspaceCard = ({
 
   const [defaultImage, image] = workspaceImage(workflow, workspace);
 
-  const title = workspace.name ? workspace.name : workflow ? `unnamed-${workflow.name}` : 'unnamed-workspace'
-
   return (
     <Card className={classes.workspace}>
       <Menu
@@ -188,13 +187,13 @@ const WorkspaceCard = ({
         {editor ? <MenuItem onClick={handleOnRemove}>Remove</MenuItem> : null}
       </Menu>
       <CardHeader
-        title={title}
+        title={workspace.name}
         titleTypographyProps={{
           variant: 'subtitle1',
-          title: title,
+          title: workspace.name,
           className: classes.title
         }}
-        subheader={workflowName(workflow) || ''}
+        subheader={'Workflow: ' + workflowName(workflow) || ''}
         subheaderTypographyProps={{variant: 'subtitle2'}}
         action={
           <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)}>
@@ -208,26 +207,45 @@ const WorkspaceCard = ({
         component='img'
         height='200'
         image={image}
-        title={title}
+        title={`Jump into this workspace!`}
       />
-      <CardContent style={{width: '280px', height: '65px', padding: '10px'}}>
+      <CardContent style={{width: '280px', padding: '10px 10px 0px'}}>
         <Grid
-          alignItems='center'
+          alignItems='flex-start'
           justifyContent='space-between'
           container
-          className={classes.content}
+          direction='column'
         >
-          <Grid item xs={1}>
-            <Tooltip title={workspace.user_email || ''}>
-              <Avatar className={classes.author}>
-                {authorInitials(workspace)}
-              </Avatar>
-            </Tooltip>
+          <Grid item>
+            <Typography variant='body2' component="p" style={{maxWidth: '225px', padding: '0px'}}>
+              {`Version: ${workspace.git_ref}`}
+            </Typography>
+            <Typography variant='body2' component="p" style={{maxWidth: '225px', padding: '0px'}}>
+              {`Id: ${workspace.workspace_id} | Created: ${workspace.created_at.split(' ')[0]}`}
+            </Typography>
+            <Typography variant='body2' component="p" style={{maxWidth: '225px', padding: '0px'}}>
+            </Typography>
           </Grid>
-          <Grid item xs={11} container className={classes.tags}>
-            {(workspace.tags || []).map((tag, index) => (
-              <Tag className={classes.tag} key={index} label={tag} />
-            ))}
+          <Grid
+            item
+            alignItems='center'
+            justifyContent='space-between'
+            container
+            direction='row'
+            style={{height: '65px'}}
+          >
+            <Grid item xs={2}>
+              <Tooltip title={workspace.user_email || ''}>
+                <Avatar className={classes.author}>
+                  {authorInitials(workspace)}
+                </Avatar>
+              </Tooltip>
+            </Grid>
+            <Grid item xs={10} container className={classes.tags}>
+              {(workspace.tags || []).map((tag, index) => (
+                <Tag className={classes.tag} key={index} label={tag} />
+              ))}
+            </Grid>
           </Grid>
         </Grid>
       </CardContent>
