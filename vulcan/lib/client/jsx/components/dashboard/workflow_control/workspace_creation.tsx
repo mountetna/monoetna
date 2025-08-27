@@ -40,8 +40,6 @@ const useStyles = makeStyles((theme) => ({
   },
   helpdoc: {
     maxWidth: '600px',
-    marginTop: '1rem',
-    marginBottom: '1rem'
   },
   propagateButton: {
     marginBottom: '1rem'
@@ -225,7 +223,9 @@ export default function WorkspaceCreateButtonModal({
   };
   const advancedVersionUI = <Grid container style={{paddingLeft: '20px'}}>
     <Grid item xs={5}>
-      <InputLabel htmlFor='request-by-switch' disabled={!advanced} shrink>Request Workflow Version By</InputLabel>
+      <InputLabel htmlFor='request-by-switch' disabled={!advanced} shrink>
+        Git Reference Type
+      </InputLabel>
       <Typography component="div" key='request-by-switch' variant='body2' color={advanced ? 'textPrimary' : 'textSecondary'}>
         <Grid component="label" container alignItems="center">
           <Grid item>Branch</Grid>
@@ -260,7 +260,7 @@ export default function WorkspaceCreateButtonModal({
         renderInput={(params: any) => (
           <TextField
             {...params}
-            label='Workflow Version'
+            label='Git Reference'
             helperText={versionHelperText}
             error={valUse.version == '...awaiting...' || valUse.version==='' || valUse.version != versionText}
             InputLabelProps={{shrink: true}}
@@ -308,10 +308,15 @@ export default function WorkspaceCreateButtonModal({
           {`Create New \'${workflow.name}\' Workspace`} 
         </DialogTitle>
         <DialogContent className={classes.dialog}>
-          <Grid container direction='column' spacing={2}>
+          <Grid container direction='column' spacing={4}>
             <Grid item>
-              <Typography className={classes.helpdoc}><strong>The choices below are optional.</strong></Typography>
-              <Typography className={classes.helpdoc} variant='body2'>This will set up a "workspace", a folder on our compute server where you can run the workflow.  After it's ready, we'll send you over to your Workspace Control Panel.</Typography>
+              <Typography className={classes.helpdoc} variant='body1'>
+                This will set up a "workspace", a folder on our compute server where you can run the workflow.
+                After it's ready, we'll send you over to your Workspace Control Panel.
+              </Typography>
+              <Typography className={classes.helpdoc} variant='body2' style={{marginTop: '1rem'}}>
+                The choices below are optional.
+              </Typography>
             </Grid>
             <Grid item>
               <TextField
@@ -325,34 +330,36 @@ export default function WorkspaceCreateButtonModal({
               />
             </Grid>
             <Grid item>
-              <InputLabel htmlFor='version-basic-advanced' shrink>Workflow Version Selection</InputLabel>
-                <Grid
-                  key='version-basic-advanced'
-                  container alignItems='center'
-                  justifyContent='flex-start'
-                >
-                  <Grid item>
-                    <Typography variant='body2' color={advanced ? 'textSecondary' : 'textPrimary'}>
-                      Default
-                    </Typography>
-                  </Grid>
-                  <Grid item>
-                    <Switch
-                      checked={advanced}
-                      onChange={() => {
-                        setValUse({version: '...awaiting...' , lastUsed: 'never'});
-                        setVersionText('main');
-                        setRequestBy('branch');
-                        setAdvanced(!advanced)
-                      }}
-                    />
-                  </Grid>
-                  <Grid item>
-                    <Typography variant='body2' color={advanced ? 'textPrimary' : 'textSecondary'}>
-                      Advanced
-                    </Typography>
-                  </Grid>
+              <InputLabel htmlFor='version-basic-advanced' shrink>
+                Workflow Version
+              </InputLabel>
+              <Grid
+                key='version-basic-advanced'
+                container alignItems='center'
+                justifyContent='flex-start'
+              >
+                <Grid item>
+                  <Typography variant='body1' color={advanced ? 'textSecondary' : 'textPrimary'}>
+                    Default
+                  </Typography>
                 </Grid>
+                <Grid item>
+                  <Switch
+                    checked={advanced}
+                    onChange={() => {
+                      setValUse({version: '...awaiting...' , lastUsed: 'never'});
+                      setVersionText('main');
+                      setRequestBy('branch');
+                      setAdvanced(!advanced)
+                    }}
+                  />
+                </Grid>
+                <Grid item>
+                  <Typography variant='body2' color={advanced ? 'textPrimary' : 'textSecondary'}>
+                    Advanced
+                  </Typography>
+                </Grid>
+              </Grid>
               {advancedVersionUI}
             </Grid>
           </Grid>
