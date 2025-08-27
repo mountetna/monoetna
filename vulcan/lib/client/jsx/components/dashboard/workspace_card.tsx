@@ -21,12 +21,12 @@ import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Grid from '@material-ui/core/Grid';
 
-import {VulcanContext} from '../../../contexts/vulcan_context';
-import {Workflow, Workspace, WorkspaceMinimal} from '../../../api_types';
-import useUserHooks from '../../../contexts/useUserHooks';
+import {VulcanContext} from '../../contexts/vulcan_context';
+import {Workflow, Workspace, WorkspaceMinimal} from '../../api_types';
+import useUserHooks from '../../contexts/useUserHooks';
 
-import Tag from '../tag';
-import { workflowName } from '../../../selectors/workflow_selectors';
+import Tag from './tag';
+import { workflowName } from '../../selectors/workflow_selectors';
 import Typography from '@material-ui/core/Typography';
 
 const workspaceStyles = makeStyles((theme) => ({
