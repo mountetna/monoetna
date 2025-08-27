@@ -308,7 +308,7 @@ export default function WorkspaceCreateButtonModal({
           {`Create New \'${workflow.name}\' Workspace`} 
         </DialogTitle>
         <DialogContent className={classes.dialog}>
-          <Grid container direction='column' spacing={4}>
+          <Grid container direction='column' spacing={2}>
             <Grid item>
               <Typography className={classes.helpdoc} variant='body1'>
                 This will set up a "workspace", a folder on our compute server where you can run the workflow.
