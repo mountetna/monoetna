@@ -85,7 +85,7 @@ export default function DLNav({
             />
             <NavLink
                 text='Projects'
-                href='/#projects'
+                href='/projects'
                 onClick={handleClickNavLink}
                 typography={linkTypography}
             />
