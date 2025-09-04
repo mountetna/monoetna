@@ -7,14 +7,10 @@ import {Workflow} from '../../api_types'
 import ImageMemo from './image_memo';
 import Tag from './tag';
 import Typography from '@material-ui/core/Typography';
+import Link from 'etna-js/components/link';
 
 // To get webpack to pick up the files.
-require('../../../img/umap.png');
-require('../../../img/barplot.png');
-require('../../../img/scatter.png');
-require('../../../img/yplot.png');
 require('../../../img/default.png');
-require('../../../img/add_integers.png');
 
 function MultiLineOutput(iterator) {
   return iterator.map((item, ind) => (
@@ -31,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
     border: '1px solid lightgray',
     boxShadow: '0 0 0 15px #eee, 0 0 4px 15px #aaa',
     width: '260px',
-    height: '300px',
+    height: '120px', //'300px',
     cursor: 'pointer',
     display: 'flex',
     flexDirection: 'column'
@@ -41,23 +37,23 @@ const useStyles = makeStyles((theme) => ({
     border: '1px solid lightgray',
     boxShadow: '0 0 0 20px #ffc060, 0 0 4px 20px #a84',
     width: '260px',
-    height: '300px',
+    height: '120px', //'300px',
     cursor: 'pointer',
     display: 'flex',
     flexDirection: 'column'
   },
-  image: {
-    height: '60%',
-    overflow: 'hidden',
-    margin: '0',
-    borderTopLeftRadius: '2px',
-    borderTopRightRadius: '2px',
-    '& img': {
-      display: 'block',
-      width: '150%',
-      margin: '-25%'
-    }
-  },
+  // image: {
+  //   height: '60%',
+  //   overflow: 'hidden',
+  //   margin: '0',
+  //   borderTopLeftRadius: '2px',
+  //   borderTopRightRadius: '2px',
+  //   '& img': {
+  //     display: 'block',
+  //     width: '150%',
+  //     margin: '-25%'
+  //   }
+  // },
   description: {
     display: 'flex',
     flexDirection: 'column',
@@ -101,12 +97,12 @@ export default function Card({workflow, onClick, selected}) {
       className={selected ? classes.selectedCard : classes.card}
       onClick={onClick}
     >
-      <figure className={classes.image}>
+      {/* <figure className={classes.image}>
         <ImageMemo
           src={`/images/${workflow.image || 'default.png'}`}
           alt='Workflow image'
         />
-      </figure>
+      </figure> */}
       <div className={classes.description}>
         <div className={classes.row}>
           <div className={classes.value}>
@@ -116,7 +112,12 @@ export default function Card({workflow, onClick, selected}) {
           </div>
         </div>
         <div className={classes.row}>
-          <div className={classes.value}>{workflow.repo_remote_url.replace(/^https:\/\//,'')}</div>
+          <div className={classes.value}>
+            {'Source: '}
+            <Link link={workflow.repo_remote_url}>
+              {workflow.repo_remote_url.replace(/^https:\/\//,'')}
+            </Link>
+          </div>
         </div>
         <div className={classes.row}>
           <div className={classes.value}>{'Added: '+workflow.created_at.split(' ')[0]}</div>
