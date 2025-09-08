@@ -45,47 +45,37 @@ class Vulcan
         buildable
       end
 
-      def find_affected_downstream_jobs(dag, scheduled_jobs)
-        # It takes in a list of sorted jobs (dag), and a list of jobs that are scheduled to be run.
-        # It is supposed to be able to infer which jobs downstream may be impacted by the scheduled jobs. 
-        # For now, we assume a very naive approach, and we just assume affected jobs are downstream of the scheduled jobs.
-        raise "No scheduled jobs provided" if scheduled_jobs.empty?
-        last_matched_index = dag.rindex { |element| scheduled_jobs.include?(element) }
-        raise "Cannot find any matching jobs in the dag" if last_matched_index.nil?
-        # Retrieve elements after the last matched element
-        dag[(last_matched_index + 1)..-1]
-      end
 
       def ui_targets(target_mapping)
         target_mapping.select { |target, requirements| requirements["params"].include?("ui") }.keys
       end
 
       def file_graph(target_mapping)
-        # Build reverse adjacency: input -> [outputs]
+        # Build forward adjacency: output -> [inputs it depends on]
         graph = Hash.new { |h,k| h[k] = [] }
         target_mapping.each do |output, info|
-          Array(info["inputs"]).each do |inp|
-            graph[inp] << output
-          end
+          graph[output] = Array(info["inputs"])  # output points to its inputs
         end
         graph
       end
 
       def downstream_nodes(graph, start_nodes)
-        # Takes in an adjacency list and a list of start nodes.
-        # Returns a list of all nodes that are downstream of the start nodes.
+        # Takes in a forward adjacency list (output -> [inputs]) and a list of start nodes.
+        # Returns a list of all nodes that are upstream of the start nodes (what depends on them).
         visited = Set.new
         queue   = start_nodes.to_a.dup
-      
+
         until queue.empty?
           node = queue.shift
-          graph[node].each do |child|
-            next if visited.include?(child)
-            visited << child
-            queue << child
+          # Find all nodes that depend on this node (parents)
+          graph.each do |output, inputs|
+            if inputs.include?(node) && !visited.include?(output)
+              visited << output
+              queue << output
+            end
           end
         end
-      
+
         visited
       end
 
@@ -110,7 +100,7 @@ class Vulcan
         target_mapping.reject { |target, requirements| requirements["params"].include?("ui") }
       end
 
-      module_function :find_affected_downstream_jobs, :find_buildable_targets, :match, :ui_targets, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes
+      module_function :find_buildable_targets, :match, :ui_targets, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes
     end
   end
 end

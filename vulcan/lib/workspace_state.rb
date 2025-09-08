@@ -9,8 +9,6 @@ class Vulcan
     def current_state
       {
         available_files: get_available_files,
-        dag: @workspace.dag,
-        target_mapping: @workspace.target_mapping,
         is_running: @snakemake_manager.snakemake_is_running?(@workspace.path)
       }
     end
@@ -45,9 +43,10 @@ class Vulcan
 
       file_graph = Vulcan::Snakemake::Inference.file_graph(@workspace.target_mapping)
       unaffected_files = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, targets_scheduled)
-      unaffected_jobs = []
+      unaffected_jobs = Vulcan::Snakemake::Inference.downstream_nodes(@workspace.dag, jobs_scheduled)
 
       Vulcan.instance.logger.debug("Unaffected downstream files: #{unaffected_files}")
+      Vulcan.instance.logger.debug("Unaffected downstream jobs: #{unaffected_jobs}")
       
       {
         config_id: config.id,

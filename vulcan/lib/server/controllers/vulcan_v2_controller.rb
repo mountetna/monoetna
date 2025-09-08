@@ -71,11 +71,12 @@ class VulcanV2Controller < Vulcan::Controller
           Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
         )
         config = @remote_manager.read_yaml_file(Vulcan::Path.default_snakemake_config(workspace_dir))
+        target_mapping = @snakemake_manager.generate_target_mapping(workspace_dir, config)
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
           name: @params[:workspace_name],
           dag: @snakemake_manager.get_dag(workspace_dir).to_json,
-          target_mapping: @snakemake_manager.generate_target_mapping(workspace_dir, config),
+          target_mapping: target_mapping,
           path: workspace_dir,
           user_email: @user.email,
           git_ref: @escaped_params[:git_request],
@@ -87,7 +88,8 @@ class VulcanV2Controller < Vulcan::Controller
           workspace_id: obj.id,
           workflow_id: obj.workflow_id,
           vulcan_config: @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace_dir)),
-          dag: obj.dag
+          dag: obj.dag,
+          file_dag: Vulcan::Snakemake::Inference.file_graph(target_mapping)
         }
         success_json(response)
       rescue => e
@@ -199,8 +201,8 @@ class VulcanV2Controller < Vulcan::Controller
         )
       end
 
-      # Anytime a config is saved, we need to clean up UI targets
       workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
+      # Anytime a config is saved, we need to clean up UI targets
       workspace_state.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged])
       future_state = workspace_state.future_state(config)
       
@@ -210,7 +212,7 @@ class VulcanV2Controller < Vulcan::Controller
           targets_scheduled: future_state[:targets_scheduled],
           jobs_scheduled: future_state[:jobs_scheduled],
           unaffected_downstream_files: future_state[:unaffected_downstream_files],
-          #unaffected_downstream_jobs: future_state[:unaffected_downstream_jobs],
+          unaffected_downstream_jobs: future_state[:unaffected_downstream_jobs],
           params: JSON.parse(request_params_json)
         }
     )
