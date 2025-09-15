@@ -13,10 +13,7 @@ class Vulcan
       }
     end
 
-    def future_state(config)
-      available_files = get_available_files
-      Vulcan.instance.logger.debug("Available files: #{available_files}")
-     
+    def future_state(config, available_files)
       # Find all target files that COULD be built (static analysis)
       params = @remote_manager.read_yaml_file(config.path).keys
       all_targets = Vulcan::Snakemake::Inference.find_buildable_targets(
@@ -36,14 +33,14 @@ class Vulcan
       
       scheduled_info = @snakemake_manager.dry_run_snakemake_files(@workspace.path, command.build)
       targets_scheduled = scheduled_info[:targets_scheduled]
-      jobs_scheduled = scheduled_info[:jobs_scheduled].to_set
+      jobs_scheduled = scheduled_info[:jobs_scheduled].to_set.to_a
       
       Vulcan.instance.logger.debug("Targets scheduled: #{targets_scheduled}")
       Vulcan.instance.logger.debug("Jobs scheduled: #{jobs_scheduled}")
 
       file_graph = Vulcan::Snakemake::Inference.file_graph(@workspace.target_mapping)
-      unaffected_files = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, targets_scheduled)
-      unaffected_jobs = Vulcan::Snakemake::Inference.downstream_nodes(@workspace.dag, jobs_scheduled)
+      unaffected_files = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, targets_scheduled).to_a
+      unaffected_jobs = Vulcan::Snakemake::Inference.downstream_nodes(@workspace.dag, jobs_scheduled).to_a
 
       Vulcan.instance.logger.debug("Unaffected downstream files: #{unaffected_files}")
       Vulcan.instance.logger.debug("Unaffected downstream jobs: #{unaffected_jobs}")

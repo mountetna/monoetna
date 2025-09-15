@@ -66,22 +66,25 @@ describe Vulcan::Snakemake::Inference do
   context 'downstream_nodes' do
     let(:file_graph) { Vulcan::Snakemake::Inference.file_graph(target_mapping) }
   
-    it 'correctly finds downstream nodes' do
+    it 'finds downstream nodes for a single target' do
       result = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, ["output/summary.txt"])
       expect(result).to eq(Set.new(["output/ui_summary.txt", "output/final.txt"]))
     end
 
-    it 'correctly finds downstream nodes when there are multiple targets' do
+    it 'doesnt include targets on the same level' do 
+      result = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, ["output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt"])
+      expect(result).to eq(Set.new(["output/ui_job_one.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"]))
+    end
+
+    it 'finds downstream nodes when there are multiple targets' do
       result = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, ["output/arithmetic.txt", "output/ui_job_two.txt"])
       expect(result).to eq(Set.new(["output/check.txt", "output/summary.txt", "output/ui_summary.txt", "output/ui_job_one.txt", "output/final.txt"]))
     end
 
-    it 'correctly ignores downstream nodes on the same level' do
+    it 'ignores downstream nodes on the same level' do
       result = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, ["output/ui_job_one.txt"])
       # ui_job_two.txt is on the same level as ui_job_one.txt
       expect(result).to eq(Set.new(["output/summary.txt", "output/ui_summary.txt", "output/final.txt"]))
     end
-  end
-
   end
 end

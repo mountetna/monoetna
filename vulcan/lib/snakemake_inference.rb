@@ -62,6 +62,8 @@ class Vulcan
       def downstream_nodes(graph, start_nodes)
         # Takes in a forward adjacency list (output -> [inputs]) and a list of start nodes.
         # Returns a list of all nodes that are upstream of the start nodes (what depends on them).
+        # Excludes any nodes that were provided in the start_nodes list.
+        start_nodes_set = start_nodes.to_set
         visited = Set.new
         queue   = start_nodes.to_a.dup
 
@@ -69,7 +71,7 @@ class Vulcan
           node = queue.shift
           # Find all nodes that depend on this node (parents)
           graph.each do |output, inputs|
-            if inputs.include?(node) && !visited.include?(output)
+            if inputs.include?(node) && !visited.include?(output) && !start_nodes_set.include?(output)
               visited << output
               queue << output
             end

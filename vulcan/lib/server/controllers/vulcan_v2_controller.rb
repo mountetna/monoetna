@@ -204,7 +204,7 @@ class VulcanV2Controller < Vulcan::Controller
       workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
       # Anytime a config is saved, we need to clean up UI targets
       workspace_state.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged])
-      future_state = workspace_state.future_state(config)
+      future_state = workspace_state.future_state(config, workspace_state.get_available_files)
       
       success_json(
         {
@@ -254,6 +254,7 @@ class VulcanV2Controller < Vulcan::Controller
       obj = Vulcan::Run.create(
         workspace_id: workspace.id,
         config_id: config.id,
+        input_files: "{#{available_files.join(',')}}",
         slurm_run_uuid: slurm_run_uuid,
         log_path: log,
         created_at: Time.now,
@@ -376,6 +377,16 @@ class VulcanV2Controller < Vulcan::Controller
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
     success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path))})
+  end
+
+  def get_state
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    raise Etna::BadRequest.new("Workspace not found") unless workspace
+    config = Vulcan::Config.first(id: @params[:config_id])
+    workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
+    available_files = @params[:available_files]
+    future_state = workspace_state.future_state(config, available_files)
+    success_json(future_state)
   end
 
   def is_running
