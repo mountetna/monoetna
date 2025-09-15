@@ -32,14 +32,14 @@ class Vulcan
       }
       
       scheduled_info = @snakemake_manager.dry_run_snakemake_files(@workspace.path, command.build)
-      targets_scheduled = scheduled_info[:targets_scheduled]
+      files_scheduled = scheduled_info[:files_scheduled]
       jobs_scheduled = scheduled_info[:jobs_scheduled].to_set.to_a
       
-      Vulcan.instance.logger.debug("Targets scheduled: #{targets_scheduled}")
+      Vulcan.instance.logger.debug("Files scheduled: #{files_scheduled}")
       Vulcan.instance.logger.debug("Jobs scheduled: #{jobs_scheduled}")
 
       file_graph = Vulcan::Snakemake::Inference.file_graph(@workspace.target_mapping)
-      unaffected_files = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, targets_scheduled).to_a
+      unaffected_files = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, files_scheduled).to_a
       unaffected_jobs = Vulcan::Snakemake::Inference.downstream_nodes(@workspace.dag, jobs_scheduled).to_a
 
       Vulcan.instance.logger.debug("Unaffected downstream files: #{unaffected_files}")
@@ -48,7 +48,7 @@ class Vulcan
       {
         config_id: config.id,
         available_files: available_files,
-        targets_scheduled: targets_scheduled,
+        files_scheduled: files_scheduled,
         jobs_scheduled: jobs_scheduled,
         unaffected_downstream_files: unaffected_files,
         unaffected_downstream_jobs: unaffected_jobs

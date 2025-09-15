@@ -65,7 +65,6 @@ class VulcanV2Controller < Vulcan::Controller
         @remote_manager.mkdir(Vulcan::Path.workspace_tmp_dir(workspace_dir))
         @remote_manager.mkdir(Vulcan::Path.workspace_output_dir(workspace_dir))
         @remote_manager.touch("#{Vulcan::Path.workspace_output_dir(workspace_dir)}/.keep")
-        # @remote_manager.upload_dir(Vulcan.instance.config(:snakemake_profile_dir), workspace_dir, true) # TODO: for now we are just using the default profile
         @remote_manager.write_file(
           Vulcan::Path.dl_config(workspace_dir), 
           Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
@@ -209,7 +208,7 @@ class VulcanV2Controller < Vulcan::Controller
       success_json(
         {
           config_id: config.id,
-          targets_scheduled: future_state[:targets_scheduled],
+          files_scheduled: future_state[:files_scheduled],
           jobs_scheduled: future_state[:jobs_scheduled],
           unaffected_downstream_files: future_state[:unaffected_downstream_files],
           unaffected_downstream_jobs: future_state[:unaffected_downstream_jobs],

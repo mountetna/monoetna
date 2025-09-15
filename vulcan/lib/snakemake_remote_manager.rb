@@ -292,7 +292,7 @@ class Vulcan
         # The log contains a table with columns: output_file, date, rule, log-file(s), status, plan
         # We need to extract only the output_file and rule values where plan is "update pending"
 
-        targets_scheduled = []
+        files_scheduled = []
         jobs_scheduled = []
 
         # Split the log into lines and process each line
@@ -314,13 +314,13 @@ class Vulcan
 
             # Only add files and rules that have "update pending" plan
             if plan == "update pending"
-              targets_scheduled << output_file unless output_file.empty?
+              files_scheduled << output_file unless output_file.empty?
               jobs_scheduled << rule unless rule.empty?
             end
           end
         end
 
-        { targets_scheduled: targets_scheduled, jobs_scheduled: jobs_scheduled }
+        { files_scheduled: files_scheduled, jobs_scheduled: jobs_scheduled }
       end
     end
   end
