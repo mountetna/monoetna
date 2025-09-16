@@ -391,7 +391,7 @@ describe VulcanV2Controller do
     end
 
 
-    it 'after a config has been run and then changed it correctly returns scheduled and downstream files and jobs' do
+    it 'it correctly returns scheduled and downstream files and jobs after a config has been run and then changed' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
       # We need to write some initial input files to the workspace.
@@ -414,6 +414,7 @@ describe VulcanV2Controller do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}") 
       end 
       expect(last_response.status).to eq(200)
+
       # Now we change the config and run the workflow again
       request_2 = {
         params: {
@@ -426,12 +427,19 @@ describe VulcanV2Controller do
         uiFilesSent: []
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request_2)
+      config_request = json_body
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
       run_id = json_body[:run_id]
-      check_jobs_status(["count", "arithmetic", "checker"]) do
+      check_jobs_status(["arithmetic", "checker"]) do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}") 
       end 
       expect(last_response.status).to eq(200)
+      expect(config_request[:jobs_scheduled]).to match_array(["arithmetic", "checker"])
+      expect(config_request[:unaffected_downstream_jobs]).to match_array(["ui_job_one",  "summary", "ui_summary", "final"])
+
+      expect(config_request[:files_scheduled]).to match_array(["output/arithmetic.txt", "output/check.txt"])
+      expect(config_request[:unaffected_downstream_files]).to match_array(["output/ui_job_one.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
+
     end
 
   end
@@ -693,6 +701,53 @@ describe VulcanV2Controller do
       workspace = Vulcan::Workspace.first(id: workspace_id)
       expect(workspace.name).to eq("new_name")
       expect(workspace.tags).to eq(["new_tag", "new_tag_2"])
+    end
+
+  end
+
+  context 'get state' do
+    before do
+      setup_workspace
+    end
+    
+    it 'gets the state of the workspace' do
+      # Run a job
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
+      request = {
+        params: {
+          count_bytes: false,
+          count_chars: true
+        },
+        uiFilesSent: [],
+        paramsChanged: []
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      config_id = json_body[:config_id]
+      expect(last_response.status).to eq(200)
+      config_files_scheduled = json_body[:files_scheduled]
+      config_jobs_scheduled = json_body[:jobs_scheduled]
+      config_unaffected_downstream_files = json_body[:unaffected_downstream_files]
+      config_unaffected_downstream_jobs = json_body[:unaffected_downstream_jobs]
+
+      # Get the state of the workspace
+      state_request = {
+        config_id: config_id,
+        available_files: ["output/poem.txt", "output/poem_2.txt"]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/state", state_request)
+      expect(last_response.status).to eq(200)
+      expect(json_body[:files_scheduled]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt"])
+      expect(json_body[:jobs_scheduled]).to match_array(["count"])
+      expect(json_body[:unaffected_downstream_files]).to match_array(["output/arithmetic.txt", "output/check.txt"])
+      expect(json_body[:unaffected_downstream_jobs]).to match_array(["arithmetic", "checker"])
+
+      # Assert the state is the same
+      expect(json_body[:files_scheduled]).to eq(config_files_scheduled)
+      expect(json_body[:jobs_scheduled]).to eq(config_jobs_scheduled)
+      expect(json_body[:unaffected_downstream_files]).to eq(config_unaffected_downstream_files)
+      expect(json_body[:unaffected_downstream_jobs]).to eq(config_unaffected_downstream_jobs)
     end
 
   end

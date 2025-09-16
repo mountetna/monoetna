@@ -382,6 +382,7 @@ class VulcanV2Controller < Vulcan::Controller
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     raise Etna::BadRequest.new("Workspace not found") unless workspace
     config = Vulcan::Config.first(id: @params[:config_id])
+    raise Etna::BadRequest.new("Config not found") unless config
     workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
     available_files = @params[:available_files]
     future_state = workspace_state.future_state(config, available_files)
