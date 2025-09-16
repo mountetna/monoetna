@@ -6,13 +6,6 @@ class Vulcan
       @remote_manager = remote_manager
     end
 
-    def current_state
-      {
-        available_files: get_available_files,
-        is_running: @snakemake_manager.snakemake_is_running?(@workspace.path)
-      }
-    end
-
     def future_state(config, available_files)
       # Find all target files that COULD be built (static analysis)
       params = @remote_manager.read_yaml_file(config.path).keys

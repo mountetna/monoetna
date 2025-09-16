@@ -827,7 +827,7 @@ describe VulcanV2Controller do
       expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
       # Run objects exist
       obj = Vulcan::Run.first(id: run_id)
-      expect(obj.input_files).to eq(["poem.txt", "poem_2.txt"])
+      expect(obj.input_files.to_a).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
       expect(obj).to_not be_nil
       # Correct config file exists
       expect(remote_manager.file_exists?(obj.log_path)). to be_truthy
@@ -864,7 +864,7 @@ describe VulcanV2Controller do
       expect(remote_manager.file_exists?("#{workspace.path}/output/check.txt")).to be_truthy
       # Run objects exist
       obj = Vulcan::Run.first(id: run_id)
-      expect(obj.input_files).to eq(["poem.txt", "poem_2.txt"])
+      expect(obj.input_files.to_a).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
       expect(obj).to_not be_nil
       # Log file exists
       expect(remote_manager.file_exists?(obj.log_path)).to be_truthy
@@ -930,7 +930,7 @@ describe VulcanV2Controller do
       # Make sure two run objects exist
       runs = Vulcan::Run.all
       expect(runs.count).to eq(2)
-      expect(runs[0].input_files).to eq(["poem.txt", "poem_2.txt", "count_poem.txt", "count_poem_2.txt"])
+      expect(runs[0].input_files.to_a).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt", "output/count_poem.txt", "output/count_poem_2.txt"])
 
       # Log file exists
       expect(remote_manager.file_exists?(runs[0].log_path)).to be_truthy

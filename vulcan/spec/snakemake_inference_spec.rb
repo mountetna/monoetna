@@ -44,20 +44,21 @@ describe Vulcan::Snakemake::Inference do
   end
 
   context 'file graph' do
-    it 'correctly builds the adjacency list' do
+    it 'correctly builds the adjacency list (reverse dependency graph) form the target mapping' do
       result = Vulcan::Snakemake::Inference.file_graph(target_mapping)
       expect(result).to match(
           a_hash_including(
-              "output/poem.txt"=>["output/count_poem.txt", "output/count_poem_2.txt"],
-              "output/poem_2.txt"=>["output/count_poem.txt", "output/count_poem_2.txt"],
-              "output/count_poem.txt"=>["output/arithmetic.txt", "output/summary.txt"],
-              "output/count_poem_2.txt"=>["output/arithmetic.txt", "output/summary.txt"],
-              "output/arithmetic.txt"=>["output/check.txt", "output/summary.txt"],
-              "output/check.txt"=>["output/ui_job_one.txt", "output/summary.txt"],
-              "output/ui_job_one.txt"=>["output/summary.txt", "output/ui_summary.txt"],
-              "output/ui_job_two.txt"=>["output/summary.txt", "output/ui_summary.txt"],
-              "output/summary.txt"=>["output/ui_summary.txt"],
-              "output/ui_summary.txt"=>["output/final.txt"]
+            "output/count_poem.txt"=>["output/poem.txt", "output/poem_2.txt"],
+            "output/count_poem_2.txt"=>["output/poem.txt", "output/poem_2.txt"],
+            "output/arithmetic.txt"=>["output/count_poem.txt", "output/count_poem_2.txt", "resources/number_to_add.txt"],
+            "output/check.txt"=>["output/arithmetic.txt"],
+            "output/ui_job_one.txt"=>["output/check.txt"],
+            "output/ui_job_two.txt"=>[],
+            "output/summary.txt"=>[
+              "output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt", "output/ui_job_one.txt", "output/ui_job_two.txt"
+            ],
+            "output/ui_summary.txt"=>["output/ui_job_one.txt", "output/ui_job_two.txt", "output/summary.txt"],
+            "output/final.txt"=>["output/ui_summary.txt"]
           )
       )
     end
