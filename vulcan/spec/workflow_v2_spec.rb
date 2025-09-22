@@ -363,12 +363,40 @@ describe VulcanV2Controller do
       expect(json_body[:params]).to eq(request_2[:params])
     end
 
-    it 'correctly returns scheduled and downstream files and jobs' do
+    it 'correctly returns the scheduled and downstream files (first job)' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
       # We need to write some initial input files to the workspace.
       write_files_to_workspace(workspace.id)
       # Next we run the first snakemake job
+      request = {
+          params: {
+            count_bytes: false,
+            count_chars: true,
+          },
+          paramsChanged: [],
+          uiFilesSent: []
+      }
+
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      expect(json_body[:jobs_scheduled]).to match_array(["count"])
+      expect(json_body[:unaffected_downstream_jobs]).to match_array(["arithmetic", "checker", "ui_job_one",  "summary", "ui_summary", "final"])
+
+      expect(json_body[:files_scheduled]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt"])
+      expect(json_body[:unaffected_downstream_files]).to match_array(["output/arithmetic.txt", "output/check.txt", "output/ui_job_one.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
+       
+      config = Vulcan::Config.first(id: json_body[:config_id])
+      expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
+      expect(config.input_params).to eq(request[:params])
+    end
+
+
+    it 'correctly returns scheduled and downstream files and jobs (three jobs)' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      # We need to write some initial input files to the workspace.
+      write_files_to_workspace(workspace.id)
+      # Next we run the first 3 snakemake jobs
       request = {
           params: {
             count_bytes: false,
@@ -388,6 +416,12 @@ describe VulcanV2Controller do
 
       expect(json_body[:files_scheduled]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt"])
       expect(json_body[:unaffected_downstream_files]).to match_array(["output/ui_job_one.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
+
+      config = Vulcan::Config.first(id: json_body[:config_id])
+      expect(config.input_files.to_a).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
+      expect(config.input_params).to eq(request[:params])
+    end
+
     end
 
 
@@ -396,7 +430,7 @@ describe VulcanV2Controller do
       workspace = Vulcan::Workspace.all[0]
       # We need to write some initial input files to the workspace.
       write_files_to_workspace(workspace.id)
-      # Next we run the first snakemake job
+      # Next we run the first 3 snakemake jobs
       request = {
           params: {
             count_bytes: false,
@@ -711,7 +745,7 @@ describe VulcanV2Controller do
     end
     
     it 'gets the state of the workspace' do
-      # Run a job
+      # Send a config for the first job
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
       write_files_to_workspace(workspace.id)
@@ -734,7 +768,7 @@ describe VulcanV2Controller do
       # Get the state of the workspace
       state_request = {
         config_id: config_id,
-        available_files: ["output/poem.txt", "output/poem_2.txt"]
+        available_files: ["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"]
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/state", state_request)
       expect(last_response.status).to eq(200)
@@ -882,7 +916,6 @@ describe VulcanV2Controller do
       expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
       # Run objects exist
       obj = Vulcan::Run.first(id: run_id)
-      expect(obj.input_files.to_a).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
       expect(obj).to_not be_nil
       # Correct config file exists
       expect(remote_manager.file_exists?(obj.log_path)). to be_truthy
@@ -919,7 +952,6 @@ describe VulcanV2Controller do
       expect(remote_manager.file_exists?("#{workspace.path}/output/check.txt")).to be_truthy
       # Run objects exist
       obj = Vulcan::Run.first(id: run_id)
-      expect(obj.input_files.to_a).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
       expect(obj).to_not be_nil
       # Log file exists
       expect(remote_manager.file_exists?(obj.log_path)).to be_truthy
@@ -985,7 +1017,6 @@ describe VulcanV2Controller do
       # Make sure two run objects exist
       runs = Vulcan::Run.all
       expect(runs.count).to eq(2)
-      expect(runs[0].input_files.to_a).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt", "output/count_poem.txt", "output/count_poem_2.txt"])
 
       # Log file exists
       expect(remote_manager.file_exists?(runs[0].log_path)).to be_truthy

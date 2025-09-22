@@ -54,14 +54,6 @@ class Vulcan
         slurm_uuid
       end
 
-      def dry_run_snakemake(dir, snakemake_command)
-        command = @remote_manager.build_command
-          .add('conda', 'activate', Vulcan.instance.config(:conda_env))
-          .add('cd', dir)
-          .add_raw(snakemake_command)
-        out = @remote_manager.invoke_ssh_command(command.to_s)
-        get_rules_from_run(out[:stdout])
-      end
 
       def snakemake_is_running?(dir)
         # Snakemake drops lock files into .snakemake/locks/ when running

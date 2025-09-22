@@ -6,9 +6,8 @@ class Vulcan
       @remote_manager = remote_manager
     end
 
-    def future_state(config, available_files)
+    def future_state(params, config_path, available_files)
       # Find all target files that COULD be built (static analysis)
-      params = @remote_manager.read_yaml_file(config.path).keys
       all_targets = Vulcan::Snakemake::Inference.find_buildable_targets(
         @workspace.target_mapping, 
         params, 
@@ -18,12 +17,11 @@ class Vulcan
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = all_targets
       command.options = {
-        config_path: config.path,
+        config_path: config_path,
         profile_path: Vulcan::Path.profile_dir(@workspace.path, "default"),
         dry_run: true,
         summary: true  # Use summary to get detailed output
       }
-      
       scheduled_info = @snakemake_manager.dry_run_snakemake_files(@workspace.path, command.build)
       files_scheduled = scheduled_info[:files_scheduled]
       jobs_scheduled = scheduled_info[:jobs_scheduled].to_set.to_a
@@ -39,7 +37,6 @@ class Vulcan
       Vulcan.instance.logger.debug("Unaffected downstream jobs: #{unaffected_jobs}")
       
       {
-        config_id: config.id,
         available_files: available_files,
         files_scheduled: files_scheduled,
         jobs_scheduled: jobs_scheduled,

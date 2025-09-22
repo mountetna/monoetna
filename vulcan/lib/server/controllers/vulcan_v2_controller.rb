@@ -181,39 +181,46 @@ class VulcanV2Controller < Vulcan::Controller
     end
     begin
       raise Etna::TooManyRequests.new("workflow is still running...") if @snakemake_manager.snakemake_is_running?(workspace.path)
-      request_params = @params[:params]
-      request_params_json = to_valid_json(request_params)
-      params_hash = Digest::MD5.hexdigest(request_params_json)
+      workflow_params = @params[:params]
+      workflow_params_json = to_valid_json(workflow_params)
+      params_hash = Digest::MD5.hexdigest(workflow_params_json)
       config = Vulcan::Config.first(workspace_id: workspace.id, hash: params_hash)
       unless config
         # We always overwrite the default config with the incoming params
         default_config = @remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
-        config_values = JSON.parse(default_config.to_json).merge(JSON.parse(request_params_json))
+        config_values = JSON.parse(default_config.to_json).merge(JSON.parse(workflow_params_json))
         config_path = Vulcan::Path.workspace_config_path(workspace.path, params_hash)
         @remote_manager.write_file(config_path, config_values.to_json)
+        
+        # Anytime a config is saved, we need to clean up UI targets
+        workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
+        workspace_state.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged])
+
+        # Generate the future state
+        available_files = workspace_state.get_available_files
+        future_state = workspace_state.future_state(workflow_params.keys.map(&:to_s), config_path, available_files)
+        
         config = Vulcan::Config.create(
           workspace_id: workspace.id,
           path: config_path,
           hash: params_hash,
+          input_files: "{#{available_files.join(',')}}",
+          input_params: JSON.parse(workflow_params_json),
+          future_state: future_state.to_json,
           created_at: Time.now,
           updated_at: Time.now
         )
       end
-
-      workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
-      # Anytime a config is saved, we need to clean up UI targets
-      workspace_state.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged])
-      future_state = workspace_state.future_state(config, workspace_state.get_available_files)
       
       success_json(
         {
           config_id: config.id,
-          files_scheduled: future_state[:files_scheduled],
-          jobs_scheduled: future_state[:jobs_scheduled],
-          unaffected_downstream_files: future_state[:unaffected_downstream_files],
-          unaffected_downstream_jobs: future_state[:unaffected_downstream_jobs],
-          params: JSON.parse(request_params_json)
-        }
+          files_scheduled: config.future_state['files_scheduled'],
+          jobs_scheduled: config.future_state['jobs_scheduled'],
+          unaffected_downstream_files: config.future_state['unaffected_downstream_files'],
+          unaffected_downstream_jobs: config.future_state['unaffected_downstream_jobs'],
+          params: JSON.parse(workflow_params_json)
+       }
     )
     rescue Etna::TooManyRequests => e
       # Re-raise the TooManyRequests exception to avoid handling it as a BadRequest
@@ -238,12 +245,11 @@ class VulcanV2Controller < Vulcan::Controller
         msg = "Config for workspace: #{workspace.path} does not exist."
         raise Etna::BadRequest.new(msg)
       end
-      # Build snakemake command for execution
-      workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
-      available_files = workspace_state.get_available_files
-      params = @remote_manager.read_yaml_file(config.path).keys
+      # Build snakemake command for execution using stored future_state
+      require 'pry'; binding.pry
+      future_state = config.future_state
       command = Vulcan::Snakemake::CommandBuilder.new
-      command.targets = Vulcan::Snakemake::Inference.find_buildable_targets(workspace.target_mapping, params, available_files)
+      command.targets = future_state['files_scheduled']
       command.options = {
         config_path: config.path,
         profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
@@ -253,7 +259,6 @@ class VulcanV2Controller < Vulcan::Controller
       obj = Vulcan::Run.create(
         workspace_id: workspace.id,
         config_id: config.id,
-        input_files: "{#{available_files.join(',')}}",
         slurm_run_uuid: slurm_run_uuid,
         log_path: log,
         created_at: Time.now,
