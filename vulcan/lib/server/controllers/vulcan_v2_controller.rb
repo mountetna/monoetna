@@ -246,7 +246,6 @@ class VulcanV2Controller < Vulcan::Controller
         raise Etna::BadRequest.new(msg)
       end
       # Build snakemake command for execution using stored future_state
-      require 'pry'; binding.pry
       future_state = config.future_state
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = future_state['files_scheduled']
