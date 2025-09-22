@@ -7,7 +7,7 @@ class Vulcan
     end
 
     def future_state(params, config_path, available_files)
-      # Find all target files that COULD be built (static analysis)
+      # Find all target files that COULD be built with the given params and available files (static analysis)
       all_targets = Vulcan::Snakemake::Inference.find_buildable_targets(
         @workspace.target_mapping, 
         params, 
