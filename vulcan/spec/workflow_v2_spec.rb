@@ -422,9 +422,6 @@ describe VulcanV2Controller do
       expect(config.input_params).to eq(request[:params])
     end
 
-    end
-
-
     it 'it correctly returns scheduled and downstream files and jobs after a config has been run and then changed' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
