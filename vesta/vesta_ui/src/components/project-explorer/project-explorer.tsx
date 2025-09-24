@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Container from '@mui/system/Container'
 import Box from '@mui/system/Box'
+import Grid from '@mui/system/Grid'
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material';
 import Fade from '@mui/material/Fade';
@@ -514,14 +515,9 @@ function _ProjectExplorer({
                                     },
                                 }}
                             >
-                                <DrawerButton
-                                    label='Filters'
-                                    iconLight={filterLightIcon}
-                                    iconDark={filterDarkIcon}
+                                { drawerOpen && <Grid
                                     onClick={() => setDrawerOpen(!drawerOpen)}
-                                    activated={filterItems.find(item => drawerFilterItemTypes.includes(item.type)) !== undefined}
-                                    open={drawerOpen}
-                                />
+                                ></Grid> }
 
                                 <Autocomplete
                                     multiple

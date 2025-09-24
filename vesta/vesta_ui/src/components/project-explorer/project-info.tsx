@@ -6,17 +6,17 @@ import Grid from '@mui/system/Grid';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Image from '../../components/image/image';
-import projectExplorerBackshape from '/public/images/project-explorer-backshape.svg'
+import projectHeroImg from '/public/images/projects-hero-img.svg'
 
 export default function ProjectInfo() {
-  return <Box sx={{ padding: '90px 144px' }}>
+  return <Box sx={{ padding: '90px 144px', height: 876 }}>
       <Typography
           variant='h2'
       >
           Projects
       </Typography>
-      <Box sx={{ position: 'relative' }}>
-        <Grid container spacing={8}>
+      <Grid container sx={{ position: 'relative', marginTop: '25px' }}>
+        <Grid size={6} item container spacing={8}>
           <Typography variant="pLarge">
               The Data Library hosts a series of research projects containing multi-omic data and de-identified clinical data. Project data is shared in our research community to best leverage these rich datasets for biological discovery.
           </Typography>
@@ -27,7 +27,8 @@ export default function ProjectInfo() {
             sizeVariant="large"
             sx={{
               color: 'white',
-              background: 'black'
+              background: 'black',
+              padding: '16px 32px'
             }}
           >
             <Typography variant="pBodyBoldWt">
@@ -37,15 +38,16 @@ export default function ProjectInfo() {
         </Grid>
         <Box
           sx={{
-            position: 'absolute'
-            top: 0,
-            left: 0
+            position: 'absolute',
+            top: -200,
+            left: -100,
+            zIndex: -1
           }}>
           <Image
-              src={projectExplorerBackshape}
+              src={projectHeroImg}
               alt='Abstract plant'
           />
         </Box>
-      </Box>
+      </Grid>
     </Box>
 }
