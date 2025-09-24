@@ -3,7 +3,7 @@ Sequel.migration do
     alter_table(:configs) do
       add_column :input_files, 'text[]'
       add_column :input_params, :jsonb
-      add_column :future_state, :jsonb
+      add_column :state, :jsonb
     end
   end
 
@@ -11,7 +11,7 @@ Sequel.migration do
     alter_table(:configs) do
       drop_column :input_files
       drop_column :input_params
-      drop_column :future_state
+      drop_column :state
     end
   end
 end

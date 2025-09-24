@@ -198,7 +198,7 @@ class VulcanV2Controller < Vulcan::Controller
 
         # Generate the future state
         available_files = workspace_state.get_available_files
-        future_state = workspace_state.future_state(workflow_params.keys.map(&:to_s), config_path, available_files)
+        state = workspace_state.state(workflow_params.keys.map(&:to_s), config_path, available_files)
         
         config = Vulcan::Config.create(
           workspace_id: workspace.id,
@@ -206,7 +206,7 @@ class VulcanV2Controller < Vulcan::Controller
           hash: params_hash,
           input_files: "{#{available_files.join(',')}}",
           input_params: JSON.parse(workflow_params_json),
-          future_state: future_state.to_json,
+          state: state.to_json,
           created_at: Time.now,
           updated_at: Time.now
         )
@@ -215,10 +215,8 @@ class VulcanV2Controller < Vulcan::Controller
       success_json(
         {
           config_id: config.id,
-          files_scheduled: config.future_state['files_scheduled'],
-          jobs_scheduled: config.future_state['jobs_scheduled'],
-          unaffected_downstream_files: config.future_state['unaffected_downstream_files'],
-          unaffected_downstream_jobs: config.future_state['unaffected_downstream_jobs'],
+          files: config.state['files'],
+          jobs: config.state['jobs'],
           params: JSON.parse(workflow_params_json)
        }
     )
@@ -246,9 +244,9 @@ class VulcanV2Controller < Vulcan::Controller
         raise Etna::BadRequest.new(msg)
       end
       # Build snakemake command for execution using stored future_state
-      future_state = config.future_state
+      state = config.state
       command = Vulcan::Snakemake::CommandBuilder.new
-      command.targets = future_state['files_scheduled']
+      command.targets = state['files']['planned']
       command.options = {
         config_path: config.path,
         profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
@@ -389,8 +387,8 @@ class VulcanV2Controller < Vulcan::Controller
     raise Etna::BadRequest.new("Config not found") unless config
     workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
     available_files = @params[:available_files]
-    future_state = workspace_state.future_state(config, available_files)
-    success_json(future_state)
+    state = workspace_state.state(config, available_files)
+    success_json(state)
   end
 
   def is_running

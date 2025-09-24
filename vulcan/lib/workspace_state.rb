@@ -6,7 +6,7 @@ class Vulcan
       @remote_manager = remote_manager
     end
 
-    def future_state(params, config_path, available_files)
+    def state(params, config_path, available_files)
       # Find all target files that COULD be built with the given params and available files (static analysis)
       all_targets = Vulcan::Snakemake::Inference.find_buildable_targets(
         @workspace.target_mapping, 
@@ -23,25 +23,37 @@ class Vulcan
         summary: true  # Use summary to get detailed output
       }
       scheduled_info = @snakemake_manager.dry_run_snakemake_files(@workspace.path, command.build)
-      files_scheduled = scheduled_info[:files_scheduled]
-      jobs_scheduled = scheduled_info[:jobs_scheduled].to_set.to_a
+      files_planned = scheduled_info[:files_scheduled]
+      jobs_planned = scheduled_info[:jobs_scheduled].to_set.to_a
       
-      Vulcan.instance.logger.debug("Files scheduled: #{files_scheduled}")
-      Vulcan.instance.logger.debug("Jobs scheduled: #{jobs_scheduled}")
+      Vulcan.instance.logger.debug("Files scheduled: #{files_planned}")
+      Vulcan.instance.logger.debug("Jobs scheduled: #{jobs_planned}")
 
       file_graph = Vulcan::Snakemake::Inference.file_graph(@workspace.target_mapping)
-      unaffected_files = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, files_scheduled).to_a
-      unaffected_jobs = Vulcan::Snakemake::Inference.downstream_nodes(@workspace.dag, jobs_scheduled).to_a
+      unscheduled_files = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, files_planned).to_a
+      unscheduled_jobs = Vulcan::Snakemake::Inference.downstream_nodes(@workspace.dag, jobs_planned).to_a
 
-      Vulcan.instance.logger.debug("Unaffected downstream files: #{unaffected_files}")
-      Vulcan.instance.logger.debug("Unaffected downstream jobs: #{unaffected_jobs}")
+      Vulcan.instance.logger.debug("Unscheduled downstream files: #{unscheduled_files}")
+      Vulcan.instance.logger.debug("Unscheduled downstream jobs: #{unscheduled_jobs}")
+
+      completed_files = Vulcan::Snakemake::Inference.upstream_nodes(file_graph.keys, files_planned, unscheduled_files)
+      completed_jobs = Vulcan::Snakemake::Inference.upstream_nodes(@workspace.dag.keys, jobs_planned, unscheduled_jobs)
+
+      Vulcan.instance.logger.debug("Completed files: #{completed_files}")
+      Vulcan.instance.logger.debug("Completed jobs: #{completed_jobs}")
       
       {
         available_files: available_files,
-        files_scheduled: files_scheduled,
-        jobs_scheduled: jobs_scheduled,
-        unaffected_downstream_files: unaffected_files,
-        unaffected_downstream_jobs: unaffected_jobs
+        files: {
+          completed: completed_files,
+          planned: files_planned,
+          unscheduled: unscheduled_files
+        },
+        jobs: {
+          completed: completed_jobs,
+          planned: jobs_planned,
+          unscheduled: unscheduled_jobs
+        }
       }
     end
 
