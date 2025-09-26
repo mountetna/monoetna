@@ -89,14 +89,4 @@ describe Vulcan::Snakemake::Inference do
     end
   end
 
-  context 'upstream_nodes' do
-    let(:file_graph) { Vulcan::Snakemake::Inference.file_graph(target_mapping) }
-    it 'finds upstream nodes for a single target' do
-      all_nodoes = file_graph.keys
-      middle_nodes = ["output/final.txt"]
-      downstream_nodes = ["output/summary.txt", "output/ui_job_one.txt", "output/ui_summary.txt", "output/final.txt"]
-      result = Vulcan::Snakemake::Inference.upstream_nodes(all_nodoes, middle_nodes, downstream_nodes)
-      expect(result).to eq(Set.new(["output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt", "output/ui_job_two.txt"]))
-    end
-  end
 end

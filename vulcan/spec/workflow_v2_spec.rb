@@ -380,10 +380,12 @@ describe VulcanV2Controller do
 
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       expect(json_body[:jobs][:planned]).to match_array(["count"])
-      expect(json_body[:jobs][:unscheduled]).to match_array(["arithmetic", "checker", "ui_job_one",  "summary", "ui_summary", "final"])
+      expect(json_body[:jobs][:unscheduled]).to match_array(["arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
+      expect(json_body[:jobs][:completed]).to match_array([])
 
       expect(json_body[:files][:planned]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt"])
-      expect(json_body[:files][:unscheduled]).to match_array(["output/arithmetic.txt", "output/check.txt", "output/ui_job_one.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
+      expect(json_body[:files][:unscheduled]).to match_array(["output/arithmetic.txt", "output/check.txt", "output/ui_job_one.txt", "output/ui_job_two.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
+      expect(json_body[:files][:completed]).to match_array([])
        
       config = Vulcan::Config.first(id: json_body[:config_id])
       expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
@@ -411,11 +413,13 @@ describe VulcanV2Controller do
       # TODO: figure maybe change algorithm to include ui_job_two and output/ui_job_two.txt
       # Both are root nodes but should probably be included
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      expect(json_body[:jobs][:planned]).to match_array(["arithmetic", "checker", "count"])
-      expect(json_body[:jobs][:unscheduled]).to match_array(["ui_job_one",  "summary", "ui_summary", "final"])
+      expect(json_body[:jobs][:completed]).to match_array([])
+      expect(json_body[:jobs][:planned]).to match_array(["count", "arithmetic", "checker"])
+      expect(json_body[:jobs][:unscheduled]).to match_array(["ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
 
+      expect(json_body[:files][:completed]).to match_array([])
       expect(json_body[:files][:planned]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt"])
-      expect(json_body[:files][:unscheduled]).to match_array(["output/ui_job_one.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
+      expect(json_body[:files][:unscheduled]).to match_array(["output/ui_job_one.txt", "output/ui_job_two.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
 
       config = Vulcan::Config.first(id: json_body[:config_id])
       expect(config.input_files.to_a).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
@@ -465,11 +469,13 @@ describe VulcanV2Controller do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}") 
       end 
       expect(last_response.status).to eq(200)
+      expect(config_request[:jobs][:completed]).to match_array(["count"])
       expect(config_request[:jobs][:planned]).to match_array(["arithmetic", "checker"])
-      expect(config_request[:jobs][:unscheduled]).to match_array(["ui_job_one",  "summary", "ui_summary", "final"])
+      expect(config_request[:jobs][:unscheduled]).to match_array(["ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
 
+      expect(config_request[:files][:completed]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt"])
       expect(config_request[:files][:planned]).to match_array(["output/arithmetic.txt", "output/check.txt"])
-      expect(config_request[:files][:unscheduled]).to match_array(["output/ui_job_one.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
+      expect(config_request[:files][:unscheduled]).to match_array(["output/ui_job_one.txt", "output/ui_job_two.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
 
     end
 

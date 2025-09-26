@@ -81,16 +81,6 @@ class Vulcan
         visited
       end
 
-      def upstream_nodes(all_nodes, middle_nodes, end_nodes)
-        # Given a list of all nodes, a list of middle nodes, and a list of end nodes,
-        # returns a list of all nodes that are upstream of the middle nodes
-        # middle_nodes typically represent the set of files/jobs that are planned via snakemake
-        all_nodes_set = all_nodes.to_set
-        middle_nodes_set = middle_nodes.to_set
-        end_nodes_set = end_nodes.to_set
-        all_nodes_set - middle_nodes_set - end_nodes_set
-      end
-
       def filter_ui_targets(jobs_to_run, target_mapping)
         # There is a small snakemake bug, where if a rule runs and generates a file and then
         # you quickly save a UI file - the timestamp in between the file might be too small
@@ -112,7 +102,7 @@ class Vulcan
         target_mapping.reject { |target, requirements| requirements["params"].include?("ui") }
       end
 
-      module_function :find_buildable_targets, :match, :ui_targets, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes, :upstream_nodes
+      module_function :find_buildable_targets, :match, :ui_targets, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes
     end
   end
 end

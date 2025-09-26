@@ -22,37 +22,35 @@ class Vulcan
         dry_run: true,
         summary: true  # Use summary to get detailed output
       }
-      scheduled_info = @snakemake_manager.dry_run_snakemake_files(@workspace.path, command.build)
-      files_planned = scheduled_info[:files_scheduled]
-      jobs_planned = scheduled_info[:jobs_scheduled].to_set.to_a
-      
+      dry_run_info = @snakemake_manager.dry_run_snakemake_files(@workspace.path, command.build)
+      files_planned = dry_run_info[:files_scheduled].to_set.to_a
+      jobs_planned = dry_run_info[:jobs_scheduled].to_set.to_a
+      files_completed = dry_run_info[:files_completed].to_set.to_a
+      jobs_completed = dry_run_info[:jobs_completed].to_set.to_a
+
       Vulcan.instance.logger.debug("Files scheduled: #{files_planned}")
       Vulcan.instance.logger.debug("Jobs scheduled: #{jobs_planned}")
+      Vulcan.instance.logger.debug("Files completed: #{files_completed}")
+      Vulcan.instance.logger.debug("Jobs completed: #{jobs_completed}")
 
       file_graph = Vulcan::Snakemake::Inference.file_graph(@workspace.target_mapping)
-      unscheduled_files = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, files_planned).to_a
-      unscheduled_jobs = Vulcan::Snakemake::Inference.downstream_nodes(@workspace.dag, jobs_planned).to_a
+      files_unscheduled = file_graph.keys - files_completed - files_planned
+      jobs_unscheduled = @workspace.dag.keys - jobs_completed - jobs_planned
 
-      Vulcan.instance.logger.debug("Unscheduled downstream files: #{unscheduled_files}")
-      Vulcan.instance.logger.debug("Unscheduled downstream jobs: #{unscheduled_jobs}")
+      Vulcan.instance.logger.debug("Unscheduled downstream files: #{files_unscheduled}")
+      Vulcan.instance.logger.debug("Unscheduled downstream jobs: #{jobs_unscheduled}")
 
-      completed_files = Vulcan::Snakemake::Inference.upstream_nodes(file_graph.keys, files_planned, unscheduled_files)
-      completed_jobs = Vulcan::Snakemake::Inference.upstream_nodes(@workspace.dag.keys, jobs_planned, unscheduled_jobs)
-
-      Vulcan.instance.logger.debug("Completed files: #{completed_files}")
-      Vulcan.instance.logger.debug("Completed jobs: #{completed_jobs}")
-      
       {
         available_files: available_files,
         files: {
-          completed: completed_files,
+          completed: files_completed,
           planned: files_planned,
-          unscheduled: unscheduled_files
+          unscheduled: files_unscheduled
         },
         jobs: {
-          completed: completed_jobs,
+          completed: jobs_completed,
           planned: jobs_planned,
-          unscheduled: unscheduled_jobs
+          unscheduled: jobs_unscheduled
         }
       }
     end

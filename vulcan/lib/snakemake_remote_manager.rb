@@ -276,16 +276,18 @@ class Vulcan
           .add('cd', dir)
           .add_raw(snakemake_command)
         out = @remote_manager.invoke_ssh_command(command.to_s)
-        get_scheduled_targets_and_jobs(out[:stdout])
+        get_completed_and_scheduled(out[:stdout])
       end
 
-      def get_scheduled_targets_and_jobs(snakemake_log)
+      def get_completed_and_scheduled(snakemake_log)
         # Parse the snakemake log output to extract output file names and rule names
         # The log contains a table with columns: output_file, date, rule, log-file(s), status, plan
-        # We need to extract only the output_file and rule values where plan is "update pending"
+        # We need to extract output_file and rule values for both completed and scheduled items
 
         files_scheduled = []
         jobs_scheduled = []
+        files_completed = []
+        jobs_completed = []
 
         # Split the log into lines and process each line
         snakemake_log.each_line do |line|
@@ -304,15 +306,23 @@ class Vulcan
             rule = parts[2] # The rule column (3rd column, index 2)
             plan = parts[5] # The plan column (6th column, index 5)
 
-            # Only add files and rules that have "update pending" plan
+            # Add files and rules based on their plan status
             if plan == "update pending"
               files_scheduled << output_file unless output_file.empty?
               jobs_scheduled << rule unless rule.empty?
+            elsif plan == "no update"
+              files_completed << output_file unless output_file.empty?
+              jobs_completed << rule unless rule.empty?
             end
           end
         end
 
-        { files_scheduled: files_scheduled, jobs_scheduled: jobs_scheduled }
+        { 
+          files_scheduled: files_scheduled, 
+          jobs_scheduled: jobs_scheduled,
+          files_completed: files_completed,
+          jobs_completed: jobs_completed
+        }
       end
     end
   end
