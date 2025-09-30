@@ -88,6 +88,7 @@ class VulcanV2Controller < Vulcan::Controller
           workflow_id: obj.workflow_id,
           vulcan_config: @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace_dir)),
           dag: obj.dag,
+          dag_flattened: Vulcan::Snakemake::Inference.flatten_adjacency_list(obj.dag),
           file_dag: Vulcan::Snakemake::Inference.file_graph(target_mapping)
         }
         success_json(response)
@@ -380,15 +381,10 @@ class VulcanV2Controller < Vulcan::Controller
     success_json({files: @remote_manager.list_files(Vulcan::Path.workspace_output_dir(workspace.path))})
   end
 
-  def get_state
-    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
-    raise Etna::BadRequest.new("Workspace not found") unless workspace
+  def get_config
     config = Vulcan::Config.first(id: @params[:config_id])
     raise Etna::BadRequest.new("Config not found") unless config
-    workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
-    available_files = @params[:available_files]
-    state = workspace_state.state(config, available_files)
-    success_json(state)
+    success_json(config.to_hash)
   end
 
   def is_running

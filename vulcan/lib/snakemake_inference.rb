@@ -3,6 +3,7 @@ class Vulcan
     module Inference
       # This class performs operations on the workspace.target_mapping, which along with the given state of the workapce,
       # helps the back-end infer which targets to build, which targets to remove, which jobs to run, etc.
+      # There is also some code that operates on adjaceny lists, which are used to represent the job / file DAG of a workspace
 
       def find_buildable_targets(target_mapping, provided_params, available_files)
         # This determines the targets (files) that can be built based on the target mapping (stored in workspace.target_mapping), 
@@ -92,7 +93,51 @@ class Vulcan
         jobs_to_run.reject { |job| ui_targets.include?(job) }
       end
 
+      def flatten_adjacency_list(adjacency_list)
+        # Create a copy to avoid modifying the original
+        graph = adjacency_list.dup
+        
+        # Track visited nodes to detect cycles
+        visited = Set.new
+        temp_visited = Set.new
+        result = []
+        
+        # Process all nodes
+        graph.keys.each do |node|
+          dfs_flatten(node, graph, visited, temp_visited, result)
+        end
+        
+        result
+      end
+
       private
+
+      def dfs_flatten(node, graph, visited, temp_visited, result)
+        # Check for cycle
+        if temp_visited.include?(node)
+          raise "Cycle detected in DAG at node: #{node}"
+        end
+        
+        # Skip if already processed
+        return if visited.include?(node)
+        
+        # Mark as temporarily visited (for cycle detection)
+        temp_visited.add(node)
+        
+        # Process all dependencies first
+        if graph[node]
+          graph[node].each do |dependency|
+            dfs_flatten(dependency, graph, visited, temp_visited, result)
+          end
+        end
+        
+        # Remove from temporary visited
+        temp_visited.delete(node)
+        
+        # Mark as permanently visited and add to result
+        visited.add(node)
+        result << node
+      end
 
       def find_targets_matching_params(target_mapping, params)
         target_mapping.select { |target, requirements| requirements["params"].any? { |param| params.include?(param) } }.keys
@@ -102,7 +147,7 @@ class Vulcan
         target_mapping.reject { |target, requirements| requirements["params"].include?("ui") }
       end
 
-      module_function :find_buildable_targets, :match, :ui_targets, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes
+      module_function :find_buildable_targets, :match, :ui_targets, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes, :flatten_adjacency_list, :dfs_flatten
     end
   end
 end

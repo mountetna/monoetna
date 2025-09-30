@@ -8,6 +8,18 @@ describe Vulcan::Snakemake::Inference do
     summary_parser = Vulcan::Snakemake::TargetParser.new(summary_snakefile, config_yaml)
     core_parser.parse.merge(summary_parser.parse)
   end
+  let(:job_adjacency_list) do
+    {
+      "final"      => ["ui_summary"],
+      "ui_summary" => ["ui_job_one", "ui_job_two", "summary"],
+      "ui_job_one" => ["checker"],
+      "checker"    => ["arithmetic"],
+      "arithmetic" => ["count"],
+      "count"      => [],
+      "ui_job_two" => [],
+      "summary"    => ["count", "arithmetic", "checker", "ui_job_one", "ui_job_two"]
+    }
+  end
 
 
   context 'find_buildable_targets' do
@@ -61,6 +73,13 @@ describe Vulcan::Snakemake::Inference do
             "output/final.txt"=>["output/ui_summary.txt"]
           )
       )
+    end
+  end
+
+  context 'flattens an adjacency list' do
+    it 'correctly flattens the dag' do
+      result = Vulcan::Snakemake::Inference.flatten_adjacency_list(target_mapping)
+      expect(result).to eq(["final", "ui_summary", "ui_job_one", "checker", "arithmetic", "count", "ui_job_two", "summary"])
     end
   end
 

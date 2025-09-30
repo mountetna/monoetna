@@ -200,12 +200,15 @@ describe VulcanV2Controller do
       expect(workspace.git_sha).to_not eq(nil)
     end
 
-    it 'successfully sends back vulcan_config and dag' do
+    it 'successfully sends back vulcan_config and dag, file_dag, and dag_flattened' do
       auth_header(:editor)
       post_workspace_create(workspace_request)
       expect(last_response.status).to eq(200)
       expect(json_body[:vulcan_config]).to_not be_nil
       expect(json_body[:dag]).to_not be_nil
+      expect(json_body[:dag_flattened]).to_not be_nil
+      expect(json_body[:file_dag]).to_not be_nil
+      expect(json_body[:dag_flattened].keys).to match_array(["final", "ui_summary", "ui_job_one", "checker", "arithmetic", "count", "ui_job_two", "summary"])
     end
   end
 
@@ -389,7 +392,7 @@ describe VulcanV2Controller do
        
       config = Vulcan::Config.first(id: json_body[:config_id])
       expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
-      expect(config.input_params).to eq(request[:params])
+      expect(config.input_params).to eq(request[:params].transform_keys(&:to_s))
     end
 
 
@@ -422,8 +425,8 @@ describe VulcanV2Controller do
       expect(json_body[:files][:unscheduled]).to match_array(["output/ui_job_one.txt", "output/ui_job_two.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
 
       config = Vulcan::Config.first(id: json_body[:config_id])
-      expect(config.input_files.to_a).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
-      expect(config.input_params).to eq(request[:params])
+      expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
+      expect(config.input_params).to eq(request[:params].transform_keys(&:to_s))
     end
 
     it 'it correctly returns scheduled and downstream files and jobs after a config has been run and then changed' do
@@ -742,12 +745,12 @@ describe VulcanV2Controller do
 
   end
 
-  context 'get state' do
+  context 'get config' do
     before do
       setup_workspace
     end
     
-    it 'gets the state of the workspace' do
+    it 'gets the config of the workspace' do
       # Send a config for the first job
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
@@ -763,28 +766,25 @@ describe VulcanV2Controller do
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       config_id = json_body[:config_id]
       expect(last_response.status).to eq(200)
-      config_files_planned = json_body[:files][:planned]
-      config_jobs_planned = json_body[:jobs][:planned]
-      config_unaffected_downstream_files = json_body[:files][:unscheduled]
-      config_unaffected_downstream_jobs = json_body[:jobs][:unscheduled]
 
-      # Get the state of the workspace
-      state_request = {
-        config_id: config_id,
-        available_files: ["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"]
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/state", state_request)
+      # Get the config of the workspace
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config/#{config_id}")
       expect(last_response.status).to eq(200)
-      expect(json_body[:files][:planned]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt"])
-      expect(json_body[:jobs][:planned]).to match_array(["count"])
-      expect(json_body[:files][:unscheduled]).to match_array(["output/arithmetic.txt", "output/check.txt"])
-      expect(json_body[:jobs][:unscheduled]).to match_array(["arithmetic", "checker"])
+      expect(json_body[:id]).to_not be_nil
+      expect(json_body[:workspace_id]).to_not be_nil
+      expect(json_body[:path]).to_not be_nil
+      expect(json_body[:hash]).to_not be_nil
+      expect(json_body[:input_files]).to_not be_nil
+      expect(json_body[:input_params]).to_not be_nil
+      expect(json_body[:state]).to_not be_nil
+    end
 
-      # Assert the state is the same
-      expect(json_body[:files][:planned]).to eq(config_files_planned)
-      expect(json_body[:jobs][:planned]).to eq(config_jobs_planned)
-      expect(json_body[:files][:unscheduled]).to eq(config_unaffected_downstream_files)
-      expect(json_body[:jobs][:unscheduled]).to eq(config_unaffected_downstream_jobs)
+    it 'returns an error if the config does not exist' do
+      auth_header(:editor)
+      workspace_id = Vulcan::Workspace.all[0].id
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/config/1234567890")
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq("Config not found")
     end
 
   end

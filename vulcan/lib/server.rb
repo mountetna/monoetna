@@ -21,7 +21,7 @@ class Vulcan
 
     # Config API
     post 'api/v2/:project_name/workspace/:workspace_id/config', action: 'vulcan_v2#save_config', auth: { user: { can_view?: :project_name }}
-    get 'api/v2/:project_name/workspace/:workspace_id/config', action: 'vulcan_v2#get_config', auth: { user: { can_view?: :project_name }}
+    get 'api/v2/:project_name/workspace/:workspace_id/config/:config_id', action: 'vulcan_v2#get_config', auth: { user: { can_view?: :project_name }}
 
     # Run API
     post 'api/v2/:project_name/workspace/:workspace_id/run/:config_id', action: 'vulcan_v2#run_workflow', auth: { user: { can_view?: :project_name }}
