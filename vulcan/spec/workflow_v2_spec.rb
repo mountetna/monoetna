@@ -208,7 +208,7 @@ describe VulcanV2Controller do
       expect(json_body[:dag]).to_not be_nil
       expect(json_body[:dag_flattened]).to_not be_nil
       expect(json_body[:file_dag]).to_not be_nil
-      expect(json_body[:dag_flattened].keys).to match_array(["final", "ui_summary", "ui_job_one", "checker", "arithmetic", "count", "ui_job_two", "summary"])
+      expect(json_body[:dag_flattened]).to match_array(["final", "ui_summary", "ui_job_one", "checker", "arithmetic", "count", "ui_job_two", "summary"])
     end
   end
 
@@ -392,7 +392,7 @@ describe VulcanV2Controller do
        
       config = Vulcan::Config.first(id: json_body[:config_id])
       expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
-      expect(config.input_params).to eq(request[:params].transform_keys(&:to_s))
+      expect(config.input_params.to_h).to eq(request[:params].transform_keys(&:to_s))
     end
 
 
@@ -426,7 +426,7 @@ describe VulcanV2Controller do
 
       config = Vulcan::Config.first(id: json_body[:config_id])
       expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
-      expect(config.input_params).to eq(request[:params].transform_keys(&:to_s))
+      expect(config.input_params.to_h).to eq(request[:params].transform_keys(&:to_s))
     end
 
     it 'it correctly returns scheduled and downstream files and jobs after a config has been run and then changed' do
