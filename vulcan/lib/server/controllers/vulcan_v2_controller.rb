@@ -184,24 +184,28 @@ class VulcanV2Controller < Vulcan::Controller
       raise Etna::TooManyRequests.new("workflow is still running...") if @snakemake_manager.snakemake_is_running?(workspace.path)
       workflow_params = @params[:params]
       workflow_params_json = to_valid_json(workflow_params)
-      params_hash = Digest::MD5.hexdigest(workflow_params_json)
-      config = Vulcan::Config.first(workspace_id: workspace.id, hash: params_hash)
-      unless config
-        # We always overwrite the default config with the incoming params
-        default_config = @remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
-        config_values = JSON.parse(default_config.to_json).merge(JSON.parse(workflow_params_json))
-        config_path = Vulcan::Path.workspace_config_path(workspace.path, params_hash)
-        @remote_manager.write_file(config_path, config_values.to_json)
-        
-        # Anytime a config is saved, we need to clean up UI targets
-        workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
-        workspace_state.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged])
+      
+      # We always create a new config, even if the params / files are the same for a previous config.
+      # It is safest to let snakemake figure out what the "current state" is.
 
-        # Generate the future state
-        available_files = workspace_state.get_available_files
-        state = workspace_state.state(workflow_params.keys.map(&:to_s), config_path, available_files)
+      params_hash = Digest::MD5.hexdigest(workflow_params_json + Time.now.to_i.to_s) # generate random hash 
+      config = Vulcan::Config.first(workspace_id: workspace.id, hash: params_hash)
+
+      # We always overwrite the default config with the incoming params
+      default_config = @remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
+      config_values = JSON.parse(default_config.to_json).merge(JSON.parse(workflow_params_json))
+      config_path = Vulcan::Path.workspace_config_path(workspace.path, params_hash)
+      @remote_manager.write_file(config_path, config_values.to_json)
         
-        config = Vulcan::Config.create(
+      # Anytime a config is saved, we need to clean up UI targets
+      workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
+      workspace_state.remove_existing_ui_targets(@params[:uiFilesSent], @params[:paramsChanged])
+
+      # Generate the future state
+      available_files = workspace_state.get_available_files
+      state = workspace_state.state(workflow_params.keys.map(&:to_s), config_path, available_files)
+        
+      config = Vulcan::Config.create(
           workspace_id: workspace.id,
           path: config_path,
           hash: params_hash,
@@ -211,7 +215,6 @@ class VulcanV2Controller < Vulcan::Controller
           created_at: Time.now,
           updated_at: Time.now
         )
-      end
       
       success_json(
         {

@@ -278,7 +278,7 @@ describe VulcanV2Controller do
       expect(remote_manager.read_json_file(config.path)).to eq(expected_config_content)
     end
 
-    it 'does not create a new config if the same config already exists' do  
+    it 'creates a new config if the same config already exists' do  
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
       # We need to write some initial input files to the workspace.
@@ -298,10 +298,13 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
       expect(json_body[:config_id]).to eq(config_id)
       # Make sure the config file exists
-      config = Vulcan::Config.first(id: json_body[:config_id])
-      expect(remote_manager.file_exists?(config.path)).to be_truthy
-      # Check that there is only one config object
-      expect(Vulcan::Config.where(workspace_id: workspace.id).count).to eq(1)
+      config = Vulcan::Config.all
+      expect(config.count).to eq(2)
+      config_1 = config.first
+      config_2 = config.last
+      expect(remote_manager.file_exists?(config_1.path)).to be_truthy
+      expect(remote_manager.file_exists?(config_2.path)).to be_truthy
+      expect(config_1.path).to_not eq(config_2.path)
     end
 
     it 'correctly creates new config objects' do
