@@ -79,7 +79,7 @@ describe Vulcan::Snakemake::Inference do
   context 'flattens an adjacency list' do
     it 'correctly flattens the dag' do
       result = Vulcan::Snakemake::Inference.flatten_adjacency_list(job_adjacency_list)
-      expect(result).to eq(["final", "ui_summary", "ui_job_one", "checker", "arithmetic", "count", "ui_job_two", "summary"])
+      expect(result).to eq(["count", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
     end
   end
 

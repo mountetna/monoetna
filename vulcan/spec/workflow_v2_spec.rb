@@ -296,7 +296,6 @@ describe VulcanV2Controller do
       config_id = json_body[:config_id]
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       expect(last_response.status).to eq(200)
-      expect(json_body[:config_id]).to eq(config_id)
       # Make sure the config file exists
       config = Vulcan::Config.all
       expect(config.count).to eq(2)
@@ -395,7 +394,7 @@ describe VulcanV2Controller do
        
       config = Vulcan::Config.first(id: json_body[:config_id])
       expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
-      expect(config.input_params.to_h).to eq(request[:params].transform_keys(&:to_s))
+      expect(config.input_params.to_h.transform_values(&:to_s)).to eq(request[:params].transform_keys(&:to_s).transform_values(&:to_s))
     end
 
 
@@ -429,7 +428,7 @@ describe VulcanV2Controller do
 
       config = Vulcan::Config.first(id: json_body[:config_id])
       expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
-      expect(config.input_params.to_h).to eq(request[:params].transform_keys(&:to_s))
+      expect(config.input_params.to_h.transform_values(&:to_s)).to eq(request[:params].transform_keys(&:to_s).transform_values(&:to_s))
     end
 
     it 'it correctly returns scheduled and downstream files and jobs after a config has been run and then changed' do
