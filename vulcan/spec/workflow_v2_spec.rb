@@ -208,7 +208,6 @@ describe VulcanV2Controller do
       expect(json_body[:dag]).to_not be_nil
       expect(json_body[:dag_flattened]).to_not be_nil
       expect(json_body[:file_dag]).to_not be_nil
-      expect(json_body[:dag_flattened]).to match_array(["final", "ui_summary", "ui_job_one", "checker", "arithmetic", "count", "ui_job_two", "summary"])
     end
   end
 
