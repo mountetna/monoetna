@@ -138,6 +138,7 @@ class VulcanV2Controller < Vulcan::Controller
 
     response = workspace.to_hash.merge({
       dag: workspace.dag,
+      dag_flattened: Vulcan::Snakemake::Inference.flatten_adjacency_list(workspace.dag),
       vulcan_config: @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace.path)),
       last_config: last_config ? @remote_manager.read_json_file(last_config.path) : nil,
       last_config_id: last_config ? last_config.id : nil,

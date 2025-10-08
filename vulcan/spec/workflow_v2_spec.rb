@@ -513,6 +513,7 @@ describe VulcanV2Controller do
       expect(json_body[:last_config_id]).to_not be_nil
       expect(json_body[:last_job_status]).to be_nil
       expect(json_body[:dag]).to_not be_nil
+      expect(json_body[:dag_flattened]).to_not be_nil
       expect(json_body[:vulcan_config]).to_not be_nil
       expect(json_body[:last_run_id]).to be_nil
     end
