@@ -791,6 +791,112 @@ describe VulcanV2Controller do
 
   end
 
+  context 'get state' do
+    before do
+      setup_workspace
+    end
+
+    it 'gets the state for a valid config' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
+      
+      # Create a config
+      request = {
+        params: {
+          count_bytes: false,
+          count_chars: true
+        },
+        uiFilesSent: [],
+        paramsChanged: []
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      config_id = json_body[:config_id]
+      expect(last_response.status).to eq(200)
+      
+      # Store the state returned from save-config
+      save_config_state = {
+        files: json_body[:files],
+        jobs: json_body[:jobs]
+      }
+
+      # Get the state for this config
+      get("/api/v2/#{PROJECT}/config/#{config_id}/state")
+      expect(last_response.status).to eq(200)
+      
+      # Verify the state contains expected files and jobs
+      expect(json_body[:files][:planned]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt"])
+      expect(json_body[:jobs][:planned]).to match_array(["count"])
+      
+      # Verify that the state from get-state matches the state from save-config
+      expect(json_body[:files]).to eq(save_config_state[:files])
+      expect(json_body[:jobs]).to eq(save_config_state[:jobs])
+    end
+
+    it 'returns an error if the config does not exist' do
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/config/1234567890/state")
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to include("does not exist")
+    end
+
+    it 'returns different state after we have run the config' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
+      
+      # Create a config
+      request = {
+        params: {
+          count_bytes: false,
+          count_chars: true
+        },
+        uiFilesSent: [],
+        paramsChanged: []
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      expect(last_response.status).to eq(200)
+      config_id = json_body[:config_id]
+      
+      # Store the initial state from save-config
+      initial_state = {
+        files: json_body[:files],
+        jobs: json_body[:jobs]
+      }
+      
+      # Run the workflow
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
+      end
+      expect(last_response.status).to eq(200)
+      
+      # Wait for the job to complete
+      run_id = json_body[:run_id]
+      check_jobs_status(["count"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
+      expect(last_response.status).to eq(200)
+
+      # Get the state after running the workflow
+      get("/api/v2/#{PROJECT}/config/#{config_id}/state")
+      expect(last_response.status).to eq(200)
+      
+      # Verify that the state has changed after running the workflow
+      # Files that were planned should now be completed
+      current_state = json_body
+      expect(current_state[:files][:completed]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt"])
+      expect(current_state[:jobs][:completed]).to match_array(["count"])
+      
+      # The completed files/jobs should be different from the initial planned state
+      expect(current_state[:files][:completed]).to_not eq(initial_state[:files][:completed])
+      expect(current_state[:jobs][:completed]).to_not eq(initial_state[:jobs][:completed])
+      
+      # The planned arrays should be empty since the job completed
+      expect(current_state[:files][:planned]).to be_empty
+      expect(current_state[:jobs][:planned]).to be_empty
+    end
+  end
+
   
   context 'running workflows' do
 

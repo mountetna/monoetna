@@ -391,6 +391,30 @@ class VulcanV2Controller < Vulcan::Controller
     success_json(config.to_hash)
   end
 
+  def get_state
+    config = Vulcan::Config.first(id: @params[:config_id])
+    unless config
+      msg = "Config for config_id: #{@params[:config_id]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+
+    workspace = Vulcan::Workspace.first(id: config.workspace_id)
+    unless workspace
+      msg = "Workspace for config_id: #{@params[:config_id]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+
+    begin
+      workspace_state = Vulcan::WorkspaceState.new(workspace, @snakemake_manager, @remote_manager)
+      available_files = workspace_state.get_available_files
+      state = workspace_state.state(config.input_params.keys.map(&:to_s), config.path, available_files)
+      success_json(state)
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
+  end
+
   def is_running
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
     unless workspace
