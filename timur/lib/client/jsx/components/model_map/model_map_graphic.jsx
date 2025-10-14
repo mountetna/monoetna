@@ -10,6 +10,7 @@ import Grid from '@material-ui/core/Grid';
 const ModelMapGraphic = ({
   selected_models,
   handler,
+  showLinks = false,
   width = 600,
   height = 600,
   disabled_models
@@ -30,8 +31,28 @@ const ModelMapGraphic = ({
     <Grid style={{ width, height, position: 'relative' }}>
       <svg id='map' width={width} height={height}>
         <defs>
-          <Arrowhead />
+          <Arrowhead id='line_arrow' fill='#aca'/>
+          <Arrowhead id='path_arrow' fill='goldenrod' fillOpacity='0.1'/>
         </defs>
+        {showLinks && model_names.map((model_name) => {
+          // for each link attribute, draw a link line.
+          let node = layout.nodes[model_name];
+          if (!node) return null;
+          const { attributes } = node.model;
+
+        return Object.entries(attributes).map( ([att_name, att]) => {
+          if (att.attribute_type != 'link') return null;
+        console.log({node, p: layout.nodes[att.link_model_name]});
+
+          return <ModelLink
+            key={`${model_name}.${att_name}`}
+            center={ node.center}
+            size={node.size}
+            type='link'
+            parent={ layout.nodes[att.link_model_name].center }
+        />
+        }).filter(_=>_);
+        }).filter(_=>_).flat()}
         {model_names.map((model_name) => {
           let node = layout.nodes[model_name];
           return (
@@ -47,6 +68,7 @@ const ModelMapGraphic = ({
             />
           );
         })}
+
       </svg>
       {model_names.map((model_name) => {
         let node = layout.nodes[model_name];
