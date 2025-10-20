@@ -471,4 +471,132 @@ describe DataBlockController do
       expect(response[:summary][:errors]).to eq(2)
     end
   end
+
+  context '#get_datablocks' do
+    it 'returns datablocks for files in a folder' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      token_header(:admin)
+      get('/athena/datablocks/files/')
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:datablocks].length).to eq(1)
+      expect(response[:datablocks].first[:file_name]).to eq('wisdom.txt')
+      expect(response[:datablocks].first[:md5_hash]).to eq(Digest::MD5.hexdigest(WISDOM))
+      expect(response[:datablocks].first[:full_path]).to eq('files/wisdom.txt')
+      expect(response[:summary][:total_datablocks]).to eq(1)
+      expect(response[:summary][:bucket_name]).to eq('files')
+    end
+
+    it 'returns datablocks for files in subfolders recursively' do
+      # Create a folder structure
+      create_folder('athena', 'files/subfolder')
+      
+      # Create files in root and subfolder
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      helmet_file = create_file('athena', 'subfolder/helmet.jpg', HELMET)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files/subfolder', 'helmet.jpg', HELMET)
+      
+      token_header(:admin)
+      get('/athena/datablocks/files/')
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:datablocks].length).to eq(2)
+      
+      file_names = response[:datablocks].map { |db| db[:file_name] }
+      expect(file_names).to include('wisdom.txt', 'helmet.jpg')
+      
+      full_paths = response[:datablocks].map { |db| db[:full_path] }
+      expect(full_paths).to include('files/wisdom.txt', 'files/subfolder/helmet.jpg')
+      
+      expect(response[:summary][:total_datablocks]).to eq(2)
+      expect(response[:summary][:folders_searched]).to eq(2) # root + subfolder
+    end
+
+    it 'returns empty list for non-existent folder' do
+      token_header(:admin)
+      get('/athena/datablocks/files/nonexistent/')
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:datablocks]).to be_empty
+      expect(response[:message]).to eq('Folder not found')
+    end
+
+    it 'includes datablock metadata' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      # Update datablock with description
+      wisdom_file.data_block.update(description: 'Test file')
+      
+      token_header(:admin)
+      get('/athena/datablocks/files/')
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      datablock = response[:datablocks].first
+      
+      expect(datablock[:md5_hash]).to eq(Digest::MD5.hexdigest(WISDOM))
+      expect(datablock[:size]).to eq(WISDOM.length)
+      expect(datablock[:description]).to eq('Test file')
+      expect(datablock[:created_at]).to be_present
+      expect(datablock[:removed]).to eq(false)
+    end
+
+    it 'handles removed datablocks' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      # Mark datablock as removed
+      wisdom_file.data_block.update(removed: true)
+      
+      token_header(:admin)
+      get('/athena/datablocks/files/')
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:datablocks].length).to eq(1)
+      expect(response[:datablocks].first[:removed]).to eq(true)
+    end
+
+    it 'handles empty folders' do
+      # Create empty folder
+      create_folder('athena', 'files/empty')
+      
+      token_header(:admin)
+      get('/athena/datablocks/files/empty/')
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:datablocks]).to be_empty
+      expect(response[:summary][:total_datablocks]).to eq(0)
+      expect(response[:summary][:folders_searched]).to eq(1)
+    end
+
+    it 'handles multiple files with same datablock (deduplication)' do
+      # Create two files with same content (same datablock)
+      wisdom_file1 = create_file('athena', 'wisdom1.txt', WISDOM)
+      wisdom_file2 = create_file('athena', 'wisdom2.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom1.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom2.txt', WISDOM)
+      
+      token_header(:admin)
+      get('/athena/datablocks/files/')
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:datablocks].length).to eq(2) # Two file entries, same datablock
+      
+      # Both files should have the same MD5 hash
+      md5_hashes = response[:datablocks].map { |db| db[:md5_hash] }
+      expect(md5_hashes.uniq.length).to eq(1) # Same datablock
+      expect(md5_hashes.first).to eq(Digest::MD5.hexdigest(WISDOM))
+    end
+
+  end
 end
