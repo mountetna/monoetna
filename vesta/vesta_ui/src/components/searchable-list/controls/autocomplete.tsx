@@ -32,6 +32,7 @@ interface AutocompleteProps<Value> extends UseAutocompleteProps<Value, boolean, 
   renderGroup?: (params: _AutocompleteGroupedOption<Value>) => React.ReactNode;
   renderNoResults?: () => React.ReactNode;
   sx?: SxProps;
+  size?: string;
 }
 
 // Adapted from https://mui.com/base-ui/react-autocomplete/#using-a-portal
@@ -128,7 +129,7 @@ function Autocomplete<Value>(
             alignItems: 'center',
             bgcolor: 'utilityWhite.main',
             borderRadius: '30px',
-            p: '14px 16px',
+            p: props.size == 'small' ? '7px 12px' : '14px 16px',
             border: '1px solid transparent',
             '&:focus-visible, &.Mui-focused': {
               border: `1px solid ${theme.palette.ground.grade75}`,
