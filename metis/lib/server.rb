@@ -16,6 +16,7 @@ class Metis
     get '/', action: 'client#index'
 
     post '/api/exists', action: 'data_block#exists'
+    post '/:project_name/delete-datablocks', action: 'data_block#delete_datablocks', auth: { user: { is_admin?: :project_name } }
 
     get '/api/stats/files', action: 'stats#file_count_by_project', auth: { user: { is_supereditor?: true } }
     get '/api/stats/bytes', action: 'stats#byte_count_by_project', auth: { user: { is_supereditor?: true } }

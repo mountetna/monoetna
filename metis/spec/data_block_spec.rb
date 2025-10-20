@@ -328,4 +328,147 @@ describe DataBlockController do
       expect(json_body).to eq(found: [wisdom_md5], missing: [folly_md5])
     end
   end
+
+  context '#delete_datablocks' do
+    it 'deletes datablocks by MD5 hash when not referenced by files' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
+      wisdom_data_block = wisdom_file.data_block
+      
+      # Delete the file first to make the datablock orphaned
+      wisdom_file.delete
+      
+      token_header(:admin)
+      json_post('/athena/delete-datablocks', md5_hashes: [wisdom_md5])
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:deleted].length).to eq(1)
+      expect(response[:deleted].first[:md5_hash]).to eq(wisdom_md5)
+      expect(response[:errors]).to be_empty
+      expect(response[:summary][:successfully_deleted]).to eq(1)
+      expect(response[:summary][:errors]).to eq(0)
+      
+      # Verify the datablock is marked as removed
+      wisdom_data_block.reload
+      expect(wisdom_data_block.removed).to be_truthy
+    end
+
+    it 'handles multiple MD5 hashes in a single request' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+      
+      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
+      helmet_md5 = Digest::MD5.hexdigest(HELMET)
+      helmet_data_block = helmet_file.data_block
+      
+      # Delete files to make datablocks orphaned
+      wisdom_file.delete
+      helmet_file.delete
+      
+      token_header(:admin)
+      json_post('/athena/delete-datablocks', md5_hashes: [wisdom_md5, helmet_md5])
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:deleted].length).to eq(2)
+      expect(response[:errors]).to be_empty
+      expect(response[:summary][:successfully_deleted]).to eq(2)
+      
+      # Verify both datablocks are marked as removed
+      helmet_data_block.reload
+      expect(helmet_data_block.removed).to be_truthy
+    end
+
+    it 'refuses to delete datablocks that are still referenced by files' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
+      
+      token_header(:admin)
+      json_post('/athena/delete-datablocks', md5_hashes: [wisdom_md5])
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:deleted]).to be_empty
+      expect(response[:errors].length).to eq(1)
+      expect(response[:errors].first).to include('still referenced by files')
+      expect(response[:summary][:successfully_deleted]).to eq(0)
+      expect(response[:summary][:errors]).to eq(1)
+    end
+
+    it 'refuses to delete already removed datablocks' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
+      wisdom_data_block = wisdom_file.data_block
+      
+      # Delete the file and mark datablock as removed
+      wisdom_file.delete
+      wisdom_data_block.remove!
+      
+      token_header(:admin)
+      json_post('/athena/delete-datablocks', md5_hashes: [wisdom_md5])
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:deleted]).to be_empty
+      expect(response[:errors].length).to eq(1)
+      expect(response[:errors].first).to include('already removed')
+      expect(response[:summary][:successfully_deleted]).to eq(0)
+      expect(response[:summary][:errors]).to eq(1)
+    end
+
+    it 'handles non-existent datablocks gracefully' do
+      token_header(:admin)
+      json_post('/athena/delete-datablocks', md5_hashes: ['nonexistent123456789012345678901234'])
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:deleted]).to be_empty
+      expect(response[:errors].length).to eq(1)
+      expect(response[:errors].first).to include('DataBlock not found for MD5')
+      expect(response[:summary][:successfully_deleted]).to eq(0)
+      expect(response[:summary][:errors]).to eq(1)
+    end
+
+    it 'requires admin permissions' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
+      wisdom_file.delete
+      
+      token_header(:editor)
+      json_post('/athena/delete-datablocks', md5_hashes: [wisdom_md5])
+      
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'handles partial failures gracefully' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
+      
+      token_header(:admin)
+      json_post('/athena/delete-datablocks', md5_hashes: [
+        wisdom_md5, # Still referenced by file
+        'nonexistent123456789012345678901234' # Non-existent
+      ])
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:deleted]).to be_empty
+      expect(response[:errors].length).to eq(2)
+      expect(response[:summary][:successfully_deleted]).to eq(0)
+      expect(response[:summary][:errors]).to eq(2)
+    end
+  end
 end
