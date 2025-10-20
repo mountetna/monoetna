@@ -19,6 +19,7 @@ import Autocomplete from '@/components/searchable-list/controls/autocomplete';
 import { ThemeData } from '../themes/models';
 import ProjectPI from './project-pi';
 import FilterPill from '../searchable-list/filter-pill';
+import FilterList from './filter-list';
 import { ValueOf } from '@/lib/utils/types';
 import { FILE_EXPORT_STATUS, handleExportFile, MIME_FILE_FORMATS } from '@/lib/utils/file-export';
 import { DrawerSectionClasses, DrawerClasses } from '../searchable-list/controls/drawer/models';
@@ -235,7 +236,7 @@ function _ProjectExplorer({
         return sorted
     })
 
-    const [drawerOpen, setDrawerOpen] = React.useState(false)
+    const [drawerOpen, setDrawerOpen] = React.useState(true)
 
     const [filterItems, setFilterItems] = React.useState<FilterItem[]>([])
 
@@ -444,6 +445,7 @@ function _ProjectExplorer({
                 [theme.breakpoints.up('tablet')]: {
                     gap: '38px',
                 },
+                mb: '50px'
             }}
         >
             <Typography
@@ -458,7 +460,7 @@ function _ProjectExplorer({
                     flexDirection: 'column',
                     gap: '16px',
                     [theme.breakpoints.up('tablet')]: {
-                        gap: '38px',
+                        gap: '8px',
                     },
                 }}
             >
@@ -471,7 +473,10 @@ function _ProjectExplorer({
                             flexDirection: 'row',
                             justifyContent: 'space-between',
                             width: '100%',
-                        }
+                        },
+                        paddingBottom: '16px',
+                        borderBottom: `1px solid ${theme.palette.ground.grade50}`,
+                        borderEndEndRadius: '2px'
                     }}
                 >
                     <Box
@@ -515,9 +520,14 @@ function _ProjectExplorer({
                                     },
                                 }}
                             >
-                                { drawerOpen && <Grid
+                                <DrawerButton
+                                    label='Filters'
+                                    iconLight={filterLightIcon}
+                                    iconDark={filterDarkIcon}
                                     onClick={() => setDrawerOpen(!drawerOpen)}
-                                ></Grid> }
+                                    activated={filterItems.find(item => drawerFilterItemTypes.includes(item.type)) !== undefined}
+                                    open={drawerOpen}
+                                />
 
                                 <Autocomplete
                                     multiple
@@ -608,125 +618,89 @@ function _ProjectExplorer({
                             {!isMobile && paginationEl}
                         </Box>
 
-                        <Box
-                            sx={{
-                                [`& .${DrawerClasses.root}`]: {
-                                    pt: '16px',
-                                    [theme.breakpoints.up('tablet')]: {
-                                        pt: '13px',
-                                    },
-                                    [theme.breakpoints.up('desktop')]: {
-                                    },
-                                },
-                                [`& .${DrawerSectionClasses.base}`]: {
-                                    [theme.breakpoints.up('tablet')]: {
-                                        width: '33%',
-                                    },
-                                    [theme.breakpoints.up('desktop')]: {
-                                        minWidth: 'unset',
-                                        width: '33%',
-                                    },
-                                },
-                            }}
-                        >
-                            <Drawer
-                                items={drawerItems}
-                                viewSetItems={viewSets}
-                                filterMethodItems={filterMethods}
-                                getItemLabel={item => item.label}
-                                getItemKey={item => item.key}
-                                getItemType={item => item.type}
-                                activeItems={filterItems}
-                                onChange={handleChangeFilterItems}
-                                activeViewSetItem={viewSet}
-                                onChangeViewSet={handleChangeViewSet}
-                                showViewSets={true}
-                                activeFilterMethodItem={filterMethod}
-                                onChangeFilterMethod={handleChangeFilterMethod}
-                                showFilterMethods={true}
-                                renderFilterMethod={(toggleEl) => (
-                                    <React.Fragment>
-                                        <Typography variant='pBody'>
-                                            Show projects that match
-                                        </Typography>
-
-                                        {toggleEl}
-
-                                        <Typography variant='pBody'>
-                                            filters
-                                        </Typography>
-                                    </React.Fragment>
-                                )}
-                                open={drawerOpen}
-                                showButton={true}
-                                buttonLabel={'Export to CSV'}
-                                onClickButton={handleClickExportButton}
-                                buttonDisabled={fileExportStatus === FILE_EXPORT_STATUS.inProgress}
-                                displayStyle={isMobile ? 'expandable' : 'default'}
-                            />
-                        </Box>
-
-                        {filterItems.length > 0 && <Box
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                flexWrap: 'wrap',
-                                columnGap: '10px',
-                                rowGap: '16px',
-                                pt: '16px',
-                                [theme.breakpoints.up('tablet')]: {
-                                },
-                            }}
-                        >
-                            {filterItems.map((item => (
-                                <FilterPill
-                                    key={item.key}
-                                    label={item.label}
-                                    removeable
-                                    onClickRemove={() => handleClickRemoveFilterItem(item)}
-                                />
-                            )))}
-                        </Box>}
+                          {filterItems.length > 0 && <Box
+                              sx={{
+                                  display: 'flex',
+                                  flex: '1 1 auto',
+                                  flexDirection: 'row',
+                                  flexWrap: 'wrap',
+                                  columnGap: '10px',
+                                  rowGap: '16px',
+                                  pt: '16px',
+                                  [theme.breakpoints.up('tablet')]: {
+                                  },
+                              }}
+                          >
+                              {filterItems.map((item => (
+                                  <FilterPill
+                                      key={item.key}
+                                      label={item.label}
+                                      removeable
+                                      onClickRemove={() => handleClickRemoveFilterItem(item)}
+                                  />
+                              )))}
+                          </Box>}
                     </Box>
 
                     {isMobile && paginationEl}
                 </Box>
 
-
-                <Box
-                    role='list'
-                    sx={{
-                        bgcolor: 'utilityWhite.main',
-                        borderRadius: '20px',
-                        overflow: 'hidden',
-                    }}
-                >
-                    <Fade
-                        key={paginatedFilteredProjectData.reduce((prev, curr) => prev + curr.project.fullName, '')}
-                        in={true}
-                        easing={theme.transitions.easing.ease}
-                        timeout={theme.transitions.duration.ease}
-                        exit={false}
-                    >
-                        <Box>
-                            {paginatedFilteredProjectData.map(({ project, nodeRef }, i) => (
-                                <Box
-                                    key={project.fullName}
-                                    ref={nodeRef}
-                                    role='listitem'
-                                >
-                                    <ProjectListing
-                                        data={project}
-                                        open={projectOpens[i]}
-                                        headingInfoSet={(viewSet.label as ProjectHeadingInfoSet)}
-                                        onSetOpen={open => handleSetProjectOpen(open, i)}
-                                        onFinishOpen={() => scrollToProject(nodeRef)}
-                                    />
-                                </Box>
-                            ))}
-                        </Box>
-                    </Fade>
-                </Box>
+                <Box sx={{
+                  display: 'flex'
+                }}>
+                  {drawerOpen && <Box
+                    sx={ theme => ({
+                      flex: '0 0 405px',
+                      pt: '9px',
+                      pr: '5px',
+                      borderRight: `1px solid ${theme.palette.ground.grade50}`,
+                      transition: theme.transitions.create(
+                        ['flex'],
+                        {
+                           easing: theme.transitions.easing.ease,
+                           duration: theme.transitions.duration.ease,
+                        }
+                      ),
+                      borderEndEndRadius: '2px'
+                    })}>
+                     <FilterList/>
+                    </Box>
+                  }
+                  <Box
+                      role='list'
+                      sx={{
+                          bgcolor: 'utilityWhite.main',
+                          borderRadius: '20px',
+                          overflow: 'hidden',
+                      }}
+                  >
+                      <Fade
+                          key={paginatedFilteredProjectData.reduce((prev, curr) => prev + curr.project.fullName, '')}
+                          in={true}
+                          easing={theme.transitions.easing.ease}
+                          timeout={theme.transitions.duration.ease}
+                          exit={false}
+                      >
+                          <Box>
+                              {paginatedFilteredProjectData.map(({ project, nodeRef }, i) => (
+                                  <Box
+                                      key={project.fullName}
+                                      ref={nodeRef}
+                                      role='listitem'
+                                  >
+                                      <ProjectListing
+                                          data={project}
+                                          open={projectOpens[i]}
+                                          headingInfoSet={(viewSet.label as ProjectHeadingInfoSet)}
+                                          onSetOpen={open => handleSetProjectOpen(open, i)}
+                                          onFinishOpen={() => scrollToProject(nodeRef)}
+                                      />
+                                  </Box>
+                              ))}
+                          </Box>
+                      </Fade>
+                  </Box>
+              </Box>
             </Box>
         </Container >
     )
