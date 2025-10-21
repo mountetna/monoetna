@@ -42,7 +42,7 @@ class Metis
     end
 
     def delete_partial!
-      if ::File.exists?(partial_location)
+      if ::File.exist?(partial_location)
         ::File.delete(partial_location)
       end
     end

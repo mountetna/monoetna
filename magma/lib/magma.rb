@@ -64,7 +64,7 @@ class Magma
   def remove_hold_file
     return unless config(:hold_file)
 
-    ::File.unlink(config(:hold_file)) if ::File.exists?(config(:hold_file))
+    ::File.unlink(config(:hold_file)) if ::File.exist?(config(:hold_file))
   end
 
   def load_models(validate = true)
@@ -171,7 +171,7 @@ class Magma
 
   def server_pid
     pid_file = config(:server_pidfile)
-    if ::File.exists?(pid_file)
+    if ::File.exist?(pid_file)
       File.read(pid_file).chomp.to_i
     else
       # Oh boy.  Not ideal, but best effort here.  This could end up just restarting the wrong puma process if
