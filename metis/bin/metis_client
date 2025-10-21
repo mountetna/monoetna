@@ -1539,7 +1539,7 @@ EOT
       remaining_size = 0
       unless files.empty?
         # check with metis
-        response = @shell.client.exist(file_md5s.values, options[:project_name])
+        response = @shell.client.exists(file_md5s.values, options[:project_name])
 
         # remove all found files
         found = ::Set.new(response[:found])
