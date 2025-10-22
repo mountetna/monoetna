@@ -8,7 +8,7 @@ class Magma
     string_flags << '--target-model'
 
     def execute(project_name, target_model: 'project', file: "#{project_name}_models_#{target_model}_tree.csv")
-      unless File.exists?(file)
+      unless ::File.exist?(file)
         puts "File #{file} is being prepared from the #{project_name} project."
         puts "Copying models descending from #{target_model}..."
         prepare_template(file, project_name, target_model)
