@@ -132,10 +132,6 @@ const QueryFilterControl = ({
     onMouseEnter={ () => setShowControls(true) }
     onMouseLeave={ () => setShowControls(false) }
   >
-    { filterIndex > 0 && <Grid className={classes.and} container>
-    <Typography style={{ color:'purple'}} onClick={setOr}>{ or ? 'or' : 'and' }</Typography>
-    </Grid>
-    }
     <QueryNumber setRemoveHint={ setRemoveHint } onClick={ removeFilter } number={filterIndex} level={0}/>
     <QueryAnyEverySelectorList
       filter={filter}

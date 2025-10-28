@@ -4,7 +4,8 @@ import {QueryFilter} from './query_types';
 
 export const defaultQueryWhereParams = {
   recordFilters: [] as QueryFilter[],
-  orRecordFilterIndices: [] as number[]
+  orRecordFilterIndices: [] as number[],
+  globalOr: false
 };
 
 const defaultQueryWhereState = {
@@ -71,7 +72,8 @@ export const QueryWhereProvider = (
       setState({
         ...state,
         recordFilters: [],
-        orRecordFilterIndices: []
+        orRecordFilterIndices: [],
+        globalOr: false
       });
     },
     [state]
@@ -99,6 +101,16 @@ export const QueryWhereProvider = (
     [state]
   );
 
+  const setGlobalOr = useCallback(
+    (globalOr: boolean) => {
+      setState({
+        ...state,
+        globalOr
+      });
+    },
+    [state]
+  );
+
   const setWhereState = useCallback((newState: QueryWhereState) => {
     setState({
       ...newState
@@ -121,6 +133,7 @@ export const QueryWhereProvider = (
         patchRecordFilter,
         setOrRecordFilterIndices,
         setWhereState,
+        setGlobalOr,
         resetWhereState
       }}
     >
