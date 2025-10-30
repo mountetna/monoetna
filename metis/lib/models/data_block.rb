@@ -83,6 +83,17 @@ class Metis
         existing_block = Metis::DataBlock.where(md5_hash: md5_hash).first
 
         if existing_block
+          # Log deduplicate event for all files switching to existing block
+          files_to_deduplicate = Metis::File.where(data_block_id: id).all
+          files_to_deduplicate.each do |file|
+            Metis::DataBlockLedger.log_deduplicate(
+              old_datablock: self,
+              new_datablock: existing_block,
+              file: file,
+              user: 'system'
+            )
+          end
+
           # Point the files to the old block
           Metis::File.where(
             data_block_id: id,

@@ -253,4 +253,256 @@ class Metis
       Metis.instance.load_models
     end
   end
+
+  class BackfillDataBlockLedger < Etna::Command
+    usage "Usage: bin/metis backfill_data_block_ledger <project_name> <phase>
+           # backfill the datablock ledger for a specific project
+           # Must specify exactly one phase: -links or -orphaned"
+
+    def execute(*args)
+      # Parse arguments manually
+      project_name = nil
+      phase = nil
+      flags_seen = []
+
+      args.each do |arg|
+        case arg
+        when '-links'
+          flags_seen << '-links'
+          phase = :links if phase.nil?
+        when '-orphaned'
+          flags_seen << '-orphaned'
+          phase = :orphaned if phase.nil?
+        else
+          project_name = arg unless arg.start_with?('-')
+        end
+      end
+
+      if flags_seen.length > 1
+        puts "Error: Cannot specify multiple phase options"
+        puts "Choose exactly one: -links or -orphaned"
+        return
+      end
+
+      if project_name.nil? || project_name.empty? || phase.nil?
+        puts "Error: Project name and exactly one phase option are required"
+        puts ""
+        puts "Usage: bin/metis backfill_data_block_ledger <project_name> <phase>"
+        puts ""
+        puts "Phases:"
+        puts "  -links    Backfill link events for existing files"
+        puts "  -orphaned Backfill orphaned datablocks"
+        puts ""
+        puts "Examples:"
+        puts "  bin/metis backfill_data_block_ledger athena -links"
+        puts "  bin/metis backfill_data_block_ledger athena -orphaned"
+        puts ""
+        puts "Run each phase separately for each project."
+        return
+      end
+
+      # Verify project exists
+      project_files_count = Metis::File.where(project_name: project_name).count
+      if project_files_count == 0
+        puts "Warning: No files found for project '#{project_name}'"
+        puts "Please verify the project name is correct."
+        puts ""
+        response = ask_user("Continue anyway? (y/n): ")
+        return unless response.downcase == 'y'
+      end
+
+      puts "Starting datablock ledger backfill for project: #{project_name}"
+      puts "=" * 70
+      puts ""
+
+      case phase
+      when :links
+        puts "Running: Backfill link events for existing files"
+        puts ""
+        backfill_links(project_name)
+      when :orphaned
+        puts "Running: Backfill orphaned datablocks"
+        puts ""
+        backfill_orphaned
+      end
+
+      puts ""
+      puts "=" * 70
+      puts "Backfill complete for project: #{project_name}"
+      puts "=" * 70
+    end
+
+    private
+
+    def ask_user(prompt)
+      print prompt
+      gets.chomp
+    end
+
+    def backfill_links(project_name)
+      puts "PHASE 1: Backfilling 'link_file_to_datablock' events for existing files"
+      puts ""
+      
+      total_files = Metis::File.where(project_name: project_name).count
+      puts "Found #{total_files} files in project '#{project_name}' to process."
+      
+      backfilled = 0
+      skipped = 0
+      errors = 0
+      batch_size = 1000
+      
+      Metis::File.where(project_name: project_name).each_slice(batch_size) do |file_batch|
+        file_batch.each do |file|
+          begin
+            # Skip if already in ledger
+            existing = Metis::DataBlockLedger.where(
+              file_id: file.id,
+              event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
+            ).first
+            
+            if existing
+              skipped += 1
+              next
+            end
+            
+            # Create a 'link_file_to_datablock' event for each existing file
+            Metis::DataBlockLedger.create(
+              project_name: file.project_name,
+              md5_hash: file.data_block.md5_hash,
+              file_path: file.file_path,
+              file_id: file.id,
+              data_block_id: file.data_block_id,
+              event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK,
+              triggered_by: 'system_backfill',
+              size: file.data_block.size,
+              bucket_name: file.bucket.name,
+              created_at: file.created_at || DateTime.now
+            )
+            
+            backfilled += 1
+            
+            if (backfilled + skipped) % 1000 == 0
+              puts "Progress: #{backfilled + skipped}/#{total_files} files processed (#{((backfilled + skipped).to_f / total_files * 100).round(2)}%)"
+            end
+          rescue => e
+            errors += 1
+            puts "Error backfilling file #{file.id}: #{e.message}"
+          end
+        end
+      end
+      
+      puts ""
+      puts "Phase 1 Results:"
+      puts "- Link file to datablock events created: #{backfilled}"
+      puts "- Skipped (already in ledger): #{skipped}"
+      puts "- Errors: #{errors}" if errors > 0
+    end
+
+    def backfill_orphaned
+      puts "PHASE 2: Finding orphaned datablocks and creating 'unlink' events"
+      puts ""
+      puts "Querying database for orphaned datablocks system-wide..."
+      puts "(This identifies datablocks that are not referenced by any files)"
+      puts ""
+
+      # Get all data blocks that are still associated with a file
+      all_used_datablock_ids = Metis::File
+        .all
+        .map { |file| file.data_block.id }
+        .uniq
+      
+      # Get all data blocks that exist and are not removed
+      all_datablock_ids = Metis::DataBlock
+        .select_map(:id)
+        .uniq
+      
+      if all_datablock_ids.empty?
+        puts "No datablocks found in the system."
+        puts "No orphaned datablocks to process."
+        return
+      end
+      
+      puts "Found #{all_datablock_ids.length} datablocks in total."
+      puts "Found #{all_used_datablock_ids.length} datablocks referenced by files."
+      
+      # Orphaned = datablocks that exist but are not referenced by ANY files (system-wide)
+      orphaned_datablock_ids = all_datablock_ids - all_used_datablock_ids
+      
+      # Get the actual datablock objects
+      orphaned_datablocks = Metis::DataBlock
+        .where(id: orphaned_datablock_ids)
+        .all
+      
+      puts "Found #{orphaned_datablocks.length} orphaned datablocks (not referenced by any files)."
+      
+      if orphaned_datablocks.empty?
+        puts "No orphaned datablocks to process."
+        return
+      end
+      
+      puts ""
+      unlink_created = 0
+      errors = 0
+      total_size = 0
+      
+      orphaned_datablocks.each do |datablock|
+        begin
+          # Check if unlink event already exists for this project
+          existing_unlink = Metis::DataBlockLedger.where(
+            project_name: project_name,
+            data_block_id: datablock.id,
+            event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
+          ).first
+          
+          if existing_unlink
+            # Already has unlink event for this project
+            next
+          end
+          
+          # Create synthetic 'unlink_file_from_datablock' event for orphaned datablock
+          Metis::DataBlockLedger.create(
+            project_name: nil, # We don't know the project name for orphaned datablocks
+            md5_hash: datablock.md5_hash,
+            file_path: nil,  # No specific file (orphaned)
+            file_id: nil,
+            data_block_id: datablock.id,
+            event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK,
+            triggered_by: 'system_backfill',
+            size: datablock.size,
+            bucket_name: nil,
+            created_at: datablock.updated_at || DateTime.now
+          )
+          
+          unlink_created += 1
+          total_size += datablock.size
+          
+          if unlink_created % 100 == 0
+            puts "Progress: #{unlink_created}/#{orphaned_datablocks.length} unlink events created"
+          end
+        rescue => e
+          errors += 1
+          puts "Error processing orphaned datablock #{datablock.id}: #{e.message}"
+        end
+      end
+      
+      puts ""
+      puts "Phase 2 Results:"
+      puts "- Unlink file from datablock events created: #{unlink_created}"
+      puts "- Total orphaned size: #{(total_size / 1024.0 / 1024.0).round(2)} MB"
+      puts "- Errors: #{errors}" if errors > 0
+      
+      if unlink_created > 0
+        puts ""
+        puts "These orphaned datablocks can now be vacuumed using:"
+        puts "  POST /api/vacuum_datablocks/#{project_name}"
+      end
+    end
+
+    def setup(config)
+      super
+      Metis.instance.setup_logger
+      Metis.instance.load_models
+    end
+  end
 end
+

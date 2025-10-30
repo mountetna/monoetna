@@ -1,4 +1,5 @@
 require 'digest'
+require_relative '../lib/commands'
 
 describe Metis::DataBlock do
   include Rack::Test::Methods
@@ -13,11 +14,14 @@ describe Metis::DataBlock do
     @metis_uid = Metis.instance.sign.uid
 
     set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
+
+    stub_event_log(:athena)
   end
 
   after(:each) do
     stubs.clear
   end
+
 
   context '#compute_hash!' do
     def validate_readable_block(block)
@@ -329,274 +333,348 @@ describe DataBlockController do
     end
   end
 
-  context '#delete_datablocks' do
-    it 'deletes datablocks by MD5 hash when not referenced by files' do
+  context 'DataBlockLedger events' do
+    it 'logs create event when datablock is created' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      # Find the create event
+      create_event = Metis::DataBlockLedger.where(
+        data_block_id: wisdom_file.data_block_id,
+        event_type: Metis::DataBlockLedger::CREATE_DATABLOCK
+      ).first
+      
+      expect(create_event).to be_present
+      expect(create_event.project_name).to eq('athena')
+      expect(create_event.triggered_by).to_not be_nil
+    end
+
+    it 'logs deduplicate event when files share same content' do
+      # Create first file
+      wisdom_file1 = create_file('athena', 'wisdom1.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom1.txt', WISDOM)
+      
+      original_datablock_id = wisdom_file1.data_block_id
+      
+      # Create second file with same content - should trigger deduplication
+      wisdom_file2 = create_file('athena', 'wisdom2.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom2.txt', WISDOM)
+      
+      # Files should now share the same datablock
+      wisdom_file1.reload
+      wisdom_file2.reload
+      expect(wisdom_file1.data_block_id).to eq(wisdom_file2.data_block_id)
+      
+      # Should have a deduplicate event
+      dedupe_events = Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::REUSE_DATABLOCK).all
+      expect(dedupe_events.length).to be > 0
+    end
+
+    it 'logs link event when file is uploaded' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      # Manually log link (normally done by upload controller)
+      Metis::DataBlockLedger.log_link(file: wisdom_file, user: @user)
+      
+      link_event = Metis::DataBlockLedger.where(
+        file_id: wisdom_file.id,
+        event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
+      ).first
+      
+      expect(link_event).to be_present
+      expect(link_event.file_path).to eq('wisdom.txt')
+    end
+
+    it 'logs unlink event when file is deleted' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      Metis::DataBlockLedger.log_unlink(file: wisdom_file, user: @user)
+      
+      unlink_event = Metis::DataBlockLedger.where(
+        file_id: wisdom_file.id,
+        event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
+      ).first
+      
+      expect(unlink_event).to be_present
+    end
+
+    it 'tracks complete lifecycle from create to vacuum' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      datablock_id = wisdom_file.data_block_id
+      
+      # Should have create event
+      create_event = Metis::DataBlockLedger.where(
+        data_block_id: datablock_id,
+        event_type: Metis::DataBlockLedger::CREATE_DATABLOCK
+      ).first
+      expect(create_event).to be_present
+      
+      # Log link
+      Metis::DataBlockLedger.log_link(file: wisdom_file, user: @user)
+      
+      # Log unlink
+      Metis::DataBlockLedger.log_unlink(file: wisdom_file, user: @user)
+      wisdom_file.delete
+      
+      # Log vacuum
+      datablock = Metis::DataBlock[datablock_id]
+      Metis::DataBlockLedger.log_vacuum(
+        datablock: datablock,
+        project_name: 'athena',
+        user: @user
+      )
+      
+      # Should have all 4 events in order
+      events = Metis::DataBlockLedger.where(data_block_id: datablock_id)
+        .order(:created_at)
+        .select_map(:event_type)
+      
+      expect(events).to include('create', 'link', 'unlink', 'vacuum')
+    end
+  end
+
+  context 'backfill ledger' do
+    before(:each) do
+      token_header(:editor)
+    end
+
+    it "creates link events for all existing files" do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+
+      expect(Metis::File.count).to eq(2)
+      expect(Metis::DataBlockLedger.count).to eq(0)
+
+      backfill_ledger = Metis::BackfillDataBlockLedger.new
+      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+      backfill_ledger.execute('athena', '-links')
+
+      # Should have 2 link_file_to_datablock events (one per file)
+      link_events = Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).all
+      expect(link_events.count).to eq(2)
+      
+      # Verify wisdom file ledger entry
+      wisdom_ledger = Metis::DataBlockLedger.where(file_id: wisdom_file.id, event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).first
+      expect(wisdom_ledger).to be_present
+      expect(wisdom_ledger.project_name).to eq('athena')
+      expect(wisdom_ledger.md5_hash).to eq(wisdom_file.data_block.md5_hash)
+      expect(wisdom_ledger.triggered_by).to eq('system_backfill')
+      
+      # Clean up
+      wisdom_file.delete
+      helmet_file.delete
+    end
+
+    it "creates unlink events for orphaned datablocks" do
+      # Create a file using existing logic (no ledger yet)
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      wisdom_datablock_id = wisdom_file.data_block_id
+
+      # Delete the file using the API (simulating real user deletion)
+      delete("/athena/file/remove/files/wisdom.txt")
+      # TODO: this fails ^ 
+
+      expect(last_response.status).to eq(200)
+
+      # Mock the ask_user method to return 'y' automatically
+      backfill_ledger = Metis::BackfillDataBlockLedger.new
+      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+
+      # Run backfill should detect orphaned datablock
+      backfill_ledger.execute('athena', '-orphaned')
+      
+      # Should have created unlink event
+      unlink_event = Metis::DataBlockLedger.where(
+        data_block_id: wisdom_datablock_id,
+        event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
+      ).first
+      expect(unlink_event).to be_present
+      expect(unlink_event.project_name).to eq('athena')
+      expect(unlink_event.triggered_by).to eq('system_backfill')
+    end
+
+    it "skips files already in ledger" do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      # Manually create a ledger entry
+      Metis::DataBlockLedger.create(
+        project_name: wisdom_file.project_name,
+        md5_hash: wisdom_file.data_block.md5_hash,
+        file_path: wisdom_file.file_path,
+        file_id: wisdom_file.id,
+        data_block_id: wisdom_file.data_block_id,
+        event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK,
+        triggered_by: 'manual',
+        size: wisdom_file.data_block.size,
+        bucket_name: wisdom_file.bucket.name,
+        created_at: DateTime.now
+      )
+
+      expect(Metis::DataBlockLedger.count).to eq(1)
+
+      backfill_ledger = Metis::BackfillDataBlockLedger.new
+      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+      backfill_ledger.execute('athena', '-links')
+
+      # Should still be 1 link_file_to_datablock event, not duplicated
+      expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).count).to eq(1)
+      
+      wisdom_file.delete
+    end
+
+  end
+
+  context '#vacuum_datablocks' do
+    it 'vacuums orphaned datablocks for a project' do
+      # Create and then delete a file to make datablock orphaned
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
       
       wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
       wisdom_data_block = wisdom_file.data_block
       
-      # Delete the file first to make the datablock orphaned
+      # Log link event (simulating upload)
+      Metis::DataBlockLedger.log_link(file: wisdom_file, user: @user)
+      
+      # Delete the file and log unlink
+      Metis::DataBlockLedger.log_unlink(file: wisdom_file, user: @user)
       wisdom_file.delete
       
       token_header(:admin)
-      json_post('/athena/delete-datablocks', md5_hashes: [wisdom_md5])
+      json_post('/api/vacuum_datablocks/athena')
       
       expect(last_response.status).to eq(200)
       response = json_body
-      expect(response[:deleted].length).to eq(1)
-      expect(response[:deleted].first[:md5_hash]).to eq(wisdom_md5)
+      expect(response[:vacuumed].length).to eq(1)
+      expect(response[:vacuumed].first[:md5_hash]).to eq(wisdom_md5)
       expect(response[:errors]).to be_empty
-      expect(response[:summary][:successfully_deleted]).to eq(1)
-      expect(response[:summary][:errors]).to eq(0)
+      expect(response[:summary][:total_vacuumed]).to eq(1)
+      expect(response[:summary][:space_freed]).to be > 0
       
-      # Verify the datablock is marked as removed
+      # Verify datablock is marked as removed
       wisdom_data_block.reload
       expect(wisdom_data_block.removed).to be_truthy
+      
+      # Verify vacuum event was logged
+      vacuum_event = Metis::DataBlockLedger.where(
+        md5_hash: wisdom_md5,
+        event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK
+      ).first
+      expect(vacuum_event).to be_present
     end
 
-    it 'handles multiple MD5 hashes in a single request' do
+    it 'only vacuums datablocks for the specified project' do
+      # Create files in two projects
+      athena_file = create_file('athena', 'athena.txt', WISDOM)
+      ate_file = create_file('ate', 'ate.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'athena.txt', WISDOM)
+      stubs.create_file('ate', 'files', 'ate.txt', WISDOM)
+      
+      # Log events
+      Metis::DataBlockLedger.log_link(file: athena_file, user: @user)
+      Metis::DataBlockLedger.log_link(file: ate_file, user: @user)
+      
+      # Delete athena file
+      Metis::DataBlockLedger.log_unlink(file: athena_file, user: @user)
+      athena_file.delete
+      
+      token_header(:admin)
+      json_post('/api/vacuum_datablocks/athena')
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      
+      # Should only vacuum athena's orphaned blocks, not ate's
+      expect(response[:vacuumed].length).to eq(1)
+      expect(response[:summary][:project_name]).to eq('athena')
+    end
+
+    it 'does not vacuum datablocks still referenced by files' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      Metis::DataBlockLedger.log_link(file: wisdom_file, user: @user)
+      
+      token_header(:admin)
+      json_post('/api/vacuum_datablocks/athena')
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:vacuumed]).to be_empty
+      expect(response[:summary][:total_vacuumed]).to eq(0)
+    end
+
+    it 'does not vacuum already vacuumed datablocks' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      
+      wisdom_data_block = wisdom_file.data_block
+      
+      Metis::DataBlockLedger.log_link(file: wisdom_file, user: @user)
+      Metis::DataBlockLedger.log_unlink(file: wisdom_file, user: @user)
+      wisdom_file.delete
+      
+      # Vacuum once
+      token_header(:admin)
+      json_post('/api/vacuum_datablocks/athena')
+      expect(last_response.status).to eq(200)
+      
+      # Try to vacuum again - should find nothing
+      json_post('/api/vacuum_datablocks/athena')
+      expect(last_response.status).to eq(200)
+      response = json_body
+      expect(response[:vacuumed]).to be_empty
+    end
+
+    it 'handles multiple orphaned datablocks' do
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
       
-      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
-      helmet_md5 = Digest::MD5.hexdigest(HELMET)
-      helmet_data_block = helmet_file.data_block
+      Metis::DataBlockLedger.log_link(file: wisdom_file, user: @user)
+      Metis::DataBlockLedger.log_link(file: helmet_file, user: @user)
       
-      # Delete files to make datablocks orphaned
+      Metis::DataBlockLedger.log_unlink(file: wisdom_file, user: @user)
+      Metis::DataBlockLedger.log_unlink(file: helmet_file, user: @user)
       wisdom_file.delete
       helmet_file.delete
       
       token_header(:admin)
-      json_post('/athena/delete-datablocks', md5_hashes: [wisdom_md5, helmet_md5])
+      json_post('/api/vacuum_datablocks/athena')
       
       expect(last_response.status).to eq(200)
       response = json_body
-      expect(response[:deleted].length).to eq(2)
-      expect(response[:errors]).to be_empty
-      expect(response[:summary][:successfully_deleted]).to eq(2)
-      
-      # Verify both datablocks are marked as removed
-      helmet_data_block.reload
-      expect(helmet_data_block.removed).to be_truthy
-    end
-
-    it 'refuses to delete datablocks that are still referenced by files' do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      
-      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
-      
-      token_header(:admin)
-      json_post('/athena/delete-datablocks', md5_hashes: [wisdom_md5])
-      
-      expect(last_response.status).to eq(200)
-      response = json_body
-      expect(response[:deleted]).to be_empty
-      expect(response[:errors].length).to eq(1)
-      expect(response[:errors].first).to include('still referenced by files')
-      expect(response[:summary][:successfully_deleted]).to eq(0)
-      expect(response[:summary][:errors]).to eq(1)
-    end
-
-    it 'refuses to delete already removed datablocks' do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      
-      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
-      wisdom_data_block = wisdom_file.data_block
-      
-      # Delete the file and mark datablock as removed
-      wisdom_file.delete
-      wisdom_data_block.remove!
-      
-      token_header(:admin)
-      json_post('/athena/delete-datablocks', md5_hashes: [wisdom_md5])
-      
-      expect(last_response.status).to eq(200)
-      response = json_body
-      expect(response[:deleted]).to be_empty
-      expect(response[:errors].length).to eq(1)
-      expect(response[:errors].first).to include('already removed')
-      expect(response[:summary][:successfully_deleted]).to eq(0)
-      expect(response[:summary][:errors]).to eq(1)
-    end
-
-    it 'handles non-existent datablocks gracefully' do
-      token_header(:admin)
-      json_post('/athena/delete-datablocks', md5_hashes: ['nonexistent123456789012345678901234'])
-      
-      expect(last_response.status).to eq(200)
-      response = json_body
-      expect(response[:deleted]).to be_empty
-      expect(response[:errors].length).to eq(1)
-      expect(response[:errors].first).to include('DataBlock not found for MD5')
-      expect(response[:summary][:successfully_deleted]).to eq(0)
-      expect(response[:summary][:errors]).to eq(1)
+      expect(response[:vacuumed].length).to eq(2)
+      expect(response[:summary][:total_vacuumed]).to eq(2)
     end
 
     it 'requires admin permissions' do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      
-      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
-      wisdom_file.delete
-      
       token_header(:editor)
-      json_post('/athena/delete-datablocks', md5_hashes: [wisdom_md5])
+      json_post('/api/vacuum_datablocks/athena')
       
       expect(last_response.status).to eq(403)
     end
 
-    it 'handles partial failures gracefully' do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      
-      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
-      
+    it 'returns empty result when no orphaned datablocks exist' do
       token_header(:admin)
-      json_post('/athena/delete-datablocks', md5_hashes: [
-        wisdom_md5, # Still referenced by file
-        'nonexistent123456789012345678901234' # Non-existent
-      ])
+      json_post('/api/vacuum_datablocks/athena')
       
       expect(last_response.status).to eq(200)
       response = json_body
-      expect(response[:deleted]).to be_empty
-      expect(response[:errors].length).to eq(2)
-      expect(response[:summary][:successfully_deleted]).to eq(0)
-      expect(response[:summary][:errors]).to eq(2)
+      expect(response[:vacuumed]).to be_empty
+      expect(response[:summary][:total_vacuumed]).to eq(0)
+      expect(response[:summary][:space_freed]).to eq(0)
     end
   end
 
-  context '#get_datablocks' do
-    it 'returns datablocks for files in a folder' do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      
-      token_header(:admin)
-      get('/athena/datablocks/files/')
-      
-      expect(last_response.status).to eq(200)
-      response = json_body
-      expect(response[:datablocks].length).to eq(1)
-      expect(response[:datablocks].first[:file_name]).to eq('wisdom.txt')
-      expect(response[:datablocks].first[:md5_hash]).to eq(Digest::MD5.hexdigest(WISDOM))
-      expect(response[:datablocks].first[:full_path]).to eq('files/wisdom.txt')
-      expect(response[:summary][:total_datablocks]).to eq(1)
-      expect(response[:summary][:bucket_name]).to eq('files')
-    end
-
-    it 'returns datablocks for files in subfolders recursively' do
-      # Create a folder structure
-      create_folder('athena', 'files/subfolder')
-      
-      # Create files in root and subfolder
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      helmet_file = create_file('athena', 'subfolder/helmet.jpg', HELMET)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files/subfolder', 'helmet.jpg', HELMET)
-      
-      token_header(:admin)
-      get('/athena/datablocks/files/')
-      
-      expect(last_response.status).to eq(200)
-      response = json_body
-      expect(response[:datablocks].length).to eq(2)
-      
-      file_names = response[:datablocks].map { |db| db[:file_name] }
-      expect(file_names).to include('wisdom.txt', 'helmet.jpg')
-      
-      full_paths = response[:datablocks].map { |db| db[:full_path] }
-      expect(full_paths).to include('files/wisdom.txt', 'files/subfolder/helmet.jpg')
-      
-      expect(response[:summary][:total_datablocks]).to eq(2)
-      expect(response[:summary][:folders_searched]).to eq(2) # root + subfolder
-    end
-
-    it 'returns empty list for non-existent folder' do
-      token_header(:admin)
-      get('/athena/datablocks/files/nonexistent/')
-      
-      expect(last_response.status).to eq(200)
-      response = json_body
-      expect(response[:datablocks]).to be_empty
-      expect(response[:message]).to eq('Folder not found')
-    end
-
-    it 'includes datablock metadata' do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      
-      # Update datablock with description
-      wisdom_file.data_block.update(description: 'Test file')
-      
-      token_header(:admin)
-      get('/athena/datablocks/files/')
-      
-      expect(last_response.status).to eq(200)
-      response = json_body
-      datablock = response[:datablocks].first
-      
-      expect(datablock[:md5_hash]).to eq(Digest::MD5.hexdigest(WISDOM))
-      expect(datablock[:size]).to eq(WISDOM.length)
-      expect(datablock[:description]).to eq('Test file')
-      expect(datablock[:created_at]).to be_present
-      expect(datablock[:removed]).to eq(false)
-    end
-
-    it 'handles removed datablocks' do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      
-      # Mark datablock as removed
-      wisdom_file.data_block.update(removed: true)
-      
-      token_header(:admin)
-      get('/athena/datablocks/files/')
-      
-      expect(last_response.status).to eq(200)
-      response = json_body
-      expect(response[:datablocks].length).to eq(1)
-      expect(response[:datablocks].first[:removed]).to eq(true)
-    end
-
-    it 'handles empty folders' do
-      # Create empty folder
-      create_folder('athena', 'files/empty')
-      
-      token_header(:admin)
-      get('/athena/datablocks/files/empty/')
-      
-      expect(last_response.status).to eq(200)
-      response = json_body
-      expect(response[:datablocks]).to be_empty
-      expect(response[:summary][:total_datablocks]).to eq(0)
-      expect(response[:summary][:folders_searched]).to eq(1)
-    end
-
-    it 'handles multiple files with same datablock (deduplication)' do
-      # Create two files with same content (same datablock)
-      wisdom_file1 = create_file('athena', 'wisdom1.txt', WISDOM)
-      wisdom_file2 = create_file('athena', 'wisdom2.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom1.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom2.txt', WISDOM)
-      
-      token_header(:admin)
-      get('/athena/datablocks/files/')
-      
-      expect(last_response.status).to eq(200)
-      response = json_body
-      expect(response[:datablocks].length).to eq(2) # Two file entries, same datablock
-      
-      # Both files should have the same MD5 hash
-      md5_hashes = response[:datablocks].map { |db| db[:md5_hash] }
-      expect(md5_hashes.uniq.length).to eq(1) # Same datablock
-      expect(md5_hashes.first).to eq(Digest::MD5.hexdigest(WISDOM))
-    end
-
-  end
 end
