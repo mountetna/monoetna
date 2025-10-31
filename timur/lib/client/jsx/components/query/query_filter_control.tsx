@@ -39,8 +39,6 @@ const useStyles = makeStyles((theme) => ({
 const QueryFilterControl = ({
   filter,
   modelNames,
-  or,
-  setOr,
   filterIndex,
   patchRecordFilter,
   patchFilter,
@@ -49,8 +47,6 @@ const QueryFilterControl = ({
 }: {
   filter: QueryFilter;
   patchRecordFilter: (index: number, updatedFilter: QueryFilter) => void;
-  or: boolean;
-  setOr: () => void;
   filterIndex: number;
   modelNames: string[];
   patchFilter: (filter: QueryFilter) => void;

@@ -179,17 +179,11 @@ export class QueryBuilder {
   }
 
   expandedOperands(filters: QueryFilter[]) {
-    let expandedFilters: any[] = [];
-    if (!filters.length) return expandedFilters;
+    if (!filters.length) return [];
 
-    if (filters.length == 1) {
-      // At this point, filters.length === 1...
-      expandedFilters = filters.map((filter) =>
-        this.filterWithPath(filter, this.root !== filter.modelName)
-      );
-    }
-
-    console.log({globalOr: this.globalOr});
+    if (filters.length == 1) return filters.map(
+      (filter) => this.filterWithPath(filter, this.root !== filter.modelName)
+    );
 
     let condFilters: any[] = [ this.globalOr ? '::or' : '::and'];
 
