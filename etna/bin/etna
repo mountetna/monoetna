@@ -9,8 +9,8 @@ require 'yaml'
 require_relative '../lib/etna'
 require_relative '../lib/commands'
 
-config = if File.exists?(EtnaApp.config_file_path)
-  YAML.load(File.read(EtnaApp.config_file_path))
+config = if ::File.exist?(EtnaApp.config_file_path)
+  YAML.load(::File.read(EtnaApp.config_file_path))
 else
   {
     production: {

@@ -15,12 +15,12 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import SearchIcon from '@material-ui/icons/Search';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
-import {VulcanContext} from '../../../contexts/vulcan_context';
-import {Workflow, WorkspaceMinimal} from '../../../api_types';
-import WorkspaceCard from './workspace';
+import {VulcanContext} from '../../contexts/vulcan_context';
+import {Workflow, WorkspaceMinimal} from '../../api_types';
+import WorkspaceCard from './workspace_card';
 import Grid from '@material-ui/core/Grid';
-import { workflowByIdFromWorkflows } from '../../../selectors/workflow_selectors';
-import { updateWorkflowsWorkspaces } from '../../../actions/vulcan_actions';
+import { workflowByIdFromWorkflows } from '../../selectors/workflow_selectors';
+import { updateWorkflowsWorkspaces } from '../../actions/vulcan_actions';
 
 const useStyles = makeStyles((theme) => ({
   workspaces: {

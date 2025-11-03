@@ -15,6 +15,7 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import { updateWorkflowsWorkspaces } from '../../../actions/vulcan_actions';
+import FlatButton from 'etna-js/components/flat-button';
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
@@ -82,7 +83,7 @@ export default function WorkflowCreateButtonModal({projectName}: {
 
   return (
     <>
-      <Tooltip title='Add Workflow'>
+      <Tooltip title='Establish a new Workflow for this project'>
         <Button
           className={classes.button}
           onClick={() => setOpen(true)}
