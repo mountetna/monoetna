@@ -14,7 +14,6 @@ class FileController < Metis::Controller
 
     raise Etna::Forbidden, 'Folder is read-only' if file.folder&.read_only?
 
-    require 'pry'; binding.pry    
     response = { files: [ file.to_hash ] }
 
     # Log to datablock ledger before deletion

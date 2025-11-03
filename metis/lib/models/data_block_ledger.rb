@@ -15,7 +15,13 @@ class Metis
 
     def validate
       super
-      validates_presence [:project_name, :md5_hash, :data_block_id, :event_type, :created_at]
+      # Allow project_name to be nil for system_backfill orphaned datablock unlink events
+      # (orphaned datablocks don't have a known project since the file was deleted)
+      required_fields = [:md5_hash, :data_block_id, :event_type, :created_at]
+      unless triggered_by == SYSTEM_BACKFILL && event_type == UNLINK_FILE_FROM_DATABLOCK
+        required_fields << :project_name
+      end
+      validates_presence required_fields
       validates_includes EVENT_TYPES, :event_type
       validates_format /^[a-f0-9]{32}$/i, :md5_hash
     end
