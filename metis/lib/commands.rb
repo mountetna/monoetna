@@ -182,33 +182,6 @@ class Metis
     end
   end
 
-  class RemoveOrphanDataBlocks < Etna::Command
-    usage "# remove unused (orphaned) data blocks"
-
-    def execute
-      zero_hash = "d41d8cd98f00b204e9800998ecf8427e"
-
-      used_data_block_ids = Metis::File.all().map { |file| file.data_block.id }.uniq
-      orphaned_data_blocks = Metis::DataBlock.exclude(id: used_data_block_ids).exclude(removed: true).exclude(md5_hash: zero_hash).all
-      Metis.instance.logger.info("Found #{orphaned_data_blocks.count} orphaned data blocks to be removed.") if orphaned_data_blocks.count > 0
-      orphaned_data_blocks.each do |orphaned_data_block|
-        begin
-          md5_hash_to_remove = orphaned_data_block.md5_hash
-          orphaned_data_block.remove!
-          Metis.instance.logger.info("Removed data_block with hash #{md5_hash_to_remove}")
-        rescue Error => e
-          Metis.instance.logger.log_error(e)
-        end
-      end
-    end
-
-    def setup(config)
-      super
-      Metis.instance.setup_logger
-      Metis.instance.load_models
-    end
-  end
-
   class GenerateThumbnails < Etna::Command
     usage "Generate image thumbnail files."
 
