@@ -16,7 +16,7 @@ class Metis
     get '/', action: 'client#index'
 
     post '/api/exists', action: 'data_block#exists'
-    post '/api/vacuum_datablocks/:project_name', action: 'data_block#vacuum_datablocks', auth: { user: { is_admin?: :project_name } }
+    post '/api/vacuum_datablocks/:project_name', action: 'data_block#vacuum_datablocks', auth: { user: { is_supereditor?: true } }
 
     get '/api/stats/files', action: 'stats#file_count_by_project', auth: { user: { is_supereditor?: true } }
     get '/api/stats/bytes', action: 'stats#byte_count_by_project', auth: { user: { is_supereditor?: true } }

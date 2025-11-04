@@ -6,7 +6,7 @@ class Metis
     CREATE_DATABLOCK = 'create_datablock'
     REUSE_DATABLOCK = 'reuse_datablock'
     LINK_FILE_TO_DATABLOCK = 'link_file_to_datablock'
-    UNLINK_FILE_FROM_DATABLOCK = 'unlink_file_from_datablock'
+    UNLINK_FILE_FROM_DATABLOCK = 'unlink_file_from_datablock' # Orphaned datablocks
     REMOVE_DATABLOCK = 'remove_datablock'
 
     EVENT_TYPES = [CREATE_DATABLOCK, REUSE_DATABLOCK, LINK_FILE_TO_DATABLOCK, UNLINK_FILE_FROM_DATABLOCK, REMOVE_DATABLOCK].freeze
@@ -15,10 +15,12 @@ class Metis
 
     def validate
       super
-      # Allow project_name to be nil for system_backfill orphaned datablock unlink events
-      # (orphaned datablocks don't have a known project since the file was deleted)
+      # Allow project_name to be nil for:
+      # 1. system_backfill orphaned datablock unlink events (orphaned datablocks don't have a known project)
+      # 2. REMOVE_DATABLOCK events for legacy vacuum (legacy datablocks don't have a known project)
       required_fields = [:md5_hash, :data_block_id, :event_type, :created_at]
-      unless triggered_by == SYSTEM_BACKFILL && event_type == UNLINK_FILE_FROM_DATABLOCK
+      unless (triggered_by == SYSTEM_BACKFILL && event_type == UNLINK_FILE_FROM_DATABLOCK) ||
+             event_type == REMOVE_DATABLOCK
         required_fields << :project_name
       end
       validates_presence required_fields
@@ -143,12 +145,23 @@ class Metis
       ).select_map(:data_block_id)
         .uniq
 
-      # Orphaned = (linked by this project) ∩ (unlinked) - (currently in use) - (already vacuumed)
+      # Orphaned = (linked by this project) and (unlinked) and not (currently in use) and not (already vacuumed)
       orphaned_ids = (linked_datablock_ids & unlinked_datablock_ids) - used_datablock_ids - vacuumed_datablock_ids
 
       Metis::DataBlock
         .where(id: orphaned_ids)
         .exclude(removed: true)
+        .all
+    end
+
+    def self.find_orphaned_datablocks_legacy
+      # Get datablock IDs that have unlink events with SYSTEM_BACKFILL (legacy backfilled records)
+      backfilled_datablock_ids = where(
+        triggered_by: SYSTEM_BACKFILL,
+        event_type: UNLINK_FILE_FROM_DATABLOCK
+      ).select_map(:data_block_id).uniq
+      Metis::DataBlock
+        .where(id: backfilled_datablock_ids)
         .all
     end
   end
