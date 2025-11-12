@@ -16,11 +16,9 @@ class FileController < Metis::Controller
 
     response = { files: [ file.to_hash ] }
 
-    # Log to datablock ledger before deletion
-    # Metis::DataBlockLedger.log_unlink(
-    #   file: file,
-    #   user: @user
-    # )
+    # Log to datablock ledger before deletion - capture datablock before deletion
+    datablock = file.data_block
+    Metis::DataBlockLedger.log_unlink(file, datablock, @user)
 
     file.remove!
 

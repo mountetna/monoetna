@@ -588,6 +588,7 @@ describe FolderController do
 
     it 'removes a folder that contains files and folders if forced' do
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @blueprints_folder)
+      helmet_datablock = helmet_file.data_block
       old_folder = create_folder('athena', 'old', folder: @blueprints_folder)
       stubs.create_file('athena', 'files', 'blueprints/helmet.jpg', HELMET)
 
@@ -596,6 +597,23 @@ describe FolderController do
 
       expect(last_response.status).to eq(200)
       expect(json_body[:folders].length).to eq(1)
+
+      # Assert UNLINK_FILE_FROM_DATABLOCK event was logged for the file in the folder
+      unlink_event = Metis::DataBlockLedger.where(
+        file_id: helmet_file.id,
+        event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
+      ).first
+      expect(unlink_event).to be_present
+      expect(unlink_event.project_name).to eq('athena')
+      expect(unlink_event.md5_hash).to eq(helmet_datablock.md5_hash)
+      expect(unlink_event.file_path).to eq('blueprints/helmet.jpg')
+      expect(unlink_event.file_id).to eq(helmet_file.id)
+      expect(unlink_event.data_block_id).to eq(helmet_datablock.id)
+      expect(unlink_event.event_type).to eq(Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK)
+      expect(unlink_event.triggered_by).to eq('metis@olympus.org')
+      expect(unlink_event.size).to eq(helmet_datablock.size)
+      expect(unlink_event.bucket_name).to eq('files')
+      expect(unlink_event.created_at).to be_within(1).of(Time.now)
 
       expect(Metis::Folder.count).to eq(0)
       expect(Metis::File.count).to eq(0)

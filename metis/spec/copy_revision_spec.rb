@@ -232,6 +232,23 @@ describe Metis::CopyRevision do
         learn_wisdom = revision.revise!
         expect(Metis::File.count).to eq(2)
         expect(learn_wisdom.data_block).to eq(@wisdom_file.data_block)
+
+        # Assert LINK_FILE_TO_DATABLOCK event was logged for the copied file
+        link_event = Metis::DataBlockLedger.where(
+            file_id: learn_wisdom.id,
+            event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
+        ).first
+        expect(link_event).to be_present
+        expect(link_event.project_name).to eq('athena')
+        expect(link_event.md5_hash).to eq(@wisdom_file.data_block.md5_hash)
+        expect(link_event.file_path).to eq('learn-wisdom.txt')
+        expect(link_event.file_id).to eq(learn_wisdom.id)
+        expect(link_event.data_block_id).to eq(@wisdom_file.data_block_id)
+        expect(link_event.event_type).to eq(Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK)
+        expect(link_event.triggered_by).to eq('athena@olympus.org')
+        expect(link_event.size).to eq(@wisdom_file.data_block.size)
+        expect(link_event.bucket_name).to eq('files')
+        expect(link_event.created_at).to be_within(1).of(Time.now)
     end
 
     it 'can revise to different project' do

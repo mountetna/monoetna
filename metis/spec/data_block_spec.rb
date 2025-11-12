@@ -123,6 +123,15 @@ describe Metis::DataBlock do
           validate_block_converged(new_db)
           validate_readable_block(existing_file.reload.data_block)
           validate_readable_block(new_file.reload.data_block)
+
+          # Assert log_deduplicate was called when compute_hash! found existing block
+          dedupe_event = Metis::DataBlockLedger.where(
+            event_type: Metis::DataBlockLedger::REUSE_DATABLOCK,
+            data_block_id: existing_file.data_block_id
+          ).first
+          expect(dedupe_event).to be_present
+          expect(dedupe_event.project_name).to eq('athena')
+          expect(dedupe_event.triggered_by).to eq('system')
         end
 
         describe 'if something happens after temp delete but before database update' do
@@ -333,110 +342,6 @@ describe DataBlockController do
     end
   end
 
-  context 'DataBlockLedger events' do
-    it 'logs create event when datablock is created' do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      
-      # Find the create event
-      create_event = Metis::DataBlockLedger.where(
-        data_block_id: wisdom_file.data_block_id,
-        event_type: Metis::DataBlockLedger::CREATE_DATABLOCK
-      ).first
-      
-      expect(create_event).to be_present
-      expect(create_event.project_name).to eq('athena')
-      expect(create_event.triggered_by).to_not be_nil
-    end
-
-    it 'logs deduplicate event when files share same content' do
-      # Create first file
-      wisdom_file1 = create_file('athena', 'wisdom1.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom1.txt', WISDOM)
-      
-      original_datablock_id = wisdom_file1.data_block_id
-      
-      # Create second file with same content - should trigger deduplication
-      wisdom_file2 = create_file('athena', 'wisdom2.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom2.txt', WISDOM)
-      
-      # Files should now share the same datablock
-      wisdom_file1.reload
-      wisdom_file2.reload
-      expect(wisdom_file1.data_block_id).to eq(wisdom_file2.data_block_id)
-      
-      # Should have a deduplicate event
-      dedupe_events = Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::REUSE_DATABLOCK).all
-      expect(dedupe_events.length).to be > 0
-    end
-
-    it 'logs link event when file is uploaded' do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      
-      # Manually log link (normally done by upload controller)
-      Metis::DataBlockLedger.log_link(file: wisdom_file, user: @user)
-      
-      link_event = Metis::DataBlockLedger.where(
-        file_id: wisdom_file.id,
-        event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
-      ).first
-      
-      expect(link_event).to be_present
-      expect(link_event.file_path).to eq('wisdom.txt')
-    end
-
-    it 'logs unlink event when file is deleted' do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      
-      Metis::DataBlockLedger.log_unlink(file: wisdom_file, user: @user)
-      
-      unlink_event = Metis::DataBlockLedger.where(
-        file_id: wisdom_file.id,
-        event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
-      ).first
-      
-      expect(unlink_event).to be_present
-    end
-
-    it 'tracks complete lifecycle from create to vacuum' do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      
-      datablock_id = wisdom_file.data_block_id
-      
-      # Should have create event
-      create_event = Metis::DataBlockLedger.where(
-        data_block_id: datablock_id,
-        event_type: Metis::DataBlockLedger::CREATE_DATABLOCK
-      ).first
-      expect(create_event).to be_present
-      
-      # Log link
-      Metis::DataBlockLedger.log_link(file: wisdom_file, user: @user)
-      
-      # Log unlink
-      Metis::DataBlockLedger.log_unlink(file: wisdom_file, user: @user)
-      wisdom_file.delete
-      
-      # Log vacuum
-      datablock = Metis::DataBlock[datablock_id]
-      Metis::DataBlockLedger.log_vacuum(
-        datablock: datablock,
-        project_name: 'athena',
-        user: @user
-      )
-      
-      # Should have all 4 events in order
-      events = Metis::DataBlockLedger.where(data_block_id: datablock_id)
-        .order(:created_at)
-        .select_map(:event_type)
-      
-      expect(events).to include('create', 'link', 'unlink', 'vacuum')
-    end
-  end
-
   context '#vacuum_datablocks with existing backfilled records (legacy)' do
 
     def create_delete_and_backfill_files
@@ -528,10 +433,10 @@ describe DataBlockController do
       wisdom_data_block = wisdom_file.data_block
       
       # Log link event (simulating upload)
-      Metis::DataBlockLedger.log_link(file: wisdom_file, user: @user)
+      Metis::DataBlockLedger.log_link(wisdom_file, @user)
       
       # Delete the file and log unlink (normal flow, not SYSTEM_BACKFILL)
-      Metis::DataBlockLedger.log_unlink(file: wisdom_file, user: @user)
+      Metis::DataBlockLedger.log_unlink(wisdom_file, @user)
       wisdom_file.delete
       
       # Verify unlink event was created (not SYSTEM_BACKFILL)
@@ -557,12 +462,14 @@ describe DataBlockController do
       wisdom_data_block.reload
       expect(wisdom_data_block.removed).to be_truthy
       
-      # Verify vacuum event was logged
+      # Assert log_vacuum was called and vacuum event was logged
       vacuum_event = Metis::DataBlockLedger.where(
         md5_hash: wisdom_md5,
         event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK
       ).first
       expect(vacuum_event).to be_present
+      expect(vacuum_event.project_name).to eq('athena')
+      expect(vacuum_event.data_block_id).to eq(wisdom_data_block.id)
     end
 
     it 'only vacuums datablocks for the specified project' do
@@ -572,12 +479,15 @@ describe DataBlockController do
       stubs.create_file('athena', 'files', 'athena.txt', WISDOM)
       stubs.create_file('ate', 'files', 'ate.txt', WISDOM)
       
+      # Capture datablock ID before deletion
+      athena_datablock_id = athena_file.data_block_id
+      
       # Log events (normal flow)
-      Metis::DataBlockLedger.log_link(file: athena_file, user: @user)
-      Metis::DataBlockLedger.log_link(file: ate_file, user: @user)
+      Metis::DataBlockLedger.log_link(athena_file, @user)
+      Metis::DataBlockLedger.log_link(ate_file, @user)
       
       # Delete athena file and log unlink
-      Metis::DataBlockLedger.log_unlink(file: athena_file, user: @user)
+      Metis::DataBlockLedger.log_unlink(athena_file, @user)
       athena_file.delete
       
       token_header(:admin)
@@ -589,13 +499,21 @@ describe DataBlockController do
       # Should only vacuum athena's orphaned blocks, not ate's
       expect(response[:vacuumed].length).to eq(1)
       expect(response[:summary][:project_name]).to eq('athena')
+      
+      # Assert log_vacuum was called for athena's datablock
+      vacuum_event = Metis::DataBlockLedger.where(
+        data_block_id: athena_datablock_id,
+        event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK
+      ).first
+      expect(vacuum_event).to be_present
+      expect(vacuum_event.project_name).to eq('athena')
     end
 
     it 'does not vacuum datablocks still referenced by files' do
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
       
-      Metis::DataBlockLedger.log_link(file: wisdom_file, user: @user)
+      Metis::DataBlockLedger.log_link(wisdom_file, @user)
       
       token_header(:admin)
       json_post('/api/vacuum_datablocks/athena', {})
@@ -612,8 +530,8 @@ describe DataBlockController do
       
       wisdom_data_block = wisdom_file.data_block
       
-      Metis::DataBlockLedger.log_link(file: wisdom_file, user: @user)
-      Metis::DataBlockLedger.log_unlink(file: wisdom_file, user: @user)
+      Metis::DataBlockLedger.log_link(wisdom_file, @user)
+      Metis::DataBlockLedger.log_unlink(wisdom_file, @user)
       wisdom_file.delete
       
       # Vacuum once
@@ -634,11 +552,11 @@ describe DataBlockController do
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
       
-      Metis::DataBlockLedger.log_link(file: wisdom_file, user: @user)
-      Metis::DataBlockLedger.log_link(file: helmet_file, user: @user)
+      Metis::DataBlockLedger.log_link(wisdom_file, @user)
+      Metis::DataBlockLedger.log_link(helmet_file, @user)
       
-      Metis::DataBlockLedger.log_unlink(file: wisdom_file, user: @user)
-      Metis::DataBlockLedger.log_unlink(file: helmet_file, user: @user)
+      Metis::DataBlockLedger.log_unlink(wisdom_file, @user)
+      Metis::DataBlockLedger.log_unlink(helmet_file, @user)
       wisdom_file.delete
       helmet_file.delete
       

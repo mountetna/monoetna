@@ -3,7 +3,7 @@ Sequel.migration do
     create_table(:data_block_ledger) do
       primary_key :id
       String :project_name, null: true
-      String :md5_hash, null: false, size: 32
+      String :md5_hash, null: false, size: 40 
       String :file_path, text: true
       Integer :file_id
       Integer :data_block_id, null: false

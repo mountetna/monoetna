@@ -83,16 +83,8 @@ class Metis
         existing_block = Metis::DataBlock.where(md5_hash: md5_hash).first
 
         if existing_block
-          # Log deduplicate event for all files switching to existing block
-          files_to_deduplicate = Metis::File.where(data_block_id: id).all
-          files_to_deduplicate.each do |file|
-            Metis::DataBlockLedger.log_deduplicate(
-              old_datablock: self,
-              new_datablock: existing_block,
-              file: file,
-              user: 'system'
-            )
-          end
+          file_to_deduplicate = Metis::File.where(data_block_id: id).first()
+          Metis::DataBlockLedger.log_deduplicate(file_to_deduplicate, existing_block, Metis::DataBlockLedger::CHECKSUM_COMMAND)
 
           # Point the files to the old block
           Metis::File.where(
@@ -122,6 +114,14 @@ class Metis
 
           yield [:new_update] if block_given?
           update(md5_hash: md5_hash)
+
+          # Log RESOLVE_DATABLOCK for the temp block being resolved
+          first_file = Metis::File.where(data_block_id: id).first
+          if first_file
+            Metis::DataBlockLedger.log_resolve(first_file, self, Metis::DataBlockLedger::CHECKSUM_COMMAND)
+          else
+            Metis.instance.logger.error("No file found for data block #{id}")
+          end
         end
       end
 

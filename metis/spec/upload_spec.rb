@@ -620,6 +620,56 @@ describe UploadController do
       Timecop.return
     end
 
+    it 'properly logs in the ledger' do
+      upload = prep_upload('wisdom.txt')
+
+      # post the blob with no next blob
+      complete_upload('wisdom.txt')
+
+      expect(last_response.status).to eq(200)
+
+      file = Metis::File.first
+      datablock = file.data_block
+
+      # Assert log_create was called when finish! created the datablock
+      create_event = Metis::DataBlockLedger.where(
+        data_block_id: file.data_block_id,
+        event_type: Metis::DataBlockLedger::CREATE_DATABLOCK
+      ).first
+      expect(create_event).to be_present
+      expect(create_event.project_name).to eq('athena')
+      expect(create_event.md5_hash).to eq(datablock.md5_hash)
+      expect(create_event.file_path).to eq('wisdom.txt')
+      expect(create_event.file_id).to eq(file.id)
+      expect(create_event.data_block_id).to eq(datablock.id)
+      expect(create_event.event_type).to eq(Metis::DataBlockLedger::CREATE_DATABLOCK)
+      expect(create_event.triggered_by).to eq('metis@olympus.org|Metis')
+      expect(create_event.size).to eq(datablock.size)
+      expect(create_event.bucket_name).to eq('files')
+      expect(create_event.created_at).to be_within(1).of(Time.now)
+
+      # Assert log_link was called in complete_upload
+      link_event = Metis::DataBlockLedger.where(
+        file_id: file.id,
+        event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
+      ).first
+      expect(link_event).to be_present
+      expect(link_event.project_name).to eq('athena')
+      expect(link_event.md5_hash).to eq(datablock.md5_hash)
+      expect(link_event.file_path).to eq('wisdom.txt')
+      expect(link_event.file_id).to eq(file.id)
+      expect(link_event.data_block_id).to eq(datablock.id)
+      expect(link_event.event_type).to eq(Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK)
+      expect(link_event.triggered_by).to eq('metis@olympus.org|Metis')
+      expect(link_event.size).to eq(datablock.size)
+      expect(link_event.bucket_name).to eq('files')
+      expect(link_event.created_at).to be_within(1).of(Time.now)
+
+      # clean up the file
+      File.delete(file.data_block.location)
+      Timecop.return
+    end
+
     it 'completes over an existing file' do
       # the next blob completes the data
       upload = prep_upload('wisdom.txt')

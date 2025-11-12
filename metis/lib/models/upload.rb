@@ -54,13 +54,6 @@ class Metis
 
       data_block = Metis::DataBlock.create_from(file_name, partial_location)
 
-      # Log datablock creation
-      Metis::DataBlockLedger.log_create(
-        datablock: data_block,
-        project_name: project_name,
-        user: author
-      )
-
       file = Metis::File.find_or_create(
           project_name: project_name,
           file_name: new_file_name,
@@ -70,9 +63,13 @@ class Metis
         f.author = author
         f.data_block = data_block
       end
-
       file.update(folder: folder, author: author, data_block: data_block)
-
+      Metis::DataBlockLedger.log_create(
+        file,
+        data_block,
+        author
+      )
+      Metis::DataBlockLedger.log_link(file, data_block, author)
       return file
     end
 

@@ -19,18 +19,37 @@ describe Metis::ChecksumFiles do
     wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, md5_hash: temp_hash)
     stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM, temp_hash)
     wisdom_data = wisdom_file.data_block
-
-    # skip archiving
-    #wisdom_data.update(archive_id: 'skip_archiving')
-    #wisdom_data.refresh
+    temp_block_id = wisdom_data.id
+    expected_md5 = Digest::MD5.hexdigest(WISDOM)
 
     @cmd.execute
 
     wisdom_data.refresh
 
     # now the hash is updated, and the block has been moved to its new location on disk
-    expect(wisdom_data.md5_hash).to eq(Digest::MD5.hexdigest(WISDOM))
+    expect(wisdom_data.md5_hash).to eq(expected_md5)
     expect(wisdom_data).to be_has_data
+    # Assert RESOLVE_DATABLOCK event was logged
+    resolve_event = Metis::DataBlockLedger.where(
+      event_type: Metis::DataBlockLedger::RESOLVE_DATABLOCK
+    ).first
+    expect(resolve_event).to be_present
+    expect(resolve_event.project_name).to eq('athena')
+    expect(resolve_event.md5_hash).to eq(expected_md5)
+    expect(resolve_event.file_path).to eq('wisdom.txt')
+    expect(resolve_event.file_id).to eq(wisdom_file.id)
+    expect(resolve_event.data_block_id).to eq(temp_block_id)
+    expect(resolve_event.event_type).to eq(Metis::DataBlockLedger::RESOLVE_DATABLOCK)
+    expect(resolve_event.triggered_by).to eq(Metis::DataBlockLedger::CHECKSUM_COMMAND)
+    expect(resolve_event.size).to eq(WISDOM.length)
+    expect(resolve_event.bucket_name).to eq('files')
+    expect(resolve_event.created_at).to be_within(1).of(Time.now)
+
+    # Verify no REUSE_DATABLOCK events were logged (no deduplication occurred)
+    reuse_events = Metis::DataBlockLedger.where(
+      event_type: Metis::DataBlockLedger::REUSE_DATABLOCK
+    ).all
+    expect(reuse_events).to be_empty
   end
 
   it "does not try to checksum removed data blocks" do
@@ -55,11 +74,13 @@ describe Metis::ChecksumFiles do
     wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, md5_hash: temp_hash)
     stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM, temp_hash)
     wisdom_data = wisdom_file.data_block
+    temp_block_id = wisdom_data.id
 
     # an existing file with the same md5
     old_wisdom_file = create_file('athena', 'old_wisdom.txt', WISDOM)
     stubs.create_file('athena', 'files', 'old_wisdom.txt', WISDOM)
     old_wisdom_data = old_wisdom_file.data_block
+    existing_block_id = old_wisdom_data.id
 
     # an innocent bystander file
     helmet_file = create_file('athena', 'helmet.txt', HELMET)
@@ -90,7 +111,24 @@ describe Metis::ChecksumFiles do
     expect(wisdom_file.data_block_id).to eq(old_wisdom_data.id)
     expect(helmet_file.data_block_id).to eq(helmet_data.id)
 
+    reuse_event = Metis::DataBlockLedger.where(
+      event_type: Metis::DataBlockLedger::REUSE_DATABLOCK,
+    ).first
+
+    expect(reuse_event).to be_present
+    expect(reuse_event.project_name).to eq('athena')
+    expect(reuse_event.md5_hash).to eq(Digest::MD5.hexdigest(WISDOM))
+    expect(reuse_event.file_path).to eq('wisdom.txt')
+    expect(reuse_event.file_id).to eq(wisdom_file.id)
+    expect(reuse_event.data_block_id).to eq(existing_block_id)
+    expect(reuse_event.event_type).to eq(Metis::DataBlockLedger::REUSE_DATABLOCK)
+    expect(reuse_event.triggered_by).to eq(Metis::DataBlockLedger::CHECKSUM_COMMAND)
+    expect(reuse_event.size).to eq(WISDOM.length)
+    expect(reuse_event.bucket_name).to eq('files')
+    expect(reuse_event.created_at).to be_within(1).of(Time.now)
+    
   end
+
 end
 
 describe Metis::Archive do
