@@ -149,12 +149,6 @@ class UploadController < Metis::Controller
 
     new_file = upload.finish!
 
-    # Log to datablock ledger
-    Metis::DataBlockLedger.log_link(
-      file: new_file,
-      user: @user
-    )
-
     # we will embed the new file hash inside the
     # upload hash
     upload_hash = upload.to_hash
