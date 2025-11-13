@@ -101,6 +101,9 @@ describe Metis::BackfillDataBlockLedger do
   end
 
   before(:each) do
+    # Disable ledger for backfill tests
+    ENV['METIS_LEDGER_ENABLED'] = "false"
+    
     default_bucket('athena')
 
     @metis_uid = Metis.instance.sign.uid
@@ -197,7 +200,7 @@ describe Metis::BackfillDataBlockLedger do
       unlink_events = Metis::DataBlockLedger.where(
         event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
       ).all
-      
+
       expect(unlink_events.count).to eq(2)
       
       # Verify wisdom file unlink event

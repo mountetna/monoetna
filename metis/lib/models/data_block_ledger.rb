@@ -15,6 +15,14 @@ class Metis
     SYSTEM_BACKFILL = 'system_backfill'
     CHECKSUM_COMMAND= 'command_checksum'
 
+    # Environment variable to enable/disable automatic logging
+    # Set METIS_LEDGER_ENABLED=false to disable logging (useful when running backfill first)
+    def self.ledger_enabled
+      env_value = ENV['METIS_LEDGER_ENABLED']
+      return false if env_value.nil?
+      env_value.to_s.downcase == 'true'
+    end
+
     def validate
       super
       # Allow project_name to be nil for:
@@ -31,6 +39,7 @@ class Metis
     end
 
     def self.log_create(file, datablock, user)
+      return unless ledger_enabled
       create(
         project_name: file.project_name,
         md5_hash: datablock.md5_hash,
@@ -48,6 +57,7 @@ class Metis
     end
 
   def self.log_link(file, datablock, user)
+      return unless ledger_enabled
       create(
         project_name: file.project_name,
         md5_hash: datablock.md5_hash,
@@ -65,6 +75,7 @@ class Metis
     end
 
     def self.log_resolve(file, datablock, event)
+      return unless ledger_enabled
       create(
         project_name: file.project_name,
         md5_hash: datablock.md5_hash,
@@ -82,6 +93,7 @@ class Metis
     end
 
     def self.log_deduplicate(file, datablock, user)
+      return unless ledger_enabled
       create(
         project_name: file.project_name,
         md5_hash: datablock.md5_hash,
@@ -99,6 +111,7 @@ class Metis
     end
 
     def self.log_unlink(file, datablock, user)
+      return unless ledger_enabled
       create(
         project_name: file.project_name,
         md5_hash: datablock.md5_hash,
@@ -116,6 +129,7 @@ class Metis
     end
 
     def self.log_vacuum(datablock, project_name, user)
+      return unless ledger_enabled
       create(
         project_name: project_name,
         md5_hash: datablock.md5_hash,
