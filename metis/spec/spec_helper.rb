@@ -12,6 +12,7 @@ ENV['METIS_ENV'] = 'test'
 
 require_relative '../lib/metis'
 require_relative '../lib/server'
+require_relative '../lib/commands'
 
 require 'etna/spec/event_log'
 
@@ -508,6 +509,49 @@ def create_file(project_name, file_name, contents, params={})
       data_block: data_block
     }.merge(params)
   )
+end
+
+def upload_file_via_api(project_name, file_name, contents, bucket_name: 'files')
+  # Start upload (uses HMAC authentication)
+  hmac_header
+  json_post(
+    "/#{project_name}/upload/#{bucket_name}/#{file_name}",
+    file_size: contents.length,
+    action: 'start',
+    next_blob_size: contents.length,
+    next_blob_hash: Digest::MD5.hexdigest(contents)
+  )
+  expect(last_response.status).to eq(200)
+  
+  # Upload the file content as a single blob
+  blob_file = Tempfile.new('upload_blob')
+  blob_file.write(contents)
+  blob_file.rewind
+  
+  hmac_header
+  post(
+    "/#{project_name}/upload/#{bucket_name}/#{file_name}",
+    action: 'blob',
+    next_blob_size: 0,
+    next_blob_hash: '',
+    current_byte_position: 0,
+    blob_data: Rack::Test::UploadedFile.new(blob_file.path, 'application/octet-stream')
+  )
+  expect(last_response.status).to eq(200)
+  
+  blob_file.close
+  blob_file.unlink
+  
+  # Return the created file (reload to get latest data)
+  file = Metis::File.where(file_name: file_name, project_name: project_name).first
+  file.reload if file
+  
+  # Run ChecksumFiles command to compute actual hash from temporary hash
+  cmd = Metis::ChecksumFiles.new
+  cmd.execute
+  file.reload
+  
+  file
 end
 
 # From Ruby stdlib tests
