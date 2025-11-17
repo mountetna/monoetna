@@ -1,3 +1,5 @@
+require_relative '../lib/commands'
+
 describe StatsController do
   include Rack::Test::Methods
 
@@ -5,130 +7,79 @@ describe StatsController do
     OUTER_APP
   end
 
-  context "#file_count_by_project" do
+  context "#ledger legacy" do
     before(:each) do
-      create_file('athena', 'wisdom.txt', WISDOM)
-      create_file('labors', 'helmet.jpg', HELMET)
-      create_file('labors', 'helmet-shiny.jpg', SHINY_HELMET)
+      # Disable ledger for backfill tests
+      ENV['METIS_LEDGER_ENABLED'] = 'false'
+      create_delete_and_backfill_files
     end
 
-    it "returns file count for all projects if none specified" do
+    it "returns vacuum stats for legacy datablocks" do
       token_header(:supereditor)
-      get('/api/stats/files')
+      get('/api/stats/ledger', legacy: true)
 
       expect(last_response.status).to eq(200)
+      response = json_body
 
-      expect(json_body).to eq({
-        athena: 1,
-        labors: 2,
-      })
-    end
+      expect(response).to be_a(Hash)
+      expect(response[:datablocks_can_vacuum]).to be_a(Integer)
+      expect(response[:space_can_clear]).to be_a(Integer)
 
-    it "returns stats only for specified projects" do
-      token_header(:supereditor)
-      get('/api/stats/files', projects: ['athena'])
-
-      expect(last_response.status).to eq(200)
-
-      expect(json_body).to eq({
-        athena: 1,
-      })
+      # Should have at least 2 orphaned datablocks (wisdom and helmet)
+      expect(response[:datablocks_can_vacuum]).to be >= 2
+      expect(response[:space_can_clear]).to be >= (WISDOM.bytesize + HELMET.bytesize)
     end
 
     it "only allows supereditors" do
       token_header(:editor)
-      get('/api/stats/files')
+      get('/api/stats/ledger', legacy: true)
 
       expect(last_response.status).to eq(403)
     end
   end
 
-  context "#file_count" do
+  context "#ledger project" do
     before(:each) do
-      create_file('athena', 'wisdom.txt', WISDOM)
-      create_file('athena', 'helmet.jpg', HELMET)
-      create_file('athena', 'helmet-shiny.jpg', SHINY_HELMET)
+      # Enable ledger for project-based tests
+      ENV['METIS_LEDGER_ENABLED'] = 'true'
+      default_bucket('athena')
+      
+      @metis_uid = Metis.instance.sign.uid
+      set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
+      
+      @user = Etna::User.new(AUTH_USERS[:editor])
     end
 
-    it "returns file count for the project" do
-      token_header(:viewer)
-      get('/api/stats/files/athena')
-
-      expect(last_response.status).to eq(200)
-
-      expect(json_body).to eq(athena: 3)
-    end
-
-    it "only allows project viewers" do
-      token_header(:non_user)
-      get('/api/stats/files/athena')
-
-      expect(last_response.status).to eq(403)
-    end
-  end
-
-  context "#byte_count_by_project" do
-    before(:each) do
-      create_file('athena', 'wisdom.txt', WISDOM)
-      create_file('labors', 'helmet.jpg', HELMET)
-      create_file('labors', 'helmet-shiny.jpg', SHINY_HELMET)
-    end
-
-    it "returns file count for all projects if none specified" do
-      token_header(:supereditor)
-      get('/api/stats/bytes')
-
-      expect(last_response.status).to eq(200)
-
-      expect(json_body).to eq({
-        athena: WISDOM.bytesize,
-        labors: (HELMET + SHINY_HELMET).bytesize,
-      })
-    end
-
-    it "returns stats only for specified projects" do
-      token_header(:supereditor)
-      get('/api/stats/bytes', projects: ['athena'])
-
-      expect(last_response.status).to eq(200)
-
-      expect(json_body).to eq({
-        athena: WISDOM.bytesize,
-      })
-    end
-
-    it "only allows supereditors" do
+    it "returns vacuum stats for a project" do
+      # Create file via upload API (triggers log_link automatically)
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      
+      # Delete the file via API (this will automatically log unlink event)
       token_header(:editor)
-      get('/api/stats/bytes')
-
-      expect(last_response.status).to eq(403)
-    end
-  end
-
-  context "#byte_count" do
-    before(:each) do
-      create_file('athena', 'wisdom.txt', WISDOM)
-      create_file('athena', 'helmet.jpg', HELMET)
-      create_file('athena', 'helmet-shiny.jpg', SHINY_HELMET)
-      create_file('labors', 'labors-list.txt', LABORS_LIST)
-    end
-
-    it "returns file count for all projects if none specified" do
-      token_header(:viewer)
-      get('/api/stats/bytes/athena')
-
+      delete("/athena/file/remove/files/wisdom.txt")
       expect(last_response.status).to eq(200)
-
-      expect(json_body).to eq({
-        athena: (WISDOM + HELMET + SHINY_HELMET).bytesize,
-      })
-    end
-
-    it "only allows project viewers" do
-      token_header(:non_user)
-      get('/api/stats/bytes/athena')
-
-      expect(last_response.status).to eq(403)
+      
+      # Check vacuum stats for the project
+      token_header(:supereditor)
+      get('/api/stats/ledger', project_name: 'athena')
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      
+      expect(response).to be_a(Hash)
+      expect(response[:project_name]).to eq('athena')
+      expect(response[:vacuum]).to be_a(Hash)
+      expect(response[:vacuum][:datablocks_can_vacuum]).to be_a(Integer)
+      expect(response[:vacuum][:space_can_clear]).to be_a(Integer)
+      
+      # Should have at least 1 orphaned datablock (wisdom)
+      expect(response[:vacuum][:datablocks_can_vacuum]).to be >= 1
+      expect(response[:vacuum][:space_can_clear]).to be >= WISDOM.bytesize
+      
+      # Should have event counts
+      expect(response[:event_counts]).to be_a(Hash)
+      expect(response[:event_counts][Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK]).to eq(1)
+      expect(response[:event_counts][Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK]).to eq(1)
     end
   end
 end

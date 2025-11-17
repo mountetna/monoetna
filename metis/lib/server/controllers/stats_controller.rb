@@ -47,6 +47,51 @@ class StatsController < Metis::Controller
       ).select_map(:size).sum
     )
   end
+
+  def ledger
+    if @params[:legacy] && (@params[:legacy] == true || @params[:legacy].to_s.downcase == 'true')
+      # Legacy mode: calculate vacuum stats for legacy datablocks
+      orphaned_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks_legacy
+      
+      vacuum_stats = {
+        datablocks_can_vacuum: orphaned_datablocks.length,
+        space_can_clear: orphaned_datablocks.sum(&:size)
+      }
+      
+      success_json(vacuum_stats)
+    elsif @params[:project_name]
+      # Project mode: high-level count summary + vacuum stats
+      project_name = @params[:project_name]
+      
+      # Count all event types for this project
+      event_counts = Metis::DataBlockLedger
+        .where(project_name: project_name)
+        .select_map(:event_type)
+        .tally
+      
+      # Initialize all event types to 0 if they don't exist
+      Metis::DataBlockLedger::EVENT_TYPES.each do |event_type|
+        event_counts[event_type] ||= 0
+      end
+      
+      # Calculate vacuum stats
+      orphaned_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks(project_name)
+      
+      vacuum_stats = {
+        datablocks_can_vacuum: orphaned_datablocks.length,
+        space_can_clear: orphaned_datablocks.sum(&:size)
+      }
+      
+      success_json({
+        project_name: project_name,
+        event_counts: event_counts,
+        vacuum: vacuum_stats
+      })
+    else
+      raise Etna::BadRequest, "Must provide either 'project_name' or 'legacy' parameter"
+    end
+  end
+
   private
 
   def count_detached!(count_by_project)

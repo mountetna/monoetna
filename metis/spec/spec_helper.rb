@@ -554,6 +554,33 @@ def upload_file_via_api(project_name, file_name, contents, bucket_name: 'files')
   file
 end
 
+def create_delete_and_backfill_files
+  wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+  helmet_file = create_file('athena', 'helmet.jpg', HELMET)
+  stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+  stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+
+  wisdom_datablock_id = wisdom_file.data_block_id
+  helmet_datablock_id = helmet_file.data_block_id
+
+  # Delete both files using the API (simulating real user deletion)
+  token_header(:editor)
+  delete("/athena/file/remove/files/wisdom.txt")
+  expect(last_response.status).to eq(200)
+  delete("/athena/file/remove/files/helmet.jpg")
+  expect(last_response.status).to eq(200)
+
+  # Backfill orphaned datablocks (creates unlink events with SYSTEM_BACKFILL)
+  backfill_ledger = Metis::BackfillDataBlockLedger.new
+  allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+  backfill_ledger.execute('-orphaned')
+
+  {
+    wisdom_data_block_id: wisdom_datablock_id,
+    helmet_data_block_id: helmet_datablock_id
+  }
+end
+
 # From Ruby stdlib tests
 # https://fossies.org/linux/ruby/test/readline/test_readline.rb
 def with_temp_stdio
