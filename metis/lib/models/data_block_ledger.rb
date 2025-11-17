@@ -129,7 +129,7 @@ class Metis
     end
 
     def self.log_vacuum(datablock, project_name, user)
-      return unless ledger_enabled
+      # Log vaccum can be run at any time, so we don't need to check ledger_enabled
       create(
         project_name: project_name,
         md5_hash: datablock.md5_hash,
@@ -193,8 +193,17 @@ class Metis
         triggered_by: SYSTEM_BACKFILL,
         event_type: UNLINK_FILE_FROM_DATABLOCK
       ).select_map(:data_block_id).uniq
+      
+      # Exclude datablock IDs that have already been vacuumed (have REMOVE_DATABLOCK events)
+      vacuumed_datablock_ids = where(
+        event_type: REMOVE_DATABLOCK
+      ).select_map(:data_block_id).uniq
+      
+      orphaned_ids = backfilled_datablock_ids - vacuumed_datablock_ids
+      
       Metis::DataBlock
-        .where(id: backfilled_datablock_ids)
+        .where(id: orphaned_ids)
+        .exclude(removed: true)
         .all
     end
   end

@@ -343,6 +343,10 @@ describe DataBlockController do
   end
 
   context '#vacuum_datablocks with existing backfilled records (legacy)' do
+    before(:each) do
+      # Disable ledger for backfill tests
+      ENV['METIS_LEDGER_ENABLED'] = 'false'
+    end
 
     def create_delete_and_backfill_files
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
@@ -433,10 +437,10 @@ describe DataBlockController do
       wisdom_data_block = wisdom_file.data_block
       
       # Log link event (simulating upload)
-      Metis::DataBlockLedger.log_link(wisdom_file, @user)
+      Metis::DataBlockLedger.log_link(wisdom_file, wisdom_data_block, @user)
       
       # Delete the file and log unlink (normal flow, not SYSTEM_BACKFILL)
-      Metis::DataBlockLedger.log_unlink(wisdom_file, @user)
+      Metis::DataBlockLedger.log_unlink(wisdom_file, wisdom_data_block, @user)
       wisdom_file.delete
       
       # Verify unlink event was created (not SYSTEM_BACKFILL)
@@ -447,7 +451,7 @@ describe DataBlockController do
       expect(unlink_event).to be_present
       expect(unlink_event.triggered_by).not_to eq(Metis::DataBlockLedger::SYSTEM_BACKFILL)
       
-      token_header(:admin)
+      token_header(:supereditor)
       json_post('/api/vacuum_datablocks/athena', {})
       
       expect(last_response.status).to eq(200)
@@ -475,7 +479,7 @@ describe DataBlockController do
     it 'only vacuums datablocks for the specified project' do
       # Create files in two projects
       athena_file = create_file('athena', 'athena.txt', WISDOM)
-      ate_file = create_file('ate', 'ate.txt', WISDOM)
+      ate_file = create_file('ate', 'ate.txt', HELMET)
       stubs.create_file('athena', 'files', 'athena.txt', WISDOM)
       stubs.create_file('ate', 'files', 'ate.txt', WISDOM)
       
@@ -483,14 +487,14 @@ describe DataBlockController do
       athena_datablock_id = athena_file.data_block_id
       
       # Log events (normal flow)
-      Metis::DataBlockLedger.log_link(athena_file, @user)
-      Metis::DataBlockLedger.log_link(ate_file, @user)
+      Metis::DataBlockLedger.log_link(athena_file, athena_file.data_block, @user)
+      Metis::DataBlockLedger.log_link(ate_file, ate_file.data_block, @user)
       
       # Delete athena file and log unlink
-      Metis::DataBlockLedger.log_unlink(athena_file, @user)
+      Metis::DataBlockLedger.log_unlink(athena_file, athena_file.data_block, @user)
       athena_file.delete
       
-      token_header(:admin)
+      token_header(:supereditor)
       json_post('/api/vacuum_datablocks/athena', {})
       
       expect(last_response.status).to eq(200)
@@ -513,9 +517,9 @@ describe DataBlockController do
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
       
-      Metis::DataBlockLedger.log_link(wisdom_file, @user)
+      Metis::DataBlockLedger.log_link(wisdom_file, wisdom_file.data_block, @user)
       
-      token_header(:admin)
+      token_header(:supereditor)
       json_post('/api/vacuum_datablocks/athena', {})
       
       expect(last_response.status).to eq(200)
@@ -530,12 +534,12 @@ describe DataBlockController do
       
       wisdom_data_block = wisdom_file.data_block
       
-      Metis::DataBlockLedger.log_link(wisdom_file, @user)
-      Metis::DataBlockLedger.log_unlink(wisdom_file, @user)
+      Metis::DataBlockLedger.log_link(wisdom_file, wisdom_data_block, @user)
+      Metis::DataBlockLedger.log_unlink(wisdom_file, wisdom_data_block, @user)
       wisdom_file.delete
       
       # Vacuum once
-      token_header(:admin)
+      token_header(:supereditor)
       json_post('/api/vacuum_datablocks/athena', {})
       expect(last_response.status).to eq(200)
       
@@ -552,15 +556,15 @@ describe DataBlockController do
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
       
-      Metis::DataBlockLedger.log_link(wisdom_file, @user)
-      Metis::DataBlockLedger.log_link(helmet_file, @user)
+      Metis::DataBlockLedger.log_link(wisdom_file, wisdom_file.data_block, @user)
+      Metis::DataBlockLedger.log_link(helmet_file, helmet_file.data_block, @user)
       
-      Metis::DataBlockLedger.log_unlink(wisdom_file, @user)
-      Metis::DataBlockLedger.log_unlink(helmet_file, @user)
+      Metis::DataBlockLedger.log_unlink(wisdom_file, wisdom_file.data_block, @user)
+      Metis::DataBlockLedger.log_unlink(helmet_file, helmet_file.data_block, @user)
       wisdom_file.delete
       helmet_file.delete
       
-      token_header(:admin)
+      token_header(:supereditor)
       json_post('/api/vacuum_datablocks/athena', {})
       
       expect(last_response.status).to eq(200)
@@ -577,7 +581,7 @@ describe DataBlockController do
     end
 
     it 'returns empty result when no orphaned datablocks exist' do
-      token_header(:admin)
+      token_header(:supereditor)
       json_post('/api/vacuum_datablocks/athena', {})
       
       expect(last_response.status).to eq(200)

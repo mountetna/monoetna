@@ -33,9 +33,9 @@ class DataBlockController < Metis::Controller
 
         # Log vacuum event BEFORE deletion
         Metis::DataBlockLedger.log_vacuum(
-          datablock: datablock,
-          project_name: is_legacy ? nil : project_name,
-          user: @user
+          datablock,
+          is_legacy ? nil : project_name,
+          @user
         )
         
         # Remove the datablock

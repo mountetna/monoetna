@@ -353,6 +353,7 @@ class Metis
             end
             
             # Create a 'link_file_to_datablock' event for each existing file
+            # Don't use log_link here because when we run backfill commands we disable real time ledger logging
             Metis::DataBlockLedger.create(
               project_name: file.project_name,
               md5_hash: file.data_block.md5_hash,
@@ -450,6 +451,7 @@ class Metis
           end
           
           # Create synthetic 'unlink_file_from_datablock' event for orphaned datablock
+          # Don't use log_unlink here because when we run backfill commands we disable real time ledger logging
           Metis::DataBlockLedger.create(
             project_name: nil, # We don't know the project name for orphaned datablocks
             md5_hash: datablock.md5_hash,
