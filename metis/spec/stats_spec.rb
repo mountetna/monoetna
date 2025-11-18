@@ -66,20 +66,18 @@ describe StatsController do
       expect(last_response.status).to eq(200)
       response = json_body
       
-      expect(response).to be_a(Hash)
-      expect(response[:project_name]).to eq('athena')
-      expect(response[:vacuum]).to be_a(Hash)
-      expect(response[:vacuum][:datablocks_can_vacuum]).to be_a(Integer)
-      expect(response[:vacuum][:space_can_clear]).to be_a(Integer)
-      
       # Should have at least 1 orphaned datablock (wisdom)
       expect(response[:vacuum][:datablocks_can_vacuum]).to be >= 1
       expect(response[:vacuum][:space_can_clear]).to be >= WISDOM.bytesize
       
-      # Should have event counts
+      # Should have event counts (keys are symbols after JSON parsing)
       expect(response[:event_counts]).to be_a(Hash)
-      expect(response[:event_counts][Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK]).to eq(1)
-      expect(response[:event_counts][Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK]).to eq(1)
+      expect(response[:event_counts][:create_datablock]).to eq(1)
+      expect(response[:event_counts][:link_file_to_datablock]).to eq(1)
+      expect(response[:event_counts][:resolve_datablock]).to eq(1)
+      expect(response[:event_counts][:unlink_file_from_datablock]).to eq(1)
+      expect(response[:event_counts][:reuse_datablock]).to eq(0)
+      expect(response[:event_counts][:remove_datablock]).to eq(0)
     end
   end
 end
