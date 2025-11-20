@@ -12,7 +12,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project, ProjectHeadingInfoSet, PROJECTS_SEARCH_PARAMS_KEY, ProjectsSearchParamsControls, ProjectsSearchParamsState } from './models';
 import ProjectListing from './project-listing';
-import Pagination, { PaginationClasses } from '@/components/searchable-list/controls/pagination'
+import ProjectTable from './project-table';
+import { ProjectExplorerContext } from './context';
 import DrawerButton from '@/components/searchable-list/controls/drawer/button';
 import Drawer from '@/components/searchable-list/controls/drawer/drawer';
 import Autocomplete from '@/components/searchable-list/controls/autocomplete';
@@ -22,7 +23,6 @@ import FilterPill from '../searchable-list/filter-pill';
 import FilterList from './filter-list';
 import { ValueOf } from '@/lib/utils/types';
 import { FILE_EXPORT_STATUS, handleExportFile, MIME_FILE_FORMATS } from '@/lib/utils/file-export';
-import { DrawerSectionClasses, DrawerClasses } from '../searchable-list/controls/drawer/models';
 import { parseSearchParams, toSearchParamsString } from '@/lib/utils/uri';
 import { scrollTo } from '@/lib/utils/scroll';
 import { useBreakpoint } from '@/lib/utils/responsive';
@@ -33,12 +33,6 @@ import filterLightIcon from '/public/images/icons/filter-light.svg'
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
 
-
-const searchableProjectKeys: (keyof SearchableProjectData)[] = ['fullName', 'principalInvestigators', 'type', 'dataTypes', 'theme', 'status', 'hasClinicalData']
-
-interface SearchableProjectData extends Pick<Project, 'fullName' | 'principalInvestigators' | 'type' | 'dataTypes' | 'theme' | 'hasClinicalData'> {
-    status: ExternalProjectStatus
-}
 
 interface FilterItem {
     // TODO: define value and type as separate interfaces? using Omit is a bit confusing
@@ -74,15 +68,13 @@ const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsL
 
 
 // TODO: use separate list component in searchable-list module
-function _ProjectExplorer({
-    projectData,
-}: {
-    projectData: Project[],
-}) {
+function _ProjectExplorer({ }) {
     // Manage search params sync
+    const { state: { projectData } } = React.useContext(ProjectExplorerContext);
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
+    const filterItems = [];
 
     React.useEffect(() => {
         const parsedSearchParams = parseSearchParams(searchParams)
@@ -133,172 +125,13 @@ function _ProjectExplorer({
     const breakpoint = useBreakpoint()
     const isMobile = breakpoint === 'mobile'
 
-    const [currentPage, setCurrentPage] = React.useState(0)
-    const pageSize = 12
-
     const countsByFilterItemType: Record<string, Record<string, number>> = defaultDict(_ => defaultDict(_ => 0))
-
-    const [searchOptions] = React.useState(() => {
-
-        const _searchOptions: Set<FilterItem> = new Set()
-
-        const existingOptions = new Set<string>()
-
-        function addOption(value: FilterItem['value'], type: FilterItem['type'], projectKey: keyof SearchableProjectData) {
-            const key = getFilterItemKey(value, type)
-
-            countsByFilterItemType[type][key] += 1
-
-            if (!existingOptions.has(key)) {
-                existingOptions.add(key)
-                _searchOptions.add({
-                    value,
-                    type,
-                    label: getFilterItemLabel(value, type),
-                    key,
-                    projectKey,
-                })
-            }
-        }
-
-        for (const project of projectData) {
-            for (const projectKey of searchableProjectKeys) {
-
-                let value = project[projectKey]
-                let type: FilterItem['type']
-
-                switch (projectKey) {
-                    case 'type':
-                    case 'hasClinicalData':
-                        type = projectKey
-                        break
-                    case 'status':
-                        value = getExternalProjectStatus(project)
-                        type = projectKey
-                        break
-                    case 'theme':
-                        value = (value as ThemeData).name
-                        type = projectKey
-                        break
-                    case 'fullName':
-                        type = 'name'
-                        break
-                    case 'principalInvestigators':
-                        type = 'principalInvestigator'
-                        break
-                    case 'dataTypes':
-                        type = 'dataType'
-                        break
-                }
-
-                if (Array.isArray(value)) {
-                    for (const item of value) {
-                        addOption(
-                            item,
-                            type,
-                            projectKey
-                        )
-                    }
-                } else {
-                    addOption(
-                        value,
-                        type,
-                        projectKey,
-                    )
-                }
-            }
-        }
-        return [..._searchOptions]
-    })
 
     const searchPlaceholder = 'Search e.g. "Fibrosis"'
 
-    const [drawerItems] = React.useState(() => {
-        const filtered = searchOptions
-            .filter((option) => {
-                return drawerFilterItemTypes.includes(option.type)
-            })
-
-        const itemsByType: Record<string, FilterItem[]> = {}
-        for (const item of filtered) {
-            if (!(item.type in itemsByType)) {
-                itemsByType[item.type] = []
-            }
-            itemsByType[item.type].push(item)
-        }
-
-        const sorted: FilterItem[] = []
-        for (const [type, items] of Object.entries(itemsByType)) {
-            const counts = countsByFilterItemType[type]
-            items.sort((a, b) => counts[b.key] - counts[a.key])
-            sorted.push(...items)
-        }
-        return sorted
-    })
-
     const [drawerOpen, setDrawerOpen] = React.useState(true)
 
-    const [filterItems, setFilterItems] = React.useState<FilterItem[]>([])
-
-    const [filterMethod, setFilterMethod] = React.useState<(typeof filterMethods)[number]>(filterMethods[0])
-
-    const filteredProjectData = projectData
-        .filter((project) => {
-            if (filterItems.length === 0) return true;
-
-            function doesFilterItemMatch(filterItem: FilterItem): boolean {
-                const projectKey = filterItem.projectKey
-                let projectValue
-
-                switch (projectKey) {
-                    case 'fullName':
-                    case 'type':
-                    case 'hasClinicalData':
-                        projectValue = project[projectKey]
-                        break
-                    case 'dataTypes':
-                        for (const dt of project.dataTypes) {
-                            if (dt === filterItem.value) {
-                                return true
-                            }
-                        }
-                        return false
-                    case 'theme':
-                        projectValue = project.theme.name
-                        break
-                    case 'status':
-                        projectValue = getExternalProjectStatus(project)
-                        break
-                    case 'principalInvestigators':
-                        for (const pi of project.principalInvestigators) {
-                            if (pi.name === (filterItem.value as PrincipalInvestigator).name) {
-                                return true
-                            }
-                        }
-                        return false
-                }
-
-                return projectValue === filterItem.value
-            }
-
-            switch (filterMethod.label) {
-                case FilterMethod.all:
-                    return filterItems.every(item => doesFilterItemMatch(item))
-                case FilterMethod.any:
-                    return filterItems.some(item => doesFilterItemMatch(item))
-            }
-        })
-
-    const paginatedFilteredProjectData = filteredProjectData
-        .slice(currentPage * pageSize, currentPage * pageSize + pageSize)
-        .map(proj => ({
-            project: proj,
-            nodeRef: React.createRef<HTMLElement>(),
-        }))
-
-
     const [viewSet, setViewSet] = React.useState<(typeof viewSets)[number]>(viewSets[0])
-
 
     // Sync url with filter+control states
     const updateUrl = (filterItems: FilterItem[], viewSet: FilterItem, filterMethod: FilterItem, currentPage: number) => {
@@ -342,36 +175,10 @@ function _ProjectExplorer({
     }
 
 
-    // Handle book open state to coordinate only having one open at a time
-    const [projectOpens, setProjectOpens] = React.useState(projectData.map(_ => false))
-
-    const handleSetProjectOpen = (newOpenState: boolean, projectIdx: number) => {
-        setProjectOpens(opens => opens.map((_, idx) => {
-            if (idx === projectIdx) {
-                return newOpenState
-            }
-            return false
-        }))
-
-    }
-
-    const closeAllProjects = () => {
-        setProjectOpens(opens => opens.map(_ => false))
-    }
-
     const handleSetCurrentPage = (page: number) => {
         closeAllProjects()
         setCurrentPage(page)
         updateUrl(filterItems, viewSet, filterMethod, page)
-    }
-
-    const scrollToProject = (nodeRef: React.RefObject<HTMLElement>) => {
-        const projectEl = nodeRef.current
-        if (projectEl === null) {
-            return
-        }
-
-        scrollTo({ top: projectEl.offsetTop }, breakpoint)
     }
 
     const handleChangeFilterItems = (filterItems: FilterItem[]) => {
@@ -416,25 +223,6 @@ function _ProjectExplorer({
             'ucsf-data-library-projects',
         )
     }
-
-    const paginationEl = (
-        <Pagination
-            currentPage={currentPage}
-            pageSize={pageSize}
-            listSize={filteredProjectData.length}
-            onClickPrev={() => handleSetCurrentPage(currentPage - 1)}
-            onClickNext={() => handleSetCurrentPage(currentPage + 1)}
-            listItemLabel='projects'
-            sx={{
-                [theme.breakpoints.up('tablet')]: {
-                    height: '100%',
-                    [`& .${PaginationClasses.pageInfo}`]: {
-                        height: '100%',
-                    },
-                },
-            }}
-        />
-    )
 
     return (
         <Container
@@ -534,7 +322,7 @@ function _ProjectExplorer({
                                     filterSelectedOptions
                                     icon={searchDarkIcon}
                                     placeholder={searchPlaceholder}
-                                    options={[...searchOptions].sort((a, b) => a.type.localeCompare(b.type))}
+                                    options={[]}
                                     showResultsOnEmpty={false}
                                     // @ts-ignore
                                     onChange={(_, value: FilterItem[], reason) => {
@@ -614,8 +402,6 @@ function _ProjectExplorer({
                                 />
 
                             </Box>
-
-                            {!isMobile && paginationEl}
                         </Box>
 
                           {filterItems.length > 0 && <Box
@@ -641,8 +427,6 @@ function _ProjectExplorer({
                               )))}
                           </Box>}
                     </Box>
-
-                    {isMobile && paginationEl}
                 </Box>
 
                 <Box sx={{
@@ -668,37 +452,11 @@ function _ProjectExplorer({
                   }
                   <Box
                       role='list'
-                      sx={{
-                          bgcolor: 'utilityWhite.main',
-                          borderRadius: '20px',
-                          overflow: 'hidden',
-                      }}
+                      sx={{ flex: '1 1 auto' }}
                   >
-                      <Fade
-                          key={paginatedFilteredProjectData.reduce((prev, curr) => prev + curr.project.fullName, '')}
-                          in={true}
-                          easing={theme.transitions.easing.ease}
-                          timeout={theme.transitions.duration.ease}
-                          exit={false}
-                      >
-                          <Box>
-                              {paginatedFilteredProjectData.map(({ project, nodeRef }, i) => (
-                                  <Box
-                                      key={project.fullName}
-                                      ref={nodeRef}
-                                      role='listitem'
-                                  >
-                                      <ProjectListing
-                                          data={project}
-                                          open={projectOpens[i]}
-                                          headingInfoSet={(viewSet.label as ProjectHeadingInfoSet)}
-                                          onSetOpen={open => handleSetProjectOpen(open, i)}
-                                          onFinishOpen={() => scrollToProject(nodeRef)}
-                                      />
-                                  </Box>
-                              ))}
-                          </Box>
-                      </Fade>
+                    <Box>
+                      <ProjectTable/>
+                    </Box>
                   </Box>
               </Box>
             </Box>
@@ -707,16 +465,10 @@ function _ProjectExplorer({
 }
 
 // Needed for https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
-export default function ProjectExplorer({
-    projectData,
-}: {
-    projectData: Project[],
-}) {
+export default function ProjectExplorer({ }) {
     return (
         <React.Suspense fallback={null}>
-            <_ProjectExplorer
-                projectData={projectData}
-            />
+            <_ProjectExplorer/>
         </React.Suspense>
     )
 }

@@ -16,6 +16,7 @@ import Autocomplete from '@/components/searchable-list/controls/autocomplete';
 import ButtonBase from '@mui/material/ButtonBase';
 import Image from 'next/image';
 import { FormControl } from '@mui/base';
+import { ProjectExplorerContext } from '@/components/project-explorer/context';
 
 const BasicToggle = ({on, labelOn, labelOff, altOn, altOff, iconOn, iconOff, onClick}:{
   on: boolean;
@@ -116,7 +117,11 @@ const Filter = ({title, children}:{
   children: React.ReactNode;
 }) => {
   const [ active, setActive ] = React.useState(false);
-  const [ shown, setShown ] = React.useState(false);
+  const [ fold, setFold ] = React.useState(true);
+
+  const { state: { visibleColumns }, toggleColumnVisibility } = React.useContext(ProjectExplorerContext);
+
+  const visible = visibleColumns.includes(title); 
 
   return <Box sx={{ py: '8px', my: '12px' }}>
     <Box sx={{ display: 'flex', alignItems: 'center'}} >
@@ -124,12 +129,12 @@ const Filter = ({title, children}:{
         <Typography variant="pBodyMediumWt">{title}</Typography>
       </Box>
       <Box sx={{ width: '76px' }}>
-        <ShowHideToggle shown={active} onClick={ () => setActive(!active) }/>
-        <OpenCloseToggle open={shown} onClick={ () => setShown(!shown) }/>
+        <ShowHideToggle shown={visible} onClick={ () => toggleColumnVisibility(title) }/>
+        <OpenCloseToggle open={!fold} onClick={ () => setFold(!fold) }/>
       </Box>
     </Box>
     {
-      shown && <Box sx={{ marginTop: '5px' }}>
+      !fold && <Box sx={{ marginTop: '5px' }}>
         { children }
       </Box>
     }
