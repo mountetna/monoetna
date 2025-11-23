@@ -151,7 +151,7 @@ class Metis
       user.respond_to?(:email) ? user.email : user.to_s
     end
 
-    def self.find_orphaned_datablocks(project_name)
+    def self.find_orphaned_datablocks(project_name, include_projects: [])
       # Get all datablock IDs that this project has linked
       linked_datablock_ids = where(project_name: project_name)
         .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK])
@@ -165,7 +165,7 @@ class Metis
       ).select_map(:data_block_id)
         .uniq
 
-      # Get datablock IDs currently in use by files (safety check)
+      # Get datablock IDs currently in use by files in the current project (safety check)
       used_datablock_ids = Metis::File
         .where(project_name: project_name)
         .select_map(:data_block_id)
@@ -180,6 +180,29 @@ class Metis
 
       # Orphaned = (linked by this project) and (unlinked) and not (currently in use) and not (already vacuumed)
       orphaned_ids = (linked_datablock_ids & unlinked_datablock_ids) - used_datablock_ids - vacuumed_datablock_ids
+
+      # If include_projects is specified, filter out datablocks used by projects not in the allowed list
+      unless include_projects.empty?
+        # Allowed projects = current project + included projects
+        allowed_projects = [project_name] + include_projects
+        
+        # Get datablock IDs used by projects NOT in the allowed list
+        blocking_datablock_ids = Metis::File
+          .exclude(project_name: allowed_projects)
+          .select_map(:data_block_id)
+          .uniq
+        
+        # Remove datablocks that are used by non-included projects
+        orphaned_ids = orphaned_ids - blocking_datablock_ids
+      else
+        # Default behavior: check globally to prevent vacuuming datablocks used by ANY other project
+        used_by_other_projects = Metis::File
+          .exclude(project_name: project_name)
+          .select_map(:data_block_id)
+          .uniq
+        
+        orphaned_ids = orphaned_ids - used_by_other_projects
+      end
 
       Metis::DataBlock
         .where(id: orphaned_ids)
@@ -203,8 +226,44 @@ class Metis
       
       Metis::DataBlock
         .where(id: orphaned_ids)
-        .exclude(removed: true)
+        .exclude(removed: true) # a bit redundant - remove will be set to true by the vacuum command (but this is also called in compute hash if file doesnt have data)
         .all
+    end
+
+    def self.build_vacuum_details(orphaned_datablocks, project_name = nil)
+      orphaned_datablocks.map do |datablock|
+        # Get all events for this datablock to find any available file information
+        all_events = if project_name
+          where(project_name: project_name, data_block_id: datablock.id).all
+        else
+          where(data_block_id: datablock.id).all
+        end
+        
+        # Try to get project_name from any event that has it (for legacy mode)
+        event_project_name = all_events.find { |e| e.project_name }&.project_name
+        
+        # Collect all unique file paths and bucket names from all events
+        files = all_events.map do |event|
+          next if event.file_path.nil? && event.bucket_name.nil?
+          {
+            file_path: event.file_path,
+            bucket_name: event.bucket_name
+          }
+        end.compact.uniq
+        
+        # If no file information available from ledger, note the datablock description
+        # which may contain the original filename
+        description = datablock.description if files.empty? && datablock.description
+        
+        {
+          data_block_id: datablock.id,
+          md5_hash: datablock.md5_hash,
+          size: datablock.size,
+          description: description,
+          project_name: project_name || event_project_name,
+          files: files
+        }
+      end
     end
   end
 end

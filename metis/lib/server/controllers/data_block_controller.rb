@@ -17,12 +17,16 @@ class DataBlockController < Metis::Controller
   def vacuum_datablocks
     project_name = @params[:project_name]
     is_legacy = (project_name == 'legacy')
+    include_projects = @params[:include_projects] || []
+    
+    # Ensure include_projects is an array
+    include_projects = [include_projects] unless include_projects.is_a?(Array)
     
     # Find orphaned datablocks using the ledger
     orphaned_datablocks = if is_legacy
       Metis::DataBlockLedger.find_orphaned_datablocks_legacy
     else
-      Metis::DataBlockLedger.find_orphaned_datablocks(project_name)
+      Metis::DataBlockLedger.find_orphaned_datablocks(project_name, include_projects: include_projects)
     end
     
     vacuumed = []
@@ -58,7 +62,8 @@ class DataBlockController < Metis::Controller
         total_vacuumed: vacuumed.length,
         space_freed: vacuumed.sum { |d| d[:size] || 0 },
         errors_count: errors.length,
-        project_name: project_name
+        project_name: project_name,
+        include_projects: include_projects
       }
     }
     

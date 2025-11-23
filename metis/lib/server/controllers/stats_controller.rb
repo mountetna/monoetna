@@ -49,6 +49,8 @@ class StatsController < Metis::Controller
   end
 
   def ledger
+    verbose = @params[:verbose] && (@params[:verbose] == true || @params[:verbose].to_s.downcase == 'true')
+    
     if @params[:legacy] && (@params[:legacy] == true || @params[:legacy].to_s.downcase == 'true')
       # Legacy mode: calculate vacuum stats for legacy datablocks
       orphaned_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks_legacy
@@ -57,6 +59,10 @@ class StatsController < Metis::Controller
         datablocks_can_vacuum: orphaned_datablocks.length,
         space_can_clear: orphaned_datablocks.sum(&:size)
       }
+      
+      if verbose
+        vacuum_stats[:details] = Metis::DataBlockLedger.build_vacuum_details(orphaned_datablocks)
+      end
       
       success_json(vacuum_stats)
     elsif @params[:project_name]
@@ -75,12 +81,20 @@ class StatsController < Metis::Controller
       end
       
       # Calculate vacuum stats
-      orphaned_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks(project_name)
+      include_projects = @params[:include_projects] || []
+      include_projects = [include_projects] unless include_projects.is_a?(Array)
+      
+      orphaned_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks(project_name, include_projects: include_projects)
       
       vacuum_stats = {
         datablocks_can_vacuum: orphaned_datablocks.length,
-        space_can_clear: orphaned_datablocks.sum(&:size)
+        space_can_clear: orphaned_datablocks.sum(&:size),
+        include_projects: include_projects
       }
+      
+      if verbose
+        vacuum_stats[:details] = Metis::DataBlockLedger.build_vacuum_details(orphaned_datablocks, project_name)
+      end
       
       success_json({
         project_name: project_name,
