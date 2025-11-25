@@ -350,7 +350,7 @@ describe DataBlockController do
 
     it 'vacuums orphaned datablocks for backfilled records' do
       # Create and then delete files to make datablocks orphaned, then backfill
-      result = athena_file_lifecyle
+      result = athena_backfilled_lifecycle
       wisdom_data_block = Metis::DataBlock.where(id: result[:wisdom_data_block_id]).first
       helmet_data_block = Metis::DataBlock.where(id: result[:helmet_data_block_id]).first
       

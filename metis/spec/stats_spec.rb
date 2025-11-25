@@ -14,7 +14,7 @@ describe StatsController do
     end
 
     it "returns return backfilled detauls for a single project " do
-      lifecycle_result = athena_file_lifecyle
+      lifecycle_result = athena_backfilled_lifecycle
       wisdom_datablock = Metis::DataBlock[lifecycle_result[:wisdom_data_block_id]]
       helmet_datablock = Metis::DataBlock[lifecycle_result[:helmet_data_block_id]]
       
@@ -54,7 +54,7 @@ describe StatsController do
     end
 
     it "returns return backfilled detauls for a multi project" do
-      datablock_ids = multi_project_file_lifecyle
+      datablock_ids = multi_project_backfilled_lifecycle
       wisdom_datablock = Metis::DataBlock[datablock_ids[:wisdom_data_block_id]]
       
       token_header(:supereditor)
@@ -65,7 +65,7 @@ describe StatsController do
 
       # Should have event_counts
       expect(response[:event_counts][:create_datablock]).to eq(0)
-      expect(response[:event_counts][:link_file_to_datablock]).to eq(0)
+      expect(response[:event_counts][:link_file_to_datablock]).to eq(2)
       expect(response[:event_counts][:resolve_datablock]).to eq(0)
       expect(response[:event_counts][:unlink_file_from_datablock]).to eq(1)
       expect(response[:event_counts][:reuse_datablock]).to eq(0)
@@ -82,7 +82,7 @@ describe StatsController do
       expect(wisdom_detail[:md5_hash]).to eq(wisdom_datablock.md5_hash)
       expect(wisdom_detail[:size]).to eq(WISDOM.bytesize)
       expect(wisdom_detail[:description]).to eq("wisdom.txt")
-      expect(wisdom_detail[:files]).to eq([]) # 
+      expect(wisdom_detail[:files]).to eq([]) # no files are associated with the datablock
     end
 
 
@@ -147,7 +147,6 @@ describe StatsController do
       expect(response[:vacuum][:include_projects]).to eq(['labors', 'backup'])
       
       # Should have project_breakdown showing datablocks in athena, labors, and backup
-      expect(response[:vacuum][:project_breakdown]).to be_a(Hash)
       expect(response[:vacuum][:project_breakdown][:athena]).to eq(1)
       expect(response[:vacuum][:project_breakdown][:labors]).to eq(1)
       expect(response[:vacuum][:project_breakdown][:backup]).to eq(1)
@@ -158,7 +157,6 @@ describe StatsController do
       end
       
       # Should still have event counts
-      expect(response[:event_counts]).to be_a(Hash)
       expect(response[:event_counts][:create_datablock]).to eq(1)
       expect(response[:event_counts][:link_file_to_datablock]).to eq(1)
       expect(response[:event_counts][:unlink_file_from_datablock]).to eq(1)

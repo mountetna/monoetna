@@ -560,7 +560,7 @@ def upload_file_via_api(project_name, file_name, contents, bucket_name: 'files')
   file
 end
 
-def multi_project_file_lifecyle
+def multi_project_backfilled_lifecycle
   wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
   helmet_file = create_file('athena', 'helmet.jpg', HELMET)
   stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
@@ -589,8 +589,11 @@ def multi_project_file_lifecyle
   delete("/backup/file/remove/files/backup.txt")
   expect(last_response.status).to eq(200)
 
-  # Backfill orphaned datablocks (creates unlink events with SYSTEM_BACKFILL)
   backfill_ledger = Metis::BackfillDataBlockLedger.new
+  allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+  backfill_ledger.execute('athena', '-links')
+  backfill_ledger.execute('labors', '-links')
+  backfill_ledger.execute('backup', '-links')
   allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
   backfill_ledger.execute('-orphaned')
 
@@ -604,7 +607,7 @@ def multi_project_file_lifecyle
 end
 
 
-def athena_file_lifecyle
+def athena_backfilled_lifecycle
   wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
   helmet_file = create_file('athena', 'helmet.jpg', HELMET)
   stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
@@ -620,8 +623,9 @@ def athena_file_lifecyle
   delete("/athena/file/remove/files/helmet.jpg")
   expect(last_response.status).to eq(200)
 
-  # Backfill orphaned datablocks (creates unlink events with SYSTEM_BACKFILL)
   backfill_ledger = Metis::BackfillDataBlockLedger.new
+  allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+  backfill_ledger.execute('athena', '-links')
   allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
   backfill_ledger.execute('-orphaned')
 
