@@ -102,7 +102,7 @@ describe Metis::BackfillDataBlockLedger do
 
   before(:each) do
     # Disable ledger for backfill tests
-    ENV['METIS_LEDGER_ENABLED'] = "false"
+    ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = "false"
     
     default_bucket('athena')
 
@@ -117,7 +117,7 @@ describe Metis::BackfillDataBlockLedger do
     stubs.clear
   end
 
-  context 'backfill ledger' do
+  context 'backfill ledger link' do
     before(:each) do
       token_header(:editor)
     end
@@ -170,6 +170,24 @@ describe Metis::BackfillDataBlockLedger do
       
       wisdom_file.delete
     end
+
+    it "creates links events across all projects" do
+      # Create files with the same data block
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      labors_file = create_file('labors', 'labors.txt', WISDOM)
+      stubs.create_file('labors', 'files', 'labors.txt', WISDOM)
+      backup_file = create_file('backup', 'backup.txt', WISDOM)
+      stubs.create_file('backup', 'files', 'backup.txt', WISDOM)
+
+      backfill_ledger = Metis::BackfillDataBlockLedger.new
+      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+      backfill_ledger.execute('athena', '-links')
+      expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).count).to eq(3)
+    end
+  end
+
+    context 'backfill ledger unlink' do
 
     it "creates unlink events for orphaned datablocks" do
       # Create two files
@@ -250,5 +268,27 @@ describe Metis::BackfillDataBlockLedger do
       expect(unlink_event).to be_present
       expect(unlink_event.triggered_by).to eq(Metis::DataBlockLedger::SYSTEM_BACKFILL)
     end
-  end
+
+    it "skips datablocks when they are linked to multiple projects" do
+        # Create files with the same data block
+        wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+        labors_file = create_file('labors', 'labors.txt', WISDOM)
+        stubs.create_file('labors', 'files', 'labors.txt', WISDOM)
+        backup_file = create_file('backup', 'backup.txt', WISDOM)
+        stubs.create_file('backup', 'files', 'backup.txt', WISDOM)
+  
+        token_header(:editor)
+        delete("/athena/file/remove/files/wisdom.txt")
+        expect(last_response.status).to eq(200)
+  
+        backfill_ledger = Metis::BackfillDataBlockLedger.new
+        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+  
+        # Run backfill should detect no orphaned datablocks
+        backfill_ledger.execute('-orphaned')
+  
+        expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK).count).to eq(0)
+      end
+    end
 end

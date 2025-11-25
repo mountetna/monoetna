@@ -7,19 +7,19 @@ describe StatsController do
     OUTER_APP
   end
 
-  context "#ledger legacy" do
+  context "#ledger backfilled" do
     before(:each) do
       # Disable ledger for backfill tests
-      ENV['METIS_LEDGER_ENABLED'] = 'false'
+      ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'false'
     end
 
-    it "returns return legacy detauls for a single project " do
+    it "returns return backfilled detauls for a single project " do
       lifecycle_result = athena_file_lifecyle
       wisdom_datablock = Metis::DataBlock[lifecycle_result[:wisdom_data_block_id]]
       helmet_datablock = Metis::DataBlock[lifecycle_result[:helmet_data_block_id]]
       
       token_header(:supereditor)
-      get('/api/stats/ledger', legacy: true)
+      get('/api/stats/ledger', backfilled: true)
 
       expect(last_response.status).to eq(200)
       response = json_body
@@ -53,12 +53,12 @@ describe StatsController do
       expect(helmet_detail[:files]).to eq([])
     end
 
-    it "returns return legacy detauls for a multi project" do
+    it "returns return backfilled detauls for a multi project" do
       datablock_ids = multi_project_file_lifecyle
       wisdom_datablock = Metis::DataBlock[datablock_ids[:wisdom_data_block_id]]
       
       token_header(:supereditor)
-      get('/api/stats/ledger', legacy: true)
+      get('/api/stats/ledger', backfilled: true)
 
       expect(last_response.status).to eq(200)
       response = json_body
@@ -88,16 +88,16 @@ describe StatsController do
 
     it "only allows supereditors" do
       token_header(:editor)
-      get('/api/stats/ledger', legacy: true)
+      get('/api/stats/ledger', backfilled: true)
 
       expect(last_response.status).to eq(403)
     end
   end
 
-  context "#ledger project" do
+  context "#ledger tracked" do
     before(:each) do
-      # Enable ledger for project-based tests
-      ENV['METIS_LEDGER_ENABLED'] = 'true'
+      # Enable ledger for tracked mode tests
+      ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'true'
       default_bucket('athena')
       
       @metis_uid = Metis.instance.sign.uid
@@ -138,7 +138,6 @@ describe StatsController do
       
       # Check vacuum stats with include_projects=['labors', 'backup'] (should include the datablock)
       get('/api/stats/ledger', project_name: 'athena', include_projects: ['labors', 'backup'])
-      
       expect(last_response.status).to eq(200)
       response = json_body
       

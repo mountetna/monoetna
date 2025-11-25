@@ -21,7 +21,7 @@ describe Metis::DataBlockLedger do
     stub_event_log(:backup)
     
     # Enable ledger for these tests
-    ENV['METIS_LEDGER_ENABLED'] = 'true'
+    ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'true'
   end
 
   after(:each) do
@@ -248,10 +248,10 @@ describe Metis::DataBlockLedger do
 
   end
 
-  describe 'find_orphaned_datablocks_legacy' do
+  describe 'find_orphaned_datablocks_backfilled' do
     it 'returns orphaned datablocks' do
       # Disable ledger for backfill tests
-      ENV['METIS_LEDGER_ENABLED'] = 'false'
+      ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'false'
       
       # Create files
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
@@ -273,8 +273,8 @@ describe Metis::DataBlockLedger do
       allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
       backfill_ledger.execute('-orphaned')
       
-      # Find orphaned legacy datablocks
-      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_legacy
+      # Find orphaned backfilled datablocks
+      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
       
       expect(orphaned.length).to eq(2)
       orphaned_ids = orphaned.map(&:id)
@@ -283,7 +283,7 @@ describe Metis::DataBlockLedger do
 
     it 'does not return datablocks that have been vacuumed' do
       # Disable ledger for backfill tests
-      ENV['METIS_LEDGER_ENABLED'] = 'false'
+      ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'false'
       
       # Create a file
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
@@ -300,13 +300,13 @@ describe Metis::DataBlockLedger do
       allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
       backfill_ledger.execute('-orphaned')
       
-      # Vacuum the datablock via legacy API (marks it as removed and creates REMOVE_DATABLOCK event)
+      # Vacuum the datablock via backfilled API (marks it as removed and creates REMOVE_DATABLOCK event)
       token_header(:supereditor)
-      json_post('/api/vacuum_datablocks/legacy', {})
+      json_post('/api/vacuum_datablocks/backfilled', {})
       expect(last_response.status).to eq(200)
       
       # Should not be orphaned because it's been vacuumed (marked as removed)
-      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_legacy
+      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
       
       expect(orphaned).to be_empty
     end

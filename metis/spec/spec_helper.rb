@@ -94,7 +94,7 @@ RSpec.configure do |config|
 
   # Enable ledger by default for all specs
   config.before(:each) do
-    ENV['METIS_LEDGER_ENABLED'] = 'true'
+    ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'true'
   end
 end
 

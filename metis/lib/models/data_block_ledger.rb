@@ -16,9 +16,9 @@ class Metis
     CHECKSUM_COMMAND= 'command_checksum'
 
     # Environment variable to enable/disable automatic logging
-    # Set METIS_LEDGER_ENABLED=false to disable logging (useful when running backfill first)
+    # Set METIS_LEDGER_TRACKED_MODE_ENABLED=false to disable logging (useful when running backfill first)
     def self.ledger_enabled
-      env_value = ENV['METIS_LEDGER_ENABLED']
+      env_value = ENV['METIS_LEDGER_TRACKED_MODE_ENABLED']
       return false if env_value.nil?
       env_value.to_s.downcase == 'true'
     end
@@ -27,7 +27,7 @@ class Metis
       super
       # Allow project_name to be nil for:
       # 1. system_backfill orphaned datablock unlink events (orphaned datablocks don't have a known project)
-      # 2. REMOVE_DATABLOCK events for legacy vacuum (legacy datablocks don't have a known project)
+      # 2. REMOVE_DATABLOCK events for backfilled vacuum (backfilled datablocks don't have a known project)
       required_fields = [:md5_hash, :data_block_id, :event_type, :created_at]
       unless (triggered_by == SYSTEM_BACKFILL && event_type == UNLINK_FILE_FROM_DATABLOCK) ||
              event_type == REMOVE_DATABLOCK
@@ -210,8 +210,8 @@ class Metis
         .all
     end
 
-    def self.find_orphaned_datablocks_legacy
-      # Get datablock IDs that have unlink events with SYSTEM_BACKFILL (legacy backfilled records)
+    def self.find_orphaned_datablocks_backfilled
+      # Get datablock IDs that have unlink events with SYSTEM_BACKFILL (backfilled records)
       backfilled_datablock_ids = where(
         triggered_by: SYSTEM_BACKFILL,
         event_type: UNLINK_FILE_FROM_DATABLOCK
@@ -232,8 +232,8 @@ class Metis
 
     def self.calculate_event_counts(project_name = nil)
       # Count all event types
-      # If project_name is provided, count events for that project only
-      # If project_name is nil (legacy mode), count events across all projects
+      # If project_name is provided, count events for that project only (tracked mode)
+      # If project_name is nil (backfilled mode), count events across all projects
       event_counts = if project_name
         where(project_name: project_name)
           .select_map(:event_type)
@@ -287,7 +287,7 @@ class Metis
           where(data_block_id: datablock.id).all
         end
         
-        # Try to get project_name from any event that has it (for legacy mode)
+        # Try to get project_name from any event that has it (for backfilled mode)
         event_project_name = all_events.find { |e| e.project_name }&.project_name
         
         # Collect all unique file paths and bucket names from all events

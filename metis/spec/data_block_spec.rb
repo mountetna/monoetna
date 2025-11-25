@@ -342,20 +342,20 @@ describe DataBlockController do
     end
   end
 
-  context '#vacuum_datablocks with existing backfilled records (legacy)' do
+  context '#vacuum_datablocks with existing backfilled records' do
     before(:each) do
       # Disable ledger for backfill tests
-      ENV['METIS_LEDGER_ENABLED'] = 'false'
+      ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'false'
     end
 
-    it 'vacuums orphaned datablocks for a project' do
+    it 'vacuums orphaned datablocks for backfilled records' do
       # Create and then delete files to make datablocks orphaned, then backfill
       result = athena_file_lifecyle
       wisdom_data_block = Metis::DataBlock.where(id: result[:wisdom_data_block_id]).first
       helmet_data_block = Metis::DataBlock.where(id: result[:helmet_data_block_id]).first
       
       token_header(:supereditor)
-      json_post('/api/vacuum_datablocks/legacy', {})
+      json_post('/api/vacuum_datablocks/backfilled', {})
       
       expect(last_response.status).to eq(200)
       response = json_body

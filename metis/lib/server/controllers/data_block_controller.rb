@@ -16,15 +16,15 @@ class DataBlockController < Metis::Controller
 
   def vacuum_datablocks
     project_name = @params[:project_name]
-    is_legacy = (project_name == 'legacy')
+    is_backfilled = (project_name == 'backfilled')
     include_projects = @params[:include_projects] || []
     
     # Ensure include_projects is an array
     include_projects = [include_projects] unless include_projects.is_a?(Array)
     
     # Find orphaned datablocks using the ledger
-    orphaned_datablocks = if is_legacy
-      Metis::DataBlockLedger.find_orphaned_datablocks_legacy
+    orphaned_datablocks = if is_backfilled
+      Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
     else
       Metis::DataBlockLedger.find_orphaned_datablocks(project_name, include_projects: include_projects)
     end
@@ -38,7 +38,7 @@ class DataBlockController < Metis::Controller
         # Log vacuum event BEFORE deletion
         Metis::DataBlockLedger.log_vacuum(
           datablock,
-          is_legacy ? nil : project_name,
+          is_backfilled ? nil : project_name,
           @user
         )
         
@@ -69,7 +69,7 @@ class DataBlockController < Metis::Controller
     
     event_log(
       event: 'vacuum_datablocks',
-      message: is_legacy ? "vacuumed legacy orphaned datablocks" : "vacuumed orphaned datablocks for project #{project_name}",
+      message: is_backfilled ? "vacuumed backfilled orphaned datablocks" : "vacuumed orphaned datablocks for project #{project_name}",
       payload: {
         vacuumed_count: vacuumed.length,
         space_freed: response[:summary][:space_freed]

@@ -84,7 +84,7 @@ POST /:project_name/folder/rename/:bucket_name/*folder_path { new_folder_path }
 Admins may protect or unprotect folders:
 ```
 POST /:project_name/folder/protect/:bucket_name/*folder_path
-POST '/:project_name/folder/unprotect/:bucket_name/*folder_path
+POST /:project_name/folder/unprotect/:bucket_name/*folder_path
 ```
 
 ### Files
@@ -138,6 +138,74 @@ If we are dissatisfied with our progress we may cancel the upload:
 ```
 { action: 'cancel' }
 ```
+
+### Ledger
+
+The ledger tracks all data block events (create, link, unlink, reuse, resolve, remove) for files in Metis. There are two modes of operation:
+
+- Backfilled
+- Tracked
+
+Tracked mode must be officially enabled via the `METIS_LEDGER_TRACKED_MODE_ENABLED` environment variable. This allows us to backfill before we turn on tracked mode.
+
+The ledger is an accounting mechanism for Metis, but it also serves as a method to safely DELETE datablocks and reduce storage space. 
+
+In order to delete a data block:
+
+- The a datablock must be ORPHANED. A datablock is orphaned if it is not associated to any files. In terms of our ledger, this means that the datablock is UNLINKED.
+
+#### Backfilled
+
+Backfilled mode refers to datablocks and events that existed before the ledger was enabled system-wide. These were backfilled into the ledger using the `SYSTEM_BACKFILL` trigger.
+
+Since the ledger was introduced post Library, we need a command to "backfill" all existing entries. There are only 2 events we can reliably create during backfilling: link and unlink events.
+
+If you are running the backfiller there are two commands that MUST be run:
+
+`bin/metis backfill_data_block_ledger project_name -links`
+
+- This backfills all links for a given project.
+
+- Run this for EVERY project.
+
+`bin/metis backfill_data_block_ledger -orphaned` 
+
+- This finds all files that are considered orphaned. No project name is required here because we cannot determine the original projects the databock came from. Datablocks can span multiple projects.
+
+Both of these commands can be run in parrallel.
+
+##### Vacuuming
+ 
+Vacuuming backfilled datablocks only requires UNLINK events. So `bin/metis backfill_data_block_ledger -orphaned` must be run, before you hit the `/vacuum` endpoint. The command is what finds all orphaned
+datablocks.
+
+Why not LINK and UNLINK events?
+
+There are really two cases to think about when backfilling:
+
+- A file is created, and then deleted, in this case during backfilling we only know about an unlink event.
+
+- The same file is created for two projects, FILE A, FILE B, but then one of those files is deleted. Delete(FILE A). The datablock will still exist. In this case `bin/metis backfill_data_block_ledger -orphaned` will not return any datablocks - but we can still log a LINK event (which is important for future vacuums in TRACKED mode).
+
+So in order to vacuum backfilled files, we just need to search for unlink events.
+
+However, this does not mean you should not run : `bin/metis backfill_data_block_ledger project_name -links`. This is needed for future runs.
+
+#### Tracked
+
+Tracked mode refers to normal ledger operation where events are tracked in real-time as files are created, linked, unlinked, etc. 
+
+This is the standard mode of operation once the ledger is enabled system-wide and backfilling is complete.
+
+##### Vacuuming
+
+In tracked mode, you can vacuum orphaned data blocks PER PROJECT only if they have a LINK and UNLINK event. 
+
+It is often the case that datablocks span multiple projects, so if you want to do a cross project vacuum, you must specify the `include_projects` param.
+
+This will allow you to vacuum across projects, if a datablock is present in a project you haven't specificed, it will not be vacuumed.
+
+You can check what projects a datablock belongs to by hitting the `/stats` endpoint.
 
 ## Documentation
 

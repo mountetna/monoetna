@@ -49,9 +49,9 @@ class StatsController < Metis::Controller
   end
 
   def ledger
-    if @params[:legacy] && (@params[:legacy] == true || @params[:legacy].to_s.downcase == 'true')
-      # Legacy mode: calculate vacuum stats for legacy datablocks
-      orphaned_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks_legacy
+    if @params[:backfilled] && (@params[:backfilled] == true || @params[:backfilled].to_s.downcase == 'true')
+      # Backfilled mode: calculate vacuum stats for backfilled datablocks
+      orphaned_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
       
       event_counts = Metis::DataBlockLedger.calculate_event_counts(nil)
       
@@ -62,12 +62,12 @@ class StatsController < Metis::Controller
       }
       
       success_json({
-        project_name: 'legacy',
+        project_name: 'backfilled',
         event_counts: event_counts,
         vacuum: vacuum_stats
       })
     elsif @params[:project_name]
-      # Project mode: high-level count summary + vacuum stats
+      # Tracked mode: high-level count summary + vacuum stats for tracked datablocks
       project_name = @params[:project_name]
       
       event_counts = Metis::DataBlockLedger.calculate_event_counts(project_name)
@@ -94,7 +94,7 @@ class StatsController < Metis::Controller
         vacuum: vacuum_stats
       })
     else
-      raise Etna::BadRequest, "Must provide either 'project_name' or 'legacy' parameter"
+      raise Etna::BadRequest, "Must provide either 'project_name' (for tracked mode) or 'backfilled' parameter"
     end
   end
 
