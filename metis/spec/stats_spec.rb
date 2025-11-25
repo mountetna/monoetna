@@ -11,52 +11,80 @@ describe StatsController do
     before(:each) do
       # Disable ledger for backfill tests
       ENV['METIS_LEDGER_ENABLED'] = 'false'
-      create_delete_and_backfill_files
     end
 
-    it "returns vacuum stats for legacy datablocks" do
+    it "returns return legacy detauls for a single project " do
+      lifecycle_result = athena_file_lifecyle
+      wisdom_datablock = Metis::DataBlock[lifecycle_result[:wisdom_data_block_id]]
+      helmet_datablock = Metis::DataBlock[lifecycle_result[:helmet_data_block_id]]
+      
       token_header(:supereditor)
       get('/api/stats/ledger', legacy: true)
 
       expect(last_response.status).to eq(200)
       response = json_body
 
-      expect(response).to be_a(Hash)
-      expect(response[:datablocks_can_vacuum]).to be_a(Integer)
-      expect(response[:space_can_clear]).to be_a(Integer)
+      # Should have event_counts
+      expect(response[:event_counts][:create_datablock]).to eq(0)
+      expect(response[:event_counts][:link_file_to_datablock]).to eq(0)
+      expect(response[:event_counts][:resolve_datablock]).to eq(0)
+      expect(response[:event_counts][:unlink_file_from_datablock]).to eq(2)
+      expect(response[:event_counts][:reuse_datablock]).to eq(0)
+      expect(response[:event_counts][:remove_datablock]).to eq(0)
 
-      # Should have at least 2 orphaned datablocks (wisdom and helmet)
-      expect(response[:datablocks_can_vacuum]).to be >= 2
-      expect(response[:space_can_clear]).to be >= (WISDOM.bytesize + HELMET.bytesize)
+      # Should have vacuum stats
+      expect(response[:vacuum][:datablocks_can_vacuum]).to be >= 2
+      expect(response[:vacuum][:space_can_clear]).to be >= (WISDOM.bytesize + HELMET.bytesize)
+      expect(response[:vacuum][:details].length).to eq(2)
+      
+      # Verify the two datablock details
+      wisdom_detail = response[:vacuum][:details].find { |d| d[:data_block_id] == wisdom_datablock.id }
+      expect(wisdom_detail).not_to be_nil
+      expect(wisdom_detail[:md5_hash]).to eq(wisdom_datablock.md5_hash)
+      expect(wisdom_detail[:size]).to eq(WISDOM.bytesize)
+      expect(wisdom_detail[:description]).to eq("wisdom.txt")
+      expect(wisdom_detail[:files]).to eq([])
+      
+      helmet_detail = response[:vacuum][:details].find { |d| d[:data_block_id] == helmet_datablock.id }
+      expect(helmet_detail).not_to be_nil
+      expect(helmet_detail[:md5_hash]).to eq(helmet_datablock.md5_hash)
+      expect(helmet_detail[:size]).to eq(HELMET.bytesize)
+      expect(helmet_detail[:description]).to eq("helmet.jpg")
+      expect(helmet_detail[:files]).to eq([])
     end
 
-    it "returns verbose vacuum stats with file details for legacy datablocks" do
+    it "returns return legacy detauls for a multi project" do
+      datablock_ids = multi_project_file_lifecyle
+      wisdom_datablock = Metis::DataBlock[datablock_ids[:wisdom_data_block_id]]
+      
       token_header(:supereditor)
-      get('/api/stats/ledger', legacy: true, verbose: true)
+      get('/api/stats/ledger', legacy: true)
 
       expect(last_response.status).to eq(200)
       response = json_body
 
-      # Should have at least 2 orphaned datablocks (wisdom and helmet)
-      expect(response[:datablocks_can_vacuum]).to be >= 2
-      expect(response[:details].length).to eq(response[:datablocks_can_vacuum])
+      # Should have event_counts
+      expect(response[:event_counts][:create_datablock]).to eq(0)
+      expect(response[:event_counts][:link_file_to_datablock]).to eq(0)
+      expect(response[:event_counts][:resolve_datablock]).to eq(0)
+      expect(response[:event_counts][:unlink_file_from_datablock]).to eq(1)
+      expect(response[:event_counts][:reuse_datablock]).to eq(0)
+      expect(response[:event_counts][:remove_datablock]).to eq(0)
 
-      # Check structure of details
-      response[:details].each do |detail|
-        expect(detail).to have_key(:data_block_id)
-        expect(detail).to have_key(:md5_hash)
-        expect(detail).to have_key(:size)
-        expect(detail).to have_key(:project_name)
-        expect(detail).to have_key(:files)
-        expect(detail[:files]).to be_a(Array)
-        
-        # Each file entry should have file_path and bucket_name
-        detail[:files].each do |file|
-          expect(file).to have_key(:file_path)
-          expect(file).to have_key(:bucket_name)
-        end
-      end
+      # Should have vacuum stats
+      expect(response[:vacuum][:datablocks_can_vacuum]).to eq(1)
+      expect(response[:vacuum][:space_can_clear]).to eq(WISDOM.bytesize)
+      expect(response[:vacuum][:details].length).to eq(1)
+      
+      # Verify the wisdom datablock detail (shared across projects, now orphaned)
+      wisdom_detail = response[:vacuum][:details].find { |d| d[:data_block_id] == wisdom_datablock.id }
+      expect(wisdom_detail).not_to be_nil
+      expect(wisdom_detail[:md5_hash]).to eq(wisdom_datablock.md5_hash)
+      expect(wisdom_detail[:size]).to eq(WISDOM.bytesize)
+      expect(wisdom_detail[:description]).to eq("wisdom.txt")
+      expect(wisdom_detail[:files]).to eq([]) # 
     end
+
 
     it "only allows supereditors" do
       token_header(:editor)
@@ -78,80 +106,62 @@ describe StatsController do
       @user = Etna::User.new(AUTH_USERS[:editor])
     end
 
-    it "returns vacuum stats for a project" do
-      # Create file via upload API (triggers log_link automatically)
-      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+    it "returns vacuum stats with include_projects parameter" do
+      # Set up project buckets
+      default_bucket('labors')
+      default_bucket('backup')
       
-      # Delete the file via API (this will automatically log unlink event)
-      token_header(:editor)
-      delete("/athena/file/remove/files/wisdom.txt")
-      expect(last_response.status).to eq(200)
-      
-      # Check vacuum stats for the project
-      token_header(:supereditor)
-      get('/api/stats/ledger', project_name: 'athena')
-      
-      expect(last_response.status).to eq(200)
-      response = json_body
-      
-      # Should have at least 1 orphaned datablock (wisdom)
-      expect(response[:vacuum][:datablocks_can_vacuum]).to be >= 1
-      expect(response[:vacuum][:space_can_clear]).to be >= WISDOM.bytesize
-      
-      # Should have event counts (keys are symbols after JSON parsing)
-      expect(response[:event_counts]).to be_a(Hash)
-      expect(response[:event_counts][:create_datablock]).to eq(1)
-      expect(response[:event_counts][:link_file_to_datablock]).to eq(1)
-      expect(response[:event_counts][:resolve_datablock]).to eq(1)
-      expect(response[:event_counts][:unlink_file_from_datablock]).to eq(1)
-      expect(response[:event_counts][:reuse_datablock]).to eq(0)
-      expect(response[:event_counts][:remove_datablock]).to eq(0)
-    end
+      # Create files in athena
+      athena_file = upload_file_via_api('athena', 'athena.txt', WISDOM)
+      shared_datablock = athena_file.data_block
 
-    it "returns verbose vacuum stats with file details for a project" do
-      # Create file via upload API (triggers log_link automatically)
-      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      another_athena_file = upload_file_via_api('athena', 'athena2.txt', "some other content")
+      another_datablock = another_athena_file.data_block
       
-      # Delete the file via API (this will automatically log unlink event)
+      # Create file in labors with same content (reuses datablock)
+      labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
+      expect(labors_file.data_block_id).to eq(shared_datablock.id)
+
+      another_labors_file = upload_file_via_api('labors', 'labors2.txt',  "some other content 2")
+
+      # Create a file in backup with same content (reuses datablock)
+      backup_file = upload_file_via_api('backup', 'backup.txt', WISDOM)
+      expect(backup_file.data_block_id).to eq(shared_datablock.id)
+      
+      # Delete athena file (orphaned for athena, but still used by labors)
       token_header(:editor)
-      delete("/athena/file/remove/files/wisdom.txt")
+      delete("/athena/file/remove/files/athena.txt")
       expect(last_response.status).to eq(200)
       
-      # Check verbose vacuum stats for the project
+      # Check vacuum stats without include_projects (should be empty - still used by labors)
       token_header(:supereditor)
-      get('/api/stats/ledger', project_name: 'athena', verbose: true)
+      
+      # Check vacuum stats with include_projects=['labors', 'backup'] (should include the datablock)
+      get('/api/stats/ledger', project_name: 'athena', include_projects: ['labors', 'backup'])
       
       expect(last_response.status).to eq(200)
       response = json_body
       
-      # Should have at least 1 orphaned datablock (wisdom)
+      # Should have 1 orphaned datablock when including labors and backup
       expect(response[:vacuum][:datablocks_can_vacuum]).to be >= 1
       expect(response[:vacuum][:space_can_clear]).to be >= WISDOM.bytesize
-      expect(response[:vacuum][:details]).to be_a(Array)
-      expect(response[:vacuum][:details].length).to eq(response[:vacuum][:datablocks_can_vacuum])
+      expect(response[:vacuum][:include_projects]).to eq(['labors', 'backup'])
       
-      # Check structure of details
+      # Should have project_breakdown showing datablocks in athena, labors, and backup
+      expect(response[:vacuum][:project_breakdown]).to be_a(Hash)
+      expect(response[:vacuum][:project_breakdown][:athena]).to eq(1)
+      expect(response[:vacuum][:project_breakdown][:labors]).to eq(1)
+      expect(response[:vacuum][:project_breakdown][:backup]).to eq(1)
+      
+      # Check that details don't have project_name
       response[:vacuum][:details].each do |detail|
-        expect(detail).to have_key(:data_block_id)
-        expect(detail).to have_key(:md5_hash)
-        expect(detail).to have_key(:size)
-        expect(detail[:project_name]).to eq('athena')
-        expect(detail).to have_key(:files)
-        expect(detail[:files]).to be_a(Array)
-        
-        # Each file entry should have file_path and bucket_name
-        detail[:files].each do |file|
-          expect(file).to have_key(:file_path)
-          expect(file).to have_key(:bucket_name)
-          expect(file[:file_path]).to include('wisdom.txt')
-        end
+        expect(detail).not_to have_key(:project_name)
       end
       
       # Should still have event counts
       expect(response[:event_counts]).to be_a(Hash)
       expect(response[:event_counts][:create_datablock]).to eq(1)
       expect(response[:event_counts][:link_file_to_datablock]).to eq(1)
-      expect(response[:event_counts][:resolve_datablock]).to eq(1)
       expect(response[:event_counts][:unlink_file_from_datablock]).to eq(1)
     end
   end

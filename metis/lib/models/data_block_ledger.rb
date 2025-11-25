@@ -230,6 +230,54 @@ class Metis
         .all
     end
 
+    def self.calculate_event_counts(project_name = nil)
+      # Count all event types
+      # If project_name is provided, count events for that project only
+      # If project_name is nil (legacy mode), count events across all projects
+      event_counts = if project_name
+        where(project_name: project_name)
+          .select_map(:event_type)
+          .tally
+      else
+        select_map(:event_type)
+          .tally
+      end
+      
+      # Initialize all event types to 0 if they don't exist
+      EVENT_TYPES.each do |event_type|
+        event_counts[event_type] ||= 0
+      end
+      
+      event_counts
+    end
+
+    def self.calculate_project_breakdown(orphaned_datablocks, project_name, include_projects = [])
+      # Calculate project breakdown: count datablocks per project
+      # For each orphaned datablock, count it for each project that has linked/reused it
+      all_projects = [project_name] + include_projects
+      project_breakdown = {}
+      all_projects.each do |proj|
+        project_breakdown[proj.to_sym] = 0
+      end
+      
+      orphaned_datablocks.each do |datablock|
+        # For each project, check if this datablock has been linked/reused in that project
+        # If it has, increment that project's counter
+        all_projects.each do |proj|
+          # Check if this datablock has any link or reuse events in this project
+          has_events = where(project_name: proj, data_block_id: datablock.id)
+            .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK])
+            .count > 0
+          
+          # If the datablock has events in this project, count it for this project
+          # This means if a datablock is in both athena and labors, both get incremented
+          project_breakdown[proj.to_sym] += 1 if has_events
+        end
+      end
+      
+      project_breakdown
+    end
+
     def self.build_vacuum_details(orphaned_datablocks, project_name = nil)
       orphaned_datablocks.map do |datablock|
         # Get all events for this datablock to find any available file information
@@ -260,7 +308,6 @@ class Metis
           md5_hash: datablock.md5_hash,
           size: datablock.size,
           description: description,
-          project_name: project_name || event_project_name,
           files: files
         }
       end

@@ -49,36 +49,28 @@ class StatsController < Metis::Controller
   end
 
   def ledger
-    verbose = @params[:verbose] && (@params[:verbose] == true || @params[:verbose].to_s.downcase == 'true')
-    
     if @params[:legacy] && (@params[:legacy] == true || @params[:legacy].to_s.downcase == 'true')
       # Legacy mode: calculate vacuum stats for legacy datablocks
       orphaned_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks_legacy
       
+      event_counts = Metis::DataBlockLedger.calculate_event_counts(nil)
+      
       vacuum_stats = {
         datablocks_can_vacuum: orphaned_datablocks.length,
-        space_can_clear: orphaned_datablocks.sum(&:size)
+        space_can_clear: orphaned_datablocks.sum(&:size),
+        details: Metis::DataBlockLedger.build_vacuum_details(orphaned_datablocks)
       }
       
-      if verbose
-        vacuum_stats[:details] = Metis::DataBlockLedger.build_vacuum_details(orphaned_datablocks)
-      end
-      
-      success_json(vacuum_stats)
+      success_json({
+        project_name: 'legacy',
+        event_counts: event_counts,
+        vacuum: vacuum_stats
+      })
     elsif @params[:project_name]
       # Project mode: high-level count summary + vacuum stats
       project_name = @params[:project_name]
       
-      # Count all event types for this project
-      event_counts = Metis::DataBlockLedger
-        .where(project_name: project_name)
-        .select_map(:event_type)
-        .tally
-      
-      # Initialize all event types to 0 if they don't exist
-      Metis::DataBlockLedger::EVENT_TYPES.each do |event_type|
-        event_counts[event_type] ||= 0
-      end
+      event_counts = Metis::DataBlockLedger.calculate_event_counts(project_name)
       
       # Calculate vacuum stats
       include_projects = @params[:include_projects] || []
@@ -86,15 +78,15 @@ class StatsController < Metis::Controller
       
       orphaned_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks(project_name, include_projects: include_projects)
       
+      project_breakdown = Metis::DataBlockLedger.calculate_project_breakdown(orphaned_datablocks, project_name, include_projects)
+      
       vacuum_stats = {
         datablocks_can_vacuum: orphaned_datablocks.length,
         space_can_clear: orphaned_datablocks.sum(&:size),
-        include_projects: include_projects
+        include_projects: include_projects,
+        project_breakdown: project_breakdown,
+        details: Metis::DataBlockLedger.build_vacuum_details(orphaned_datablocks, project_name)
       }
-      
-      if verbose
-        vacuum_stats[:details] = Metis::DataBlockLedger.build_vacuum_details(orphaned_datablocks, project_name)
-      end
       
       success_json({
         project_name: project_name,

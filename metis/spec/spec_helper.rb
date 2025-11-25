@@ -494,11 +494,17 @@ def create_folder(project_name, folder_name, params={})
 end
 
 def create_file(project_name, file_name, contents, params={})
-  data_block = create(:data_block,
-    description: file_name,
-    md5_hash: params.delete(:md5_hash) || Digest::MD5.hexdigest(contents),
-    size: contents.length,
-  )
+  md5_hash = params.delete(:md5_hash) || Digest::MD5.hexdigest(contents)
+  
+  # Find or create datablock (reuse if same content already exists)
+  data_block = Metis::DataBlock.where(md5_hash: md5_hash).first
+  unless data_block
+    data_block = create(:data_block,
+      description: file_name,
+      md5_hash: md5_hash,
+      size: contents.length,
+    )
+  end
 
   create( :file,
     {
@@ -554,7 +560,51 @@ def upload_file_via_api(project_name, file_name, contents, bucket_name: 'files')
   file
 end
 
-def create_delete_and_backfill_files
+def multi_project_file_lifecyle
+  wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+  helmet_file = create_file('athena', 'helmet.jpg', HELMET)
+  stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+  stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+
+  labors_file = create_file('labors', 'labors.txt', WISDOM)
+  stubs.create_file('labors', 'files', 'labors.txt', WISDOM)
+
+  another_labors_file = create_file('labors', 'labors2.txt', "lol")
+  stubs.create_file('labors', 'files', 'labors2.txt', "lol")
+
+  backup_file = create_file('backup', 'backup.txt', WISDOM)
+  stubs.create_file('backup', 'files', 'backup.txt', WISDOM)
+
+  wisdom_datablock_id = wisdom_file.data_block_id
+  helmet_datablock_id = helmet_file.data_block_id
+  labors_datablock_id = labors_file.data_block_id
+
+  # Delete files using the API (simulating real user deletion)
+  # Use supereditor to have access to all projects
+  token_header(:supereditor)
+  delete("/athena/file/remove/files/wisdom.txt")
+  expect(last_response.status).to eq(200)
+  delete("/labors/file/remove/files/labors.txt")
+  expect(last_response.status).to eq(200)
+  delete("/backup/file/remove/files/backup.txt")
+  expect(last_response.status).to eq(200)
+
+  # Backfill orphaned datablocks (creates unlink events with SYSTEM_BACKFILL)
+  backfill_ledger = Metis::BackfillDataBlockLedger.new
+  allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+  backfill_ledger.execute('-orphaned')
+
+  {
+    wisdom_data_block_id: wisdom_datablock_id,
+    helmet_data_block_id: helmet_datablock_id,
+    labors_data_block_id: labors_datablock_id,
+    another_labors_datablock_id: another_labors_file.data_block_id,
+    backup_datablock_id: backup_file.data_block_id
+  }
+end
+
+
+def athena_file_lifecyle
   wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
   helmet_file = create_file('athena', 'helmet.jpg', HELMET)
   stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
