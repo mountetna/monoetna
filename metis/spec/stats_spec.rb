@@ -10,7 +10,7 @@ describe StatsController do
   context "#ledger backfilled" do
     before(:each) do
       # Disable ledger for backfill tests
-      ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'false'
+      set_ledger_enabled(false)
     end
 
     it "returns return backfilled detauls for a single project " do
@@ -97,7 +97,7 @@ describe StatsController do
   context "#ledger tracked" do
     before(:each) do
       # Enable ledger for tracked mode tests
-      ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'true'
+      set_ledger_enabled(true)
       default_bucket('athena')
       
       @metis_uid = Metis.instance.sign.uid

@@ -15,12 +15,12 @@ class Metis
     SYSTEM_BACKFILL = 'system_backfill'
     CHECKSUM_COMMAND= 'command_checksum'
 
-    # Environment variable to enable/disable automatic logging
-    # Set METIS_LEDGER_TRACKED_MODE_ENABLED=false to disable logging (useful when running backfill first)
+    # Config setting to enable/disable automatic logging
+    # Set ledger_tracked_mode_enabled: true in config.yml to enable logging
     def self.ledger_enabled
-      env_value = ENV['METIS_LEDGER_TRACKED_MODE_ENABLED']
-      return false if env_value.nil?
-      env_value.to_s.downcase == 'true'
+      config_value = Metis.instance.config(:ledger_tracked_mode_enabled)
+      return false if config_value.nil?
+      config_value.to_s.downcase == 'true' || config_value == true
     end
 
     def validate

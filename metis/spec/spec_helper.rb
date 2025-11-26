@@ -91,14 +91,12 @@ RSpec.configure do |config|
   config.before(:suite) do
     stubs.ensure
   end
-
-  # Enable ledger by default for all specs
-  config.before(:each) do
-    ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'true'
-  end
 end
 
-
+# Helper method to set ledger_tracked_mode_enabled in config
+def set_ledger_enabled(value)
+  Metis.instance.instance_variable_get(:@config)[:test][:ledger_tracked_mode_enabled] = value
+end
 
 FactoryBot.define do
   factory :file, class: Metis::File do
@@ -591,11 +589,11 @@ def multi_project_backfilled_lifecycle
 
   backfill_ledger = Metis::BackfillDataBlockLedger.new
   allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
-  backfill_ledger.execute('athena', '-links')
-  backfill_ledger.execute('labors', '-links')
-  backfill_ledger.execute('backup', '-links')
+  backfill_ledger.execute(project_name: 'athena', links: true)
+  backfill_ledger.execute(project_name: 'labors', links: true)
+  backfill_ledger.execute(project_name: 'backup', links: true)
   allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
-  backfill_ledger.execute('-orphaned')
+  backfill_ledger.execute(orphaned: true)
 
   {
     wisdom_data_block_id: wisdom_datablock_id,
@@ -625,9 +623,9 @@ def athena_backfilled_lifecycle
 
   backfill_ledger = Metis::BackfillDataBlockLedger.new
   allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
-  backfill_ledger.execute('athena', '-links')
+  backfill_ledger.execute(project_name: 'athena', links: true)
   allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
-  backfill_ledger.execute('-orphaned')
+  backfill_ledger.execute(orphaned: true)
 
   {
     wisdom_data_block_id: wisdom_datablock_id,

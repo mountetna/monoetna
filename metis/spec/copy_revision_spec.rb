@@ -220,6 +220,7 @@ describe Metis::CopyRevision do
     end
 
     it 'executes the revision' do
+        set_ledger_enabled(true)
         expect(Metis::File.count).to eq(1)
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/wisdom.txt',

@@ -21,7 +21,7 @@ describe Metis::DataBlockLedger do
     stub_event_log(:backup)
     
     # Enable ledger for these tests
-    ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'true'
+    set_ledger_enabled(true)
   end
 
   after(:each) do
@@ -251,7 +251,7 @@ describe Metis::DataBlockLedger do
   describe 'find_orphaned_datablocks_backfilled' do
     it 'returns orphaned datablocks' do
       # Disable ledger for backfill tests
-      ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'false'
+      set_ledger_enabled(false)
       
       # Create files
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
@@ -271,7 +271,7 @@ describe Metis::DataBlockLedger do
       # Run backfill to create SYSTEM_BACKFILL unlink events
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
-      backfill_ledger.execute('-orphaned')
+      backfill_ledger.execute(orphaned: true)
       
       # Find orphaned backfilled datablocks
       orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
@@ -283,7 +283,7 @@ describe Metis::DataBlockLedger do
 
     it 'does not return datablocks that have been vacuumed' do
       # Disable ledger for backfill tests
-      ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'false'
+      set_ledger_enabled(false)
       
       # Create a file
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
@@ -298,7 +298,7 @@ describe Metis::DataBlockLedger do
       # Run backfill to create SYSTEM_BACKFILL unlink event
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
-      backfill_ledger.execute('-orphaned')
+      backfill_ledger.execute(orphaned: true)
       
       # Vacuum the datablock via backfilled API (marks it as removed and creates REMOVE_DATABLOCK event)
       token_header(:supereditor)

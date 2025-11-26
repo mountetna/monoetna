@@ -228,59 +228,45 @@ class Metis
   end
 
   class BackfillDataBlockLedger < Etna::Command
-    usage "Usage: bin/metis backfill_data_block_ledger [<project_name>] <phase>
+    usage "Usage: bin/metis backfill_data_block_ledger [--project_name <project_name>] [--links] [--orphaned]
            # backfill the datablock ledger
-           # -links phase requires project_name
-           # -orphaned phase is system-wide and does not require project_name
-           # Must specify exactly one phase: -links or -orphaned"
+           # --links phase requires --project_name
+           # --orphaned phase is system-wide and does not require --project_name
+           # Must specify exactly one phase: --links or --orphaned"
 
-    def execute(*args)
-      # Parse arguments manually
-      project_name = nil
-      phase = nil
-      flags_seen = []
+    boolean_flags << "--links"
+    boolean_flags << "--orphaned"
+    string_flags << "--project_name"
 
-      args.each do |arg|
-        case arg
-        when '-links'
-          flags_seen << '-links'
-          phase = :links if phase.nil?
-        when '-orphaned'
-          flags_seen << '-orphaned'
-          phase = :orphaned if phase.nil?
-        else
-          project_name = arg unless arg.start_with?('-')
-        end
-      end
-
-      if flags_seen.length > 1
+    def execute(links: false, orphaned: false, project_name: nil)
+      # Validate that exactly one phase is specified
+      if links && orphaned
         puts "Error: Cannot specify multiple phase options"
-        puts "Choose exactly one: -links or -orphaned"
+        puts "Choose exactly one: --links or --orphaned"
         return
       end
 
-      if phase.nil?
+      if !links && !orphaned
         puts "Error: Exactly one phase option is required"
         puts ""
-        puts "Usage: bin/metis backfill_data_block_ledger [<project_name>] <phase>"
+        puts "Usage: bin/metis backfill_data_block_ledger [--project_name <project_name>] [--links] [--orphaned]"
         puts ""
         puts "Phases:"
-        puts "  -links    Backfill link events for existing files (requires project_name)"
-        puts "  -orphaned Backfill orphaned datablocks (system-wide, no project_name needed)"
+        puts "  --links    Backfill link events for existing files (requires --project_name)"
+        puts "  --orphaned Backfill orphaned datablocks (system-wide, no --project_name needed)"
         puts ""
         puts "Examples:"
-        puts "  bin/metis backfill_data_block_ledger athena -links"
-        puts "  bin/metis backfill_data_block_ledger -orphaned"
+        puts "  bin/metis backfill_data_block_ledger --project_name athena --links"
+        puts "  bin/metis backfill_data_block_ledger --orphaned"
         puts ""
         return
       end
 
-      case phase
-      when :links
+      if links
         if project_name.nil? || project_name.empty?
-          puts "Error: Project name is required for -links phase"
+          puts "Error: Project name is required for --links phase"
           puts ""
-          puts "Usage: bin/metis backfill_data_block_ledger <project_name> -links"
+          puts "Usage: bin/metis backfill_data_block_ledger --project_name <project_name> --links"
           return
         end
 
@@ -304,7 +290,7 @@ class Metis
         puts "=" * 70
         puts "Backfill complete for project: #{project_name}"
         puts "=" * 70
-      when :orphaned
+      elsif orphaned
         puts "Starting datablock ledger backfill (system-wide)"
         puts "=" * 70
         puts ""
@@ -361,7 +347,7 @@ class Metis
               file_id: file.id,
               data_block_id: file.data_block_id,
               event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK,
-              triggered_by: 'system_backfill',
+              triggered_by: Metis::DataBlockLedger::SYSTEM_BACKFILL,
               size: file.data_block.size,
               bucket_name: file.bucket.name,
               created_at: file.created_at || DateTime.now
@@ -459,7 +445,7 @@ class Metis
             file_id: nil,
             data_block_id: datablock.id,
             event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK,
-            triggered_by: 'system_backfill',
+            triggered_by: Metis::DataBlockLedger::SYSTEM_BACKFILL,
             size: datablock.size,
             bucket_name: nil,
             created_at: datablock.updated_at || DateTime.now

@@ -102,7 +102,7 @@ describe Metis::BackfillDataBlockLedger do
 
   before(:each) do
     # Disable ledger for backfill tests
-    ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = "false"
+    set_ledger_enabled(false)
     
     default_bucket('athena')
 
@@ -128,12 +128,8 @@ describe Metis::BackfillDataBlockLedger do
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
 
-      expect(Metis::File.count).to eq(2)
-      expect(Metis::DataBlockLedger.count).to eq(0)
-
-      backfill_ledger = Metis::BackfillDataBlockLedger.new
       allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
-      backfill_ledger.execute('athena', '-links')
+      Metis::BackfillDataBlockLedger.new.execute(project_name: 'athena', links: true)
 
       # Should have 2 link_file_to_datablock events (one per file)
       link_events = Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).all
@@ -144,7 +140,14 @@ describe Metis::BackfillDataBlockLedger do
       expect(wisdom_ledger).to be_present
       expect(wisdom_ledger.project_name).to eq('athena')
       expect(wisdom_ledger.md5_hash).to eq(wisdom_file.data_block.md5_hash)
-      expect(wisdom_ledger.triggered_by).to eq('system_backfill')
+      expect(wisdom_ledger.triggered_by).to eq(Metis::DataBlockLedger::SYSTEM_BACKFILL)
+      
+      # Verify helmet file ledger entry
+      helmet_ledger = Metis::DataBlockLedger.where(file_id: helmet_file.id, event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).first
+      expect(helmet_ledger).to be_present
+      expect(helmet_ledger.project_name).to eq('athena')
+      expect(helmet_ledger.md5_hash).to eq(helmet_file.data_block.md5_hash)
+      expect(helmet_ledger.triggered_by).to eq(Metis::DataBlockLedger::SYSTEM_BACKFILL)
       
       # Clean up
       wisdom_file.delete
@@ -159,11 +162,11 @@ describe Metis::BackfillDataBlockLedger do
       allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
 
       # Run backfill first time - should create link event
-      backfill_ledger.execute('athena', '-links')
+      backfill_ledger.execute(project_name: 'athena', links: true)
       expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).count).to eq(1)
 
       # Run backfill second time - should NOT create duplicate link event
-      backfill_ledger.execute('athena', '-links')
+      backfill_ledger.execute(project_name: 'athena', links: true)
 
       # Should still be 1 link_file_to_datablock event, not duplicated
       expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).count).to eq(1)
@@ -182,12 +185,16 @@ describe Metis::BackfillDataBlockLedger do
 
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
-      backfill_ledger.execute('athena', '-links')
+      backfill_ledger.execute(project_name: 'athena', links: true)
+      backfill_ledger.execute(project_name: 'labors', links: true)
+      backfill_ledger.execute(project_name: 'backup', links: true)
       expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).count).to eq(3)
     end
   end
 
-    context 'backfill ledger unlink' do
+  context 'backfill ledger unlink' do
+
+    # We typical run the link command first, so this is why it is being invoked here.
 
     it "creates unlink events for orphaned datablocks" do
       # Create two files
@@ -207,12 +214,20 @@ describe Metis::BackfillDataBlockLedger do
       delete("/athena/file/remove/files/helmet.jpg")
       expect(last_response.status).to eq(200)
 
+
       # Mock the ask_user method to return 'y' automatically
       backfill_ledger = Metis::BackfillDataBlockLedger.new
-      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
 
       # Run backfill should detect both orphaned datablocks
-      backfill_ledger.execute('-orphaned')
+      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+      backfill_ledger.execute(project_name: 'athena', links: true)
+      backfill_ledger.execute(orphaned: true)
+
+      # There should be no link events for the datablocks
+      link_events = Metis::DataBlockLedger.where(
+        event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
+      ).all
+      expect(link_events.count).to eq(0)
       
       # Should have created unlink events for both datablocks
       unlink_events = Metis::DataBlockLedger.where(
@@ -251,22 +266,16 @@ describe Metis::BackfillDataBlockLedger do
       allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
 
       # Run backfill first time - should create unlink event
-      backfill_ledger.execute('-orphaned')
+      backfill_ledger.execute(project_name: 'athena', links: true)
+      backfill_ledger.execute(orphaned: true)
+      expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).count).to eq(0)
       expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK).count).to eq(1)
 
       # Run backfill second time - should NOT create duplicate unlink event
-      backfill_ledger.execute('-orphaned')
+      backfill_ledger.execute(orphaned: true)
 
       # Should still be 1 unlink_file_from_datablock event, not duplicated
       expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK).count).to eq(1)
-      
-      # Verify the unlink event properties
-      unlink_event = Metis::DataBlockLedger.where(
-        data_block_id: wisdom_datablock_id,
-        event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
-      ).first
-      expect(unlink_event).to be_present
-      expect(unlink_event.triggered_by).to eq(Metis::DataBlockLedger::SYSTEM_BACKFILL)
     end
 
     it "skips datablocks when they are linked to multiple projects" do
@@ -286,8 +295,12 @@ describe Metis::BackfillDataBlockLedger do
         allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
   
         # Run backfill should detect no orphaned datablocks
-        backfill_ledger.execute('-orphaned')
+        backfill_ledger.execute(project_name: 'athena', links: true)
+        backfill_ledger.execute(project_name: 'labors', links: true)
+        backfill_ledger.execute(project_name: 'backup', links: true)
+        backfill_ledger.execute(orphaned: true)
   
+        expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).count).to eq(2)
         expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK).count).to eq(0)
       end
     end

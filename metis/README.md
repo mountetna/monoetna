@@ -172,7 +172,7 @@ If you are running the backfiller there are two commands that MUST be run:
 
 - This finds all files that are considered orphaned. No project name is required here because we cannot determine the original projects the databock came from. Datablocks can span multiple projects.
 
-Both of these commands can be run in parrallel.
+While these commands can be run in parrallel, it is best to run the `-link` command first, logically makes a bit more sense.
 
 ##### Vacuuming
  

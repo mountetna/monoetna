@@ -345,7 +345,7 @@ describe DataBlockController do
   context '#vacuum_datablocks with existing backfilled records' do
     before(:each) do
       # Disable ledger for backfill tests
-      ENV['METIS_LEDGER_TRACKED_MODE_ENABLED'] = 'false'
+      set_ledger_enabled(false)
     end
 
     it 'vacuums orphaned datablocks for backfilled records' do
