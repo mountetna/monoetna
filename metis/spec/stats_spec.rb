@@ -13,7 +13,7 @@ describe StatsController do
       set_ledger_enabled(false)
     end
 
-    it "returns return backfilled detauls for a single project " do
+    it "returns details for a single project " do
       lifecycle_result = athena_backfilled_lifecycle
       wisdom_datablock = Metis::DataBlock[lifecycle_result[:wisdom_data_block_id]]
       helmet_datablock = Metis::DataBlock[lifecycle_result[:helmet_data_block_id]]
@@ -53,7 +53,7 @@ describe StatsController do
       expect(helmet_detail[:files]).to eq([])
     end
 
-    it "returns return backfilled detauls for a multi project" do
+    it "returns details for multiple projects" do
       datablock_ids = multi_project_backfilled_lifecycle
       wisdom_datablock = Metis::DataBlock[datablock_ids[:wisdom_data_block_id]]
       

@@ -578,7 +578,6 @@ def multi_project_backfilled_lifecycle
   labors_datablock_id = labors_file.data_block_id
 
   # Delete files using the API (simulating real user deletion)
-  # Use supereditor to have access to all projects
   token_header(:supereditor)
   delete("/athena/file/remove/files/wisdom.txt")
   expect(last_response.status).to eq(200)
@@ -586,6 +585,13 @@ def multi_project_backfilled_lifecycle
   expect(last_response.status).to eq(200)
   delete("/backup/file/remove/files/backup.txt")
   expect(last_response.status).to eq(200)
+
+  # So now we have:
+  # - athena: wisdom.txt (orphaned)
+  # - athena: helmet.jpg (not orphaned)
+  # - labors: labors2.txt (not orphaned)
+  # - labors: labors.txt (orphaned)
+  # - backup: backup.txt (orphaned)
 
   backfill_ledger = Metis::BackfillDataBlockLedger.new
   allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
