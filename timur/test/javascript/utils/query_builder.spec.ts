@@ -254,19 +254,16 @@ describe('QueryBuilder', () => {
       ]
     ]);
 
-    builder.setOrRecordFilterIndices([0, 2]);
+    builder.setGlobalOr(true);
 
     expect(builder.query()).toEqual([
       'monster',
       [
-        '::and',
+        '::or',
+        ['labor', ['name', '::in', ['lion', 'hydra', 'apples']], '::any'],
         ['name', '::equals', 'Nemean Lion'],
-        ['labor', ['prize', ['name', '::equals', 'Apples'], '::any'], '::any'],
-        [
-          '::or',
-          ['labor', ['name', '::in', ['lion', 'hydra', 'apples']], '::any'],
-          ['labor', ['number', '::equals', 2], '::any']
-        ]
+        ['labor', ['number', '::equals', 2], '::any'],
+        ['labor', ['prize', ['name', '::equals', 'Apples'], '::any'], '::any']
       ],
       '::all',
       [

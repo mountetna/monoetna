@@ -52,7 +52,7 @@ const QueryControlButtons = () => {
     setQueryColumns
   } = useContext(QueryColumnContext);
   const {
-    state: {recordFilters, orRecordFilterIndices},
+    state: {recordFilters, globalOr, orRecordFilterIndices},
     setWhereState
   } = useContext(QueryWhereContext);
   const {
@@ -81,6 +81,9 @@ const QueryControlButtons = () => {
   const [lastOrFilterIndices, setLastOrFilterIndices] = useState(
     defaultQueryWhereParams.orRecordFilterIndices
   );
+  const [lastGlobalOr, setLastGlobalOr] = useState(
+    defaultQueryWhereParams.globalOr
+  );
   const [lastExpandMatrices, setLastExpandMatrices] = useState(expandMatrices);
   const [lastShowDisconnected, setLastShowDisconnected] = useState(showDisconnected);
   const [lastFlattenQuery, setLastFlattenQuery] = useState(flattenQuery);
@@ -100,6 +103,7 @@ const QueryControlButtons = () => {
       builder.addRecordFilters(recordFilters);
       builder.setFlatten(flattenQuery);
       builder.setOrRecordFilterIndices(orRecordFilterIndices);
+      builder.setGlobalOr(globalOr);
 
       return builder;
     }
@@ -110,6 +114,7 @@ const QueryControlButtons = () => {
     recordFilters,
     graph,
     orRecordFilterIndices,
+    globalOr,
     flattenQuery,
     rootModel
   ]);
@@ -187,6 +192,7 @@ const QueryControlButtons = () => {
       _.isEqual(columns, lastColumns) &&
       _.isEqual(recordFilters, lastFilters) &&
       _.isEqual(orRecordFilterIndices, lastOrFilterIndices) &&
+      _.isEqual(globalOr, lastGlobalOr) &&
       lastShowDisconnected === showDisconnected &&
       lastExpandMatrices === expandMatrices &&
       lastFlattenQuery === flattenQuery
@@ -197,6 +203,7 @@ const QueryControlButtons = () => {
     recordFilters,
     lastFilters,
     orRecordFilterIndices,
+    globalOr,
     lastOrFilterIndices,
     showDisconnected,
     lastShowDisconnected,
@@ -213,10 +220,11 @@ const QueryControlButtons = () => {
     setLastColumns(columns);
     setLastFilters(recordFilters);
     setLastOrFilterIndices(orRecordFilterIndices);
+    setLastGlobalOr(globalOr);
     setLastExpandMatrices(expandMatrices);
     setLastShowDisconnected(showDisconnected);
     setLastFlattenQuery(flattenQuery);
-  }, [runQuery, columns, recordFilters, orRecordFilterIndices,expandMatrices,showDisconnected,flattenQuery]);
+  }, [runQuery, columns, recordFilters, globalOr, orRecordFilterIndices,expandMatrices,showDisconnected,flattenQuery]);
 
   return (
     <>
