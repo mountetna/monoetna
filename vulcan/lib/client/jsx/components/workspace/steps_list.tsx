@@ -42,7 +42,7 @@ export default function StepsList() {
       </div>
       <div className='steps-list-subheader'>Steps</div>
       <div className='steps-list-wrapper'>
-        {workspace.dag.map(stepNamesToStepIconNames)}
+        {workspace.dag_flattened.map(stepNamesToStepIconNames)}
       </div>
       <div className='steps-list-subheader'>Output</div>
       <div className='steps-list-wrapper'>
