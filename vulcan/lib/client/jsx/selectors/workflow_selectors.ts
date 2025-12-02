@@ -18,7 +18,9 @@ import {
   StatusStringBroaden,
   WorkspaceRaw,
   WorkspacesResponse,
-  WorkspacesResponseRaw
+  WorkspacesResponseRaw,
+  StepStatuses,
+  StateReturn
 } from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {
@@ -262,7 +264,7 @@ export function allUIStepNames(
   given: VulcanState | VulcanState['workspace']
 ): string[] {
   const workspace = !!given && 'workspace' in given ? given.workspace : given;
-  return workspace ? Object.keys(workspace.vulcan_config).filter(k => workspace.dag.includes(k)) : [];
+  return workspace ? Object.keys(workspace.vulcan_config).filter(k => workspace.dag_flattened.includes(k)) : [];
 }
 
 export function uiNamesToBufferData(
@@ -315,8 +317,25 @@ export function filesReturnToMultiFileContent(filesContent: MultiFileContentResp
   return output;
 }
 
+export function updateStepStatusesFromJobsState(jobsState: StateReturn['jobs'], stepStatusCurrent: WorkspaceStatus['steps']) {
+  const newStatuses: StepStatuses = {};
+  for (let step of jobsState.completed) {
+    newStatuses[step] = {name: step, statusFine: "COMPLETED", status: 'complete'}
+  }
+  for (let step of jobsState.planned) {
+    newStatuses[step] = {name: step, statusFine: "PLANNED", status: 'upcoming'}
+  }
+  for (let step of jobsState.unscheduled) {
+    newStatuses[step] = {name: step, statusFine: "NOT STARTED", status: 'pending'}
+  }
+  return {
+    ...stepStatusCurrent,
+    ...newStatuses
+  }
+}
+
 export function updateStepStatusesFromRunStatus(stepStatusReturns: RunStatus, stepStatusCurrent: WorkspaceStatus['steps']) {
-  const newStatuses = {};
+  const newStatuses: StepStatuses = {};
   for (let [stepName, statusFine] of Object.entries(stepStatusReturns)) {
     if (stepName=="all") continue
     newStatuses[stepName] = {
@@ -508,11 +527,11 @@ export function stepNamesOfStatus(
   status: WorkspaceStatus
 ): string[] {
   if (Array.isArray(targetStatus)) {
-    return workspace.dag.filter(
+    return workspace.dag_flattened.filter(
       (step) => targetStatus.includes(statusOfStep(step, status, workspace)?.status as StatusString)
     );
   }
-  return workspace.dag.filter(
+  return workspace.dag_flattened.filter(
     (step) => statusOfStep(step, status, workspace)?.status === targetStatus
   );
 }
