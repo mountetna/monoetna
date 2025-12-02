@@ -103,7 +103,8 @@ export interface WorkspaceMinimalMinusInconsistent {
   tags: string[] | null;
   git_ref: string;
   git_sha: string;
-  dag: string[];
+  dag_flattened: string[];
+  dag: {[k: string]: string};
   created_at: string;
   updated_at: string;
   workspace_path: string;
@@ -125,7 +126,8 @@ interface WorkspaceMinusInconsistent {
   name: string;
   user_email: string;
   workspace_path: string;
-  dag: string[];
+  dag_flattened: string[];
+  dag: {[k: string]: string};
   git_ref: string;
   git_sha: string;
   created_at: string;
@@ -155,7 +157,8 @@ export const defaultWorkspace: Workspace = {
   user_email: '',
   workspace_path: '',
   tags: [],
-  dag: [],
+  dag_flattened: [],
+  dag: {},
   git_ref: 'main',
   git_sha: '',
   vulcan_config: {},
@@ -183,11 +186,35 @@ export type FlatParams = {
   [k: string]: any
 };
 
+export interface StateReturn  {
+  available_files: string[],
+  files: {
+    completed: string[],
+    planned: string[],
+    unscheduled: string[],
+  },
+  jobs: {
+    completed: string[],
+    planned: string[],
+    unscheduled: string[],
+  },
+}
+
 export interface AccountingReturn {
   config_id: number,
+  files: StateReturn['files'],
+  jobs: StateReturn['jobs'],
   params: {[k: string]: any},
-  scheduled: string[],
-  downstream: string[],
+}
+
+export interface ConfigReturn {
+  id: number,
+  workspace_id: number,
+  path: string,
+  hash: string,
+  input_files: string[],
+  input_params: FlatParams,
+  state: StateReturn,
 }
 
 export interface isRunningReturn {
@@ -249,7 +276,7 @@ export type sacctStatusString =
   'SUSPENDED' |
   'TIMEOUT'
 
-export type StatusStringFine = sacctStatusString | 'NOT STARTED'
+export type StatusStringFine = sacctStatusString | 'NOT STARTED' | 'PLANNED'
 
 export const StatusStringBroaden = (fine: StatusStringFine) => {
   return ({
@@ -271,7 +298,8 @@ export const StatusStringBroaden = (fine: StatusStringFine) => {
     'RUNNING': 'running',
     'SUSPENDED': 'error',
     'TIMEOUT': 'error',
-    'NOT STARTED': 'pending'
+    'NOT STARTED': 'pending',
+    'PLANNED': 'upcoming'
   } as {[k:string]: StatusString})[fine]
 }
 
@@ -298,9 +326,21 @@ export const defaultStepStatus: StepStatus = {
   statusFine: 'NOT STARTED',
 };
 
+export type StepStatuses = {[k: string]: StepStatus}
+
 export const defaultWorkspaceStatus = {
-  steps: {} as {[k: string]: StepStatus},
+  steps: {} as StepStatuses,
   output_files: [] as string[],
+  last_file_accounting: {
+    completed: [],
+    planned: [],
+    unscheduled: []
+  } as StateReturn['files'],
+  last_jobs_accounting: {
+    completed: [],
+    planned: [],
+    unscheduled: []
+  } as StateReturn['jobs'],
   file_contents: {} as {[k: string]: any}, // key = filenames
   last_params: {} as {[k: string]: any},
   params: {} as {[k: string]: {[k: string]: Maybe<any>}}, // top key = 'param1/param2/...paramN' if many from 1; innner keys = param output's keys.
