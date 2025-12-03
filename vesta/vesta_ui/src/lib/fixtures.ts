@@ -246,6 +246,34 @@ const THEMES: ThemeData[] = [
   },
 ]
 
+export const DATA_TYPES = {
+  "Single-cell Seq": [ "sc_seq_pool", "sc_seq", "sc_seq_dataset",
+    "sc_rna_seq_pool", "sc_rna_seq", "snf_seq" ],
+  "DNA Seq": [ "dna_seq" ],
+  "RNA Seq": [ "rna_seq", "rna_seq_plate", "rna_seq_dataset", "csrna_seq",
+    "csrna_seq_dataset" ],
+  "Metagenome Seq": [ "metagenome_seq", "meta_seq" ],
+  "Immune Receptor Seq": [ "omni_tcr_seq", "tcr_seq", "bulk_tcr_seq" ],
+  "Methyl Seq": [ "methylation", "methyl_dataset" ],
+  "Demographics": [ "demographic", "demographics" ],
+  "Treatment": [ "medication", "treatment" ],
+  "Diagnostics": [ "diagnostic", "diagnostics", "clinical", "disease_burden",
+    "evaluation", "score", "intervention", "admission_lab", "symptom", "ae",
+    "irae", "comorbidity", "comorbidities", "autoimmune_history",
+    "timepoint_survey", "clinical_lab" ],
+  "Nanostring": [ "nanostring_plate", "nanostring" ],
+  "Spatial": [ "visium", "slide", "mibi_fov", "mibi_image_sets" ],
+  "Imaging": [ "imaging" ],
+  "Microscopy": [ "microscopy", "microscopy_slice" ],
+  "Metabolomics": [ "metabolome", "metabolite", "metabolomics", "chemical" ],
+  "Immunoassay": [ "immunoassay", "analyte" ],
+  "Flow": [ "flow", "population" ],
+  "CyTOF": [ "cytof_pool", "cytof" ],
+  "Proteomics": [ "proteomics", "mass_spec_proteomics" ],
+  "Exposome": [ "exposome", "expo_dataset" ]
+};
+
+
 // Manage projects link
 THEMES.forEach(theme => {
   const projectsSearchParamsState: ProjectsSearchParamsState = {

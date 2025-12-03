@@ -29,6 +29,16 @@ export async function getData() {
 
     const dataTypes = proj.data_types.filter(dt => dt.toUpperCase() !== 'project'.toUpperCase())
 
+    const latestCount = (stat) => {
+      if (!proj.name in stats.byProjectName) return 0;
+
+      const projStats = stats.byProjectName[proj.name];
+
+      if (!stat in projStats) return 0;
+
+      return projStats[stat].at(-1)?.value || 0;
+    }
+
     return {
       name: proj.name,
       fullName: _.words(proj.full_name).join(' '),
@@ -50,13 +60,14 @@ export async function getData() {
       status,
       type,
       dataTypes,
-      sampleCount: proj.name in stats.byProjectName && stats.byProjectName[proj.name].samples.length > 0 ? stats.byProjectName[proj.name].samples.at(-1)?.value || 0 : 0,
-      assayCount: proj.name in stats.byProjectName && stats.byProjectName[proj.name].assays.length > 0 ? stats.byProjectName[proj.name].assays.at(-1)?.value || 0 : 0,
-      hasClinicalData: (proj.name in stats.byProjectName && stats.byProjectName[proj.name].assays.length > 0 ? stats.byProjectName[proj.name].assays.at(-1)?.value || 0 : 0) > 0 ? 'Yes' : 'No',
+      sampleCount: latestCount('samples'),
+      subjectCount: latestCount('subjects'),
+      assayCount: latestCount('assays'),
+      hasClinicalData: latestCount('assays') > 0 ? 'Yes' : 'No',
       species: proj.species,
       startDate: proj.start_date,
       dataCollectionComplete: proj.data_collection_complete,
-      userCount: proj.name in stats.byProjectName && stats.byProjectName[proj.name].users.length > 0 ? stats.byProjectName[proj.name].users.at(-1)?.value || 0 : 0,
+      userCount: latestCount('users'),
       theme,
       href: (new URL(`/${proj.name}`, process.env.TIMUR_URL)).href
     }

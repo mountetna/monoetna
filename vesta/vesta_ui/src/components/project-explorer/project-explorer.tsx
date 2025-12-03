@@ -70,7 +70,7 @@ const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsL
 // TODO: use separate list component in searchable-list module
 function _ProjectExplorer({ }) {
     // Manage search params sync
-    const { state: { projectData } } = React.useContext(ProjectExplorerContext);
+    const { state: { projectData, filters } } = React.useContext(ProjectExplorerContext);
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
@@ -129,6 +129,9 @@ function _ProjectExplorer({ }) {
 
     const searchPlaceholder = 'Search e.g. "Fibrosis"'
 
+    const [searchOptions] = React.useState(() => {
+        return []
+    })
     const [drawerOpen, setDrawerOpen] = React.useState(true)
 
     const [viewSet, setViewSet] = React.useState<(typeof viewSets)[number]>(viewSets[0])
@@ -313,7 +316,7 @@ function _ProjectExplorer({ }) {
                                     iconLight={filterLightIcon}
                                     iconDark={filterDarkIcon}
                                     onClick={() => setDrawerOpen(!drawerOpen)}
-                                    activated={filterItems.find(item => drawerFilterItemTypes.includes(item.type)) !== undefined}
+                                    activated={ Object.keys(filters).length > 0 }
                                     open={drawerOpen}
                                 />
 
@@ -322,7 +325,7 @@ function _ProjectExplorer({ }) {
                                     filterSelectedOptions
                                     icon={searchDarkIcon}
                                     placeholder={searchPlaceholder}
-                                    options={[]}
+                                    options={[...searchOptions].sort((a, b) => a.type.localeCompare(b.type))}
                                     showResultsOnEmpty={false}
                                     // @ts-ignore
                                     onChange={(_, value: FilterItem[], reason) => {
@@ -435,6 +438,8 @@ function _ProjectExplorer({ }) {
                   {drawerOpen && <Box
                     sx={ theme => ({
                       flex: '0 0 405px',
+                      height: '610px',
+                      overflowY: 'scroll',
                       pt: '9px',
                       pr: '5px',
                       borderRight: `1px solid ${theme.palette.ground.grade50}`,
@@ -452,7 +457,7 @@ function _ProjectExplorer({ }) {
                   }
                   <Box
                       role='list'
-                      sx={{ flex: '1 1 auto' }}
+                      sx={{ flex: '1 1 auto', overflowX: 'hidden' }}
                   >
                     <Box>
                       <ProjectTable/>

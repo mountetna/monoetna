@@ -3,8 +3,7 @@ import { styled } from '@mui/material';
 import { Box } from '@mui/system';
 import { useTheme } from '@mui/material';
 
-const Toggle = () => {
-  const [ active, setActive ] = React.useState(false);
+const Toggle = ({active,setActive}) => {
   return <Box
     onClick={ () => setActive(!active) }
     sx={{

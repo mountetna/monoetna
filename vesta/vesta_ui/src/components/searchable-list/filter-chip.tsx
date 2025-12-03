@@ -34,27 +34,26 @@ export default function FilterPill({
     )
 
     return (
-        <ButtonBase
-            onClick={() => onClickRemove && onClickRemove()}
+        <Box
             sx={{
                 display: 'flex',
-                flexDirection: 'row',
+                width: '100%',
+                flexDirection: 'column',
                 gap: '12px',
                 px: '14px',
                 py: '12px',
                 pr: '21px',
                 bgcolor: 'utilityWhite.main',
                 borderRadius: '30px',
-                transition,
-                '&:hover, &:focus': {
-                    bgcolor: 'ground.grade100',
-                    [`& .${removeButtonClass}`]: {
-                        bgcolor: 'utilityWhiteTransparent25.main',
-                    },
-                },
+                transition
             }}
         >
+          <Box sx={{ display: 'flex',
+                flexDirection: 'row',
+                columnGap: '10px'
+          }}>
             {removeable && <Box
+                onClick={() => onClickRemove && onClickRemove()}
                 className={removeButtonClass}
                 sx={{
                     position: 'relative',
@@ -64,6 +63,12 @@ export default function FilterPill({
                     p: '8px',
                     borderRadius: '50%',
                     transition,
+                    '&:hover, &:focus': {
+                        bgcolor: 'ground.grade100',
+                        [`& .${removeButtonClass}`]: {
+                            bgcolor: 'utilityWhiteTransparent25.main',
+                        },
+                    },
                 }}
             >
                 <Image
@@ -82,9 +87,10 @@ export default function FilterPill({
             >
                 {label}
             </Typography>
+          </Box>
             {
               children
             }
-        </ButtonBase >
+        </Box >
     )
 }
