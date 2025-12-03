@@ -50,6 +50,13 @@ class AuthorizationController < Janus::Controller
     # Create a new token for the user.
     token = user.create_token!
 
+    event_log(
+      project_name: 'janus',
+      event: 'token',
+      message: "logged in via #{@params[:refer]}",
+      user: user
+    )
+
     # On success return the user info.
     respond_with_cookie(token, @params[:refer])
   end
@@ -164,6 +171,13 @@ class AuthorizationController < Janus::Controller
 
     # Create a new token for the user.
     token = user.create_token!
+
+    event_log(
+      project_name: 'janus',
+      event: 'token',
+      message: "logged in via #{@params[:refer]}",
+      user: user
+    )
 
     respond_with_cookie(token, @params[:refer])
   end
