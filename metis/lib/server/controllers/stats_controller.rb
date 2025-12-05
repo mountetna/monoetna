@@ -70,11 +70,11 @@ class StatsController < Metis::Controller
       # Tracked mode: high-level count summary + vacuum stats for tracked datablocks
       project_name = @params[:project_name]
       
-      event_counts = Metis::DataBlockLedger.calculate_event_counts(project_name)
-      
       # Calculate vacuum stats
       include_projects = @params[:include_projects] || []
       include_projects = [include_projects] unless include_projects.is_a?(Array)
+      
+      event_counts = Metis::DataBlockLedger.calculate_event_counts(project_name, include_projects: include_projects)
       
       orphaned_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks(project_name, include_projects: include_projects)
       

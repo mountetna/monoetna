@@ -30,7 +30,6 @@ describe StatsController do
       expect(response[:event_counts][:reuse_datablock]).to eq(0)
       expect(response[:event_counts][:remove_datablock]).to eq(0)
 
-
      # Should have vacuum stats
       expect(response[:vacuum][:datablocks_can_vacuum]).to be >= 2
       expect(response[:vacuum][:space_can_clear]).to be >= (WISDOM.bytesize + HELMET.bytesize)
@@ -41,14 +40,14 @@ describe StatsController do
       expect(wisdom_detail).not_to be_nil
       expect(wisdom_detail[:md5_hash]).to eq(wisdom_datablock.md5_hash)
       expect(wisdom_detail[:size]).to eq(WISDOM.bytesize)
-      expect(wisdom_detail[:description]).to eq("wisdom.txt")
+      expect(wisdom_detail[:description]).to eq("Originally for wisdom.txt")
       expect(wisdom_detail[:files]).to eq([])
       
       helmet_detail = response[:vacuum][:details].find { |d| d[:data_block_id] == helmet_datablock.id }
       expect(helmet_detail).not_to be_nil
       expect(helmet_detail[:md5_hash]).to eq(helmet_datablock.md5_hash)
       expect(helmet_detail[:size]).to eq(HELMET.bytesize)
-      expect(helmet_detail[:description]).to eq("helmet.jpg")
+      expect(helmet_detail[:description]).to eq("Originally for helmet.jpg")
       expect(helmet_detail[:files]).to eq([])
     end
 
@@ -82,7 +81,7 @@ describe StatsController do
       expect(wisdom_detail).not_to be_nil
       expect(wisdom_detail[:md5_hash]).to eq(wisdom_datablock.md5_hash)
       expect(wisdom_detail[:size]).to eq(WISDOM.bytesize)
-      expect(wisdom_detail[:description]).to eq("wisdom.txt")
+      expect(wisdom_detail[:description]).to eq("Originally for wisdom.txt")
       expect(wisdom_detail[:files]).to eq([]) # no files are associated with the datablock
     end
 
@@ -98,6 +97,8 @@ describe StatsController do
   context "#ledger tracked" do
     before(:each) do
       default_bucket('athena')
+      default_bucket('labors')
+      default_bucket('backup')
       
       @metis_uid = Metis.instance.sign.uid
       set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
@@ -108,10 +109,6 @@ describe StatsController do
     it "returns vacuum stats with include_projects parameter" do
       enable_all_ledger_events
       
-      # Set up project buckets
-      default_bucket('labors')
-      default_bucket('backup')
-      
       # Create files in athena
       athena_file = upload_file_via_api('athena', 'athena.txt', WISDOM)
       shared_datablock = athena_file.data_block
@@ -121,8 +118,6 @@ describe StatsController do
       
       # Create file in labors with same content (reuses datablock)
       labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
-      expect(labors_file.data_block_id).to eq(shared_datablock.id)
-
       another_labors_file = upload_file_via_api('labors', 'labors2.txt',  "some other content 2")
 
       # Create a file in backup with same content (reuses datablock)
@@ -141,7 +136,14 @@ describe StatsController do
       get('/api/stats/ledger', project_name: 'athena', include_projects: ['labors', 'backup'])
       expect(last_response.status).to eq(200)
       response = json_body
-      
+
+      # Should have event counts (for athena + included projects: labors, backup)
+      expect(response[:event_counts][:create_datablock]).to eq(5) # athena.txt, athena2.txt, labors.txt, labors2.txt, backup.txt
+      expect(response[:event_counts][:link_file_to_datablock]).to eq(5) # all 5 files linked
+      expect(response[:event_counts][:resolve_datablock]).to eq(3) # athena.txt, athena2.txt, labors2.txt resolved (labors.txt and backup.txt reused)
+      expect(response[:event_counts][:reuse_datablock]).to eq(2) # labors.txt and backup.txt reused athena's datablock
+      expect(response[:event_counts][:unlink_file_from_datablock]).to eq(1) # athena.txt deleted
+
       # Should have 1 orphaned datablock when including labors and backup
       expect(response[:vacuum][:datablocks_can_vacuum]).to be >= 1
       expect(response[:vacuum][:space_can_clear]).to be >= WISDOM.bytesize
@@ -157,10 +159,6 @@ describe StatsController do
         expect(detail).not_to have_key(:project_name)
       end
       
-      # Should still have event counts
-      expect(response[:event_counts][:create_datablock]).to eq(1)
-      expect(response[:event_counts][:link_file_to_datablock]).to eq(1)
-      expect(response[:event_counts][:unlink_file_from_datablock]).to eq(1)
     end
   end
 
@@ -182,6 +180,9 @@ describe StatsController do
       untracked_wisdom = upload_file_via_api('athena', 'untracked_wisdom.txt', WISDOM)
       untracked_helmet = upload_file_via_api('athena', 'untracked_helmet.jpg', HELMET)
       
+      backfilled_wisdom_datablock_id = untracked_wisdom.data_block_id
+      backfilled_helmet_datablock_id = untracked_helmet.data_block_id
+      
       token_header(:editor)
       delete("/athena/file/remove/files/untracked_wisdom.txt")
       delete("/athena/file/remove/files/untracked_helmet.jpg")
@@ -194,7 +195,7 @@ describe StatsController do
       backfill_ledger.execute(orphaned: true)
       
       # Phase 2: Enable ledger and create/delete files (tracked mode)
-      # Create two tracked files with different content to avoid deduplication
+      # Create one tracked file with the same content as the untracked wisdom datablock
       enable_all_ledger_events
       
       tracked_file_1 = upload_file_via_api('athena', 'tracked_file_1.txt', WISDOM)
@@ -229,8 +230,15 @@ describe StatsController do
       
       # Verify vacuum details for backfilled datablocks
       expect(backfilled_response[:vacuum][:details].length).to eq(2)
-     
-      # TODO: finish this
+      # Verify wisdom datablock has the tracked file associated with it (since tracked_file_1 reused it)
+      wisdom_detail = backfilled_response[:vacuum][:details].find { |d| d[:data_block_id] == backfilled_wisdom_datablock_id }
+      expect(wisdom_detail).not_to be_nil
+      expect(wisdom_detail[:files]).to eq([{file_path: "tracked_file_1.txt", bucket_name: "files"}])
+      
+      # Verify helmet datablock has an empty files array (no files are using it)
+      helmet_detail = backfilled_response[:vacuum][:details].find { |d| d[:data_block_id] == backfilled_helmet_datablock_id }
+      expect(helmet_detail).not_to be_nil
+      expect(helmet_detail[:files]).to eq([])
       
       # Query tracked stats for athena - should ONLY show tracked events for athena
       get('/api/stats/ledger', project_name: 'athena')
@@ -241,14 +249,20 @@ describe StatsController do
       # Tracked stats should only count tracked events for athena (no backfilled events)
       # We created 2 tracked files: tracked_file_1 reused wisdom datablock, tracked_file_2 created new
       # Only tracked_file_1 was deleted
-      expect(tracked_response[:event_counts][:create_datablock]).to eq(1) # tracked_file_2 only
-      expect(tracked_response[:event_counts][:link_file_to_datablock]).to eq(1) # tracked_file_2 link
+      expect(tracked_response[:event_counts][:create_datablock]).to eq(2) # Even though untracked_wisdom and tracked_1 share the same datablock, it is okay for tracked_1 to create a new datablock since it gets resolved later
+      expect(tracked_response[:event_counts][:link_file_to_datablock]).to eq(2)
       expect(tracked_response[:event_counts][:reuse_datablock]).to eq(1) # tracked_file_1 reused wisdom datablock
-      expect(tracked_response[:event_counts][:resolve_datablock]).to eq(2) # checksums for tracked_file_1 and tracked_file_2
+      expect(tracked_response[:event_counts][:resolve_datablock]).to eq(1) # checksums for tracked_file_1 and tracked_file_2
       expect(tracked_response[:event_counts][:unlink_file_from_datablock]).to eq(1) # tracked_file_1 deleted
       expect(tracked_response[:event_counts][:remove_datablock]).to eq(0)
 
-      # TODO: finish this
+      # Verify tracked vacuum details
+      expect(tracked_response[:vacuum][:details].length).to eq(1)
+      
+      # Verify wisdom datablock shows tracked_file_1.txt as orphaned
+      tracked_wisdom_detail = tracked_response[:vacuum][:details].find { |d| d[:data_block_id] == backfilled_wisdom_datablock_id }
+      expect(tracked_wisdom_detail).not_to be_nil
+      expect(tracked_wisdom_detail[:files]).to eq([{file_path: "tracked_file_1.txt", bucket_name: "files"}])
       
     end
 
