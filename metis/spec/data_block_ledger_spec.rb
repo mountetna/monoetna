@@ -19,9 +19,6 @@ describe Metis::DataBlockLedger do
     stub_event_log(:athena)
     stub_event_log(:labors)
     stub_event_log(:backup)
-    
-    # Enable ledger for these tests
-    set_ledger_enabled(true)
   end
 
   after(:each) do
@@ -31,14 +28,11 @@ describe Metis::DataBlockLedger do
   describe '.find_orphaned_datablocks_backfilled' do
     describe 'single project' do
       it 'returns orphaned datablocks' do
-        # Disable ledger for backfill tests
-        set_ledger_enabled(false)
+        disable_all_ledger_events
         
         # Create files
-        wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-        helmet_file = create_file('athena', 'helmet.jpg', HELMET)
-        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-        stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+        wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+        helmet_file = upload_file_via_api('athena', 'helmet.jpg', HELMET)
         
         wisdom_datablock = wisdom_file.data_block
         helmet_datablock = helmet_file.data_block
@@ -64,12 +58,10 @@ describe Metis::DataBlockLedger do
       end
 
       it 'does not return datablocks that have been vacuumed' do
-        # Disable ledger for backfill tests
-        set_ledger_enabled(false)
+        disable_all_ledger_events
         
         # Create a file
-        wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+        wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
         wisdom_datablock = wisdom_file.data_block
         
         # Delete file via API
@@ -92,18 +84,40 @@ describe Metis::DataBlockLedger do
         
         expect(orphaned).to be_empty
       end
+
+      it 'does not return datablocks that have been triggered in the tracked mode' do
+        disable_all_ledger_events
+        
+         # Create a untracked file
+        untracked_file = upload_file_via_api('athena', 'untracked1.txt', WISDOM)
+        token_header(:editor)
+        delete("/athena/file/remove/files/untracked1.txt")
+
+        # Enable ledger tracking (allow real ledger events)
+        enable_all_ledger_events
+
+        # Create a tracked file
+        tracked_file = upload_file_via_api('athena', 'tracked2.txt', HELMET)
+        delete("/athena/file/remove/files/tracked2.txt")
+
+        backfill_ledger = Metis::BackfillDataBlockLedger.new
+        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+        backfill_ledger.execute(project_name: 'athena', links: true)
+        backfill_ledger.execute(orphaned: true)
+
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
+        expect(orphaned.length).to eq(1)
+        expect(orphaned[0].id).to eq(untracked_file.data_block.id)
+      end
     end
 
     describe 'cross project' do
       it 'finds orphaned datablocks that are still in use by another project' do
-        # Disable ledger for backfill tests
-        set_ledger_enabled(false)
+        disable_all_ledger_events
         
         # Create files with the same data block
-        wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-        labors_file = create_file('labors', 'labors.txt', WISDOM)
-        stubs.create_file('labors', 'files', 'labors.txt', WISDOM)
+        wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+        labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
     
         # Use supereditor to have access to all projects
         token_header(:supereditor)
@@ -127,16 +141,12 @@ describe Metis::DataBlockLedger do
       end
 
       it 'does not find orphaned datablocks that are still in use by another project' do
-        # Disable ledger for backfill tests
-        set_ledger_enabled(false)
+        disable_all_ledger_events
         
         # Create files with the same data block
-        wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-        labors_file = create_file('labors', 'labors.txt', WISDOM)
-        stubs.create_file('labors', 'files', 'labors.txt', WISDOM)
-        backup_file = create_file('backup', 'backup.txt', WISDOM)
-        stubs.create_file('backup', 'files', 'backup.txt', WISDOM)
+        wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+        labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
+        backup_file = upload_file_via_api('backup', 'backup.txt', WISDOM)
     
         # Use supereditor to have access to all projects
         token_header(:supereditor)
@@ -162,6 +172,9 @@ describe Metis::DataBlockLedger do
   describe '.find_orphaned_datablocks' do
     describe 'single project' do
       it 'returns orphaned datablocks that were linked and then unlinked' do
+        # Allow ledger logging for this test
+        enable_all_ledger_events
+        
         # Create a file via API (triggers log_link automatically)
         wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
         wisdom_datablock = wisdom_file.data_block
@@ -194,6 +207,9 @@ describe Metis::DataBlockLedger do
       end
 
       it 'returns orphaned datablocks that were reused and then unlinked' do
+        # Allow ledger logging for this test
+        enable_all_ledger_events
+        
         # Create first file
         wisdom_file1 = upload_file_via_api('athena', 'wisdom1.txt', WISDOM)
         wisdom_datablock = wisdom_file1.data_block
@@ -223,6 +239,9 @@ describe Metis::DataBlockLedger do
       end
 
       it 'does not return datablocks still referenced by files' do
+        # Allow ledger logging for this test
+        enable_all_ledger_events
+        
         # Create a file
         wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
         wisdom_datablock = wisdom_file.data_block
@@ -243,6 +262,9 @@ describe Metis::DataBlockLedger do
       end
 
       it 'does not return datablocks that have already been vacuumed' do
+        # Allow ledger logging for this test
+        enable_all_ledger_events
+        
         # Create and delete a file
         wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
         wisdom_datablock = wisdom_file.data_block
@@ -261,6 +283,9 @@ describe Metis::DataBlockLedger do
       end
 
       it 'handles datablocks with multiple link and unlink events correctly' do
+        # Allow ledger logging for this test
+        enable_all_ledger_events
+        
         # Create a file
         wisdom_file1 = upload_file_via_api('athena', 'wisdom1.txt', WISDOM)
         wisdom_datablock = wisdom_file1.data_block
@@ -285,13 +310,43 @@ describe Metis::DataBlockLedger do
       end
 
       it 'returns empty array when no orphaned datablocks exist' do
+        disable_all_ledger_events
+        
         orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
         expect(orphaned).to be_empty
+      end
+
+      it 'does not return datablocks that have been triggered in backfilled mode' do
+        disable_all_ledger_events
+        
+         # Create a untracked file
+        untracked_file = upload_file_via_api('athena', 'untracked1.txt', WISDOM)
+        token_header(:editor)
+        delete("/athena/file/remove/files/untracked1.txt")
+
+        # Enable ledger tracking (allow real ledger events)
+        enable_all_ledger_events
+
+        # Create a tracked file
+        tracked_file = upload_file_via_api('athena', 'tracked2.txt', HELMET)
+        delete("/athena/file/remove/files/tracked2.txt")
+
+        backfill_ledger = Metis::BackfillDataBlockLedger.new
+        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+        backfill_ledger.execute(project_name: 'athena', links: true)
+        backfill_ledger.execute(orphaned: true)
+
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        expect(orphaned.length).to eq(1)
+        expect(orphaned[0].id).to eq(tracked_file.data_block.id)
       end
     end
 
     describe 'cross project' do
       it 'does not return datablocks that are still in use by another project' do
+        # Allow ledger logging for this test
+        enable_all_ledger_events
+        
         # Create a file in athena project
         athena_file = upload_file_via_api('athena', 'athena.txt', WISDOM)
         shared_datablock = athena_file.data_block
@@ -311,6 +366,9 @@ describe Metis::DataBlockLedger do
       end
 
       it 'returns datablocks orphaned for project when include_projects list contains all using projects' do
+        # Allow ledger logging for this test
+        enable_all_ledger_events
+        
         # Create file in athena
         athena_file = upload_file_via_api('athena', 'athena.txt', WISDOM)
         shared_datablock = athena_file.data_block
@@ -331,6 +389,9 @@ describe Metis::DataBlockLedger do
       end
 
       it 'does not return datablocks used by projects outside the include list' do
+        # Allow ledger logging for this test
+        enable_all_ledger_events
+        
         # Create file in athena
         athena_file = upload_file_via_api('athena', 'athena.txt', WISDOM)
         shared_datablock = athena_file.data_block
@@ -354,6 +415,9 @@ describe Metis::DataBlockLedger do
       end
 
       it 'works with multiple projects in include list' do
+        # Allow ledger logging for this test
+        enable_all_ledger_events
+        
         # Create file in athena
         athena_file = upload_file_via_api('athena', 'athena.txt', WISDOM)
         shared_datablock = athena_file.data_block

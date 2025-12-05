@@ -118,6 +118,8 @@ describe Metis::DataBlock do
         before(:each) { existing_file }
 
         it 'converges sanely' do
+          enable_all_ledger_events
+          
           new_db.compute_hash!
 
           validate_block_converged(new_db)
@@ -344,11 +346,12 @@ describe DataBlockController do
 
   context '#vacuum_datablocks with existing backfilled records' do
     before(:each) do
-      # Disable ledger for backfill tests
-      set_ledger_enabled(false)
+      # Mock ledger methods during setup to prevent events from being created
     end
 
     it 'vacuums orphaned datablocks for backfilled records' do
+      disable_all_ledger_events
+      
       # Create and then delete files to make datablocks orphaned, then backfill
       result = athena_backfilled_lifecycle
       wisdom_data_block = Metis::DataBlock.where(id: result[:wisdom_data_block_id]).first
@@ -402,6 +405,8 @@ describe DataBlockController do
 
   context '#vacuum_datablocks' do
     it 'vacuums orphaned datablocks for a project' do
+      enable_all_ledger_events
+      
       # Create file via upload API (triggers log_link automatically)
       wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
       

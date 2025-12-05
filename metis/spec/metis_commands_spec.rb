@@ -101,10 +101,9 @@ describe Metis::BackfillDataBlockLedger do
   end
 
   before(:each) do
-    # Disable ledger for backfill tests
-    set_ledger_enabled(false)
-    
     default_bucket('athena')
+    default_bucket('labors')
+    default_bucket('backup')
 
     @metis_uid = Metis.instance.sign.uid
 
@@ -123,10 +122,10 @@ describe Metis::BackfillDataBlockLedger do
     end
 
     it "creates link events for all existing files" do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      helmet_file = create_file('athena', 'helmet.jpg', HELMET)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+      disable_all_ledger_events
+      
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      helmet_file = upload_file_via_api('athena', 'helmet.jpg', HELMET)
 
       allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
       Metis::BackfillDataBlockLedger.new.execute(project_name: 'athena', links: true)
@@ -155,8 +154,9 @@ describe Metis::BackfillDataBlockLedger do
     end
 
     it "skips files already in ledger when backfilling links" do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      disable_all_ledger_events
+      
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
 
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
@@ -175,13 +175,12 @@ describe Metis::BackfillDataBlockLedger do
     end
 
     it "creates links events across all projects" do
+      disable_all_ledger_events
+      
       # Create files with the same data block
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      labors_file = create_file('labors', 'labors.txt', WISDOM)
-      stubs.create_file('labors', 'files', 'labors.txt', WISDOM)
-      backup_file = create_file('backup', 'backup.txt', WISDOM)
-      stubs.create_file('backup', 'files', 'backup.txt', WISDOM)
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
+      backup_file = upload_file_via_api('backup', 'backup.txt', WISDOM)
 
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
@@ -190,6 +189,32 @@ describe Metis::BackfillDataBlockLedger do
       backfill_ledger.execute(project_name: 'backup', links: true)
       expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).count).to eq(3)
     end
+
+    it 'skips files that already have tracked link events' do
+      # Create a untracked file
+      disable_all_ledger_events
+
+      untracked_file = upload_file_via_api('athena', 'untracked1.txt', WISDOM)
+
+      # Enable ledger tracking (allow real ledger events)
+      enable_all_ledger_events
+    
+      # Create a tracked file
+      tracked_file = upload_file_via_api('athena', 'tracked2.txt', HELMET)
+      
+      # Run backfill - should skip tracked files, but backfill the others
+      backfill_ledger = Metis::BackfillDataBlockLedger.new
+      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+      backfill_ledger.execute(project_name: 'athena', links: true)
+      
+      # Verify tracked_file1 (created before ledger enabled) now has backfilled link event
+      tracked_files = Metis::DataBlockLedger.where(
+        event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK,
+        triggered_by: Metis::DataBlockLedger::SYSTEM_BACKFILL,
+      ).all
+      expect(tracked_files.count).to eq(1)
+      expect(tracked_files.first.triggered_by).to eq(Metis::DataBlockLedger::SYSTEM_BACKFILL)
+    end
   end
 
   context 'backfill ledger unlink' do
@@ -197,11 +222,11 @@ describe Metis::BackfillDataBlockLedger do
     # We typical run the link command first, so this is why it is being invoked here.
 
     it "creates unlink events for orphaned datablocks" do
+      disable_all_ledger_events
+      
       # Create two files
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      helmet_file = create_file('athena', 'helmet.jpg', HELMET)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      helmet_file = upload_file_via_api('athena', 'helmet.jpg', HELMET)
       
       wisdom_datablock_id = wisdom_file.data_block_id
       helmet_datablock_id = helmet_file.data_block_id
@@ -252,8 +277,9 @@ describe Metis::BackfillDataBlockLedger do
     end
 
     it "skips files already in ledger when backfilling orphaned datablocks" do
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      disable_all_ledger_events
+      
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
       
       wisdom_datablock_id = wisdom_file.data_block_id
 
@@ -279,13 +305,12 @@ describe Metis::BackfillDataBlockLedger do
     end
 
     it "skips datablocks when they are linked to multiple projects" do
+        disable_all_ledger_events
+        
         # Create files with the same data block
-        wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-        labors_file = create_file('labors', 'labors.txt', WISDOM)
-        stubs.create_file('labors', 'files', 'labors.txt', WISDOM)
-        backup_file = create_file('backup', 'backup.txt', WISDOM)
-        stubs.create_file('backup', 'files', 'backup.txt', WISDOM)
+        wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+        labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
+        backup_file = upload_file_via_api('backup', 'backup.txt', WISDOM)
   
         token_header(:editor)
         delete("/athena/file/remove/files/wisdom.txt")
@@ -302,6 +327,35 @@ describe Metis::BackfillDataBlockLedger do
   
         expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK).count).to eq(2)
         expect(Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK).count).to eq(0)
+    end
+
+    it 'skips files that already have tracked link events' do
+        disable_all_ledger_events
+  
+        # Create a untracked file and delete it
+        untracked_file = upload_file_via_api('athena', 'untracked1.txt', WISDOM)
+        token_header(:editor)
+        delete("/athena/file/remove/files/untracked1.txt")
+  
+        # Enable ledger tracking (allow real ledger events)
+        enable_all_ledger_events
+      
+        # Create a tracked file
+        tracked_file = upload_file_via_api('athena', 'tracked2.txt', HELMET)
+        delete("/athena/file/remove/files/tracked2.txt")
+        
+        # Run backfill - should skip tracked files, but backfill the others
+        backfill_ledger = Metis::BackfillDataBlockLedger.new
+        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+        backfill_ledger.execute(orphaned: true)
+        
+        # Verify tracked_file1 (created before ledger enabled) now has backfilled link event
+        tracked_files = Metis::DataBlockLedger.where(
+          triggered_by: Metis::DataBlockLedger::SYSTEM_BACKFILL,
+          event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK,
+        ).all
+        expect(tracked_files.count).to eq(1)
+        expect(tracked_files.first.triggered_by).to eq(Metis::DataBlockLedger::SYSTEM_BACKFILL)
       end
     end
 end

@@ -14,7 +14,8 @@ describe Metis::ChecksumFiles do
   end
 
   it 'calculates md5s for new data blocks' do
-    set_ledger_enabled(true)
+    enable_all_ledger_events
+    
     # a new data block has a temporary hash, recognizable by its pattern
     temp_hash = "temp-ef15c9bd4c7836612b1567f4c8396726"
     wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, md5_hash: temp_hash)
@@ -70,7 +71,8 @@ describe Metis::ChecksumFiles do
   end
 
   it 'consolidates duplicate MD5s' do
-    set_ledger_enabled(true)
+    enable_all_ledger_events
+    
     # a newly created file which needs to be hashed
     temp_hash = "temp-ef15c9bd4c7836612b1567f4c8396726"
     wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, md5_hash: temp_hash)

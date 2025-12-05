@@ -93,9 +93,26 @@ RSpec.configure do |config|
   end
 end
 
-# Helper method to set ledger_tracked_mode_enabled in config
-def set_ledger_enabled(value)
-  Metis.instance.instance_variable_get(:@config)[:test][:ledger_tracked_mode_enabled] = value
+# Helper method to disable all ledger event logging during test setup
+# This prevents ledger events from being created during setup operations
+# Tests that need ledger events should explicitly allow them with and_call_original
+def disable_all_ledger_events
+  allow(Metis::DataBlockLedger).to receive(:log_create).and_return(nil)
+  allow(Metis::DataBlockLedger).to receive(:log_link).and_return(nil)
+  allow(Metis::DataBlockLedger).to receive(:log_unlink).and_return(nil)
+  allow(Metis::DataBlockLedger).to receive(:log_resolve).and_return(nil)
+  allow(Metis::DataBlockLedger).to receive(:log_deduplicate).and_return(nil)
+end
+
+# Helper method to enable all ledger event logging for tests
+# This restores the original behavior of all ledger logging methods
+# Use this when you want ledger events to be created during test execution
+def enable_all_ledger_events
+  allow(Metis::DataBlockLedger).to receive(:log_create).and_call_original
+  allow(Metis::DataBlockLedger).to receive(:log_link).and_call_original
+  allow(Metis::DataBlockLedger).to receive(:log_unlink).and_call_original
+  allow(Metis::DataBlockLedger).to receive(:log_resolve).and_call_original
+  allow(Metis::DataBlockLedger).to receive(:log_deduplicate).and_call_original
 end
 
 FactoryBot.define do

@@ -41,7 +41,8 @@ describe FileController do
     end
 
     it 'removes a file' do
-      set_ledger_enabled(true)
+      enable_all_ledger_events
+      
       token_header(:editor)
       location = @helmet_file.data_block.location
       helmet_datablock = @helmet_file.data_block

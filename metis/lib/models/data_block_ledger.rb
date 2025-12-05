@@ -15,14 +15,6 @@ class Metis
     SYSTEM_BACKFILL = 'system_backfill'
     CHECKSUM_COMMAND= 'command_checksum'
 
-    # Config setting to enable/disable automatic logging
-    # Set ledger_tracked_mode_enabled: true in config.yml to enable logging
-    def self.ledger_enabled
-      config_value = Metis.instance.config(:ledger_tracked_mode_enabled)
-      return false if config_value.nil?
-      config_value.to_s.downcase == 'true' || config_value == true
-    end
-
     def validate
       super
       # Allow project_name to be nil for:
@@ -39,7 +31,6 @@ class Metis
     end
 
     def self.log_create(file, datablock, user)
-      return unless ledger_enabled
       create(
         project_name: file.project_name,
         md5_hash: datablock.md5_hash,
@@ -57,7 +48,6 @@ class Metis
     end
 
   def self.log_link(file, datablock, user)
-      return unless ledger_enabled
       create(
         project_name: file.project_name,
         md5_hash: datablock.md5_hash,
@@ -75,7 +65,6 @@ class Metis
     end
 
     def self.log_resolve(file, datablock, event)
-      return unless ledger_enabled
       create(
         project_name: file.project_name,
         md5_hash: datablock.md5_hash,
@@ -93,7 +82,6 @@ class Metis
     end
 
     def self.log_deduplicate(file, datablock, user)
-      return unless ledger_enabled
       create(
         project_name: file.project_name,
         md5_hash: datablock.md5_hash,
@@ -111,7 +99,6 @@ class Metis
     end
 
     def self.log_unlink(file, datablock, user)
-      return unless ledger_enabled
       create(
         project_name: file.project_name,
         md5_hash: datablock.md5_hash,
@@ -129,7 +116,6 @@ class Metis
     end
 
     def self.log_vacuum(datablock, project_name, user)
-      # Log vaccum can be run at any time, so we don't need to check ledger_enabled
       create(
         project_name: project_name,
         md5_hash: datablock.md5_hash,
@@ -148,7 +134,17 @@ class Metis
 
     def self.user_identifier(user)
       return 'system' unless user
-      user.respond_to?(:email) ? user.email : user.to_s
+      
+      # If user is a User object, return email
+      return user.email if user.respond_to?(:email)
+      
+      # If user is a string in "email|name" format (from display_name), extract email
+      if user.is_a?(String) && user.include?('|')
+        return user.split('|').first
+      end
+      
+      # Otherwise return as string
+      user.to_s
     end
 
     def self.find_orphaned_datablocks(project_name, include_projects: [])

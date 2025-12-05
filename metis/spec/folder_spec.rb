@@ -587,7 +587,8 @@ describe FolderController do
     end
 
     it 'removes a folder that contains files and folders if forced' do
-      set_ledger_enabled(true)
+      enable_all_ledger_events
+      
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @blueprints_folder)
       helmet_datablock = helmet_file.data_block
       old_folder = create_folder('athena', 'old', folder: @blueprints_folder)

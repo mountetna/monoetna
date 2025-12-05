@@ -621,7 +621,8 @@ describe UploadController do
     end
 
     it 'properly logs in the ledger' do
-      set_ledger_enabled(true)
+      enable_all_ledger_events
+      
       upload = prep_upload('wisdom.txt')
 
       # post the blob with no next blob
