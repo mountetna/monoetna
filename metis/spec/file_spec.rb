@@ -41,32 +41,12 @@ describe FileController do
     end
 
     it 'removes a file' do
-      enable_all_ledger_events
-      
       token_header(:editor)
       location = @helmet_file.data_block.location
-      helmet_datablock = @helmet_file.data_block
       remove_file('blueprints/helmet/helmet.jpg')
 
       expect(last_response.status).to eq(200)
       expect(Metis::File.count).to eq(1)
-
-      # Assert UNLINK_FILE_TO_DATABLOCK event was logged
-      unlink_event = Metis::DataBlockLedger.where(
-        file_id: @helmet_file.id,
-        event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
-      ).first
-      expect(unlink_event).to be_present
-      expect(unlink_event.project_name).to eq('athena')
-      expect(unlink_event.md5_hash).to eq(helmet_datablock.md5_hash)
-      expect(unlink_event.file_path).to eq('blueprints/helmet/helmet.jpg')
-      expect(unlink_event.file_id).to eq(@helmet_file.id)
-      expect(unlink_event.data_block_id).to eq(helmet_datablock.id)
-      expect(unlink_event.event_type).to eq(Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK)
-      expect(unlink_event.triggered_by).to eq('metis@olympus.org')
-      expect(unlink_event.size).to eq(helmet_datablock.size)
-      expect(unlink_event.bucket_name).to eq('files')
-      expect(unlink_event.created_at).to be_within(1).of(Time.now)
 
       # the data is not destroyed
       expect(::File.exists?(location)).to be_truthy
@@ -78,6 +58,41 @@ describe FileController do
       expect(::File.exists?(location)).to be_truthy
       expect(last_response.status).to eq(200)
       expect(Metis::File.count).to eq(0)
+    end
+
+    it 'logs an UNLINK_FILE_FROM_DATABLOCK ledger entry when removing a file' do
+      enable_all_ledger_events
+      
+      # Create file via API for proper ledger event tracking
+      helmet_file = upload_file_via_api('athena', 'blueprints/helmet/helmet.jpg', HELMET)
+      
+      token_header(:editor)
+      location = helmet_file.data_block.location
+      helmet_datablock = helmet_file.data_block
+      remove_file('blueprints/helmet/helmet.jpg')
+
+      expect(last_response.status).to eq(200)
+      expect(Metis::File.count).to eq(1)
+
+      # Assert UNLINK_FILE_FROM_DATABLOCK event was logged
+      unlink_event = Metis::DataBlockLedger.where(
+        file_id: helmet_file.id,
+        event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
+      ).first
+      expect(unlink_event).to be_present
+      expect(unlink_event.project_name).to eq('athena')
+      expect(unlink_event.md5_hash).to eq(helmet_datablock.md5_hash)
+      expect(unlink_event.file_path).to eq('blueprints/helmet/helmet.jpg')
+      expect(unlink_event.file_id).to eq(helmet_file.id)
+      expect(unlink_event.data_block_id).to eq(helmet_datablock.id)
+      expect(unlink_event.event_type).to eq(Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK)
+      expect(unlink_event.triggered_by).to eq('metis@olympus.org')
+      expect(unlink_event.size).to eq(helmet_datablock.size)
+      expect(unlink_event.bucket_name).to eq('files')
+      expect(unlink_event.created_at).to be_within(1).of(Time.now)
+
+      # the data is not destroyed
+      expect(::File.exists?(location)).to be_truthy
     end
 
     it 'refuses to remove a file without permissions' do

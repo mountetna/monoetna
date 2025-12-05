@@ -587,12 +587,26 @@ describe FolderController do
     end
 
     it 'removes a folder that contains files and folders if forced' do
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @blueprints_folder)
+      stubs.create_file('athena', 'files', 'blueprints/helmet.jpg', HELMET)
+      old_folder = create_folder('athena', 'old', folder: @blueprints_folder)
+
+      token_header(:editor)
+      remove_folder('blueprints', recursive: true)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(1)
+
+      expect(Metis::Folder.count).to eq(0)
+      expect(Metis::File.count).to eq(0)
+    end
+
+    it 'logs UNLINK_FILE_FROM_DATABLOCK ledger entries when removing folder contents' do
       enable_all_ledger_events
       
-      helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @blueprints_folder)
+      helmet_file = upload_file_via_api('athena', 'blueprints/helmet.jpg', HELMET)
       helmet_datablock = helmet_file.data_block
       old_folder = create_folder('athena', 'old', folder: @blueprints_folder)
-      stubs.create_file('athena', 'files', 'blueprints/helmet.jpg', HELMET)
 
       token_header(:editor)
       remove_folder('blueprints', recursive: true)
