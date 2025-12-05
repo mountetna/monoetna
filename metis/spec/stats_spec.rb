@@ -8,12 +8,10 @@ describe StatsController do
   end
 
   context "#ledger backfilled" do
-    before(:each) do
-      # Disable ledger for backfill tests
-      set_ledger_enabled(false)
-    end
 
     it "returns details for a single project " do
+      disable_all_ledger_events
+      
       lifecycle_result = athena_backfilled_lifecycle
       wisdom_datablock = Metis::DataBlock[lifecycle_result[:wisdom_data_block_id]]
       helmet_datablock = Metis::DataBlock[lifecycle_result[:helmet_data_block_id]]
@@ -32,7 +30,8 @@ describe StatsController do
       expect(response[:event_counts][:reuse_datablock]).to eq(0)
       expect(response[:event_counts][:remove_datablock]).to eq(0)
 
-      # Should have vacuum stats
+
+     # Should have vacuum stats
       expect(response[:vacuum][:datablocks_can_vacuum]).to be >= 2
       expect(response[:vacuum][:space_can_clear]).to be >= (WISDOM.bytesize + HELMET.bytesize)
       expect(response[:vacuum][:details].length).to eq(2)
@@ -54,6 +53,8 @@ describe StatsController do
     end
 
     it "returns details for multiple projects" do
+      disable_all_ledger_events
+      
       datablock_ids = multi_project_backfilled_lifecycle
       wisdom_datablock = Metis::DataBlock[datablock_ids[:wisdom_data_block_id]]
       
@@ -96,8 +97,6 @@ describe StatsController do
 
   context "#ledger tracked" do
     before(:each) do
-      # Enable ledger for tracked mode tests
-      set_ledger_enabled(true)
       default_bucket('athena')
       
       @metis_uid = Metis.instance.sign.uid
@@ -107,6 +106,8 @@ describe StatsController do
     end
 
     it "returns vacuum stats with include_projects parameter" do
+      enable_all_ledger_events
+      
       # Set up project buckets
       default_bucket('labors')
       default_bucket('backup')
@@ -161,5 +162,95 @@ describe StatsController do
       expect(response[:event_counts][:link_file_to_datablock]).to eq(1)
       expect(response[:event_counts][:unlink_file_from_datablock]).to eq(1)
     end
+  end
+
+  context "#ledger mixed mode (backfilled + tracked)" do
+    before(:each) do
+      default_bucket('athena')
+      default_bucket('labors')
+      
+      @metis_uid = Metis.instance.sign.uid
+      set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
+      
+      @user = Etna::User.new(AUTH_USERS[:editor])
+    end
+
+    it "correctly filters backfilled and tracked events when both exist" do
+      disable_all_ledger_events
+      
+      # Phase 1: Create and delete files with ledger disabled (will be backfilled)
+      untracked_wisdom = upload_file_via_api('athena', 'untracked_wisdom.txt', WISDOM)
+      untracked_helmet = upload_file_via_api('athena', 'untracked_helmet.jpg', HELMET)
+      
+      token_header(:editor)
+      delete("/athena/file/remove/files/untracked_wisdom.txt")
+      delete("/athena/file/remove/files/untracked_helmet.jpg")
+      expect(last_response.status).to eq(200)
+      
+      # Run backfill to create SYSTEM_BACKFILL events for orphaned datablocks
+      backfill_ledger = Metis::BackfillDataBlockLedger.new
+      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+      backfill_ledger.execute(project_name: 'athena', links: true)
+      backfill_ledger.execute(orphaned: true)
+      
+      # Phase 2: Enable ledger and create/delete files (tracked mode)
+      # Create two tracked files with different content to avoid deduplication
+      enable_all_ledger_events
+      
+      tracked_file_1 = upload_file_via_api('athena', 'tracked_file_1.txt', WISDOM)
+      tracked_file_2 = upload_file_via_api('athena', 'tracked_file_2.txt', "Second tracked content")
+      
+      tracked_datablock_1_id = tracked_file_1.data_block_id
+      tracked_datablock_2_id = tracked_file_2.data_block_id
+      
+      # Only delete the first file
+      token_header(:editor)
+      delete("/athena/file/remove/files/tracked_file_1.txt")
+      expect(last_response.status).to eq(200)
+      
+      # Query backfilled stats - should ONLY show backfilled events
+      token_header(:supereditor)
+      get('/api/stats/ledger', backfilled: true)
+      
+      expect(last_response.status).to eq(200)
+      backfilled_response = json_body
+      
+      # Backfilled stats should only count SYSTEM_BACKFILL events (no tracked events)
+      expect(backfilled_response[:event_counts][:create_datablock]).to eq(0)
+      expect(backfilled_response[:event_counts][:link_file_to_datablock]).to eq(0)
+      expect(backfilled_response[:event_counts][:resolve_datablock]).to eq(0)
+      expect(backfilled_response[:event_counts][:unlink_file_from_datablock]).to eq(2) # backfill unlinks for wisdom and helmet
+      expect(backfilled_response[:event_counts][:reuse_datablock]).to eq(0)
+      expect(backfilled_response[:event_counts][:remove_datablock]).to eq(0)
+      
+      # Vacuum stats should show 2 backfilled orphaned datablocks
+      expect(backfilled_response[:vacuum][:datablocks_can_vacuum]).to eq(2)
+      expect(backfilled_response[:vacuum][:space_can_clear]).to eq(WISDOM.bytesize + HELMET.bytesize)
+      
+      # Verify vacuum details for backfilled datablocks
+      expect(backfilled_response[:vacuum][:details].length).to eq(2)
+     
+      # TODO: finish this
+      
+      # Query tracked stats for athena - should ONLY show tracked events for athena
+      get('/api/stats/ledger', project_name: 'athena')
+
+      expect(last_response.status).to eq(200)
+      tracked_response = json_body
+      
+      # Tracked stats should only count tracked events for athena (no backfilled events)
+      # We created 2 tracked files: tracked_file_1 reused wisdom datablock, tracked_file_2 created new
+      # Only tracked_file_1 was deleted
+      expect(tracked_response[:event_counts][:create_datablock]).to eq(1) # tracked_file_2 only
+      expect(tracked_response[:event_counts][:link_file_to_datablock]).to eq(1) # tracked_file_2 link
+      expect(tracked_response[:event_counts][:reuse_datablock]).to eq(1) # tracked_file_1 reused wisdom datablock
+      expect(tracked_response[:event_counts][:resolve_datablock]).to eq(2) # checksums for tracked_file_1 and tracked_file_2
+      expect(tracked_response[:event_counts][:unlink_file_from_datablock]).to eq(1) # tracked_file_1 deleted
+      expect(tracked_response[:event_counts][:remove_datablock]).to eq(0)
+
+      # TODO: finish this
+      
+    end
+
   end
 end
