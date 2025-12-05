@@ -382,8 +382,7 @@ class Metis
 
       # Get all data blocks that are still associated with a file
       all_used_datablock_ids = Metis::File
-        .all
-        .map { |file| file.data_block.id }
+        .select_map(:data_block_id)
         .uniq
       
       # Get all data blocks that exist and are not removed
