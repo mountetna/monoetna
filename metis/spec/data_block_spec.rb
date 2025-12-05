@@ -118,6 +118,14 @@ describe Metis::DataBlock do
         before(:each) { existing_file }
 
         it 'converges sanely' do
+          new_db.compute_hash!
+
+          validate_block_converged(new_db)
+          validate_readable_block(existing_file.reload.data_block)
+          validate_readable_block(new_file.reload.data_block)
+        end
+
+        it 'logs a REUSE_DATABLOCK ledger entry when deduplicating' do
           enable_all_ledger_events
           
           new_db.compute_hash!
