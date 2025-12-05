@@ -576,19 +576,23 @@ def upload_file_via_api(project_name, file_name, contents, bucket_name: 'files')
 end
 
 def multi_project_backfilled_lifecycle
-  wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-  helmet_file = create_file('athena', 'helmet.jpg', HELMET)
-  stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-  stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+  # Set up buckets for all projects
+  default_bucket('athena')
+  default_bucket('labors')
+  default_bucket('backup')
+  
+  # Set up metis_uid for upload API
+  metis_uid = Metis.instance.sign.uid
+  set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{metis_uid}"
+  
+  wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+  helmet_file = upload_file_via_api('athena', 'helmet.jpg', HELMET)
 
-  labors_file = create_file('labors', 'labors.txt', WISDOM)
-  stubs.create_file('labors', 'files', 'labors.txt', WISDOM)
+  labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
 
-  another_labors_file = create_file('labors', 'labors2.txt', "lol")
-  stubs.create_file('labors', 'files', 'labors2.txt', "lol")
+  another_labors_file = upload_file_via_api('labors', 'labors2.txt', "lol")
 
-  backup_file = create_file('backup', 'backup.txt', WISDOM)
-  stubs.create_file('backup', 'files', 'backup.txt', WISDOM)
+  backup_file = upload_file_via_api('backup', 'backup.txt', WISDOM)
 
   wisdom_datablock_id = wisdom_file.data_block_id
   helmet_datablock_id = helmet_file.data_block_id
@@ -629,10 +633,15 @@ end
 
 
 def athena_backfilled_lifecycle
-  wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-  helmet_file = create_file('athena', 'helmet.jpg', HELMET)
-  stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-  stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+  # Set up bucket
+  default_bucket('athena')
+  
+  # Set up metis_uid for upload API
+  metis_uid = Metis.instance.sign.uid
+  set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{metis_uid}"
+  
+  wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+  helmet_file = upload_file_via_api('athena', 'helmet.jpg', HELMET)
 
   wisdom_datablock_id = wisdom_file.data_block_id
   helmet_datablock_id = helmet_file.data_block_id
