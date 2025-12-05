@@ -226,12 +226,13 @@ class Metis
         .all
     end
 
-    def self.calculate_event_counts(project_name = nil)
+    def self.calculate_event_counts(project_name = nil, include_projects: [])
       # Count all event types
-      # If project_name is provided, count events for that project only (tracked mode)
+      # If project_name is provided, count events for that project (and optionally include_projects)
       # If project_name is nil (backfilled mode), count only SYSTEM_BACKFILL events
       event_counts = if project_name
-        where(project_name: project_name)
+        all_projects = [project_name] + include_projects
+        where(project_name: all_projects)
           .select_map(:event_type)
           .tally
       else
