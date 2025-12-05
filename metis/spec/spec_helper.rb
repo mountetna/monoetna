@@ -564,13 +564,16 @@ def upload_file_via_api(project_name, file_name, contents, bucket_name: 'files')
   blob_file.unlink
   
   # Return the created file (reload to get latest data)
-  file = Metis::File.where(file_name: file_name, project_name: project_name).first
-  file.reload if file
+  # Extract just the file name from the path (e.g., "blueprints/helmet.jpg" -> "helmet.jpg")
+  folder_path, just_file_name = Metis::File.path_parts(file_name)
+  file = Metis::File.where(file_name: just_file_name, project_name: project_name).first
   
-  # Run ChecksumFiles command to compute actual hash from temporary hash
-  cmd = Metis::ChecksumFiles.new
-  cmd.execute
-  file.reload
+  if file
+    # Run ChecksumFiles command to compute actual hash from temporary hash
+    cmd = Metis::ChecksumFiles.new
+    cmd.execute
+    file.reload
+  end
   
   file
 end
