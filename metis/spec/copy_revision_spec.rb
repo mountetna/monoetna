@@ -1,4 +1,5 @@
 describe Metis::CopyRevision do
+  include Rack::Test::Methods
 
     def app
       OUTER_APP
@@ -6,6 +7,9 @@ describe Metis::CopyRevision do
 
     before(:each) do
       default_bucket('athena')
+
+      @metis_uid = Metis.instance.sign.uid
+      set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
 
       @user = Etna::User.new({
         name: 'Athena',

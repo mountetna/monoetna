@@ -141,7 +141,7 @@ describe Metis::DataBlock do
           ).first
           expect(dedupe_event).to be_present
           expect(dedupe_event.project_name).to eq('athena')
-          expect(dedupe_event.triggered_by).to eq('system')
+          expect(dedupe_event.triggered_by).to eq(Metis::DataBlockLedger::CHECKSUM_COMMAND)
         end
 
         describe 'if something happens after temp delete but before database update' do
