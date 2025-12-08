@@ -3,6 +3,7 @@ class Vulcan
     module Inference
       # This class performs operations on the workspace.target_mapping, which along with the given state of the workapce,
       # helps the back-end infer which targets to build, which targets to remove, which jobs to run, etc.
+      # There is also some code that operates on adjaceny lists, which are used to represent the job / file DAG of a workspace
 
       def find_buildable_targets(target_mapping, provided_params, available_files)
         # This determines the targets (files) that can be built based on the target mapping (stored in workspace.target_mapping), 
@@ -45,47 +46,39 @@ class Vulcan
         buildable
       end
 
-      def find_affected_downstream_jobs(dag, scheduled_jobs)
-        # It takes in a list of sorted jobs (dag), and a list of jobs that are scheduled to be run.
-        # It is supposed to be able to infer which jobs downstream may be impacted by the scheduled jobs. 
-        # For now, we assume a very naive approach, and we just assume affected jobs are downstream of the scheduled jobs.
-        raise "No scheduled jobs provided" if scheduled_jobs.empty?
-        last_matched_index = dag.rindex { |element| scheduled_jobs.include?(element) }
-        raise "Cannot find any matching jobs in the dag" if last_matched_index.nil?
-        # Retrieve elements after the last matched element
-        dag[(last_matched_index + 1)..-1]
-      end
 
       def ui_targets(target_mapping)
         target_mapping.select { |target, requirements| requirements["params"].include?("ui") }.keys
       end
 
       def file_graph(target_mapping)
-        # Build reverse adjacency: input -> [outputs]
+        # Build forward adjacency: output -> [inputs it depends on]
         graph = Hash.new { |h,k| h[k] = [] }
         target_mapping.each do |output, info|
-          Array(info["inputs"]).each do |inp|
-            graph[inp] << output
-          end
+          graph[output] = Array(info["inputs"])  # output points to its inputs
         end
         graph
       end
 
       def downstream_nodes(graph, start_nodes)
-        # Takes in an adjacency list and a list of start nodes.
-        # Returns a list of all nodes that are downstream of the start nodes.
+        # Takes in a forward adjacency list (output -> [inputs]) and a list of start nodes.
+        # Returns a list of all nodes that are upstream of the start nodes (what depends on them).
+        # Excludes any nodes that were provided in the start_nodes list.
+        start_nodes_set = start_nodes.to_set
         visited = Set.new
         queue   = start_nodes.to_a.dup
-      
+
         until queue.empty?
           node = queue.shift
-          graph[node].each do |child|
-            next if visited.include?(child)
-            visited << child
-            queue << child
+          # Find all nodes that depend on this node (parents)
+          graph.each do |output, inputs|
+            if inputs.include?(node) && !visited.include?(output) && !start_nodes_set.include?(output)
+              visited << output
+              queue << output
+            end
           end
         end
-      
+
         visited
       end
 
@@ -100,7 +93,51 @@ class Vulcan
         jobs_to_run.reject { |job| ui_targets.include?(job) }
       end
 
+      def flatten_adjacency_list(adjacency_list)
+        # Create a copy to avoid modifying the original
+        graph = adjacency_list.dup
+        
+        # Track visited nodes to detect cycles
+        visited = Set.new
+        temp_visited = Set.new
+        result = []
+        
+        # Process all nodes
+        graph.keys.each do |node|
+          dfs_flatten(node, graph, visited, temp_visited, result)
+        end
+        
+        result
+      end
+
       private
+
+      def dfs_flatten(node, graph, visited, temp_visited, result)
+        # Check for cycle
+        if temp_visited.include?(node)
+          raise "Cycle detected in DAG at node: #{node}"
+        end
+        
+        # Skip if already processed
+        return if visited.include?(node)
+        
+        # Mark as temporarily visited (for cycle detection)
+        temp_visited.add(node)
+        
+        # Process all dependencies first
+        if graph[node]
+          graph[node].each do |dependency|
+            dfs_flatten(dependency, graph, visited, temp_visited, result)
+          end
+        end
+        
+        # Remove from temporary visited
+        temp_visited.delete(node)
+        
+        # Mark as permanently visited and add to result
+        visited.add(node)
+        result << node
+      end
 
       def find_targets_matching_params(target_mapping, params)
         target_mapping.select { |target, requirements| requirements["params"].any? { |param| params.include?(param) } }.keys
@@ -110,7 +147,7 @@ class Vulcan
         target_mapping.reject { |target, requirements| requirements["params"].include?("ui") }
       end
 
-      module_function :find_affected_downstream_jobs, :find_buildable_targets, :match, :ui_targets, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes
+      module_function :find_buildable_targets, :match, :ui_targets, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes, :flatten_adjacency_list, :dfs_flatten
     end
   end
 end

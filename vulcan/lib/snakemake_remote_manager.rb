@@ -54,14 +54,6 @@ class Vulcan
         slurm_uuid
       end
 
-      def dry_run_snakemake(dir, snakemake_command)
-        command = @remote_manager.build_command
-          .add('conda', 'activate', Vulcan.instance.config(:conda_env))
-          .add('cd', dir)
-          .add_raw(snakemake_command)
-        out = @remote_manager.invoke_ssh_command(command.to_s)
-        get_rules_from_run(out[:stdout])
-      end
 
       def snakemake_is_running?(dir)
         # Snakemake drops lock files into .snakemake/locks/ when running
@@ -197,70 +189,43 @@ class Vulcan
           raise "Failed to generate DAG: #{dag_output[:stderr_or_info]}"
         end
 
-        # Parse the dag and created a flattened graph
+        # Parse the dag and create an adjacency list
         json = @remote_manager.read_json_file("#{dir}/rulegraph.json")
-        flattened_dag = d3dag_to_list(json)
-
+        adjacency_list = d3dag_to_adjacency_list(json)
         # Remove dummy files
         dummy_files.each do |value|
           @remote_manager.rm_file(value)
         end
-        flattened_dag
+        adjacency_list
       end
 
-      def d3dag_to_list(json)
+      def d3dag_to_adjacency_list(json)
         # Map job IDs to rule labels
         id_to_label = json['nodes'].map { |node| [node['id'], node['value']['label']] }.to_h
 
-        # Create dependencies hash
-        dependencies = Hash.new { |hash, key| hash[key] = [] }
+        # Create adjacency list where each key is a rule and value is array of dependencies
+        adjacency_list = Hash.new { |hash, key| hash[key] = [] }
+        
         json['links'].each do |link|
-          dependencies[id_to_label[link['v']]] << id_to_label[link['u']]
+          # link['u'] is the source (dependency), link['v'] is the target
+          # We want to store: target => [dependencies]
+          target = id_to_label[link['v']]
+          dependency = id_to_label[link['u']]
+          
+          # Skip the "all" rule as it's just a virtual root
+          next if target == "all" || dependency == "all"
+          
+          adjacency_list[target] << dependency
         end
 
-        # Topological sort
-        sorted_rules, visited = [], {}
-        visit = lambda do |rule|
-          next if visited[rule]
-          visited[rule] = true
-          dependencies[rule].each { |dep| visit.call(dep) }
-          sorted_rules << rule
+        # Convert to regular hash and ensure all nodes are represented
+        result = {}
+        id_to_label.values.each do |label|
+          next if label == "all"
+          result[label] = adjacency_list[label].uniq
         end
 
-        id_to_label.values.each { |rule| visit.call(rule) unless visited[rule] }
-        sorted_rules.reject { |rule| rule == "all" }
-      end
-
-      def remove_existing_ui_targets(ui_files_written, params_changed, workspace)
-        # Please see the README for more details on the halting problem.
-        # TLDR; we need to delete UI step files for two cases:
-        # 1. The params have changed
-        # 2. New UI step files have been written
-
-        # Only proceed if there's a reason to check (either params changed or ui files were written)
-        return unless params_changed.any? || ui_files_written.any?
-
-        # Determine what files to filter based on whether params changed or ui files were sent
-        files_changed = if params_changed.any?
-                                Vulcan::Snakemake::Inference.find_targets_matching_params(workspace.target_mapping, params_changed)
-                              else
-                                ui_files_written
-                              end
-
-        # We build a file grapho that we can only remove files that are downstream of the ui targets
-        file_dag = Vulcan::Snakemake::Inference.file_graph(workspace.target_mapping)
-        reachable_files = Vulcan::Snakemake::Inference.downstream_nodes(file_dag, files_changed)
-
-        # Find the existing ui targets that are in the workspace
-        existing_ui_targets = Vulcan::Snakemake::Inference.ui_targets(workspace.target_mapping)
-          .select { |target| @remote_manager.file_exists?(File.join(workspace.path, target)) }
-
-        # Remove the files
-        targets_to_remove = (reachable_files & existing_ui_targets) 
-        targets_to_remove.each do |target|
-          Vulcan.instance.logger.info("Removing UI target: #{target}")
-          @remote_manager.rm_file(File.join(workspace.path, target))
-        end
+        result
       end
 
       def cancel_snakemake(dir, slurm_run_uuid) 
@@ -303,6 +268,61 @@ class Vulcan
         end
       rescue => e
          Vulcan.instance.logger.error("Error canceling Snakemake workflow: #{e.message}")
+      end
+
+      def dry_run_snakemake_files(dir, snakemake_command)
+        command = @remote_manager.build_command
+          .add('conda', 'activate', Vulcan.instance.config(:conda_env))
+          .add('cd', dir)
+          .add_raw(snakemake_command)
+        out = @remote_manager.invoke_ssh_command(command.to_s)
+        get_completed_and_scheduled(out[:stdout])
+      end
+
+      def get_completed_and_scheduled(snakemake_log)
+        # Parse the snakemake log output to extract output file names and rule names
+        # The log contains a table with columns: output_file, date, rule, log-file(s), status, plan
+        # We need to extract output_file and rule values for both completed and scheduled items
+
+        files_scheduled = []
+        jobs_scheduled = []
+        files_completed = []
+        jobs_completed = []
+
+        # Split the log into lines and process each line
+        snakemake_log.each_line do |line|
+          line = line.strip
+          next if line.empty?
+
+          # Skip header lines that contain column names or separators
+          next if line.match?(/^output_file\s+date\s+rule\s+log-file\(s\)\s+status\s+plan$/)
+          next if line.match?(/^-+$/) # Skip separator lines
+          next if line.match?(/^Building DAG of jobs\.\.\.$/) # Skip the header line
+
+          # Split the line on tabs to get the proper columns
+          parts = line.split("\t")
+          if parts.length >= 6
+            output_file = parts[0]
+            rule = parts[2] # The rule column (3rd column, index 2)
+            plan = parts[5] # The plan column (6th column, index 5)
+
+            # Add files and rules based on their plan status
+            if plan == "update pending"
+              files_scheduled << output_file unless output_file.empty?
+              jobs_scheduled << rule unless rule.empty?
+            elsif plan == "no update"
+              files_completed << output_file unless output_file.empty?
+              jobs_completed << rule unless rule.empty?
+            end
+          end
+        end
+
+        { 
+          files_scheduled: files_scheduled, 
+          jobs_scheduled: jobs_scheduled,
+          files_completed: files_completed,
+          jobs_completed: jobs_completed
+        }
       end
     end
   end

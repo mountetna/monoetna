@@ -1158,7 +1158,7 @@ EOT
 
       actual_file = "#{output_path}/#{file[:file_name]}"
 
-      return if ::File.exists?(actual_file) && ::File.size(actual_file) == file[:size]
+      return if ::File.exist?(actual_file) && ::File.size(actual_file) == file[:size]
 
       FileUtils::mkdir_p(output_path)
 
@@ -1432,7 +1432,7 @@ EOT
       File.readlines(md5file, encoding: "UTF-8").each do |line|
         checksum, file_name = line.chomp.split(/\s+/, 2)
         full_path = clean_path(::File.join( md5dir, file_name ))
-        next unless ::File.exists?(full_path) && is_valid_checksum?(checksum)
+        next unless ::File.exist?(full_path) && is_valid_checksum?(checksum)
 
         md5_cache[full_path] = checksum
       end
@@ -1446,7 +1446,7 @@ EOT
         ::File.basename(file) == options[:file]
       end
 
-      files = files.select {|f| ::File.exists?(f) }
+      files = files.select {|f| ::File.exist?(f) }
 
       puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
 
@@ -1533,7 +1533,7 @@ EOT
     def run(local_directory)
       folders, files, file_md5s = make_md5_cache(local_directory)
 
-      files = files.select {|f| ::File.exists?(f) && !is_checksum_file?(f) }
+      files = files.select {|f| ::File.exist?(f) && !is_checksum_file?(f) }
 
       deleted_files = deleted_folders = 0
       remaining_size = 0
@@ -1559,7 +1559,7 @@ EOT
 
       # remove all empty folders
       folders.sort.each do |folder|
-        next unless ::Dir.exists?(folder)
+        next unless ::Dir.exist?(folder)
         # remove checksum file if necessary
         remaining_files = Dir[folder]
 
@@ -1603,7 +1603,7 @@ EOT
       # collect all files and folders
       folders, files, file_md5s = make_md5_cache(local_directory)
 
-      files = files.select {|f| ::File.exists?(f) && !is_checksum_file?(f) }
+      files = files.select {|f| ::File.exist?(f) && !is_checksum_file?(f) }
 
       archived_files_count = 0
       archived_files = []

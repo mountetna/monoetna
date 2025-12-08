@@ -155,7 +155,7 @@ class Metis
     end
 
     def has_data?
-      ::File.exists?(location)
+      ::File.exist?(location)
     end
 
     def location
@@ -225,7 +225,7 @@ class Metis
     private
 
     def delete_block!
-      if ::File.exists?(location)
+      if ::File.exist?(location)
         ::File.delete(location)
       end
     end

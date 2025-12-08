@@ -79,7 +79,7 @@ module Etna
         # these are set as headers or params
         @nonce,
         @id,
-        @headers.to_json,
+        JSON.generate(@headers),
         @expiration,
       ].join("\n")
     end

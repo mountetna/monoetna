@@ -26,7 +26,6 @@ export const editModelsSensor = (setInfo: Function, state: DashboardState) => {
   const { models } = state;
 
   if (!models) return;
-  console.log({models});
 
   const modelCount = Object.values(models).length;
   const filledCount = Object.values(models).filter(
@@ -45,7 +44,6 @@ export const editRulesSensor = (setInfo: Function, state: DashboardState) => {
   const { models, rules } = state;
 
   if (!models || !rules) return;
-  console.log({rules});
 
   const modelsWithIds = Object.keys(models).filter(
     modelName => {
@@ -73,7 +71,6 @@ export const createBucketsSensor = (setInfo: Function, state: DashboardState) =>
 
 export const addFilesSensor = (setInfo: Function, state: DashboardState) => {
   const { files, bytes } = state;
-  console.log({state});
 
   if (files == null || bytes == null) return;
   setInfo({

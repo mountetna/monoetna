@@ -24,7 +24,9 @@ import {
   CreateWorkspaceResponse,
   isRunningReturn,
   WorkspacesResponseRaw,
-  LatencyReturn
+  LatencyReturn,
+  StateReturn,
+  ConfigReturn
 } from '../api_types';
 import { paramValuesToRaw, workspacesFromResponse } from '../selectors/workflow_selectors';
 import { isSome } from '../selectors/maybe';
@@ -92,6 +94,12 @@ export const defaultApiHelpers = {
     return new Promise(() => null);
   },
   postUIValues(projectName: string, workspaceId: number, status: WorkspaceStatus, steps: string | null): Promise<AccountingReturn> {
+    return new Promise(() => null);
+  },
+  getState(projectName: string, configId: number): Promise<StateReturn> {
+    return new Promise(() => null);
+  },
+  getConfig(projectName: string, workspaceId: number, configId: number): Promise<ConfigReturn> {
     return new Promise(() => null);
   },
   requestRun(projectName: string, workspaceId: number, configId: number): Promise<RunReturn> {
@@ -337,6 +345,20 @@ export function useApi(
     [vulcanPost, vulcanPath, writeFiles, setConfig]
   );
 
+  const getState = useCallback(
+    (projectName: string, configId: number): Promise<StateReturn> => {
+      return vulcanGet(
+        vulcanPath(`/api/v2/${projectName}/config/${configId}/state`)
+      );
+  }, [vulcanGet, vulcanPath]);
+
+  const getConfig = useCallback(
+    (projectName: string, workspaceId: number, configId: number): Promise<ConfigReturn> => {
+      return vulcanGet(
+        vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/config/${configId}`)
+      );
+  }, [vulcanGet, vulcanPath]);
+
   const requestRun = useCallback(
     (projectName: string, workspaceId: number, configId: number): Promise<RunReturn> => {
       return vulcanPost(
@@ -374,6 +396,8 @@ export function useApi(
     readFiles,
     setConfig,
     postUIValues,
+    getState,
+    getConfig,
     requestRun,
     getIsRunning,
     pullRunStatus,
