@@ -442,4 +442,201 @@ describe Metis::DataBlockLedger do
       end
     end
   end
+
+  describe 'backfiller and tracked' do
+    describe 'mixed mode scenarios' do
+      it 'backfiller creates link event, then ledger creates unlink event' do
+        # Scenario: File exists when backfill runs, then gets deleted with tracking on
+        disable_all_ledger_events
+        
+        # Upload file without tracking
+        wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+        wisdom_datablock = wisdom_file.data_block
+        
+        # Run backfill to create link event
+        backfill_ledger = Metis::BackfillDataBlockLedger.new
+        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+        backfill_ledger.execute(project_name: 'athena', links: true)
+        
+        # Enable tracking and delete file (creates real-time unlink event)
+        enable_all_ledger_events
+        token_header(:editor)
+        delete("/athena/file/remove/files/wisdom.txt")
+        expect(last_response.status).to eq(200)
+        
+        # Should correctly identify as orphaned
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        expect(orphaned.length).to eq(1)
+        expect(orphaned.first.id).to eq(wisdom_datablock.id)
+      end
+
+      it 'backfiller creates link event, ledger creates duplicate link event, then unlink event' do
+        # Scenario: Backfill runs, then tracking turns on and somehow creates duplicate link, then deletes
+        disable_all_ledger_events
+        
+        # Upload file without tracking
+        wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+        wisdom_datablock = wisdom_file.data_block
+        
+        # Run backfill to create link event
+        backfill_ledger = Metis::BackfillDataBlockLedger.new
+        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+        backfill_ledger.execute(project_name: 'athena', links: true)
+
+        enable_all_ledger_events
+        # Upload another file with same content (triggers duplicate link event)
+        upload_file_via_api('athena', 'wisdom2.txt', WISDOM)
+        
+        # Verify we have 1 link event and 1 reuse event
+        link_count = Metis::DataBlockLedger.where(
+          data_block_id: wisdom_datablock.id,
+          event_type: [Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK, Metis::DataBlockLedger::REUSE_DATABLOCK]
+        ).count
+        expect(link_count).to eq(2)
+        
+        # Enable tracking and delete file
+        token_header(:editor)
+        delete("/athena/file/remove/files/wisdom2.txt")
+        expect(last_response.status).to eq(200)
+        
+        # Should still correctly identify as orphaned (duplicate links don't break logic)
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        expect(orphaned.length).to eq(0)
+      end
+
+      it 'backfiller creates unlink event, then ledger creates link event for same datablock' do
+        # Scenario: Orphaned datablock gets backfilled as unlinked, then new file reuses it
+        disable_all_ledger_events
+        
+        # Create and delete file without tracking
+        wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+        original_datablock_id = wisdom_file.data_block_id
+        
+        token_header(:editor)
+        delete("/athena/file/remove/files/wisdom.txt")
+        expect(last_response.status).to eq(200)
+        
+        # Run backfill to create unlink event for orphaned datablock
+        backfill_ledger = Metis::BackfillDataBlockLedger.new
+        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+        backfill_ledger.execute(orphaned: true)
+        
+        # Enable tracking and upload new file with same content (reuses datablock)
+        enable_all_ledger_events
+        new_wisdom_file = upload_file_via_api('athena', 'wisdom2.txt', WISDOM)
+        expect(new_wisdom_file.data_block_id).to eq(original_datablock_id)
+        
+        # Verify new link event was created
+        new_link_event = Metis::DataBlockLedger.where(
+          file_id: new_wisdom_file.id,
+          event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
+        ).first
+        expect(new_link_event).to be_present
+        
+        # Should NOT be orphaned (file currently exists with this datablock)
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        expect(orphaned).to be_empty
+      end
+
+      it 'backfiller creates unlink event, then ledger creates link and unlink events' do
+        # Scenario: Orphaned datablock gets backfilled as unlinked, then new file reuses it and gets deleted
+        disable_all_ledger_events
+        
+        # Create and delete file without tracking
+        wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+        wisdom_datablock = wisdom_file.data_block
+        original_datablock_id = wisdom_datablock.id
+        
+        token_header(:editor)
+        delete("/athena/file/remove/files/wisdom.txt")
+        expect(last_response.status).to eq(200)
+        
+        # Run backfill to create unlink event for orphaned datablock
+        backfill_ledger = Metis::BackfillDataBlockLedger.new
+        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+        backfill_ledger.execute(orphaned: true)
+        
+        # Enable tracking and upload new file with same content (reuses datablock, creates link event)
+        enable_all_ledger_events
+        wisdom2_file = upload_file_via_api('athena', 'wisdom2.txt', WISDOM)
+        expect(wisdom2_file.data_block_id).to eq(original_datablock_id)
+        
+        # Delete the new file (creates ledger unlink event)
+        token_header(:editor)
+        delete("/athena/file/remove/files/wisdom2.txt")
+        expect(last_response.status).to eq(200)
+        
+        # Should correctly identify as orphaned (linked and unlinked, no file exists)
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        expect(orphaned.length).to eq(1)
+        expect(orphaned.first.id).to eq(wisdom_datablock.id)
+      end
+
+      it 'ledger creates link event, then backfiller runs and skips duplicate' do
+        # Scenario: Tracking is on, file uploaded, then backfill runs with links: true
+        enable_all_ledger_events
+        
+        # Upload file with tracking enabled
+        wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+        wisdom_datablock = wisdom_file.data_block
+        
+        # Verify ledger link event was created
+        ledger_link = Metis::DataBlockLedger.where(
+          file_id: wisdom_file.id,
+          event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
+        ).exclude(triggered_by: Metis::DataBlockLedger::SYSTEM_BACKFILL).first
+        expect(ledger_link).to be_present
+        
+        # Run backfill (should skip this file)
+        backfill_ledger = Metis::BackfillDataBlockLedger.new
+        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+        backfill_ledger.execute(project_name: 'athena', links: true)
+        
+        # Should only have 1 link event (backfiller skipped)
+        link_count = Metis::DataBlockLedger.where(
+          file_id: wisdom_file.id,
+          event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
+        ).count
+        expect(link_count).to eq(1)
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        expect(orphaned).to be_empty
+      end
+
+      it 'ledger creates unlink event, then backfiller runs and skips duplicate' do
+        # Scenario: Tracking is on, file deleted, then backfill runs with orphaned: true
+        enable_all_ledger_events
+        
+        # Upload and delete file with tracking enabled
+        wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+        wisdom_datablock = wisdom_file.data_block
+        
+        token_header(:editor)
+        delete("/athena/file/remove/files/wisdom.txt")
+        expect(last_response.status).to eq(200)
+        
+        # Verify ledger unlink event was created
+        ledger_unlink = Metis::DataBlockLedger.where(
+          data_block_id: wisdom_datablock.id,
+          event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
+        ).exclude(triggered_by: Metis::DataBlockLedger::SYSTEM_BACKFILL).first
+        expect(ledger_unlink).to be_present
+        
+        # Run backfill (should skip this orphaned datablock)
+        backfill_ledger = Metis::BackfillDataBlockLedger.new
+        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
+        backfill_ledger.execute(orphaned: true)
+        
+        # Should only have 1 unlink event (backfiller skipped)
+        unlink_count = Metis::DataBlockLedger.where(
+          data_block_id: wisdom_datablock.id,
+          event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
+        ).count
+        expect(unlink_count).to eq(1)
+        
+        # Should still correctly identify as orphaned
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        expect(orphaned.length).to eq(1)
+      end
+    end
+  end
 end

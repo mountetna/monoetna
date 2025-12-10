@@ -148,6 +148,10 @@ class Metis
     end
 
     def self.find_orphaned_datablocks(project_name, include_projects: [])
+      if project_name.nil?
+        raise Etna::Error, "Project name is required to find orphaned datablocks"
+      end
+
       # Get all datablock IDs that this project has linked
       linked_datablock_ids = where(project_name: project_name)
         .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK])
