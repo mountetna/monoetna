@@ -13,11 +13,9 @@ Sequel.migration do
       column :size, 'bigint'
       String :bucket_name
       
-      index [:project_name, :created_at], name: :data_block_ledger_project_time
-      index [:md5_hash, :created_at], name: :data_block_ledger_md5_time
-      index [:event_type, :created_at], name: :data_block_ledger_event_time
       index [:data_block_id], name: :data_block_ledger_block_id
       index [:project_name, :event_type], name: :data_block_ledger_project_event
+      index [:triggered_by, :event_type], name: :data_block_ledger_trigger_event
     end
   end
 end
