@@ -19,6 +19,9 @@ class DataBlockController < Metis::Controller
     is_backfilled = (project_name == 'backfilled')
     include_projects = @params[:include_projects] || []
     
+    # Parse commit parameter - defaults to false (dry-run mode for safety)
+    commit = @params[:commit].nil? ? false : (@params[:commit] == true || @params[:commit].to_s.downcase == 'true')
+    
     # Ensure include_projects is an array
     include_projects = [include_projects] unless include_projects.is_a?(Array)
     
@@ -34,15 +37,17 @@ class DataBlockController < Metis::Controller
     
     orphaned_datablocks.each do |datablock|
       begin
-        # Remove the datablock
-        datablock.remove!
-        
-        # Log vacuum event AFTER successful deletion
-        Metis::DataBlockLedger.log_vacuum(
-          datablock,
-          is_backfilled ? nil : project_name,
-          @user
-        )
+        if commit
+          # Remove the datablock
+          datablock.remove!
+          
+          # Log vacuum event AFTER successful deletion
+          Metis::DataBlockLedger.log_vacuum(
+            datablock,
+            is_backfilled ? nil : project_name,
+            @user
+          )
+        end
         
         vacuumed << {
           md5_hash: datablock.md5_hash,
@@ -55,6 +60,7 @@ class DataBlockController < Metis::Controller
     end
     
     response = {
+      dry_run: !commit,
       vacuumed: vacuumed,
       errors: errors,
       summary: {
@@ -66,15 +72,17 @@ class DataBlockController < Metis::Controller
       }
     }
     
-    event_log(
-      event: 'vacuum_datablocks',
-      message: is_backfilled ? "vacuumed backfilled orphaned datablocks" : "vacuumed orphaned datablocks for project #{project_name}",
-      payload: {
-        vacuumed_count: vacuumed.length,
-        space_freed: response[:summary][:space_freed]
-      },
-      consolidate: false
-    )
+    if commit
+      event_log(
+        event: 'vacuum_datablocks',
+        message: is_backfilled ? "vacuumed backfilled orphaned datablocks" : "vacuumed orphaned datablocks for project #{project_name}",
+        payload: {
+          vacuumed_count: vacuumed.length,
+          space_freed: response[:summary][:space_freed]
+        },
+        consolidate: false
+      )
+    end
     
     success_json(response)
   end

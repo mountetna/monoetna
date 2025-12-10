@@ -415,7 +415,7 @@ describe DataBlockController do
       helmet_data_block = Metis::DataBlock.where(id: result[:helmet_data_block_id]).first
       
       token_header(:supereditor)
-      json_post('/api/vacuum_datablocks/backfilled', {})
+      json_post('/api/vacuum_datablocks/backfilled', { commit: true })
       
       expect(last_response.status).to eq(200)
       response = json_body
@@ -481,7 +481,7 @@ describe DataBlockController do
       expect(unlink_event.triggered_by).not_to eq(Metis::DataBlockLedger::SYSTEM_BACKFILL)
       
       token_header(:supereditor)
-      json_post('/api/vacuum_datablocks/athena', {})
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
       
       expect(last_response.status).to eq(200)
       response = json_body
@@ -517,7 +517,7 @@ describe DataBlockController do
       expect(last_response.status).to eq(200)
       
       token_header(:supereditor)
-      json_post('/api/vacuum_datablocks/athena', {})
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
       
       expect(last_response.status).to eq(200)
       response = json_body
@@ -540,7 +540,7 @@ describe DataBlockController do
       wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
       
       token_header(:supereditor)
-      json_post('/api/vacuum_datablocks/athena', {})
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
       
       expect(last_response.status).to eq(200)
       response = json_body
@@ -559,11 +559,11 @@ describe DataBlockController do
       
       # Vacuum once
       token_header(:supereditor)
-      json_post('/api/vacuum_datablocks/athena', {})
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
       expect(last_response.status).to eq(200)
       
       # Try to vacuum again - should find nothing
-      json_post('/api/vacuum_datablocks/athena', {})
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
       expect(last_response.status).to eq(200)
       response = json_body
       expect(response[:vacuumed]).to be_empty
@@ -582,7 +582,7 @@ describe DataBlockController do
       expect(last_response.status).to eq(200)
       
       token_header(:supereditor)
-      json_post('/api/vacuum_datablocks/athena', {})
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
       
       expect(last_response.status).to eq(200)
       response = json_body
@@ -592,14 +592,14 @@ describe DataBlockController do
 
     it 'requires admin permissions' do
       token_header(:editor)
-      json_post('/api/vacuum_datablocks/athena', {})
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
       
       expect(last_response.status).to eq(403)
     end
 
     it 'returns empty result when no orphaned datablocks exist' do
       token_header(:supereditor)
-      json_post('/api/vacuum_datablocks/athena', {})
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
       
       expect(last_response.status).to eq(200)
       response = json_body
@@ -607,6 +607,130 @@ describe DataBlockController do
       expect(response[:summary][:total_vacuumed]).to eq(0)
       expect(response[:summary][:space_freed]).to eq(0)
     end
+  end
+
+  context '#vacuum_datablocks with commit=false (dry-run mode)' do
+    it 'does not actually remove datablocks in dry-run mode' do
+      enable_all_ledger_events
+      
+      # Create and delete file to make datablock orphaned
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      wisdom_data_block = wisdom_file.data_block
+      
+      token_header(:editor)
+      delete("/athena/file/remove/files/wisdom.txt")
+      expect(last_response.status).to eq(200)
+      
+      # Run vacuum in dry-run mode
+      token_header(:supereditor)
+      json_post('/api/vacuum_datablocks/athena', { commit: false })
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      
+      # Response should show what would be vacuumed
+      expect(response[:dry_run]).to be_truthy
+      expect(response[:vacuumed].length).to eq(1)
+      expect(response[:vacuumed].first[:md5_hash]).to eq(wisdom_data_block.md5_hash)
+      expect(response[:summary][:total_vacuumed]).to eq(1)
+      expect(response[:summary][:space_freed]).to be > 0
+      
+      # BUT the datablock should NOT actually be removed
+      wisdom_data_block.reload
+      expect(wisdom_data_block.removed).to be_falsey
+      expect(::File.exists?(wisdom_data_block.location)).to be_truthy
+      
+      # No vacuum event should be logged in dry-run mode
+      vacuum_events = Metis::DataBlockLedger.where(
+        md5_hash: wisdom_data_block.md5_hash,
+        event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK
+      ).all
+      expect(vacuum_events).to be_empty
+    end
+
+    it 'shows multiple datablocks that would be vacuumed in dry-run mode' do
+      enable_all_ledger_events
+      
+      # Create and delete multiple files
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      helmet_file = upload_file_via_api('athena', 'helmet.jpg', HELMET)
+      
+      token_header(:editor)
+      delete("/athena/file/remove/files/wisdom.txt")
+      delete("/athena/file/remove/files/helmet.jpg")
+      
+      # Run vacuum in dry-run mode
+      token_header(:supereditor)
+      json_post('/api/vacuum_datablocks/athena', { commit: false })
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      
+      expect(response[:dry_run]).to be_truthy
+      expect(response[:vacuumed].length).to eq(2)
+      
+      # Both datablocks should still exist
+      wisdom_file.data_block.reload
+      helmet_file.data_block.reload
+      expect(wisdom_file.data_block.removed).to be_falsey
+      expect(helmet_file.data_block.removed).to be_falsey
+      expect(::File.exists?(wisdom_file.data_block.location)).to be_truthy
+      expect(::File.exists?(helmet_file.data_block.location)).to be_truthy
+    end
+
+    it 'works with backfilled datablocks in dry-run mode' do
+      disable_all_ledger_events
+      
+      # Create orphaned backfilled datablocks
+      result = athena_backfilled_lifecycle
+      wisdom_data_block = Metis::DataBlock.where(id: result[:wisdom_data_block_id]).first
+      helmet_data_block = Metis::DataBlock.where(id: result[:helmet_data_block_id]).first
+      
+      # Run vacuum in dry-run mode
+      token_header(:supereditor)
+      json_post('/api/vacuum_datablocks/backfilled', { commit: false })
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      
+      expect(response[:dry_run]).to be_truthy
+      expect(response[:vacuumed].length).to eq(2)
+      
+      # Datablocks should NOT be removed
+      wisdom_data_block.reload
+      helmet_data_block.reload
+      expect(wisdom_data_block.removed).to be_falsey
+      expect(helmet_data_block.removed).to be_falsey
+      expect(::File.exists?(wisdom_data_block.location)).to be_truthy
+      expect(::File.exists?(helmet_data_block.location)).to be_truthy
+    end
+
+    it 'defaults to commit=false (dry-run) when commit param is omitted' do
+      enable_all_ledger_events
+      
+      # Create and delete file
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      wisdom_data_block = wisdom_file.data_block
+      
+      token_header(:editor)
+      delete("/athena/file/remove/files/wisdom.txt")
+      
+      # Call without commit parameter - should default to false (dry-run)
+      token_header(:supereditor)
+      json_post('/api/vacuum_datablocks/athena', {})
+      
+      expect(last_response.status).to eq(200)
+      response = json_body
+      
+      # Should default to dry-run mode
+      expect(response[:dry_run]).to be_truthy
+      
+      # Datablock should NOT be removed
+      wisdom_data_block.reload
+      expect(wisdom_data_block.removed).to be_falsey
+      expect(::File.exists?(wisdom_data_block.location)).to be_truthy
+    end
+
   end
 
 end

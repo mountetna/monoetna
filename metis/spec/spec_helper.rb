@@ -542,7 +542,6 @@ def upload_file_via_api(project_name, file_name, contents, bucket_name: 'files')
     next_blob_size: contents.length,
     next_blob_hash: Digest::MD5.hexdigest(contents)
   )
-  require 'pry'; binding.pry
   expect(last_response.status).to eq(200)
   
   # Upload the file content as a single blob
