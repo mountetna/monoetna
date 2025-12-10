@@ -34,16 +34,15 @@ class DataBlockController < Metis::Controller
     
     orphaned_datablocks.each do |datablock|
       begin
-
-        # Log vacuum event BEFORE deletion
+        # Remove the datablock
+        datablock.remove!
+        
+        # Log vacuum event AFTER successful deletion
         Metis::DataBlockLedger.log_vacuum(
           datablock,
           is_backfilled ? nil : project_name,
           @user
         )
-        
-        # Remove the datablock
-        datablock.remove!
         
         vacuumed << {
           md5_hash: datablock.md5_hash,
