@@ -144,6 +144,55 @@ describe Metis::DataBlock do
           expect(dedupe_event.triggered_by).to eq(Metis::DataBlockLedger::CHECKSUM_COMMAND)
         end
 
+        it 'logs a REUSE_DATABLOCK ledger entry for EACH file when multiple files share the same temp block' do
+          enable_all_ledger_events
+          
+          # Create the original file via upload API (will have resolved hash)
+          some_content = 'some content'
+          original_file = upload_file_via_api('athena', 'wisdom_original.txt', some_content)
+          original_block = original_file.data_block
+          
+          # Create a temp hash for the two files that will share a temp block
+          temp_hash = "#{Metis::DataBlock::TEMP_PREFIX}sharedtemp123"
+          
+          # Create first file with temp block
+          stubs.create_file('athena', 'files', 'wisdom_copy1.txt', some_content, temp_hash)
+          first_file = create_file('athena', 'wisdom_copy1.txt', some_content, md5_hash: temp_hash)
+          temp_block = first_file.data_block
+          
+          # Create second file and point it to the SAME temp block
+          stubs.create_file('athena', 'files', 'wisdom_copy2.txt', some_content, temp_hash)
+          second_file = create_file('athena', 'wisdom_copy2.txt', some_content, md5_hash: temp_hash)
+          second_file.update(data_block: temp_block)
+          
+          # Verify both files share the same temp block
+          expect(first_file.data_block_id).to eq(second_file.data_block_id)
+          expect(temp_block.temp_hash?).to be_truthy
+          
+          # Run compute_hash! on the shared temp block
+          # It will resolve to the same hash as original_file and deduplicate both files
+          temp_block.compute_hash!
+          
+          first_file.reload
+          second_file.reload
+          
+          # Both files should now point to the original resolved block
+          expect(first_file.data_block_id).to eq(original_block.id)
+          expect(second_file.data_block_id).to eq(original_block.id)
+          
+          # Assert log_deduplicate was called for BOTH files that shared the temp block
+          dedupe_events = Metis::DataBlockLedger.where(
+            event_type: Metis::DataBlockLedger::REUSE_DATABLOCK,
+          ).all
+          expect(dedupe_events.count).to eq(2)
+          
+          # Check all events have correct attributes
+          dedupe_events.each do |event|
+            expect(event.project_name).to eq('athena')
+            expect(event.triggered_by).to eq(Metis::DataBlockLedger::CHECKSUM_COMMAND)
+          end
+        end
+
         describe 'if something happens after temp delete but before database update' do
           test_with_processing_error do |test_cmd|
             if test_cmd.first == :temp_destroy

@@ -83,10 +83,15 @@ class Metis
         existing_block = Metis::DataBlock.where(md5_hash: md5_hash).first
 
         if existing_block
-          file_to_deduplicate = Metis::File.where(data_block_id: id).first()
-          Metis::DataBlockLedger.log_deduplicate(file_to_deduplicate, existing_block, Metis::DataBlockLedger::CHECKSUM_COMMAND)
+          # Get all files pointing to this temp block
+          files_to_deduplicate = Metis::File.where(data_block_id: id).all
+          
+          # Log deduplicate event for each file
+          files_to_deduplicate.each do |file|
+            Metis::DataBlockLedger.log_deduplicate(file, existing_block, Metis::DataBlockLedger::CHECKSUM_COMMAND)
+          end
 
-          # Point the files to the old block
+          # Point all the files to the existing block
           Metis::File.where(
             data_block_id: id,
           ).update(
