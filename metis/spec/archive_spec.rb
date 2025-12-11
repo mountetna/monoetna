@@ -21,7 +21,7 @@ describe Metis::ChecksumFiles do
     wisdom_data = wisdom_file.data_block
 
     # skip archiving
-    wisdom_data.update(archive_id: 'skip_archiving')
+    #wisdom_data.update(archive_id: 'skip_archiving')
     #wisdom_data.refresh
 
     @cmd.execute
