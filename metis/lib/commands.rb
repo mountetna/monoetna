@@ -420,18 +420,24 @@ class Metis
       errors = 0
       total_size = 0
       
+      # Bulk check for existing unlink events (avoids N+1 queries)
+      puts "Checking for existing unlink events..."
+      existing_unlink_ids = Metis::DataBlockLedger
+        .where(
+          data_block_id: orphaned_datablock_ids,
+          event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
+        )
+        .select_map(:data_block_id)
+        .to_set
+      puts "Found #{existing_unlink_ids.size} datablocks that already have unlink events."
+      puts ""
+      
       orphaned_datablocks.each do |datablock|
         begin
           # Check if unlink event already exists for this datablock
-          existing_unlink = Metis::DataBlockLedger.where(
-            data_block_id: datablock.id,
-            event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
-          ).first
-          
-          if existing_unlink
+          if existing_unlink_ids.include?(datablock.id)
             # Already has unlink event
             skipped += 1
-            puts "Skipping datablock #{datablock.id} (md5: #{datablock.md5_hash}) - already has unlink event"
             next
           end
           
@@ -453,8 +459,9 @@ class Metis
           unlink_created += 1
           total_size += datablock.size
           
-          if unlink_created % 100 == 0
-            puts "Progress: #{unlink_created}/#{orphaned_datablocks.length} unlink events created"
+          if (unlink_created + skipped) % 5000 == 0
+            progress_pct = ((unlink_created + skipped).to_f / orphaned_datablocks.length * 100).round(2)
+            puts "Progress: #{unlink_created + skipped}/#{orphaned_datablocks.length} (#{progress_pct}%) | Created: #{unlink_created} | Skipped: #{skipped}"
           end
         rescue => e
           errors += 1
@@ -466,13 +473,15 @@ class Metis
       puts "Phase 2 Results:"
       puts "- Unlink file from datablock events created: #{unlink_created}"
       puts "- Skipped (already has unlink event): #{skipped}" if skipped > 0
-      # Format size appropriately (bytes, KB, or MB)
+      # Format size appropriately
       if total_size < 1024
         puts "- Total orphaned size: #{total_size} bytes"
       elsif total_size < 1024 * 1024
         puts "- Total orphaned size: #{(total_size / 1024.0).round(2)} KB"
-      else
+      elsif total_size < 1024 * 1024 * 1024
         puts "- Total orphaned size: #{(total_size / 1024.0 / 1024.0).round(2)} MB"
+      else
+        puts "- Total orphaned size: #{(total_size / 1024.0 / 1024.0 / 1024.0).round(2)} GB"
       end
       puts "- Errors: #{errors}" if errors > 0
       
