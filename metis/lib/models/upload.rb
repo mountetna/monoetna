@@ -63,9 +63,13 @@ class Metis
         f.author = author
         f.data_block = data_block
       end
-
       file.update(folder: folder, author: author, data_block: data_block)
-
+      Metis::DataBlockLedger.log_create(
+        file,
+        data_block,
+        author
+      )
+      Metis::DataBlockLedger.log_link(file, data_block, author)
       return file
     end
 

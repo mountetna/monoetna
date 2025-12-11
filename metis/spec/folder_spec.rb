@@ -588,14 +588,67 @@ describe FolderController do
 
     it 'removes a folder that contains files and folders if forced' do
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @blueprints_folder)
-      old_folder = create_folder('athena', 'old', folder: @blueprints_folder)
       stubs.create_file('athena', 'files', 'blueprints/helmet.jpg', HELMET)
+      old_folder = create_folder('athena', 'old', folder: @blueprints_folder)
 
       token_header(:editor)
       remove_folder('blueprints', recursive: true)
 
       expect(last_response.status).to eq(200)
       expect(json_body[:folders].length).to eq(1)
+
+      expect(Metis::Folder.count).to eq(0)
+      expect(Metis::File.count).to eq(0)
+    end
+
+    it 'logs UNLINK_FILE_FROM_DATABLOCK ledger entries when removing folder contents' do
+      enable_all_ledger_events
+      
+      helmet_file = upload_file_via_api('athena', 'blueprints/helmet.jpg', HELMET)
+      helmet_datablock = helmet_file.data_block
+      
+      # Add a second file in the same folder
+      wisdom_file = upload_file_via_api('athena', 'blueprints/wisdom.txt', WISDOM)
+      wisdom_datablock = wisdom_file.data_block
+      
+      old_folder = create_folder('athena', 'old', folder: @blueprints_folder)
+      
+      # Add a file in the subfolder
+      nested_file = upload_file_via_api('athena', 'blueprints/old/nested.txt', WISDOM)
+      nested_datablock = nested_file.data_block
+
+      token_header(:editor)
+      remove_folder('blueprints', recursive: true)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(1)
+
+      # Verify all three files have UNLINK events
+      unlink_events = Metis::DataBlockLedger.where(
+        event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK
+      ).all
+      
+      expect(unlink_events.length).to eq(3)
+      
+      # Verify each file has its event logged correctly
+      [
+        [helmet_file, helmet_datablock, 'blueprints/helmet.jpg'],
+        [wisdom_file, wisdom_datablock, 'blueprints/wisdom.txt'],
+        [nested_file, nested_datablock, 'blueprints/old/nested.txt']
+      ].each do |file, datablock, path|
+        event = unlink_events.find { |e| e.file_id == file.id }
+        expect(event).to be_present
+        expect(event.project_name).to eq('athena')
+        expect(event.md5_hash).to eq(datablock.md5_hash)
+        expect(event.file_path).to eq(path)
+        expect(event.file_id).to eq(file.id)
+        expect(event.data_block_id).to eq(datablock.id)
+        expect(event.event_type).to eq(Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK)
+        expect(event.triggered_by).to eq('metis@olympus.org')
+        expect(event.size).to eq(datablock.size)
+        expect(event.bucket_name).to eq('files')
+        expect(event.created_at).to be_within(1).of(Time.now)
+      end
 
       expect(Metis::Folder.count).to eq(0)
       expect(Metis::File.count).to eq(0)
