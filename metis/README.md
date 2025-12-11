@@ -146,7 +146,7 @@ The ledger tracks all data block events (create, link, unlink, reuse, resolve, r
 - Backfilled
 - Tracked
 
-Tracked mode must be officially enabled via the `METIS_LEDGER_TRACKED_MODE_ENABLED` environment variable. This allows us to backfill before we turn on tracked mode.
+There is no env var to control this these modes, instead these are just good conceptual ways to think of the ledger.
 
 The ledger is an accounting mechanism for Metis, but it also serves as a method to safely DELETE datablocks and reduce storage space. 
 
@@ -206,6 +206,8 @@ It is often the case that datablocks span multiple projects, so if you want to d
 This will allow you to vacuum across projects, if a datablock is present in a project you haven't specificed, it will not be vacuumed.
 
 You can check what projects a datablock belongs to by hitting the `/stats` endpoint.
+
+In order to actually vacuum, you must also pass `commit: True` to the API. Default is false.
 
 ## Documentation
 
