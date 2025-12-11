@@ -19,14 +19,17 @@ describe Metis::ChecksumFiles do
     wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, md5_hash: temp_hash)
     stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM, temp_hash)
     wisdom_data = wisdom_file.data_block
-    expected_md5 = Digest::MD5.hexdigest(WISDOM)
+
+    # skip archiving
+    wisdom_data.update(archive_id: 'skip_archiving')
+    #wisdom_data.refresh
 
     @cmd.execute
 
     wisdom_data.refresh
 
     # now the hash is updated, and the block has been moved to its new location on disk
-    expect(wisdom_data.md5_hash).to eq(expected_md5)
+    expect(wisdom_data.md5_hash).to eq(Digest::MD5.hexdigest(WISDOM))
     expect(wisdom_data).to be_has_data
   end
 
