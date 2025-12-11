@@ -672,6 +672,64 @@ describe UploadController do
       Timecop.return
     end
 
+    it 'properly logs nested file paths in the ledger' do
+      enable_all_ledger_events
+      
+      blueprints_folder = create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
+      
+      helmet_folder = create_folder('athena', 'helmet', folder: blueprints_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet')
+      
+      upload = prep_upload('blueprints/helmet/wisdom.txt')
+      complete_upload('blueprints/helmet/wisdom.txt')
+      
+      expect(last_response.status).to eq(200)
+      
+      file = Metis::File.first
+      datablock = file.data_block
+      
+      # Verify file_path is the full nested path
+      expect(file.file_path).to eq('blueprints/helmet/wisdom.txt')
+      
+      # Verify CREATE event logged the full path
+      create_event = Metis::DataBlockLedger.where(
+        file_id: file.id,
+        event_type: Metis::DataBlockLedger::CREATE_DATABLOCK
+      ).first
+      expect(create_event).to be_present
+      expect(create_event.project_name).to eq('athena')
+      expect(create_event.md5_hash).to eq(datablock.md5_hash)
+      expect(create_event.file_path).to eq('blueprints/helmet/wisdom.txt')
+      expect(create_event.file_id).to eq(file.id)
+      expect(create_event.data_block_id).to eq(datablock.id)
+      expect(create_event.event_type).to eq(Metis::DataBlockLedger::CREATE_DATABLOCK)
+      expect(create_event.triggered_by).to eq('metis@olympus.org')
+      expect(create_event.size).to eq(datablock.size)
+      expect(create_event.bucket_name).to eq('files')
+      expect(create_event.created_at).to be_within(1).of(Time.now)
+      
+      # Verify LINK event logged the full path
+      link_event = Metis::DataBlockLedger.where(
+        file_id: file.id,
+        event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
+      ).first
+      expect(link_event).to be_present
+      expect(link_event.project_name).to eq('athena')
+      expect(link_event.md5_hash).to eq(datablock.md5_hash)
+      expect(link_event.file_path).to eq('blueprints/helmet/wisdom.txt')
+      expect(link_event.file_id).to eq(file.id)
+      expect(link_event.data_block_id).to eq(datablock.id)
+      expect(link_event.event_type).to eq(Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK)
+      expect(link_event.triggered_by).to eq('metis@olympus.org')
+      expect(link_event.size).to eq(datablock.size)
+      expect(link_event.bucket_name).to eq('files')
+      expect(link_event.created_at).to be_within(1).of(Time.now)
+      
+      # clean up the file
+      File.delete(file.data_block.location)
+    end
+
     it 'completes over an existing file' do
       # the next blob completes the data
       upload = prep_upload('wisdom.txt')
