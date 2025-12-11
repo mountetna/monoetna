@@ -212,18 +212,20 @@ class Metis
     end
 
    def remove_contents!(user = nil)
-      # Log unlink events for all files before deletion - capture datablocks before deletion
+      # Capture file and datablock objects before deletion
       files_to_remove = Metis::File.where(folder_id: [ id ] + child_folders.map(&:id)).all
-      files_to_remove.each do |file|
-        datablock = file.data_block
-        Metis::DataBlockLedger.log_unlink(file, datablock, user)
-      end
+      files_and_blocks = files_to_remove.map { |file| [file, file.data_block] }
 
       # remove child files
       Metis::File.where(folder_id: [ id ] + child_folders.map(&:id)).delete
 
       # remove child folders
       Metis::Folder.where(id: child_folders.map(&:id)).delete
+
+      # Log unlink events AFTER successful deletion
+      files_and_blocks.each do |file, datablock|
+        Metis::DataBlockLedger.log_unlink(file, datablock, user)
+      end
     end
 
     def remove!

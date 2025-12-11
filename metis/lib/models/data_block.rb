@@ -86,11 +86,6 @@ class Metis
           # Get all files pointing to this temp block
           files_to_deduplicate = Metis::File.where(data_block_id: id).all
           
-          # Log deduplicate event for each file
-          files_to_deduplicate.each do |file|
-            Metis::DataBlockLedger.log_deduplicate(file, existing_block, Metis::DataBlockLedger::CHECKSUM_COMMAND)
-          end
-
           # Point all the files to the existing block
           Metis::File.where(
             data_block_id: id,
@@ -105,6 +100,12 @@ class Metis
           # destroy this redundant record
           yield [:temp_destroy] if block_given?
           destroy
+
+          # Log deduplicate event for each file AFTER destroying the redundant file
+          files_to_deduplicate.each do |file|
+            Metis::DataBlockLedger.log_deduplicate(file, existing_block, Metis::DataBlockLedger::CHECKSUM_COMMAND)
+          end
+
           return
         else
           # Create a stub in position without removing the exist file, to ensure that
