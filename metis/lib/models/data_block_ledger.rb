@@ -98,11 +98,11 @@ class Metis
       Metis.instance.logger.error("Failed to log deduplicate event: #{e.message}")
     end
 
-    def self.log_unlink(file, datablock, user)
+    def self.log_unlink(file, datablock, user, file_path: nil)
       create(
         project_name: file.project_name,
         md5_hash: datablock.md5_hash,
-        file_path: file.file_path,
+        file_path: file_path || file.file_path,
         file_id: file.id,
         data_block_id: datablock.id,
         event_type: UNLINK_FILE_FROM_DATABLOCK,
