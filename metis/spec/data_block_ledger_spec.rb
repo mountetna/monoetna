@@ -76,7 +76,7 @@ describe Metis::DataBlockLedger do
         
         # Vacuum the datablock via backfilled API (marks it as removed and creates REMOVE_DATABLOCK event)
         token_header(:supereditor)
-        json_post('/api/vacuum_datablocks/backfilled', {})
+        json_post('/api/vacuum_datablocks/backfilled', { commit: true })
         expect(last_response.status).to eq(200)
         
         # Should not be orphaned because it's been vacuumed (marked as removed)
