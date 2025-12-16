@@ -127,7 +127,6 @@ describe Metis::BackfillDataBlockLedger do
       wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
       helmet_file = upload_file_via_api('athena', 'helmet.jpg', HELMET)
 
-      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
       Metis::BackfillDataBlockLedger.new.execute(project_name: 'athena', links: true)
 
       # Should have 2 link_file_to_datablock events (one per file)
@@ -159,7 +158,6 @@ describe Metis::BackfillDataBlockLedger do
       wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
 
       backfill_ledger = Metis::BackfillDataBlockLedger.new
-      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
 
       # Run backfill first time - should create link event
       backfill_ledger.execute(project_name: 'athena', links: true)
@@ -183,7 +181,6 @@ describe Metis::BackfillDataBlockLedger do
       backup_file = upload_file_via_api('backup', 'backup.txt', WISDOM)
 
       backfill_ledger = Metis::BackfillDataBlockLedger.new
-      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
       backfill_ledger.execute(project_name: 'athena', links: true)
       backfill_ledger.execute(project_name: 'labors', links: true)
       backfill_ledger.execute(project_name: 'backup', links: true)
@@ -204,7 +201,6 @@ describe Metis::BackfillDataBlockLedger do
       
       # Run backfill - should skip tracked files, but backfill the others
       backfill_ledger = Metis::BackfillDataBlockLedger.new
-      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
       backfill_ledger.execute(project_name: 'athena', links: true)
       
       # Verify tracked_file1 (created before ledger enabled) now has backfilled link event
@@ -244,7 +240,6 @@ describe Metis::BackfillDataBlockLedger do
       backfill_ledger = Metis::BackfillDataBlockLedger.new
 
       # Run backfill should detect both orphaned datablocks
-      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
       backfill_ledger.execute(project_name: 'athena', links: true)
       backfill_ledger.execute(orphaned: true)
 
@@ -289,7 +284,6 @@ describe Metis::BackfillDataBlockLedger do
       expect(last_response.status).to eq(200)
 
       backfill_ledger = Metis::BackfillDataBlockLedger.new
-      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
 
       # Run backfill first time - should create unlink event
       backfill_ledger.execute(project_name: 'athena', links: true)
@@ -317,7 +311,6 @@ describe Metis::BackfillDataBlockLedger do
         expect(last_response.status).to eq(200)
   
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
   
         # Run backfill should detect no orphaned datablocks
         backfill_ledger.execute(project_name: 'athena', links: true)
@@ -346,7 +339,6 @@ describe Metis::BackfillDataBlockLedger do
         
         # Run backfill - should skip tracked files, but backfill the others
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
         backfill_ledger.execute(orphaned: true)
         
         # Verify tracked_file1 (created before ledger enabled) now has backfilled link event

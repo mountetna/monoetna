@@ -273,11 +273,12 @@ class Metis
         # Verify project exists
         project_files_count = Metis::File.where(project_name: project_name).count
         if project_files_count == 0
-          puts "Warning: No files found for project '#{project_name}'"
+          puts "Error: No files found for project '#{project_name}'"
           puts "Please verify the project name is correct."
           puts ""
-          response = ask_user("Continue anyway? (y/n): ")
-          return unless response.downcase == 'y'
+          puts "To see all project names, run:"
+          puts "  SELECT DISTINCT project_name FROM files ORDER BY project_name;"
+          return
         end
 
         puts "Starting datablock ledger backfill for project: #{project_name}"
@@ -304,12 +305,12 @@ class Metis
       end
     end
 
-    private
-
-    def ask_user(prompt)
-      print prompt
-      gets.chomp
+    def setup(config)
+      super
+      Metis.instance.load_models
     end
+
+    private
 
     def backfill_links(project_name)
       puts "PHASE 1: Backfilling 'link_file_to_datablock' events for existing files"
@@ -323,18 +324,22 @@ class Metis
       errors = 0
       batch_size = 1000
       
-      Metis::File.where(project_name: project_name).each_slice(batch_size) do |file_batch|
+      Metis::File.where(project_name: project_name).eager(:data_block, :bucket).each_slice(batch_size) do |file_batch|
+        # Bulk check for existing link events (avoids N+1 queries)
+        file_ids = file_batch.map(&:id)
+        existing_link_file_ids = Metis::DataBlockLedger
+          .where(
+            file_id: file_ids,
+            event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
+          )
+          .select_map(:file_id)
+          .to_set
+        
         file_batch.each do |file|
           begin
             # Skip if already in ledger
-            existing = Metis::DataBlockLedger.where(
-              file_id: file.id,
-              event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
-            ).first
-            
-            if existing
+            if existing_link_file_ids.include?(file.id)
               skipped += 1
-              puts "Skipping file #{file.id} (md5: #{file.data_block.md5_hash}) - already has link event"
               next
             end
             
@@ -354,14 +359,17 @@ class Metis
             )
             
             backfilled += 1
-            
-            if (backfilled + skipped) % 1000 == 0
-              puts "Progress: #{backfilled + skipped}/#{total_files} files processed (#{((backfilled + skipped).to_f / total_files * 100).round(2)}%)"
-            end
           rescue => e
             errors += 1
             puts "Error backfilling file #{file.id}: #{e.message}"
           end
+        end
+        
+        # Progress report after each batch
+        processed = backfilled + skipped
+        if processed % 5000 == 0 || processed == total_files
+          progress_pct = (processed.to_f / total_files * 100).round(2)
+          puts "Progress: #{processed}/#{total_files} (#{progress_pct}%) | Created: #{backfilled} | Skipped: #{skipped}"
         end
       end
       
@@ -489,12 +497,6 @@ class Metis
         puts ""
         puts "These orphaned datablocks can now be vacuumed using the vacuum_datablocks API endpoint."
       end
-    end
-
-    def setup(config)
-      super
-      Metis.instance.setup_logger
-      Metis.instance.load_models
     end
   end
 end

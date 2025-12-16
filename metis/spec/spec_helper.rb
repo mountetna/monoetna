@@ -618,11 +618,9 @@ def multi_project_backfilled_lifecycle
   # - backup: backup.txt (orphaned)
 
   backfill_ledger = Metis::BackfillDataBlockLedger.new
-  allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
   backfill_ledger.execute(project_name: 'athena', links: true)
   backfill_ledger.execute(project_name: 'labors', links: true)
   backfill_ledger.execute(project_name: 'backup', links: true)
-  allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
   backfill_ledger.execute(orphaned: true)
 
   {
@@ -657,9 +655,7 @@ def athena_backfilled_lifecycle
   expect(last_response.status).to eq(200)
 
   backfill_ledger = Metis::BackfillDataBlockLedger.new
-  allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
   backfill_ledger.execute(project_name: 'athena', links: true)
-  allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
   backfill_ledger.execute(orphaned: true)
 
   {
