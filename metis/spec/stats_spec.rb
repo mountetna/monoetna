@@ -190,7 +190,6 @@ describe StatsController do
       
       # Run backfill to create SYSTEM_BACKFILL events for orphaned datablocks
       backfill_ledger = Metis::BackfillDataBlockLedger.new
-      allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
       backfill_ledger.execute(project_name: 'athena', links: true)
       backfill_ledger.execute(orphaned: true)
       

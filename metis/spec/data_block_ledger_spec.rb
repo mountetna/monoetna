@@ -45,7 +45,6 @@ describe Metis::DataBlockLedger do
         
         # Run backfill to create SYSTEM_BACKFILL unlink events
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
         backfill_ledger.execute(project_name: 'athena', links: true)
         backfill_ledger.execute(orphaned: true)
         
@@ -71,7 +70,6 @@ describe Metis::DataBlockLedger do
         
         # Run backfill to create SYSTEM_BACKFILL unlink event
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
         backfill_ledger.execute(orphaned: true)
         
         # Vacuum the datablock via backfilled API (marks it as removed and creates REMOVE_DATABLOCK event)
@@ -101,7 +99,6 @@ describe Metis::DataBlockLedger do
         delete("/athena/file/remove/files/tracked2.txt")
 
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
         backfill_ledger.execute(project_name: 'athena', links: true)
         backfill_ledger.execute(orphaned: true)
 
@@ -127,7 +124,6 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
 
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
     
         # Run backfill should detect no orphaned datablocks
         backfill_ledger.execute(project_name: 'athena', links: true)
@@ -154,7 +150,6 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
     
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
     
         # Run backfill should detect no orphaned datablocks
         backfill_ledger.execute(project_name: 'athena', links: true)
@@ -332,7 +327,6 @@ describe Metis::DataBlockLedger do
         delete("/athena/file/remove/files/tracked2.txt")
 
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
         backfill_ledger.execute(project_name: 'athena', links: true)
         backfill_ledger.execute(orphaned: true)
 
@@ -455,7 +449,6 @@ describe Metis::DataBlockLedger do
         
         # Run backfill to create link event
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
         backfill_ledger.execute(project_name: 'athena', links: true)
         
         # Enable tracking and delete file (creates real-time unlink event)
@@ -480,7 +473,6 @@ describe Metis::DataBlockLedger do
         
         # Run backfill to create link event
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
         backfill_ledger.execute(project_name: 'athena', links: true)
 
         enable_all_ledger_events
@@ -518,7 +510,6 @@ describe Metis::DataBlockLedger do
         
         # Run backfill to create unlink event for orphaned datablock
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
         backfill_ledger.execute(orphaned: true)
         
         # Enable tracking and upload new file with same content (reuses datablock)
@@ -553,7 +544,6 @@ describe Metis::DataBlockLedger do
         
         # Run backfill to create unlink event for orphaned datablock
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
         backfill_ledger.execute(orphaned: true)
         
         # Enable tracking and upload new file with same content (reuses datablock, creates link event)
@@ -589,7 +579,6 @@ describe Metis::DataBlockLedger do
         
         # Run backfill (should skip this file)
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
         backfill_ledger.execute(project_name: 'athena', links: true)
         
         # Should only have 1 link event (backfiller skipped)
@@ -623,7 +612,6 @@ describe Metis::DataBlockLedger do
         
         # Run backfill (should skip this orphaned datablock)
         backfill_ledger = Metis::BackfillDataBlockLedger.new
-        allow_any_instance_of(Metis::BackfillDataBlockLedger).to receive(:ask_user).and_return('y')
         backfill_ledger.execute(orphaned: true)
         
         # Should only have 1 unlink event (backfiller skipped)
