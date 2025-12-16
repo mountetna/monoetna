@@ -304,6 +304,11 @@ class Metis
       end
     end
 
+    def setup(config)
+      super
+      Metis.instance.load_models
+    end
+
     private
 
     def ask_user(prompt)
@@ -489,12 +494,6 @@ class Metis
         puts ""
         puts "These orphaned datablocks can now be vacuumed using the vacuum_datablocks API endpoint."
       end
-    end
-
-    def setup(config)
-      super
-      Metis.instance.setup_logger
-      Metis.instance.load_models
     end
   end
 end
