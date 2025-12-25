@@ -14,6 +14,7 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import {makeStyles} from '@material-ui/core/styles';
 import WorkflowPane, {WorkflowPaneHeader} from './workflow-pane';
 import Autocomplete from '@material-ui/lab/Autocomplete';
+import ReportProblemOutlinedIcon from '@material-ui/icons/ReportProblemOutlined';
 
 import {
   RUN_NEVER,
@@ -274,6 +275,11 @@ const RunPane = ({
     );
   }, [savePayload, params, param_opts]);
 
+  const dryRun = useMemo(() => {
+    const nextParams = {...params, ...newParams}
+    return 'commit' in nextParams && !nextParams['commit']
+  }, [param_opts, params, newParams])
+
   return (
     <WorkflowPane mode='run' selected={selected}>
       <WorkflowPaneHeader title='Run'>
@@ -323,6 +329,20 @@ const RunPane = ({
               </span>
             </Tooltip>
           </Grid>
+          { dryRun && 
+            <Grid item>
+              <Tooltip title="Parsed updates will not be committed to the database">
+                <Grid item container alignItems='center' spacing={0}>
+                  <Grid item>
+                    <ReportProblemOutlinedIcon/>
+                  </Grid>
+                  <Grid item>
+                    <Typography>Dry Run Mode</Typography>
+                  </Grid>
+                </Grid>
+              </Tooltip>
+            </Grid>
+          }
           {(error || message) && (
             <Grid item className={error ? classes.error : classes.completed}>
               <Typography>{error || message}</Typography>
