@@ -652,6 +652,47 @@ describe DataBlockController do
       expect(response[:summary][:total_vacuumed]).to eq(0)
       expect(response[:summary][:space_freed]).to eq(0)
     end
+
+    it 'restores a vacuumed data block when re-uploading same content' do
+      enable_all_ledger_events
+      
+      # Create a file via upload API
+      original_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      original_datablock = original_file.data_block
+      original_datablock_id = original_datablock.id
+      expected_hash = original_datablock.md5_hash
+      
+      # Delete the file via API (orphans the data block)
+      token_header(:editor)
+      delete("/athena/file/remove/files/wisdom.txt")
+      expect(last_response.status).to eq(200)
+      
+      # Vacuum the orphaned data block via API
+      expect(::File.exists?(original_datablock.location)).to eq(true)
+      token_header(:supereditor)
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
+      expect(last_response.status).to eq(200)
+      
+      # Verify the datablock was vacuumed
+      original_datablock.reload
+      expect(original_datablock.removed).to eq(true)
+      expect(::File.exists?(original_datablock.location)).to eq(false)
+      
+      # Re-upload a file with the same content
+      new_file = upload_file_via_api('athena', 'wisdom2.txt', WISDOM)
+      new_file.reload
+      
+      # The removed block should now be restored
+      original_datablock.reload
+      expect(original_datablock.removed).to eq(false)
+      
+      # The new file should point to the restored block (deduplication)
+      expect(new_file.data_block_id).to eq(original_datablock_id)
+      
+      # The physical file should exist at the restored block's location
+      expect(::File.exists?(original_datablock.location)).to eq(true)
+      expect(original_datablock.has_data?).to eq(true)
+    end
   end
 
   context '#vacuum_datablocks with commit=false (dry-run mode)' do
