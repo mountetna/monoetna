@@ -254,6 +254,51 @@ describe Metis::DataBlock do
       expect(wisdom_data.md5_hash).to eq(Digest::MD5.hexdigest(WISDOM))
       expect(wisdom_data.has_data?).to be_truthy
     end
+
+    it 'restores a removed data block when re-uploading same content' do
+      # Create a data block
+      original_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      original_datablock = original_file.data_block
+      expected_hash = original_datablock.md5_hash
+      
+      # Delete the file (orphans the data block)
+      original_file.remove!
+      
+      # Vacuum the orphaned data block (marks as removed, deletes physical file)
+      expect(::File.exists?(original_datablock.location)).to eq(true)
+      original_datablock.remove!
+      original_datablock.refresh
+      expect(original_datablock.removed).to eq(true)
+      expect(::File.exists?(original_datablock.location)).to eq(false)
+
+      # Create a new temp block with the same content (simulates new upload)
+      temp_hash = "temp-ef15c9bd4c7836612b1567f4c8396726"
+      new_file = create_file('athena', 'wisdom2.txt', WISDOM, md5_hash: temp_hash)
+      stubs.create_file('athena', 'files', 'wisdom2.txt', WISDOM, temp_hash)
+      new_temp_datablock = new_file.data_block
+      
+      # Verify the temp block has physical data
+      expect(::File.exists?(new_temp_datablock.location)).to eq(true)
+
+      # Compute hash should find the removed block and restore it
+      new_temp_datablock.compute_hash!
+
+      # The removed block should now be restored
+      original_datablock.refresh
+      expect(original_datablock.removed).to eq(false)
+      
+      # The new file should point to the restored block (deduplication)
+      new_file.refresh
+      expect(new_file.data_block_id).to eq(original_datablock.id)
+      
+      # The physical file should exist at the restored block's location
+      expect(::File.exists?(original_datablock.location)).to eq(true)
+      expect(original_datablock.has_data?).to eq(true)
+      
+      # The temp block should be destroyed
+      expect(Metis::DataBlock.where(id: new_temp_datablock.id).first).to be_nil
+    end
   end
 
   context '#backup!' do
