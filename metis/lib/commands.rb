@@ -499,5 +499,297 @@ class Metis
       end
     end
   end
+
+  class LedgerStats < Etna::Command
+    usage "Usage: bin/metis ledger_stats [--project_name <project_name>] [--backfilled] [--include_projects project1,project2]
+           # Query ledger statistics and vacuum candidates
+           # --project_name: Query stats for a specific project (tracked mode)
+           # --backfilled: Query stats for backfilled datablocks
+           # --include_projects: Optional comma-separated list of projects to include in vacuum calculations"
+
+    string_flags << "--project_name"
+    boolean_flags << "--backfilled"
+    string_flags << "--include_projects"
+
+    def execute(project_name: nil, backfilled: false, include_projects: nil)
+      if !project_name && !backfilled
+        puts "Error: Must specify either --project_name or --backfilled"
+        puts ""
+        puts "Usage: bin/metis ledger_stats [--project_name <project_name>] [--backfilled]"
+        puts ""
+        puts "Examples:"
+        puts "  bin/metis ledger_stats --project_name athena"
+        puts "  bin/metis ledger_stats --project_name athena --include_projects labors,victory"
+        puts "  bin/metis ledger_stats --backfilled"
+        return
+      end
+
+      if project_name && backfilled
+        puts "Error: Cannot specify both --project_name and --backfilled"
+        return
+      end
+
+      puts "Querying ledger statistics..."
+      puts "=" * 70
+      puts ""
+
+      # Parse include_projects
+      include_projects_array = include_projects ? include_projects.split(',').map(&:strip) : []
+
+      # Use the service directly
+      service = Metis::LedgerStatsService.new(
+        project_name: project_name,
+        backfilled: backfilled,
+        include_projects: include_projects_array
+      )
+      
+      begin
+        data = service.calculate_stats
+      rescue => e
+        puts "Error: #{e.message}"
+        return
+      end
+      
+      puts "PROJECT: #{data[:project_name]}"
+      puts ""
+      
+      # Display event counts
+      puts "EVENT COUNTS:"
+      puts "-" * 70
+      event_counts = data[:event_counts] || {}
+      event_counts.each do |event_type, count|
+        formatted_event = event_type.to_s.split('_').map(&:capitalize).join(' ')
+        puts "  #{formatted_event.ljust(30)} #{count.to_s.rjust(10)}"
+      end
+      puts ""
+      
+      # Display vacuum stats
+      vacuum = data[:vacuum] || {}
+      puts "VACUUM CANDIDATES:"
+      puts "-" * 70
+      puts "  Datablocks that can be vacuumed: #{vacuum[:datablocks_can_vacuum]}"
+      puts "  Space that can be cleared:       #{format_size(vacuum[:space_can_clear])}"
+      
+      if vacuum[:include_projects] && !vacuum[:include_projects].empty?
+        puts "  Include projects:                #{vacuum[:include_projects].join(', ')}"
+      end
+      
+      if vacuum[:project_breakdown]
+        puts ""
+        puts "  Project Breakdown:"
+        vacuum[:project_breakdown].each do |proj, count|
+          puts "    #{proj.to_s.ljust(25)} #{count}"
+        end
+      end
+      
+      puts ""
+      
+      if vacuum[:details] && !vacuum[:details].empty?
+        puts "VACUUM DETAILS (first 10 datablocks):"
+        puts "-" * 70
+        vacuum[:details].first(10).each do |detail|
+          puts "  MD5: #{detail[:md5_hash]}"
+          puts "  Size: #{format_size(detail[:size])}"
+          puts "  Datablock ID: #{detail[:data_block_id]}"
+          if detail[:description]
+            puts "  Description: #{detail[:description]}"
+          end
+          if detail[:files] && !detail[:files].empty?
+            puts "  Files:"
+            detail[:files].first(3).each do |file|
+              puts "    - #{file[:bucket_name]}/#{file[:file_path]}" if file[:file_path]
+            end
+          end
+          puts ""
+        end
+        
+        if vacuum[:details].length > 10
+          puts "  ... and #{vacuum[:details].length - 10} more datablocks"
+          puts ""
+        end
+      end
+      
+      puts "=" * 70
+      if vacuum[:datablocks_can_vacuum] > 0
+        puts "To vacuum these datablocks, run:"
+        if backfilled
+          puts "  bin/metis vacuum_datablocks backfilled --commit"
+        else
+          cmd = "  bin/metis vacuum_datablocks #{project_name}"
+          cmd += " --include_projects #{include_projects}" if include_projects
+          cmd += " --commit"
+          puts cmd
+        end
+      else
+        puts "No datablocks available to vacuum."
+      end
+      puts "=" * 70
+    end
+
+    def setup(config)
+      super
+      Metis.instance.load_models
+    end
+
+    private
+
+    def format_size(bytes)
+      return "0 bytes" if bytes.nil? || bytes == 0
+      
+      if bytes < 1024
+        "#{bytes} bytes"
+      elsif bytes < 1024 * 1024
+        "#{(bytes / 1024.0).round(2)} KB"
+      elsif bytes < 1024 * 1024 * 1024
+        "#{(bytes / 1024.0 / 1024.0).round(2)} MB"
+      else
+        "#{(bytes / 1024.0 / 1024.0 / 1024.0).round(2)} GB"
+      end
+    end
+  end
+
+  class VacuumDatablocks < Etna::Command
+    usage "Usage: bin/metis vacuum_datablocks <project_name> [--commit] [--include_projects project1,project2]
+           # Vacuum (delete) orphaned datablocks
+           # <project_name>: Project name or 'backfilled' for backfilled datablocks
+           # --commit: Actually delete datablocks (defaults to dry-run)
+           # --include_projects: Optional comma-separated list of projects to include"
+
+    boolean_flags << "--commit"
+    string_flags << "--include_projects"
+
+    def execute(project_name, commit: false, include_projects: nil)
+      if project_name.nil? || project_name.empty?
+        puts "Error: Project name is required"
+        puts ""
+        puts "Usage: bin/metis vacuum_datablocks <project_name> [--commit] [--include_projects project1,project2]"
+        puts ""
+        puts "Examples:"
+        puts "  bin/metis vacuum_datablocks athena                    # Dry-run"
+        puts "  bin/metis vacuum_datablocks athena --commit           # Actually delete"
+        puts "  bin/metis vacuum_datablocks backfilled --commit       # Vacuum backfilled datablocks"
+        puts "  bin/metis vacuum_datablocks athena --include_projects labors --commit"
+        return
+      end
+
+      if commit
+        puts "WARNING: Running in COMMIT mode - datablocks will be DELETED!"
+        puts "=" * 70
+        puts ""
+        print "Type 'yes' to confirm deletion: "
+        confirmation = STDIN.gets.chomp
+        if confirmation.downcase != 'yes'
+          puts "Aborted."
+          return
+        end
+        puts ""
+      else
+        puts "Running in DRY-RUN mode (no deletions will occur)"
+        puts "Add --commit flag to actually delete datablocks"
+        puts "=" * 70
+        puts ""
+      end
+
+      # Parse include_projects
+      include_projects_array = include_projects ? include_projects.split(',').map(&:strip) : []
+
+      puts "Vacuuming datablocks for project: #{project_name}"
+      puts ""
+
+      # Use the service directly
+      service = Metis::VacuumService.new(
+        project_name: project_name,
+        commit: commit,
+        include_projects: include_projects_array,
+        user: nil  # Commands run as system
+      )
+      
+      begin
+        data = service.vacuum_datablocks
+      rescue => e
+        puts "Error: #{e.message}"
+        return
+      end
+      
+      # Display results
+      summary = data[:summary] || {}
+      vacuumed = data[:vacuumed] || []
+      errors = data[:errors] || []
+      
+      puts "VACUUM RESULTS:"
+      puts "-" * 70
+      puts "  Mode:                #{data[:dry_run] ? 'DRY-RUN' : 'COMMIT'}"
+      puts "  Project:             #{summary[:project_name]}"
+      if summary[:include_projects] && !summary[:include_projects].empty?
+        puts "  Include projects:    #{summary[:include_projects].join(', ')}"
+      end
+      puts "  Total vacuumed:      #{summary[:total_vacuumed]}"
+      puts "  Space freed:         #{format_size(summary[:space_freed])}"
+      puts "  Errors:              #{summary[:errors_count]}"
+      puts ""
+      
+      if vacuumed.length > 0
+        puts "VACUUMED DATABLOCKS (first 20):"
+        puts "-" * 70
+        vacuumed.first(20).each_with_index do |db, idx|
+          puts "  #{idx + 1}. MD5: #{db[:md5_hash]}"
+          puts "     Size: #{format_size(db[:size])}"
+          puts "     Location: #{db[:location]}" if db[:location]
+          puts ""
+        end
+        
+        if vacuumed.length > 20
+          puts "  ... and #{vacuumed.length - 20} more datablocks"
+          puts ""
+        end
+      end
+      
+      if errors.length > 0
+        puts "ERRORS:"
+        puts "-" * 70
+        errors.each do |error|
+          puts "  - #{error}"
+        end
+        puts ""
+      end
+      
+      puts "=" * 70
+      
+      if data[:dry_run]
+        puts "This was a DRY-RUN. No datablocks were actually deleted."
+        puts "To commit the vacuum, run with --commit flag:"
+        cmd = "  bin/metis vacuum_datablocks #{project_name}"
+        cmd += " --include_projects #{include_projects}" if include_projects
+        cmd += " --commit"
+        puts cmd
+      else
+        puts "✓ Vacuum complete! #{summary[:total_vacuumed]} datablocks deleted."
+        puts "✓ #{format_size(summary[:space_freed])} of space freed."
+      end
+      
+      puts "=" * 70
+    end
+
+    def setup(config)
+      super
+      Metis.instance.load_models
+    end
+
+    private
+
+    def format_size(bytes)
+      return "0 bytes" if bytes.nil? || bytes == 0
+      
+      if bytes < 1024
+        "#{bytes} bytes"
+      elsif bytes < 1024 * 1024
+        "#{(bytes / 1024.0).round(2)} KB"
+      elsif bytes < 1024 * 1024 * 1024
+        "#{(bytes / 1024.0 / 1024.0).round(2)} MB"
+      else
+        "#{(bytes / 1024.0 / 1024.0 / 1024.0).round(2)} GB"
+      end
+    end
+  end
 end
 
