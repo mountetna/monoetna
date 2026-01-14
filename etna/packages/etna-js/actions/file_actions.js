@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, useCallback, useEffect} from 'react';
 import Modal from 'react-modal';
 
 import ButtonBar from '../components/button_bar';
@@ -6,6 +6,7 @@ import Icon from '../components/icon';
 
 export const STUB = '::blank';
 export const TEMP = '::temp';
+import {PickBucket, PickFileOrFolder} from '../components/metis_exploration';
 
 // We don't have a lot of content, so let's get a smaller Modal
 export const customStyles = {
@@ -40,7 +41,28 @@ export const useFileInputActions = (
   onChange,
   onBlur
 ) => {
-  const metisPathRef = useRef(null);
+  const [metisPath, setMetisPath] = useState('');
+
+  const [bucketName, setBucketName] = useState('');
+  const [path, setPath] = useState('');
+  const [targetType, setTargetType] = useState(null);
+  
+  function changeBucket(e) {
+    setPath('');
+    setTargetType(null);
+    setBucketName(e);
+  }
+  function reset() {
+    changeBucket('');
+  }
+  
+  useEffect(() => {
+    if (targetType=='file') {
+      setMetisPath(`metis://${CONFIG.project_name}/${bucketName}/${path}`)
+    } else {
+      setMetisPath('')
+    }
+  }, [bucketName, path, targetType])
 
   return {
     metisSelector,
@@ -71,22 +93,28 @@ export const useFileInputActions = (
         appElement={document.querySelector('#root')}
       >
         <div className='attribute modal file-metis-select'>
-          <h2>Enter a Metis path</h2>
+          <h2>Select a Metis file</h2>
           <div className='input-box-wrapper'>
-            <label htmlFor='metis-path-input'>Metis path:</label>
-            <input
-              id='metis-path-input'
-              className='full_text metis-path-input'
-              type='text'
-              ref={metisPathRef}
-              placeholder='metis://<project>/<bucket>/<file-path>'
+            <PickBucket
+              bucket={bucketName}
+              label="Bucket"
+              setBucket={(e) => changeBucket(e)}
+            />
+            <PickFileOrFolder
+              bucket={bucketName}
+              label="Destination Folder"
+              useTargetType={setTargetType}
+              setPath={(e) => setPath(e)}
+              basePath={''}
+              topLevelPlaceholder={'top-level of bucket'}
+              path={path}
             />
             <div className='modal-button-wrapper'>
               <ButtonBar
                 className='modal-buttons'
                 buttons={[
                   {type: 'check', click: () => selectMetisFile()},
-                  {type: 'cancel', click: () => setMetis(false)}
+                  {type: 'cancel', click: () => closeModal()}
                 ]}
               />
               {error ? (
@@ -116,11 +144,10 @@ export const useFileInputActions = (
 
   function closeModal() {
     setMetis(false);
+    reset();
   }
 
   function selectMetisFile() {
-    const metisPath = metisPathRef.current.value;
-
     if (!METIS_PATH_MATCH(metisPath)) {
       setError(true);
       return;
@@ -132,7 +159,7 @@ export const useFileInputActions = (
     onChange(formatFileRevision(metisPath));
     onBlur();
 
-    metisPathRef.current.value = null;
+    reset();
   }
 
   function formatFileRevision(newValue, files) {
