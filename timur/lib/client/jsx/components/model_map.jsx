@@ -13,6 +13,10 @@ import AttributeReport from './model_map/attribute_report';
 import MapHeading from './model_map/map_heading';
 import ModelReport from './model_map/model_report';
 import ModelMapGraphic from './model_map/model_map_graphic';
+import Tooltip from '@material-ui/core/Tooltip';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import CallMadeIcon from '@material-ui/icons/CallMade';
 
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {isAdmin} from 'etna-js/utils/janus';
@@ -123,6 +127,8 @@ const ModelMap = ({}) => {
     return isAdmin(user, CONFIG.project_name);
   }, [user, CONFIG.project_name]);
 
+  const [options,setOptions] = useState([]);
+
   return (
     <Grid className={classes.model_map} container>
       <Grid item container direction='column'>
@@ -130,11 +136,20 @@ const ModelMap = ({}) => {
           className={classes.heading}
           name='Project'
           title={full_name}
-        />
+        >
+          <ToggleButtonGroup className={classes.buttons} value={options} onChange={ (e,f) => setOptions(f) } size='small'>
+            <ToggleButton aria-label="Show links" disableRipple={true} value='links' size="small">
+              <Tooltip title="Show links">
+                <CallMadeIcon fontSize="small"/>
+              </Tooltip>
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </MapHeading>
         <Grid item className={classes.map}>
           <ModelMapGraphic
             width={width}
             height={height}
+            showLinks={ options.includes("links") }
             selected_models={[model]}
             handler={updateModel}
           />
