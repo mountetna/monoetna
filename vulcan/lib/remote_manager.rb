@@ -133,8 +133,10 @@ class Vulcan
     end
 
     def clone(repo, target_dir)
-      # For now we ignore branch and assume the default branch
-      command = build_command.add('git', 'clone', repo, target_dir)
+      # Swap from http to ssh
+      repo_use = repo.sub("https://github.com/", "git@github.com:") + ".git"
+      # For now we ignore specifically desired version, and start with the default branch
+      command = build_command.add('git', 'clone', repo_use, target_dir)
       invoke_ssh_command(command.to_s)
     end
 
