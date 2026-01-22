@@ -62,6 +62,7 @@ default: &default
       :verify_host_key: :never
   :base_dir: /app/vulcan
   :conda_env: conda-vulcan
+  :latency_time: 600
   :snakemake_profile_dir: /app/spec/fixtures/v2/profiles/
   # # Alternates for connecting local development with c4
   # change 'default' below to something specific to you in order to avoid possibility of conflicts with other engineers
@@ -81,9 +82,21 @@ default: &default
   :vulcan:
     :host: https://vulcan.test
     :hmac_key: haggis
+  :janus:
+    :host: https://janus.test
+    :hmac_key: haggis
   :polyphemus:
     :host: https://polyphemus.test
     :hmac_key: haggis
+  :ssh:
+    :host: vulcan_c4_env
+    :username: root
+    :password: root
+    :use_ssh_config: false
+    :settings:
+      :verify_host_key: :never
+  :conda_env: conda-vulcan
+  :latency_time: 600
   :data_folder: /app/spec/data
   :workflows_folder: /app/spec/fixtures
   :archimedes_run_image: etnaagent/archimedes

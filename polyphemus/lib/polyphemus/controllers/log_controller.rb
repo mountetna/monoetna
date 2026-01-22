@@ -20,7 +20,7 @@ class LogController < Polyphemus::Controller
       if entry
         entry.payload = merge_payload(
           entry.payload,
-          JSON.parse(@params[:payload].to_json, symbolize_names: false)
+          JSON.parse(@params[:payload], symbolize_names: false)
         )
         entry.save
 
@@ -34,7 +34,7 @@ class LogController < Polyphemus::Controller
       user: @params[:user],
       event: @params[:event],
       message: @params[:message][0..MAX_MESSAGE_SIZE],
-      payload: @params[:payload],
+      payload: JSON.parse(@params[:payload]),
       created_at: DateTime.now,
       hidden: false
     )

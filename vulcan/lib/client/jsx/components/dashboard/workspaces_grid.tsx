@@ -15,12 +15,12 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import SearchIcon from '@material-ui/icons/Search';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
-import {VulcanContext} from '../../../contexts/vulcan_context';
-import {Workflow, WorkspaceMinimal} from '../../../api_types';
-import WorkspaceCard from './workspace';
+import {VulcanContext} from '../../contexts/vulcan_context';
+import {Workflow, WorkspaceMinimal} from '../../api_types';
+import WorkspaceCard from './workspace_card';
 import Grid from '@material-ui/core/Grid';
-import { workflowByIdFromWorkflows } from '../../../selectors/workflow_selectors';
-import { updateWorkflowsWorkspaces } from '../../../actions/vulcan_actions';
+import { workflowByIdFromWorkflows } from '../../selectors/workflow_selectors';
+import { updateWorkflowsWorkspaces } from '../../actions/vulcan_actions';
 
 const useStyles = makeStyles((theme) => ({
   workspaces: {
@@ -93,15 +93,7 @@ export default function WorkspacesGrid({
 
       showErrors(
         updateWorkspace(project_name, workspace.workspace_id, newTitle, undefined)
-        .then((updatedWorkspace) => {
-          const updated = accessibleWorkspaces.map((oldWorkspace) => {
-            if (oldWorkspace.workspace_id === updatedWorkspace.workspace_id) {
-              return updatedWorkspace;
-            }
-
-            return oldWorkspace;
-          });
-        })
+        .then((updatedWorkspace) => {dispatch(updateWorkflowsWorkspaces())})
       );
       dispatch(updateWorkflowsWorkspaces());
     },
@@ -112,11 +104,11 @@ export default function WorkspacesGrid({
     (workspace: WorkspaceMinimal) => {
       if (!workspace.workspace_id) return;
       const doDelete = confirm(
-        'This action will permanently delete this workspace its files, a non-reversible action.'
+        'This action will permanently delete this workspace and all of its files, a non-reversible action.'
       );
       if (!doDelete) return
-      showErrors(deleteWorkspace(project_name, workspace.workspace_id));
-      dispatch(updateWorkflowsWorkspaces());
+      showErrors(deleteWorkspace(project_name, workspace.workspace_id))
+      .then(() => {dispatch(updateWorkflowsWorkspaces())});
     },
     [dispatch, showErrors, deleteWorkspace, project_name, accessibleWorkspaces]
   );

@@ -24,7 +24,9 @@ import {
   CreateWorkspaceResponse,
   isRunningReturn,
   WorkspacesResponseRaw,
-  LatencyReturn
+  LatencyReturn,
+  StateReturn,
+  ConfigReturn
 } from '../api_types';
 import { paramValuesToRaw, workspacesFromResponse } from '../selectors/workflow_selectors';
 import { isSome } from '../selectors/maybe';
@@ -92,6 +94,12 @@ export const defaultApiHelpers = {
     return new Promise(() => null);
   },
   postUIValues(projectName: string, workspaceId: number, status: WorkspaceStatus, steps: string | null): Promise<AccountingReturn> {
+    return new Promise(() => null);
+  },
+  getState(projectName: string, configId: number): Promise<StateReturn> {
+    return new Promise(() => null);
+  },
+  getConfig(projectName: string, workspaceId: number, configId: number): Promise<ConfigReturn> {
     return new Promise(() => null);
   },
   requestRun(projectName: string, workspaceId: number, configId: number): Promise<RunReturn> {
@@ -162,6 +170,9 @@ export function useApi(
 
   const showError = useCallback((e: any, dismissOld: boolean = false) => {
     if (dismissOld) invoke(dismissMessages());
+    if (!(e instanceof Array)) {
+      e = [`${e}`];
+    }
     console.error(e);
     invoke(showMessages(e));
   }, [invoke]);
@@ -234,7 +245,7 @@ export function useApi(
 
   const deleteWorkspace = useCallback(
     (projectName: string, workspaceId: number): Promise<Response> => {
-      return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/delete`));
+      return vulcanDelete(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}`));
   }, [vulcanGet, vulcanPath]);
 
   const getFileNames = useCallback(
@@ -334,6 +345,20 @@ export function useApi(
     [vulcanPost, vulcanPath, writeFiles, setConfig]
   );
 
+  const getState = useCallback(
+    (projectName: string, configId: number): Promise<StateReturn> => {
+      return vulcanGet(
+        vulcanPath(`/api/v2/${projectName}/config/${configId}/state`)
+      );
+  }, [vulcanGet, vulcanPath]);
+
+  const getConfig = useCallback(
+    (projectName: string, workspaceId: number, configId: number): Promise<ConfigReturn> => {
+      return vulcanGet(
+        vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/config/${configId}`)
+      );
+  }, [vulcanGet, vulcanPath]);
+
   const requestRun = useCallback(
     (projectName: string, workspaceId: number, configId: number): Promise<RunReturn> => {
       return vulcanPost(
@@ -351,8 +376,8 @@ export function useApi(
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/run/${runId}`))
   }, [vulcanGet, vulcanPath]);
 
-  const getConnectionLatency = useCallback((projectName: string): Promise<LatencyReturn> => {
-    return vulcanGet(vulcanPath(`/api/v2/${projectName}/cluster-latency`))
+  const getConnectionLatency = useCallback((): Promise<LatencyReturn> => {
+    return vulcanGet(vulcanPath(`/api/v2/cluster-latency`))
   }, [vulcanGet, vulcanPath]);
 
   return {
@@ -371,6 +396,8 @@ export function useApi(
     readFiles,
     setConfig,
     postUIValues,
+    getState,
+    getConfig,
     requestRun,
     getIsRunning,
     pullRunStatus,

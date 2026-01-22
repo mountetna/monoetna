@@ -332,8 +332,9 @@ declare module 'etna-js/utils/debouncer' {
 }
 
 declare module 'etna-js/api/magma_api' {
-  export function getAnswer(question: any, exchange: any): Promise<T>;
+  export function getAnswer(question: any, fetch?: Function): Promise<T>;
   export function getDocuments(doc_args: any, fetch?: Function): Promise<T>;
+  export function getIdentifiers(project_name: string, fetch?: Function): Promise<T>;
   export function getModels(project_name: string, fetch?: Function): Promise<T>;
   export function magmaPath(endpoint: string): string;
 }
@@ -403,6 +404,9 @@ declare module 'etna-js/utils/janus' {
     flags: string[];
   }
 
+  export type User = Token;
+
   export function isGuest(user: any, project_name: string): boolean;
+  export function isSuperViewer(user: any): boolean;
   export function parseToken(token: string): Token;
 }

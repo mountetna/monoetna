@@ -34,7 +34,7 @@ end
 
 AUTH_USERS = {
   superuser: {
-    email: 'zeus@twelve-labors.org', name: 'Zeus', perm: 'a:administration'
+    email: 'zeus@twelve-labors.org', name: 'Zeus', perm: 'a:administration', exp: Time.now.to_i + 6000 , flags: 'vulcan'
   },
   admin: {
     email: 'hera@olympus.org', name: 'Hera', perm: 'a:labors', exp: Time.now.to_i + 6000, flags: 'vulcan'
@@ -98,6 +98,11 @@ RSpec.configure do |config|
 
 end
 
+FactoryBot.define do
+  factory :workflow, class: Vulcan::WorkflowV2 do
+    to_create(&:save)
+  end
+end
 def json_body
   JSON.parse(last_response.body, symbolize_names: true)
 end

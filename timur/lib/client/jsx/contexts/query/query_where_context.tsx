@@ -4,7 +4,8 @@ import {QueryFilter} from './query_types';
 
 export const defaultQueryWhereParams = {
   recordFilters: [] as QueryFilter[],
-  orRecordFilterIndices: [] as number[]
+  orRecordFilterIndices: [] as number[],
+  globalOr: false
 };
 
 const defaultQueryWhereState = {
@@ -20,7 +21,9 @@ export const defaultQueryWhereContext = {
   removeAllRecordFilters: () => {},
   patchRecordFilter: (index: number, recordFilter: QueryFilter) => {},
   setOrRecordFilterIndices: (indices: number[]) => {},
-  setWhereState: (newState: QueryWhereState) => {}
+  setGlobalOr: (or: boolean) => {},
+  setWhereState: (newState: QueryWhereState) => {},
+  resetWhereState: () => {}
 };
 
 export type QueryWhereContextData = typeof defaultQueryWhereContext;
@@ -70,7 +73,8 @@ export const QueryWhereProvider = (
       setState({
         ...state,
         recordFilters: [],
-        orRecordFilterIndices: []
+        orRecordFilterIndices: [],
+        globalOr: false
       });
     },
     [state]
@@ -98,9 +102,25 @@ export const QueryWhereProvider = (
     [state]
   );
 
+  const setGlobalOr = useCallback(
+    (globalOr: boolean) => {
+      setState({
+        ...state,
+        globalOr
+      });
+    },
+    [state]
+  );
+
   const setWhereState = useCallback((newState: QueryWhereState) => {
     setState({
       ...newState
+    });
+  }, []);
+
+  const resetWhereState = useCallback(() => {
+    setState({
+      ...defaultQueryWhereParams
     });
   }, []);
 
@@ -113,7 +133,9 @@ export const QueryWhereProvider = (
         removeAllRecordFilters,
         patchRecordFilter,
         setOrRecordFilterIndices,
-        setWhereState
+        setWhereState,
+        setGlobalOr,
+        resetWhereState
       }}
     >
       {props.children}

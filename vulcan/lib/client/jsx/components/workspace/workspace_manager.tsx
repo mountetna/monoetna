@@ -37,13 +37,14 @@ import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 // import Vignette from '../vignette';
 import VulcanHelp from './drawers/vulcan_help';
-import { workflowName, workspaceFromRaw } from '../../selectors/workflow_selectors';
+import { hasScheduledSteps, workflowName, workspaceFromRaw } from '../../selectors/workflow_selectors';
 import {useWorkspace} from '../../contexts/workspace_context';
 // import {json_get} from 'etna-js/utils/fetch';
 import useUserHooks from '../../contexts/useUserHooks';
 import Tag from '../dashboard/tag';
 import Grid from '@material-ui/core/Grid';
 import { useDataSync, useRunSyncing } from './data_sync';
+import Vignette from './drawers/vignette';
 
 // import RevisionHistory from 'etna-js/components/revision-history';
 
@@ -85,6 +86,7 @@ export default function WorkspaceManager() {
     postUIValues,
     getFileNames,
     readFiles,
+    getState,
     getWorkspace,
     pullRunStatus,
     getIsRunning,
@@ -100,7 +102,8 @@ export default function WorkspaceManager() {
 
   // const [modalIsOpen, setIsOpen] = useState(false);
   const [vulcanHelpIsOpen, setVulcanHelpIsOpen] = useState(false);
-  const {workQueueable: committedStepPending, projectName, configId, isRunning} = state;
+  const [workspaceHelpIsOpen, setWorkspaceHelpIsOpen] = useState(false);
+  const {projectName, configId, isRunning} = state;
 
   const [localTags, setLocalTags] = useState<string[]>(workspace.tags || []);
   const [openTagEditor, setOpenTagEditor] = useState(false);
@@ -121,7 +124,7 @@ export default function WorkspaceManager() {
     resetTags();
   }, [workspace.tags])
 
-  useDataSync(state, dispatch, showError, showErrors, getFileNames, readFiles, postUIValues);
+  useDataSync(state, dispatch, showError, showErrors, getFileNames, readFiles, postUIValues, getState);
   const {
     requestRunPolling,
     cancelRunning
@@ -147,7 +150,7 @@ export default function WorkspaceManager() {
     .then(runResponse => {
       dispatch(setRunning(runResponse.run_id));
     })
-  }, [workspaceId, configId])
+  }, [workspaceId, configId, isRunning, projectName])
   useEffect(() => {
     if (state.isRunning) {
       showErrors(requestRunPolling());
@@ -287,14 +290,15 @@ export default function WorkspaceManager() {
   }
 
   const running = useMemo(() => state.isRunning, [state.isRunning]);
+  const workQueueable = useMemo(() => hasScheduledSteps(state.status), [state.status]);
   const disableRunButton =
-    complete || running || (hasPendingEdits && !committedStepPending) || state.isSyncing || state.attemptingToRun;
+    complete || running || !workQueueable || state.isSyncing || state.attemptingToRun;
   const disableRunReason = running ?
     'Workspace is already runnning' :
     state.attemptingToRun ?
     'Requesting to Run' :
-    hasPendingEdits && !committedStepPending ?
-    'An input is has pending edits' :
+    !workQueueable ?
+    'No steps to run' :
     state.isSyncing ?
     'Awaiting sync with remote workspace' :
     'no remaining work to run'
@@ -404,14 +408,33 @@ export default function WorkspaceManager() {
           <FlatButton
             icon='book'
             className='header-btn vignette'
+            label='Workflow'
+            title={'vignette.md' in state.status.file_contents ? 'Workflow Readme' : 'Workflow Readme Unavailable'}
+            disabled={!('vignette.md' in state.status.file_contents)}
+            onClick={() => {setWorkspaceHelpIsOpen(true)}}
+          />
+          <ReactModal
+            isOpen={workspaceHelpIsOpen}
+            onRequestClose={() => setWorkspaceHelpIsOpen(false)}
+            style={modalStyles}
+            contentLabel='Workspace Vignette'
+          >
+            <Vignette/>
+          </ReactModal>
+        </React.Fragment>
+        <React.Fragment>
+          <FlatButton
+            icon='book'
+            className='header-btn vignette'
             label='Vulcan'
+            title='Vulcan Interface Overview'
             onClick={() => setVulcanHelpIsOpen(true)}
           />
           <ReactModal
             isOpen={vulcanHelpIsOpen}
             onRequestClose={() => setVulcanHelpIsOpen(false)}
             style={modalStyles}
-            contentLabel='Vignette'
+            contentLabel='Vulcan Interface Overview'
           >
             <VulcanHelp/>
           </ReactModal>
