@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useContext} from 'react';
+import React, {useCallback, useState, useContext, useEffect} from 'react';
 
 import Tooltip from '@material-ui/core/Tooltip';
 import Button from '@material-ui/core/Button';
@@ -16,6 +16,10 @@ import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import { updateWorkflowsWorkspaces } from '../../../actions/vulcan_actions';
 import FlatButton from 'etna-js/components/flat-button';
+import { VulcanState } from '../../../reducers/vulcan_reducer';
+
+import git from "isomorphic-git";
+import http from "isomorphic-git/http/web";
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
@@ -39,26 +43,26 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function WorkflowCreateButtonModal({projectName}: {
+export default function WorkflowCreateButtonModal({projectName, workflows}: {
   projectName: string;
+  workflows: VulcanState['workflows']
 }) {
   const classes = useStyles();
   const [repoUrl, setRepoUrl] = useState('');
   const [workflowName, setWorkflowName] = useState('');
   const [workflowNameError, setWorkflowNameError] = useState(false);
+  const [workflowPrivateScopeError, setWorkflowPrivateScopeError] = useState(false);
   const [open, setOpen] = useState(false);
 
-  let {state,
+  let {
     dispatch,
     showErrors,
-    getWorkflows,
     createWorkflow
   } = useContext(VulcanContext);
 
   const handleCreate = useCallback((workflowName: string, repoUrl: string) => {
     // Check if workflow name is available
-    const current_workflows = showErrors(getWorkflows(projectName));
-    const current_names = Object.values(current_workflows).map(val => val.name)
+    const current_names = Object.values(workflows).map(val => val.name)
     if (current_names.includes(workflowName)) {
       setWorkflowNameError(true);
     } else {
@@ -75,7 +79,7 @@ export default function WorkflowCreateButtonModal({projectName}: {
       setWorkflowNameError(false);
       dispatch(updateWorkflowsWorkspaces());
     };
-  }, [projectName, getWorkflows, createWorkflow]);
+  }, [projectName, createWorkflow, workflows]);
 
   function handleClose() {
     setOpen(false);
@@ -123,6 +127,8 @@ export default function WorkflowCreateButtonModal({projectName}: {
                 value={repoUrl}
                 label="Workflow URL"
                 placeholder="github.com/<org>/<repo>"
+                error={workflowPrivateScopeError}
+                helperText={workflowPrivateScopeError ? 'This looks like a private repo. For security purposes, we require project names to be included in private repo names.' : ''}
                 InputLabelProps={{ shrink: true }}
                 onChange={(event) => setRepoUrl(event.target.value)}
                 size="small"
@@ -134,7 +140,22 @@ export default function WorkflowCreateButtonModal({projectName}: {
           <Tooltip title='Create Workflow'>
             <Button
               className={classes.propagateButton}
-              onClick={() => handleCreate(workflowName, repoUrl)}
+              onClick={() => {
+                git.getRemoteInfo({ http, url: repoUrl, corsProxy: 'https://cors.isomorphic-git.org'})
+                .then((r: any) => {
+                  setWorkflowPrivateScopeError(false);
+                  handleCreate(workflowName, repoUrl);
+                })
+                .catch((e: any) => {
+                  // Show Error unless due to private repo authentication
+                  if ( !!e && !!e['data'] && !!e['data']['statusCode'] && e['data']['statusCode']==401 && !repoUrl.includes(projectName)) {
+                    setWorkflowPrivateScopeError(true);
+                  } else {
+                    setWorkflowPrivateScopeError(false);
+                    handleCreate(workflowName, repoUrl);
+                  }
+                })
+              }}
               startIcon={<SaveIcon/>}
               color='primary'
               variant='contained'
