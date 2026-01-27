@@ -1360,16 +1360,51 @@ describe VulcanV2Controller do
 
       get "/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/stream-download/poem.txt"
 
-      # --- force the body to be consumed (two equivalent ways) ---
+      # Force the body to be consumed
       streamed = +""
-      last_response.body.each { |chunk| streamed << chunk }      # explicit
-      # streamed = last_response.body                            # implicit join
+      last_response.body.each { |chunk| streamed << chunk }
 
       expect(last_response.status).to eq(200)
 
-      # headers: rack sets canonical case
+      # Verify headers
       expect(last_response.headers['Content-Type']).to eq('application/octet-stream')
       expect(last_response.headers['Content-Disposition']).to eq('attachment; filename=poem.txt')
+      expect(last_response.headers['Cache-Control']).to eq('no-cache')
+      
+      # Verify content matches the expected file
+      expect(streamed).to_not be_empty
+      expect(streamed).to eq(poem_1_text)
+    end
+
+    it 'streams larger files in multiple chunks' do
+      auth_header(:editor)
+
+      workspace = Vulcan::Workspace.first
+      file_name = "large_file.txt"
+      file_path = "#{workspace.path}/output/#{file_name}"
+      
+      # Create a 1MB file directly on the remote server (bypassing echo limits)
+      remote_manager.create_large_file(file_path, size_mb: 1)
+      
+      # Get the actual file size for verification
+      stat_result = remote_manager.invoke_ssh_command("stat -c %s #{file_path}")
+      expected_size = stat_result[:stdout].strip.to_i
+
+      get "/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/stream-download/#{file_name}"
+
+      expect(last_response.status).to eq(200)
+      
+      # Rack::Test joins all body chunks into a single string
+      # The server streams the file in 256KB chunks (4 chunks for 1MB file)
+      streamed = last_response.body
+      
+      # Verify the complete size matches (1MB = 1048576 bytes)
+      expect(streamed.bytesize).to eq(expected_size)
+      expect(streamed.bytesize).to eq(1024 * 1024) # 1MB
+      
+      # Verify headers
+      expect(last_response.headers['Content-Type']).to eq('application/octet-stream')
+      expect(last_response.headers['Content-Disposition']).to eq("attachment; filename=#{file_name}")
       expect(last_response.headers['Cache-Control']).to eq('no-cache')
     end
 
