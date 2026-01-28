@@ -18,6 +18,7 @@ import DataFieldChip from '@/components/data/data-field-chip';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material';
 import { projectDataTypes } from '@/lib/utils/filters';
+import LinkoutButton from '../link/linkout-button.tsx';
 
 const SortTriangle = ({selected, onClick}:{
   selected: boolean,
@@ -132,7 +133,7 @@ const ProjectTable = () => {
 
   return (
   <>
-    <TableContainer sx={{ height: '570px' }} >
+    <TableContainer sx={{ height: '600px' }} >
       <Table elevation={0} aria-label="project table">
         <TableHead>
           <TableRow sx={ theme => ({ borderBottom: `1px solid ${theme.palette.ground.grade50}`}) }>
@@ -153,6 +154,10 @@ const ProjectTable = () => {
                 </TableCell>
               )
             }
+            <TableCell sx={{
+              bgcolor: 'utilityHighlight.main',
+              borderBottom: 'none',
+            }}></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -176,13 +181,22 @@ const ProjectTable = () => {
                 </TableCell>
               )
             }
+            <TableCell sx={{
+              bgcolor: 'utilityHighlight.main',
+              borderBottom: 'none'
+            }}>
+              <LinkoutButton size='small'
+                tooltip='Open in Library'
+                link={ project.href }
+                />
+            </TableCell>
           </TableRow>
           )
         }
         </TableBody>
       </Table>
     </TableContainer>
-    <Box>
+    <Box sx={{ width: '50%'}}>
       {paginationEl}
     </Box>
   </>

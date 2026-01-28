@@ -46,8 +46,8 @@ export default function ProjectInfo() {
           </Grid>
         </Grid>
         <Grid size={6} item container spacing={2}>
-          <FeatureProject name='Autoimmunoprofiler' color={ theme.palette.orange.grade75 } />
-          <FeatureProject name='COMET' color={ theme.palette.blue.grade75 } />
+          <FeatureProject name='xhlt2' color={ theme.palette.orange.grade75 } />
+          <FeatureProject name='ipi' color={ theme.palette.blue.grade75 } />
         </Grid>
         <Box
           sx={{

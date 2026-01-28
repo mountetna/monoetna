@@ -151,8 +151,19 @@ const Filter = ({title, highlight, children}:{
   </Box>
 }
 
-const BasicFilter = ({title, collect, filter, render, id}) => {
-  const { state: { projectData, filters, filterItemSet }, updateFilter, setFilterItems } = React.useContext(ProjectExplorerContext);
+const BasicFilter = ({title, filter, collect, render, id}) => {
+  const {
+    state: { projectData, filters, filterItemSet },
+    createFilter,
+    updateFilterItems
+  } = React.useContext(ProjectExplorerContext);
+
+  // setup the filter in advance
+  React.useEffect(
+    () => {
+      if (!(title in filters)) createFilter(title, filter, collect, render);
+    }, [filters]
+  )
 
   const filterItems = filterItemSet[title] || [];
   const items = React.useMemo(
@@ -164,24 +175,16 @@ const BasicFilter = ({title, collect, filter, render, id}) => {
   );
 
   const handleChangeFilterItems = (filterItems) => {
-    updateFilter(title,
-      !filterItems.length ? null :
-      (project, matchAllFilters) => filterItems[
-        matchAllFilters ? 'every' : 'some'
-      ](
-        filterItem => filter(filterItem, project, matchAllFilters)
-      ),
-      filterItems
-    );
+    updateFilterItems(title, filterItems);
   };
 
   const handleClickRemoveFilterItem = React.useCallback(
     (filterItem) => {
       handleChangeFilterItems(filterItems.filter(f => f !== filterItem))
-    }, [filterItems]
+    }, [filterItemSet]
   );
 
-  return <Filter title={title} highlight={ title in filters }>
+  return <Filter title={title} highlight={ title in filterItemSet }>
     <Autocomplete
       size='small'
       multiple
@@ -305,7 +308,7 @@ const SubjectsFilter = () => {
     );
   }
 
-  return <Filter title="Subjects" highlight={ 'Subjects' in filters } >
+  return <Filter title="Subjects" highlight={ 'Subjects' in filterItemSet } >
     <MinMaxSlider min={SUBJECTS_RANGE[0]} max={SUBJECTS_RANGE[1]} value={subjectCounts} setValue={
       (e,value) => handleChangeSubjectCounts(value)
     }/>
@@ -368,7 +371,7 @@ const YearFilter = () => {
     );
   }
 
-  return <Filter title="Year" highlight={ 'Year' in filters } >
+  return <Filter title="Year" highlight={ 'Year' in filterItemSet } >
     <MinMaxSlider min={YEAR_RANGE[0]} max={YEAR_RANGE[1]} value={dateRange} setValue={
       (e,value) => handleChangeDateRange(value)
     }/>

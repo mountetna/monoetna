@@ -54,13 +54,13 @@ export default function Link({
     return (
         tooltip ? (
             <Tooltip
-                title={tooltipContent ? tooltipContent : (
+                title={
                     <TooltipContent
                         variant='simple'
                     >
-                        {fullHref}
+                        {tooltipContent ? tooltipContent : fullHref}
                     </TooltipContent>
-                )}
+                }
                 followCursor
                 placement='bottom-start'
             >

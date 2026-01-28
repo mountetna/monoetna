@@ -218,6 +218,7 @@ export default function ProjectHeadingInfo({
                         sx={{
                             display: 'flex',
                             flexDirection: 'row',
+                            minWidth: '220px',
                             ml: piItemOverlap,
                             '& > *': {
                                 ml: `-${piItemOverlap} !important`,

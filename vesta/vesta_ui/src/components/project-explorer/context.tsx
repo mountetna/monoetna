@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { projectDataTypes } from '@/lib/utils/filters';
 
 const defaultProjectExplorerState = {
   visibleColumns: [ 'Name', 'Project ID', 'Theme', 'Investigators' ],
@@ -27,42 +28,47 @@ export function ProjectExplorerContextProvider({projectData, children}:{
     }), [ state ]
   );
 
-  const updateFilter = React.useCallback(
-    (filterName, filter, filterItems) => {
-      let newState = {
+  const createFilter = React.useCallback(
+    (title, filter, collect, render) => {
+      console.log("Creating "+title);
+      setState({
         ...state,
         filters: {
           ...state.filters,
-          [filterName]: filter
+          [title]: { filter, collect, render }
         }
-      };
+      })
+    }, [state]
+  )
 
-      if (filterItems) {
-        newState.filterItemSet = {
-          ...state.filterItemSet,
-          [ filterName ]: filterItems
-        }
+  const updateFilterItems = React.useCallback(
+    (filterName, filterItems) => {
+      let newState = { ...state };
+      newState.filterItemSet = {
+        ...state.filterItemSet,
+        [ filterName ]: filterItems
       }
 
-      if (!filter) {
-        delete newState.filters[filterName];
+      if (!filterItems || filterItems.length == 0) {
         delete newState.filterItemSet[filterName];
       }
-
+      console.log({oldState: state, newState});
       setState(newState);
     }, [ state ]
   );
 
   const filteredProjectData = projectData.filter(
-    project => !Object.keys(state.filters).length ? true :
-      Object.values(state.filters)[
+    project => !Object.keys(state.filterItemSet).length ? true :
+      Object.keys(state.filterItemSet)[
         state.matchAllFilters ? 'every' : 'some'
       ](
-        filter => filter(project, state.matchAllFilters)
+        filterName => state.filterItemSet[filterName][
+          state.matchAllFilters ? 'every' : 'some'
+        ](
+          filterItem => state.filters[filterName].filter(filterItem, project, state.matchAllFilters)
+        )
       )
   )
-
-  console.log({state});
 
   const toggleColumnVisibility = React.useCallback(
     columnName => setState(
@@ -81,7 +87,8 @@ export function ProjectExplorerContextProvider({projectData, children}:{
       filteredProjectData,
       toggleColumnVisibility,
       setMatchAllFilters,
-      updateFilter
+      createFilter,
+      updateFilterItems
     }}>
       {children}
     </ProjectExplorerContext.Provider>

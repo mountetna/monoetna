@@ -45,15 +45,6 @@ interface FilterItem {
 
 const drawerFilterItemTypes: FilterItem['type'][] = ['theme', 'status', 'dataType']
 
-const viewSets: FilterItem[] = Object.entries(ProjectHeadingInfoSet).map(([key, label]) => ({
-    label,
-    key,
-    // Placeholder data just to satifsy the shape
-    value: key,
-    projectKey: 'fullName',
-    type: 'name',
-}))
-
 const filterMethods: FilterItem[] = Object.entries(FilterMethod).map(([key, label]) => ({
     label,
     key,
@@ -70,143 +61,65 @@ const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsL
 // TODO: use separate list component in searchable-list module
 function _ProjectExplorer({ }) {
     // Manage search params sync
-    const { state: { projectData, filters } } = React.useContext(ProjectExplorerContext);
+    const { state: { projectData, filters, filterItemSet }, updateFilterItems } = React.useContext(ProjectExplorerContext);
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
     const filterItems = [];
 
-    React.useEffect(() => {
-        const parsedSearchParams = parseSearchParams(searchParams)
-
-        if (PROJECTS_SEARCH_PARAMS_KEY in parsedSearchParams) {
-            const state = parsedSearchParams[PROJECTS_SEARCH_PARAMS_KEY]
-            let updatedState = false
-
-            const stateFilterItems = parseSearchOptionsFromState(state, searchOptions)
-
-            if (
-                stateFilterItems !== undefined &&
-                // Prevent item shuffling if params match state but different order
-                !_.isEqual(
-                    [...stateFilterItems].sort((a, b) => a.key.localeCompare(b.key)),
-                    [...filterItems].sort((a, b) => a.key.localeCompare(b.key)),
-                )
-            ) {
-                setFilterItems(stateFilterItems)
-                updatedState = true
-            }
-
-            const stateViewSet = parseViewSetFromState(state, viewSets)
-            if (stateViewSet !== undefined && viewSet.key !== stateViewSet.key) {
-                setViewSet(stateViewSet)
-                updatedState = true
-            }
-
-            const stateFilterMethod = parseFilterMethodFromState(state, filterMethods)
-            if (stateFilterMethod !== undefined && viewSet.key !== stateFilterMethod.key) {
-                setFilterMethod(stateFilterMethod)
-                updatedState = true
-            }
-
-            const stateCurrentPage = parseCurrentPageFromState(state)
-            if (currentPage !== stateCurrentPage) {
-                setCurrentPage(stateCurrentPage)
-                updatedState = true
-            }
-
-            if (updatedState) {
-                closeAllProjects()
-            }
-        }
-    }, [searchParams])
-
     const theme = useTheme()
     const breakpoint = useBreakpoint()
     const isMobile = breakpoint === 'mobile'
 
-    const countsByFilterItemType: Record<string, Record<string, number>> = defaultDict(_ => defaultDict(_ => 0))
-
     const searchPlaceholder = 'Search e.g. "Fibrosis"'
 
-    const [searchOptions] = React.useState(() => {
-        return []
-    })
+    const searchOptions = React.useMemo(() => {
+      let options = [];
+
+      Object.keys(filters).forEach(
+        type => {
+          if (!filters[type].collect) return;
+          const items = {};
+          projectData.forEach(project => filters[type].collect(project,items));
+          Object.keys(items).forEach(
+            itemName => options.push({
+              type,
+              value: items[itemName],
+              label: typeof(items[itemName]) == 'object' ? items[itemName].name : items[itemName],
+              key: type + '.' + itemName
+            })
+          );
+        }
+      );
+
+      console.log({options});
+
+      return options;
+    }, [ filters ] );
+
     const [drawerOpen, setDrawerOpen] = React.useState(true)
-
-    const [viewSet, setViewSet] = React.useState<(typeof viewSets)[number]>(viewSets[0])
-
-    // Sync url with filter+control states
-    const updateUrl = (filterItems: FilterItem[], viewSet: FilterItem, filterMethod: FilterItem, currentPage: number) => {
-        // get filter states
-        const filters: Record<string, string[]> = {}
-        filterItems.forEach(item => {
-            let val: string
-            switch (item.type) {
-                case 'theme':
-                case 'type':
-                case 'status':
-                case 'dataType':
-                case 'name':
-                case 'hasClinicalData':
-                    val = (item.value as string)
-                    break
-                case 'principalInvestigator':
-                    val = (item.value as PrincipalInvestigator).name
-                    break
-            }
-            if (!(item.type in filters)) {
-                filters[item.type] = []
-            }
-            filters[item.type].push(val)
-        })
-
-        // get control states
-        const controls: ProjectsSearchParamsControls = {
-            viewSet: viewSet.key,
-            filterMethod: filterMethod.key,
-            page: currentPage,
-        }
-
-        const projectsState: ProjectsSearchParamsState = {
-            filters,
-            controls,
-        }
-
-        // push to router
-        router.push(pathname + '?' + toSearchParamsString({ [PROJECTS_SEARCH_PARAMS_KEY]: projectsState }) + window.location.hash, { scroll: false })
-    }
-
 
     const handleSetCurrentPage = (page: number) => {
         closeAllProjects()
         setCurrentPage(page)
-        updateUrl(filterItems, viewSet, filterMethod, page)
     }
 
-    const handleChangeFilterItems = (filterItems: FilterItem[]) => {
-        setFilterItems(filterItems)
-        closeAllProjects()
+    const handleChangeFilterItems = React.useCallback(
+      ([ filterItem, ...others ]: FilterItem[]) => {
+        updateFilterItems(filterItem.type, (filterItemSet[filterItem.type] || []).concat(filterItem.value))
         setCurrentPage(0)
-        updateUrl(filterItems, viewSet, filterMethod, 0)
-    }
+      }, [ filterItemSet ]
+    );
 
     const handleClickRemoveFilterItem = (filterItem: FilterItem) => {
         const newFilterItems = filterItems.filter((item) => item.key !== filterItem.key)
         setFilterItems(newFilterItems)
         closeAllProjects()
         setCurrentPage(0)
-        updateUrl(newFilterItems, viewSet, filterMethod, 0)
-    }
-
-    const handleChangeViewSet = (viewSet: FilterItem) => {
-        setViewSet(viewSet)
-        updateUrl(filterItems, viewSet, filterMethod, currentPage)
     }
 
     const handleChangeFilterMethod = (filterMethod: FilterItem) => {
         setFilterMethod(filterMethod)
-        updateUrl(filterItems, viewSet, filterMethod, currentPage)
     }
 
     // Manage file export
@@ -316,13 +229,12 @@ function _ProjectExplorer({ }) {
                                     iconLight={filterLightIcon}
                                     iconDark={filterDarkIcon}
                                     onClick={() => setDrawerOpen(!drawerOpen)}
-                                    activated={ Object.keys(filters).length > 0 }
+                                    activated={ Object.keys(filterItemSet).length > 0 }
                                     open={drawerOpen}
                                 />
 
                                 <Autocomplete
                                     multiple
-                                    filterSelectedOptions
                                     icon={searchDarkIcon}
                                     placeholder={searchPlaceholder}
                                     options={[...searchOptions].sort((a, b) => a.type.localeCompare(b.type))}
@@ -332,9 +244,10 @@ function _ProjectExplorer({ }) {
                                         // disables removing options with backspace
                                         if (reason === 'removeOption') return
 
+                                        console.log({value});
+
                                         handleChangeFilterItems(value)
                                     }}
-                                    value={filterItems}
                                     // @ts-ignore
                                     getOptionKey={(option: FilterItem) => option.key}
                                     isOptionEqualToValue={(option, value) => option.key === value.key}
@@ -366,7 +279,7 @@ function _ProjectExplorer({ }) {
                                                     mb: '8px',
                                                 }}
                                             >
-                                                {_.startCase(params.group)}
+                                                {params.group}
                                             </Typography>
                                             <Box
                                                 role='list'
@@ -438,7 +351,7 @@ function _ProjectExplorer({ }) {
                   {drawerOpen && <Box
                     sx={ theme => ({
                       flex: '0 0 405px',
-                      height: '610px',
+                      height: '640px',
                       overflowY: 'scroll',
                       pt: '9px',
                       pr: '5px',
@@ -490,7 +403,7 @@ function SearchOption({
                 p: '8px',
             }}
         >
-            {option.type === 'principalInvestigator' ?
+            {option.type === 'Investigators' ?
                 (
                     <ProjectPI
                         data={option.value as PrincipalInvestigator}
@@ -499,7 +412,7 @@ function SearchOption({
                 ) : (
                     <Typography variant='pMedium'>
                         {/* @ts-ignore */}
-                        {option.value}
+                        {typeof(option.value) === 'object' ? option.value.name : option.value}
                     </Typography>
                 )
             }
@@ -559,13 +472,6 @@ function parseSearchOptionsFromState(state: ProjectsSearchParamsState, searchOpt
         }
         return false
     })
-}
-
-function parseViewSetFromState(state: ProjectsSearchParamsState, viewSets: FilterItem[]): FilterItem | undefined {
-    const viewSetValue = state.controls?.viewSet
-    if (viewSetValue !== undefined) {
-        return viewSets.find(item => item.key === viewSetValue)
-    }
 }
 
 function parseFilterMethodFromState(state: ProjectsSearchParamsState, filterMethods: FilterItem[]): FilterItem | undefined {

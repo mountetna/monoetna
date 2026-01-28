@@ -4,9 +4,11 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Image from 'next/image';
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg';
+import LinkoutButton from '../link/linkout-button.tsx';
 import { useTheme } from '@mui/material';
 
 import { useWindowDimensions } from '@/lib/utils/responsive';
+import { ProjectExplorerContext } from './context';
 
 import triangleDarkUp from '/public/images/icons/indicator-arrow-dark.svg'
 import triangleLightUp from '/public/images/icons/indicator-arrow-light.svg'
@@ -19,6 +21,9 @@ export default function FeatureProject({
   name: string;
   color: string;
 }) {
+    const { state: { projectData } } = React.useContext(ProjectExplorerContext);
+    const project = projectData.find(p => p.name == name);
+    console.log({projectData, project});
     return (
         <Box
             sx={{
@@ -37,7 +42,7 @@ export default function FeatureProject({
                 }}
             >
               <Typography sx={{ color: 'white' }} variant='h5'>
-                  {name}
+                  {project.fullName}
               </Typography>
             </Box>
             <Box
@@ -46,7 +51,8 @@ export default function FeatureProject({
                     borderRadius: '249px',
                     width: '249px',
                     height: '249px',
-                    background: 'blue'
+                    background: `url(${project.theme.baseImage.src})`,
+                    backgroundSize: 'cover'
                 }}
             >
             </Box>
@@ -57,18 +63,9 @@ export default function FeatureProject({
                   width: '100%'
                 }}
             >
-              <IconButton
-                    sx={{
-                     background: 'black'
-                    }}>
-                <Image
-                    width={39}
-                    height={39}
-                    src={arrowUpRightLight}
-                    alt='Arrow pointing up-right'
-                />
-              </IconButton>
-
+              <LinkoutButton size='large'
+                tooltip='Open in Library'
+                link={project.href}/>
             </Box>
         </Box>
     )

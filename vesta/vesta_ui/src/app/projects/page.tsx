@@ -10,9 +10,8 @@ export default async function Projects() {
   const data = await getData();
   return (
     <Box>
-      <ProjectInfo/>
-
       <ProjectExplorerContextProvider projectData={_.sortBy(data.projects, (p) => p.fullName)}>
+        <ProjectInfo/>
         <ProjectExplorer/>
       </ProjectExplorerContextProvider>
     </Box>
