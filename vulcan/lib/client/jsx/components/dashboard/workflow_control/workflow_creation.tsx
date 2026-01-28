@@ -76,26 +76,26 @@ export default function WorkflowCreateButtonModal({projectName, workflows}: {
   } = useContext(VulcanContext);
 
   const handleCreate = useCallback((workflowName: string, repoUrlValid: string) => {
-    // Check if workflow name is available
-    const current_names = Object.values(workflows).map(val => val.name)
-    if (current_names.includes(workflowName)) {
-      setWorkflowNameError(true);
-    } else {
-      showErrors(
-        createWorkflow(
-          projectName,
-          repoUrlValid,
-          workflowName
-        )
-      );
+    showErrors(
+      createWorkflow(
+        projectName,
+        repoUrlValid,
+        workflowName
+      )
+    )
+    .then((ret: any) => {
+      if ('msg' in ret) {
+        // ToDo: Show as warning or message level instead of as full error.
+        showError(ret['msg']);
+      }
       setOpen(false);
       setWorkflowName('');
       setRepoUrl('');
       setWorkflowNameError(false);
       setRepoUrlError('none');
       dispatch(updateWorkflowsWorkspaces());
-    };
-  }, [projectName, createWorkflow, workflows]);
+    })
+  }, [projectName, createWorkflow]);
 
   const beforeCreate = () => {
     const repoUrlHTTP = validateRepoUrlToHTTPS(repoUrl);
