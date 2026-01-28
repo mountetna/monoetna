@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useContext, useEffect} from 'react';
+import React, {useCallback, useState, useContext} from 'react';
 
 import Tooltip from '@material-ui/core/Tooltip';
 import Button from '@material-ui/core/Button';
@@ -15,7 +15,6 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import { updateWorkflowsWorkspaces } from '../../../actions/vulcan_actions';
-import FlatButton from 'etna-js/components/flat-button';
 import { VulcanState } from '../../../reducers/vulcan_reducer';
 
 import git from "isomorphic-git";
@@ -43,6 +42,21 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+function validateRepoUrlToHTTPS(repoUrl: string): string {
+  // Returns url in desired format OR '' for validation failure
+
+  // Remove trailing '/' or '.git'
+  repoUrl = repoUrl.replace(/\/$|\.git$/, '')
+
+  // Fail if doesn't follow 'github.com/<org>/<repo>' or 'github.com:<org>/<repo>'
+  if (!/github\.com[\/:][\w-]+\/[\w-]+$/.test(repoUrl)) {
+    return ''
+  }
+
+  // Return as 'https://github.com/' + '<org>/<repo>'
+  return repoUrl.replace(/.*github\.com[\/:]/, 'https://github.com/');
+};
+
 export default function WorkflowCreateButtonModal({projectName, workflows}: {
   projectName: string;
   workflows: VulcanState['workflows']
@@ -51,16 +65,17 @@ export default function WorkflowCreateButtonModal({projectName, workflows}: {
   const [repoUrl, setRepoUrl] = useState('');
   const [workflowName, setWorkflowName] = useState('');
   const [workflowNameError, setWorkflowNameError] = useState(false);
-  const [workflowPrivateScopeError, setWorkflowPrivateScopeError] = useState(false);
+  const [repoUrlError, setRepoUrlError] = useState('none' as 'none' | 'privateScope' | 'format');
   const [open, setOpen] = useState(false);
 
   let {
     dispatch,
     showErrors,
+    showError,
     createWorkflow
   } = useContext(VulcanContext);
 
-  const handleCreate = useCallback((workflowName: string, repoUrl: string) => {
+  const handleCreate = useCallback((workflowName: string, repoUrlValid: string) => {
     // Check if workflow name is available
     const current_names = Object.values(workflows).map(val => val.name)
     if (current_names.includes(workflowName)) {
@@ -69,7 +84,7 @@ export default function WorkflowCreateButtonModal({projectName, workflows}: {
       showErrors(
         createWorkflow(
           projectName,
-          repoUrl.startsWith('http') ? repoUrl : 'https://' + repoUrl,
+          repoUrlValid,
           workflowName
         )
       );
@@ -77,9 +92,34 @@ export default function WorkflowCreateButtonModal({projectName, workflows}: {
       setWorkflowName('');
       setRepoUrl('');
       setWorkflowNameError(false);
+      setRepoUrlError('none');
       dispatch(updateWorkflowsWorkspaces());
     };
   }, [projectName, createWorkflow, workflows]);
+
+  const beforeCreate = () => {
+    const repoUrlHTTP = validateRepoUrlToHTTPS(repoUrl);
+    const nameDuped = Object.values(workflows).map(val => val.name).includes(workflowName)
+    setWorkflowNameError(nameDuped);
+    if (repoUrlHTTP=='') {
+      setRepoUrlError('format');
+    } else if (!nameDuped) {
+      git.getRemoteInfo({ http, url: repoUrlHTTP, corsProxy: 'https://cors.isomorphic-git.org'})
+      .then((r: any) => {
+        setRepoUrlError('none');
+        handleCreate(workflowName, repoUrlHTTP);
+      })
+      .catch((e: any) => {
+        // Show Error if different than 'repo not found'
+        if ( !!e && !!e['data'] && !!e['data']['statusCode'] && e['data']['statusCode']==401 && !repoUrlHTTP.includes(projectName)) {
+          setRepoUrlError('privateScope');
+        } else {
+          setRepoUrlError('none');
+          showError(e);
+        }
+      })
+    }
+  };
 
   function handleClose() {
     setOpen(false);
@@ -127,8 +167,12 @@ export default function WorkflowCreateButtonModal({projectName, workflows}: {
                 value={repoUrl}
                 label="Workflow URL"
                 placeholder="github.com/<org>/<repo>"
-                error={workflowPrivateScopeError}
-                helperText={workflowPrivateScopeError ? 'This looks like a private repo. For security purposes, we require project names to be included in private repo names.' : ''}
+                error={repoUrlError!='none'}
+                helperText={{
+                  'none': '',
+                  'format': 'Invalid entry. Expecting "github.com/<org>/<repo>" or similar',
+                  'privateScope': `Repo not found. If due to being private, we require private repo names to include their valid project names but ${projectName} is missing.`
+                }[repoUrlError]}
                 InputLabelProps={{ shrink: true }}
                 onChange={(event) => setRepoUrl(event.target.value)}
                 size="small"
@@ -140,22 +184,7 @@ export default function WorkflowCreateButtonModal({projectName, workflows}: {
           <Tooltip title='Create Workflow'>
             <Button
               className={classes.propagateButton}
-              onClick={() => {
-                git.getRemoteInfo({ http, url: repoUrl, corsProxy: 'https://cors.isomorphic-git.org'})
-                .then((r: any) => {
-                  setWorkflowPrivateScopeError(false);
-                  handleCreate(workflowName, repoUrl);
-                })
-                .catch((e: any) => {
-                  // Show Error unless due to private repo authentication
-                  if ( !!e && !!e['data'] && !!e['data']['statusCode'] && e['data']['statusCode']==401 && !repoUrl.includes(projectName)) {
-                    setWorkflowPrivateScopeError(true);
-                  } else {
-                    setWorkflowPrivateScopeError(false);
-                    handleCreate(workflowName, repoUrl);
-                  }
-                })
-              }}
+              onClick={() => beforeCreate()}
               startIcon={<SaveIcon/>}
               color='primary'
               variant='contained'
