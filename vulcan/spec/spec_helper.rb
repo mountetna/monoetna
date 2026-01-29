@@ -151,20 +151,11 @@ class TestRemoteServerManager < Vulcan::RemoteManager
     invoke_ssh_command(command)
   end
 
-  def create_large_file(remote_file_path, size_mb:)
-    Vulcan.instance.logger.info("Creating #{size_mb}MB file at #{remote_file_path}...")
-    
-    # Create parent directory first
-    command = build_command.add('mkdir', '-p', File.dirname(remote_file_path))
-    invoke_ssh_command(command.to_s)
-    
-    Vulcan.instance.logger.info("Generating file content with dd...")
-    # Use dd to create a file with random content of specified size
-    # bs=1M count=size_mb creates a file of size_mb megabytes
-    dd_command = "dd if=/dev/urandom of=#{Shellwords.escape(remote_file_path)} bs=1M count=#{size_mb} 2>/dev/null"
-    invoke_ssh_command(dd_command, timeout: 30)
-    
-    Vulcan.instance.logger.info("Large file created successfully")
+  def create_large_file(remote_file_path, size_mb: 1, size_bytes: nil)
+    size_bytes ||= (size_mb.to_f * 1024 * 1024).to_i
+    invoke_ssh_command(build_command.add('mkdir', '-p', File.dirname(remote_file_path)).to_s)
+    count_kb = (size_bytes / 1024.0).ceil
+    invoke_ssh_command("dd if=/dev/zero of=#{Shellwords.escape(remote_file_path)} bs=1024 count=#{count_kb} 2>/dev/null", timeout: 30)
     remote_file_path
   end
 
