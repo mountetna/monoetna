@@ -103,17 +103,26 @@ export default function WorkflowCreateButtonModal({projectName, workflows}: {
     setWorkflowNameError(nameDuped);
     if (repoUrlHTTP=='') {
       setRepoUrlError('format');
-    } else if (!nameDuped) {
+    } else if (nameDuped) {
+      setRepoUrlError('none');
+    } else {
       git.getRemoteInfo({ http, url: repoUrlHTTP, corsProxy: 'https://cors.isomorphic-git.org'})
       .then((r: any) => {
+        // repo exists and public
         setRepoUrlError('none');
         handleCreate(workflowName, repoUrlHTTP);
       })
       .catch((e: any) => {
-        // Show Error if different than 'repo not found'
-        if ( !!e && !!e['data'] && !!e['data']['statusCode'] && e['data']['statusCode']==401 && !repoUrlHTTP.includes(projectName)) {
-          setRepoUrlError('privateScope');
+        if (!!e && !!e['data'] && !!e['data']['statusCode'] && e['data']['statusCode']==401) {
+          // 'repo not found', may be private. Require projectName for secure project scoping.
+          if (!repoUrlHTTP.includes(projectName)) {
+            setRepoUrlError('privateScope');
+          } else {
+            setRepoUrlError('none');
+            handleCreate(workflowName, repoUrlHTTP);
+          }
         } else {
+          // Show Error & don't create if different than 'repo not found'
           setRepoUrlError('none');
           showError(e);
         }
@@ -171,7 +180,7 @@ export default function WorkflowCreateButtonModal({projectName, workflows}: {
                 helperText={{
                   'none': '',
                   'format': 'Invalid entry. Expecting "github.com/<org>/<repo>" or similar',
-                  'privateScope': `Repo not found. If due to being private, we require private repo names to include their valid project names but ${projectName} is missing.`
+                  'privateScope': `Repo not found. If due to being a private repo, '${projectName}' must be part of the repo name.`
                 }[repoUrlError]}
                 InputLabelProps={{ shrink: true }}
                 onChange={(event) => setRepoUrl(event.target.value)}
