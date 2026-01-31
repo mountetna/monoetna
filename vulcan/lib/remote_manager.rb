@@ -41,6 +41,58 @@ class Vulcan
       invoke_ssh_command(command.to_s)[:stdout]
     end
 
+    def stream_file_simple(remote_path, chunk: 256 * 1024, max_duration: 300)
+      bytes_read = 0
+      start_time = Time.now
+      
+      # Wrap the entire SFTP operation in a timeout to prevent hanging
+      Timeout.timeout(max_duration) do
+        @ssh_pool.with_conn do |ssh|
+          sftp = ssh.sftp
+          sftp.file.open(remote_path, 'r') do |file|
+            loop do
+              # Check timeout
+              elapsed = Time.now - start_time
+              if elapsed > max_duration
+                Vulcan.instance.logger.warn(
+                  "Stream timeout after #{elapsed.round(1)}s, #{bytes_read} bytes read from #{remote_path}"
+                )
+                raise Timeout::Error, "Stream exceeded #{max_duration}s limit"
+              end
+              
+              data = file.read(chunk)
+              break if data.nil? || data.empty?
+              
+              bytes_read += data.bytesize
+              yield data
+              
+              # Log progress every 100MB for large files
+              if bytes_read % (100 * 1024 * 1024) < chunk
+                Vulcan.instance.logger.info(
+                  "Streaming progress: #{(bytes_read / 1024.0 / 1024.0).round(1)}MB from #{remote_path}"
+                )
+              end
+            end
+          end
+        end
+      end
+    rescue Timeout::Error => e
+      Vulcan.instance.logger.error("Stream timeout after #{(Time.now - start_time).round(1)}s, #{bytes_read} bytes read")
+      raise "Stream timeout: #{e.message}"
+    rescue Net::SFTP::StatusException => e
+      Vulcan.instance.logger.error("SFTP error: #{e.description}")
+      raise "Remote file error: #{e.description}"
+    rescue IOError, Errno::EPIPE => e
+      # Client likely disconnected
+      Vulcan.instance.logger.warn(
+        "Client disconnected after #{bytes_read} bytes: #{e.message}"
+      )
+      # Don't re-raise - stream was interrupted by client
+    rescue Net::SSH::Disconnect, Errno::ECONNRESET => e
+      Vulcan.instance.logger.error("SSH connection error: #{e.message}")
+      raise "SSH connection lost during streaming: #{e.message}"
+    end
+
     def touch(remote_file_path)
       command = build_command.add('touch', remote_file_path)
       invoke_ssh_command(command.to_s)
@@ -209,8 +261,10 @@ class Vulcan
       else
         file_found = remote_file_exists?(file_path)
       end
-      
-      Vulcan.instance.logger.info("File #{file_path} #{file_found ? 'found' : 'not found'}")
+     
+      if !file_found
+        Vulcan.instance.logger.warn("File #{file_path} not found")
+      end
       file_found
     end
 
