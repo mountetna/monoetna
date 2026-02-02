@@ -105,8 +105,6 @@ const ProjectTable = () => {
     [ currentPage, listSize, setCurrentPage ]
   );
 
-  console.log({currentPage, pageSize, listSize});
-
   const projectsPage = filteredProjectData.slice(
     Math.min(currentPage * pageSize + 1, listSize) - 1,
     Math.min(currentPage * pageSize + pageSize, listSize + 1) - 1
@@ -163,7 +161,7 @@ const ProjectTable = () => {
         <TableBody>
         {
           projectsPage.map( project =>
-          <TableRow sx={{
+          <TableRow key={project.name} sx={{
                     height: '73px'
           }}>
             {

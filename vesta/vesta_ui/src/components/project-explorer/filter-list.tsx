@@ -16,7 +16,6 @@ import Autocomplete from '@/components/searchable-list/controls/autocomplete';
 import ButtonBase from '@mui/material/ButtonBase';
 import ProjectPI from './project-pi';
 import FilterPill from '../searchable-list/filter-pill';
-import FilterChip from '../searchable-list/filter-chip';
 import Image from 'next/image';
 import { FormControl } from '@mui/base';
 import { ProjectExplorerContext } from '@/components/project-explorer/context';
@@ -151,7 +150,7 @@ const Filter = ({title, highlight, children}:{
   </Box>
 }
 
-const BasicFilter = ({title, filter, collect, render, id}) => {
+const BasicFilter = ({title, filter, items, render, id}) => {
   const {
     state: { projectData, filters, filterItemSet },
     createFilter,
@@ -161,16 +160,16 @@ const BasicFilter = ({title, filter, collect, render, id}) => {
   // setup the filter in advance
   React.useEffect(
     () => {
-      if (!(title in filters)) createFilter(title, filter, collect, render);
-    }, [filters]
+      createFilter(title, filter, items);
+    }, []
   )
 
   const filterItems = filterItemSet[title] || [];
-  const items = React.useMemo(
+  const projectItems = React.useMemo(
     () => {
-      let items = {};
-      projectData.forEach( project => collect(project,items) );
-      return Object.values(items).sort( (a,b) => id(a).localeCompare(id(b)));
+      let projectItems = {};
+      projectData.forEach( project => projectItems = { ...projectItems, ...items(project) } );
+      return Object.values(projectItems).sort( (a,b) => id(a).localeCompare(id(b)));
     }, [ projectData ]
   );
 
@@ -190,7 +189,7 @@ const BasicFilter = ({title, filter, collect, render, id}) => {
       multiple
       filterSelectedOptions
       icon={searchDarkIcon}
-      options={items}
+      options={projectItems}
       onChange={(_, value, reason) => {
           if (reason === 'removeOption') return;
           handleChangeFilterItems(value);
@@ -228,13 +227,45 @@ const BasicFilter = ({title, filter, collect, render, id}) => {
   </Filter>
 }
 
+const FreeFilter = () => {
+  const {
+    state: { projectData, filters, filterItemSet },
+    createFilter,
+    updateFilterItems
+  } = React.useContext(ProjectExplorerContext);
+
+  const filterItems = filterItemSet['free'];
+
+  const handleClickRemoveFilterItem = React.useCallback(
+    (filterItem) => {
+      updateFilterItems('free', filterItems.filter(f => f !== filterItem));
+    }, [filterItemSet]
+  );
+
+  if (!('free' in filterItemSet)) return null;
+
+  return <Box>
+    <Box sx={{ py: '10px' }}><Typography variant="pBodyMediumWt">Search keywords</Typography></Box>
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
+    {
+      filterItems.map((item => (
+            <FilterPill
+                key={item}
+                label={item}
+                removeable
+                onClickRemove={() => handleClickRemoveFilterItem(item)}
+            />
+        )))
+    }
+    </Box>
+  </Box>
+}
+
 const InvestigatorsFilter = () => {
   return <BasicFilter
     title='Investigators'
-    collect={
-      (project, items) => {
-        project.principalInvestigators.forEach(pi => items[pi.name] = pi);
-      }
+    items={
+      project => Object.fromEntries( project.principalInvestigators.map( pi => [ pi.name, pi ] ) )
     }
     filter={
       (filterItem, project, matchAllFilters) => project.principalInvestigators.some(pi=> pi.name == filterItem.name)
@@ -256,11 +287,8 @@ const DEFAULT_RANGE=[0,500];
 const DataTypesFilter = () => {
   return <BasicFilter
     title='Data types'
-    collect={
-        (project,items) => {
-          const dataTypes = projectDataTypes(project);
-          dataTypes.forEach( dt => items[dt] = dt );
-        }
+    items={
+      project => Object.fromEntries( projectDataTypes(project).map( dt => [ dt, dt ] ) )
     }
     filter={
       (filterItem, project, matchAllFilters) => {
@@ -277,10 +305,8 @@ const DataTypesFilter = () => {
 const ThemeFilter = () => {
   return <BasicFilter
     title='Theme'
-    collect={
-        (project,items) => {
-          items[project.theme.name] = project.theme
-        }
+    items={
+      project => ({ [project.theme.name]: project.theme })
     }
     filter={
       (filterItem, project, matchAllFilters) => project.theme.name == filterItem.name
@@ -296,21 +322,39 @@ const ThemeFilter = () => {
 
 const SUBJECTS_RANGE = [0,500];
 const SubjectsFilter = () => {
-  const { state: { projectData, filters, filterItemSet }, updateFilter } = React.useContext(ProjectExplorerContext);
+  return <RangeFilter
+    title='Subjects'
+    defaultRange={SUBJECTS_RANGE}
+    rangeValue={p=>p.subjectCount}/>
+}
 
-  const subjectCounts = filterItemSet['Subjects'] || SUBJECTS_RANGE;
+const RangeFilter = ({title, defaultRange, rangeValue}) => {
+  const { state: { projectData, filters, filterItemSet }, createFilter, updateFilterItems } = React.useContext(ProjectExplorerContext);
 
-  const handleChangeSubjectCounts = (subjectCounts) => {
-    updateFilter('Subjects',
-      subjectCounts.every((e,i) => e == SUBJECTS_RANGE[i]) ? null :
-      (project, matchAllFilters) => project.subjectCount >= subjectCounts[0] && (project.subjectCount <= subjectCounts[1] || subjectCounts[1] == SUBJECTS_RANGE[1]),
-      subjectCounts
-    );
+  const filter = (range, project, matchAllFilters) => {
+    if (range.every((e,i) => e == defaultRange[i])) return true;
+
+    return (rangeValue(project) >= range[0]
+      && (rangeValue(project) <= range[1]
+      || range[1] == defaultRange[1]))
   }
 
-  return <Filter title="Subjects" highlight={ 'Subjects' in filterItemSet } >
-    <MinMaxSlider min={SUBJECTS_RANGE[0]} max={SUBJECTS_RANGE[1]} value={subjectCounts} setValue={
-      (e,value) => handleChangeSubjectCounts(value)
+  React.useEffect( () => {
+    createFilter(title, filter, null)
+  }, [] );
+
+  const handleChangeRange = (range) => {
+    if (range.every((e,i) => e == defaultRange[i])) 
+    updateFilterItems(title, null);
+    else
+    updateFilterItems(title, [ range ]);
+  }
+
+  const range = title in filterItemSet ? filterItemSet[title][0] : defaultRange;
+
+  return <Filter title={title} highlight={ title in filterItemSet } >
+    <MinMaxSlider min={defaultRange[0]} max={defaultRange[1]} value={range} setValue={
+      (e,value) => handleChangeRange(value)
     }/>
   </Filter>
 }
@@ -318,10 +362,8 @@ const SubjectsFilter = () => {
 const TypeFilter = () => {
   return <BasicFilter
     title='Type'
-    collect={
-        (project,items) => {
-          items[project.type] = project.type
-        }
+    items={
+      project => ({ [project.type]: project.type })
     }
     filter={
       (filterItem, project, matchAllFilters) => project.type == filterItem
@@ -338,10 +380,8 @@ const TypeFilter = () => {
 const PhaseFilter = () => {
   return <BasicFilter
     title='Phase'
-    collect={
-        (project,items) => {
-          items[project.status] = project.status
-        }
+    items={
+      project => ({ [project.status]: project.status })
     }
     filter={
       (filterItem, project, matchAllFilters) => project.status == filterItem
@@ -357,25 +397,11 @@ const PhaseFilter = () => {
 
 const currentYear = new Date().getFullYear();
 const YEAR_RANGE = [2020,currentYear];
-
 const YearFilter = () => {
-  const { state: { projectData, filters, filterItemSet }, updateFilter } = React.useContext(ProjectExplorerContext);
-
-  const dateRange = filterItemSet['Year'] || YEAR_RANGE;
-
-  const handleChangeDateRange = (dateRange) => {
-    updateFilter('Year',
-      dateRange.every((e,i) => e == YEAR_RANGE[i]) ? null :
-      (project, matchAllFilters) => project.startDate.getFullYear() >= dateRange[0] && project.startDate.getFullYear() <= dateRange[1],
-      dateRange
-    );
-  }
-
-  return <Filter title="Year" highlight={ 'Year' in filterItemSet } >
-    <MinMaxSlider min={YEAR_RANGE[0]} max={YEAR_RANGE[1]} value={dateRange} setValue={
-      (e,value) => handleChangeDateRange(value)
-    }/>
-  </Filter>
+  return <RangeFilter
+    title='Year'
+    defaultRange={YEAR_RANGE}
+    rangeValue={p=>p.startDate.getFullYear()}/>
 }
 
 const FilterList = () => {
@@ -398,6 +424,7 @@ const FilterList = () => {
       <Box sx={{ flex: '1 1 auto' }}/>
       <Toggle active={ matchAllFilters } setActive={ setMatchAllFilters }/>
     </Box>
+    <FreeFilter/>
     <InvestigatorsFilter/>
     <DataTypesFilter/>
     <ThemeFilter/>

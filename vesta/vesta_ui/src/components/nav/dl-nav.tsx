@@ -34,18 +34,28 @@ export default function DLNav({
     const handleClickNavLink = (event: React.MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault()
 
-        const href = event.currentTarget.href
-        const elId = href.split('#')[1]
-        const el = document.getElementById(elId)
+        const href = event.currentTarget.href;
+        const [ url, elId ] = href.split('#');
+        const host = (new URL(url)).hostname;
 
-        if (href.startsWith('/')) router.push(href, { scroll: false })
-        else window.open(href, '_blank');
+        const currHref = window.location.href;
+        const [ currUrl, currElId ] = currHref.split('#');
+        const currHost = window.location.hostname;
+
+        if (currHost != host) {
+          window.open(href, '_blank');
+          return;
+        }
+
+        router.push(href, { scroll: false });
+
+        const el = document.getElementById(elId);
 
         if (el) {
-            window.scrollTo({
-                top: el.offsetTop - NavBarHeights[breakpoint].condensed,
-                behavior: 'smooth',
-            })
+          window.scrollTo({
+              top: el.offsetTop - NavBarHeights[breakpoint].condensed,
+              behavior: 'smooth',
+          })
         }
 
         onClickNavLink && onClickNavLink()
@@ -86,6 +96,12 @@ export default function DLNav({
             <NavLink
                 text='Projects'
                 href='/projects'
+                onClick={handleClickNavLink}
+                typography={linkTypography}
+            />
+            <NavLink
+                text='People'
+                href='/people'
                 onClick={handleClickNavLink}
                 typography={linkTypography}
             />

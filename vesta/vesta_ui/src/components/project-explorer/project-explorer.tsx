@@ -61,7 +61,7 @@ const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsL
 // TODO: use separate list component in searchable-list module
 function _ProjectExplorer({ }) {
     // Manage search params sync
-    const { state: { projectData, filters, filterItemSet }, updateFilterItems } = React.useContext(ProjectExplorerContext);
+    const { state: { projectData, filters, filterItemSet }, searchOptions, updateFilterItems } = React.useContext(ProjectExplorerContext);
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
@@ -73,31 +73,8 @@ function _ProjectExplorer({ }) {
 
     const searchPlaceholder = 'Search e.g. "Fibrosis"'
 
-    const searchOptions = React.useMemo(() => {
-      let options = [];
-
-      Object.keys(filters).forEach(
-        type => {
-          if (!filters[type].collect) return;
-          const items = {};
-          projectData.forEach(project => filters[type].collect(project,items));
-          Object.keys(items).forEach(
-            itemName => options.push({
-              type,
-              value: items[itemName],
-              label: typeof(items[itemName]) == 'object' ? items[itemName].name : items[itemName],
-              key: type + '.' + itemName
-            })
-          );
-        }
-      );
-
-      console.log({options});
-
-      return options;
-    }, [ filters ] );
-
-    const [drawerOpen, setDrawerOpen] = React.useState(true)
+    const [drawerOpen, setDrawerOpen] = React.useState(true);
+    const [inputValue, setInputValue] = React.useState('');
 
     const handleSetCurrentPage = (page: number) => {
         closeAllProjects()
@@ -106,6 +83,7 @@ function _ProjectExplorer({ }) {
 
     const handleChangeFilterItems = React.useCallback(
       ([ filterItem, ...others ]: FilterItem[]) => {
+        if (!(filterItem.type in filterItemSet) || !filterItemSet[filterItem.type].includes(filterItem.value))
         updateFilterItems(filterItem.type, (filterItemSet[filterItem.type] || []).concat(filterItem.value))
         setCurrentPage(0)
       }, [ filterItemSet ]
@@ -142,6 +120,7 @@ function _ProjectExplorer({ }) {
 
     return (
         <Container
+            id='project-explorer'
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -240,11 +219,22 @@ function _ProjectExplorer({ }) {
                                     options={[...searchOptions].sort((a, b) => a.type.localeCompare(b.type))}
                                     showResultsOnEmpty={false}
                                     // @ts-ignore
+                                    inputValue={inputValue}
+                                    onInputChange={ (_, value: string, reason) => setInputValue(value) }
+                                    onKeyDown={
+                                      (e) => {
+                                        if (e.key === 'Enter') {
+                                          if (inputValue) {
+                                            if ('free' in filterItemSet && filterItemSet['free'].includes(inputValue)) return;
+                                            updateFilterItems( 'free', (filterItemSet['free'] || []).concat(inputValue) );
+                                          }
+                                          setInputValue('');
+                                        }
+                                      }
+                                    }
                                     onChange={(_, value: FilterItem[], reason) => {
                                         // disables removing options with backspace
                                         if (reason === 'removeOption') return
-
-                                        console.log({value});
 
                                         handleChangeFilterItems(value)
                                     }}

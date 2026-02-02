@@ -6,7 +6,7 @@ import { projectDataTypes } from '@/lib/utils/filters';
 const defaultProjectExplorerState = {
   visibleColumns: [ 'Name', 'Project ID', 'Theme', 'Investigators' ],
   projectData: [],
-  filters: {},
+  filters: { },
   filterItemSet: {},
   matchAllFilters: false
 }
@@ -21,6 +21,8 @@ export function ProjectExplorerContextProvider({projectData, children}:{
     projectData
   });
 
+  const { filters } = state;
+
   const setMatchAllFilters = React.useCallback(
     (matchAllFilters) => setState({
       ...state,
@@ -28,17 +30,51 @@ export function ProjectExplorerContextProvider({projectData, children}:{
     }), [ state ]
   );
 
+  const searchOptions = React.useMemo(() => {
+    let options = [];
+
+    Object.keys(filters).forEach(
+      type => {
+        if (!filters[type].items) return;
+        let items = {};
+        projectData.forEach(project => {
+          items = { ...items, ...filters[type].items(project) }
+        });
+        Object.keys(items).forEach(
+          itemName => options.push({
+            type,
+            value: items[itemName],
+            label: typeof(items[itemName]) == 'object' ? items[itemName].name : items[itemName],
+            key: type + '.' + itemName
+          })
+        );
+      }
+    );
+    return options;
+  }, [ filters ] );
+
+  const freeFilter = React.useCallback(
+    (filterItem, project, matchAllFilters) => {
+      const labels = Object.values(filters).map(
+        filter => filter.items ? Object.keys(filter.items(project)) : []
+      ).flat().concat([
+        project.name,
+        project.fullName
+      ]);
+      return labels.some( label => label.toLowerCase().includes(filterItem.toLowerCase()) )
+    }, [ filters ]
+  );
+
   const createFilter = React.useCallback(
-    (title, filter, collect, render) => {
-      console.log("Creating "+title);
-      setState({
-        ...state,
+    (title, filter, items) => {
+      setState( prevState => ({
+        ...prevState,
         filters: {
-          ...state.filters,
-          [title]: { filter, collect, render }
+          ...prevState.filters,
+          [title]: { filter, items }
         }
-      })
-    }, [state]
+      }))
+    }, []
   )
 
   const updateFilterItems = React.useCallback(
@@ -52,7 +88,6 @@ export function ProjectExplorerContextProvider({projectData, children}:{
       if (!filterItems || filterItems.length == 0) {
         delete newState.filterItemSet[filterName];
       }
-      console.log({oldState: state, newState});
       setState(newState);
     }, [ state ]
   );
@@ -65,7 +100,9 @@ export function ProjectExplorerContextProvider({projectData, children}:{
         filterName => state.filterItemSet[filterName][
           state.matchAllFilters ? 'every' : 'some'
         ](
-          filterItem => state.filters[filterName].filter(filterItem, project, state.matchAllFilters)
+          filterItem => (
+            filterName == 'free' ? freeFilter : state.filters[filterName].filter
+          )(filterItem, project, state.matchAllFilters)
         )
       )
   )
@@ -84,6 +121,7 @@ export function ProjectExplorerContextProvider({projectData, children}:{
   return (
     <ProjectExplorerContext.Provider value={{
       state,
+      searchOptions,
       filteredProjectData,
       toggleColumnVisibility,
       setMatchAllFilters,

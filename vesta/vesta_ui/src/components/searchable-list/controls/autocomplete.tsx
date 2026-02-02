@@ -154,6 +154,7 @@ function Autocomplete<Value>(
           <StyledInput
             {...getInputProps()}
             placeholder={props.placeholder}
+            onKeyDown={props.onKeyDown}
             sx={{
               // display: 'flex',
               // flexGrow: 1,

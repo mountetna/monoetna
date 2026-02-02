@@ -23,7 +23,6 @@ export default function FeatureProject({
 }) {
     const { state: { projectData } } = React.useContext(ProjectExplorerContext);
     const project = projectData.find(p => p.name == name);
-    console.log({projectData, project});
     return (
         <Box
             sx={{
@@ -51,8 +50,9 @@ export default function FeatureProject({
                     borderRadius: '249px',
                     width: '249px',
                     height: '249px',
-                    background: `url(${project.theme.baseImage.src})`,
-                    backgroundSize: 'cover'
+                    background: `url(${project.theme.coverImage.src})`,
+                    backgroundSize: '363px',
+                    backgroundPosition: '-57px -91px'
                 }}
             >
             </Box>
