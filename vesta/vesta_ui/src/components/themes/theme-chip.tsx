@@ -4,9 +4,10 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 import Image from '../image/image';
 import Typography from '@mui/material/Typography';
+import { ThemeData } from "./models";
 
 const ThemeChip = ({ theme }:{
-  theme: Theme
+  theme: ThemeData
 }) => {
   return <Box
       sx={{

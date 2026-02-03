@@ -10,7 +10,7 @@ import Fade from '@mui/material/Fade';
 import _ from 'lodash'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import { ExternalProjectStatus, getExternalProjectStatus, PrincipalInvestigator, Project, ProjectHeadingInfoSet, PROJECTS_SEARCH_PARAMS_KEY, ProjectsSearchParamsControls, ProjectsSearchParamsState } from './models';
+import { ExternalProjectStatus, getExternalProjectStatus, FilterItem, PrincipalInvestigator, Project, ProjectHeadingInfoSet, PROJECTS_SEARCH_PARAMS_KEY, ProjectsSearchParamsControls, ProjectsSearchParamsState } from './models';
 import ProjectListing from './project-listing';
 import ProjectTable from './project-table';
 import { ProjectExplorerContext } from './context';
@@ -33,39 +33,18 @@ import filterLightIcon from '/public/images/icons/filter-light.svg'
 import filterDarkIcon from '/public/images/icons/filter-dark.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
 
-
-interface FilterItem {
-    // TODO: define value and type as separate interfaces? using Omit is a bit confusing
-    value: (ValueOf<Omit<SearchableProjectData, 'principalInvestigators' | 'dataTypes' | 'theme'>>) | PrincipalInvestigator | ThemeData
-    type: (keyof Omit<SearchableProjectData, 'principalInvestigators' | 'dataTypes' | 'fullName'>) | 'principalInvestigator' | 'dataType' | 'name' | 'hasClinicalData'
-    label: string;
-    key: string;
-    projectKey: keyof SearchableProjectData;
-}
-
 const drawerFilterItemTypes: FilterItem['type'][] = ['theme', 'status', 'dataType']
-
-const filterMethods: FilterItem[] = Object.entries(FilterMethod).map(([key, label]) => ({
-    label,
-    key,
-    // Placeholder data just to satifsy the shape
-    value: key,
-    projectKey: 'fullName',
-    type: 'name',
-}))
 
 const PIExportAttrs: (keyof PrincipalInvestigator)[] = ['name', 'title']
 const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsLink']
 
 
-// TODO: use separate list component in searchable-list module
 function _ProjectExplorer({ }) {
     // Manage search params sync
     const { state: { projectData, filters, filterItemSet }, searchOptions, updateFilterItems } = React.useContext(ProjectExplorerContext);
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
-    const filterItems = [];
 
     const theme = useTheme()
     const breakpoint = useBreakpoint()
@@ -75,48 +54,15 @@ function _ProjectExplorer({ }) {
 
     const [drawerOpen, setDrawerOpen] = React.useState(true);
     const [inputValue, setInputValue] = React.useState('');
-
-    const handleSetCurrentPage = (page: number) => {
-        closeAllProjects()
-        setCurrentPage(page)
-    }
+    const [currentPage, setCurrentPage] = React.useState(0);
 
     const handleChangeFilterItems = React.useCallback(
       ([ filterItem, ...others ]: FilterItem[]) => {
         if (!(filterItem.type in filterItemSet) || !filterItemSet[filterItem.type].includes(filterItem.value))
         updateFilterItems(filterItem.type, (filterItemSet[filterItem.type] || []).concat(filterItem.value))
         setCurrentPage(0)
-      }, [ filterItemSet ]
+      }, [ filterItemSet, updateFilterItems ]
     );
-
-    const handleClickRemoveFilterItem = (filterItem: FilterItem) => {
-        const newFilterItems = filterItems.filter((item) => item.key !== filterItem.key)
-        setFilterItems(newFilterItems)
-        closeAllProjects()
-        setCurrentPage(0)
-    }
-
-    const handleChangeFilterMethod = (filterMethod: FilterItem) => {
-        setFilterMethod(filterMethod)
-    }
-
-    // Manage file export
-    const [fileExportStatus, setFileExportStatus] = React.useState(FILE_EXPORT_STATUS.idle)
-
-    const handleClickExportButton = async () => {
-        await handleExportFile(
-            filteredProjectData.map(proj => {
-                const _proj = _.cloneDeep(proj)
-                _proj.theme = _.pick(_proj.theme, ThemeExportAttrs)
-                _proj.principalInvestigators = _proj.principalInvestigators.map(pi => _.pick(pi, PIExportAttrs))
-
-                return flattenObject(_proj, '.', '', true)
-            }),
-            MIME_FILE_FORMATS.csv,
-            setFileExportStatus,
-            'ucsf-data-library-projects',
-        )
-    }
 
     return (
         <Container
@@ -232,6 +178,7 @@ function _ProjectExplorer({ }) {
                                         }
                                       }
                                     }
+                                    // @ts-ignore
                                     onChange={(_, value: FilterItem[], reason) => {
                                         // disables removing options with backspace
                                         if (reason === 'removeOption') return
@@ -309,29 +256,6 @@ function _ProjectExplorer({ }) {
 
                             </Box>
                         </Box>
-
-                          {filterItems.length > 0 && <Box
-                              sx={{
-                                  display: 'flex',
-                                  flex: '1 1 auto',
-                                  flexDirection: 'row',
-                                  flexWrap: 'wrap',
-                                  columnGap: '10px',
-                                  rowGap: '16px',
-                                  pt: '16px',
-                                  [theme.breakpoints.up('tablet')]: {
-                                  },
-                              }}
-                          >
-                              {filterItems.map((item => (
-                                  <FilterPill
-                                      key={item.key}
-                                      label={item.label}
-                                      removeable
-                                      onClickRemove={() => handleClickRemoveFilterItem(item)}
-                                  />
-                              )))}
-                          </Box>}
                     </Box>
                 </Box>
 
@@ -339,22 +263,27 @@ function _ProjectExplorer({ }) {
                   display: 'flex'
                 }}>
                   {drawerOpen && <Box
-                    sx={ theme => ({
-                      flex: '0 0 405px',
-                      height: '640px',
-                      overflowY: 'scroll',
-                      pt: '9px',
-                      pr: '5px',
-                      borderRight: `1px solid ${theme.palette.ground.grade50}`,
-                      transition: theme.transitions.create(
-                        ['flex'],
-                        {
-                           easing: theme.transitions.easing.ease,
-                           duration: theme.transitions.duration.ease,
-                        }
-                      ),
-                      borderEndEndRadius: '2px'
-                    })}>
+                    sx={
+                      theme => ({
+                        flex: '0 0 405px',
+                        height: '640px',
+                        overflowY: 'scroll',
+                        pt: '9px',
+                        pr: '5px',
+                        borderRight: `1px solid ${theme.palette.ground.grade50}`,
+                        // @ts-ignore
+                        transition: theme.transitions ? theme.transitions.create(
+                          ['flex'],
+                          {
+                        // @ts-ignore
+                             easing: theme.transitions.easing.ease,
+                        // @ts-ignore
+                             duration: theme.transitions.duration.ease,
+                          }
+                        ) : 'unset',
+                        borderEndEndRadius: '2px'
+                      })
+                     }>
                      <FilterList/>
                     </Box>
                   }
@@ -363,7 +292,7 @@ function _ProjectExplorer({ }) {
                       sx={{ flex: '1 1 auto', overflowX: 'hidden' }}
                   >
                     <Box>
-                      <ProjectTable/>
+                      <ProjectTable currentPage={currentPage} setCurrentPage={setCurrentPage}/>
                     </Box>
                   </Box>
               </Box>
@@ -409,69 +338,4 @@ function SearchOption({
 
         </Box>
     )
-}
-
-function getFilterItemLabel(value: FilterItem['value'], type: FilterItem['type']): string {
-    switch (type) {
-        case 'name':
-        case 'type':
-        case 'status':
-        case 'dataType':
-        case 'theme':
-        case 'hasClinicalData':
-            // @ts-ignore
-            return value
-        case 'principalInvestigator':
-            return (value as PrincipalInvestigator).name
-    }
-}
-
-function getFilterItemKey(value: FilterItem['value'], type: FilterItem['type']): string {
-    return `${type}_${getFilterItemLabel(value, type)}`
-}
-
-function parseSearchOptionsFromState(state: ProjectsSearchParamsState, searchOptions: FilterItem[]): FilterItem[] | undefined {
-    if (!(state.filters)) {
-        return undefined
-    }
-    return searchOptions.filter(searchOption => {
-        if (state.filters && searchOption.type in state.filters) {
-            // @ts-ignore
-            const vals: string[] = state.filters[searchOption.type]
-
-            for (const val of vals) {
-                let optionVal: string
-                switch (searchOption.type) {
-                    case 'theme':
-                    case 'type':
-                    case 'status':
-                    case 'dataType':
-                    case 'name':
-                    case 'hasClinicalData':
-                        // @ts-ignore
-                        optionVal = searchOption.value
-                        break
-                    case 'principalInvestigator':
-                        optionVal = (searchOption.value as PrincipalInvestigator).name
-                }
-                if (val === optionVal) {
-                    return true
-                }
-            }
-            return false
-        }
-        return false
-    })
-}
-
-function parseFilterMethodFromState(state: ProjectsSearchParamsState, filterMethods: FilterItem[]): FilterItem | undefined {
-    const filterMethodValue = state.controls?.filterMethod
-    if (filterMethodValue !== undefined) {
-        return filterMethods.find(item => item.key === filterMethodValue)
-    }
-}
-
-function parseCurrentPageFromState(state: ProjectsSearchParamsState): number {
-    const paramsPage = state.controls?.page
-    return paramsPage !== undefined ? paramsPage : 0
 }

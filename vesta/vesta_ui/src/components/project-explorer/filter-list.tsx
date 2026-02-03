@@ -19,6 +19,8 @@ import FilterPill from '../searchable-list/filter-pill';
 import Image from 'next/image';
 import { FormControl } from '@mui/base';
 import { ProjectExplorerContext } from '@/components/project-explorer/context';
+import { FilterItem, Project, FilterRange, ProjectDataType, PrincipalInvestigator, FreeFilter as FreeFilterType } from '@/components/project-explorer/models';
+import { ThemeData } from '@/components/themes/models';
 import { DATA_TYPES } from '@/lib/fixtures';
 import { projectDataTypes } from '@/lib/utils/filters';
 
@@ -30,8 +32,9 @@ const BasicToggle = ({on, labelOn, labelOff, altOn, altOff, iconOn, iconOff, onC
   iconOff: string;
   altOff: string;
   labelOff: string;
-  onClick: Function;
+  onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }) => {
+    // @ts-ignore
     return <ButtonBase
       onClick={onClick}
       aria-label={ on ? labelOn : labelOff }
@@ -46,9 +49,9 @@ const BasicToggle = ({on, labelOn, labelOff, altOn, altOff, iconOn, iconOff, onC
     </ButtonBase>
 }
 
-const ShowHideToggle = ({shown, icon, label, onClick}:{
+const ShowHideToggle = ({shown, onClick}:{
   shown: boolean;
-  onClick: Function;
+  onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }) => {
     return <BasicToggle
       on={shown}
@@ -64,7 +67,10 @@ const ShowHideToggle = ({shown, icon, label, onClick}:{
     />
 }
 
-const Pill = ({value,text}) => {
+const Pill = ({value,text}:{
+  value: number;
+  text: string;
+}) => {
   return <Box sx={theme => ({
       width: '90px',
       display: 'flex',
@@ -76,46 +82,55 @@ const Pill = ({value,text}) => {
         mb: '5px',
         textAlign: 'center',
         bgcolor: 'ground.grade100',
+        // @ts-ignore
         ...theme.typography.pBodyMono
       }
     })} >
     <FormControl>
-      <TextInput value={value} gradVariant='mid'/>
+      <TextInput value={value} gradeVariant='mid'/>
     </FormControl>
     <Typography variant='p3XSBoldWt' color='ground.grade50'>{text}</Typography>
   </Box>
 }
 
-const MinMaxSlider = ({min,max, value, setValue}) => {
+const MinMaxSlider = ({min,max, value, setValue}:{
+  min: number,
+  max: number,
+  value: [ number, number ],
+  setValue: (e:any, value:FilterRange) => void
+}) => {
   return <Box sx={{ display: 'flex' }} >
     <Pill value={value[0]} text="MIN"/>
     <Box sx={{ flex: '1 1 auto', px: '15px' }}>
-      <Slider min={min} max={max} value={value} onChange={setValue} />
+      <Slider min={min} max={max} value={value}
+        // @ts-ignore
+        onChange={setValue} />
     </Box>
     <Pill value={value[1]} text="MAX"/>
   </Box>
 }
 
-const OpenCloseToggle = ({open, icon, label, onClick}:{
+const OpenCloseToggle = ({open, onClick}:{
   open: boolean;
-  onClick: Function;
+  onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }) => {
-    return <BasicToggle
-      on={open}
-      onClick={onClick}
+  return <BasicToggle
+    on={open}
+    onClick={onClick}
 
-      labelOn={ 'Show filter options' }
-      iconOn={ caretUpIcon }
-      altOn={'Caret up'}
+    labelOn={ 'Show filter options' }
+    iconOn={ caretUpIcon }
+    altOn={'Caret up'}
 
-      labelOn={ 'Hide filter options' }
-      iconOff={ caretDownIcon }
-      altOff={'Caret down'}
-    />
+    labelOff={ 'Hide filter options' }
+    iconOff={ caretDownIcon }
+    altOff={'Caret down'}
+  />
 }
 
 const Filter = ({title, highlight, children}:{
   title: string;
+  highlight: boolean;
   children: React.ReactNode;
 }) => {
   const [ active, setActive ] = React.useState(false);
@@ -150,7 +165,15 @@ const Filter = ({title, highlight, children}:{
   </Box>
 }
 
-const BasicFilter = ({title, filter, items, render, id}) => {
+type FilterFunction = (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => boolean;
+
+const BasicFilter = ({title, filter, items, render, id}:{
+  title: string;
+  items: (p:Project) => any;
+  filter: FilterFunction,
+  render: (params:any) => any;
+  id: (item:FilterItem['value']) => any;
+}) => {
   const {
     state: { projectData, filters, filterItemSet },
     createFilter,
@@ -165,38 +188,39 @@ const BasicFilter = ({title, filter, items, render, id}) => {
   )
 
   const filterItems = filterItemSet[title] || [];
-  const projectItems = React.useMemo(
+  const projectItems:FilterItem['value'][]  = React.useMemo(
     () => {
-      let projectItems = {};
-      projectData.forEach( project => projectItems = { ...projectItems, ...items(project) } );
-      return Object.values(projectItems).sort( (a,b) => id(a).localeCompare(id(b)));
+      let projectItemsSet = {};
+      projectData.forEach( (project:Project) => projectItemsSet = { ...projectItemsSet, ...items(project) } );
+      return (Object.values(projectItemsSet) as FilterItem['value'][]).sort( (a:FilterItem['value'],b:FilterItem['value']) => id(a).localeCompare(id(b)));
     }, [ projectData ]
   );
 
-  const handleChangeFilterItems = (filterItems) => {
+  const handleChangeFilterItems = (filterItems:FilterItem['value'][]|null) => {
     updateFilterItems(title, filterItems);
   };
 
   const handleClickRemoveFilterItem = React.useCallback(
-    (filterItem) => {
-      handleChangeFilterItems(filterItems.filter(f => f !== filterItem))
+    (filterItem:FilterItem['value']) => {
+      handleChangeFilterItems(filterItems.filter((f:FilterItem['value']) => f !== filterItem))
     }, [filterItemSet]
   );
 
   return <Filter title={title} highlight={ title in filterItemSet }>
-    <Autocomplete
+    <Autocomplete<FilterItem['value']>
       size='small'
       multiple
       filterSelectedOptions
       icon={searchDarkIcon}
       options={projectItems}
-      onChange={(_, value, reason) => {
+      // @ts-ignore
+      onChange={(_, value:FilterItem['value'][] | null, reason) => {
           if (reason === 'removeOption') return;
           handleChangeFilterItems(value);
       }}
       value={filterItems}
       getOptionLabel={ (option) => id(option) }
-      getOptionKey={(option: FilterItem) => id(option)}
+      getOptionKey={(option: FilterItem['value']) => id(option)}
       isOptionEqualToValue={(option, value) => id(option) === id(value)}
       renderOption={ render }
       renderNoResults={() => (
@@ -215,7 +239,7 @@ const BasicFilter = ({title, filter, items, render, id}) => {
             pt: '16px'
         }}
     >
-        {filterItems.map((item => (
+        {filterItems.map(((item:FilterItem['value']) => (
             <FilterPill
                 key={id(item)}
                 label={id(item)}
@@ -237,8 +261,8 @@ const FreeFilter = () => {
   const filterItems = filterItemSet['free'];
 
   const handleClickRemoveFilterItem = React.useCallback(
-    (filterItem) => {
-      updateFilterItems('free', filterItems.filter(f => f !== filterItem));
+    (filterItem:FreeFilterType) => {
+      updateFilterItems('free', filterItems.filter((f:FreeFilterType) => f !== filterItem));
     }, [filterItemSet]
   );
 
@@ -248,7 +272,7 @@ const FreeFilter = () => {
     <Box sx={{ py: '10px' }}><Typography variant="pBodyMediumWt">Search keywords</Typography></Box>
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
     {
-      filterItems.map((item => (
+      filterItems.map(((item:FreeFilterType) => (
             <FilterPill
                 key={item}
                 label={item}
@@ -265,13 +289,13 @@ const InvestigatorsFilter = () => {
   return <BasicFilter
     title='Investigators'
     items={
-      project => Object.fromEntries( project.principalInvestigators.map( pi => [ pi.name, pi ] ) )
+      (project:Project) => Object.fromEntries( project.principalInvestigators.map( (pi:PrincipalInvestigator) => [ pi.name, pi ] ) )
     }
     filter={
-      (filterItem, project, matchAllFilters) => project.principalInvestigators.some(pi=> pi.name == filterItem.name)
+      (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => project.principalInvestigators.some( (pi:PrincipalInvestigator) => pi.name == (filterItem as PrincipalInvestigator).name)
     }
     render={
-      params => (
+      (params:any) => (
         <ProjectPI
           data={params.option}
           showAvatar
@@ -280,7 +304,7 @@ const InvestigatorsFilter = () => {
         />
       )
     }
-    id={ pi => pi.name }/>
+    id={ (pi:FilterItem['value']) => (pi as PrincipalInvestigator).name }/>
 }
 
 const DEFAULT_RANGE=[0,500];
@@ -288,17 +312,17 @@ const DataTypesFilter = () => {
   return <BasicFilter
     title='Data types'
     items={
-      project => Object.fromEntries( projectDataTypes(project).map( dt => [ dt, dt ] ) )
+      (project:Project) => Object.fromEntries( projectDataTypes(project).map( dt => [ dt, dt ] ) )
     }
     filter={
-      (filterItem, project, matchAllFilters) => {
-        return projectDataTypes(project).includes(filterItem)
+      (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => {
+        return projectDataTypes(project).includes(filterItem as ProjectDataType)
       }
     }
     render={
-      params => <Typography variant='pBodyMediumWt' key={params.option}>{params.option}</Typography>
+      (params:any) => <Typography variant='pBodyMediumWt' key={params.option}>{params.option}</Typography>
     }
-    id={ item => item }
+    id={ (item:FilterItem['value']) => item as ProjectDataType }
   />
 }
 
@@ -306,33 +330,37 @@ const ThemeFilter = () => {
   return <BasicFilter
     title='Theme'
     items={
-      project => ({ [project.theme.name]: project.theme })
+      (project:Project) => ({ [project.theme.name]: project.theme })
     }
     filter={
-      (filterItem, project, matchAllFilters) => project.theme.name == filterItem.name
+      (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => project.theme.name == (filterItem as ThemeData).name
     }
     render={
-      params => (
+      (params:any) => (
         <Typography variant='pMedium'>{params.option.name}</Typography>
       )
     }
-    id={ item => item.name }
+    id={ (item:FilterItem['value']) => (item as ThemeData).name }
   />
 }
 
-const SUBJECTS_RANGE = [0,500];
+const SUBJECTS_RANGE: FilterRange = [0,500];
 const SubjectsFilter = () => {
   return <RangeFilter
     title='Subjects'
     defaultRange={SUBJECTS_RANGE}
-    rangeValue={p=>p.subjectCount}/>
+    rangeValue={(p:Project)=>p.subjectCount}/>
 }
 
-const RangeFilter = ({title, defaultRange, rangeValue}) => {
+const RangeFilter = ({title, defaultRange, rangeValue}:{
+  title: string,
+  defaultRange: FilterRange,
+  rangeValue: (p:Project) => number
+}) => {
   const { state: { projectData, filters, filterItemSet }, createFilter, updateFilterItems } = React.useContext(ProjectExplorerContext);
 
-  const filter = (range, project, matchAllFilters) => {
-    if (range.every((e,i) => e == defaultRange[i])) return true;
+  const filter = (range:FilterRange, project:Project, matchAllFilters:boolean) => {
+    if (range.every((e:number,i:number) => e == defaultRange[i])) return true;
 
     return (rangeValue(project) >= range[0]
       && (rangeValue(project) <= range[1]
@@ -343,8 +371,8 @@ const RangeFilter = ({title, defaultRange, rangeValue}) => {
     createFilter(title, filter, null)
   }, [] );
 
-  const handleChangeRange = (range) => {
-    if (range.every((e,i) => e == defaultRange[i])) 
+  const handleChangeRange = (range:FilterRange) => {
+    if (range.every((e:number,i:number) => e == defaultRange[i])) 
     updateFilterItems(title, null);
     else
     updateFilterItems(title, [ range ]);
@@ -354,7 +382,7 @@ const RangeFilter = ({title, defaultRange, rangeValue}) => {
 
   return <Filter title={title} highlight={ title in filterItemSet } >
     <MinMaxSlider min={defaultRange[0]} max={defaultRange[1]} value={range} setValue={
-      (e,value) => handleChangeRange(value)
+      (e,value:FilterRange) => handleChangeRange(value)
     }/>
   </Filter>
 }
@@ -363,17 +391,17 @@ const TypeFilter = () => {
   return <BasicFilter
     title='Type'
     items={
-      project => ({ [project.type]: project.type })
+      (project:Project) => ({ [project.type]: project.type })
     }
     filter={
-      (filterItem, project, matchAllFilters) => project.type == filterItem
+      (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => project.type == filterItem
     }
     render={
-      params => (
+      (params:any) => (
         <Typography variant='pMedium'>{params.option}</Typography>
       )
     }
-    id={ item => item }
+    id={ (item:FilterItem['value']) => item }
   />
 }
 
@@ -381,27 +409,27 @@ const PhaseFilter = () => {
   return <BasicFilter
     title='Phase'
     items={
-      project => ({ [project.status]: project.status })
+      (project:Project) => ({ [project.status]: project.status })
     }
     filter={
-      (filterItem, project, matchAllFilters) => project.status == filterItem
+      (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => project.status == filterItem
     }
     render={
-      params => (
+      (params:any) => (
         <Typography variant='pMedium'>{params.option}</Typography>
       )
     }
-    id={ item => item }
+    id={ (item:FilterItem['value']) => item }
   />
 }
 
 const currentYear = new Date().getFullYear();
-const YEAR_RANGE = [2020,currentYear];
+const YEAR_RANGE: FilterRange = [2020,currentYear];
 const YearFilter = () => {
   return <RangeFilter
     title='Year'
     defaultRange={YEAR_RANGE}
-    rangeValue={p=>p.startDate.getFullYear()}/>
+    rangeValue={(p:Project)=>p.startDate.getFullYear()}/>
 }
 
 const FilterList = () => {

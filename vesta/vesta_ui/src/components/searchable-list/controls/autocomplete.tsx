@@ -31,6 +31,7 @@ interface AutocompleteProps<Value> extends UseAutocompleteProps<Value, boolean, 
   renderOption: (params: UseAutocompleteRenderedOption<Value>) => React.ReactNode;
   renderGroup?: (params: _AutocompleteGroupedOption<Value>) => React.ReactNode;
   renderNoResults?: () => React.ReactNode;
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
   sx?: SxProps;
   size?: string;
 }

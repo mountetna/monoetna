@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Box from '@mui/system/Box';
 import Typography from '@mui/material/Typography';
+import { StaticImageData } from 'next/image';
 
 import image2 from '/public/images/people/image2_2308_1886694.jpeg';
 import image3 from '/public/images/people/image3_2308_1886694.jpeg';
@@ -22,7 +23,10 @@ import image16 from '/public/images/people/image16_2308_1886694.png';
 import image17 from '/public/images/people/image17_2308_1886694.png';
 import image18 from '/public/images/people/image18_2308_1886694.png';
 
-const Section = ({title, children}) => {
+const Section = ({title, children}:{
+  title: string,
+  children: React.ReactNode
+}) => {
   return <Box sx={{
     pb: '40px'
   }}>
@@ -39,11 +43,19 @@ const Section = ({title, children}) => {
   </Box>
 }
 
-const PersonChip = ({chip, color}) => {
+const PersonChip = ({chip, color=false}:{
+  chip: string,
+  color?: boolean
+}) => {
   return <Box sx={theme => ({ background: color ? theme.palette.green.grade100 : theme.palette.ground.grade75, borderRadius: '9px', display: 'inline-block', padding: '4px 6px' })}><Typography variant='p2XSMono'>{chip.toUpperCase()}</Typography></Box>
 }
 
-const PersonCard = ({person, org, image, chips}) => {
+const PersonCard = ({person, org, image, chips}:{
+  person: string,
+  org: string,
+  image: StaticImageData,
+  chips: string[]
+}) => {
   return <Box sx={{ display: 'flex', flexDirection: 'column' }}>
     <Box sx={{
         width: '366px',

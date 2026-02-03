@@ -1,8 +1,10 @@
 import { VestaApiClient } from '@/lib/clients/vesta-api/client';
 import { defaultDict } from '@/lib/utils/object';
-import { Project, ProjectStatus, ProjectType } from '@/components/project-listings/models';
+import { Project, ProjectStatus, ProjectType } from '@/components/project-explorer/models';
 import { VIDEOS, ABOUT_ITEMS, THEMES } from '@/lib/fixtures';
 import { faker } from '@faker-js/faker'
+import _ from 'lodash';
+import { Stats } from '@/components/stats/stats-carousel'
 
 export async function getData() {
   const apiClient = new VestaApiClient()
@@ -29,12 +31,12 @@ export async function getData() {
 
     const dataTypes = proj.data_types.filter(dt => dt.toUpperCase() !== 'project'.toUpperCase())
 
-    const latestCount = (stat) => {
-      if (!proj.name in stats.byProjectName) return 0;
+    const latestCount = (stat:keyof Stats):number => {
+      if (!(proj.name in stats.byProjectName)) return 0;
 
       const projStats = stats.byProjectName[proj.name];
 
-      if (!stat in projStats) return 0;
+      if (!(stat in projStats)) return 0;
 
       return projStats[stat].at(-1)?.value || 0;
     }

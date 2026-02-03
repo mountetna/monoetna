@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { ProjectExplorerContext } from './context';
 import ProjectHeadingInfo from './project-heading-info';
+import {Project, ProjectHeadingInfoSet } from '@/components/project-explorer/models';
 
 import Box from '@mui/system/Box'
 import Table from '@mui/material/Table';
@@ -18,11 +19,11 @@ import DataFieldChip from '@/components/data/data-field-chip';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material';
 import { projectDataTypes } from '@/lib/utils/filters';
-import LinkoutButton from '../link/linkout-button.tsx';
+import LinkoutButton from '../link/linkout-button';
 
 const SortTriangle = ({selected, onClick}:{
   selected: boolean,
-  onClick: Function
+  onClick: React.MouseEventHandler<HTMLDivElement>
 }) => {
   const theme = useTheme();
   return <Box sx={{ display: 'inline', px: '4px', cursor: 'pointer' }} onClick={ onClick }>
@@ -32,7 +33,7 @@ const SortTriangle = ({selected, onClick}:{
   </Box>
 }
 
-const DataTypeColumn = ({project}) => {
+const DataTypeColumn = ({project}:{project:Project}) => {
   const extra = 3;
   const dataTypes = projectDataTypes(project);
 
@@ -55,7 +56,7 @@ const DataTypeColumn = ({project}) => {
   </Box>
 }
 
-const columnComponent = (columnName, project) => {
+const columnComponent = (columnName:string, project:Project) => {
   switch (columnName) {
     case "Project ID":
       return <DataFieldChip value={project.name.toUpperCase()}/>;
@@ -71,11 +72,11 @@ const columnComponent = (columnName, project) => {
       return <DataTypeColumn project={project}/>;
     case "Investigators":
       return <ProjectHeadingInfo
-                        projectData={project}
-                        projectOpen={false}
-                        infoSet='Principal Investigators'
-                        variant='small'
-                    />
+        projectData={project}
+        projectOpen={false}
+        infoSet={ ProjectHeadingInfoSet.pis }
+        variant='small'
+      />
     case "Subjects":
       return <Typography variant="pBodyMediumWt">{project.subjectCount}</Typography>
     case "Year":
@@ -92,16 +93,18 @@ const columnComponent = (columnName, project) => {
 }
 
 
-const ProjectTable = () => {
+const ProjectTable = ({currentPage, setCurrentPage}:{
+  currentPage: number,
+  setCurrentPage: (newPage:number) => void
+}) => {
   const { state: { projectData, visibleColumns }, filteredProjectData } = React.useContext(ProjectExplorerContext);
-  const [currentPage, setCurrentPage] = React.useState(0);
   const [sortColumn, setSortColumn] = React.useState('Name');
   const pageSize = 8;
   const listSize = filteredProjectData.length;
   const theme = useTheme();
 
   const handleSetCurrentPage = React.useCallback(
-    newPage => newPage > -1 && newPage < listSize && setCurrentPage(newPage),
+    (newPage:number) => newPage > -1 && newPage < listSize && setCurrentPage(newPage),
     [ currentPage, listSize, setCurrentPage ]
   );
 
@@ -132,12 +135,12 @@ const ProjectTable = () => {
   return (
   <>
     <TableContainer sx={{ height: '600px' }} >
-      <Table elevation={0} aria-label="project table">
+      <Table aria-label="project table">
         <TableHead>
           <TableRow sx={ theme => ({ borderBottom: `1px solid ${theme.palette.ground.grade50}`}) }>
             {
               visibleColumns.map(
-                columnName =>
+                (columnName:string) =>
                 <TableCell 
                   sx={{
                     bgcolor: 'utilityHighlight.main',
@@ -160,13 +163,13 @@ const ProjectTable = () => {
         </TableHead>
         <TableBody>
         {
-          projectsPage.map( project =>
+          projectsPage.map( (project:Project) =>
           <TableRow key={project.name} sx={{
                     height: '73px'
           }}>
             {
               visibleColumns.map(
-                columnName => <TableCell
+                (columnName:string) => <TableCell
                   sx={{
                     py: '10px',
                     bgcolor: 'utilityHighlight.main',

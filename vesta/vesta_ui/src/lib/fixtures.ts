@@ -1,5 +1,6 @@
 import { toSearchParamsString } from '@/lib/utils/uri';
 import { ProjectsSearchParamsState, PROJECTS_SEARCH_PARAMS_KEY } from '@/components/project-listings/models';
+import { ThemeData } from '@/components/themes/models';
 
 import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
 import xeniumFallback from '/public/images/hero/xenium-fallback.png'
@@ -122,7 +123,6 @@ const THEMES: ThemeData[] = [
       projectBackground: infectionThemeProjectBg,
     },
     coverImage: infectionThemeImg,
-    baseImage: infectionThemeFiltered,
     icon: infectionThemeIcon,
   },
   {
@@ -138,7 +138,6 @@ const THEMES: ThemeData[] = [
       projectBackground: autoimmunityThemeProjectBg,
     },
     coverImage: autoimmunityThemeImg,
-    baseImage: autoimmunityThemeFiltered,
     icon: autoimmunityThemeIcon,
   },
   {
@@ -154,7 +153,6 @@ const THEMES: ThemeData[] = [
       projectBackground: inflammationThemeProjectBg,
     },
     coverImage: inflammationThemeImg,
-    baseImage: inflammationThemeFiltered,
     icon: inflammationThemeIcon,
   },
   {
@@ -170,7 +168,6 @@ const THEMES: ThemeData[] = [
       projectBackground: fibrosisThemeProjectBg,
     },
     coverImage: fibrosisThemeImg,
-    baseImage: fibrosisThemeFiltered,
     icon: fibrosisThemeIcon,
   },
   {
@@ -186,7 +183,6 @@ const THEMES: ThemeData[] = [
       projectBackground: earlyLifeThemeProjectBg,
     },
     coverImage: earlyLifeThemeImg,
-    baseImage: earlyLifeThemeFiltered,
     icon: earlyLifeThemeIcon,
   },
   {
@@ -202,7 +198,6 @@ const THEMES: ThemeData[] = [
       projectBackground: cancerThemeProjectBg,
     },
     coverImage: cancerThemeImg,
-    baseImage: cancerThemeFiltered,
     icon: cancerThemeIcon,
   },
   {
@@ -218,7 +213,6 @@ const THEMES: ThemeData[] = [
       projectBackground: neurodegenerationThemeProjectBg,
     },
     coverImage: neurodegenerationThemeImg,
-    baseImage: neurodegenerationThemeFiltered,
     icon: neurodegenerationThemeIcon,
   },
   {
@@ -234,7 +228,6 @@ const THEMES: ThemeData[] = [
       projectBackground: womensHealthThemeProjectBg,
     },
     coverImage: womensHealthThemeImg,
-    baseImage: womensHealthThemeFiltered,
     icon: womensHealthThemeIcon,
   },
   {
@@ -250,7 +243,6 @@ const THEMES: ThemeData[] = [
       projectBackground: healthyReferenceThemeProjectBg,
     },
     coverImage: healthyReferenceThemeImg,
-    baseImage: healthyReferenceThemeFiltered,
     icon: healthyReferenceThemeIcon,
   },
 ]

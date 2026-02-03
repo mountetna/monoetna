@@ -22,6 +22,7 @@ export default function FilterPill({
     label: string,
     removeable?: boolean,
     onClickRemove?: () => void,
+    children: React.ReactNode
 }) {
     const theme = useTheme()
 

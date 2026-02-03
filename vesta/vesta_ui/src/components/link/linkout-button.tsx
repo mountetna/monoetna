@@ -26,7 +26,7 @@ export default function LinkoutButton({
     <IconButton sx={{ background: 'black' }}>
       {
         link ?  <Link style={{ display: 'flex' }}
-          tooltip={tooltip}
+          tooltip={!!tooltip}
           tooltipContent={tooltip}
           target='_blank'
           href={link}>{image}</Link> : image
