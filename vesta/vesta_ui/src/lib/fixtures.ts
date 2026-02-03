@@ -1,5 +1,5 @@
 import { toSearchParamsString } from '@/lib/utils/uri';
-import { ProjectsSearchParamsState, PROJECTS_SEARCH_PARAMS_KEY } from '@/components/project-listings/models';
+import { ProjectsSearchParamsState, PROJECTS_SEARCH_PARAMS_KEY } from '@/components/project-explorer/models';
 import { ThemeData } from '@/components/themes/models';
 
 import oscc1Fallback from '/public/images/hero/oscc1-fallback.png'
