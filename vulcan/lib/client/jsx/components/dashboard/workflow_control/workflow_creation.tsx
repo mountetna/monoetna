@@ -15,7 +15,10 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import { updateWorkflowsWorkspaces } from '../../../actions/vulcan_actions';
-import FlatButton from 'etna-js/components/flat-button';
+import { VulcanState } from '../../../reducers/vulcan_reducer';
+
+import git from "isomorphic-git";
+import http from "isomorphic-git/http/web";
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
@@ -39,43 +42,93 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function WorkflowCreateButtonModal({projectName}: {
+function validateRepoUrlToHTTPS(repoUrl: string): string {
+  // Returns url in desired format OR '' for validation failure
+
+  // Remove trailing '/' or '.git'
+  repoUrl = repoUrl.replace(/\/$|\.git$/, '')
+
+  // Fail if doesn't follow 'github.com/<org>/<repo>' or 'github.com:<org>/<repo>'
+  if (!/github\.com[\/:][\w-]+\/[\w-]+$/.test(repoUrl)) {
+    return ''
+  }
+
+  // Return as 'https://github.com/' + '<org>/<repo>'
+  return repoUrl.replace(/.*github\.com[\/:]/, 'https://github.com/');
+};
+
+export default function WorkflowCreateButtonModal({projectName, workflows}: {
   projectName: string;
+  workflows: VulcanState['workflows']
 }) {
   const classes = useStyles();
   const [repoUrl, setRepoUrl] = useState('');
   const [workflowName, setWorkflowName] = useState('');
   const [workflowNameError, setWorkflowNameError] = useState(false);
+  const [repoUrlError, setRepoUrlError] = useState('none' as 'none' | 'privateScope' | 'format');
   const [open, setOpen] = useState(false);
 
-  let {state,
+  let {
     dispatch,
     showErrors,
-    getWorkflows,
+    showError,
     createWorkflow
   } = useContext(VulcanContext);
 
-  const handleCreate = useCallback((workflowName: string, repoUrl: string) => {
-    // Check if workflow name is available
-    const current_workflows = showErrors(getWorkflows(projectName));
-    const current_names = Object.values(current_workflows).map(val => val.name)
-    if (current_names.includes(workflowName)) {
-      setWorkflowNameError(true);
-    } else {
-      showErrors(
-        createWorkflow(
-          projectName,
-          repoUrl.startsWith('http') ? repoUrl : 'https://' + repoUrl,
-          workflowName
-        )
-      );
+  const handleCreate = useCallback((workflowName: string, repoUrlValid: string) => {
+    showErrors(
+      createWorkflow(
+        projectName,
+        repoUrlValid,
+        workflowName
+      )
+    )
+    .then((ret: any) => {
+      if ('msg' in ret) {
+        // ToDo: Show as warning or message level instead of as full error.
+        showError(ret['msg']);
+      }
       setOpen(false);
       setWorkflowName('');
       setRepoUrl('');
       setWorkflowNameError(false);
+      setRepoUrlError('none');
       dispatch(updateWorkflowsWorkspaces());
-    };
-  }, [projectName, getWorkflows, createWorkflow]);
+    })
+  }, [projectName, createWorkflow]);
+
+  const beforeCreate = () => {
+    const repoUrlHTTP = validateRepoUrlToHTTPS(repoUrl);
+    const nameDuped = Object.values(workflows).map(val => val.name).includes(workflowName)
+    setWorkflowNameError(nameDuped);
+    if (repoUrlHTTP=='') {
+      setRepoUrlError('format');
+    } else if (nameDuped) {
+      setRepoUrlError('none');
+    } else {
+      git.getRemoteInfo({ http, url: repoUrlHTTP, corsProxy: 'https://cors.isomorphic-git.org'})
+      .then((r: any) => {
+        // repo exists and public
+        setRepoUrlError('none');
+        handleCreate(workflowName, repoUrlHTTP);
+      })
+      .catch((e: any) => {
+        if (!!e && !!e['data'] && !!e['data']['statusCode'] && e['data']['statusCode']==401) {
+          // 'repo not found', may be private. Require projectName for secure project scoping.
+          if (!repoUrlHTTP.includes(projectName)) {
+            setRepoUrlError('privateScope');
+          } else {
+            setRepoUrlError('none');
+            handleCreate(workflowName, repoUrlHTTP);
+          }
+        } else {
+          // Show Error & don't create if different than 'repo not found'
+          setRepoUrlError('none');
+          showError(e);
+        }
+      })
+    }
+  };
 
   function handleClose() {
     setOpen(false);
@@ -123,6 +176,12 @@ export default function WorkflowCreateButtonModal({projectName}: {
                 value={repoUrl}
                 label="Workflow URL"
                 placeholder="github.com/<org>/<repo>"
+                error={repoUrlError!='none'}
+                helperText={{
+                  'none': '',
+                  'format': 'Invalid entry. Expecting "github.com/<org>/<repo>" or similar',
+                  'privateScope': `Repo not found. If due to being a private repo, '${projectName}' must be part of the repo name.`
+                }[repoUrlError]}
                 InputLabelProps={{ shrink: true }}
                 onChange={(event) => setRepoUrl(event.target.value)}
                 size="small"
@@ -134,7 +193,7 @@ export default function WorkflowCreateButtonModal({projectName}: {
           <Tooltip title='Create Workflow'>
             <Button
               className={classes.propagateButton}
-              onClick={() => handleCreate(workflowName, repoUrl)}
+              onClick={() => beforeCreate()}
               startIcon={<SaveIcon/>}
               color='primary'
               variant='contained'
