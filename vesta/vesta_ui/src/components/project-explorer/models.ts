@@ -1,4 +1,5 @@
 import { ThemeData } from "../themes/models";
+import { DATA_TYPES } from '@/lib/fixtures';
 
 
 export enum ProjectStatus {
@@ -13,6 +14,19 @@ export enum ProjectType {
     collab = 'Collaboration',
     external = 'External',
     'hellman award' = 'Hellman Award',
+}
+
+export type FilterRange = [ number, number ];
+export type ProjectDataType = keyof typeof DATA_TYPES;
+export type FreeFilter = string;
+
+export type FilterItemValue = PrincipalInvestigator | ThemeData | FilterRange | ProjectStatus | ProjectType | ProjectDataType | FreeFilter;
+
+export interface FilterItem {
+    value: FilterItemValue;
+    type: string;
+    label: string;
+    key: string;
 }
 
 export interface PrincipalInvestigator {
@@ -36,6 +50,7 @@ export interface Project {
     type: ProjectType
     dataTypes: string[]
     sampleCount: number
+    subjectCount: number
     assayCount: number
     hasClinicalData: string,
     species: string
