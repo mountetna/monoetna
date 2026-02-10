@@ -484,6 +484,115 @@ describe VulcanV2Controller do
 
     end
 
+    it 'correctly returns ui_jobs in completed and unscheduled' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      write_files_to_workspace(workspace.id)
+      
+      # Run the first 3 jobs (count, arithmetic, checker)
+      request = {
+        params: {
+          count_bytes: true,
+          count_chars: false,
+          add: 2,
+          add_and_multiply_by: 4
+        },
+        uiFilesSent: [],
+        paramsChanged: []
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
+      config_id = json_body[:config_id]
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
+      run_id = json_body[:run_id]
+      check_jobs_status(["count", "arithmetic", "checker"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
+      expect(last_response.status).to eq(200)
+
+      # Write ui_job_one.txt (should be marked as completed since it's fresh)
+      file_request = {
+        files: [{
+          filename: "ui_job_one.txt",
+          content: "This is ui job one content"
+        }]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", file_request)
+      expect(last_response.status).to eq(200)
+      
+      config_request = request.merge(uiFilesSent: ["output/ui_job_one.txt"])
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", config_request)
+      end
+      expect(last_response.status).to eq(200)
+      
+      # ui_job_one should be in completed (file exists and is fresh)
+      expect(json_body[:jobs][:completed]).to include("ui_job_one")
+      expect(json_body[:jobs][:unscheduled]).to_not include("ui_job_one")
+      expect(json_body[:files][:completed]).to include("output/ui_job_one.txt")
+      expect(json_body[:files][:unscheduled]).to_not include("output/ui_job_one.txt")
+      
+      # ui_job_two should still be unscheduled (file doesn't exist)
+      expect(json_body[:jobs][:unscheduled]).to include("ui_job_two")
+      expect(json_body[:files][:unscheduled]).to include("output/ui_job_two.txt")
+
+      # Now change upstream by modifying the add param and re-running checker
+      request_changed = {
+        params: {
+          count_bytes: true,
+          count_chars: false,
+          add: 4, # Changed from 2
+          add_and_multiply_by: 4
+        },
+        uiFilesSent: [],
+        paramsChanged: ["add"]
+      }
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request_changed)
+      end
+      config_id_changed = json_body[:config_id]
+      
+      # ui_job_one.txt should have been deleted by remove_existing_ui_targets
+      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_one.txt")).to be_falsey
+      
+      # ui_job_one should now be in unscheduled (file was deleted)
+      expect(json_body[:jobs][:unscheduled]).to include("ui_job_one")
+      expect(json_body[:jobs][:completed]).to_not include("ui_job_one")
+      expect(json_body[:files][:unscheduled]).to include("output/ui_job_one.txt")
+      expect(json_body[:files][:completed]).to_not include("output/ui_job_one.txt")
+      
+      # Run the workflow with changed params
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id_changed}")
+      end
+      run_id = json_body[:run_id]
+      check_jobs_status(["arithmetic", "checker"]) do
+        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
+      end
+      expect(last_response.status).to eq(200)
+
+      # Write ui_job_one.txt again with new content (should be marked as completed since upstream is now fresh)
+      file_request_2 = {
+        files: [{
+          filename: "ui_job_one.txt",
+          content: "This is UPDATED ui job one content"
+        }]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", file_request_2)
+      expect(last_response.status).to eq(200)
+      
+      config_request_2 = request_changed.merge(uiFilesSent: ["output/ui_job_one.txt"], paramsChanged: [])
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", config_request_2)
+      end
+      expect(last_response.status).to eq(200)
+      
+      # ui_job_one should be back in completed (file exists and is fresh with respect to new upstream)
+      expect(json_body[:jobs][:completed]).to include("ui_job_one")
+      expect(json_body[:jobs][:unscheduled]).to_not include("ui_job_one")
+      expect(json_body[:files][:completed]).to include("output/ui_job_one.txt")
+      expect(json_body[:files][:unscheduled]).to_not include("output/ui_job_one.txt")
+    end
+
   end
 
   context 'list a specific workspace' do

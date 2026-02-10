@@ -63,7 +63,7 @@ describe Vulcan::Snakemake::TargetParser do
 
     it 'correctly makess sure each target only has input and params' do
       parsed_sc_viz.each do |target, properties|
-        expect(properties.keys).to contain_exactly("inputs", "params")
+        expect(properties.keys).to contain_exactly("inputs", "params", "rule")
       end
     end
 
