@@ -502,6 +502,7 @@ describe VulcanV2Controller do
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       config_id = json_body[:config_id]
+
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
       run_id = json_body[:run_id]
       check_jobs_status(["count", "arithmetic", "checker"]) do
@@ -523,17 +524,28 @@ describe VulcanV2Controller do
       run_with_retry do
         post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", config_request)
       end
+
       expect(last_response.status).to eq(200)
       
-      # ui_job_one should be in completed (file exists and is fresh)
-      expect(json_body[:jobs][:completed]).to include("ui_job_one")
-      expect(json_body[:jobs][:unscheduled]).to_not include("ui_job_one")
-      expect(json_body[:files][:completed]).to include("output/ui_job_one.txt")
-      expect(json_body[:files][:unscheduled]).to_not include("output/ui_job_one.txt")
+      # After writing ui_job_one.txt, all compute jobs should be completed
+      expect(json_body[:files][:planned]).to eq([])
+      expect(json_body[:files][:completed]).to contain_exactly(
+        "output/count_poem.txt", 
+        "output/count_poem_2.txt", 
+        "output/arithmetic.txt", 
+        "output/check.txt", 
+        "output/ui_job_one.txt"
+      )
+      expect(json_body[:files][:unscheduled]).to contain_exactly(
+        "output/summary.txt", 
+        "output/final.txt", 
+        "output/ui_job_two.txt", 
+        "output/ui_summary.txt"
+      )
       
-      # ui_job_two should still be unscheduled (file doesn't exist)
-      expect(json_body[:jobs][:unscheduled]).to include("ui_job_two")
-      expect(json_body[:files][:unscheduled]).to include("output/ui_job_two.txt")
+      expect(json_body[:jobs][:planned]).to eq([])
+      expect(json_body[:jobs][:completed]).to contain_exactly("count", "arithmetic", "checker", "ui_job_one")
+      expect(json_body[:jobs][:unscheduled]).to contain_exactly("summary", "final", "ui_job_two", "ui_summary")
 
       # Now change upstream by modifying the add param and re-running checker
       request_changed = {
@@ -549,16 +561,26 @@ describe VulcanV2Controller do
       run_with_retry do
         post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request_changed)
       end
+
       config_id_changed = json_body[:config_id]
       
       # ui_job_one.txt should have been deleted by remove_existing_ui_targets
       expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_one.txt")).to be_falsey
       
-      # ui_job_one should now be in unscheduled (file was deleted)
-      expect(json_body[:jobs][:unscheduled]).to include("ui_job_one")
-      expect(json_body[:jobs][:completed]).to_not include("ui_job_one")
-      expect(json_body[:files][:unscheduled]).to include("output/ui_job_one.txt")
-      expect(json_body[:files][:completed]).to_not include("output/ui_job_one.txt")
+      # After changing add param, arithmetic and checker need to be re-run
+      expect(json_body[:files][:planned]).to contain_exactly("output/arithmetic.txt", "output/check.txt")
+      expect(json_body[:files][:completed]).to contain_exactly("output/count_poem.txt", "output/count_poem_2.txt")
+      expect(json_body[:files][:unscheduled]).to contain_exactly(
+        "output/summary.txt", 
+        "output/final.txt", 
+        "output/ui_job_one.txt", 
+        "output/ui_job_two.txt", 
+        "output/ui_summary.txt"
+      )
+      
+      expect(json_body[:jobs][:planned]).to contain_exactly("arithmetic", "checker")
+      expect(json_body[:jobs][:completed]).to contain_exactly("count")
+      expect(json_body[:jobs][:unscheduled]).to contain_exactly("summary", "final", "ui_job_one", "ui_job_two", "ui_summary")
       
       # Run the workflow with changed params
       run_with_retry do
@@ -586,11 +608,61 @@ describe VulcanV2Controller do
       end
       expect(last_response.status).to eq(200)
       
-      # ui_job_one should be back in completed (file exists and is fresh with respect to new upstream)
-      expect(json_body[:jobs][:completed]).to include("ui_job_one")
-      expect(json_body[:jobs][:unscheduled]).to_not include("ui_job_one")
-      expect(json_body[:files][:completed]).to include("output/ui_job_one.txt")
-      expect(json_body[:files][:unscheduled]).to_not include("output/ui_job_one.txt")
+      # After re-writing ui_job_one.txt with new upstream, all compute jobs + ui_job_one completed
+      expect(json_body[:files][:planned]).to eq([])
+      expect(json_body[:files][:completed]).to contain_exactly(
+        "output/count_poem.txt", 
+        "output/count_poem_2.txt", 
+        "output/arithmetic.txt", 
+        "output/check.txt", 
+        "output/ui_job_one.txt"
+      )
+      expect(json_body[:files][:unscheduled]).to contain_exactly(
+        "output/summary.txt", 
+        "output/final.txt", 
+        "output/ui_job_two.txt", 
+        "output/ui_summary.txt"
+      )
+      
+      expect(json_body[:jobs][:planned]).to eq([])
+      expect(json_body[:jobs][:completed]).to contain_exactly("count", "arithmetic", "checker", "ui_job_one")
+      expect(json_body[:jobs][:unscheduled]).to contain_exactly("summary", "final", "ui_job_two", "ui_summary")
+      
+      # Now write ui_job_two.txt and verify it moves to completed
+      file_request_3 = {
+        files: [{
+          filename: "ui_job_two.txt",
+          content: "This is ui job two content"
+        }]
+      }
+      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", file_request_3)
+      expect(last_response.status).to eq(200)
+      
+      config_request_3 = request_changed.merge(uiFilesSent: ["output/ui_job_two.txt"], paramsChanged: [])
+      run_with_retry do
+        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", config_request_3)
+      end
+      expect(last_response.status).to eq(200)
+      
+      # After writing ui_job_two.txt, it should move to completed
+      expect(json_body[:files][:planned]).to eq([])
+      expect(json_body[:files][:completed]).to contain_exactly(
+        "output/count_poem.txt", 
+        "output/count_poem_2.txt", 
+        "output/arithmetic.txt", 
+        "output/check.txt", 
+        "output/ui_job_one.txt",
+        "output/ui_job_two.txt"
+      )
+      expect(json_body[:files][:unscheduled]).to contain_exactly(
+        "output/summary.txt", 
+        "output/final.txt", 
+        "output/ui_summary.txt"
+      )
+      
+      expect(json_body[:jobs][:planned]).to eq([])
+      expect(json_body[:jobs][:completed]).to contain_exactly("count", "arithmetic", "checker", "ui_job_one", "ui_job_two")
+      expect(json_body[:jobs][:unscheduled]).to contain_exactly("summary", "final", "ui_summary")
     end
 
   end
