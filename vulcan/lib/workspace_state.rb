@@ -66,14 +66,14 @@ class Vulcan
       {
         available_files: available_files,
         files: {
-          completed: files_completed,
-          planned: files_planned,
-          unscheduled: files_unscheduled
+          completed: files_completed.uniq,
+          planned: files_planned.uniq,
+          unscheduled: files_unscheduled.uniq
         },
         jobs: {
-          completed: jobs_completed,
-          planned: jobs_planned,
-          unscheduled: jobs_unscheduled
+          completed: jobs_completed.uniq,
+          planned: jobs_planned.uniq,
+          unscheduled: jobs_unscheduled.uniq
         }
       }
     end

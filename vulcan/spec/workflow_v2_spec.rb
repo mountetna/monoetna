@@ -645,7 +645,7 @@ describe VulcanV2Controller do
       expect(last_response.status).to eq(200)
       
       # After writing ui_job_two.txt, it should move to completed
-      expect(json_body[:files][:planned]).to eq([])
+      expect(json_body[:files][:planned]).to eq(["output/summary.txt"])
       expect(json_body[:files][:completed]).to contain_exactly(
         "output/count_poem.txt", 
         "output/count_poem_2.txt", 
@@ -655,14 +655,13 @@ describe VulcanV2Controller do
         "output/ui_job_two.txt"
       )
       expect(json_body[:files][:unscheduled]).to contain_exactly(
-        "output/summary.txt", 
         "output/final.txt", 
         "output/ui_summary.txt"
       )
       
-      expect(json_body[:jobs][:planned]).to eq([])
+      expect(json_body[:jobs][:planned]).to eq(["summary"])
       expect(json_body[:jobs][:completed]).to contain_exactly("count", "arithmetic", "checker", "ui_job_one", "ui_job_two")
-      expect(json_body[:jobs][:unscheduled]).to contain_exactly("summary", "final", "ui_summary")
+      expect(json_body[:jobs][:unscheduled]).to contain_exactly("final", "ui_summary")
     end
 
   end
