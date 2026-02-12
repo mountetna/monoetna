@@ -49,6 +49,13 @@ describe Vulcan::Snakemake::TargetParser do
         expect(parsed_core["output/arithmetic.txt"]["params"]).to contain_exactly("add", "add_and_multiply_by")
     end
 
+    it 'correctly maps the targets with the rule names' do
+        expect(parsed_core["output/count_poem.txt"]["rule"]).to eq("count")
+        expect(parsed_core["output/count_poem_2.txt"]["rule"]).to eq("count")
+        expect(parsed_core["output/arithmetic.txt"]["rule"]).to eq("arithmetic")
+        expect(parsed_core["output/check.txt"]["rule"]).to eq("checker")
+    end
+
   end
 
   context 'sc_viz snakefile' do
@@ -63,12 +70,22 @@ describe Vulcan::Snakemake::TargetParser do
 
     it 'correctly makess sure each target only has input and params' do
       parsed_sc_viz.each do |target, properties|
-        expect(properties.keys).to contain_exactly("inputs", "params")
+        expect(properties.keys).to contain_exactly("inputs", "params", "rule")
       end
     end
 
     it 'uses the config variable names as params instead of named params' do
       expect(parsed_sc_viz["output/scdata.Rds"]["params"]).to contain_exactly("dataset_name")
+    end
+
+    it 'correctly maps the targets with the rule names' do
+      expect(parsed_sc_viz["output/scdata.Rds"]["rule"]).to eq("get_dataset_and_summarize")
+      expect(parsed_sc_viz["output/plotting_options.json"]["rule"]).to eq("get_dataset_and_summarize")
+      expect(parsed_sc_viz["output/discrete_metadata_summary.json"]["rule"]).to eq("get_dataset_and_summarize")
+      expect(parsed_sc_viz["output/plot_setup.json"]["rule"]).to eq("plot_setup_ui")
+      expect(parsed_sc_viz["output/plot.out"]["rule"]).to eq("make_plot")
+      expect(parsed_sc_viz["output/thumbnail.png"]["rule"]).to eq("make_plot")
+      expect(parsed_sc_viz["output/plot.Rds"]["rule"]).to eq("make_plot")
     end
 
   end
@@ -91,6 +108,14 @@ describe Vulcan::Snakemake::TargetParser do
       expect(parsed_summary["output/ui_job_two.txt"]["inputs"]).to be_empty
       expect(parsed_summary["output/ui_summary.txt"]["inputs"]).to contain_exactly("output/ui_job_one.txt", "output/ui_job_two.txt","output/summary.txt")
       expect(parsed_summary["output/final.txt"]["inputs"]).to contain_exactly("output/ui_summary.txt")
+    end
+
+    it 'correctly maps the targets with the rule names' do
+      expect(parsed_summary["output/ui_job_one.txt"]["rule"]).to eq("ui_job_one")
+      expect(parsed_summary["output/ui_job_two.txt"]["rule"]).to eq("ui_job_two")
+      expect(parsed_summary["output/ui_summary.txt"]["rule"]).to eq("ui_summary")
+      expect(parsed_summary["output/summary.txt"]["rule"]).to eq("summary")
+      expect(parsed_summary["output/final.txt"]["rule"]).to eq("final")
     end
   end
 end

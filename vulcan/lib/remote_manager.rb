@@ -268,6 +268,21 @@ class Vulcan
       file_found
     end
 
+    def file_mtime(file_path)
+      # Get the modification time of a file
+      return nil unless file_exists?(file_path)
+      
+      command = build_command
+        .add('stat', '-c', '%Y', file_path) # %Y gives mtime as Unix timestamp
+      result = invoke_ssh_command(command.to_s)
+      
+      timestamp = result[:stdout].strip.to_i
+      Time.at(timestamp)
+    rescue => e
+      Vulcan.instance.logger.error("Error getting mtime for #{file_path}: #{e.message}")
+      nil
+    end
+
     def invoke_and_close(command)
       # Immediately run ssh command and close the ssh channel.
       @ssh_pool.with_conn do |ssh|
