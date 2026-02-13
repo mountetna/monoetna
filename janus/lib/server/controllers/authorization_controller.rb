@@ -176,7 +176,8 @@ class AuthorizationController < Janus::Controller
       project_name: 'janus',
       event: 'token',
       message: "logged in via #{@params[:refer]}",
-      user: user
+      user: user,
+      consolidate: true
     )
 
     respond_with_cookie(token, @params[:refer])
