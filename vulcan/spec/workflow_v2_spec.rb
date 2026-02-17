@@ -757,12 +757,29 @@ describe VulcanV2Controller do
       expect(json_body[:last_job_status]).to be_nil
     end
 
-    it 'updates the token in the dl_config.yaml' do
+    it 'updates the token in the dl_config.yaml when the author views the workspace' do
       workspace_id = json_body[:workspace_id]
       stub_generate_token(PROJECT, "another_token")
+      auth_header(:superuser)  # Same user who created the workspace
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
       expect(last_response.status).to eq(200)
       expect(remote_manager.read_yaml_file(Vulcan::Path.dl_config(json_body[:workspace_path]))["token"]).to eq("another_token")
+    end
+
+    it 'does not update the token in the dl_config.yaml when a non-author views the workspace' do
+      workspace_id = json_body[:workspace_id]
+      workspace = Vulcan::Workspace.first(id: workspace_id)
+      original_token = remote_manager.read_yaml_file(Vulcan::Path.dl_config(workspace.path))["token"]
+      
+      # Now view as a different user (editor instead of superuser)
+      stub_generate_token(PROJECT, "editor_token")
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(200)
+      
+      # Token should remain unchanged
+      expect(remote_manager.read_yaml_file(Vulcan::Path.dl_config(json_body[:workspace_path]))["token"]).to eq(original_token)
+      expect(remote_manager.read_yaml_file(Vulcan::Path.dl_config(json_body[:workspace_path]))["token"]).to_not eq("editor_token")
     end
 
   end
