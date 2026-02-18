@@ -59,6 +59,7 @@ export default function WorkspaceCreateButtonModal({
   const invoke = useActionInvoker();
   const {
     showErrors,
+    showError,
     createWorkspace
   } = useContext(VulcanContext);
 
@@ -94,16 +95,18 @@ export default function WorkspaceCreateButtonModal({
 
   useEffect(() => {
     if (!workflow) return;
-    showErrors(
-      git.getRemoteInfo({ http, url: workflow.repo_remote_url, corsProxy: 'https://cors.isomorphic-git.org' }),
-      (e) => {
-        setBranches(['main'])
-        setTags([])
-      }
-    )
+    git.getRemoteInfo({ http, url: workflow.repo_remote_url, corsProxy: 'https://cors.isomorphic-git.org'})
     .then((remote: any) => {
       setBranches(Object.keys(remote['refs']['heads']))
       setTags( ('tags' in remote['refs']) ? Object.keys(remote['refs']['tags']) : []);
+    })
+    .catch((e: any) => {
+      // Show Error unless due to private repo authentication
+      if ( !(!!e && !!e['data'] && !!e['data']['statusCode'] && e['data']['statusCode']==401)) {
+        showError(e)
+      }
+      setBranches(['main'])
+      setTags([])
     })
   }, [workflow])
 

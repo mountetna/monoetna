@@ -48,12 +48,12 @@ class Vulcan
 
           next if clean_line.empty?
 
-          if rule_header?(clean_line)
-            # When we encounter a new rule, store the previous rule (if any) and reset state
-            store_target(current_outputs, current_inputs, current_params) if current_rule
+      if rule_header?(clean_line)
+        # When we encounter a new rule, store the previous rule (if any) and reset state
+        store_target(current_outputs, current_inputs, current_params, current_rule) if current_rule
 
-            # Start a new rule
-            current_rule = extract_rule_name(clean_line)
+        # Start a new rule
+        current_rule = extract_rule_name(clean_line)
             current_inputs = []
             current_outputs = []
             current_params = []
@@ -76,11 +76,11 @@ class Vulcan
             # Process line based on the current state
             process_line(clean_line, current_inputs, current_outputs, current_params, state)
           end
-        end
-
-        # Store the last parsed rule
-        store_target(current_outputs, current_inputs, current_params) if current_rule
       end
+
+      # Store the last parsed rule
+      store_target(current_outputs, current_inputs, current_params, current_rule) if current_rule
+    end
 
       # Cleans a line by stripping whitespace and removing comments
       def clean_line(line)
@@ -98,9 +98,13 @@ class Vulcan
       end
 
       # Stores the parsed rule data in the @targets hash with output targets as keys
-      def store_target(outputs, inputs, params)
+      def store_target(outputs, inputs, params, rule_name)
         outputs.each do |output|
-        @targets[output] = { "inputs" => inputs.uniq, "params" => params.uniq }
+        @targets[output] = { 
+          "inputs" => inputs.uniq, 
+          "params" => params.uniq,
+          "rule" => rule_name.to_s
+        }
         end
       end
 

@@ -88,6 +88,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
               workflow={selectedWorkflow}
               project_name={project_name}
               workspaces={workspaces}
+              workflows={workflows}
             />
           </Grid>
         </Grid>

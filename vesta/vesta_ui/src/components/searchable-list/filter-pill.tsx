@@ -17,10 +17,12 @@ export default function FilterPill({
     label,
     removeable = true,
     onClickRemove,
+    children
 }: {
     label: string,
     removeable?: boolean,
     onClickRemove?: () => void,
+    children?: React.ReactNode
 }) {
     const theme = useTheme()
 
@@ -81,6 +83,9 @@ export default function FilterPill({
             >
                 {label}
             </Typography>
+            {
+              children
+            }
         </ButtonBase >
     )
 }

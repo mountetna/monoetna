@@ -151,6 +151,14 @@ class TestRemoteServerManager < Vulcan::RemoteManager
     invoke_ssh_command(command)
   end
 
+  def create_large_file(remote_file_path, size_mb: 1, size_bytes: nil)
+    size_bytes ||= (size_mb.to_f * 1024 * 1024).to_i
+    invoke_ssh_command(build_command.add('mkdir', '-p', File.dirname(remote_file_path)).to_s)
+    count_kb = (size_bytes / 1024.0).ceil
+    invoke_ssh_command("dd if=/dev/zero of=#{Shellwords.escape(remote_file_path)} bs=1024 count=#{count_kb} 2>/dev/null", timeout: 30)
+    remote_file_path
+  end
+
 end
 
 

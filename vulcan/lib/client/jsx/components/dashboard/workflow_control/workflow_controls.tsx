@@ -9,10 +9,12 @@ export default function WorkflowControls({
   project_name,
   workflow,
   workspaces,
+  workflows,
 }: {
   project_name: string;
   workflow: VulcanState['workflow'] | null;
   workspaces: VulcanState['workspaces'];
+  workflows: VulcanState['workflows']
 }) {
 
   const {superuser} = useUserHooks();
@@ -27,7 +29,7 @@ export default function WorkflowControls({
       </Grid>
       {superuser &&
       <Grid item>
-        <WorkflowCreateButtonModal projectName={project_name}/>
+        <WorkflowCreateButtonModal projectName={project_name} workflows={workflows}/>
       </Grid>}
     </Grid>
   );
