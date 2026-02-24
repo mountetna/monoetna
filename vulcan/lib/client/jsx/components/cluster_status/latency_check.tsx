@@ -14,9 +14,7 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.secondary.main
   }
 }));
-export default function LatencyCheck({projectName}: {
-  projectName: string;
-}) {
+export default function LatencyCheck() {
   const [latency, setLatency] = useState<number | null>(null);
 
   let { getConnectionLatency } = useContext(VulcanContext);

@@ -5,7 +5,6 @@ import {
   handleFetchError,
   handleFetchSuccess,
   headers,
-  parseJSON
 } from 'etna-js/utils/fetch';
 import {
   AccountingReturn,
@@ -111,7 +110,7 @@ export const defaultApiHelpers = {
   pullRunStatus(projectName: string, workspaceId: number, runId: number): Promise<RunStatus> {
     return new Promise(() => null);
   },
-  getConnectionLatency(projectName: string): Promise<LatencyReturn> {
+  getConnectionLatency(): Promise<LatencyReturn> {
     return new Promise(() => null);
   }
 };
@@ -231,7 +230,7 @@ export function useApi(
 
   const updateWorkspace = useCallback(
     (projectName: string, workspaceId: number, name?: string, tags?: string[]): Promise<WorkspaceRaw> => {
-      const params = {};
+      const params = {} as any;
       if (!!name) params['name'] = name;
       if (!!tags) params['tags'] = tags;
       if (Object.keys(params).length < 1) {
@@ -311,9 +310,7 @@ export function useApi(
             uiFilesSent.push(key);
             filesContent[key] = val[0];
           } else {
-            return Promise.reject(
-              new Error(`${key} had no value, so cannot send file contents.`)
-            );
+            console.error(`${key} had no value, so cannot send file contents.`)
           }
         })
         return showErrors(writeFiles(

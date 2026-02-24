@@ -32,9 +32,9 @@ export interface InputSpecification {
 
 export interface BoundInputSpecification<Value = unknown, DataElement = unknown>
   extends InputSpecification {
-  value: Maybe<Value>;
+  value: DataEnvelope<Maybe<Value>>;
 
-  onChange(v: Maybe<Value>): void;
+  onChange(v: DataEnvelope<Maybe<Value>>): void;
 
   data?: DataEnvelope<DataElement> | undefined | null;
 
@@ -168,8 +168,9 @@ export function stepOutputMapping(
   //   - actual file/param names to output to ("external-name")
   // in the form:
   //   - {internal-name: external-name}
-  const rawKeys = config.output?.params ? config.output.params :
+  const rawKeys_ = config.output?.params ? config.output.params :
     config.output?.files ? config.output.files : [] as string[];
+  const rawKeys: string[] = Array.isArray(rawKeys_) ? rawKeys_ : Object.values(rawKeys_);
   // Todo MAYBE (should be enforced elsewhere): Error handling if empty array
   
   const componentNeeds = inputComponents[config.ui_component][2];
@@ -250,12 +251,12 @@ export type WithInputParams<
   Value,
   DataElement = unknown
 > = Params & {
-  onChange: (v: Maybe<Value>, destructure?: boolean) => void;
-  value: Maybe<Value>;
+  onChange: (v: DataEnvelope<Maybe<Value>>, destructure?: boolean) => void;
+  value: DataEnvelope<Maybe<Value>>;
   data: DataEnvelope<DataElement> | undefined | null;
   label?: string;
   defaultValue?: any;
-  showError: (e) => void
+  showError: (e: string) => void
 };
 
 export interface ValidationInputSpecification<

@@ -110,6 +110,9 @@ jobs:
 
           echo "=== Running specs ==="
           bundle exec rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb spec/command_builder_spec.rb
+
+          echo "=== Running js checks ==="
+          npm run test
           EOF
           chmod +x vulcan/test-all.sh
       - name: Services check 

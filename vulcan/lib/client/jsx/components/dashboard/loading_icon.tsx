@@ -36,11 +36,11 @@ export function LoadingIconWithText({text=''}: {text:string}) {
     </Grid>
 };
 
-export function FlatLoadbleIcon({label, tooltip, loading=false, disabled=false}: {
+export function FlatLoadableIcon({label, tooltip, loading=false, disabled=false}: {
     label: string;
     tooltip: string;
     loading: boolean;
-    disabled; boolean;
+    disabled: boolean;
 }) {
     const classes = useStyles();
     return <div title={tooltip}>

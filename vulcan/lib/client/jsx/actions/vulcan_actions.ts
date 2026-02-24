@@ -65,7 +65,7 @@ export function setLastConfig(lastConfig: WorkspaceStatus['last_params']) {
 
 export function useUIAccounting(
   accounting: AccountingReturn,
-  submittingStep: Maybe<string> = null,
+  submittingStep: string,
 ) {
   return actionObject('USE_UI_ACCOUNTING', {accounting, submittingStep});
 }

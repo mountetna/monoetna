@@ -79,7 +79,7 @@ export function unMaybe(obj: DataEnvelope<Maybe<any>>, keep: boolean = false): D
     );
   }
   return Object.fromEntries(
-    Object.keys(obj).filter((k) => isSome(obj[k])).map((k) => [k, obj[k][0]])
+    Object.keys(obj).filter((k) => isSome(obj[k])).map((k) => [k, (obj[k] as any[])[0]])
   );
 }
 
@@ -397,9 +397,9 @@ export function statusStringOfStepOrGroupedStep(
   step: WorkspaceStep | WorkspaceStepGroup,
   workspace: VulcanState['workspace'],
   status: VulcanState['status']
-) {
+): StatusString {
   if ('steps' in step) {
-    let statusStr = null as string | null;
+    let statusStr = null as StatusString | null;
     for (let innerStep of step.steps) {
       let stepStatus = statusOfStep(innerStep.name, status, workspace);
 

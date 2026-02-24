@@ -128,7 +128,7 @@ export function useRunSyncing(
   dispatch: Dispatch<VulcanAction>,
 ): {
   requestRunPolling: () => Promise<unknown>,
-  cancelRunning: () => {}
+  cancelRunning: () => void
 } {
   function suggestRefresh(e: any) {showError(refreshSuggestionText)};
   const [requestRunPolling, cancelRunning] = useAsyncCallback(function* () {

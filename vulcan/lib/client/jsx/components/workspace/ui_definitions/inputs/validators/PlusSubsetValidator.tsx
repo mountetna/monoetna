@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { withDefault } from '../../../../../selectors/maybe';
 import {DataEnvelope, ValidationInputSpecification} from '../../input_types';
 import { SelectionDefinition, SingleSelectionDefinition } from '../pieces/grouping_pieces';
-import { NumericConstraint } from '../pieces/user_input_pieces';
+import { NumericConstraint } from '../pieces/number_pieces';
 
 function checkDef(def: SingleSelectionDefinition, index: number) {
   const out = [] as string[];

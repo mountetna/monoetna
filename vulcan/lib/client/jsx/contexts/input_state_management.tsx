@@ -86,10 +86,10 @@ export function WithBufferedInputs({
     !((stepName in stateRef.current.status.params) || (stepName in stateRef.current.status.ui_contents));
 
   const cancelValueUpdates: any = useCallback(() => {
-    // // eslint-disable-next-line
+    // eslint-disable-next-line
     setValues({});
-    // // @ts-ignore
-    // // eslint-disable-next-line
+    // @ts-ignore
+    // eslint-disable-next-line
   }, [setValues]);
 
   const setValues: any = useCallback<typeof defaultBufferedInputs.setValues>(

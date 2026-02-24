@@ -11,7 +11,7 @@ export default function TwoGroupSelection({
   label,
   onChange,
   ...props
-}: WithInputParams<{}, DataEnvelope<any>, {data_summary: DataEnvelope<any>, all_column_options?: OptionSet}>) {
+}: WithInputParams<{}, SelectionDefinition, {data_summary: DataEnvelope<any>, all_column_options?: OptionSet}>) {
   const g1_value = useSetsDefault(
     emptySelectionDefinition,
     props.value,
@@ -24,6 +24,10 @@ export default function TwoGroupSelection({
     onChange,
     'g2'
   );
+  if (!data || !('data_summary' in data)) {
+    props.showError('required input data missing')
+    return null
+  }
 
   const key = label || 'two-group-selection';
 
@@ -40,7 +44,7 @@ export default function TwoGroupSelection({
           value={g1_value}
           label='Group 1 Selection Criteria'
           data_summary={data['data_summary']}
-          all_column_options={'all_column_options' in data ? data['all_column_options'] : undefined}
+          all_column_options={'all_column_options' in data ? data['all_column_options'] as OptionSet : undefined}
           color='primary'
         />}
       </Grid>
@@ -51,7 +55,7 @@ export default function TwoGroupSelection({
           value={g2_value}
           label='Group 2 Selection Criteria'
           data_summary={data['data_summary']}
-          all_column_options={'all_column_options' in data ? data['all_column_options'] : undefined}
+          all_column_options={'all_column_options' in data ? data['all_column_options'] as OptionSet : undefined}
           color='primary'
         />}
       </Grid>

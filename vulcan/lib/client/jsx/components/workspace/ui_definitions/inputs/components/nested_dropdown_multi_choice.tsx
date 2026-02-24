@@ -14,8 +14,12 @@ function _NestedDropdownMultiChoiceInput({ letReorder, letBulkAdd, label, testId
   letBulkAdd: boolean;
   testIdAppend?: string;
 }, string[], nestedOptionSet>) {
+  if (!data || !('nestedOptions' in data)) {
+    props.showError('required input data missing')
+    return null
+  }
   const value: string[] = useSetsDefault([] as string[], props.value, onChange, 'picked');
-  const options_in = data.nestedOptions;
+  const options_in = data['nestedOptions'];
   const disp_label = useMemo(() => {
     return pullRecommendationIntoLabel(data, label);
   }, [data, label]);

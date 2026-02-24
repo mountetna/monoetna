@@ -106,7 +106,7 @@ export const PlotlyOutput = ({data: plots}) => {
   );
 };
 
-export const PlotOutput = ({data, url}) => {
+export const PlotOutput = ({data}) => {
   const plotlys = Object.fromEntries(
     Object.entries(data).filter(([key, val])=> {
       return typeof(val)==='object'

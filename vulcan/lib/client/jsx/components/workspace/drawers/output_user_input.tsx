@@ -10,7 +10,7 @@ import {VulcanConfigElement, WorkspaceStep} from '../../../api_types';
 import { fillInputData } from '../ui_definitions/input_types';
 
 export default function OutputUI({step}: {step: WorkspaceStep}) {
-  const {state} = useContext(VulcanContext);
+  const {state, showError} = useContext(VulcanContext);
   const {workspace, status} = state;
   const config = workspace?.vulcan_config ? workspace.vulcan_config : undefined;
 
@@ -19,7 +19,12 @@ export default function OutputUI({step}: {step: WorkspaceStep}) {
   const uiOutput = uiComponentOfStep(step.name, config);
 
   if (!uiOutput) return null;
-  const stepType = uiOutput in OUTPUTS ? uiOutput : 'default';
+  let stepType: keyof typeof OUTPUTS = 'default';
+  if (!(uiOutput in OUTPUTS)) {
+    showError(`Pipeline configuration error: '${uiOutput}' output type is unknown, attempting a default output style instead.`);
+  } else {
+    stepType = uiOutput as keyof typeof OUTPUTS;
+  }
 
   const data = fillInputData(step as VulcanConfigElement, step, status.last_params, status.file_contents);
 

@@ -6,13 +6,15 @@ import { SingleMagmaRecordSelectionPieceRct } from '../pieces/magma_pickers';
 
 declare const CONFIG: {[key: string]: any};
 
-function getFromData(key: string, data: DataEnvelope<any>, showError: (e:string) => void) {
+function getFromData(key: string, data: DataEnvelope<any> | null | undefined, showError: (e:string) => void) {
   return useMemo(()=>{
-    if (key in data) {
-      return data[key]
-    } else {
+    if (!data) {
+      return undefined
+    } else if (!(key in data)) {
       showError(`Target ${key} not provided`)
       return undefined
+    } else {
+      return data[key]
     }
   }, [data])
 }
@@ -24,6 +26,11 @@ export function MagmaRecordInput({onChange, label, defaultValue, showError, data
   const targetAttribute = getFromData('targetAtt', data, (e) => showError(e))
   const showAttributeNames = getFromData('otherAttsShow', data, (e) => showError(e))
   const hasAttributeNames = getFromData('hasAtts', data, (e)=>{}) // Optional
+
+  if (!data || !('modelName' in data) || !('targetAtt' in data) || !('otherAttsShow' in data)) {
+    showError('required input data missing')
+    return null
+  }
 
   return <SingleMagmaRecordSelectionPieceRct
       name={`magma-record-selection-${label}`}

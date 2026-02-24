@@ -34,7 +34,7 @@ export function SingleMagmaRecordSelectionPieceRct({
   projectName
 }: SingleMagmaRecordSelectionInputs): React.ReactElement | null {
 
-  const [allRecords, setAllRecords] = useState({})
+  const [allRecords, setAllRecords] = useState({} as {[k: string]: any})
   const [filtRecords, setfiltRecords] = useState([] as string[])
   useEffect(() => {
     const targets = !hasAttributes ? 
@@ -49,7 +49,6 @@ export function SingleMagmaRecordSelectionPieceRct({
       },
       fetch
     ).then((recs) => {
-      const allRecs = recs.models[modelName].documents
       setAllRecords(recs.models[modelName].documents)
     }).catch((e) => showError(e));
   }, [modelName, attributesDisplay, hasAttributes])

@@ -6,9 +6,12 @@ import { MultiselectStringPieceRct } from '../pieces/multiselect_string_piece';
 
 export default function MultiselectStringInput({onChange, data, label, defaultValue, ...props}: WithInputParams<
   {}, string[], string[]>) {
+  if (!data || !('options' in data)) {
+    props.showError('required input data missing')
+    return null
+  }
   const options: string[] = data.options;
-  // const picked = useSetsDefault(defaultValue as string[] || [], props.value, onChange, 'picked'); // Had to replace selectDefaultNumber(data) with 0 due how the component can be cleared.  NaN was not an option because of cross-language conversion.
-  const picked = withDefault(mapSome(props.value.picked, inner => Array.isArray(inner) ? inner : [inner]), []);
+  const picked: string[] = withDefault(mapSome(props.value.picked, (inner: string | string[]) => Array.isArray(inner) ? inner : [inner]), []);
 
   return <MultiselectStringPieceRct
     name={label || 'multiselect-input'}

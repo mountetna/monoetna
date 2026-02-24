@@ -14,7 +14,7 @@ export function useWorkspacesWorkflowLoading(
 
     useAsync(function* () {
         if (run_update) {
-            const update = {};
+            const update = {} as any;
             if (!!projectName) {
                 showErrors(getWorkspaces(projectName))
                 .then((workspacesReturn) => {

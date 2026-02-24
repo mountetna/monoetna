@@ -19,12 +19,17 @@ export default function DropdownMultiChoiceInput({
   if (!!defaultValue && typeof defaultValue === 'string') {
     defaultValue = [defaultValue];
   }
-  const options_in: string[] = data.options;
 
   const value = useSetsDefault(defaultValue || null, props.value, onChange, 'picked');
   const disp_label = useMemo(() => {
     return pullRecommendationIntoLabel(data, label);
   }, [data, label]);
+
+  if (!data || !('options' in data)) {
+    props.showError('required input data missing')
+    return null
+  }
+  const options_in: string[] = data['options'];
 
   return (
     <DropdownMultiChoicePieceRct

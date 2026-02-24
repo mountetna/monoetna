@@ -36,7 +36,6 @@ export default function DropdownInput({
   maxOptions = 200,
   disableClearable = true,
   disabled = false,
-  showError,
   onChange,
   ...props
 }: WithInputParams<
@@ -47,19 +46,22 @@ export default function DropdownInput({
     disabled?: boolean;
   },
   string | null,
-  StringOptions
+  string[]
 >) {
   /*
-  Creates a searchable dropdown selection input box from concatenated values of the 'data' hash.
+  Creates a searchable dropdown selection input box from values of the 'options' input data.
   Special Case: If any data key is "recommendation", a line of text will display the values of this recommendation to the user.
   */
-  const options_in: string[] = data.options;
-  if (!options_in) showError('No data options given')
-
   const value = useSetsDefault(defaultValue || null, props.value, onChange, 'picked');
   const disp_label = useMemo(() => {
     return pullRecommendationIntoLabel(data, label);
   }, [data, label]);
+
+  if (!data || !('options' in data)) {
+    props.showError('required input data missing')
+    return null
+  }
+  const options_in: string[] = data['options'];
 
   return <DropdownPieceRct
     name={`dropdown-${label}`}

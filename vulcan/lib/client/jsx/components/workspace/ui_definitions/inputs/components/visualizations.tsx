@@ -662,6 +662,10 @@ function VisualizationUI(
   components: DataEnvelope<Function>,
   plot_relabels?: DataEnvelope<string> | undefined
 ) {
+  if (!data || !('data_frame' in data)) {
+    props.showError('required input data missing')
+    return null
+  }
   const preset = useMemo(() => data && 'preset' in data ? data['preset'] : undefined, [data]);
   const hide = useMemo(() => preset && Object.keys(preset), [preset]);
   const defaultValue = whichDefaults(setPlotType, preset, defaults, redefaults, input_sets);
@@ -689,8 +693,8 @@ function VisualizationUI(
     return 'all_opts' in data ? data['all_opts'] : df_columns;
   }, [data]);
 
-  const reduction_opts: DataEnvelope<string[]> | null = useMemo(() => {
-    return 'reduction_opts' in data ? data['reduction_opts'] : null;
+  const reduction_opts: DataEnvelope<number[]> | null = useMemo(() => {
+    return 'reduction_opts' in data ? data['reduction_opts'] as DataEnvelope<number[]> : null;
   }, [data])
 
   const x_by =
@@ -820,86 +824,86 @@ function VisualizationUI(
 export function ScatterPlotly({
   data,
   onChange,
-  value
+  ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'scatter_plot', defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
+  return VisualizationUI({data, onChange, ...props}, 'scatter_plot', defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function BarPlotly({
   data,
   onChange,
-  value
+  ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'bar_plot', defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
+  return VisualizationUI({data, onChange, ...props}, 'bar_plot', defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function YPlotly({
   data,
   onChange,
-  value
+  ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'y_plot', defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
+  return VisualizationUI({data, onChange, ...props}, 'y_plot', defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function AnyPlotly({
   data,
   onChange,
-  value
+  ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, null, defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly, plot_relabels_plotly);
+  return VisualizationUI({data, onChange, ...props}, null, defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly, plot_relabels_plotly);
 }
 
 export function DittoDimPlot({
   data,
   onChange,
-  value
+  ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'dittoDimPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+  return VisualizationUI({data, onChange, ...props}, 'dittoDimPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
 
 export function DittoScatterPlot({
   data,
   onChange,
-  value
+  ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'dittoScatterPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+  return VisualizationUI({data, onChange, ...props}, 'dittoScatterPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
 
 export function DittoBarPlot({
   data,
   onChange,
-  value
+  ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'dittoBarPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+  return VisualizationUI({data, onChange, ...props}, 'dittoBarPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
 
 export function DittoDotPlot({
   data,
   onChange,
-  value
+  ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'dittoDotPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+  return VisualizationUI({data, onChange, ...props}, 'dittoDotPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
 export function DittoPlot({
   data,
   onChange,
-  value
+  ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'dittoPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+  return VisualizationUI({data, onChange, ...props}, 'dittoPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
 
 export function DittoFreqPlot({
   data,
   onChange,
-  value
+  ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'dittoFreqPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+  return VisualizationUI({data, onChange, ...props}, 'dittoFreqPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
 
 export function AnyDittoSeq({
   data,
   onChange,
-  value
+  ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, null, defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq, plot_relabels_dittoseq);
+  return VisualizationUI({data, onChange, ...props}, null, defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq, plot_relabels_dittoseq);
 }

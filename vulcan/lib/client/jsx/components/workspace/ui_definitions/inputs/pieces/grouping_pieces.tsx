@@ -300,7 +300,7 @@ export function SelectionDefinitionPieceRct({
         )}
         <Button
           color={color}
-          onClick={(v, k?) => {addConstraint(value)}}
+          onClick={() => {addConstraint(value)}}
         >
           Add another condition?
         </Button>

@@ -6,7 +6,7 @@ export default function LinkOutput({data}) {
   let {state, vulcanPath} = useContext(VulcanContext);
   let {workspace, projectName} = state;
   if (!workspace) {
-    return
+    return null
   }
   return <React.Fragment>
     {Object.keys(data).map(file_name =>

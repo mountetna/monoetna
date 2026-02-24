@@ -1,7 +1,7 @@
 import {Maybe, some, withDefault} from '../../../selectors/maybe';
 import {useEffect} from 'react';
 
-export function useSetsDefault<T>(_default: T, value: Maybe<T>, onChange: (v: Maybe<T>) => void, key: string) {
+export function useSetsDefault<T>(_default: T, value: {[k: string]: Maybe<T>}, onChange: (v: {[k: string]: Maybe<T>}) => void, key: string) {
   useEffect(() => {
     // console.log(`useSetsDefault onChange triggered for ${key}`)
     if (!value) {

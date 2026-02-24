@@ -12,7 +12,7 @@ import Grid from '@material-ui/core/Grid';
 export default function StepsList() {
   const [open, setOpen] = useState(false);
   const {state} = useContext(VulcanContext);
-  const {status, workspace, refreshingProgress} = state;
+  const {status, workspace} = state;
 
   function handleToggle() {
     setOpen(!open);
@@ -28,7 +28,7 @@ export default function StepsList() {
   }, [state.isSyncing, hasCompletedOutputs]);
 
   if (!workspace) return null;
-  const stepNamesToStepIconNames = (step, index) => (
+  const stepNamesToStepIconNames = (step: string, index: number) => (
     <div key={index} className='step'>
       <StepIconName step={stepOfName(step, workspace.vulcan_config)}/>
     </div>
