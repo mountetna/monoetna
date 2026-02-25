@@ -140,9 +140,9 @@ How they work:
 
 export const OUTPUTS = {
   'default': LinkOutput,
-  'link': LinkOutput,
-  'file-link': LinkOutput,
-  'large-file-link': LinkLargeOutput,
+  'link': LinkOutput, // (deprecated)
+  'text-file-link': LinkOutput,
+  'any-file-link': LinkLargeOutput,
   'plotly': PlotlyOutput,
   'plot': PlotOutput,
   'png': PngOutput,
