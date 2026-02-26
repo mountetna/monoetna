@@ -10,8 +10,7 @@ import Fade from '@mui/material/Fade';
 import _ from 'lodash'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import { ExternalProjectStatus, getExternalProjectStatus, FilterItem, PrincipalInvestigator, Project, ProjectHeadingInfoSet, PROJECTS_SEARCH_PARAMS_KEY, ProjectsSearchParamsControls, ProjectsSearchParamsState } from './models';
-import ProjectListing from './project-listing';
+import { FilterItem, PrincipalInvestigator, Project, ProjectHeadingInfoSet, PROJECTS_SEARCH_PARAMS_KEY, ProjectsSearchParamsState } from './models';
 import ProjectTable from './project-table';
 import { ProjectExplorerContext } from './context';
 import DrawerButton from '@/components/searchable-list/controls/drawer/button';
@@ -41,7 +40,10 @@ const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsL
 
 function _ProjectExplorer({ }) {
     // Manage search params sync
-    const { state: { projectData, filters, filterItemSet }, searchOptions, updateFilterItems } = React.useContext(ProjectExplorerContext);
+    const {
+      state: { projectData, filters, filterItemSet },
+      searchOptions, updateFilterItems, clearFilterItems
+    } = React.useContext(ProjectExplorerContext);
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
@@ -55,6 +57,88 @@ function _ProjectExplorer({ }) {
     const [drawerOpen, setDrawerOpen] = React.useState(true);
     const [inputValue, setInputValue] = React.useState('');
     const [currentPage, setCurrentPage] = React.useState(0);
+
+    const updateUrl = () => {
+        // get filter states
+        const filters: Record<string, string[]> = {}
+        filterItems.forEach(item => {
+            let val: string
+            switch (item.type) {
+                case 'theme':
+                case 'type':
+                case 'status':
+                case 'dataType':
+                case 'name':
+                case 'hasClinicalData':
+                    val = (item.value as string)
+                    break
+                case 'principalInvestigator':
+                    val = (item.value as PrincipalInvestigator).name
+                    break
+            }
+            if (!(item.type in filters)) {
+                filters[item.type] = []
+            }
+            filters[item.type].push(val)
+        })
+
+        // get control states
+        const controls: ProjectsSearchParamsControls = {
+            viewSet: viewSet.key,
+            filterMethod: filterMethod.key,
+            page: currentPage,
+        }
+
+        const projectsState: ProjectsSearchParamsState = {
+            filters,
+            controls,
+        }
+    }
+
+    React.useEffect(
+      () => {
+        // push to router
+        router.push(pathname + '?' + filterUrlString + window.location.hash, { scroll: false })
+      }, [ filterUrlString ]
+    }
+
+    /* React.useEffect(() => {
+      const parsedSearchParams = parseSearchParams(searchParams)
+
+      if (!(PROJECTS_SEARCH_PARAMS_KEY in parsedSearchParams)) return;
+
+      const state = parsedSearchParams[PROJECTS_SEARCH_PARAMS_KEY]
+
+      let updatedState = false
+
+      const stateFilterItems = parseSearchOptionsFromState(state, searchOptions)
+
+      if (
+          stateFilterItems !== undefined &&
+          // Prevent item shuffling if params match state but different order
+          !_.isEqual(
+              [...stateFilterItems].sort((a, b) => a.key.localeCompare(b.key)),
+              [...filterItems].sort((a, b) => a.key.localeCompare(b.key)),
+          )
+      ) {
+          setFilterItems(stateFilterItems)
+      }
+
+      const stateViewSet = parseViewSetFromState(state, viewSets)
+      if (stateViewSet !== undefined && viewSet.key !== stateViewSet.key) {
+          setViewSet(stateViewSet)
+      }
+
+      const stateFilterMethod = parseFilterMethodFromState(state, filterMethods)
+      if (stateFilterMethod !== undefined && viewSet.key !== stateFilterMethod.key) {
+          setFilterMethod(stateFilterMethod)
+      }
+
+      const stateCurrentPage = parseCurrentPageFromState(state)
+      if (currentPage !== stateCurrentPage) {
+          setCurrentPage(stateCurrentPage)
+      }
+    }, [searchParams]) */
 
     const handleChangeFilterItems = React.useCallback(
       ([ filterItem, ...others ]: FilterItem[]) => {
@@ -154,6 +238,7 @@ function _ProjectExplorer({ }) {
                                     iconLight={filterLightIcon}
                                     iconDark={filterDarkIcon}
                                     onClick={() => setDrawerOpen(!drawerOpen)}
+                                    dismiss={ () => clearFilterItems() }
                                     activated={ Object.keys(filterItemSet).length > 0 }
                                     open={drawerOpen}
                                 />

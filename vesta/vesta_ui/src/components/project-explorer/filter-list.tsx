@@ -407,7 +407,7 @@ const TypeFilter = () => {
 
 const PhaseFilter = () => {
   return <BasicFilter
-    title='Phase'
+    title='Status'
     items={
       (project:Project) => ({ [project.status]: project.status })
     }

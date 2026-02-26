@@ -13,7 +13,7 @@ const defaultProjectExplorerState = {
   projectData: [] as Project[],
   filters: { } as FilterSet,
   filterItemSet: {} as FilterSet,
-  matchAllFilters: false
+  matchAllFilters: true
 }
 
 interface ProjectExplorerContextValues {
@@ -108,6 +108,16 @@ export function ProjectExplorerContextProvider({projectData, children}:{
     }, [ state ]
   );
 
+  const clearFilterItems = React.useCallback(
+    () => {
+      let newState = { ...state };
+      newState.filterItemSet = {
+        ...defaultProjectExplorerState.filterItemSet
+      }
+      setState(newState);
+    }, [ state ]
+  );
+
   const filteredProjectData = projectData.filter(
     (project:Project) => !Object.keys(state.filterItemSet).length ? true :
       Object.keys(state.filterItemSet)[
@@ -142,7 +152,8 @@ export function ProjectExplorerContextProvider({projectData, children}:{
       toggleColumnVisibility,
       setMatchAllFilters,
       createFilter,
-      updateFilterItems
+      updateFilterItems,
+      clearFilterItems
     }}>
       {children}
     </ProjectExplorerContext.Provider>
