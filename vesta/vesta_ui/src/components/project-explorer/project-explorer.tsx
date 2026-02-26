@@ -41,7 +41,7 @@ const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsL
 
 function _ProjectExplorer({ }) {
     // Manage search params sync
-    const { state: { projectData, filters, filterItemSet }, searchOptions, updateFilterItems } = React.useContext(ProjectExplorerContext);
+    const { state: { projectData, filters, filterItemSet }, searchOptions, updateFilterItems, clearFilterItems } = React.useContext(ProjectExplorerContext);
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
@@ -154,6 +154,7 @@ function _ProjectExplorer({ }) {
                                     iconLight={filterLightIcon}
                                     iconDark={filterDarkIcon}
                                     onClick={() => setDrawerOpen(!drawerOpen)}
+                                    dismiss={ () => clearFilterItems() }
                                     activated={ Object.keys(filterItemSet).length > 0 }
                                     open={drawerOpen}
                                 />
