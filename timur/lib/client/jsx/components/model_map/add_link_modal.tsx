@@ -17,12 +17,12 @@ function SplitIcon(props: any) {
   return (
     <SvgIcon {...props}>
       <path
-        style={{...linestyle, 'strokeWidth': 0.995255}}
+        style={linestyle}
         d="M 4.1523438 0.75195312 A 0.70006999 0.70006999 0 0 0 3.7128906 0.94726562 L 0.8828125 3.6972656 A 0.70006999 0.70006999 0 0 0 0.8828125 4.7011719 L 3.7128906 7.4511719 A 0.70006999 0.70006999 0 0 0 4.8222656 6.6289062 L 4.0839844 5.1992188 L 7.8417969 5.1992188 L 10.451172 11.003906 L 4.0820312 11.003906 L 4.8222656 9.5703125 A 0.70006999 0.70006999 0 0 0 4.3164062 8.5605469 A 0.70006999 0.70006999 0 0 0 3.7128906 8.7480469 L 0.8828125 11.498047 A 0.70006999 0.70006999 0 0 0 0.8828125 12.501953 L 3.7128906 15.251953 A 0.70006999 0.70006999 0 0 0 4.8222656 14.429688 L 4.0820312 12.996094 L 10.451172 12.996094 L 7.8417969 18.800781 L 4.0839844 18.800781 L 4.8222656 17.371094 A 0.70006999 0.70006999 0 0 0 4.3164062 16.359375 A 0.70006999 0.70006999 0 0 0 3.7128906 16.548828 L 0.8828125 19.298828 A 0.70006999 0.70006999 0 0 0 0.8828125 20.302734 L 3.7128906 23.052734 A 0.70006999 0.70006999 0 0 0 4.8222656 22.228516 L 4.0839844 20.800781 L 9.1171875 20.800781 L 12.625 12.996094 L 19.917969 12.996094 L 19.177734 14.429688 A 0.70006999 0.70006999 0 0 0 20.287109 15.251953 L 23.117188 12.501953 A 0.70006999 0.70006999 0 0 0 23.117188 11.498047 L 20.287109 8.7480469 A 0.70006999 0.70006999 0 0 0 19.382812 8.6875 A 0.70006999 0.70006999 0 0 0 19.177734 9.5703125 L 19.917969 11.003906 L 12.625 11.003906 L 9.1171875 3.1992188 L 4.0839844 3.1992188 L 4.8222656 1.7714844 A 0.70006999 0.70006999 0 0 0 4.3164062 0.75976562 A 0.70006999 0.70006999 0 0 0 4.1523438 0.75195312 z"
       />
     </SvgIcon>
   );
-}
+};
 function ChildrenIcon(props: any) {
   return (
     <SvgIcon {...props}>
@@ -40,7 +40,7 @@ function ChildrenIcon(props: any) {
       />
     </SvgIcon>
   );
-}
+};
 
 export default function AddLinkModal({modelName,onSave,open,onClose}: ModelModalParams & {modelName: string}) {
   const [linkAttributeName, setLinkAttributeName] = useState('');
@@ -93,7 +93,7 @@ export default function AddLinkModal({modelName,onSave,open,onClose}: ModelModal
       setLinkAttributeName(name)
     }
     setReciprocalModelName(name);
-  }, [])
+  }, []);
 
   const reciprocalModelNameOptions = useMemo(() => {
     return Object.keys(models);
@@ -101,17 +101,13 @@ export default function AddLinkModal({modelName,onSave,open,onClose}: ModelModal
 
   const reciprocalLinkTypeOptions = ['child', 'collection'];
 
-  const semanticDescription = 
-    <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', paddingTop: '40px'}}>
-      { modelName!=reciprocalModelName ?
-        (reciprocalLinkType=='collection' ?
-          `Many '${modelName}' records linkable to same '${reciprocalModelName || 'end_model'}' records` :
-          `Single '${modelName}' record linkable to each '${reciprocalModelName || 'end_model'}' record`) :
-        reciprocalLinkType=='collection' ?
-          `Many '${modelName}.${linkAttributeName || 'start_attribute'}' linkable to same '${reciprocalModelName || 'end_model'}.${reciprocalAttributeName || 'end_attribute'}'` :
-          `Single '${modelName}.${linkAttributeName || 'start_attribute'}' linkable to each '${reciprocalModelName || 'end_model'}.${reciprocalAttributeName || 'end_attribute'}'`
-      }
-    </div>
+  const semanticDescription = modelName!=reciprocalModelName ?
+    (reciprocalLinkType=='collection' ?
+      `Many '${modelName}' records linkable to same '${reciprocalModelName || 'end_model'}' records` :
+      `Single '${modelName}' record linkable to each '${reciprocalModelName || 'end_model'}' record`) :
+    reciprocalLinkType=='collection' ?
+      `Many '${modelName}.${linkAttributeName || 'start_attribute'}' linkable to same '${reciprocalModelName || 'end_model'}.${reciprocalAttributeName || 'end_attribute'}'` :
+      `Single '${modelName}.${linkAttributeName || 'start_attribute'}' linkable to each '${reciprocalModelName || 'end_model'}.${reciprocalAttributeName || 'end_attribute'}'`;
 
   return (
     <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Add Link' saveDisabled={disabled}>
@@ -172,7 +168,9 @@ export default function AddLinkModal({modelName,onSave,open,onClose}: ModelModal
           />
         </Grid>
       </Grid>
-      {semanticDescription}
+      <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', paddingTop: '40px'}}>
+        {semanticDescription}
+      </div>
     </ModelActionsModal>
   );
 }
