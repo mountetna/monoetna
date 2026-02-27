@@ -18,10 +18,10 @@ function _LinkOutput({data, stream}) {
   </React.Fragment>;
 }
 
-export function LinkOutput({data}) {
+export function LinkOutputCat({data}) {
   return _LinkOutput({data, stream: false})
 }
 
-export function LinkLargeOutput({data}) {
+export function LinkOutputStream({data}) {
   return _LinkOutput({data, stream: true})
 }
