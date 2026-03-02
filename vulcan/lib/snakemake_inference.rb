@@ -51,10 +51,35 @@ class Vulcan
         target_mapping.select { |target, requirements| requirements["params"].include?("ui") }.keys
       end
 
-      def file_graph(target_mapping)
+      def compute_targets(target_mapping)
+        # Get all compute output files (excluding UI targets)
+        target_mapping.reject { |target, requirements| requirements["params"]&.include?("ui") }.keys
+      end
+
+      def all_job_names(target_mapping)
+        # Extract all unique rule/job names from target_mapping
+        target_mapping.values.map { |info| info["rule"] }.compact.uniq
+      end
+
+      def compute_job_names(target_mapping)
+        # Get all job names excluding UI jobs
+        all_jobs = all_job_names(target_mapping)
+        ui_jobs = ui_targets(target_mapping).map { |target| target_mapping[target]["rule"] }.compact
+        all_jobs - ui_jobs
+      end
+
+      def rule_for_target(target_mapping, target)
+        # Get the rule name for a specific target/output file
+        target_mapping.dig(target, "rule")
+      end
+
+      def file_graph(target_mapping, exclude_ui: false)
         # Build forward adjacency: output -> [inputs it depends on]
+        # Optionally exclude UI targets from the graph
         graph = Hash.new { |h,k| h[k] = [] }
         target_mapping.each do |output, info|
+          # Skip UI targets if exclude_ui is true
+          next if exclude_ui && info["params"]&.include?("ui")
           graph[output] = Array(info["inputs"])  # output points to its inputs
         end
         graph
@@ -147,7 +172,7 @@ class Vulcan
         target_mapping.reject { |target, requirements| requirements["params"].include?("ui") }
       end
 
-      module_function :find_buildable_targets, :match, :ui_targets, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes, :flatten_adjacency_list, :dfs_flatten
+      module_function :find_buildable_targets, :match, :ui_targets, :compute_targets, :all_job_names, :compute_job_names, :rule_for_target, :filter_ui_targets, :find_targets_matching_params, :remove_ui_targets, :file_graph, :downstream_nodes, :flatten_adjacency_list, :dfs_flatten
     end
   end
 end
