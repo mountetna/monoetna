@@ -1,8 +1,9 @@
 source "http://rubygems.org"
 
-ruby "~> 2.7"
+ruby "~> 4.0"
 
 gem 'mini_magick'
+gem 'matrix'
 gem 'daru'
 gem 'rltk'
 gem 'filigree', '0.3.3'
@@ -43,7 +44,6 @@ gem "json_schemer"
 group :test do
   gem 'rspec'
   gem 'rack-test', require: "rack/test"
-  gem "pry", "~>0.13.0"
   gem "pry-byebug"
   gem "timecop"
   gem "webmock"
@@ -53,3 +53,11 @@ group :test do
   gem 'database_cleaner', '1.8.5'
   gem 'net-http-persistent'
 end
+
+gem "ostruct", "~> 0.6.3"
+
+gem "net-smtp", "~> 0.5.1"
+
+gem "csv", "~> 3.3"
+
+gem "pry", "= 0.14.2"
