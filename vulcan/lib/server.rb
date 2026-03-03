@@ -45,6 +45,9 @@ class Vulcan
     # Is running endpoint
     get 'api/v2/:project_name/workspace/:workspace_id/running', action: 'vulcan_v2#is_running',  auth: { user: { can_view?: :project_name }}
   
+    # Update target mapping endpoint
+    get 'api/v2/:project_name/workspace/:workspace_id/update-target-mapping', action: 'vulcan_v2#update_target_mapping', auth: { user: { can_view?: :project_name }}
+  
     # Cluster latency endpoint
     get 'api/v2/cluster-latency', action: 'vulcan_v2#cluster_latency'
   
