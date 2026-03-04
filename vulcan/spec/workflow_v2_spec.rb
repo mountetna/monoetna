@@ -1855,4 +1855,35 @@ describe VulcanV2Controller do
     end
 
   end
+
+  context 'update target mapping' do
+    before do
+      setup_workspace
+    end
+
+    it 'successfully regenerates the target mapping' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      workspace_id = workspace.id
+      
+      # Manually corrupt the target mapping in the database
+      corrupted_mapping = {"fake_target" => {"inputs" => ["fake_input"], "params" => ["fake_param"]}}
+      workspace.target_mapping = corrupted_mapping
+      workspace.save
+      workspace.reload
+      expect(workspace.target_mapping).to eq(corrupted_mapping)
+      
+      # Update the target mapping via the endpoint
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/update-target-mapping")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:message]).to eq("Target mapping updated successfully")
+      expect(json_body[:workspace_id]).to eq(workspace_id)
+      
+      # Verify the target mapping was regenerated correctly from the Snakefile
+      workspace.reload
+      expect(workspace.target_mapping).to_not be_nil
+      expect(workspace.target_mapping).to_not eq(corrupted_mapping)
+      expect(workspace.target_mapping.keys).to include("output/count_poem.txt", "output/count_poem_2.txt")
+    end
+  end
 end
