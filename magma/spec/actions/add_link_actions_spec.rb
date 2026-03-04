@@ -20,7 +20,6 @@ describe Magma::AddLinkAction do
     Magma.instance.magma_projects.delete(project_name.to_sym)
     Object.class_eval { remove_const(:AddLinkTestProject)  if Object.const_defined?(:AddLinkTestProject) }
     expect(Magma::AddProjectAction.new(project_name, user: user).perform).to be_truthy
-    Etna::Clients::Magma::AddAttributeAction
     ['model_a', 'model_b'].each do |model_name|
       expect(Magma::AddModelAction.new(
         project_name,
@@ -110,6 +109,16 @@ describe Magma::AddLinkAction do
       end
     end
 
+    context "when links attributes collide" do
+      before(:each) do
+        action_params[:links][0] = { model_name: 'model_b', attribute_name: 'link_to_a', type: 'link' }
+      end
+
+      it 'captures a model error' do
+        expect(action.validate).to eq(false)
+        expect(action.errors.first[:message]).to eq("links entries must not collide")
+      end
+    end
 
     context "when adding a mutual collection" do
       before(:each) do

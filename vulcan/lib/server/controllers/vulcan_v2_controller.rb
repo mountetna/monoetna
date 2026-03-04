@@ -427,6 +427,35 @@ class VulcanV2Controller < Vulcan::Controller
     success_json({running: @snakemake_manager.snakemake_is_running?(workspace.path)})
   end
 
+  def update_target_mapping
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    unless workspace
+      msg = "Workspace for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+
+    begin
+      # Read the current default config from the workspace
+      config = @remote_manager.read_yaml_file(Vulcan::Path.default_snakemake_config(workspace.path))
+      
+      # Regenerate the target mapping
+      target_mapping = @snakemake_manager.generate_target_mapping(workspace.path, config)
+      
+      # Update the workspace with the new target mapping
+      workspace.target_mapping = target_mapping
+      workspace.updated_at = Time.now
+      workspace.save
+      
+      success_json({
+        message: "Target mapping updated successfully",
+        workspace_id: workspace.id
+      })
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
+  end
+
   def read_image
     retrieve_file(@params[:file_name], "image/png")
   end
