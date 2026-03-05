@@ -140,7 +140,7 @@ How they work:
 
 export const OUTPUTS = {
   'default': LinkOutputStream,
-  'link': LinkOutputCat, // (deprecated)
+  'link': LinkOutputStream, // (deprecated)
   'text-file-link': LinkOutputCat,
   'any-file-link': LinkOutputStream,
   'plotly': PlotlyOutput,
