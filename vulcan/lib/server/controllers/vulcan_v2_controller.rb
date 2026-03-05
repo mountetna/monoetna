@@ -130,11 +130,14 @@ class VulcanV2Controller < Vulcan::Controller
       last_config = Vulcan::Config.where(workspace_id: workspace.id).order(Sequel.desc(:created_at)).first
     end
 
-    # We update the dl_config token
-    @remote_manager.write_file(
-      Vulcan::Path.dl_config(workspace.path), 
-      Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
-    )
+    # We update the dl_config token only if the current user is the workspace author
+    # This prevents non-authors from overwriting the author's token
+    if @user.email == workspace.user_email
+      @remote_manager.write_file(
+        Vulcan::Path.dl_config(workspace.path), 
+        Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
+      )
+    end
 
     response = workspace.to_hash.merge({
       dag: workspace.dag,
