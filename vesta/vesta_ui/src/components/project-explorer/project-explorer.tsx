@@ -39,10 +39,10 @@ const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsL
 
 
 function _ProjectExplorer({ }) {
-    // Manage search params sync
     const {
       state: { projectData, filters, filterItemSet },
-      searchOptions, updateFilterItems, clearFilterItems
+      searchOptions, updateFilterItems, clearFilterItems,
+      filterUrlString
     } = React.useContext(ProjectExplorerContext);
     const router = useRouter()
     const pathname = usePathname()
@@ -59,7 +59,6 @@ function _ProjectExplorer({ }) {
     const [currentPage, setCurrentPage] = React.useState(0);
 
     const updateUrl = () => {
-        // get filter states
         const filters: Record<string, string[]> = {}
         filterItems.forEach(item => {
             let val: string
@@ -82,7 +81,6 @@ function _ProjectExplorer({ }) {
             filters[item.type].push(val)
         })
 
-        // get control states
         const controls: ProjectsSearchParamsControls = {
             viewSet: viewSet.key,
             filterMethod: filterMethod.key,
