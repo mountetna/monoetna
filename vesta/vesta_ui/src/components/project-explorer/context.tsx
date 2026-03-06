@@ -93,6 +93,12 @@ export function ProjectExplorerContextProvider({projectData, children}:{
     }, []
   )
 
+  const updateFilterItemSet = React.useCallback(
+    (filterItemSet: FilterSet) => {
+      setState( (prevState) => ({ ...prevState, filterItemSet }) );
+    }, [ state ]
+  )
+
   const updateFilterItems = React.useCallback(
     (filterName: string, filterItems: FilterItem['value'][]|null) => {
       let newState = { ...state };
@@ -153,6 +159,7 @@ export function ProjectExplorerContextProvider({projectData, children}:{
       setMatchAllFilters,
       createFilter,
       updateFilterItems,
+      updateFilterItemSet,
       clearFilterItems
     }}>
       {children}

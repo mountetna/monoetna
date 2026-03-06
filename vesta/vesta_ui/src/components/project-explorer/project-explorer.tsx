@@ -41,7 +41,7 @@ const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsL
 function _ProjectExplorer({ }) {
     const {
       state: { projectData, filters, filterItemSet },
-      searchOptions, updateFilterItems, clearFilterItems,
+      searchOptions, updateFilterItems, updateFilterItemSet, clearFilterItems,
       filterUrlString
     } = React.useContext(ProjectExplorerContext);
     const router = useRouter()
@@ -58,85 +58,17 @@ function _ProjectExplorer({ }) {
     const [inputValue, setInputValue] = React.useState('');
     const [currentPage, setCurrentPage] = React.useState(0);
 
-    const updateUrl = () => {
-        const filters: Record<string, string[]> = {}
-        filterItems.forEach(item => {
-            let val: string
-            switch (item.type) {
-                case 'theme':
-                case 'type':
-                case 'status':
-                case 'dataType':
-                case 'name':
-                case 'hasClinicalData':
-                    val = (item.value as string)
-                    break
-                case 'principalInvestigator':
-                    val = (item.value as PrincipalInvestigator).name
-                    break
-            }
-            if (!(item.type in filters)) {
-                filters[item.type] = []
-            }
-            filters[item.type].push(val)
-        })
-
-        const controls: ProjectsSearchParamsControls = {
-            viewSet: viewSet.key,
-            filterMethod: filterMethod.key,
-            page: currentPage,
-        }
-
-        const projectsState: ProjectsSearchParamsState = {
-            filters,
-            controls,
-        }
-    }
-
     React.useEffect(
       () => {
-        // push to router
+        const filterUrlString = toSearchParamsString(filterItemSet);
+
         router.push(pathname + '?' + filterUrlString + window.location.hash, { scroll: false })
-      }, [ filterUrlString ]
-    }
+      }, [ filterItemSet ]
+    );
 
-    /* React.useEffect(() => {
-      const parsedSearchParams = parseSearchParams(searchParams)
-
-      if (!(PROJECTS_SEARCH_PARAMS_KEY in parsedSearchParams)) return;
-
-      const state = parsedSearchParams[PROJECTS_SEARCH_PARAMS_KEY]
-
-      let updatedState = false
-
-      const stateFilterItems = parseSearchOptionsFromState(state, searchOptions)
-
-      if (
-          stateFilterItems !== undefined &&
-          // Prevent item shuffling if params match state but different order
-          !_.isEqual(
-              [...stateFilterItems].sort((a, b) => a.key.localeCompare(b.key)),
-              [...filterItems].sort((a, b) => a.key.localeCompare(b.key)),
-          )
-      ) {
-          setFilterItems(stateFilterItems)
-      }
-
-      const stateViewSet = parseViewSetFromState(state, viewSets)
-      if (stateViewSet !== undefined && viewSet.key !== stateViewSet.key) {
-          setViewSet(stateViewSet)
-      }
-
-      const stateFilterMethod = parseFilterMethodFromState(state, filterMethods)
-      if (stateFilterMethod !== undefined && viewSet.key !== stateFilterMethod.key) {
-          setFilterMethod(stateFilterMethod)
-      }
-
-      const stateCurrentPage = parseCurrentPageFromState(state)
-      if (currentPage !== stateCurrentPage) {
-          setCurrentPage(stateCurrentPage)
-      }
-    }, [searchParams]) */
+    React.useEffect(() => {
+      updateFilterItemSet( parseSearchParams(searchParams) );
+    }, []);
 
     const handleChangeFilterItems = React.useCallback(
       ([ filterItem, ...others ]: FilterItem[]) => {

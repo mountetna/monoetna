@@ -87,9 +87,11 @@ export default function ThemeShelf({
 
     const handleClickSeeProjects = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
         event.preventDefault()
-        const el = document.getElementById('projects')
 
         router.push(href, { scroll: false })
+
+        const el = document.getElementById('projects')
+
         if (el) {
             scrollTo({ top: el.offsetTop }, breakpoint)
         }
