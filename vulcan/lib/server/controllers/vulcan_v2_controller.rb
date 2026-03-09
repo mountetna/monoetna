@@ -130,11 +130,14 @@ class VulcanV2Controller < Vulcan::Controller
       last_config = Vulcan::Config.where(workspace_id: workspace.id).order(Sequel.desc(:created_at)).first
     end
 
-    # We update the dl_config token
-    @remote_manager.write_file(
-      Vulcan::Path.dl_config(workspace.path), 
-      Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
-    )
+    # We update the dl_config token only if the current user is the workspace author
+    # This prevents non-authors from overwriting the author's token
+    if @user.email == workspace.user_email
+      @remote_manager.write_file(
+        Vulcan::Path.dl_config(workspace.path), 
+        Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
+      )
+    end
 
     response = workspace.to_hash.merge({
       dag: workspace.dag,
@@ -422,6 +425,35 @@ class VulcanV2Controller < Vulcan::Controller
       raise Etna::BadRequest.new(msg)
     end
     success_json({running: @snakemake_manager.snakemake_is_running?(workspace.path)})
+  end
+
+  def update_target_mapping
+    workspace = Vulcan::Workspace.first(id: @params[:workspace_id])
+    unless workspace
+      msg = "Workspace for project: #{@params[:project_name]} does not exist."
+      raise Etna::BadRequest.new(msg)
+    end
+
+    begin
+      # Read the current default config from the workspace
+      config = @remote_manager.read_yaml_file(Vulcan::Path.default_snakemake_config(workspace.path))
+      
+      # Regenerate the target mapping
+      target_mapping = @snakemake_manager.generate_target_mapping(workspace.path, config)
+      
+      # Update the workspace with the new target mapping
+      workspace.target_mapping = target_mapping
+      workspace.updated_at = Time.now
+      workspace.save
+      
+      success_json({
+        message: "Target mapping updated successfully",
+        workspace_id: workspace.id
+      })
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      raise Etna::BadRequest.new(e.message)
+    end
   end
 
   def read_image
