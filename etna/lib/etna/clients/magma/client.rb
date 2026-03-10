@@ -212,6 +212,15 @@ module Etna
 
         UpdateModelResponse.new(json)
       end
+
+      def set_flags(project_name:, flags:)
+        json = nil
+        @etna_client.post("/flags/#{project_name}", { flags: flags }) do |res|
+          json = safe_parse(res)
+        end
+
+        json
+      end
     end
   end
 end
