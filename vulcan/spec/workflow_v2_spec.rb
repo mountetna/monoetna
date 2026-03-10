@@ -757,12 +757,29 @@ describe VulcanV2Controller do
       expect(json_body[:last_job_status]).to be_nil
     end
 
-    it 'updates the token in the dl_config.yaml' do
+    it 'updates the token in the dl_config.yaml when the author views the workspace' do
       workspace_id = json_body[:workspace_id]
       stub_generate_token(PROJECT, "another_token")
+      auth_header(:superuser)  # Same user who created the workspace
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
       expect(last_response.status).to eq(200)
       expect(remote_manager.read_yaml_file(Vulcan::Path.dl_config(json_body[:workspace_path]))["token"]).to eq("another_token")
+    end
+
+    it 'does not update the token in the dl_config.yaml when a non-author views the workspace' do
+      workspace_id = json_body[:workspace_id]
+      workspace = Vulcan::Workspace.first(id: workspace_id)
+      original_token = remote_manager.read_yaml_file(Vulcan::Path.dl_config(workspace.path))["token"]
+      
+      # Now view as a different user (editor instead of superuser)
+      stub_generate_token(PROJECT, "editor_token")
+      auth_header(:editor)
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(200)
+      
+      # Token should remain unchanged
+      expect(remote_manager.read_yaml_file(Vulcan::Path.dl_config(json_body[:workspace_path]))["token"]).to eq(original_token)
+      expect(remote_manager.read_yaml_file(Vulcan::Path.dl_config(json_body[:workspace_path]))["token"]).to_not eq("editor_token")
     end
 
   end
@@ -1854,5 +1871,36 @@ describe VulcanV2Controller do
       expect(json_body[:error]).to include("does not exist")
     end
 
+  end
+
+  context 'update target mapping' do
+    before do
+      setup_workspace
+    end
+
+    it 'successfully regenerates the target mapping' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+      workspace_id = workspace.id
+      
+      # Manually corrupt the target mapping in the database
+      corrupted_mapping = {"fake_target" => {"inputs" => ["fake_input"], "params" => ["fake_param"]}}
+      workspace.target_mapping = corrupted_mapping
+      workspace.save
+      workspace.reload
+      expect(workspace.target_mapping).to eq(corrupted_mapping)
+      
+      # Update the target mapping via the endpoint
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/update-target-mapping")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:message]).to eq("Target mapping updated successfully")
+      expect(json_body[:workspace_id]).to eq(workspace_id)
+      
+      # Verify the target mapping was regenerated correctly from the Snakefile
+      workspace.reload
+      expect(workspace.target_mapping).to_not be_nil
+      expect(workspace.target_mapping).to_not eq(corrupted_mapping)
+      expect(workspace.target_mapping.keys).to include("output/count_poem.txt", "output/count_poem_2.txt")
+    end
   end
 end

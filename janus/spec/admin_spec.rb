@@ -764,6 +764,8 @@ describe AdminController do
       to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
       stub_request(:post, /https:\/\/magma.test\/update$/).
       to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
+      stub_request(:post, /https:\/\/magma.test\/flags\/door/).
+      to_return(status: 200, body: '{"success": 200}', headers: {'Content-Type': 'application/json'})
 
       create_zeus
 
@@ -795,6 +797,10 @@ describe AdminController do
           }
         },
         dry_run: false
+      })
+      expect(WebMock).to have_requested(:post, "https://magma.test/flags/door").
+      with(body: {
+        flags: [{ 'gnomon_mode' => 'pattern' }]
       })
     end
 
@@ -853,6 +859,8 @@ describe AdminController do
       to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
       stub_request(:post, /https:\/\/magma.test\/update$/).
       to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
+      stub_request(:post, /https:\/\/magma.test\/flags\/door/).
+      to_return(status: 200, body: '{"success": 200}', headers: {'Content-Type': 'application/json'})
 
 
       stub_request(:post, /https:\/\/magma.test\/retrieve$/).
