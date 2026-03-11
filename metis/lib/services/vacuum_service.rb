@@ -1,9 +1,8 @@
 class Metis
   class VacuumService
-    def initialize(project_name:, commit: false, include_projects: [], user: nil)
+    def initialize(project_name:, commit: false, user: nil)
       @project_name = project_name
       @commit = commit
-      @include_projects = Array(include_projects)
       @user = user
       @is_backfilled = (project_name == 'backfilled')
     end
@@ -42,8 +41,7 @@ class Metis
           total_vacuumed: vacuumed.length,
           space_freed: vacuumed.sum { |d| d[:size] || 0 },
           errors_count: errors.length,
-          project_name: @project_name,
-          include_projects: @include_projects
+          project_name: @project_name
         }
       }
     end
@@ -52,11 +50,10 @@ class Metis
 
     def find_orphaned_datablocks
       if @is_backfilled
-        Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
+        Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_vacuum
       else
-        Metis::DataBlockLedger.find_orphaned_datablocks(@project_name, include_projects: @include_projects)
+        Metis::DataBlockLedger.find_orphaned_datablocks_for_vacuum(@project_name)
       end
     end
   end
 end
-

@@ -147,7 +147,7 @@ class Metis
       user.to_s
     end
 
-    def self.find_orphaned_datablocks(project_name, include_projects: [])
+    def self.find_orphaned_datablocks_for_stats(project_name, include_projects: [])
       if project_name.nil?
         raise Etna::Error, "Project name is required to find orphaned datablocks"
       end
@@ -210,23 +210,87 @@ class Metis
         .all
     end
 
-    def self.find_orphaned_datablocks_backfilled
-      # Get datablock IDs that have unlink events with SYSTEM_BACKFILL (backfilled records)
+    def self.find_orphaned_datablocks_for_vacuum(project_name)
+      if project_name.nil?
+        raise Etna::Error, "Project name is required to find orphaned datablocks"
+      end
+
+      linked_datablock_ids = where(project_name: project_name)
+        .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK])
+        .select_map(:data_block_id)
+        .uniq
+
+      unlinked_datablock_ids = where(
+        project_name: project_name,
+        event_type: UNLINK_FILE_FROM_DATABLOCK
+      ).select_map(:data_block_id)
+        .uniq
+
+      used_datablock_ids = Metis::File
+        .where(project_name: project_name)
+        .select_map(:data_block_id)
+        .uniq
+
+      vacuumed_datablock_ids = where(
+        project_name: project_name,
+        event_type: REMOVE_DATABLOCK
+      ).select_map(:data_block_id)
+        .uniq
+
+      orphaned_ids = (linked_datablock_ids & unlinked_datablock_ids) - used_datablock_ids - vacuumed_datablock_ids
+
+      # Block if ANY other project has a live file — vacuum is only safe when no one points to the datablock
+      used_by_other_projects = Metis::File
+        .exclude(project_name: project_name)
+        .select_map(:data_block_id)
+        .uniq
+
+      orphaned_ids = orphaned_ids - used_by_other_projects
+
+      Metis::DataBlock
+        .where(id: orphaned_ids)
+        .exclude(removed: true)
+        .all
+    end
+
+    def self.find_orphaned_datablocks_backfilled_for_stats
       backfilled_datablock_ids = where(
         triggered_by: SYSTEM_BACKFILL,
         event_type: UNLINK_FILE_FROM_DATABLOCK
       ).select_map(:data_block_id).uniq
-      
-      # Exclude datablock IDs that have already been vacuumed (have REMOVE_DATABLOCK events)
+
       vacuumed_datablock_ids = where(
         event_type: REMOVE_DATABLOCK
       ).select_map(:data_block_id).uniq
-      
+
       orphaned_ids = backfilled_datablock_ids - vacuumed_datablock_ids
-      
+
       Metis::DataBlock
         .where(id: orphaned_ids)
-        .exclude(removed: true) # a bit redundant - remove will be set to true by the vacuum command (but this is also called in compute hash if file doesnt have data)
+        .exclude(removed: true)
+        .all
+    end
+
+    def self.find_orphaned_datablocks_backfilled_for_vacuum
+      backfilled_datablock_ids = where(
+        triggered_by: SYSTEM_BACKFILL,
+        event_type: UNLINK_FILE_FROM_DATABLOCK
+      ).select_map(:data_block_id).uniq
+
+      vacuumed_datablock_ids = where(
+        event_type: REMOVE_DATABLOCK
+      ).select_map(:data_block_id).uniq
+
+      orphaned_ids = backfilled_datablock_ids - vacuumed_datablock_ids
+
+      # Block if any project has a live file — vacuum is only safe when no one points to the datablock
+      used_datablock_ids = Metis::File.select_map(:data_block_id).uniq
+
+      orphaned_ids = orphaned_ids - used_datablock_ids
+
+      Metis::DataBlock
+        .where(id: orphaned_ids)
+        .exclude(removed: true)
         .all
     end
 

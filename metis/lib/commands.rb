@@ -568,23 +568,27 @@ class Metis
       vacuum = data[:vacuum] || {}
       puts "VACUUM CANDIDATES:"
       puts "-" * 70
-      puts "  Datablocks that can be vacuumed: #{vacuum[:datablocks_can_vacuum]}"
-      puts "  Space that can be cleared:       #{format_size(vacuum[:space_can_clear])}"
-      
-      if vacuum[:include_projects] && !vacuum[:include_projects].empty?
-        puts "  Include projects:                #{vacuum[:include_projects].join(', ')}"
-      end
-      
-      if vacuum[:project_breakdown]
+      puts "  Ready to vacuum now:    #{vacuum[:datablocks_ready]} datablocks (#{format_size(vacuum[:space_ready])})"
+      puts "  Blocked by live files:  #{vacuum[:datablocks_blocked]} datablocks (#{format_size(vacuum[:space_blocked])})"
+
+      if vacuum[:blocked_by_project] && !vacuum[:blocked_by_project].empty?
         puts ""
-        puts "  Project Breakdown:"
+        puts "  Blocked by project (live files still exist):"
+        vacuum[:blocked_by_project].each do |proj, count|
+          puts "    #{proj.to_s.ljust(25)} #{count} datablock#{'s' if count != 1}"
+        end
+      end
+
+      if vacuum[:project_breakdown] && !vacuum[:project_breakdown].empty?
+        puts ""
+        puts "  Planning breakdown (include_projects scope):"
         vacuum[:project_breakdown].each do |proj, count|
           puts "    #{proj.to_s.ljust(25)} #{count}"
         end
       end
-      
+
       puts ""
-      
+
       if vacuum[:details] && !vacuum[:details].empty?
         puts "VACUUM DETAILS (first 10 datablocks):"
         puts "-" * 70
@@ -603,25 +607,33 @@ class Metis
           end
           puts ""
         end
-        
+
         if vacuum[:details].length > 10
           puts "  ... and #{vacuum[:details].length - 10} more datablocks"
           puts ""
         end
       end
-      
+
       puts "=" * 70
-      if vacuum[:datablocks_can_vacuum] > 0
-        puts "To vacuum these datablocks, run:"
+      if vacuum[:datablocks_ready] > 0
+        puts "To vacuum #{vacuum[:datablocks_ready]} ready datablock#{'s' if vacuum[:datablocks_ready] != 1}:"
         if backfilled
           puts "  bin/metis vacuum_datablocks backfilled --commit"
         else
-          cmd = "  bin/metis vacuum_datablocks #{project_name}"
-          cmd += " --include_projects #{include_projects}" if include_projects
-          cmd += " --commit"
-          puts cmd
+          puts "  bin/metis vacuum_datablocks #{project_name} --commit"
         end
-      else
+      end
+
+      if vacuum[:blocked_by_project] && !vacuum[:blocked_by_project].empty?
+        puts ""
+        puts "To unblock #{vacuum[:datablocks_blocked]} datablock#{'s' if vacuum[:datablocks_blocked] != 1}, delete their files in:"
+        vacuum[:blocked_by_project].each do |proj, count|
+          puts "  #{proj} (#{count} datablock#{'s' if count != 1} blocked)"
+        end
+        puts "  Then re-run: bin/metis ledger_stats --project_name #{project_name}#{" --include_projects #{include_projects}" if include_projects}"
+      end
+
+      if vacuum[:datablocks_ready] == 0 && vacuum[:datablocks_blocked] == 0
         puts "No datablocks available to vacuum."
       end
       puts "=" * 70
@@ -650,26 +662,24 @@ class Metis
   end
 
   class VacuumDatablocks < Etna::Command
-    usage "Usage: bin/metis vacuum_datablocks <project_name> [--commit] [--include_projects project1,project2]
+    usage "Usage: bin/metis vacuum_datablocks <project_name> [--commit]
            # Vacuum (delete) orphaned datablocks
            # <project_name>: Project name or 'backfilled' for backfilled datablocks
            # --commit: Actually delete datablocks (defaults to dry-run)
-           # --include_projects: Optional comma-separated list of projects to include"
+           # A datablock is only vacuumed if no project anywhere has a live file pointing to it."
 
     boolean_flags << "--commit"
-    string_flags << "--include_projects"
 
-    def execute(project_name, commit: false, include_projects: nil)
+    def execute(project_name, commit: false)
       if project_name.nil? || project_name.empty?
         puts "Error: Project name is required"
         puts ""
-        puts "Usage: bin/metis vacuum_datablocks <project_name> [--commit] [--include_projects project1,project2]"
+        puts "Usage: bin/metis vacuum_datablocks <project_name> [--commit]"
         puts ""
         puts "Examples:"
         puts "  bin/metis vacuum_datablocks athena                    # Dry-run"
         puts "  bin/metis vacuum_datablocks athena --commit           # Actually delete"
         puts "  bin/metis vacuum_datablocks backfilled --commit       # Vacuum backfilled datablocks"
-        puts "  bin/metis vacuum_datablocks athena --include_projects labors --commit"
         return
       end
 
@@ -691,18 +701,13 @@ class Metis
         puts ""
       end
 
-      # Parse include_projects
-      include_projects_array = include_projects ? include_projects.split(',').map(&:strip) : []
-
       puts "Vacuuming datablocks for project: #{project_name}"
       puts ""
 
-      # Use the service directly
       service = Metis::VacuumService.new(
         project_name: project_name,
         commit: commit,
-        include_projects: include_projects_array,
-        user: nil  # Commands run as system
+        user: nil
       )
       
       begin
@@ -721,9 +726,6 @@ class Metis
       puts "-" * 70
       puts "  Mode:                #{data[:dry_run] ? 'DRY-RUN' : 'COMMIT'}"
       puts "  Project:             #{summary[:project_name]}"
-      if summary[:include_projects] && !summary[:include_projects].empty?
-        puts "  Include projects:    #{summary[:include_projects].join(', ')}"
-      end
       puts "  Total vacuumed:      #{summary[:total_vacuumed]}"
       puts "  Space freed:         #{format_size(summary[:space_freed])}"
       puts "  Errors:              #{summary[:errors_count]}"
@@ -759,10 +761,7 @@ class Metis
       if data[:dry_run]
         puts "This was a DRY-RUN. No datablocks were actually deleted."
         puts "To commit the vacuum, run with --commit flag:"
-        cmd = "  bin/metis vacuum_datablocks #{project_name}"
-        cmd += " --include_projects #{include_projects}" if include_projects
-        cmd += " --commit"
-        puts cmd
+        puts "  bin/metis vacuum_datablocks #{project_name} --commit"
       else
         puts "✓ Vacuum complete! #{summary[:total_vacuumed]} datablocks deleted."
         puts "✓ #{format_size(summary[:space_freed])} of space freed."
