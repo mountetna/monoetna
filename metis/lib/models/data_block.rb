@@ -131,7 +131,7 @@ class Metis
           if first_file
             Metis::DataBlockLedger.log_resolve(first_file, self, Metis::DataBlockLedger::CHECKSUM_COMMAND)
           else
-            Metis.instance.logger.error("No file found for data block #{id}")
+            Metis.instance.logger&.error("No file found for data block #{id}")
           end
         end
       end

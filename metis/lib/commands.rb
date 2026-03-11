@@ -122,6 +122,7 @@ class Metis
 
     def setup(config)
       super
+      Metis.instance.setup_logger
       Metis.instance.load_models
     end
   end
