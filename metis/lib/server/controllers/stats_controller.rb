@@ -49,53 +49,17 @@ class StatsController < Metis::Controller
   end
 
   def ledger
-    if @params[:backfilled] && (@params[:backfilled] == true || @params[:backfilled].to_s.downcase == 'true')
-      # Backfilled mode: calculate vacuum stats for backfilled datablocks
-      orphaned_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
-      
-      event_counts = Metis::DataBlockLedger.calculate_event_counts(nil)
-      
-      vacuum_stats = {
-        datablocks_can_vacuum: orphaned_datablocks.length,
-        space_can_clear: orphaned_datablocks.sum(&:size),
-        details: Metis::DataBlockLedger.build_vacuum_details(orphaned_datablocks)
-      }
-      
-      success_json({
-        project_name: 'backfilled',
-        event_counts: event_counts,
-        vacuum: vacuum_stats
-      })
-    elsif @params[:project_name]
-      # Tracked mode: high-level count summary + vacuum stats for tracked datablocks
-      project_name = @params[:project_name]
-      
-      # Calculate vacuum stats
-      include_projects = @params[:include_projects] || []
-      include_projects = [include_projects] unless include_projects.is_a?(Array)
-      
-      event_counts = Metis::DataBlockLedger.calculate_event_counts(project_name, include_projects: include_projects)
-      
-      orphaned_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks(project_name, include_projects: include_projects)
-      
-      project_breakdown = Metis::DataBlockLedger.calculate_project_breakdown(orphaned_datablocks, project_name, include_projects)
-      
-      vacuum_stats = {
-        datablocks_can_vacuum: orphaned_datablocks.length,
-        space_can_clear: orphaned_datablocks.sum(&:size),
-        include_projects: include_projects,
-        project_breakdown: project_breakdown,
-        details: Metis::DataBlockLedger.build_vacuum_details(orphaned_datablocks, project_name)
-      }
-      
-      success_json({
-        project_name: project_name,
-        event_counts: event_counts,
-        vacuum: vacuum_stats
-      })
-    else
-      raise Etna::BadRequest, "Must provide either 'project_name' (for tracked mode) or 'backfilled' parameter"
-    end
+    backfilled = @params[:backfilled] && (@params[:backfilled] == true || @params[:backfilled].to_s.downcase == 'true')
+    include_projects = @params[:include_projects] || []
+    include_projects = [include_projects] unless include_projects.is_a?(Array)
+
+    service = Metis::LedgerStatsService.new(
+      project_name: @params[:project_name],
+      backfilled: backfilled,
+      include_projects: include_projects
+    )
+    
+    success_json(service.calculate_stats)
   end
 
   private

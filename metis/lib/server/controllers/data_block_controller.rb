@@ -18,66 +18,26 @@ class DataBlockController < Metis::Controller
     project_name = @params[:project_name]
     is_backfilled = (project_name == 'backfilled')
     include_projects = @params[:include_projects] || []
+    include_projects = [include_projects] unless include_projects.is_a?(Array)
     
     # Parse commit parameter - defaults to false (dry-run mode for safety)
     commit = @params[:commit].nil? ? false : (@params[:commit] == true || @params[:commit].to_s.downcase == 'true')
     
-    # Ensure include_projects is an array
-    include_projects = [include_projects] unless include_projects.is_a?(Array)
+    service = Metis::VacuumService.new(
+      project_name: project_name,
+      commit: commit,
+      include_projects: include_projects,
+      user: @user
+    )
     
-    # Find orphaned datablocks using the ledger
-    orphaned_datablocks = if is_backfilled
-      Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
-    else
-      Metis::DataBlockLedger.find_orphaned_datablocks(project_name, include_projects: include_projects)
-    end
-    
-    vacuumed = []
-    errors = []
-    
-    orphaned_datablocks.each do |datablock|
-      begin
-        if commit
-          # Remove the datablock
-          datablock.remove!
-          
-          # Log vacuum event AFTER successful deletion
-          Metis::DataBlockLedger.log_vacuum(
-            datablock,
-            is_backfilled ? nil : project_name,
-            @user
-          )
-        end
-        
-        vacuumed << {
-          md5_hash: datablock.md5_hash,
-          size: datablock.size,
-          location: datablock.location
-        }
-      rescue => e
-        errors << "Failed to vacuum datablock #{datablock.md5_hash}: #{e.message}"
-      end
-    end
-    
-    response = {
-      dry_run: !commit,
-      vacuumed: vacuumed,
-      errors: errors,
-      summary: {
-        total_vacuumed: vacuumed.length,
-        space_freed: vacuumed.sum { |d| d[:size] || 0 },
-        errors_count: errors.length,
-        project_name: project_name,
-        include_projects: include_projects
-      }
-    }
+    response = service.vacuum_datablocks
     
     if commit
       event_log(
         event: 'vacuum_datablocks',
         message: is_backfilled ? "vacuumed backfilled orphaned datablocks" : "vacuumed orphaned datablocks for project #{project_name}",
         payload: {
-          vacuumed_count: vacuumed.length,
+          vacuumed_count: response[:summary][:total_vacuumed],
           space_freed: response[:summary][:space_freed]
         },
         consolidate: false

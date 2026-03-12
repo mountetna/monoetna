@@ -82,6 +82,11 @@ class Metis
         md5_hash = Metis::File.md5(location)
         existing_block = Metis::DataBlock.where(md5_hash: md5_hash).first
 
+        # If we found a removed block, restore it since we're re-creating with same content
+        if existing_block && existing_block.removed
+          existing_block.update(removed: false)
+        end
+
         if existing_block
           # Get all files pointing to this temp block
           files_to_deduplicate = Metis::File.where(data_block_id: id).all
@@ -126,7 +131,7 @@ class Metis
           if first_file
             Metis::DataBlockLedger.log_resolve(first_file, self, Metis::DataBlockLedger::CHECKSUM_COMMAND)
           else
-            Metis.instance.logger.error("No file found for data block #{id}")
+            Metis.instance.logger&.error("No file found for data block #{id}")
           end
         end
       end

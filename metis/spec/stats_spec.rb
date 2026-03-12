@@ -30,9 +30,10 @@ describe StatsController do
       expect(response[:event_counts][:reuse_datablock]).to eq(0)
       expect(response[:event_counts][:remove_datablock]).to eq(0)
 
-     # Should have vacuum stats
-      expect(response[:vacuum][:datablocks_can_vacuum]).to be >= 2
-      expect(response[:vacuum][:space_can_clear]).to be >= (WISDOM.bytesize + HELMET.bytesize)
+      # Should have vacuum stats
+      expect(response[:vacuum][:datablocks_ready]).to be >= 2
+      expect(response[:vacuum][:space_ready]).to be >= (WISDOM.bytesize + HELMET.bytesize)
+      expect(response[:vacuum][:datablocks_blocked]).to eq(0)
       expect(response[:vacuum][:details].length).to eq(2)
       
       # Verify the two datablock details
@@ -72,8 +73,9 @@ describe StatsController do
       expect(response[:event_counts][:remove_datablock]).to eq(0)
 
       # Should have vacuum stats
-      expect(response[:vacuum][:datablocks_can_vacuum]).to eq(1)
-      expect(response[:vacuum][:space_can_clear]).to eq(WISDOM.bytesize)
+      expect(response[:vacuum][:datablocks_ready]).to eq(1)
+      expect(response[:vacuum][:space_ready]).to eq(WISDOM.bytesize)
+      expect(response[:vacuum][:datablocks_blocked]).to eq(0)
       expect(response[:vacuum][:details].length).to eq(1)
       
       # Verify the wisdom datablock detail (shared across projects, now orphaned)
@@ -144,16 +146,21 @@ describe StatsController do
       expect(response[:event_counts][:reuse_datablock]).to eq(2) # labors.txt and backup.txt reused athena's datablock
       expect(response[:event_counts][:unlink_file_from_datablock]).to eq(1) # athena.txt deleted
 
-      # Should have 1 orphaned datablock when including labors and backup
-      expect(response[:vacuum][:datablocks_can_vacuum]).to be >= 1
-      expect(response[:vacuum][:space_can_clear]).to be >= WISDOM.bytesize
+      # shared_datablock is in planning scope but blocked — labors and backup still have live files
+      expect(response[:vacuum][:datablocks_ready]).to eq(0)
+      expect(response[:vacuum][:datablocks_blocked]).to be >= 1
+      expect(response[:vacuum][:space_blocked]).to be >= WISDOM.bytesize
       expect(response[:vacuum][:include_projects]).to eq(['labors', 'backup'])
-      
+
+      # blocked_by_project shows which projects are holding live files
+      expect(response[:vacuum][:blocked_by_project][:labors]).to be >= 1
+      expect(response[:vacuum][:blocked_by_project][:backup]).to be >= 1
+
       # Should have project_breakdown showing datablocks in athena, labors, and backup
       expect(response[:vacuum][:project_breakdown][:athena]).to eq(1)
       expect(response[:vacuum][:project_breakdown][:labors]).to eq(1)
       expect(response[:vacuum][:project_breakdown][:backup]).to eq(1)
-      
+
       # Check that details don't have project_name
       response[:vacuum][:details].each do |detail|
         expect(detail).not_to have_key(:project_name)
@@ -223,9 +230,10 @@ describe StatsController do
       expect(backfilled_response[:event_counts][:reuse_datablock]).to eq(0)
       expect(backfilled_response[:event_counts][:remove_datablock]).to eq(0)
       
-      # Vacuum stats should show 2 backfilled orphaned datablocks
-      expect(backfilled_response[:vacuum][:datablocks_can_vacuum]).to eq(2)
-      expect(backfilled_response[:vacuum][:space_can_clear]).to eq(WISDOM.bytesize + HELMET.bytesize)
+      # Vacuum stats should show 2 backfilled orphaned datablocks (both ready — no live files)
+      expect(backfilled_response[:vacuum][:datablocks_ready]).to eq(2)
+      expect(backfilled_response[:vacuum][:space_ready]).to eq(WISDOM.bytesize + HELMET.bytesize)
+      expect(backfilled_response[:vacuum][:datablocks_blocked]).to eq(0)
       
       # Verify vacuum details for backfilled datablocks
       expect(backfilled_response[:vacuum][:details].length).to eq(2)

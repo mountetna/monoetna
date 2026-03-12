@@ -25,7 +25,7 @@ describe Metis::DataBlockLedger do
     stubs.clear
   end
 
-  describe '.find_orphaned_datablocks_backfilled' do
+  describe '.find_orphaned_datablocks_backfilled_for_stats' do
     describe 'single project' do
       it 'returns orphaned datablocks' do
         disable_all_ledger_events
@@ -49,7 +49,7 @@ describe Metis::DataBlockLedger do
         backfill_ledger.execute(orphaned: true)
         
         # Find orphaned backfilled datablocks
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_stats
         
         expect(orphaned.length).to eq(2)
         orphaned_ids = orphaned.map(&:id)
@@ -78,7 +78,7 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
         
         # Should not be orphaned because it's been vacuumed (marked as removed)
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_stats
         
         expect(orphaned).to be_empty
       end
@@ -102,7 +102,7 @@ describe Metis::DataBlockLedger do
         backfill_ledger.execute(project_name: 'athena', links: true)
         backfill_ledger.execute(orphaned: true)
 
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_stats
         expect(orphaned.length).to eq(1)
         expect(orphaned[0].id).to eq(untracked_file.data_block.id)
       end
@@ -131,7 +131,7 @@ describe Metis::DataBlockLedger do
         backfill_ledger.execute(orphaned: true)
 
         # Find orphaned datablocks
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_stats
         expect(orphaned.length).to eq(1)
         expect(orphaned.first.id).to eq(wisdom_file.data_block_id)
       end
@@ -158,13 +158,47 @@ describe Metis::DataBlockLedger do
         backfill_ledger.execute(orphaned: true)
 
         # Find orphaned datablocks
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_stats
         expect(orphaned.length).to eq(0)
       end
     end
   end
 
-  describe '.find_orphaned_datablocks' do
+  describe '.find_orphaned_datablocks_backfilled_for_vacuum' do
+    it 'returns orphaned backfilled datablock when no project has a live file' do
+      disable_all_ledger_events
+
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      wisdom_datablock = wisdom_file.data_block
+
+      backfill_ledger = Metis::BackfillDataBlockLedger.new
+      backfill_ledger.execute(orphaned: true)
+
+      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_vacuum
+      expect(orphaned.length).to eq(1)
+      expect(orphaned.first.id).to eq(wisdom_datablock.id)
+    end
+
+    it 'does not return backfilled datablock when a project still has a live file' do
+      disable_all_ledger_events
+
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      wisdom_datablock = wisdom_file.data_block
+
+      # Backfill marks it as orphaned in the ledger, but the file record still exists
+      backfill_ledger = Metis::BackfillDataBlockLedger.new
+      backfill_ledger.execute(orphaned: true)
+
+      # Simulate a tracked project still pointing to the same datablock
+      another_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
+      expect(another_file.data_block_id).to eq(wisdom_datablock.id)
+
+      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_vacuum
+      expect(orphaned).to be_empty
+    end
+  end
+
+  describe '.find_orphaned_datablocks_for_stats' do
     describe 'single project' do
       it 'returns orphaned datablocks that were linked and then unlinked' do
         # Allow ledger logging for this test
@@ -194,7 +228,7 @@ describe Metis::DataBlockLedger do
         expect(unlink_event).to be_present
         
         # Find orphaned datablocks
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         
         expect(orphaned.length).to eq(1)
         expect(orphaned.first.id).to eq(wisdom_datablock.id)
@@ -227,7 +261,7 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
         
         # Find orphaned datablocks
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         
         expect(orphaned.length).to eq(1)
         expect(orphaned.first.id).to eq(wisdom_datablock.id)
@@ -251,7 +285,7 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
         
         # Should not be orphaned because wisdom_file2 still references it
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         
         expect(orphaned).to be_empty
       end
@@ -272,7 +306,7 @@ describe Metis::DataBlockLedger do
         Metis::DataBlockLedger.log_vacuum(wisdom_datablock, 'athena', nil)
         
         # Should not be orphaned because it's already been vacuumed
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         
         expect(orphaned).to be_empty
       end
@@ -299,7 +333,7 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
         
         # Should be orphaned now
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         expect(orphaned.length).to eq(1)
         expect(orphaned.first.id).to eq(wisdom_datablock.id)
       end
@@ -307,7 +341,7 @@ describe Metis::DataBlockLedger do
       it 'returns empty array when no orphaned datablocks exist' do
         disable_all_ledger_events
         
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         expect(orphaned).to be_empty
       end
 
@@ -330,7 +364,7 @@ describe Metis::DataBlockLedger do
         backfill_ledger.execute(project_name: 'athena', links: true)
         backfill_ledger.execute(orphaned: true)
 
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         expect(orphaned.length).to eq(1)
         expect(orphaned[0].id).to eq(tracked_file.data_block.id)
       end
@@ -355,29 +389,28 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
         
         # Should not be orphaned for athena because it's still in use by labors project
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         expect(orphaned).to be_empty
       end
 
-      it 'returns datablocks orphaned for project when include_projects list contains all using projects' do
-        # Allow ledger logging for this test
+      it 'returns datablocks orphaned for project when include_projects is specified, even if included project still has a live file (planning view)' do
         enable_all_ledger_events
-        
+
         # Create file in athena
         athena_file = upload_file_via_api('athena', 'athena.txt', WISDOM)
         shared_datablock = athena_file.data_block
-        
+
         # Create file in labors with same content (reuses datablock)
         labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
         expect(labors_file.data_block_id).to eq(shared_datablock.id)
-        
-        # Delete athena file (orphaned for athena, but still used by labors)
+
+        # Delete only athena's file — labors still has a live file
         token_header(:editor)
         delete("/athena/file/remove/files/athena.txt")
         expect(last_response.status).to eq(200)
-        
-        # With include=['labors']: should be orphaned (only used by athena + labors)
-        orphaned_with_include = Metis::DataBlockLedger.find_orphaned_datablocks('athena', include_projects: ['labors'])
+
+        # Stats function shows this as a candidate (labors is in the include list, so it's a planning hint)
+        orphaned_with_include = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena', include_projects: ['labors'])
         expect(orphaned_with_include.length).to eq(1)
         expect(orphaned_with_include.first.id).to eq(shared_datablock.id)
       end
@@ -404,7 +437,7 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
         
         # With include=['labors']: should NOT be orphaned (still used by backup, which is not included)
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena', include_projects: ['labors'])
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena', include_projects: ['labors'])
         expect(orphaned).to be_empty
       end
 
@@ -430,10 +463,72 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
         
         # With include=['labors', 'backup']: should be orphaned (only used by athena + labors + backup)
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena', include_projects: ['labors', 'backup'])
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena', include_projects: ['labors', 'backup'])
         expect(orphaned.length).to eq(1)
         expect(orphaned.first.id).to eq(shared_datablock.id)
       end
+    end
+  end
+
+  describe '.find_orphaned_datablocks_for_vacuum' do
+    it 'returns orphaned datablock when no other project has a live file' do
+      enable_all_ledger_events
+
+      athena_file = upload_file_via_api('athena', 'athena.txt', WISDOM)
+      shared_datablock = athena_file.data_block
+
+      token_header(:editor)
+      delete("/athena/file/remove/files/athena.txt")
+      expect(last_response.status).to eq(200)
+
+      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_vacuum('athena')
+      expect(orphaned.length).to eq(1)
+      expect(orphaned.first.id).to eq(shared_datablock.id)
+    end
+
+    it 'does not return datablock when another project still has a live file' do
+      enable_all_ledger_events
+
+      athena_file = upload_file_via_api('athena', 'athena.txt', WISDOM)
+      shared_datablock = athena_file.data_block
+
+      labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
+      expect(labors_file.data_block_id).to eq(shared_datablock.id)
+
+      # Delete only athena's file — labors still has a live file
+      token_header(:editor)
+      delete("/athena/file/remove/files/athena.txt")
+      expect(last_response.status).to eq(200)
+
+      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_vacuum('athena')
+      expect(orphaned).to be_empty
+    end
+
+    it 'does not return datablock when the main project still has a live file' do
+      enable_all_ledger_events
+
+      athena_file = upload_file_via_api('athena', 'athena.txt', WISDOM)
+      shared_datablock = athena_file.data_block
+
+      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_vacuum('athena')
+      expect(orphaned).to be_empty
+    end
+
+    it 'does not return already-vacuumed datablocks' do
+      enable_all_ledger_events
+
+      athena_file = upload_file_via_api('athena', 'athena.txt', WISDOM)
+      shared_datablock = athena_file.data_block
+
+      token_header(:editor)
+      delete("/athena/file/remove/files/athena.txt")
+      expect(last_response.status).to eq(200)
+
+      shared_datablock.remove!
+      Metis::DataBlockLedger.log_vacuum(shared_datablock, 'athena', nil)
+
+      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_vacuum('athena')
+      expect(orphaned).to be_empty
     end
   end
 
@@ -458,7 +553,7 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
         
         # Should correctly identify as orphaned
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         expect(orphaned.length).to eq(1)
         expect(orphaned.first.id).to eq(wisdom_datablock.id)
       end
@@ -492,7 +587,7 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
         
         # Should still correctly identify as orphaned (duplicate links don't break logic)
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         expect(orphaned.length).to eq(0)
       end
 
@@ -525,7 +620,7 @@ describe Metis::DataBlockLedger do
         expect(new_link_event).to be_present
         
         # Should NOT be orphaned (file currently exists with this datablock)
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         expect(orphaned).to be_empty
       end
 
@@ -557,7 +652,7 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
         
         # Should correctly identify as orphaned (linked and unlinked, no file exists)
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         expect(orphaned.length).to eq(1)
         expect(orphaned.first.id).to eq(wisdom_datablock.id)
       end
@@ -587,7 +682,7 @@ describe Metis::DataBlockLedger do
           event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
         ).count
         expect(link_count).to eq(1)
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         expect(orphaned).to be_empty
       end
 
@@ -622,7 +717,7 @@ describe Metis::DataBlockLedger do
         expect(unlink_count).to eq(1)
         
         # Should still correctly identify as orphaned
-        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks('athena')
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_stats('athena')
         expect(orphaned.length).to eq(1)
       end
     end
