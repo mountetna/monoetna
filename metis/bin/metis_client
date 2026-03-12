@@ -82,11 +82,11 @@ class MetisConfig
 end
 
 INITIAL_BLOB_SIZE = 2**10
-MAX_BLOB_SIZE = 2**22;
+MAX_BLOB_SIZE = 2**24;
 ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e'
 
 class Upload
-  attr_reader :file_path
+  attr_reader :file_path, :no_checksum
   def initialize(file_path, no_checksum)
     @file_path = file_path
     @no_checksum = no_checksum
@@ -358,9 +358,9 @@ class MetisClient < Client
         [ 'blob_data', blob[:blob_data], {filename: 'blob'} ],
         [ 'next_blob_size', blob[:next_blob_size].to_s ],
         [ 'next_blob_hash', blob[:next_blob_hash].to_s ],
-        [ 'no_checksum', 'true' ],
+        upload.no_checksum ? [ 'no_checksum', 'true' ] : nil,
         [ 'current_byte_position', blob[:current_byte_position].to_s ]
-      ]
+      ].compact
     )
 
     raise MetisClient::UploadError, "Problem with uploading the blob: #{error(response)}" if response.code == '422'
