@@ -107,7 +107,7 @@ class UploadController < Metis::Controller
 
     blob = Metis::Blob.new(@params[:blob_data])
 
-    raise Etna::BadRequest, 'Blob integrity failed' unless blob.continues?(upload)
+    raise Etna::BadRequest, 'Blob integrity failed' unless blob.continues?(upload) || @params[:no_checksum]
 
     upload.append_blob(
       blob,
