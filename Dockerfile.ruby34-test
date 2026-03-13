@@ -1,0 +1,48 @@
+FROM ruby:3.4-bullseye
+WORKDIR /app
+
+ENV RUBY_VERSION 3.4.9
+ENV RUBY_MAJOR_VERSION 3.4.0
+ENV BUNDLER_VERSION_ 2.6.2
+ENV DOCKERIZE_VERSION 0.5.0
+ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
+ENV RACK_ENV development
+
+ENV BUNDLE_PATH="/bundle"
+ENV BUNDLE_BIN="$BUNDLE_PATH/ruby/$RUBY_MAJOR_VERSION/bin"
+ENV BUNDLE_SILENCE_ROOT_WARNING=0
+ENV BUNDLE_APP_CONFIG="/etna/.bundle"
+ENV BUNDLE_GEMFILE="/etna/Gemfile"
+ENV PATH "/app/bin:/etna/node_modules/.bin:/app/node_modules/.bin:$BUNDLE_BIN:$PATH"
+
+RUN apt-get update \
+  && apt-get install -y \
+    libpq-dev \
+    postgresql-client \
+    libvips \
+    libvips-dev \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    rsync \
+    sshpass \
+    sqlite3 \
+    --no-install-recommends \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
+
+RUN gem install bundler -v "=$BUNDLER_VERSION_"
+
+ENV GEM_HOME="$BUNDLE_PATH"
+ENV GEM_PATH="/root/.gem/ruby/$RUBY_MAJOR_VERSION:/usr/local/lib/ruby/gems/$RUBY_MAJOR_VERSION:/usr/local/bundle:$BUNDLE_PATH/ruby/$RUBY_MAJOR_VERSION"
+
+# Copy entrypoints from the dev base image directory
+COPY docker/etna-base-dev/entrypoints /entrypoints
+
+# Copy the etna gem source so bundle install can resolve the path gem + compile its extensions
+COPY etna /etna
+
+# Install all gems (generates a fresh Gemfile.lock for Ruby 3.4)
+RUN bundle install -j "$(nproc)"
+
+RUN mkdir -p /app/tmp/pids /app/public/js /app/public/css /app/log /app/data /tmp/metrics.prom

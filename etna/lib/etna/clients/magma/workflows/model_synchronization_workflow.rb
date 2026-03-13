@@ -249,10 +249,8 @@ module Etna
           template = source_model.template
 
           add_model_action = AddModelAction.new(
-              {
-                  model_name: target_model_name,
-                  identifier: template.identifier,
-              }
+              model_name: target_model_name,
+              identifier: template.identifier,
           )
 
           parents = template.attributes.all.select { |a| a.attribute_type == AttributeType::PARENT }

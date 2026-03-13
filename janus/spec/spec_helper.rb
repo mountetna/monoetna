@@ -3,7 +3,6 @@ require 'etna'
 require 'yaml'
 require 'logger'
 require 'factory_bot'
-require 'database_cleaner'
 require 'simplecov'
 require 'timecop'
 require 'nokogiri'
@@ -164,12 +163,12 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     FactoryBot.find_definitions
-    DatabaseCleaner.strategy = :transaction
-    DatabaseCleaner.clean_with(:truncation)
+    db = Janus.instance.db
+    db.tables.each { |t| db[t].truncate(cascade: true) rescue nil }
   end
 
   config.around(:each) do |example|
-    DatabaseCleaner.cleaning do
+    Janus.instance.db.transaction(rollback: :always, savepoint: true) do
       example.run
     end
   end

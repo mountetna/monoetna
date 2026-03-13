@@ -170,7 +170,7 @@ class AdminController < Janus::Controller
     raise Etna::BadRequest, "invalid project" if @project.nil?
     raise Etna::BadRequest, "invalid contact email" if @params[:contact_email] && !valid_contact?
 
-    @project.update(**update_payload)
+    @project.update(update_payload)
 
     event_log(
       event: 'update_project',
