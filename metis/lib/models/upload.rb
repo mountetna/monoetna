@@ -64,12 +64,19 @@ class Metis
         f.data_block = data_block
       end
       file.update(folder: folder, author: author, data_block: data_block)
-      Metis::DataBlockLedger.log_create(
-        file,
-        data_block,
-        author
-      )
+      Metis::DataBlockLedger.log_create(file, data_block, author)
       Metis::DataBlockLedger.log_link(file, data_block, author)
+
+      if started_at
+        duration = Time.now - started_at.to_time
+        bps = duration > 0 ? (data_block.size / duration).round : 0
+        Metis.instance.logger.warn(
+          "upload_complete project=#{project_name} bucket=#{bucket.name} " \
+          "file=#{file_name} size_bytes=#{data_block.size} " \
+          "duration_seconds=#{'%.3f' % duration} bytes_per_sec=#{bps}"
+        )
+      end
+
       return file
     end
 
@@ -90,6 +97,7 @@ class Metis
             current_byte_position: 0,
             next_blob_size: -1,
             next_blob_hash: '',
+            started_at: DateTime.now,
         )
       end
     end
