@@ -16,14 +16,14 @@ import { useUser } from '../user/context';
 
 
 export default function DrawerNav({
-    accessUrl,
+    loginUrl,
     open,
     onClose,
     sx = {},
     onClickNavLink,
     onSetLibraryCardModalOpen,
 }: {
-    accessUrl: string,
+    loginUrl: string,
     open: boolean,
     onClose: () => void,
     sx?: SxProps,
@@ -118,7 +118,7 @@ export default function DrawerNav({
                             }}
                         >
                             <LibraryCardButton
-                                accessUrl={accessUrl}
+                                loginUrl={loginUrl}
                                 isLoggedIn={user !== null}
                                 onClick={() => handleSetLibraryCardModalOpen(!libraryCardModalOpen)}
                             />

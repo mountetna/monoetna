@@ -10,11 +10,13 @@ import DataFieldChip from '@/components/data/data-field-chip';
 import ThemeChip from '@/components/themes/theme-chip';
 import ProjectPI from '@/components/project-explorer/project-pi.tsx'; 
 import libraryIcon from '/public/images/icons/library.svg'
-
+import Link from './link/link';
+import { useUser } from './user/context';
 
 const ProjectViewer = ({project}) => {
-  console.log({project});
   const dataTypes = projectDataTypes(project);
+
+  const user = useUser();
 
   return <Box sx={{
     px: '144px',
@@ -142,6 +144,7 @@ const ProjectViewer = ({project}) => {
       </Box>
     </Box>
 
+   { (!user || !(project.name in user.permissions)) &&
     <Box sx={theme => ({
       background: theme.palette.orange.grade50,
       borderRadius: '16px',
@@ -157,16 +160,22 @@ const ProjectViewer = ({project}) => {
         variant="contained"
         size="large"
         sx={{
-          color: 'white',
           bgcolor: 'orange.grade10',
           padding: '16px 32px'
         }}
       >
-        <Typography variant="pBodyBoldWt">
-          Get Access
-        </Typography>
+        <Link
+            href={`/project/${project.name}/access`}
+            sx={{
+              color: 'white'
+            }}
+        >
+          <Typography variant="pBodyBoldWt">
+            Get Access
+          </Typography>
+        </Link>
       </Button>
-    </Box>
+    </Box> }
   </Box>
 }
 
