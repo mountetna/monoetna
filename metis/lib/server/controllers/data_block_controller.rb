@@ -17,16 +17,12 @@ class DataBlockController < Metis::Controller
   def vacuum_datablocks
     project_name = @params[:project_name]
     is_backfilled = (project_name == 'backfilled')
-    include_projects = @params[:include_projects] || []
-    include_projects = [include_projects] unless include_projects.is_a?(Array)
-    
     # Parse commit parameter - defaults to false (dry-run mode for safety)
     commit = @params[:commit].nil? ? false : (@params[:commit] == true || @params[:commit].to_s.downcase == 'true')
     
     service = Metis::VacuumService.new(
       project_name: project_name,
       commit: commit,
-      include_projects: include_projects,
       user: @user
     )
     
