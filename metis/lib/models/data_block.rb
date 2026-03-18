@@ -84,13 +84,15 @@ class Metis
 
         # If we found a removed block, restore it since we're re-creating with same content
         if existing_block && existing_block.removed
+          # Move the temp file's physical data to the existing block's location
+          ::File.rename(location, existing_block.location) if has_data? && existing_block.missing_data?
           existing_block.update(removed: false)
         end
 
         if existing_block
           # Get all files pointing to this temp block
           files_to_deduplicate = Metis::File.where(data_block_id: id).all
-          
+
           # Point all the files to the existing block
           Metis::File.where(
             data_block_id: id,
@@ -99,7 +101,7 @@ class Metis
           )
 
           yield [:temp_delete] if block_given?
-          # destroy the redundant file
+          # destroy the redundant temp file (already moved if it was a restore)
           ::File.delete(location) if has_data?
 
           # destroy this redundant record
@@ -167,6 +169,10 @@ class Metis
 
     def has_data?
       ::File.exist?(location)
+    end
+
+    def missing_data?
+      !has_data?
     end
 
     def location
