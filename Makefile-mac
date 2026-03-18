@@ -206,6 +206,12 @@ metis-remove:
 metis-migrate:
 	cd metis && docker compose run --rm -e UPDATE_STATE=1 metis_app
 
+metis-clear:
+	cd metis && docker compose rm -f -s
+	docker volume rm -f db-data data-dir
+	cd metis && docker compose up -d
+	cd metis && docker compose run --rm -e UPDATE_STATE=1 metis_app
+
 ## Etna Edge ##
 
 edge-up:
