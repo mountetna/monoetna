@@ -404,7 +404,7 @@ describe Metis::DataBlockLedger do
     end
   end
 
-  describe '.find_blocked_datablocks' do
+  describe '.find_blocked_orphaned_datablocks' do
     it 'returns datablocks orphaned by this project but still live in another project' do
       enable_all_ledger_events
 
@@ -418,7 +418,7 @@ describe Metis::DataBlockLedger do
       delete("/athena/file/remove/files/athena.txt")
       expect(last_response.status).to eq(200)
 
-      result = Metis::DataBlockLedger.find_blocked_datablocks('athena')
+      result = Metis::DataBlockLedger.find_blocked_orphaned_datablocks('athena')
       expect(result[:datablocks].length).to eq(1)
       expect(result[:datablocks].first.id).to eq(shared_datablock.id)
       expect(result[:blocked_by][shared_datablock.id]).to include('labors')
@@ -433,7 +433,7 @@ describe Metis::DataBlockLedger do
       delete("/athena/file/remove/files/athena.txt")
       expect(last_response.status).to eq(200)
 
-      result = Metis::DataBlockLedger.find_blocked_datablocks('athena')
+      result = Metis::DataBlockLedger.find_blocked_orphaned_datablocks('athena')
       expect(result[:datablocks]).to be_empty
       expect(result[:blocked_by]).to be_empty
     end
@@ -447,7 +447,7 @@ describe Metis::DataBlockLedger do
       labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
       expect(labors_file.data_block_id).to eq(shared_datablock.id)
 
-      result = Metis::DataBlockLedger.find_blocked_datablocks('athena')
+      result = Metis::DataBlockLedger.find_blocked_orphaned_datablocks('athena')
       expect(result[:datablocks]).to be_empty
     end
 
@@ -464,13 +464,13 @@ describe Metis::DataBlockLedger do
       delete("/athena/file/remove/files/athena.txt")
       expect(last_response.status).to eq(200)
 
-      result = Metis::DataBlockLedger.find_blocked_datablocks('athena')
+      result = Metis::DataBlockLedger.find_blocked_orphaned_datablocks('athena')
       expect(result[:datablocks].length).to eq(1)
       blockers = result[:blocked_by][shared_datablock.id]
       expect(blockers).to include('labors', 'backup')
     end
 
-    it 'is disjoint with find_orphaned_datablocks_for_vacuum and together covers all project-orphaned datablocks' do
+    it 'is disjoint with find_orphaned_datablocks_for_vacuum and together covers all orphaned datablocks for the project' do
       enable_all_ledger_events
 
       # shared_datablock: orphaned by athena, still held by labors → should be blocked

@@ -46,7 +46,7 @@ class Metis
       event_counts = Metis::DataBlockLedger.calculate_event_counts(@project_name)
 
       ready_datablocks = Metis::DataBlockLedger.find_orphaned_datablocks_for_vacuum(@project_name)
-      blocked_result = Metis::DataBlockLedger.find_blocked_datablocks(@project_name)
+      blocked_result = Metis::DataBlockLedger.find_blocked_orphaned_datablocks(@project_name)
       blocked_datablocks = blocked_result[:datablocks]
       blocked_by = blocked_result[:blocked_by]
 

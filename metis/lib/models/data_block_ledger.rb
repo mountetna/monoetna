@@ -193,7 +193,7 @@ class Metis
     # Returns datablocks this project has orphaned but cannot yet vacuum because other
     # projects still have live files pointing to them. Also returns which projects are
     # blocking each datablock so they can be tracked down.
-    def self.find_blocked_datablocks(project_name)
+    def self.find_blocked_orphaned_datablocks(project_name)
       if project_name.nil?
         raise Etna::Error, "Project name is required"
       end
