@@ -103,6 +103,7 @@ const ManageModelActions = ({
         </Button>
       </Tooltip>
       <AddLinkModal
+        modelName={modelName}
         onClose={ () => setShowAddLinkModal(false) }
         open={showAddLinkModal}
         onSave={handleAddLink} />
