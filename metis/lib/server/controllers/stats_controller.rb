@@ -50,13 +50,10 @@ class StatsController < Metis::Controller
 
   def ledger
     backfilled = @params[:backfilled] && (@params[:backfilled] == true || @params[:backfilled].to_s.downcase == 'true')
-    include_projects = @params[:include_projects] || []
-    include_projects = [include_projects] unless include_projects.is_a?(Array)
 
     service = Metis::LedgerStatsService.new(
       project_name: @params[:project_name],
-      backfilled: backfilled,
-      include_projects: include_projects
+      backfilled: backfilled
     )
     
     success_json(service.calculate_stats)

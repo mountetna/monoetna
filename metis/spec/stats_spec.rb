@@ -108,64 +108,56 @@ describe StatsController do
       @user = Etna::User.new(AUTH_USERS[:editor])
     end
 
-    it "returns vacuum stats with include_projects parameter" do
+    it "returns vacuum stats with global live-file check" do
       enable_all_ledger_events
-      
-      # Create files in athena
+
       athena_file = upload_file_via_api('athena', 'athena.txt', WISDOM)
       shared_datablock = athena_file.data_block
 
       another_athena_file = upload_file_via_api('athena', 'athena2.txt', "some other content")
       another_datablock = another_athena_file.data_block
-      
-      # Create file in labors with same content (reuses datablock)
-      labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
-      another_labors_file = upload_file_via_api('labors', 'labors2.txt',  "some other content 2")
 
-      # Create a file in backup with same content (reuses datablock)
+      # labors and backup reuse the shared datablock
+      labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
       backup_file = upload_file_via_api('backup', 'backup.txt', WISDOM)
+      expect(labors_file.data_block_id).to eq(shared_datablock.id)
       expect(backup_file.data_block_id).to eq(shared_datablock.id)
-      
-      # Delete athena file (orphaned for athena, but still used by labors)
+
+      # Delete athena's file — shared_datablock is orphaned for athena but still live in labors/backup
       token_header(:editor)
       delete("/athena/file/remove/files/athena.txt")
       expect(last_response.status).to eq(200)
-      
-      # Check vacuum stats without include_projects (should be empty - still used by labors)
+
+      # Also delete athena2 — another_datablock is safe to vacuum (not shared)
+      delete("/athena/file/remove/files/athena2.txt")
+      expect(last_response.status).to eq(200)
+
       token_header(:supereditor)
-      
-      # Check vacuum stats with include_projects=['labors', 'backup'] (should include the datablock)
-      get('/api/stats/ledger', project_name: 'athena', include_projects: ['labors', 'backup'])
+      get('/api/stats/ledger', project_name: 'athena')
       expect(last_response.status).to eq(200)
       response = json_body
 
-      # Should have event counts (for athena + included projects: labors, backup)
-      expect(response[:event_counts][:create_datablock]).to eq(5) # athena.txt, athena2.txt, labors.txt, labors2.txt, backup.txt
-      expect(response[:event_counts][:link_file_to_datablock]).to eq(5) # all 5 files linked
-      expect(response[:event_counts][:resolve_datablock]).to eq(3) # athena.txt, athena2.txt, labors2.txt resolved (labors.txt and backup.txt reused)
-      expect(response[:event_counts][:reuse_datablock]).to eq(2) # labors.txt and backup.txt reused athena's datablock
-      expect(response[:event_counts][:unlink_file_from_datablock]).to eq(1) # athena.txt deleted
+      # Event counts are scoped to athena only
+      expect(response[:event_counts][:create_datablock]).to eq(2)       # athena.txt, athena2.txt
+      expect(response[:event_counts][:link_file_to_datablock]).to eq(2) # both linked
+      expect(response[:event_counts][:unlink_file_from_datablock]).to eq(2) # both deleted
 
-      # shared_datablock is in planning scope but blocked — labors and backup still have live files
-      expect(response[:vacuum][:datablocks_ready]).to eq(0)
-      expect(response[:vacuum][:datablocks_blocked]).to be >= 1
-      expect(response[:vacuum][:space_blocked]).to be >= WISDOM.bytesize
-      expect(response[:vacuum][:include_projects]).to eq(['labors', 'backup'])
+      # another_datablock is safe to vacuum (not shared)
+      expect(response[:vacuum][:datablocks_ready]).to eq(1)
+      expect(response[:vacuum][:space_ready]).to be >= another_datablock.size
 
-      # blocked_by_project shows which projects are holding live files
-      expect(response[:vacuum][:blocked_by_project][:labors]).to be >= 1
-      expect(response[:vacuum][:blocked_by_project][:backup]).to be >= 1
+      # shared_datablock is blocked — labors and backup still have live files
+      expect(response[:vacuum][:datablocks_blocked]).to eq(1)
+      expect(response[:vacuum][:space_blocked]).to be >= shared_datablock.size
+      expect(response[:vacuum][:blocked_by_project][:labors]).to eq(1)
+      expect(response[:vacuum][:blocked_by_project][:backup]).to eq(1)
 
-      # Should have project_breakdown showing datablocks in athena, labors, and backup
-      expect(response[:vacuum][:project_breakdown][:athena]).to eq(1)
-      expect(response[:vacuum][:project_breakdown][:labors]).to eq(1)
-      expect(response[:vacuum][:project_breakdown][:backup]).to eq(1)
+      # No include_projects in the response
+      expect(response[:vacuum]).not_to have_key(:include_projects)
 
-      # Check that details don't have project_name
       response[:vacuum][:details].each do |detail|
         expect(detail).not_to have_key(:project_name)
       end
-      
     end
   end
 

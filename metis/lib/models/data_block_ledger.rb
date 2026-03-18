@@ -147,69 +147,6 @@ class Metis
       user.to_s
     end
 
-    def self.find_orphaned_datablocks_for_stats(project_name, include_projects: [])
-      if project_name.nil?
-        raise Etna::Error, "Project name is required to find orphaned datablocks"
-      end
-
-      # Get all datablock IDs that this project has linked
-      linked_datablock_ids = where(project_name: project_name)
-        .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK])
-        .select_map(:data_block_id)
-        .uniq
-
-      # Get datablock IDs that have been unlinked (no longer in use)
-      unlinked_datablock_ids = where(
-        project_name: project_name,
-        event_type: UNLINK_FILE_FROM_DATABLOCK
-      ).select_map(:data_block_id)
-        .uniq
-
-      # Get datablock IDs currently in use by files in the current project (safety check)
-      used_datablock_ids = Metis::File
-        .where(project_name: project_name)
-        .select_map(:data_block_id)
-        .uniq
-
-      # Get datablock IDs already vacuumed
-      vacuumed_datablock_ids = where(
-        project_name: project_name,
-        event_type: REMOVE_DATABLOCK
-      ).select_map(:data_block_id)
-        .uniq
-
-      # Orphaned = (linked by this project) and (unlinked) and not (currently in use) and not (already vacuumed)
-      orphaned_ids = (linked_datablock_ids & unlinked_datablock_ids) - used_datablock_ids - vacuumed_datablock_ids
-
-      # If include_projects is specified, filter out datablocks used by projects not in the allowed list
-      unless include_projects.empty?
-        # Allowed projects = current project + included projects
-        allowed_projects = [project_name] + include_projects
-        
-        # Get datablock IDs used by projects NOT in the allowed list
-        blocking_datablock_ids = Metis::File
-          .exclude(project_name: allowed_projects)
-          .select_map(:data_block_id)
-          .uniq
-        
-        # Remove datablocks that are used by non-included projects
-        orphaned_ids = orphaned_ids - blocking_datablock_ids
-      else
-        # Default behavior: check globally to prevent vacuuming datablocks used by ANY other project
-        used_by_other_projects = Metis::File
-          .exclude(project_name: project_name)
-          .select_map(:data_block_id)
-          .uniq
-        
-        orphaned_ids = orphaned_ids - used_by_other_projects
-      end
-
-      Metis::DataBlock
-        .where(id: orphaned_ids)
-        .exclude(removed: true)
-        .all
-    end
-
     def self.find_orphaned_datablocks_for_vacuum(project_name)
       if project_name.nil?
         raise Etna::Error, "Project name is required to find orphaned datablocks"
@@ -253,6 +190,65 @@ class Metis
         .all
     end
 
+    # Returns datablocks this project has orphaned but cannot yet vacuum because other
+    # projects still have live files pointing to them. Also returns which projects are
+    # blocking each datablock so they can be tracked down.
+    def self.find_blocked_datablocks(project_name)
+      if project_name.nil?
+        raise Etna::Error, "Project name is required"
+      end
+
+      linked_datablock_ids = where(project_name: project_name)
+        .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK])
+        .select_map(:data_block_id)
+        .uniq
+
+      unlinked_datablock_ids = where(
+        project_name: project_name,
+        event_type: UNLINK_FILE_FROM_DATABLOCK
+      ).select_map(:data_block_id)
+        .uniq
+
+      used_datablock_ids = Metis::File
+        .where(project_name: project_name)
+        .select_map(:data_block_id)
+        .uniq
+
+      vacuumed_datablock_ids = where(
+        project_name: project_name,
+        event_type: REMOVE_DATABLOCK
+      ).select_map(:data_block_id)
+        .uniq
+
+      orphaned_by_project = (linked_datablock_ids & unlinked_datablock_ids) - used_datablock_ids - vacuumed_datablock_ids
+
+      used_by_other_projects = Metis::File
+        .exclude(project_name: project_name)
+        .select_map(:data_block_id)
+        .uniq
+
+      # Blocked = orphaned by this project AND still live in at least one other project
+      blocked_ids = orphaned_by_project & used_by_other_projects
+
+      datablocks = Metis::DataBlock
+        .where(id: blocked_ids)
+        .exclude(removed: true)
+        .all
+
+      # Build a map of datablock_id -> [blocking project names]
+      blocking_files = Metis::File
+        .exclude(project_name: project_name)
+        .where(data_block_id: blocked_ids)
+        .select(:data_block_id, :project_name)
+        .all
+
+      blocked_by = blocking_files.each_with_object({}) do |file, h|
+        (h[file.data_block_id] ||= []) << file.project_name unless h[file.data_block_id]&.include?(file.project_name)
+      end
+
+      { datablocks: datablocks, blocked_by: blocked_by }
+    end
+
     def self.find_orphaned_datablocks_backfilled_for_stats
       backfilled_datablock_ids = where(
         triggered_by: SYSTEM_BACKFILL,
@@ -294,13 +290,9 @@ class Metis
         .all
     end
 
-    def self.calculate_event_counts(project_name = nil, include_projects: [])
-      # Count all event types
-      # If project_name is provided, count events for that project (and optionally include_projects)
-      # If project_name is nil (backfilled mode), count only SYSTEM_BACKFILL events
+    def self.calculate_event_counts(project_name = nil)
       event_counts = if project_name
-        all_projects = [project_name] + include_projects
-        where(project_name: all_projects)
+        where(project_name: project_name)
           .select_map(:event_type)
           .tally
       else
@@ -318,30 +310,17 @@ class Metis
       event_counts
     end
 
-    def self.calculate_project_breakdown(orphaned_datablocks, project_name, include_projects = [])
-      # Calculate project breakdown: count datablocks per project
-      # For each orphaned datablock, count it for each project that has linked/reused it
-      all_projects = [project_name] + include_projects
-      project_breakdown = {}
-      all_projects.each do |proj|
-        project_breakdown[proj.to_sym] = 0
-      end
-      
+    def self.calculate_project_breakdown(orphaned_datablocks, project_name)
+      project_breakdown = { project_name.to_sym => 0 }
+
       orphaned_datablocks.each do |datablock|
-        # For each project, check if this datablock has been linked/reused in that project
-        # If it has, increment that project's counter
-        all_projects.each do |proj|
-          # Check if this datablock has any link or reuse events in this project
-          has_events = where(project_name: proj, data_block_id: datablock.id)
-            .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK])
-            .count > 0
-          
-          # If the datablock has events in this project, count it for this project
-          # This means if a datablock is in both athena and labors, both get incremented
-          project_breakdown[proj.to_sym] += 1 if has_events
-        end
+        has_events = where(project_name: project_name, data_block_id: datablock.id)
+          .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK])
+          .count > 0
+
+        project_breakdown[project_name.to_sym] += 1 if has_events
       end
-      
+
       project_breakdown
     end
 

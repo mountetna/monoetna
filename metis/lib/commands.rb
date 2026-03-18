@@ -502,17 +502,15 @@ class Metis
   end
 
   class LedgerStats < Etna::Command
-    usage "Usage: bin/metis ledger_stats [--project_name <project_name>] [--backfilled] [--include_projects project1,project2]
+    usage "Usage: bin/metis ledger_stats [--project_name <project_name>] [--backfilled]
            # Query ledger statistics and vacuum candidates
            # --project_name: Query stats for a specific project (tracked mode)
-           # --backfilled: Query stats for backfilled datablocks
-           # --include_projects: Optional comma-separated list of projects to include in vacuum calculations"
+           # --backfilled: Query stats for backfilled datablocks"
 
     string_flags << "--project_name"
     boolean_flags << "--backfilled"
-    string_flags << "--include_projects"
 
-    def execute(project_name: nil, backfilled: false, include_projects: nil)
+    def execute(project_name: nil, backfilled: false)
       if !project_name && !backfilled
         puts "Error: Must specify either --project_name or --backfilled"
         puts ""
@@ -520,7 +518,6 @@ class Metis
         puts ""
         puts "Examples:"
         puts "  bin/metis ledger_stats --project_name athena"
-        puts "  bin/metis ledger_stats --project_name athena --include_projects labors,victory"
         puts "  bin/metis ledger_stats --backfilled"
         return
       end
@@ -534,14 +531,9 @@ class Metis
       puts "=" * 70
       puts ""
 
-      # Parse include_projects
-      include_projects_array = include_projects ? include_projects.split(',').map(&:strip) : []
-
-      # Use the service directly
       service = Metis::LedgerStatsService.new(
         project_name: project_name,
-        backfilled: backfilled,
-        include_projects: include_projects_array
+        backfilled: backfilled
       )
       
       begin
@@ -581,7 +573,7 @@ class Metis
 
       if vacuum[:project_breakdown] && !vacuum[:project_breakdown].empty?
         puts ""
-        puts "  Planning breakdown (include_projects scope):"
+        puts "  Project breakdown:"
         vacuum[:project_breakdown].each do |proj, count|
           puts "    #{proj.to_s.ljust(25)} #{count}"
         end
@@ -630,7 +622,7 @@ class Metis
         vacuum[:blocked_by_project].each do |proj, count|
           puts "  #{proj} (#{count} datablock#{'s' if count != 1} blocked)"
         end
-        puts "  Then re-run: bin/metis ledger_stats --project_name #{project_name}#{" --include_projects #{include_projects}" if include_projects}"
+        puts "  Then re-run: bin/metis ledger_stats --project_name #{project_name}"
       end
 
       if vacuum[:datablocks_ready] == 0 && vacuum[:datablocks_blocked] == 0
