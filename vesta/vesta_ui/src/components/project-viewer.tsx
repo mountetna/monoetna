@@ -18,6 +18,7 @@ const ProjectViewer = ({project}) => {
 
   const user = useUser();
 
+  const hasAccess = user && (project.name in user.permissions);
   return <Box sx={{
     px: '144px',
     py: '50px'
@@ -47,24 +48,40 @@ const ProjectViewer = ({project}) => {
             size="large"
             sx={{
               color: 'white',
-              background: 'black',
+              bgcolor: hasAccess ? 'black' : 'orange.grade10',
+
               padding: '16px 32px'
             }}
             href={ project.href }
           >
-            <Image
-              style={{
-                filter: 'brightness(50)',
-                marginRight: '5px'
-              }}
-              width='24'
-              height='24'
-              src={libraryIcon}
-              alt='open book'
-            />
-            <Typography variant="pBodyBoldWt">
-              Open in Library
-            </Typography>
+          {
+            hasAccess ?
+            <>
+              <Image
+                style={{
+                  filter: 'brightness(50)',
+                  marginRight: '5px'
+                }}
+                width='24'
+                height='24'
+                src={libraryIcon}
+                alt='open book'
+              />
+              <Typography variant="pBodyBoldWt">
+                Open in Library
+              </Typography>
+            </>
+            : <Link
+                href={`/project/${project.name}/access`}
+                sx={{
+                  color: 'white'
+                }}
+            >
+              <Typography variant="pBodyBoldWt">
+                Get Access
+              </Typography>
+            </Link>
+          }
           </Button>
         </Box>
       </Box>
@@ -143,39 +160,6 @@ const ProjectViewer = ({project}) => {
         </Box>
       </Box>
     </Box>
-
-   { (!user || !(project.name in user.permissions)) &&
-    <Box sx={theme => ({
-      background: theme.palette.orange.grade50,
-      borderRadius: '16px',
-      padding: '24px',
-      my: '25px',
-      mx: '50px',
-      display: 'flex',
-      justifyContent: 'space-between'
-    })}>
-      <Typography variant="h4" color="white">Want to collaborate with us on this project?</Typography>
-      <Button
-        disableElevation
-        variant="contained"
-        size="large"
-        sx={{
-          bgcolor: 'orange.grade10',
-          padding: '16px 32px'
-        }}
-      >
-        <Link
-            href={`/project/${project.name}/access`}
-            sx={{
-              color: 'white'
-            }}
-        >
-          <Typography variant="pBodyBoldWt">
-            Get Access
-          </Typography>
-        </Link>
-      </Button>
-    </Box> }
   </Box>
 }
 
