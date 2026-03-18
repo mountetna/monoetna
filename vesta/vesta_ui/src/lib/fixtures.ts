@@ -281,7 +281,7 @@ THEMES.forEach(theme => {
     Theme: [theme.name]
   }
   const search = toSearchParamsString(projectsSearchParamsState)
-  theme.projectsLink = '/projects?' + search + '#projects'
+  theme.projectsLink = '/projects?' + search + '#project-explorer'
 })
 
 export { VIDEOS, ABOUT_ITEMS, THEMES }
