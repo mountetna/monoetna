@@ -64,12 +64,24 @@ class Metis
         f.data_block = data_block
       end
       file.update(folder: folder, author: author, data_block: data_block)
-      Metis::DataBlockLedger.log_create(
-        file,
-        data_block,
-        author
+      Metis::DataBlockLedger.log_event(
+        event_type: Metis::DataBlockLedger::CREATE_DATABLOCK,
+        datablock: data_block,
+        triggered_by: author,
+        project_name: file.project_name,
+        file_path: file.file_path,
+        file_id: file.id,
+        bucket_name: file.bucket.name
       )
-      Metis::DataBlockLedger.log_link(file, data_block, author)
+      Metis::DataBlockLedger.log_event(
+        event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK,
+        datablock: data_block,
+        triggered_by: author,
+        project_name: file.project_name,
+        file_path: file.file_path,
+        file_id: file.id,
+        bucket_name: file.bucket.name
+      )
       return file
     end
 

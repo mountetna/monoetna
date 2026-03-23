@@ -30,106 +30,22 @@ class Metis
       validates_format /^(temp-[a-f0-9]{32}|[a-f0-9]{32})$/i, :md5_hash
     end
 
-    def self.log_create(file, datablock, user)
-      create(
-        project_name: file.project_name,
-        md5_hash: datablock.md5_hash,
-        file_path: file.file_path,
-        file_id: file.id,
-        data_block_id: datablock.id,
-        event_type: CREATE_DATABLOCK,
-        triggered_by: user_identifier(user),
-        size: datablock.size,
-        bucket_name: file.bucket.name,
-        created_at: DateTime.now
-      )
-    rescue => e
-      Metis.instance.logger.error("Failed to log create event: #{e.message}")
-    end
-
-  def self.log_link(file, datablock, user)
-      create(
-        project_name: file.project_name,
-        md5_hash: datablock.md5_hash,
-        file_path: file.file_path,
-        file_id: file.id,
-        data_block_id: datablock.id,
-        event_type: LINK_FILE_TO_DATABLOCK,
-        triggered_by: user_identifier(user),
-        size: datablock.size,
-        bucket_name: file.bucket.name,
-        created_at: DateTime.now
-      )
-    rescue => e
-      Metis.instance.logger.error("Failed to log link event: #{e.message}")
-    end
-
-    def self.log_resolve(file, datablock, event)
-      create(
-        project_name: file.project_name,
-        md5_hash: datablock.md5_hash,
-        file_path: file.file_path,
-        file_id: file.id,
-        data_block_id: datablock.id,
-        event_type: RESOLVE_DATABLOCK,
-        triggered_by: event,
-        size: datablock.size,
-        bucket_name: file.bucket.name,
-        created_at: DateTime.now
-      )
-    rescue => e
-      Metis.instance.logger.error("Failed to log resolve event: #{e.message}")
-    end
-
-    def self.log_deduplicate(file, datablock, user)
-      create(
-        project_name: file.project_name,
-        md5_hash: datablock.md5_hash,
-        file_path: file.file_path,
-        file_id: file.id,
-        data_block_id: datablock.id,
-        event_type: REUSE_DATABLOCK,
-        triggered_by: user_identifier(user),
-        size: datablock.size,
-        bucket_name: file.bucket.name,
-        created_at: DateTime.now
-      )
-    rescue => e
-      Metis.instance.logger.error("Failed to log deduplicate event: #{e.message}")
-    end
-
-    def self.log_unlink(file, datablock, user, file_path: nil)
-      create(
-        project_name: file.project_name,
-        md5_hash: datablock.md5_hash,
-        file_path: file_path || file.file_path,
-        file_id: file.id,
-        data_block_id: datablock.id,
-        event_type: UNLINK_FILE_FROM_DATABLOCK,
-        triggered_by: user_identifier(user),
-        size: datablock.size,
-        bucket_name: file.bucket.name,
-        created_at: DateTime.now
-      )
-    rescue => e
-      Metis.instance.logger.error("Failed to log unlink event: #{e.message}")
-    end
-
-    def self.log_vacuum(datablock, project_name, user)
+    def self.log_event(event_type:, datablock:, triggered_by:, project_name: nil, file_path: nil, file_id: nil, bucket_name: nil, event_meta: nil)
       create(
         project_name: project_name,
         md5_hash: datablock.md5_hash,
-        file_path: nil,
-        file_id: nil,
+        file_path: file_path,
+        file_id: file_id,
         data_block_id: datablock.id,
-        event_type: REMOVE_DATABLOCK,
-        triggered_by: user_identifier(user),
+        event_type: event_type,
+        triggered_by: user_identifier(triggered_by),
         size: datablock.size,
-        bucket_name: nil,
+        bucket_name: bucket_name,
+        event_meta: event_meta,
         created_at: DateTime.now
       )
     rescue => e
-      Metis.instance.logger.error("Failed to log vacuum event: #{e.message}")
+      Metis.instance.logger.error("Failed to log #{event_type} event: #{e.message}")
     end
 
     def self.user_identifier(user)

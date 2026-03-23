@@ -110,7 +110,15 @@ class Metis
 
           # Log deduplicate event for each file AFTER destroying the redundant file
           files_to_deduplicate.each do |file|
-            Metis::DataBlockLedger.log_deduplicate(file, existing_block, Metis::DataBlockLedger::CHECKSUM_COMMAND)
+            Metis::DataBlockLedger.log_event(
+              event_type: Metis::DataBlockLedger::REUSE_DATABLOCK,
+              datablock: existing_block,
+              triggered_by: Metis::DataBlockLedger::CHECKSUM_COMMAND,
+              project_name: file.project_name,
+              file_path: file.file_path,
+              file_id: file.id,
+              bucket_name: file.bucket.name
+            )
           end
 
           return
@@ -131,7 +139,15 @@ class Metis
           # Log RESOLVE_DATABLOCK for the temp block being resolved
           first_file = Metis::File.where(data_block_id: id).first
           if first_file
-            Metis::DataBlockLedger.log_resolve(first_file, self, Metis::DataBlockLedger::CHECKSUM_COMMAND)
+            Metis::DataBlockLedger.log_event(
+              event_type: Metis::DataBlockLedger::RESOLVE_DATABLOCK,
+              datablock: self,
+              triggered_by: Metis::DataBlockLedger::CHECKSUM_COMMAND,
+              project_name: first_file.project_name,
+              file_path: first_file.file_path,
+              file_id: first_file.id,
+              bucket_name: first_file.bucket.name
+            )
           else
             Metis.instance.logger&.error("No file found for data block #{id}")
           end

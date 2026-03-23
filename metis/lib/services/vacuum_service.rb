@@ -16,10 +16,11 @@ class Metis
         begin
           if @commit
             datablock.remove!
-            Metis::DataBlockLedger.log_vacuum(
-              datablock,
-              @is_backfilled ? nil : @project_name,
-              @user
+            Metis::DataBlockLedger.log_event(
+              event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK,
+              datablock: datablock,
+              triggered_by: @user,
+              project_name: @is_backfilled ? nil : @project_name
             )
           end
           

@@ -312,7 +312,12 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
         
         # Vacuum the datablock (creates REMOVE_DATABLOCK event)
-        Metis::DataBlockLedger.log_vacuum(wisdom_datablock, 'athena', nil)
+        Metis::DataBlockLedger.log_event(
+          event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK,
+          datablock: wisdom_datablock,
+          triggered_by: nil,
+          project_name: 'athena'
+        )
         
         # Should not be orphaned because it's already been vacuumed
         orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_vacuum('athena')
@@ -562,7 +567,12 @@ describe Metis::DataBlockLedger do
       expect(last_response.status).to eq(200)
 
       shared_datablock.remove!
-      Metis::DataBlockLedger.log_vacuum(shared_datablock, 'athena', nil)
+      Metis::DataBlockLedger.log_event(
+        event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK,
+        datablock: shared_datablock,
+        triggered_by: nil,
+        project_name: 'athena'
+      )
 
       orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_vacuum('athena')
       expect(orphaned).to be_empty
