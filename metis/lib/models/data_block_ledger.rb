@@ -13,7 +13,8 @@ class Metis
     EVENT_TYPES = [CREATE_DATABLOCK, RESOLVE_DATABLOCK, REUSE_DATABLOCK, LINK_FILE_TO_DATABLOCK, UNLINK_FILE_FROM_DATABLOCK, REMOVE_DATABLOCK].freeze
 
     SYSTEM_BACKFILL = 'system_backfill'
-    CHECKSUM_COMMAND= 'command_checksum'
+    CHECKSUM_COMMAND = 'command_checksum'
+    CANCEL_UPLOAD = 'cancel_upload'
 
     def validate
       super
@@ -100,10 +101,7 @@ class Metis
 
       orphaned_ids = orphaned_ids - used_by_other_projects
 
-      Metis::DataBlock
-        .where(id: orphaned_ids)
-        .exclude(removed: true)
-        .all
+      Metis::DataBlock.exclude_removed_and_temp_blocks(orphaned_ids)
     end
 
     # Returns datablocks this project has orphaned but cannot yet vacuum because other
@@ -146,10 +144,7 @@ class Metis
       # Blocked = orphaned by this project AND still live in at least one other project
       blocked_ids = orphaned_by_project & used_by_other_projects
 
-      datablocks = Metis::DataBlock
-        .where(id: blocked_ids)
-        .exclude(removed: true)
-        .all
+      datablocks = Metis::DataBlock.exclude_removed_and_temp_blocks(blocked_ids)
 
       # Build a map of datablock_id -> [blocking project names]
       blocking_files = Metis::File
@@ -177,10 +172,7 @@ class Metis
 
       orphaned_ids = backfilled_datablock_ids - vacuumed_datablock_ids
 
-      Metis::DataBlock
-        .where(id: orphaned_ids)
-        .exclude(removed: true)
-        .all
+      Metis::DataBlock.exclude_removed_and_temp_blocks(orphaned_ids)
     end
 
     def self.find_orphaned_datablocks_backfilled_for_vacuum
@@ -200,10 +192,7 @@ class Metis
 
       orphaned_ids = orphaned_ids - used_datablock_ids
 
-      Metis::DataBlock
-        .where(id: orphaned_ids)
-        .exclude(removed: true)
-        .all
+      Metis::DataBlock.exclude_removed_and_temp_blocks(orphaned_ids)
     end
 
     def self.calculate_event_counts(project_name = nil)
