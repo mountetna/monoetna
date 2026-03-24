@@ -36,6 +36,13 @@ class Metis
       Metis::DataBlock.where(query).select_map(:size).sum
     end
 
+    def self.exclude_removed_and_temp_blocks(ids)
+      where(id: ids)
+        .exclude(removed: true)
+        .exclude(Sequel.like(:md5_hash, "#{TEMP_PREFIX}%"))
+        .all
+    end
+
     def set_file_data(file_path, copy = false)
       if copy
         ::FileUtils.copy(

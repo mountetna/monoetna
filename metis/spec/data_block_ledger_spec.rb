@@ -106,6 +106,24 @@ describe Metis::DataBlockLedger do
         expect(orphaned.length).to eq(1)
         expect(orphaned[0].id).to eq(untracked_file.data_block.id)
       end
+
+      it 'does not return temp datablocks' do
+        disable_all_ledger_events
+
+        temp_hash = "#{Metis::DataBlock::TEMP_PREFIX}abcdef1234567890abcdef1234567890"
+        temp_file = create_file('athena', 'pending.txt', WISDOM, md5_hash: temp_hash)
+        stubs.create_file('athena', 'files', 'pending.txt', WISDOM, temp_hash)
+
+        token_header(:editor)
+        delete("/athena/file/remove/files/pending.txt")
+        expect(last_response.status).to eq(200)
+
+        backfill_ledger = Metis::BackfillDataBlockLedger.new
+        backfill_ledger.execute(orphaned: true)
+
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_stats
+        expect(orphaned).to be_empty
+      end
     end
 
     describe 'cross project' do
@@ -201,6 +219,24 @@ describe Metis::DataBlockLedger do
       # Simulate a tracked project still pointing to the same datablock
       another_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
       expect(another_file.data_block_id).to eq(wisdom_datablock.id)
+
+      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_vacuum
+      expect(orphaned).to be_empty
+    end
+
+    it 'does not return temp datablocks' do
+      disable_all_ledger_events
+
+      temp_hash = "#{Metis::DataBlock::TEMP_PREFIX}abcdef1234567890abcdef1234567890"
+      temp_file = create_file('athena', 'pending.txt', WISDOM, md5_hash: temp_hash)
+      stubs.create_file('athena', 'files', 'pending.txt', WISDOM, temp_hash)
+
+      token_header(:editor)
+      delete("/athena/file/remove/files/pending.txt")
+      expect(last_response.status).to eq(200)
+
+      backfill_ledger = Metis::BackfillDataBlockLedger.new
+      backfill_ledger.execute(orphaned: true)
 
       orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_vacuum
       expect(orphaned).to be_empty
@@ -382,6 +418,21 @@ describe Metis::DataBlockLedger do
         expect(orphaned.length).to eq(1)
         expect(orphaned[0].id).to eq(tracked_file.data_block.id)
       end
+
+      it 'does not return temp datablocks' do
+        enable_all_ledger_events
+
+        temp_hash = "#{Metis::DataBlock::TEMP_PREFIX}abcdef1234567890abcdef1234567890"
+        temp_file = create_file('athena', 'pending.txt', WISDOM, md5_hash: temp_hash)
+        stubs.create_file('athena', 'files', 'pending.txt', WISDOM, temp_hash)
+
+        token_header(:editor)
+        delete("/athena/file/remove/files/pending.txt")
+        expect(last_response.status).to eq(200)
+
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_vacuum('athena')
+        expect(orphaned).to be_empty
+      end
     end
 
     describe 'cross project' do
@@ -473,6 +524,25 @@ describe Metis::DataBlockLedger do
       expect(result[:datablocks].length).to eq(1)
       blockers = result[:blocked_by][shared_datablock.id]
       expect(blockers).to include('labors', 'backup')
+    end
+
+    it 'does not return temp datablocks' do
+      enable_all_ledger_events
+
+      temp_hash = "#{Metis::DataBlock::TEMP_PREFIX}abcdef1234567890abcdef1234567890"
+      temp_file = create_file('athena', 'pending.txt', WISDOM, md5_hash: temp_hash)
+      stubs.create_file('athena', 'files', 'pending.txt', WISDOM, temp_hash)
+
+      # Also create a real file in labors pointing to the same block so it would
+      # appear blocked if temp blocks were not excluded
+      labors_file = create_file('labors', 'labors.txt', WISDOM, md5_hash: temp_hash)
+
+      token_header(:editor)
+      delete("/athena/file/remove/files/pending.txt")
+      expect(last_response.status).to eq(200)
+
+      result = Metis::DataBlockLedger.find_blocked_orphaned_datablocks('athena')
+      expect(result[:datablocks]).to be_empty
     end
 
     it 'is disjoint with find_orphaned_datablocks_for_vacuum and together covers all orphaned datablocks for the project' do
