@@ -80,6 +80,7 @@ class UploadController < Metis::Controller
 
     if requires_reset
       upload_update[:author] = Metis::File.author(user)
+      upload_update[:started_at] = DateTime.now
       upload.delete_partial!
     end
 

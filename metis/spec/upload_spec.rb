@@ -672,6 +672,81 @@ describe UploadController do
       Timecop.return
     end
 
+    context 'upload timing metadata' do
+      it 'records duration and throughput in CREATE_DATABLOCK event_meta when started_at is set' do
+        enable_all_ledger_events
+
+        upload = prep_upload('wisdom.txt')
+        upload.update(started_at: DateTime.now - Rational(30, 86400)) # 30 seconds ago
+
+        complete_upload('wisdom.txt')
+
+        expect(last_response.status).to eq(200)
+
+        file = Metis::File.first
+        create_event = Metis::DataBlockLedger.where(
+          data_block_id: file.data_block_id,
+          event_type: Metis::DataBlockLedger::CREATE_DATABLOCK
+        ).first
+
+        expect(create_event).to be_present
+        meta = create_event.event_meta
+        expect(meta).not_to be_nil
+        expect(meta['upload_duration_seconds']).to be_within(2).of(30.0)
+        expect(meta['throughput_bytes_per_second']).to be_within(1).of(WISDOM.length.to_f / 30.0)
+
+        File.delete(file.data_block.location)
+      end
+
+      it 'records empty event_meta when started_at is not set' do
+        enable_all_ledger_events
+
+        upload = prep_upload('wisdom.txt')
+        # started_at is nil by default from create_upload
+
+        complete_upload('wisdom.txt')
+
+        expect(last_response.status).to eq(200)
+
+        file = Metis::File.first
+        create_event = Metis::DataBlockLedger.where(
+          data_block_id: file.data_block_id,
+          event_type: Metis::DataBlockLedger::CREATE_DATABLOCK
+        ).first
+
+        expect(create_event).to be_present
+        expect(create_event.event_meta).to eq({})
+
+        File.delete(file.data_block.location)
+      end
+
+      it 'records nil throughput when upload completes instantaneously' do
+        enable_all_ledger_events
+
+        upload = prep_upload('wisdom.txt')
+        # Freeze time so that DateTime.now - started_at == 0
+        Timecop.freeze(Time.now) do
+          upload.update(started_at: DateTime.now)
+          complete_upload('wisdom.txt')
+        end
+
+        expect(last_response.status).to eq(200)
+
+        file = Metis::File.first
+        create_event = Metis::DataBlockLedger.where(
+          data_block_id: file.data_block_id,
+          event_type: Metis::DataBlockLedger::CREATE_DATABLOCK
+        ).first
+
+        expect(create_event).to be_present
+        meta = create_event.event_meta
+        expect(meta['upload_duration_seconds']).to eq(0.0)
+        expect(meta['throughput_bytes_per_second']).to be_nil
+
+        File.delete(file.data_block.location)
+      end
+    end
+
     it 'properly logs nested file paths in the ledger' do
       enable_all_ledger_events
       
