@@ -89,8 +89,8 @@ class Metis
         md5_hash = Metis::File.md5(location)
         existing_block = Metis::DataBlock.where(md5_hash: md5_hash).first
 
-        # If we found a removed block, restore it since we're re-creating with same content
-        if existing_block && existing_block.removed
+        was_removed = existing_block && existing_block.removed
+        if was_removed
           # Move the temp file's physical data to the existing block's location
           ::File.rename(location, existing_block.location) if has_data? && existing_block.missing_data?
           existing_block.update(removed: false)
@@ -115,10 +115,12 @@ class Metis
           yield [:temp_destroy] if block_given?
           destroy
 
-          # Log deduplicate event for each file AFTER destroying the redundant file
+          # Restored blocks get RESTORE_DATABLOCK; ordinary deduplication gets REUSE_DATABLOCK
+          event_type = was_removed ? Metis::DataBlockLedger::RESTORE_DATABLOCK : Metis::DataBlockLedger::REUSE_DATABLOCK
+
           files_to_deduplicate.each do |file|
             Metis::DataBlockLedger.log_event(
-              event_type: Metis::DataBlockLedger::REUSE_DATABLOCK,
+              event_type: event_type,
               datablock: existing_block,
               triggered_by: Metis::DataBlockLedger::CHECKSUM_COMMAND,
               project_name: file.project_name,

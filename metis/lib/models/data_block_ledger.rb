@@ -6,11 +6,12 @@ class Metis
     CREATE_DATABLOCK = 'create_datablock'
     RESOLVE_DATABLOCK = 'resolve_datablock'
     REUSE_DATABLOCK = 'reuse_datablock'
+    RESTORE_DATABLOCK = 'restore_datablock'
     LINK_FILE_TO_DATABLOCK = 'link_file_to_datablock'
     UNLINK_FILE_FROM_DATABLOCK = 'unlink_file_from_datablock' # Orphaned datablocks
     REMOVE_DATABLOCK = 'remove_datablock'
 
-    EVENT_TYPES = [CREATE_DATABLOCK, RESOLVE_DATABLOCK, REUSE_DATABLOCK, LINK_FILE_TO_DATABLOCK, UNLINK_FILE_FROM_DATABLOCK, REMOVE_DATABLOCK].freeze
+    EVENT_TYPES = [CREATE_DATABLOCK, RESOLVE_DATABLOCK, REUSE_DATABLOCK, RESTORE_DATABLOCK, LINK_FILE_TO_DATABLOCK, UNLINK_FILE_FROM_DATABLOCK, REMOVE_DATABLOCK].freeze
 
     SYSTEM_BACKFILL = 'system_backfill'
     CHECKSUM_COMMAND = 'command_checksum'
@@ -70,7 +71,7 @@ class Metis
       end
 
       linked_datablock_ids = where(project_name: project_name)
-        .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK])
+        .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK, RESTORE_DATABLOCK])
         .select_map(:data_block_id)
         .uniq
 
@@ -91,7 +92,16 @@ class Metis
       ).select_map(:data_block_id)
         .uniq
 
-      orphaned_ids = (linked_datablock_ids & unlinked_datablock_ids) - used_datablock_ids - vacuumed_datablock_ids
+      restored_datablock_ids = where(
+        project_name: project_name,
+        event_type: RESTORE_DATABLOCK
+      ).select_map(:data_block_id)
+        .uniq
+
+      # A block that was vacuumed but later restored is eligible again
+      effectively_vacuumed_ids = vacuumed_datablock_ids - restored_datablock_ids
+
+      orphaned_ids = (linked_datablock_ids & unlinked_datablock_ids) - used_datablock_ids - effectively_vacuumed_ids
 
       # Block if ANY other project has a live file — vacuum is only safe when no one points to the datablock
       used_by_other_projects = Metis::File
@@ -113,7 +123,7 @@ class Metis
       end
 
       linked_datablock_ids = where(project_name: project_name)
-        .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK])
+        .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK, RESTORE_DATABLOCK])
         .select_map(:data_block_id)
         .uniq
 
@@ -134,7 +144,16 @@ class Metis
       ).select_map(:data_block_id)
         .uniq
 
-      orphaned_by_project = (linked_datablock_ids & unlinked_datablock_ids) - used_datablock_ids - vacuumed_datablock_ids
+      restored_datablock_ids = where(
+        project_name: project_name,
+        event_type: RESTORE_DATABLOCK
+      ).select_map(:data_block_id)
+        .uniq
+
+      # A block that was vacuumed but later restored is eligible again
+      effectively_vacuumed_ids = vacuumed_datablock_ids - restored_datablock_ids
+
+      orphaned_by_project = (linked_datablock_ids & unlinked_datablock_ids) - used_datablock_ids - effectively_vacuumed_ids
 
       used_by_other_projects = Metis::File
         .exclude(project_name: project_name)
@@ -170,7 +189,13 @@ class Metis
         event_type: REMOVE_DATABLOCK
       ).select_map(:data_block_id).uniq
 
-      orphaned_ids = backfilled_datablock_ids - vacuumed_datablock_ids
+      restored_datablock_ids = where(
+        event_type: RESTORE_DATABLOCK
+      ).select_map(:data_block_id).uniq
+
+      effectively_vacuumed_ids = vacuumed_datablock_ids - restored_datablock_ids
+
+      orphaned_ids = backfilled_datablock_ids - effectively_vacuumed_ids
 
       Metis::DataBlock.exclude_removed_and_temp_blocks(orphaned_ids)
     end
@@ -185,7 +210,13 @@ class Metis
         event_type: REMOVE_DATABLOCK
       ).select_map(:data_block_id).uniq
 
-      orphaned_ids = backfilled_datablock_ids - vacuumed_datablock_ids
+      restored_datablock_ids = where(
+        event_type: RESTORE_DATABLOCK
+      ).select_map(:data_block_id).uniq
+
+      effectively_vacuumed_ids = vacuumed_datablock_ids - restored_datablock_ids
+
+      orphaned_ids = backfilled_datablock_ids - effectively_vacuumed_ids
 
       # Block if any project has a live file — vacuum is only safe when no one points to the datablock
       used_datablock_ids = Metis::File.select_map(:data_block_id).uniq
@@ -220,7 +251,7 @@ class Metis
 
       orphaned_datablocks.each do |datablock|
         has_events = where(project_name: project_name, data_block_id: datablock.id)
-          .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK])
+          .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK, RESTORE_DATABLOCK])
           .count > 0
 
         project_breakdown[project_name.to_sym] += 1 if has_events
