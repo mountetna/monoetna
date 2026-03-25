@@ -517,6 +517,11 @@ describe DataBlockController do
         event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK
       ).first
       expect(vacuum_event).to be_present
+
+      # Backfilled vacuum events have no project scope
+      expect(
+        Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK).all.map(&:project_name).uniq
+      ).to eq([nil])
     end
 
   end
@@ -658,12 +663,69 @@ describe DataBlockController do
       expect(last_response.status).to eq(403)
     end
 
+    it 'captures errors during removal and returns them in the response' do
+      enable_all_ledger_events
+
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+
+      token_header(:editor)
+      delete("/athena/file/remove/files/wisdom.txt")
+      expect(last_response.status).to eq(200)
+
+      allow_any_instance_of(Metis::DataBlock).to receive(:remove!).and_raise(RuntimeError, 'disk full')
+
+      token_header(:supereditor)
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
+
+      expect(last_response.status).to eq(200)
+      response = json_body
+
+      expect(response[:vacuumed]).to be_empty
+      expect(response[:errors].length).to eq(1)
+      expect(response[:errors].first).to include(wisdom_file.data_block.md5_hash)
+      expect(response[:errors].first).to include('disk full')
+      expect(response[:summary][:errors_count]).to eq(1)
+      expect(response[:summary][:total_vacuumed]).to eq(0)
+    end
+
+    it 'continues vacuuming remaining datablocks when one fails' do
+      enable_all_ledger_events
+
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      helmet_file = upload_file_via_api('athena', 'helmet.jpg', HELMET)
+
+      token_header(:editor)
+      delete("/athena/file/remove/files/wisdom.txt")
+      delete("/athena/file/remove/files/helmet.jpg")
+      expect(last_response.status).to eq(200)
+
+      call_count = 0
+      allow_any_instance_of(Metis::DataBlock).to receive(:remove!).and_wrap_original do |original, *args|
+        call_count += 1
+        raise RuntimeError, 'disk full' if call_count == 1
+        original.call(*args)
+      end
+
+      token_header(:supereditor)
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
+
+      expect(last_response.status).to eq(200)
+      response = json_body
+
+      expect(response[:errors].length).to eq(1)
+      expect(response[:errors].first).to include('disk full')
+      expect(response[:vacuumed].length).to eq(1)
+      expect(response[:summary][:errors_count]).to eq(1)
+      expect(response[:summary][:total_vacuumed]).to eq(1)
+    end
+
     it 'returns empty result when no orphaned datablocks exist' do
       token_header(:supereditor)
       json_post('/api/vacuum_datablocks/athena', { commit: true })
       
       expect(last_response.status).to eq(200)
       response = json_body
+      expect(response[:dry_run]).to be_falsey
       expect(response[:vacuumed]).to be_empty
       expect(response[:summary][:total_vacuumed]).to eq(0)
       expect(response[:summary][:space_freed]).to eq(0)

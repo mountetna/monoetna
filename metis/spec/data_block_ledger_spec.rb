@@ -241,6 +241,64 @@ describe Metis::DataBlockLedger do
       orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_vacuum
       expect(orphaned).to be_empty
     end
+
+    it 'does not return already-vacuumed backfilled datablocks' do
+      disable_all_ledger_events
+
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      wisdom_datablock = wisdom_file.data_block
+
+      token_header(:editor)
+      delete("/athena/file/remove/files/wisdom.txt")
+      expect(last_response.status).to eq(200)
+
+      backfill_ledger = Metis::BackfillDataBlockLedger.new
+      backfill_ledger.execute(orphaned: true)
+
+      # Simulate a prior vacuum run by logging a REMOVE_DATABLOCK event
+      Metis::DataBlockLedger.log_event(
+        event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK,
+        datablock: wisdom_datablock,
+        triggered_by: nil
+      )
+
+      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_vacuum
+      expect(orphaned).to be_empty
+    end
+
+    it 'returns a backfilled datablock that was vacuumed, restored, and then orphaned again' do
+      disable_all_ledger_events
+
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      wisdom_datablock = wisdom_file.data_block
+
+      token_header(:editor)
+      delete("/athena/file/remove/files/wisdom.txt")
+      expect(last_response.status).to eq(200)
+
+      backfill_ledger = Metis::BackfillDataBlockLedger.new
+      backfill_ledger.execute(orphaned: true)
+
+      # Log vacuum event (first vacuum cycle)
+      Metis::DataBlockLedger.log_event(
+        event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK,
+        datablock: wisdom_datablock,
+        triggered_by: nil
+      )
+
+      # Log restore event (datablock was restored by a re-upload)
+      Metis::DataBlockLedger.log_event(
+        event_type: Metis::DataBlockLedger::RESTORE_DATABLOCK,
+        datablock: wisdom_datablock,
+        triggered_by: nil,
+        project_name: 'athena'
+      )
+
+      # Block should reappear as orphaned for a second vacuum cycle
+      orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_backfilled_for_vacuum
+      expect(orphaned.length).to eq(1)
+      expect(orphaned.first.id).to eq(wisdom_datablock.id)
+    end
   end
 
   describe '.find_orphaned_datablocks_for_vacuum' do
@@ -497,6 +555,12 @@ describe Metis::DataBlockLedger do
   end
 
   describe '.find_blocked_orphaned_datablocks' do
+    it 'raises an error when project_name is nil' do
+      expect {
+        Metis::DataBlockLedger.find_blocked_orphaned_datablocks(nil)
+      }.to raise_error(Etna::Error)
+    end
+
     it 'returns datablocks orphaned by this project but still live in another project' do
       enable_all_ledger_events
 
