@@ -217,7 +217,7 @@ bin/metis backfill_data_block_ledger --orphaned
 
 Finds all orphaned datablocks across all projects and creates unlink events for them. No project name is needed because datablocks can span multiple projects and the original project is often unknown.
 
-It is best to run `--links` before `--orphaned`. Vacuuming backfilled datablocks only requires the unlink events created by `--orphaned`, but running `--links` first ensures future tracked-mode vacuums will work correctly.
+It is best to run `--links` before `--orphaned`. Vacuuming backfilled datablocks only requires the unlink events created by `--orphaned`, but running `--links` is logically nice and is necessary for future tracked-mode vacuums.
 
 ### Tracked
 
