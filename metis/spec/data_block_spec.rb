@@ -256,6 +256,8 @@ describe Metis::DataBlock do
     end
 
     it 'restores a removed data block when re-uploading same content' do
+      enable_all_ledger_events
+
       # Create a data block
       original_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
@@ -298,6 +300,20 @@ describe Metis::DataBlock do
       
       # The temp block should be destroyed
       expect(Metis::DataBlock.where(id: new_temp_datablock.id).first).to be_nil
+
+      # A RESTORE_DATABLOCK event should be logged (not REUSE_DATABLOCK)
+      restore_event = Metis::DataBlockLedger.where(
+        event_type: Metis::DataBlockLedger::RESTORE_DATABLOCK,
+        data_block_id: original_datablock.id
+      ).first
+      expect(restore_event).to be_present
+      expect(restore_event.project_name).to eq('athena')
+      expect(restore_event.triggered_by).to eq(Metis::DataBlockLedger::CHECKSUM_COMMAND)
+
+      expect(Metis::DataBlockLedger.where(
+        event_type: Metis::DataBlockLedger::REUSE_DATABLOCK,
+        data_block_id: original_datablock.id
+      ).count).to eq(0)
     end
   end
 
@@ -692,6 +708,20 @@ describe DataBlockController do
       # The physical file should exist at the restored block's location
       expect(::File.exists?(original_datablock.location)).to eq(true)
       expect(original_datablock.has_data?).to eq(true)
+
+      # A RESTORE_DATABLOCK event should be logged (not REUSE_DATABLOCK)
+      restore_event = Metis::DataBlockLedger.where(
+        event_type: Metis::DataBlockLedger::RESTORE_DATABLOCK,
+        data_block_id: original_datablock_id
+      ).first
+      expect(restore_event).to be_present
+      expect(restore_event.project_name).to eq('athena')
+      expect(restore_event.triggered_by).to eq(Metis::DataBlockLedger::CHECKSUM_COMMAND)
+
+      expect(Metis::DataBlockLedger.where(
+        event_type: Metis::DataBlockLedger::REUSE_DATABLOCK,
+        data_block_id: original_datablock_id
+      ).count).to eq(0)
     end
   end
 

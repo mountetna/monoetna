@@ -81,7 +81,7 @@ class Metis
       ).select_map(:data_block_id)
         .uniq
 
-      used_datablock_ids = Metis::File
+      live_datablock_ids = Metis::File
         .where(project_name: project_name)
         .select_map(:data_block_id)
         .uniq
@@ -99,9 +99,9 @@ class Metis
         .uniq
 
       # A block that was vacuumed but later restored is eligible again
-      effectively_vacuumed_ids = vacuumed_datablock_ids - restored_datablock_ids
+      already_removed_ids = vacuumed_datablock_ids - restored_datablock_ids
 
-      orphaned_ids = (linked_datablock_ids & unlinked_datablock_ids) - used_datablock_ids - effectively_vacuumed_ids
+      orphaned_ids = (linked_datablock_ids & unlinked_datablock_ids) - live_datablock_ids - already_removed_ids
 
       # Block if ANY other project has a live file — vacuum is only safe when no one points to the datablock
       used_by_other_projects = Metis::File
@@ -133,7 +133,7 @@ class Metis
       ).select_map(:data_block_id)
         .uniq
 
-      used_datablock_ids = Metis::File
+      live_datablock_ids = Metis::File
         .where(project_name: project_name)
         .select_map(:data_block_id)
         .uniq
@@ -151,9 +151,9 @@ class Metis
         .uniq
 
       # A block that was vacuumed but later restored is eligible again
-      effectively_vacuumed_ids = vacuumed_datablock_ids - restored_datablock_ids
+      already_removed_ids = vacuumed_datablock_ids - restored_datablock_ids
 
-      orphaned_by_project = (linked_datablock_ids & unlinked_datablock_ids) - used_datablock_ids - effectively_vacuumed_ids
+      orphaned_by_project = (linked_datablock_ids & unlinked_datablock_ids) - live_datablock_ids - already_removed_ids
 
       used_by_other_projects = Metis::File
         .exclude(project_name: project_name)
@@ -193,9 +193,9 @@ class Metis
         event_type: RESTORE_DATABLOCK
       ).select_map(:data_block_id).uniq
 
-      effectively_vacuumed_ids = vacuumed_datablock_ids - restored_datablock_ids
+      already_removed_ids = vacuumed_datablock_ids - restored_datablock_ids
 
-      orphaned_ids = backfilled_datablock_ids - effectively_vacuumed_ids
+      orphaned_ids = backfilled_datablock_ids - already_removed_ids
 
       Metis::DataBlock.exclude_removed_and_temp_blocks(orphaned_ids)
     end
@@ -214,14 +214,14 @@ class Metis
         event_type: RESTORE_DATABLOCK
       ).select_map(:data_block_id).uniq
 
-      effectively_vacuumed_ids = vacuumed_datablock_ids - restored_datablock_ids
+      already_removed_ids = vacuumed_datablock_ids - restored_datablock_ids
 
-      orphaned_ids = backfilled_datablock_ids - effectively_vacuumed_ids
+      orphaned_ids = backfilled_datablock_ids - already_removed_ids
 
       # Block if any project has a live file — vacuum is only safe when no one points to the datablock
-      used_datablock_ids = Metis::File.select_map(:data_block_id).uniq
+      live_datablock_ids = Metis::File.select_map(:data_block_id).uniq
 
-      orphaned_ids = orphaned_ids - used_datablock_ids
+      orphaned_ids = orphaned_ids - live_datablock_ids
 
       Metis::DataBlock.exclude_removed_and_temp_blocks(orphaned_ids)
     end

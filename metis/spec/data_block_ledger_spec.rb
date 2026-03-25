@@ -361,6 +361,42 @@ describe Metis::DataBlockLedger do
         expect(orphaned).to be_empty
       end
 
+      it 'returns a datablock that was vacuumed, restored, and then orphaned again' do
+        enable_all_ledger_events
+
+        # Upload and delete, then vacuum
+        wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+        wisdom_datablock = wisdom_file.data_block
+
+        token_header(:editor)
+        delete("/athena/file/remove/files/wisdom.txt")
+        expect(last_response.status).to eq(200)
+
+        token_header(:supereditor)
+        json_post('/api/vacuum_datablocks/athena', { commit: true })
+        expect(last_response.status).to eq(200)
+
+        wisdom_datablock.reload
+        expect(wisdom_datablock.removed).to eq(true)
+
+        # Re-upload same content (restores the block) then delete it again
+        new_file = upload_file_via_api('athena', 'wisdom2.txt', WISDOM)
+        new_file.reload
+        expect(new_file.data_block_id).to eq(wisdom_datablock.id)
+
+        wisdom_datablock.reload
+        expect(wisdom_datablock.removed).to eq(false)
+
+        token_header(:editor)
+        delete("/athena/file/remove/files/wisdom2.txt")
+        expect(last_response.status).to eq(200)
+
+        # Should now be orphaned again and eligible for a second vacuum
+        orphaned = Metis::DataBlockLedger.find_orphaned_datablocks_for_vacuum('athena')
+        expect(orphaned.length).to eq(1)
+        expect(orphaned.first.id).to eq(wisdom_datablock.id)
+      end
+
       it 'handles datablocks with multiple link and unlink events correctly' do
         # Allow ledger logging for this test
         enable_all_ledger_events
