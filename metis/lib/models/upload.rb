@@ -117,8 +117,8 @@ class Metis
     def upload_timing_meta
       return {} unless started_at
 
-      duration = (DateTime.now - started_at).to_f * 86400
-      throughput = duration > 0 && file_size.to_i > 0 ? (file_size.to_f / duration).round(2) : nil
+      duration = Time.now - started_at.to_time
+      throughput = duration.round(2) > 0 && file_size.to_i > 0 ? (file_size.to_f / duration).round(2) : nil
 
       {
         upload_duration_seconds: duration.round(2),

@@ -664,7 +664,7 @@ describe Metis::DataBlockLedger do
       expect(last_response.status).to eq(200)
 
       ready   = Metis::DataBlockLedger.find_orphaned_datablocks_for_vacuum('athena')
-      blocked = Metis::DataBlockLedger.find_blocked_datablocks('athena')[:datablocks]
+      blocked = Metis::DataBlockLedger.find_blocked_orphaned_datablocks('athena')[:datablocks]
 
       ready_ids   = ready.map(&:id).to_set
       blocked_ids = blocked.map(&:id).to_set
