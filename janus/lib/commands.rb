@@ -44,7 +44,7 @@ class Janus
         exit
       end
 
-      if !File.exists?(pem_file)
+      if !::File.exist?(pem_file)
         puts 'No such key file'
         exit
       end

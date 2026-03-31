@@ -24,6 +24,7 @@ import {Notifications} from 'etna-js/components/Notifications';
 import QueryPage from './components/query/query_page';
 
 import {createEtnaTheme} from 'etna-js/style/theme';
+import { MagmaProvider } from 'etna-js/contexts/magma-context';
 
 const theme = createEtnaTheme('goldenrod', '#066306');
 
@@ -34,6 +35,7 @@ const ROUTES = [
     mode: 'home'
   },
   {
+    name: 'browse',
     template: ':project_name/',
     component: Browser,
     mode: 'browse'
@@ -157,7 +159,7 @@ class TimurUI extends React.Component {
     let key = JSON.stringify(params);
 
     return (
-      <React.Fragment>
+      <MagmaProvider>
         <ThemeProvider theme={theme}>
           <ModalDialogContainer>
             <div id='ui-container'>
@@ -170,7 +172,7 @@ class TimurUI extends React.Component {
             </div>
           </ModalDialogContainer>
         </ThemeProvider>
-      </React.Fragment>
+      </MagmaProvider>
     );
   }
 }

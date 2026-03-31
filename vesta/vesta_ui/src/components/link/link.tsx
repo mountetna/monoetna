@@ -24,6 +24,7 @@ export default function Link({
         tooltip,
         tooltipContent,
         id,
+        ...linkProps
     } = props
 
     // Manage getting full href
@@ -42,7 +43,8 @@ export default function Link({
 
     const link = (
         <MUILink
-            {...props}
+            {...linkProps}
+            href={href}
             id={elID}
             component={NextLink}
             underline='none'
@@ -54,13 +56,13 @@ export default function Link({
     return (
         tooltip ? (
             <Tooltip
-                title={tooltipContent ? tooltipContent : (
+                title={
                     <TooltipContent
                         variant='simple'
                     >
-                        {fullHref}
+                        {tooltipContent ? tooltipContent : fullHref}
                     </TooltipContent>
-                )}
+                }
                 followCursor
                 placement='bottom-start'
             >

@@ -42,7 +42,7 @@ class Metis
     end
 
     def delete_partial!
-      if ::File.exists?(partial_location)
+      if ::File.exist?(partial_location)
         ::File.delete(partial_location)
       end
     end
@@ -63,9 +63,13 @@ class Metis
         f.author = author
         f.data_block = data_block
       end
-
       file.update(folder: folder, author: author, data_block: data_block)
-
+      Metis::DataBlockLedger.log_create(
+        file,
+        data_block,
+        author
+      )
+      Metis::DataBlockLedger.log_link(file, data_block, author)
       return file
     end
 

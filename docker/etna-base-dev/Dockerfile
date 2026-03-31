@@ -19,7 +19,7 @@ ENV BUNDLE_BIN="$BUNDLE_PATH/ruby/$RUBY_MAJOR_VERSION/bin"
 ENV BUNDLE_SILENCE_ROOT_WARNING=0
 ENV BUNDLE_APP_CONFIG="/etna/.bundle"
 ENV BUNDLE_GEMFILE="/etna/Gemfile"
-ENV PATH "/app/bin:/etna/node_modules/.bin:/app/node_modules/.bin:$BUNDLE_BIN:$PATH:/home/aspera/.aspera/connect/bin"
+ENV PATH "/app/bin:/etna/node_modules/.bin:/app/node_modules/.bin:$BUNDLE_BIN:$PATH"
 
 COPY --from=0 /certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
 RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
@@ -43,12 +43,6 @@ RUN apt-get update \
       sqlite3 \
       --no-install-recommends &&\
     rm -rf /var/lib/apt/lists/*
-
-RUN curl -o /aspera-connect.tar.gz -L https://d3gcli72yxqn2z.cloudfront.net/connect_3_11_0_3b68012_ga/v4/bin/ibm-aspera-connect-3.11.0.5-linux-g2.12-64.tar.gz
-RUN cd / && tar -xf /aspera-connect.tar.gz
-RUN rm /aspera-connect.tar.gz
-RUN useradd -ms /bin/bash aspera
-RUN su aspera -c /ibm-aspera-connect-3.11.0.5-linux-g2.12-64.sh
 
 RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | tar --strip-components=1 -xzC /usr/local/ \
     && npm install -g yarn typescript

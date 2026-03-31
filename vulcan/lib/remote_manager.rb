@@ -41,6 +41,58 @@ class Vulcan
       invoke_ssh_command(command.to_s)[:stdout]
     end
 
+    def stream_file_simple(remote_path, chunk: 256 * 1024, max_duration: 300)
+      bytes_read = 0
+      start_time = Time.now
+      
+      # Wrap the entire SFTP operation in a timeout to prevent hanging
+      Timeout.timeout(max_duration) do
+        @ssh_pool.with_conn do |ssh|
+          sftp = ssh.sftp
+          sftp.file.open(remote_path, 'r') do |file|
+            loop do
+              # Check timeout
+              elapsed = Time.now - start_time
+              if elapsed > max_duration
+                Vulcan.instance.logger.warn(
+                  "Stream timeout after #{elapsed.round(1)}s, #{bytes_read} bytes read from #{remote_path}"
+                )
+                raise Timeout::Error, "Stream exceeded #{max_duration}s limit"
+              end
+              
+              data = file.read(chunk)
+              break if data.nil? || data.empty?
+              
+              bytes_read += data.bytesize
+              yield data
+              
+              # Log progress every 100MB for large files
+              if bytes_read % (100 * 1024 * 1024) < chunk
+                Vulcan.instance.logger.info(
+                  "Streaming progress: #{(bytes_read / 1024.0 / 1024.0).round(1)}MB from #{remote_path}"
+                )
+              end
+            end
+          end
+        end
+      end
+    rescue Timeout::Error => e
+      Vulcan.instance.logger.error("Stream timeout after #{(Time.now - start_time).round(1)}s, #{bytes_read} bytes read")
+      raise "Stream timeout: #{e.message}"
+    rescue Net::SFTP::StatusException => e
+      Vulcan.instance.logger.error("SFTP error: #{e.description}")
+      raise "Remote file error: #{e.description}"
+    rescue IOError, Errno::EPIPE => e
+      # Client likely disconnected
+      Vulcan.instance.logger.warn(
+        "Client disconnected after #{bytes_read} bytes: #{e.message}"
+      )
+      # Don't re-raise - stream was interrupted by client
+    rescue Net::SSH::Disconnect, Errno::ECONNRESET => e
+      Vulcan.instance.logger.error("SSH connection error: #{e.message}")
+      raise "SSH connection lost during streaming: #{e.message}"
+    end
+
     def touch(remote_file_path)
       command = build_command.add('touch', remote_file_path)
       invoke_ssh_command(command.to_s)
@@ -133,7 +185,11 @@ class Vulcan
     end
 
     def clone(repo, target_dir)
-      # For now we ignore branch and assume the default branch
+      # Swap from https repo_url to form that will rely on ssh
+      if repo.start_with?("https://")
+        repo = repo.sub("https://github.com/", "git@github.com:") + ".git"
+      end
+      # For now we ignore specifically desired version, and start with the default branch
       command = build_command.add('git', 'clone', repo, target_dir)
       invoke_ssh_command(command.to_s)
     end
@@ -205,9 +261,26 @@ class Vulcan
       else
         file_found = remote_file_exists?(file_path)
       end
-      
-      Vulcan.instance.logger.info("File #{file_path} #{file_found ? 'found' : 'not found'}")
+     
+      if !file_found
+        Vulcan.instance.logger.warn("File #{file_path} not found")
+      end
       file_found
+    end
+
+    def file_mtime(file_path)
+      # Get the modification time of a file
+      return nil unless file_exists?(file_path)
+      
+      command = build_command
+        .add('stat', '-c', '%Y', file_path) # %Y gives mtime as Unix timestamp
+      result = invoke_ssh_command(command.to_s)
+      
+      timestamp = result[:stdout].strip.to_i
+      Time.at(timestamp)
+    rescue => e
+      Vulcan.instance.logger.error("Error getting mtime for #{file_path}: #{e.message}")
+      nil
     end
 
     def invoke_and_close(command)
@@ -220,28 +293,16 @@ class Vulcan
       end
     end
 
-    def measure_latency(runs: 15)
+    def measure_latency
       # Measure SSH latency by running a simple command multiple times and taking the median
-      latencies = []
-      runs.times do
-        start_time = Time.now
-        command = build_command.add('echo', 'latency_test')
-        result = invoke_ssh_command(command.to_s)
-        end_time = Time.now
-        
-        latency_ms = ((end_time - start_time) * 1000).round(2)
-        latencies << latency_ms
-      end
+      start_time = Time.now
+      command = build_command.add('echo', 'latency_test')
+      result = invoke_ssh_command(command.to_s)
+      end_time = Time.now
       
-      # Calculate median
-      sorted_latencies = latencies.sort
-      median_latency = if sorted_latencies.length.odd?
-        sorted_latencies[sorted_latencies.length / 2]
-      else
-        (sorted_latencies[sorted_latencies.length / 2 - 1] + sorted_latencies[sorted_latencies.length / 2]) / 2.0
-      end
-      
-      median_latency.round(2)
+      latency_ms = ((end_time - start_time) * 1000).round(2)
+
+      return latency_ms
     end
     
     def invoke_ssh_command(command, timeout: 10, retries: 5, retry_delay: 2)

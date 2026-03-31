@@ -31,6 +31,7 @@ export class QueryBuilder {
   root: string = '';
   flatten: boolean = true;
   orRecordFilterIndices: number[] = [];
+  globalOr: boolean = false;
 
   constructor(graph: QueryGraph) {
     this.graph = graph;
@@ -54,6 +55,10 @@ export class QueryBuilder {
 
   setOrRecordFilterIndices(orRecordFilterIndices: number[]) {
     this.orRecordFilterIndices = orRecordFilterIndices;
+  }
+
+  setGlobalOr(globalOr: boolean) {
+    this.globalOr = globalOr;
   }
 
   query(): any[] {
@@ -174,41 +179,20 @@ export class QueryBuilder {
   }
 
   expandedOperands(filters: QueryFilter[]) {
-    let expandedFilters: any[] = [];
-    let andFilters: any[] = ['::and'];
+    if (!filters.length) return [];
 
-    if (this.orRecordFilterIndices.length > 0) {
-      let orFilters: any[] = ['::or'];
+    if (filters.length == 1) return filters.map(
+      (filter) => this.filterWithPath(filter, this.root !== filter.modelName)
+    );
 
-      filters.forEach((filter, index: number) => {
-        let expandedFilter = this.filterWithPath(
-          filter,
-          this.root !== filter.modelName
-        );
+    let condFilters: any[] = [ this.globalOr ? '::or' : '::and'];
 
-        if (this.orRecordFilterIndices.includes(index)) {
-          orFilters.push(expandedFilter);
-        } else {
-          andFilters.push(expandedFilter);
-        }
-      });
-
-      andFilters.push(orFilters);
-      expandedFilters = [andFilters];
-    } else if (filters.length > 1) {
-      andFilters = andFilters.concat(
-        filters.map((filter) =>
-          this.filterWithPath(filter, this.root !== filter.modelName)
-        )
-      );
-      expandedFilters = [andFilters];
-    } else if (filters.length > 0) {
-      // At this point, filters.length === 1...
-      expandedFilters = filters.map((filter) =>
+    condFilters = condFilters.concat(
+      filters.map((filter) =>
         this.filterWithPath(filter, this.root !== filter.modelName)
-      );
-    }
-    return expandedFilters;
+      )
+    );
+    return [condFilters];
   }
 
   filterPathWithModelPredicates(filter: QueryFilter): any[] | undefined {

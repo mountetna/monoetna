@@ -26,6 +26,19 @@ class QueryController < Magma::Controller
         page_size: format == "tsv" ? 50 : @params[:page_size],
       )
 
+
+      if @params[:event_log] && (!@params[:page] || @params[:page] == 1)
+        event_log(
+          event: 'query',
+          message: 'made a query',
+          consolidate: true,
+          payload: {
+            query: @params[:query],
+            show_disconnected: @params[:show_disconnected]
+          }.compact
+        )
+      end
+
       case format
       when "tsv"
         return tsv_payload(question)

@@ -5,7 +5,7 @@ import {VulcanContext} from '../../contexts/vulcan_context';
 import OutputUI from './drawers/output_user_input';
 import { outputUIsWithInputsReady } from '../../selectors/workflow_selectors';
 import {useWorkspace} from '../../contexts/workspace_context';
-import LoadingIcon from '../dashboard/loading_icon';
+import { LoadingIconWithText } from '../dashboard/loading_icon';
 
 export default function OutputFeed() {
   // Shows stream of Output, Plots, etc.,
@@ -16,10 +16,7 @@ export default function OutputFeed() {
 
   const outputFeed = useMemo(() => {
     return state.update_files ?
-      <div>
-        <LoadingIcon/>
-        Refreshing Files
-      </div> :
+      <LoadingIconWithText text='Refreshing Files'/> :
       outputUIsWithInputsReady(workspace, status.file_contents).map((s, index) => (
         <OutputUI key={index} step={s}/>
       ));

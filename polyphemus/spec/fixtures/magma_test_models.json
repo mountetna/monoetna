@@ -221,6 +221,7 @@
       "documents": {},
       "template": {
         "parent": "model_two",
+        "identifier": "id",
         "attributes": {
           "height": {
             "name": "height",

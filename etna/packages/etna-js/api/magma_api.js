@@ -91,10 +91,23 @@ export const getModels = (project_name, fetch=window.fetch) => {
     );
 }
 
+export const getIdentifiers = (project_name, fetch=window.fetch) => {
+    return getDocuments(
+      {
+        project_name,
+        model_name: 'all',
+        record_names: 'all',
+        attribute_names: 'identifier',
+        hide_templates: true
+      },
+      fetch
+    );
+}
+
 export const postRevisions = (revision_data, fetch=window.fetch) => {
   return magmaPost('update', fetch, revision_data);
 };
 
-export const getAnswer = (question, fetch) => {
+export const getAnswer = (question, fetch=window.fetch) => {
   return magmaPost('query', fetch, question);
 };

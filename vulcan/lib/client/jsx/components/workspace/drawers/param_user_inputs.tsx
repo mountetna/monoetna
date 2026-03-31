@@ -28,6 +28,7 @@ import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import Accordion from '@material-ui/core/Accordion';
 import {makeStyles} from '@material-ui/core/styles';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -167,26 +168,28 @@ export default function ParamInputs() {
 
   return (
     <Card className={classes.card}>
-      <Grid
-        className={classes.header}
-        container
-        alignItems='center'
-        justifyContent='space-between'
-        onClick={() => setOpen(!open)}
-      >
-        <Grid item>
-          <Typography variant='h6'>Analysis Setup</Typography>
+      <Tooltip title={`${open ? 'hide' : 'show'} output-independent parameters`}>
+        <Grid
+          className={classes.header}
+          container
+          alignItems='center'
+          justifyContent='space-between'
+          onClick={() => setOpen(!open)}
+        >
+          <Grid item>
+            <Typography variant='h6'>Analysis Setup</Typography>
+          </Grid>
+          <Grid item>
+            <IconButton size='small'>
+              {open ? (
+                <ExpandLessIcon fontSize='small' />
+              ) : (
+                <ExpandMoreIcon fontSize='small' />
+              )}
+            </IconButton>
+          </Grid>
         </Grid>
-        <Grid item>
-          <IconButton size='small'>
-            {open ? (
-              <ExpandLessIcon fontSize='small' />
-            ) : (
-              <ExpandMoreIcon fontSize='small' />
-            )}
-          </IconButton>
-        </Grid>
-      </Grid>
+      </Tooltip>
       <Collapse in={open}>
         {Object.keys(groupedInputs)
           .sort()

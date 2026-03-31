@@ -39,8 +39,6 @@ const useStyles = makeStyles((theme) => ({
 const QueryFilterControl = ({
   filter,
   modelNames,
-  or,
-  setOr,
   filterIndex,
   patchRecordFilter,
   patchFilter,
@@ -49,8 +47,6 @@ const QueryFilterControl = ({
 }: {
   filter: QueryFilter;
   patchRecordFilter: (index: number, updatedFilter: QueryFilter) => void;
-  or: boolean;
-  setOr: () => void;
   filterIndex: number;
   modelNames: string[];
   patchFilter: (filter: QueryFilter) => void;
@@ -132,10 +128,6 @@ const QueryFilterControl = ({
     onMouseEnter={ () => setShowControls(true) }
     onMouseLeave={ () => setShowControls(false) }
   >
-    { filterIndex > 0 && <Grid className={classes.and} container>
-    <Typography style={{ color:'purple'}} onClick={setOr}>{ or ? 'or' : 'and' }</Typography>
-    </Grid>
-    }
     <QueryNumber setRemoveHint={ setRemoveHint } onClick={ removeFilter } number={filterIndex} level={0}/>
     <QueryAnyEverySelectorList
       filter={filter}

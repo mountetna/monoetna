@@ -7,6 +7,7 @@ import {
   WorkspaceRaw,
   RunStatus,
   MultiFileContent,
+  StateReturn,
 } from '../api_types';
 import { DataEnvelope } from '../components/workspace/ui_definitions/input_types';
 import {Maybe} from '../selectors/maybe';
@@ -108,12 +109,16 @@ export function startSyncing() {
   return actionObject('MODIFY_SYNCING', {to: true, submittingStep: undefined});
 }
 
-export function endSyncing(submittingStep: string) {
+export function endSyncing(submittingStep?: string) {
   return actionObject('MODIFY_SYNCING', {to: false, submittingStep: submittingStep});
 }
 
 export function updateFiles(statusUpdates: Pick<WorkspaceStatus, 'output_files' | 'file_contents'>) {
   return actionObject('UPDATE_FILES', {statusUpdates});
+}
+
+export function updateFromState(stateUpdates: StateReturn) {
+  return actionObject('UPDATE_FROM_STATE', {stateUpdates});
 }
 
 export function setBufferedInput(step: string | null) {
@@ -140,9 +145,9 @@ export function clearRunTriggers(steps: (string | null)[]) {
   return actionObject('CLEAR_RUN_TRIGGERS', {steps});
 }
 
-export function checkCommittedStepPending(step: string | null) {
-  return actionObject('CHECK_CHANGES_READY', {step});
-}
+// export function checkCommittedStepPending(step: string | null) {
+//   return actionObject('CHECK_CHANGES_READY', {step});
+// }
 
 export function clearRunning() {
   return actionObject('CLEAR_RUNNING', {});
@@ -172,6 +177,7 @@ export type VulcanAction =
   | ReturnType<typeof startSyncing>
   | ReturnType<typeof endSyncing>
   | ReturnType<typeof updateFiles>
+  | ReturnType<typeof updateFromState>
   | ReturnType<typeof addValidationErrors>
   | ReturnType<typeof removeValidationErrors>
   | ReturnType<typeof setBufferedInput>
@@ -181,5 +187,5 @@ export type VulcanAction =
   | ReturnType<typeof setRunTrigger>
   | ReturnType<typeof clearRunTriggers>
   | ReturnType<typeof clearRunning>
-  | ReturnType<typeof checkCommittedStepPending>
+  // | ReturnType<typeof checkCommittedStepPending>
   | ReturnType<typeof clearCommittedStepPending>

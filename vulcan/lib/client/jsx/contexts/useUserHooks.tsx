@@ -4,11 +4,11 @@ import _ from 'lodash';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {VulcanStorage, Workspace, WorkspaceMinimal} from '../api_types';
-import {isGuest} from 'etna-js/utils/janus';
+import {isGuest, isSuperuser} from 'etna-js/utils/janus';
 
 export default function useUserHooks() {
   const user = useReduxState((state: any) => selectUser(state));
-
+  
   const canEdit = useCallback(
     (workspaceOrStorage: Workspace | WorkspaceMinimal | VulcanStorage) => {
       const workspace = ('workspace' in workspaceOrStorage) ? workspaceOrStorage.workspace : workspaceOrStorage
@@ -17,12 +17,18 @@ export default function useUserHooks() {
   );
 
   const guest = useCallback(
-    (projectName: string) => isGuest(user, projectName),
+    (projectName: string) => isGuest(user, projectName) as boolean,
     [user]
   );
 
+  const superuser = useMemo(
+    () => isSuperuser(user) as boolean,
+    [user]
+  )
+
   return {
     canEdit,
-    guest
+    guest,
+    superuser,
   };
 }

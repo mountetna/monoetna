@@ -1,8 +1,0 @@
-#!/bin/bash
-
-# Should put this in CRONTAB?
-source ~/.bashrc
-
-cd $(dirname `dirname "$0"`)
-echo $(date)
-bin/metis remove_orphan_data_blocks

@@ -15,16 +15,18 @@ class Vulcan
     # Workspace API
     post 'api/v2/:project_name/workspace/create', action: 'vulcan_v2#create_workspace', auth: { user: { can_view?: :project_name }}
     post 'api/v2/:project_name/workspace/:workspace_id/update', action: 'vulcan_v2#update_workspace', auth: { user: { can_view?: :project_name }}
+    delete 'api/v2/:project_name/workspace/:workspace_id', action: 'vulcan_v2#delete_workspace', auth: { user: { is_admin?: :project_name }}
     get 'api/v2/:project_name/workspace', action: 'vulcan_v2#list_workspaces',  auth: { user: { can_view?: :project_name }}
     get 'api/v2/:project_name/workspace/:workspace_id', action: 'vulcan_v2#get_workspace',  auth: { user: { can_view?: :project_name }}
 
     # Config API
     post 'api/v2/:project_name/workspace/:workspace_id/config', action: 'vulcan_v2#save_config', auth: { user: { can_view?: :project_name }}
-    get'api/v2/:project_name/workspace/:workspace_id/config', action: 'vulcan_v2#get_config', auth: { user: { can_view?: :project_name }}
+    get 'api/v2/:project_name/workspace/:workspace_id/config/:config_id', action: 'vulcan_v2#get_config', auth: { user: { can_view?: :project_name }}
 
     # Run API
     post 'api/v2/:project_name/workspace/:workspace_id/run/:config_id', action: 'vulcan_v2#run_workflow', auth: { user: { can_view?: :project_name }}
-    get'api/v2/:project_name/workspace/:workspace_id/run/:run_id', action: 'vulcan_v2#get_workflow_status',  auth: { user: { can_view?: :project_name }}
+    get 'api/v2/:project_name/workspace/:workspace_id/run/:run_id', action: 'vulcan_v2#get_workflow_status',  auth: { user: { can_view?: :project_name }}
+    post 'api/v2/:project_name/workspace/:workspace_id/:run_id/cancel', action: 'vulcan_v2#cancel_workflow', auth: { user: { can_view?: :project_name }}
 
     # DAG endpoint
     get'api/v2/:project_name/workspace/:workspace_id/dag', action: 'vulcan_v2#get_dag',  auth: { user: { can_view?: :project_name }}
@@ -32,15 +34,22 @@ class Vulcan
     # File API
     post 'api/v2/:project_name/workspace/:workspace_id/file/write', action: 'vulcan_v2#write_files', auth: { user: { can_view?: :project_name }}
     post 'api/v2/:project_name/workspace/:workspace_id/file/read', action: 'vulcan_v2#read_files', auth: { user: { can_view?: :project_name }}
-    get'api/v2/:project_name/workspace/:workspace_id/file/', action: 'vulcan_v2#get_files', auth: { user: { can_view?: :project_name }}
+    get 'api/v2/:project_name/workspace/:workspace_id/file/', action: 'vulcan_v2#get_files', auth: { user: { can_view?: :project_name }}
     post 'api/v2/:project_name/workspace/:workspace_id/image/read', action: 'vulcan_v2#read_image', auth: { user: { can_view?: :project_name }}
     get 'api/v2/:project_name/workspace/:workspace_id/file/download/*file_name', action: 'vulcan_v2#download_file', auth: { user: { can_view?: :project_name }}
+    get 'api/v2/:project_name/workspace/:workspace_id/file/stream-download/*file_name', action: 'vulcan_v2#stream_download_file', auth: { user: { can_view?: :project_name }}
+
+    # State API
+    get 'api/v2/:project_name/config/:config_id/state', action: 'vulcan_v2#get_state', auth: { user: { can_view?: :project_name }}
 
     # Is running endpoint
-    get'api/v2/:project_name/workspace/:workspace_id/running', action: 'vulcan_v2#is_running',  auth: { user: { can_view?: :project_name }}
+    get 'api/v2/:project_name/workspace/:workspace_id/running', action: 'vulcan_v2#is_running',  auth: { user: { can_view?: :project_name }}
+  
+    # Update target mapping endpoint
+    get 'api/v2/:project_name/workspace/:workspace_id/update-target-mapping', action: 'vulcan_v2#update_target_mapping', auth: { user: { can_view?: :project_name }}
   
     # Cluster latency endpoint
-    get 'api/v2/:project_name/cluster-latency', action: 'vulcan_v2#cluster_latency', auth: { user: { can_view?: :project_name }}
+    get 'api/v2/cluster-latency', action: 'vulcan_v2#cluster_latency'
   
     # root path
     get '/', as: :root do erb_view(:client) end

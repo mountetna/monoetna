@@ -16,7 +16,14 @@ class FileController < Metis::Controller
 
     response = { files: [ file.to_hash ] }
 
+    # Capture file path and datablock before deletion
+    file_path = file.file_path
+    datablock = file.data_block
+
     file.remove!
+
+    # Log unlink event AFTER successful deletion
+    Metis::DataBlockLedger.log_unlink(file, datablock, @user, file_path: file_path)
 
     event_log(
       event: 'remove_file',

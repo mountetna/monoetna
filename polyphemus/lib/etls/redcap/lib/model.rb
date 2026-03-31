@@ -82,7 +82,7 @@ module Redcap
     end
 
     def identifier(*record_id, identifier_fields: nil)
-      unless @magma_template.identifier.present?
+      if !@magma_template.identifier.present? || @magma_template.identifier == 'id'
         return [
             "::temp", *record_id, rand(36**8).to_s(36)
         ].compact.join('-')

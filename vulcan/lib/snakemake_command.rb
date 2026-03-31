@@ -18,6 +18,7 @@ class Vulcan
           workflow_profile_path: '',
           singularity_args: '',
           dry_run: false,
+          summary: false,
         }
       end
 
@@ -53,6 +54,9 @@ class Vulcan
 
         if @options[:dry_run]
           cmd << "--dry-run"
+          if @options[:summary]
+            cmd << "--summary"
+          end
         end
 
         # Targets at the end

@@ -46,12 +46,12 @@ const QueryWherePane = () => {
     state: {graph, rootModel}
   } = useContext(QueryGraphContext);
   const {
-    state: {orRecordFilterIndices, recordFilters},
+    state: {globalOr, recordFilters},
     addRecordFilter,
     removeRecordFilter,
     removeAllRecordFilters,
     patchRecordFilter,
-    setOrRecordFilterIndices
+    setGlobalOr
   } = useContext(QueryWhereContext);
   const classes = useStyles();
 
@@ -100,16 +100,9 @@ const QueryWherePane = () => {
     setUpdateCounter(updateCounter + 1);
   }
 
-  const handleChangeOrFilters = useCallback(
-    (index: number) => {
-      let copy = [...orRecordFilterIndices];
-
-      if (copy.includes(index)) copy.splice(copy.indexOf(index), 1);
-      else copy.push(index);
-
-      setOrRecordFilterIndices(copy);
-    },
-    [orRecordFilterIndices, setOrRecordFilterIndices]
+  const handleToggleGlobalOr = useCallback(
+    () => setGlobalOr(!globalOr),
+    [globalOr, setGlobalOr]
   );
 
   const handleCopyFilter = useCallback(
@@ -128,6 +121,7 @@ const QueryWherePane = () => {
 
   if (!rootModel) return null;
 
+
   return (
     <QueryClause title=''>
       <Grid container alignItems='center'>
@@ -144,11 +138,12 @@ const QueryWherePane = () => {
       {
         !fold && <Grid container direction='column' className={classes.conditions}>
           {!recordFilters.length && <Typography className={classes.empty} onClick={addNewRecordFilter} style={{ color:'gray' }}>no conditions</Typography> }
+          {recordFilters.length && <>
+          <Typography>For <Typography component='span' style={{ color:'purple'}} onClick={handleToggleGlobalOr}>{ globalOr ? 'any' : 'every' }</Typography> condition:</Typography>
+          </>}
           {recordFilters.map((filter: QueryFilter, index: number) => (
             <QueryFilterControl
               key={`${index}-${updateCounter}`}
-              or={orRecordFilterIndices.includes(index)}
-              setOr={() => handleChangeOrFilters(index)}
               filterIndex={index}
               filter={filter}
               patchRecordFilter={patchRecordFilter}

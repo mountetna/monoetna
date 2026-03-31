@@ -22,7 +22,7 @@ export default function StepError({step}: {step: WorkspaceStep}) {
 
   if (!stepStatus) return null;
 
-  let message = stepStatus.error || 'Something went wrong with this step.';
+  let message = stepStatus.error || 'Something went wrong with this step.  We haven\'t automated log retrieval yet, so reach out to Dan for help.';
 
   return (
     <Card

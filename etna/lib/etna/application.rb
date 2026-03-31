@@ -145,21 +145,27 @@ module Etna::Application
   attr_reader :logger
 
   def event_log(project_name:, user:, event:, message:, payload: nil, consolidate: nil)
-    @polyphemus_client ||= Etna::Clients::Polyphemus.new(
-      token: nil,
-      host: config(:polyphemus)[:host],
-      routes_available: true
-    )
+    begin
+      @polyphemus_client ||= Etna::Clients::Polyphemus.new(
+        token: nil,
+        host: config(:polyphemus)[:host],
+        routes_available: true,
+        logger: logger
+      )
 
-    @polyphemus_client.log(
-      project_name: project_name,
-      user: user.email,
-      event: event,
-      message: message,
-      payload: payload,
-      consolidate: consolidate,
-      signatory: self
-    )
+      @polyphemus_client.log(
+        project_name: project_name,
+        user: user.email,
+        event: event,
+        message: message,
+        payload: JSON.generate(payload),
+        consolidate: consolidate,
+        signatory: self
+      )
+    rescue => e
+      logger.info("Could not log event #{event}, '#{message}'")
+      logger.log_error(e)
+    end
   end
 
   def config(type, env = environment)

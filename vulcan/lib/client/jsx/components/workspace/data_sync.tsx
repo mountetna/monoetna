@@ -1,5 +1,5 @@
 import {Dispatch, useEffect} from 'react';
-import {endSyncing, startSyncing, updateFiles, useUIAccounting, VulcanAction, setStatusFromStatuses} from '../../actions/vulcan_actions';
+import {endSyncing, startSyncing, updateFiles, useUIAccounting, VulcanAction, setStatusFromStatuses, updateFromState} from '../../actions/vulcan_actions';
 import {defaultApiHelpers} from '../../contexts/api';
 import {VulcanState} from '../../reducers/vulcan_reducer';
 import {allFilesToBuffer, filesReturnToMultiFileContent} from '../../selectors/workflow_selectors';
@@ -20,8 +20,9 @@ export function useDataSync(
     getFileNames: typeof defaultApiHelpers.getFileNames,
     readFiles: typeof defaultApiHelpers.readFiles,
     postUIValues: typeof defaultApiHelpers.postUIValues,
+    getState: typeof defaultApiHelpers.getState,
 ) {
-  const {update_files, workspace, workspaceId, projectName, status, pushSteps} = state;
+  const {update_state, configId, update_files, workspace, workspaceId, projectName, status, pushSteps} = state;
 
   useEffect(() => {
     if (pushSteps.length > 0 && !!workspaceId) {
@@ -39,16 +40,42 @@ export function useDataSync(
   }, [pushSteps, postUIValues])
 
   useEffect(() => {
+    if (update_state) {
+      if (configId==null) {
+        console.warn('configId unknown, cannot probe state')
+        return
+      }
+      console.log("Checking Current State")
+      dispatch(startSyncing())
+      showErrors(getState(projectName, configId), (e) => {
+        dispatch(endSyncing());
+        showError(refreshSuggestionText);
+      })
+      .then((stateResponse) => {
+        dispatch(updateFromState(stateResponse));
+      })
+    }
+  }, [update_state, projectName, configId, refreshSuggestionText, getState])
+
+  useEffect(() => {
     if (update_files && !!workspaceId && !!projectName) {
       console.log("Using data buffering")
+      dispatch(startSyncing())
       let update = {output_files: [] as string[], file_contents: {} as {[k: string]: any}};
       showErrors(getFileNames(projectName, workspaceId), (e) => {dispatch(updateFiles(update))})
       .then((fileNamesRaw) => {
-        const fileNames = fileNamesRaw.files;
-        update['output_files'] = fileNames;
+        // We want to ignore files that snakemake determined will need to be re-made
+        const staleFiles = status.last_file_accounting.planned.concat(status.last_file_accounting.unscheduled);
+        const usableFileNames = fileNamesRaw.files.filter(f => !staleFiles.includes(`output/${f}`));
+        update['output_files'] = usableFileNames;
         let filesContent: MultiFileContent = {};
           
-        const filesReady = allFilesToBuffer(workspace).filter(f => fileNames.includes(f));
+        const filesReady = allFilesToBuffer(workspace).filter(f => usableFileNames.includes(f));
+        // Warn if considering files not reported by snakemake
+        const unknownFileNames = filesReady.filter(f => !status.last_file_accounting.completed.includes(`output/${f}`));
+        if (unknownFileNames.length>0) {
+          console.log(`Note: Utilizing files unknown to snakemake. ${unknownFileNames.join(', ')}`)
+        }
         if (filesReady.length == 0) {
           dispatch(updateFiles(update));
         } else {

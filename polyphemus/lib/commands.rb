@@ -440,9 +440,9 @@ class Polyphemus
       loop do
         begin
           eligible_runtime_configs = Polyphemus::RuntimeConfig.eligible_runtime_configs
-          logger.info("Found #{eligible_runtime_configs.count} eligible runtime configs for scheduling...")
+          logger.info("Found #{eligible_runtime_configs.count} eligible runtime configs for scheduling.")
           eligible_runtime_configs.each do |runtime_config|
-            Polyphemus::ArgoWorkflowManager.submit_workflow(runtime_config.config)
+            Polyphemus::ArgoWorkflowManager.submit_workflow(runtime_config.workflow_config)
             sleep SLEEP_INTERVAL
           end
         rescue StandardError => e

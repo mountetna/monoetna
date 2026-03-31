@@ -7,7 +7,8 @@ import {
   workflowByIdFromWorkflows,
   paramValuesToRaw,
   updateStepStatusesFromRunStatus,
-  workspaceFromRaw
+  workspaceFromRaw,
+  updateStepStatusesFromJobsState
 } from '../../selectors/workflow_selectors';
 
 import WorkspaceManager from './workspace_manager';
@@ -22,6 +23,7 @@ import {
   defaultStepStatus,
 } from '../../api_types';
 import {runPromise, useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
+import { LoadingIconWithText } from '../dashboard/loading_icon';
 
 export default function WorkspaceInitializer({
   workspaceId,
@@ -35,6 +37,7 @@ export default function WorkspaceInitializer({
     dispatch,
     showErrors,
     getWorkspace,
+    getState,
     getIsRunning
   } = useContext(VulcanContext);
 
@@ -75,15 +78,9 @@ export default function WorkspaceInitializer({
     .then((workspaceRaw) => {
       const workspace = workspaceFromRaw(workspaceRaw);
 
+      console.log({workspace})
+
       const status = defaultWorkspaceStatus;
-      
-      // step statuses
-      const defaultStepStatuses = Object.fromEntries(workspace.dag.map(
-        stepName => [stepName, defaultStepStatus]
-      ))
-      status['steps'] = !!workspace.last_job_status ?
-        updateStepStatusesFromRunStatus(workspace.last_job_status, defaultStepStatuses) :
-        defaultStepStatuses;
 
       // paramUIs
       const param_vals = paramValuesFromRaw(workspace.last_config, workspace);
@@ -97,8 +94,25 @@ export default function WorkspaceInitializer({
       .then((isRunningReturn) => {
         const isRunning = isRunningReturn['running']
 
-        // Send it, with the true here triggering files to be updated in a next render
-        dispatch(setFullWorkspaceState(workspace, status, true, isRunning));
+        // step statuses
+        // ToDo: Bring back use of RunStatus / error knowledge.
+        const defaultStepStatuses = Object.fromEntries(workspace.dag_flattened.map(
+          stepName => [stepName, defaultStepStatus]
+        ))
+        status['steps'] = defaultStepStatuses;
+        if (!!workspace.last_config_id) {
+          showErrors(getState(projectName, workspace.last_config_id))
+          .then((stateReturn) => {
+            status.last_file_accounting = stateReturn.files;
+            status.last_jobs_accounting = stateReturn.jobs;
+            status['steps'] = updateStepStatusesFromJobsState(stateReturn.jobs, status['steps'])
+
+            // Send it, with the true here triggering files to be updated in a next render
+            dispatch(setFullWorkspaceState(workspace, status, true, isRunning));
+          })
+        } else {
+          dispatch(setFullWorkspaceState(workspace, status, true, isRunning));
+        }
 
         // // Auto-pass for fully-defaulted params
         // if (workspace.vignette?.includes('Primary inputs are skippable') && !workspace.last_job_status) {
@@ -126,8 +140,10 @@ export default function WorkspaceInitializer({
     }
   }, [state.workspace, state.workflow.name]);
 
-  if (!state.workflow) {
-    return null;
+  if (!state.workspace) {
+    return (
+      <LoadingIconWithText text='Retrieving Workspace Context'/>
+    );
   }
 
   return (

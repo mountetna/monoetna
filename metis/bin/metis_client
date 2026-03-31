@@ -82,13 +82,14 @@ class MetisConfig
 end
 
 INITIAL_BLOB_SIZE = 2**10
-MAX_BLOB_SIZE = 2**22;
+MAX_BLOB_SIZE = 2**24;
 ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e'
 
 class Upload
-  attr_reader :file_path
-  def initialize(file_path)
+  attr_reader :file_path, :no_checksum
+  def initialize(file_path, no_checksum)
     @file_path = file_path
+    @no_checksum = no_checksum
 
     @next_blob_size = [ file_size, INITIAL_BLOB_SIZE ].min
     @current_byte_position = 0
@@ -121,7 +122,7 @@ class Upload
   end
 
   def next_blob_hash
-    Digest::MD5.hexdigest(current_bytes)
+    @no_checksum ? :void : Digest::MD5.hexdigest(current_bytes)
   end
 
   def current_bytes
@@ -357,8 +358,9 @@ class MetisClient < Client
         [ 'blob_data', blob[:blob_data], {filename: 'blob'} ],
         [ 'next_blob_size', blob[:next_blob_size].to_s ],
         [ 'next_blob_hash', blob[:next_blob_hash].to_s ],
+        upload.no_checksum ? [ 'no_checksum', 'true' ] : nil,
         [ 'current_byte_position', blob[:current_byte_position].to_s ]
-      ]
+      ].compact
     )
 
     raise MetisClient::UploadError, "Problem with uploading the blob: #{error(response)}" if response.code == '422'
@@ -1158,7 +1160,7 @@ EOT
 
       actual_file = "#{output_path}/#{file[:file_name]}"
 
-      return if ::File.exists?(actual_file) && ::File.size(actual_file) == file[:size]
+      return if ::File.exist?(actual_file) && ::File.size(actual_file) == file[:size]
 
       FileUtils::mkdir_p(output_path)
 
@@ -1235,6 +1237,10 @@ EOT
 
         opts.on("-f", "--force", "Overwrite existing files") do |n|
           options[:force] = true
+        end
+
+        opts.on("--no-checksum", "Don't checksum packets during transfer") do |n|
+          options[:no_checksum] = true
         end
       end
     end
@@ -1313,7 +1319,7 @@ EOT
 
       upload_path = upload_json[:url].sub(%r!^https://[^/]*?/!, '/')
 
-      upload = Upload.new(actual_path)
+      upload = Upload.new(actual_path, options[:no_checksum])
 
       upload_json = @shell.client.start_upload(upload_path, upload)
       # start our upload
@@ -1371,7 +1377,7 @@ EOT
           if current_attempt_number <= max_number_attempts
             @shell.logger.write("UploadError -- retrying the upload")
             @shell.logger.log_error(e)
-            upload = Upload.new(actual_path)
+            upload = Upload.new(actual_path, options[:no_checksum])
             upload_json = @shell.client.reset_upload(upload_path, upload)
             upload.current_byte_position = 0
           else
@@ -1432,7 +1438,7 @@ EOT
       File.readlines(md5file, encoding: "UTF-8").each do |line|
         checksum, file_name = line.chomp.split(/\s+/, 2)
         full_path = clean_path(::File.join( md5dir, file_name ))
-        next unless ::File.exists?(full_path) && is_valid_checksum?(checksum)
+        next unless ::File.exist?(full_path) && is_valid_checksum?(checksum)
 
         md5_cache[full_path] = checksum
       end
@@ -1446,7 +1452,7 @@ EOT
         ::File.basename(file) == options[:file]
       end
 
-      files = files.select {|f| ::File.exists?(f) }
+      files = files.select {|f| ::File.exist?(f) }
 
       puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
 
@@ -1533,7 +1539,7 @@ EOT
     def run(local_directory)
       folders, files, file_md5s = make_md5_cache(local_directory)
 
-      files = files.select {|f| ::File.exists?(f) && !is_checksum_file?(f) }
+      files = files.select {|f| ::File.exist?(f) && !is_checksum_file?(f) }
 
       deleted_files = deleted_folders = 0
       remaining_size = 0
@@ -1559,7 +1565,7 @@ EOT
 
       # remove all empty folders
       folders.sort.each do |folder|
-        next unless ::Dir.exists?(folder)
+        next unless ::Dir.exist?(folder)
         # remove checksum file if necessary
         remaining_files = Dir[folder]
 
@@ -1603,7 +1609,7 @@ EOT
       # collect all files and folders
       folders, files, file_md5s = make_md5_cache(local_directory)
 
-      files = files.select {|f| ::File.exists?(f) && !is_checksum_file?(f) }
+      files = files.select {|f| ::File.exist?(f) && !is_checksum_file?(f) }
 
       archived_files_count = 0
       archived_files = []

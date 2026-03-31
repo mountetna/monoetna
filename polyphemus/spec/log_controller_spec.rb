@@ -26,7 +26,7 @@ describe LogController do
         message: msg,
         payload: {
           victims: 122
-        }
+        }.to_json
       )
       expect(last_response.status).to eq(200)
       expect(Polyphemus::Log.count).to eq(1)
@@ -45,7 +45,7 @@ describe LogController do
         message: msg,
         payload: {
           victims: [ 'Outis', 'Aisopos' ]
-        },
+        }.to_json,
         consolidate: true
       )
       expect(last_response.status).to eq(200)
@@ -64,7 +64,7 @@ describe LogController do
         message: msg,
         payload: {
           victims: 122
-        }
+        }.to_json
       )
       expect(last_response.status).to eq(200)
       expect(Polyphemus::Log.count).to eq(1)
