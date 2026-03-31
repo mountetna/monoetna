@@ -187,6 +187,8 @@ describe StatsController do
       delete("/athena/file/remove/files/untracked_helmet.jpg")
       expect(last_response.status).to eq(200)
       
+      enable_all_ledger_events
+
       # Run backfill to create SYSTEM_BACKFILL events for orphaned datablocks
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       backfill_ledger.execute(project_name: 'athena', links: true)
@@ -194,7 +196,6 @@ describe StatsController do
       
       # Phase 2: Enable ledger and create/delete files (tracked mode)
       # Create one tracked file with the same content as the untracked wisdom datablock
-      enable_all_ledger_events
       
       tracked_file_1 = upload_file_via_api('athena', 'tracked_file_1.txt', WISDOM)
       tracked_file_2 = upload_file_via_api('athena', 'tracked_file_2.txt', "Second tracked content")

@@ -43,6 +43,8 @@ describe Metis::DataBlockLedger do
         delete("/athena/file/remove/files/helmet.jpg")
         expect(last_response.status).to eq(200)
         
+        enable_all_ledger_events
+
         # Run backfill to create SYSTEM_BACKFILL unlink events
         backfill_ledger = Metis::BackfillDataBlockLedger.new
         backfill_ledger.execute(project_name: 'athena', links: true)
@@ -68,6 +70,8 @@ describe Metis::DataBlockLedger do
         delete("/athena/file/remove/files/wisdom.txt")
         expect(last_response.status).to eq(200)
         
+        enable_all_ledger_events
+
         # Run backfill to create SYSTEM_BACKFILL unlink event
         backfill_ledger = Metis::BackfillDataBlockLedger.new
         backfill_ledger.execute(orphaned: true)
@@ -118,6 +122,8 @@ describe Metis::DataBlockLedger do
         delete("/athena/file/remove/files/pending.txt")
         expect(last_response.status).to eq(200)
 
+        enable_all_ledger_events
+
         backfill_ledger = Metis::BackfillDataBlockLedger.new
         backfill_ledger.execute(orphaned: true)
 
@@ -140,6 +146,8 @@ describe Metis::DataBlockLedger do
         expect(last_response.status).to eq(200)
         delete("/labors/file/remove/files/labors.txt")
         expect(last_response.status).to eq(200)
+
+        enable_all_ledger_events
 
         backfill_ledger = Metis::BackfillDataBlockLedger.new
     
@@ -167,6 +175,8 @@ describe Metis::DataBlockLedger do
         delete("/athena/file/remove/files/wisdom.txt")
         expect(last_response.status).to eq(200)
     
+        enable_all_ledger_events
+
         backfill_ledger = Metis::BackfillDataBlockLedger.new
     
         # Run backfill should detect no orphaned datablocks
@@ -194,6 +204,8 @@ describe Metis::DataBlockLedger do
       delete("/athena/file/remove/files/wisdom.txt")
       expect(last_response.status).to eq(200)
 
+      enable_all_ledger_events
+
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       backfill_ledger.execute(orphaned: true)
 
@@ -212,6 +224,8 @@ describe Metis::DataBlockLedger do
       token_header(:editor)
       delete("/athena/file/remove/files/wisdom.txt")
       expect(last_response.status).to eq(200)
+
+      enable_all_ledger_events
 
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       backfill_ledger.execute(orphaned: true)
@@ -235,6 +249,8 @@ describe Metis::DataBlockLedger do
       delete("/athena/file/remove/files/pending.txt")
       expect(last_response.status).to eq(200)
 
+      enable_all_ledger_events
+
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       backfill_ledger.execute(orphaned: true)
 
@@ -251,6 +267,8 @@ describe Metis::DataBlockLedger do
       token_header(:editor)
       delete("/athena/file/remove/files/wisdom.txt")
       expect(last_response.status).to eq(200)
+
+      enable_all_ledger_events
 
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       backfill_ledger.execute(orphaned: true)
@@ -275,6 +293,8 @@ describe Metis::DataBlockLedger do
       token_header(:editor)
       delete("/athena/file/remove/files/wisdom.txt")
       expect(last_response.status).to eq(200)
+
+      enable_all_ledger_events
 
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       backfill_ledger.execute(orphaned: true)
@@ -759,12 +779,13 @@ describe Metis::DataBlockLedger do
         wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
         wisdom_datablock = wisdom_file.data_block
         
+        enable_all_ledger_events
+
         # Run backfill to create link event
         backfill_ledger = Metis::BackfillDataBlockLedger.new
         backfill_ledger.execute(project_name: 'athena', links: true)
         
         # Enable tracking and delete file (creates real-time unlink event)
-        enable_all_ledger_events
         token_header(:editor)
         delete("/athena/file/remove/files/wisdom.txt")
         expect(last_response.status).to eq(200)
@@ -783,11 +804,12 @@ describe Metis::DataBlockLedger do
         wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
         wisdom_datablock = wisdom_file.data_block
         
+        enable_all_ledger_events
+
         # Run backfill to create link event
         backfill_ledger = Metis::BackfillDataBlockLedger.new
         backfill_ledger.execute(project_name: 'athena', links: true)
 
-        enable_all_ledger_events
         # Upload another file with same content (triggers duplicate link event)
         upload_file_via_api('athena', 'wisdom2.txt', WISDOM)
         
@@ -820,12 +842,13 @@ describe Metis::DataBlockLedger do
         delete("/athena/file/remove/files/wisdom.txt")
         expect(last_response.status).to eq(200)
         
+        enable_all_ledger_events
+
         # Run backfill to create unlink event for orphaned datablock
         backfill_ledger = Metis::BackfillDataBlockLedger.new
         backfill_ledger.execute(orphaned: true)
         
         # Enable tracking and upload new file with same content (reuses datablock)
-        enable_all_ledger_events
         new_wisdom_file = upload_file_via_api('athena', 'wisdom2.txt', WISDOM)
         expect(new_wisdom_file.data_block_id).to eq(original_datablock_id)
         
@@ -854,12 +877,13 @@ describe Metis::DataBlockLedger do
         delete("/athena/file/remove/files/wisdom.txt")
         expect(last_response.status).to eq(200)
         
+        enable_all_ledger_events
+
         # Run backfill to create unlink event for orphaned datablock
         backfill_ledger = Metis::BackfillDataBlockLedger.new
         backfill_ledger.execute(orphaned: true)
         
         # Enable tracking and upload new file with same content (reuses datablock, creates link event)
-        enable_all_ledger_events
         wisdom2_file = upload_file_via_api('athena', 'wisdom2.txt', WISDOM)
         expect(wisdom2_file.data_block_id).to eq(original_datablock_id)
         

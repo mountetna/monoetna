@@ -475,6 +475,7 @@ describe DataBlockController do
       wisdom_data_block = Metis::DataBlock.where(id: result[:wisdom_data_block_id]).first
       helmet_data_block = Metis::DataBlock.where(id: result[:helmet_data_block_id]).first
       
+      enable_all_ledger_events
       token_header(:supereditor)
       json_post('/api/vacuum_datablocks/backfilled', { commit: true })
       
