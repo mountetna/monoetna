@@ -8,12 +8,13 @@ import Button from '@mui/material/Button';
 import { projectDataTypes } from '@/lib/utils/filters';
 import DataFieldChip from '@/components/data/data-field-chip';
 import ThemeChip from '@/components/themes/theme-chip';
-import ProjectPI from '@/components/project-explorer/project-pi.tsx'; 
+import ProjectPI from '@/components/project-explorer/project-pi'; 
+import { Project, PrincipalInvestigator } from './project-explorer/models';
 import libraryIcon from '/public/images/icons/library.svg'
 import Link from './link/link';
 import { useUser } from './user/context';
 
-const ProjectViewer = ({project}) => {
+const ProjectViewer = ({project}:{ project: Project}) => {
   const dataTypes = projectDataTypes(project);
 
   const user = useUser();
@@ -149,7 +150,7 @@ const ProjectViewer = ({project}) => {
             <Typography variant="h6BoldWt" color="white">Principal Investigators</Typography>
             {
               project.principalInvestigators.map(
-                pi => <ProjectPI variant='filled' key={pi.name} data={pi}/>
+                (pi:PrincipalInvestigator) => <ProjectPI variant='filled' key={pi.name} data={pi}/>
               )
             }
           </Box>

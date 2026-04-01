@@ -18,7 +18,7 @@ import ProjectPI from './project-pi';
 import FilterPill from '../searchable-list/filter-pill';
 import Image from 'next/image';
 import { FormControl } from '@mui/base';
-import { ProjectExplorerContext } from '@/components/project-explorer/context';
+import { FilterSet, ProjectExplorerContext } from '@/components/project-explorer/context';
 import { FilterItem, Project, FilterRange, ProjectDataType, PrincipalInvestigator, FreeFilter as FreeFilterType } from '@/components/project-explorer/models';
 import { ThemeData } from '@/components/themes/models';
 import { DATA_TYPES } from '@/lib/fixtures';
@@ -188,7 +188,7 @@ const BasicFilter = ({title, filter, items, render, id}:{
   )
 
   const filterItems = filterItemSet[title] || [];
-  const projectItems:FilterItem['value'][]  = React.useMemo(
+  const projectItems:FilterSet = React.useMemo(
     () => {
       let projectItemsSet = {};
       projectData.forEach( (project:Project) => projectItemsSet = { ...projectItemsSet, ...items(project) } );
@@ -196,7 +196,7 @@ const BasicFilter = ({title, filter, items, render, id}:{
     }, [ projectData ]
   );
 
-  const projectNames:string[] = Object.keys(projectItems).sort();
+  const itemNames:string[] = Object.keys(projectItems).sort();
 
   const handleChangeFilterItems = (filterItems:FilterItem['value'][]|null) => {
     updateFilterItems(title, filterItems);
@@ -209,12 +209,12 @@ const BasicFilter = ({title, filter, items, render, id}:{
   );
 
   return <Filter title={title} highlight={ title in filterItemSet }>
-    <Autocomplete<FilterItem['value']>
+    <Autocomplete<string>
       size='small'
       multiple
       filterSelectedOptions
       icon={searchDarkIcon}
-      options={projectNames}
+      options={itemNames}
       // @ts-ignore
       onChange={(_, value:FilterItem['value'][] | null, reason) => {
           if (reason === 'removeOption') return;
@@ -222,7 +222,7 @@ const BasicFilter = ({title, filter, items, render, id}:{
       }}
       value={filterItems}
       getOptionLabel={ (option) => option }
-      getOptionKey={(option: FilterItem['value']) => option}
+      getOptionKey={(option) => option}
       isOptionEqualToValue={(option, value) => option === value}
       renderOption={ render(projectItems) }
       renderNoResults={() => (
@@ -243,8 +243,8 @@ const BasicFilter = ({title, filter, items, render, id}:{
     >
         {filterItems.map(((item:FilterItem['value']) => (
             <FilterPill
-                key={item}
-                label={item}
+                key={id(item)}
+                label={id(item)}
                 removeable
                 onClickRemove={() => handleClickRemoveFilterItem(item)}
             />

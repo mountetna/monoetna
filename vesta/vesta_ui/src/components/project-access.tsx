@@ -6,8 +6,13 @@ import Typography from '@mui/material/Typography';
 import Link from './link/link';
 import { useUser } from './user/context';
 import { useRouter } from 'next/navigation';
+import { Project } from './project-explorer/models';
 
-const ProjectAccess = ({project, loginUrl, accessUrl}) => {
+const ProjectAccess = ({project, loginUrl, accessUrl}:{
+  loginUrl: string;
+  accessUrl: string;
+  project: Project;
+}) => {
   const user = useUser()
 
   const pi = project.principalInvestigators[0];

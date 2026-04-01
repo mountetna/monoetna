@@ -4,7 +4,7 @@ import * as React from 'react'
 import { projectDataTypes } from '@/lib/utils/filters';
 import { FilterItem, Project } from './models';
 
-interface FilterSet {
+export interface FilterSet {
   [filterName: string]: any
 }
 
@@ -20,6 +20,8 @@ interface ProjectExplorerContextValues {
   state: typeof defaultProjectExplorerState;
   filteredProjectData: Project[];
   updateFilterItems: (title: string, filterItems: any[] | null) => void;
+  updateFilterItemSet: (filterItemSet: FilterSet) => void;
+  clearFilterItems: () => void;
   searchOptions: FilterItem[];
   setMatchAllFilters: (m:boolean) => void;
   createFilter: (filterName: string, filter: Function, items: Function | null) => void;

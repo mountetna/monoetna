@@ -33,6 +33,7 @@ export default function DrawerButton({
     onClick: () => void,
     activated: boolean,
     open: boolean,
+    dismiss: () => void
 }) {
     const theme = useTheme()
 
