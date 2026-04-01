@@ -250,7 +250,7 @@ Array [
               onChange={[Function]}
               required={false}
               tabIndex={-1}
-              value="coprojects_template"
+              value="blank"
             />
             <svg
               aria-hidden={true}
