@@ -41,8 +41,7 @@ const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsL
 function _ProjectExplorer({ }) {
     const {
       state: { projectData, filters, filterItemSet },
-      searchOptions, updateFilterItems, updateFilterItemSet, clearFilterItems,
-      filterUrlString
+      searchOptions, updateFilterItems, updateFilterItemSet, clearFilterItems
     } = React.useContext(ProjectExplorerContext);
     const router = useRouter()
     const pathname = usePathname()

@@ -4,6 +4,7 @@ import { DATA_TYPES } from '@/lib/fixtures';
 
 export enum ProjectStatus {
     team = 'Team',
+    resource = 'Resource',
     community = 'Community',
 }
 
@@ -95,6 +96,5 @@ export interface ProjectsSearchParamsControls {
 }
 
 export interface ProjectsSearchParamsState {
-    filters?: Record<string, string[]>
-    controls?: ProjectsSearchParamsControls
+    [name: string]: any
 }

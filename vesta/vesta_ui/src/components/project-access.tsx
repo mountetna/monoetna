@@ -6,8 +6,13 @@ import Typography from '@mui/material/Typography';
 import Link from './link/link';
 import { useUser } from './user/context';
 import { useRouter } from 'next/navigation';
+import { Project } from './project-explorer/models';
 
-const ProjectAccess = ({project, loginUrl, accessUrl}) => {
+const ProjectAccess = ({project, loginUrl, accessUrl}:{
+  loginUrl: string;
+  accessUrl: string;
+  project: Project;
+}) => {
   const user = useUser()
 
   const pi = project.principalInvestigators[0];
@@ -45,7 +50,7 @@ const ProjectAccess = ({project, loginUrl, accessUrl}) => {
         }
         { user &&
             <Typography variant="pMedium">
-              You have a Library Card, but you don't have access to this project. Contact the {project.name.toUpperCase()} principal investigator to request access to the project: <Link href={`mailto:${pi.email}?subject=Request access to ${project.name}`}>{pi.email}</Link>
+              You have a Library Card, but you don&apos;t have access to this project. Contact the {project.name.toUpperCase()} principal investigator to request access to the project: <Link href={`mailto:${pi.email}?subject=Request access to ${project.name}`}>{pi.email}</Link>
             </Typography>
         }
     </Box>
