@@ -12,22 +12,24 @@ export enum Classes {
 
 export default function LibraryCardButton({
     isLoggedIn,
-    accessUrl,
+    loginUrl,
     textOverride,
     onClick,
     disabled = false,
 }: {
     isLoggedIn: boolean,
-    accessUrl: string,
+    loginUrl: string,
     textOverride?: string,
     onClick: () => void,
     disabled?: boolean,
 }) {
     const textEl = (
         <Typography variant='pBodyMediumWt'>
-            {textOverride !== undefined ? textOverride : isLoggedIn ? 'View your Library Card' : 'Get Access'}
+            {textOverride !== undefined ? textOverride : isLoggedIn ? 'View your Library Card' : 'Login'}
         </Typography>
     )
+
+    const janusUrl = loginUrl + `/login?refer=${location.href}`;
 
     const sx: SxProps = {
         width: 'fit-content',
@@ -50,7 +52,7 @@ export default function LibraryCardButton({
         </ButtonBase>
     ) : (
         <Link
-            href={accessUrl}
+            href={janusUrl}
             sx={sx}
         >
             {textEl}

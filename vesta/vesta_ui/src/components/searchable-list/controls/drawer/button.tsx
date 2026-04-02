@@ -5,6 +5,7 @@ import { useTheme } from '@mui/material';
 import ButtonBase from '@mui/material/ButtonBase';
 
 import Image, { StaticImageData } from 'next/image';
+import xDark from '/public/images/icons/x-dark.svg'
 
 
 export enum Classes {
@@ -23,6 +24,7 @@ export default function DrawerButton({
     iconDark,
     onClick,
     activated,
+    dismiss,
     open,
 }: {
     label: string,
@@ -31,6 +33,7 @@ export default function DrawerButton({
     onClick: () => void,
     activated: boolean,
     open: boolean,
+    dismiss: () => void
 }) {
     const theme = useTheme()
 
@@ -77,6 +80,7 @@ export default function DrawerButton({
                     [`& .${Classes.activationIndicator}`]: {
                         opacity: 1,
                     },
+                    pr: '6px'
                 },
                 '&:hover, &:focus': {
                     [`&:not(.${Classes.buttonOpen})`]: {
@@ -184,6 +188,27 @@ export default function DrawerButton({
             >
                 {label}
             </Typography>
+            { activated && <Box sx={{
+                bgcolor: 'ground.grade25',
+                borderRadius: '50%',
+                width: '24px',
+                height: '24px',
+                justifyContent: 'center',
+                alignItems: 'center',
+                 display: 'flex'
+                }} 
+                onClick={ e => {
+                  e.stopPropagation();
+                  dismiss();
+                } }
+              >
+                <Image
+                    src={xDark}
+                    alt={`"X" icon`}
+                    width={14}
+                    height={14}
+                />
+            </Box> }
         </ButtonBase>
     )
 }

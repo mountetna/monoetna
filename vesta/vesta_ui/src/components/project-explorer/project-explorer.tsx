@@ -10,8 +10,7 @@ import Fade from '@mui/material/Fade';
 import _ from 'lodash'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import { ExternalProjectStatus, getExternalProjectStatus, FilterItem, PrincipalInvestigator, Project, ProjectHeadingInfoSet, PROJECTS_SEARCH_PARAMS_KEY, ProjectsSearchParamsControls, ProjectsSearchParamsState } from './models';
-import ProjectListing from './project-listing';
+import { FilterItem, PrincipalInvestigator, Project, ProjectHeadingInfoSet, PROJECTS_SEARCH_PARAMS_KEY, ProjectsSearchParamsState } from './models';
 import ProjectTable from './project-table';
 import { ProjectExplorerContext } from './context';
 import DrawerButton from '@/components/searchable-list/controls/drawer/button';
@@ -40,8 +39,10 @@ const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsL
 
 
 function _ProjectExplorer({ }) {
-    // Manage search params sync
-    const { state: { projectData, filters, filterItemSet }, searchOptions, updateFilterItems } = React.useContext(ProjectExplorerContext);
+    const {
+      state: { projectData, filters, filterItemSet },
+      searchOptions, updateFilterItems, updateFilterItemSet, clearFilterItems
+    } = React.useContext(ProjectExplorerContext);
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
@@ -55,6 +56,18 @@ function _ProjectExplorer({ }) {
     const [drawerOpen, setDrawerOpen] = React.useState(true);
     const [inputValue, setInputValue] = React.useState('');
     const [currentPage, setCurrentPage] = React.useState(0);
+
+    React.useEffect(
+      () => {
+        const filterUrlString = toSearchParamsString(filterItemSet);
+
+        router.push(pathname + '?' + filterUrlString + window.location.hash, { scroll: false })
+      }, [ filterItemSet ]
+    );
+
+    React.useEffect(() => {
+      updateFilterItemSet( parseSearchParams(searchParams) );
+    }, []);
 
     const handleChangeFilterItems = React.useCallback(
       ([ filterItem, ...others ]: FilterItem[]) => {
@@ -154,6 +167,7 @@ function _ProjectExplorer({ }) {
                                     iconLight={filterLightIcon}
                                     iconDark={filterDarkIcon}
                                     onClick={() => setDrawerOpen(!drawerOpen)}
+                                    dismiss={ () => clearFilterItems() }
                                     activated={ Object.keys(filterItemSet).length > 0 }
                                     open={drawerOpen}
                                 />

@@ -18,7 +18,7 @@ import ProjectPI from './project-pi';
 import FilterPill from '../searchable-list/filter-pill';
 import Image from 'next/image';
 import { FormControl } from '@mui/base';
-import { ProjectExplorerContext } from '@/components/project-explorer/context';
+import { FilterSet, ProjectExplorerContext } from '@/components/project-explorer/context';
 import { FilterItem, Project, FilterRange, ProjectDataType, PrincipalInvestigator, FreeFilter as FreeFilterType } from '@/components/project-explorer/models';
 import { ThemeData } from '@/components/themes/models';
 import { DATA_TYPES } from '@/lib/fixtures';
@@ -188,13 +188,15 @@ const BasicFilter = ({title, filter, items, render, id}:{
   )
 
   const filterItems = filterItemSet[title] || [];
-  const projectItems:FilterItem['value'][]  = React.useMemo(
+  const projectItems:FilterSet = React.useMemo(
     () => {
       let projectItemsSet = {};
       projectData.forEach( (project:Project) => projectItemsSet = { ...projectItemsSet, ...items(project) } );
-      return (Object.values(projectItemsSet) as FilterItem['value'][]).sort( (a:FilterItem['value'],b:FilterItem['value']) => id(a).localeCompare(id(b)));
+      return projectItemsSet;
     }, [ projectData ]
   );
+
+  const itemNames:string[] = Object.keys(projectItems).sort();
 
   const handleChangeFilterItems = (filterItems:FilterItem['value'][]|null) => {
     updateFilterItems(title, filterItems);
@@ -207,22 +209,22 @@ const BasicFilter = ({title, filter, items, render, id}:{
   );
 
   return <Filter title={title} highlight={ title in filterItemSet }>
-    <Autocomplete<FilterItem['value']>
+    <Autocomplete<string>
       size='small'
       multiple
       filterSelectedOptions
       icon={searchDarkIcon}
-      options={projectItems}
+      options={itemNames}
       // @ts-ignore
       onChange={(_, value:FilterItem['value'][] | null, reason) => {
           if (reason === 'removeOption') return;
           handleChangeFilterItems(value);
       }}
       value={filterItems}
-      getOptionLabel={ (option) => id(option) }
-      getOptionKey={(option: FilterItem['value']) => id(option)}
-      isOptionEqualToValue={(option, value) => id(option) === id(value)}
-      renderOption={ render }
+      getOptionLabel={ (option) => option }
+      getOptionKey={(option) => option}
+      isOptionEqualToValue={(option, value) => option === value}
+      renderOption={ render(projectItems) }
       renderNoResults={() => (
           <Typography variant='pMedium'>
               No results
@@ -292,12 +294,12 @@ const InvestigatorsFilter = () => {
       (project:Project) => Object.fromEntries( project.principalInvestigators.map( (pi:PrincipalInvestigator) => [ pi.name, pi ] ) )
     }
     filter={
-      (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => project.principalInvestigators.some( (pi:PrincipalInvestigator) => pi.name == (filterItem as PrincipalInvestigator).name)
+      (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => project.principalInvestigators.some( (pi:PrincipalInvestigator) => pi.name == filterItem)
     }
     render={
-      (params:any) => (
+      projectItems => (params:any) => (
         <ProjectPI
-          data={params.option}
+          data={projectItems[params.option]}
           showAvatar
           showNameAndTitle
           variant='filled'
@@ -320,7 +322,7 @@ const DataTypesFilter = () => {
       }
     }
     render={
-      (params:any) => <Typography variant='pBodyMediumWt' key={params.option}>{params.option}</Typography>
+      projectItems => (params:any) => <Typography variant='pBodyMediumWt' key={params.option}>{params.option}</Typography>
     }
     id={ (item:FilterItem['value']) => item as ProjectDataType }
   />
@@ -333,11 +335,11 @@ const ThemeFilter = () => {
       (project:Project) => ({ [project.theme.name]: project.theme })
     }
     filter={
-      (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => project.theme.name == (filterItem as ThemeData).name
+      (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => project.theme.name == filterItem
     }
     render={
-      (params:any) => (
-        <Typography variant='pMedium'>{params.option.name}</Typography>
+      projectItems => (params:any) => (
+        <Typography variant='pMedium'>{projectItems[params.option].name}</Typography>
       )
     }
     id={ (item:FilterItem['value']) => (item as ThemeData).name }
@@ -397,7 +399,7 @@ const TypeFilter = () => {
       (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => project.type == filterItem
     }
     render={
-      (params:any) => (
+      projectItems => (params:any) => (
         <Typography variant='pMedium'>{params.option}</Typography>
       )
     }
@@ -407,7 +409,7 @@ const TypeFilter = () => {
 
 const PhaseFilter = () => {
   return <BasicFilter
-    title='Phase'
+    title='Status'
     items={
       (project:Project) => ({ [project.status]: project.status })
     }
@@ -415,7 +417,7 @@ const PhaseFilter = () => {
       (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => project.status == filterItem
     }
     render={
-      (params:any) => (
+      projectItems => (params:any) => (
         <Typography variant='pMedium'>{params.option}</Typography>
       )
     }

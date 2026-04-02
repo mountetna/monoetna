@@ -4,7 +4,7 @@ import * as React from 'react'
 import { projectDataTypes } from '@/lib/utils/filters';
 import { FilterItem, Project } from './models';
 
-interface FilterSet {
+export interface FilterSet {
   [filterName: string]: any
 }
 
@@ -13,13 +13,15 @@ const defaultProjectExplorerState = {
   projectData: [] as Project[],
   filters: { } as FilterSet,
   filterItemSet: {} as FilterSet,
-  matchAllFilters: false
+  matchAllFilters: true
 }
 
 interface ProjectExplorerContextValues {
   state: typeof defaultProjectExplorerState;
   filteredProjectData: Project[];
   updateFilterItems: (title: string, filterItems: any[] | null) => void;
+  updateFilterItemSet: (filterItemSet: FilterSet) => void;
+  clearFilterItems: () => void;
   searchOptions: FilterItem[];
   setMatchAllFilters: (m:boolean) => void;
   createFilter: (filterName: string, filter: Function, items: Function | null) => void;
@@ -93,6 +95,12 @@ export function ProjectExplorerContextProvider({projectData, children}:{
     }, []
   )
 
+  const updateFilterItemSet = React.useCallback(
+    (filterItemSet: FilterSet) => {
+      setState( (prevState) => ({ ...prevState, filterItemSet }) );
+    }, [ state ]
+  )
+
   const updateFilterItems = React.useCallback(
     (filterName: string, filterItems: FilterItem['value'][]|null) => {
       let newState = { ...state };
@@ -103,6 +111,16 @@ export function ProjectExplorerContextProvider({projectData, children}:{
 
       if (!filterItems || filterItems.length == 0) {
         delete newState.filterItemSet[filterName];
+      }
+      setState(newState);
+    }, [ state ]
+  );
+
+  const clearFilterItems = React.useCallback(
+    () => {
+      let newState = { ...state };
+      newState.filterItemSet = {
+        ...defaultProjectExplorerState.filterItemSet
       }
       setState(newState);
     }, [ state ]
@@ -142,7 +160,9 @@ export function ProjectExplorerContextProvider({projectData, children}:{
       toggleColumnVisibility,
       setMatchAllFilters,
       createFilter,
-      updateFilterItems
+      updateFilterItems,
+      updateFilterItemSet,
+      clearFilterItems
     }}>
       {children}
     </ProjectExplorerContext.Provider>
