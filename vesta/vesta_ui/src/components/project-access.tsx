@@ -50,7 +50,7 @@ const ProjectAccess = ({project, loginUrl, accessUrl}:{
         }
         { user &&
             <Typography variant="pMedium">
-              You have a Library Card, but you don't have access to this project. Contact the {project.name.toUpperCase()} principal investigator to request access to the project: <Link href={`mailto:${pi.email}?subject=Request access to ${project.name}`}>{pi.email}</Link>
+              You have a Library Card, but you don&apos;t have access to this project. Contact the {project.name.toUpperCase()} principal investigator to request access to the project: <Link href={`mailto:${pi.email}?subject=Request access to ${project.name}`}>{pi.email}</Link>
             </Typography>
         }
     </Box>
