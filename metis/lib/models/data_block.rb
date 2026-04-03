@@ -36,6 +36,13 @@ class Metis
       Metis::DataBlock.where(query).select_map(:size).sum
     end
 
+    def self.exclude_removed_and_temp_blocks(ids)
+      where(id: ids)
+        .exclude(removed: true)
+        .exclude(Sequel.like(:md5_hash, "#{TEMP_PREFIX}%"))
+        .all
+    end
+
     def set_file_data(file_path, copy = false)
       if copy
         ::FileUtils.copy(
@@ -82,10 +89,17 @@ class Metis
         md5_hash = Metis::File.md5(location)
         existing_block = Metis::DataBlock.where(md5_hash: md5_hash).first
 
+        was_removed = existing_block && existing_block.removed
+        if was_removed
+          # Move the temp file's physical data to the existing block's location
+          ::File.rename(location, existing_block.location) if has_data? && existing_block.missing_data?
+          existing_block.update(removed: false)
+        end
+
         if existing_block
           # Get all files pointing to this temp block
           files_to_deduplicate = Metis::File.where(data_block_id: id).all
-          
+
           # Point all the files to the existing block
           Metis::File.where(
             data_block_id: id,
@@ -94,16 +108,26 @@ class Metis
           )
 
           yield [:temp_delete] if block_given?
-          # destroy the redundant file
+          # destroy the redundant temp file (already moved if it was a restore)
           ::File.delete(location) if has_data?
 
           # destroy this redundant record
           yield [:temp_destroy] if block_given?
           destroy
 
-          # Log deduplicate event for each file AFTER destroying the redundant file
+          # Restored blocks get RESTORE_DATABLOCK; ordinary deduplication gets REUSE_DATABLOCK
+          event_type = was_removed ? Metis::DataBlockLedger::RESTORE_DATABLOCK : Metis::DataBlockLedger::REUSE_DATABLOCK
+
           files_to_deduplicate.each do |file|
-            Metis::DataBlockLedger.log_deduplicate(file, existing_block, Metis::DataBlockLedger::CHECKSUM_COMMAND)
+            Metis::DataBlockLedger.log_event(
+              event_type: event_type,
+              datablock: existing_block,
+              triggered_by: Metis::DataBlockLedger::CHECKSUM_COMMAND,
+              project_name: file.project_name,
+              file_path: file.file_path,
+              file_id: file.id,
+              bucket_name: file.bucket.name
+            )
           end
 
           return
@@ -124,9 +148,17 @@ class Metis
           # Log RESOLVE_DATABLOCK for the temp block being resolved
           first_file = Metis::File.where(data_block_id: id).first
           if first_file
-            Metis::DataBlockLedger.log_resolve(first_file, self, Metis::DataBlockLedger::CHECKSUM_COMMAND)
+            Metis::DataBlockLedger.log_event(
+              event_type: Metis::DataBlockLedger::RESOLVE_DATABLOCK,
+              datablock: self,
+              triggered_by: Metis::DataBlockLedger::CHECKSUM_COMMAND,
+              project_name: first_file.project_name,
+              file_path: first_file.file_path,
+              file_id: first_file.id,
+              bucket_name: first_file.bucket.name
+            )
           else
-            Metis.instance.logger.error("No file found for data block #{id}")
+            Metis.instance.logger&.error("No file found for data block #{id}")
           end
         end
       end
@@ -162,6 +194,10 @@ class Metis
 
     def has_data?
       ::File.exist?(location)
+    end
+
+    def missing_data?
+      !has_data?
     end
 
     def location
