@@ -306,7 +306,7 @@ const InvestigatorsFilter = () => {
         />
       )
     }
-    id={ (pi:FilterItem['value']) => (pi as PrincipalInvestigator).name }/>
+    id={ (piName:string) => piName  }/>
 }
 
 const DEFAULT_RANGE=[0,500];
@@ -342,7 +342,7 @@ const ThemeFilter = () => {
         <Typography variant='pMedium'>{projectItems[params.option].name}</Typography>
       )
     }
-    id={ (item:FilterItem['value']) => (item as ThemeData).name }
+    id={ (themeName:string) => themeName }
   />
 }
 
