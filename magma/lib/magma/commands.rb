@@ -224,4 +224,135 @@ class Magma
       end
     end
   end
+
+  class AutoDisconnect < Etna::Command
+    usage '<project_name> <model_name> # Disconnect all records for a model by setting parent to nil'
+    boolean_flags << '--auto'
+
+    def execute(project_name, model_name, auto: false)
+      require_relative './server'
+      require_relative './loader'
+
+      @project_name = project_name
+      model = get_model(model_name)
+      
+      # Validate model has a parent
+      parent_attr = find_parent_attribute(model)
+      unless parent_attr
+        puts "Error: Model #{model_name} does not have a parent attribute and cannot be disconnected."
+        return
+      end
+
+      if auto
+        disconnect_with_hierarchy(model)
+      else
+        disconnect_model(model)
+      end
+    end
+
+    def setup(config)
+      super
+      Magma.instance.load_models
+      Magma.instance.setup_db
+    end
+
+    private
+
+    def get_model(model_name)
+      Magma.instance.get_model(@project_name, model_name)
+    end
+
+    def find_parent_attribute(model)
+      model.attributes.values.find { |attr| attr.is_a?(Magma::ParentAttribute) }
+    end
+
+    def disconnect_model(model)
+      model_name = model.model_name
+      parent_attr = find_parent_attribute(model)
+      parent_attr_name = parent_attr.name
+
+      # Get all connected records (those with a parent)
+      connected_records = model.where(Sequel.~(parent_attr.column_name.to_sym => nil)).all
+      
+      if connected_records.empty?
+        puts "No connected records found for model #{model_name}."
+        return
+      end
+
+      puts "Found #{connected_records.count} connected record(s) for model #{model_name}."
+      puts "Disconnecting records..."
+
+      # Build revisions hash for the loader
+      revisions = {}
+      revisions[model_name.to_sym] = {}
+
+      connected_records.each do |record|
+        identifier = record.send(model.identity.name)
+        revisions[model_name.to_sym][identifier.to_sym] = {
+          parent_attr_name => nil
+        }
+      end
+
+      # Use the Magma loader to perform the disconnect
+      user = Etna::User.new(
+        email: 'system@mountetna.org',
+        name: 'System',
+        perm: 'a:administration'
+      )
+
+      loader = Magma::Loader.new(user, @project_name)
+
+      revisions[model_name.to_sym].each do |record_name, revision|
+        loader.push_record(model, record_name.to_s, revision)
+      end
+
+      begin
+        payload = loader.dispatch_record_set
+        puts "Successfully disconnected #{connected_records.count} record(s) from model #{model_name}."
+      rescue Magma::LoadFailed => e
+        puts "Disconnect failed with errors:"
+        puts e.complaints
+      rescue Exception => e
+        puts "Disconnect failed:"
+        puts e.message
+      end
+    end
+
+    def disconnect_with_hierarchy(model)
+      # Use similar pattern to ReparentModelAction to walk up the parent chain
+      models_to_disconnect = parent_hierarchy(model)
+      
+      puts "Auto mode: Will disconnect records from #{models_to_disconnect.count} model(s) in hierarchy:"
+      models_to_disconnect.each do |m|
+        puts "  - #{m.model_name}"
+      end
+      puts
+
+      # Disconnect in reverse order (children first, then parents)
+      models_to_disconnect.reverse.each do |m|
+        disconnect_model(m)
+      end
+
+      puts "\nAuto-disconnect complete for hierarchy."
+    end
+
+    def parent_hierarchy(model)
+      # Walk up the parent chain similar to ReparentModelAction#model_tree
+      # but in the opposite direction (parents, not children)
+      models = [model]
+      current_model = model
+
+      # Walk up the parent chain
+      while parent_attr = find_parent_attribute(current_model)
+        parent_model = current_model.parent_model
+        break unless parent_model
+        break if parent_model.model_name.to_s == 'project' # Stop at project level
+        
+        models << parent_model
+        current_model = parent_model
+      end
+
+      models
+    end
+  end
 end
