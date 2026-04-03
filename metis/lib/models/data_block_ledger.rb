@@ -70,48 +70,10 @@ class Metis
         raise Etna::Error, "Project name is required to find orphaned datablocks"
       end
 
-      linked_datablock_ids = where(project_name: project_name)
-        .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK, RESTORE_DATABLOCK])
-        .select_map(:data_block_id)
-        .uniq
-
-      unlinked_datablock_ids = where(
-        project_name: project_name,
-        event_type: UNLINK_FILE_FROM_DATABLOCK
-      ).select_map(:data_block_id)
-        .uniq
-
-      live_datablock_ids = Metis::File
-        .where(project_name: project_name)
-        .select_map(:data_block_id)
-        .uniq
-
-      vacuumed_datablock_ids = where(
-        project_name: project_name,
-        event_type: REMOVE_DATABLOCK
-      ).select_map(:data_block_id)
-        .uniq
-
-      restored_datablock_ids = where(
-        project_name: project_name,
-        event_type: RESTORE_DATABLOCK
-      ).select_map(:data_block_id)
-        .uniq
-
-      # A block that was vacuumed but later restored is eligible again
-      already_removed_ids = vacuumed_datablock_ids - restored_datablock_ids
-
-      orphaned_ids = (linked_datablock_ids & unlinked_datablock_ids) - live_datablock_ids - already_removed_ids
+      orphaned_by_project, used_by_other_projects = orphaned_datablock_ids_for_project(project_name)
 
       # Block if ANY other project has a live file — vacuum is only safe when no one points to the datablock
-      used_by_other_projects = Metis::File
-        .exclude(project_name: project_name)
-        .select_map(:data_block_id)
-        .uniq
-
-      orphaned_ids = orphaned_ids - used_by_other_projects
-
-      Metis::DataBlock.exclude_removed_and_temp_blocks(orphaned_ids)
+      Metis::DataBlock.exclude_removed_and_temp_blocks(orphaned_by_project - used_by_other_projects)
     end
 
     # Returns datablocks this project has orphaned but cannot yet vacuum because other
@@ -122,6 +84,28 @@ class Metis
         raise Etna::Error, "Project name is required"
       end
 
+      orphaned_by_project, used_by_other_projects = orphaned_datablock_ids_for_project(project_name)
+
+      # Blocked = orphaned by this project AND still live in at least one other project
+      blocked_ids = orphaned_by_project & used_by_other_projects
+
+      datablocks = Metis::DataBlock.exclude_removed_and_temp_blocks(blocked_ids)
+
+      # Build a map of datablock_id -> [blocking project names]
+      blocking_files = Metis::File
+        .exclude(project_name: project_name)
+        .where(data_block_id: blocked_ids)
+        .select(:data_block_id, :project_name)
+        .all
+
+      blocked_by = blocking_files.each_with_object({}) do |file, h|
+        (h[file.data_block_id] ||= []) << file.project_name unless h[file.data_block_id]&.include?(file.project_name)
+      end
+
+      { datablocks: datablocks, blocked_by: blocked_by }
+    end
+
+    def self.orphaned_datablock_ids_for_project(project_name)
       linked_datablock_ids = where(project_name: project_name)
         .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK, RESTORE_DATABLOCK])
         .select_map(:data_block_id)
@@ -160,47 +144,23 @@ class Metis
         .select_map(:data_block_id)
         .uniq
 
-      # Blocked = orphaned by this project AND still live in at least one other project
-      blocked_ids = orphaned_by_project & used_by_other_projects
-
-      datablocks = Metis::DataBlock.exclude_removed_and_temp_blocks(blocked_ids)
-
-      # Build a map of datablock_id -> [blocking project names]
-      blocking_files = Metis::File
-        .exclude(project_name: project_name)
-        .where(data_block_id: blocked_ids)
-        .select(:data_block_id, :project_name)
-        .all
-
-      blocked_by = blocking_files.each_with_object({}) do |file, h|
-        (h[file.data_block_id] ||= []) << file.project_name unless h[file.data_block_id]&.include?(file.project_name)
-      end
-
-      { datablocks: datablocks, blocked_by: blocked_by }
+      [orphaned_by_project, used_by_other_projects]
     end
 
     def self.find_orphaned_datablocks_backfilled_for_stats
-      backfilled_datablock_ids = where(
-        triggered_by: SYSTEM_BACKFILL,
-        event_type: UNLINK_FILE_FROM_DATABLOCK
-      ).select_map(:data_block_id).uniq
-
-      vacuumed_datablock_ids = where(
-        event_type: REMOVE_DATABLOCK
-      ).select_map(:data_block_id).uniq
-
-      restored_datablock_ids = where(
-        event_type: RESTORE_DATABLOCK
-      ).select_map(:data_block_id).uniq
-
-      already_removed_ids = vacuumed_datablock_ids - restored_datablock_ids
-
-      orphaned_ids = backfilled_datablock_ids - already_removed_ids
-
-      Metis::DataBlock.exclude_removed_and_temp_blocks(orphaned_ids)
+      candidate_ids = backfilled_orphan_candidate_ids
+      Metis::DataBlock.exclude_removed_and_temp_blocks(candidate_ids)
     end
 
     def self.find_orphaned_datablocks_backfilled_for_vacuum
+      candidate_ids = backfilled_orphan_candidate_ids
+      live_datablock_ids = Metis::File.select_map(:data_block_id).uniq
+
+      # Block if any project has a live file — vacuum is only safe when no one points to the datablock
+      Metis::DataBlock.exclude_removed_and_temp_blocks(candidate_ids - live_datablock_ids)
+    end
+
+    def self.backfilled_orphan_candidate_ids
       backfilled_datablock_ids = where(
         triggered_by: SYSTEM_BACKFILL,
         event_type: UNLINK_FILE_FROM_DATABLOCK
@@ -214,16 +174,10 @@ class Metis
         event_type: RESTORE_DATABLOCK
       ).select_map(:data_block_id).uniq
 
+      # A block that was vacuumed but later restored is eligible again
       already_removed_ids = vacuumed_datablock_ids - restored_datablock_ids
 
-      orphaned_ids = backfilled_datablock_ids - already_removed_ids
-
-      # Block if any project has a live file — vacuum is only safe when no one points to the datablock
-      live_datablock_ids = Metis::File.select_map(:data_block_id).uniq
-
-      orphaned_ids = orphaned_ids - live_datablock_ids
-
-      Metis::DataBlock.exclude_removed_and_temp_blocks(orphaned_ids)
+      backfilled_datablock_ids - already_removed_ids
     end
 
     def self.calculate_event_counts(project_name = nil)
