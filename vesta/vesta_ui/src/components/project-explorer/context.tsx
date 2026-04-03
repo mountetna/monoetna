@@ -98,32 +98,36 @@ export function ProjectExplorerContextProvider({projectData, children}:{
   const updateFilterItemSet = React.useCallback(
     (filterItemSet: FilterSet) => {
       setState( (prevState) => ({ ...prevState, filterItemSet }) );
-    }, [ state ]
+    }, [ ]
   )
 
   const updateFilterItems = React.useCallback(
     (filterName: string, filterItems: FilterItem['value'][]|null) => {
-      let newState = { ...state };
-      newState.filterItemSet = {
-        ...state.filterItemSet,
-        [ filterName ]: filterItems
-      }
+      setState(prevState => {
+        let newState = { ...prevState };
+        newState.filterItemSet = {
+          ...prevState.filterItemSet,
+          [ filterName ]: filterItems
+        }
 
-      if (!filterItems || filterItems.length == 0) {
-        delete newState.filterItemSet[filterName];
-      }
-      setState(newState);
-    }, [ state ]
+        if (!filterItems || filterItems.length == 0) {
+          delete newState.filterItemSet[filterName];
+        }
+        return newState
+      });
+    }, []
   );
 
   const clearFilterItems = React.useCallback(
     () => {
-      let newState = { ...state };
-      newState.filterItemSet = {
-        ...defaultProjectExplorerState.filterItemSet
-      }
-      setState(newState);
-    }, [ state ]
+      setState(prevState => {
+        let newState = { ...prevState };
+        newState.filterItemSet = {
+          ...defaultProjectExplorerState.filterItemSet
+        }
+        return newState
+      });
+    }, [ ]
   );
 
   const filteredProjectData = projectData.filter(

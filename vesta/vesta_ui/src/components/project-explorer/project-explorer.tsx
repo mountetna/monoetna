@@ -70,9 +70,9 @@ function _ProjectExplorer({ }) {
     }, []);
 
     const handleChangeFilterItems = React.useCallback(
-      ([ filterItem, ...others ]: FilterItem[]) => {
-        if (!(filterItem.type in filterItemSet) || !filterItemSet[filterItem.type].includes(filterItem.value))
-        updateFilterItems(filterItem.type, (filterItemSet[filterItem.type] || []).concat(filterItem.value))
+      (filterItem: FilterItem) => {
+        if (!(filterItem.type in filterItemSet) || !filterItemSet[filterItem.type].includes(filterItem.label))
+        updateFilterItems(filterItem.type, (filterItemSet[filterItem.type] || []).concat(filterItem.label))
         setCurrentPage(0)
       }, [ filterItemSet, updateFilterItems ]
     );
@@ -173,13 +173,13 @@ function _ProjectExplorer({ }) {
                                 />
 
                                 <Autocomplete
-                                    multiple
                                     icon={searchDarkIcon}
                                     placeholder={searchPlaceholder}
                                     options={[...searchOptions].sort((a, b) => a.type.localeCompare(b.type))}
                                     showResultsOnEmpty={false}
                                     // @ts-ignore
                                     inputValue={inputValue}
+                                    value={null}
                                     onInputChange={ (_, value: string, reason) => setInputValue(value) }
                                     onKeyDown={
                                       (e) => {
@@ -193,11 +193,12 @@ function _ProjectExplorer({ }) {
                                       }
                                     }
                                     // @ts-ignore
-                                    onChange={(_, value: FilterItem[], reason) => {
+                                    onChange={(_, value: FilterItem, reason) => {
                                         // disables removing options with backspace
                                         if (reason === 'removeOption') return
 
                                         handleChangeFilterItems(value)
+                                        setInputValue('');
                                     }}
                                     // @ts-ignore
                                     getOptionKey={(option: FilterItem) => option.key}
