@@ -193,7 +193,7 @@ function _ProjectExplorer({ }) {
                                       }
                                     }
                                     // @ts-ignore
-                                    onChange={(_, value: FilterItem[], reason) => {
+                                    onChange={(_, value: FilterItem, reason) => {
                                         // disables removing options with backspace
                                         if (reason === 'removeOption') return
 

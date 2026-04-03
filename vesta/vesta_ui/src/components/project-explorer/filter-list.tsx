@@ -167,12 +167,11 @@ const Filter = ({title, highlight, children}:{
 
 type FilterFunction = (filterItem:FilterItem['value'], project:Project, matchAllFilters:boolean) => boolean;
 
-const BasicFilter = ({title, filter, items, render, id}:{
+const BasicFilter = ({title, filter, items, render}:{
   title: string;
   items: (p:Project) => any;
   filter: FilterFunction,
   render: (params:any) => any;
-  id: (item:FilterItem['value']) => any;
 }) => {
   const {
     state: { projectData, filters, filterItemSet },
@@ -203,8 +202,8 @@ const BasicFilter = ({title, filter, items, render, id}:{
   };
 
   const handleClickRemoveFilterItem = React.useCallback(
-    (filterItem:FilterItem['value']) => {
-      handleChangeFilterItems(filterItems.filter((f:FilterItem['value']) => f !== filterItem))
+    (filterItem:string) => {
+      handleChangeFilterItems(filterItems.filter((f:string) => f !== filterItem))
     }, [filterItemSet]
   );
 
@@ -216,7 +215,7 @@ const BasicFilter = ({title, filter, items, render, id}:{
       icon={searchDarkIcon}
       options={itemNames}
       // @ts-ignore
-      onChange={(_, value:FilterItem['value'][] | null, reason) => {
+      onChange={(_, value:string[] | null, reason) => {
           if (reason === 'removeOption') return;
           handleChangeFilterItems(value);
       }}
@@ -241,10 +240,10 @@ const BasicFilter = ({title, filter, items, render, id}:{
             pt: '16px'
         }}
     >
-        {filterItems.map(((item:FilterItem['value']) => (
+        {filterItems.map(((item:string) => (
             <FilterPill
-                key={id(item)}
-                label={id(item)}
+                key={item}
+                label={item}
                 removeable
                 onClickRemove={() => handleClickRemoveFilterItem(item)}
             />
@@ -305,8 +304,7 @@ const InvestigatorsFilter = () => {
           variant='filled'
         />
       )
-    }
-    id={ (piName:string) => piName  }/>
+    } />
 }
 
 const DEFAULT_RANGE=[0,500];
@@ -324,7 +322,6 @@ const DataTypesFilter = () => {
     render={
       projectItems => (params:any) => <Typography variant='pBodyMediumWt' key={params.option}>{params.option}</Typography>
     }
-    id={ (item:FilterItem['value']) => item as ProjectDataType }
   />
 }
 
@@ -342,7 +339,6 @@ const ThemeFilter = () => {
         <Typography variant='pMedium'>{projectItems[params.option].name}</Typography>
       )
     }
-    id={ (themeName:string) => themeName }
   />
 }
 
@@ -403,7 +399,6 @@ const TypeFilter = () => {
         <Typography variant='pMedium'>{params.option}</Typography>
       )
     }
-    id={ (item:FilterItem['value']) => item }
   />
 }
 
@@ -421,7 +416,6 @@ const PhaseFilter = () => {
         <Typography variant='pMedium'>{params.option}</Typography>
       )
     }
-    id={ (item:FilterItem['value']) => item }
   />
 }
 
