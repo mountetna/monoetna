@@ -30,7 +30,7 @@ export const PublicationsHero = () => {
       <Typography variant='h2'>Publication resources</Typography>
       <Box sx={{ mt: '32px', width: 650 }}>
         <Typography variant='pMedium'>
-        The Data Library hosts a series of research projects containing multi-omic data and de-identified clinical data. Project data is shared in our research community to best leverage these rich datasets toward biological discovery.
+        Each project in the Data Library generates publications from its data. These publications represent the culmination of work within each project, while also serving as a foundation for future research, allowing others to reuse and reanalyze the data to drive new discoveries and additional publications.
         </Typography>
       </Box>
     </Box>
