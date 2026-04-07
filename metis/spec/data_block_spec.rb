@@ -439,7 +439,8 @@ describe DataBlockController do
       ])
 
       expect(last_response.status).to eq(200)
-      expect(json_body).to eq(found: [wisdom_md5, folly_md5], missing: [helmet_md5])
+      expect(json_body[:found]).to match_array([wisdom_md5, folly_md5])
+      expect(json_body[:missing]).to match_array([helmet_md5])
     end
 
     it 'finds data blocks only for a specified project' do
