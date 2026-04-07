@@ -104,6 +104,9 @@ export function useDataSync(
               }
               dispatch(updateFiles(update))
             })
+          } else if (Object.keys(filesContent).length > 0) {
+            update['file_contents'] = filesContent;
+            dispatch(updateFiles(update))
           } else {
             dispatch(updateFiles(update))
           }

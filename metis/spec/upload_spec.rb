@@ -537,6 +537,45 @@ describe UploadController do
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Blob integrity failed')
     end
+
+    it 'does not hash if no_checksum' do
+      # as before, existing and next data
+      partial = WISDOM[0..9]
+      next_blob = WISDOM[10..19]
+
+      # we create the blob with the wrong contents
+      wisdom_blob_file = stubs.create_data('athena', 'wisdom_blob', next_blob.reverse)
+
+      file = create_file('athena', 'wisdom.txt', WISDOM)
+
+      # the upload expects the correct contents
+      upload = create_upload('athena', 'wisdom.txt', @metis_uid,
+        file_size: WISDOM.length,
+        current_byte_position: partial.length,
+        next_blob_size: next_blob.length,
+        next_blob_hash: Digest::MD5.hexdigest(next_blob)
+      )
+
+      partial_file = stubs.create_partial(upload, partial, @metis_uid)
+
+      # we post the wrong blob
+      hmac_header
+      post(
+        upload_path('athena', 'wisdom.txt'),
+        action: 'blob',
+        next_blob_size: 10,
+        next_blob_hash: 10,
+        no_checksum: true,
+        current_byte_position: partial.length,
+        blob_data: Rack::Test::UploadedFile.new(
+          wisdom_blob_file,
+          'application/octet-stream'
+        )
+      )
+
+      # the server does not care
+      expect(last_response.status).to eq(200)
+    end
   end
 
   context '#upload_blob completion' do

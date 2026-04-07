@@ -47,16 +47,7 @@ export default function DLNav({
           return;
         }
 
-        router.push(href, { scroll: false });
-
-        const el = document.getElementById(elId);
-
-        if (el) {
-          window.scrollTo({
-              top: el.offsetTop - NavBarHeights[breakpoint].condensed,
-              behavior: 'smooth',
-          })
-        }
+        router.push(href, { scroll: true });
 
         onClickNavLink && onClickNavLink()
     }
