@@ -17,6 +17,7 @@ import Pagination, { PaginationClasses } from '@/components/searchable-list/cont
 import { SxProps, useTheme } from '@mui/material';
 import arrowUpRightDark from '/public/images/icons/arrow-up-right-dark.svg';
 import Link from './link/link';
+import { Publication } from '@/lib/clients/vesta-api/models';
 
 export const PublicationsHero = () => {
   return (
@@ -36,10 +37,12 @@ export const PublicationsHero = () => {
   );
 }
 
-const PubInfo = ({label, info, width}) => {
+const PubInfo = ({label, info}:{
+  label: string;
+  info: string|number;
+}) => {
   const theme = useTheme();
   return <Box sx={{
-    width,
     gap: '10px',
     display: 'flex'
   }}>
@@ -49,13 +52,19 @@ const PubInfo = ({label, info, width}) => {
 }
 
 export const PublicationsTable = ({publications}:{
-  publications: any
+  publications: Publication[]
 }) => {
   const theme = useTheme();
   const [ filterText, setFilterText ] = React.useState('');
 
+  const filterTerms = filterText.split(' ');
   const filteredPublications = publications.filter(
-    pub => `${pub.title} ${pub.authors} ${pub.publication_year} ${pub.project} ${pub.journal}`.search(new RegExp(filterText, "i")) != -1
+    (pub:Publication) => {
+      const pubText = `${pub.title} ${pub.authors} ${pub.publication_year} ${pub.project} ${pub.journal}`;
+      return filterTerms.every(
+        filterTerm => pubText.search(new RegExp(filterTerm, "i")) != -1
+      )
+    }
   ).sort( (pub1,pub2) => pub2.publication_year - pub1.publication_year );
   return (
     <Box sx={{ mx: '100px', mb: '100px' }}>
@@ -114,6 +123,8 @@ export const PublicationsTable = ({publications}:{
           </Box>
           <Pagination
               currentPage={0}
+              onClickPrev={ () => {} }
+              onClickNext={ () => {} }
               pageSize={filteredPublications.length}
               listSize={publications.length}
               listItemLabel='publications'
@@ -121,7 +132,7 @@ export const PublicationsTable = ({publications}:{
           />
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px'}}>
-              {filteredPublications.map((pub,i) => (
+              {filteredPublications.map((pub:Publication,i) => (
                 <Box
                   key={i}
                   sx={ { 
