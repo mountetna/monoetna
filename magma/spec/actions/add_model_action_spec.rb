@@ -159,6 +159,23 @@ describe Magma::AddModelAction do
       end
     end
 
+    context "when there is an implicit name conflict" do
+      let(:action_params) do
+        {
+          action_name: "add_model",
+          identifier: "name",
+          model_name: "monsters",
+          parent_model_name: "labor",
+          parent_link_type: "collection"
+        }
+      end
+
+      it "returns false and adds an error" do
+        expect(action.validate).to eq(false)
+        expect(action.errors.first[:message]).to eq("model_name 'monsters' clashes with model_name 'monster'")
+      end
+    end
+
     context "when the parent model doesn't exist" do
       let(:action_params) do
         {
