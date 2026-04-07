@@ -165,6 +165,7 @@ class Vesta
 
         begin
           project_info = retrieve_project_info(proj_name)
+          project_publications = retrieve_project_publications(proj_name)
           project_model_names = retrieve_model_names(proj_name)
 
           pi_profiles = proj[:principal_investigators].map do |janus_pi|
@@ -197,6 +198,7 @@ class Vesta
             species: project_info[:species],
             start_date: parse_start_date(project_info[:start_date]),
             theme: project_info[:theme],
+            publications: project_publications,
             data_collection_complete: project_info[:completed] != nil ? project_info[:completed] : false,
             data_types: project_model_names,
           )
@@ -231,6 +233,16 @@ class Vesta
       docs = response.models.raw["project"]["documents"]
       data = docs[docs.keys().first]
       data.transform_keys(&:to_sym)
+    end
+
+    def retrieve_project_publications(project_name)
+      response = magma_client.retrieve(
+        project_name: project_name,
+        model_name: 'publication',
+        attribute_names: 'all',
+        record_names: 'all',
+      )
+      response.models.raw["publication"]["documents"].values
     end
 
     def retrieve_model_names(project_name)
