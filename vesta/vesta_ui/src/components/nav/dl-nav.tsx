@@ -97,6 +97,12 @@ export default function DLNav({
                 typography={linkTypography}
             />
             <NavLink
+                text='Publications'
+                href='/publications'
+                onClick={handleClickNavLink}
+                typography={linkTypography}
+            />
+            <NavLink
                 text='Contribute Data'
                 href='#contribute'
                 onClick={handleClickNavLink}
