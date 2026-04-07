@@ -231,15 +231,16 @@ class Metis
   class BackfillDataBlockLedger < Etna::Command
     usage "Usage: bin/metis backfill_data_block_ledger [--project_name <project_name>] [--links] [--orphaned]
            # backfill the datablock ledger
-           # --links phase requires --project_name
+           # --links phase requires --project_name or --all
            # --orphaned phase is system-wide and does not require --project_name
            # Must specify exactly one phase: --links or --orphaned"
 
     boolean_flags << "--links"
     boolean_flags << "--orphaned"
+    boolean_flags << "--all"
     string_flags << "--project_name"
 
-    def execute(links: false, orphaned: false, project_name: nil)
+    def execute(links: false, orphaned: false, all: false, project_name: nil)
       # Validate that exactly one phase is specified
       if links && orphaned
         puts "Error: Cannot specify multiple phase options"
@@ -253,21 +254,47 @@ class Metis
         puts "Usage: bin/metis backfill_data_block_ledger [--project_name <project_name>] [--links] [--orphaned]"
         puts ""
         puts "Phases:"
-        puts "  --links    Backfill link events for existing files (requires --project_name)"
+        puts "  --links    Backfill link events for existing files (requires --project_name or --all)"
         puts "  --orphaned Backfill orphaned datablocks (system-wide, no --project_name needed)"
         puts ""
         puts "Examples:"
         puts "  bin/metis backfill_data_block_ledger --project_name athena --links"
+        puts "  bin/metis backfill_data_block_ledger --all --links"
         puts "  bin/metis backfill_data_block_ledger --orphaned"
         puts ""
         return
       end
 
       if links
+        if all
+          project_names = Metis::File.distinct(:project_name).select_map(:project_name).sort
+          if project_names.empty?
+            puts "No projects found in the database."
+            return
+          end
+
+          puts "Running --links backfill for #{project_names.length} projects: #{project_names.join(', ')}"
+          puts "=" * 70
+
+          project_names.each do |name|
+            puts ""
+            puts "Project: #{name}"
+            puts "-" * 70
+            backfill_links(name)
+          end
+
+          puts ""
+          puts "=" * 70
+          puts "Backfill complete for all projects."
+          puts "=" * 70
+          return
+        end
+
         if project_name.nil? || project_name.empty?
           puts "Error: Project name is required for --links phase"
           puts ""
           puts "Usage: bin/metis backfill_data_block_ledger --project_name <project_name> --links"
+          puts "       bin/metis backfill_data_block_ledger --all --links"
           return
         end
 
