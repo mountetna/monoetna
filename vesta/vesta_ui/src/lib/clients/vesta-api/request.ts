@@ -24,6 +24,8 @@ export async function getData() {
     const type = Object.values(ProjectType).find(k => k.toUpperCase() === proj.type.toUpperCase())
     const theme = THEMES.find(theme => theme.name.toUpperCase() === proj.theme.toUpperCase())
     if (!status || !type || !theme) {
+	    console.log("Skipping " + proj.name);
+	    console.log({status, type, theme});
       return
     }
 
@@ -66,6 +68,7 @@ export async function getData() {
       subjectCount: latestCount('subjects'),
       assayCount: latestCount('assays'),
       hasClinicalData: latestCount('assays') > 0 ? 'Yes' : 'No',
+      publications: proj.publications,
       species: proj.species,
       startDate: proj.start_date,
       dataCollectionComplete: proj.data_collection_complete,

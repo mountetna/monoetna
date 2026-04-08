@@ -62,6 +62,7 @@ class Magma
           :validate_parent_model,
           :validate_parent_link_type,
           :validate_model_name,
+          :validate_table_name_collisions,
           :validate_date_shift_root_existence
       ]
     end
@@ -71,6 +72,32 @@ class Magma
         validate_presence(field)
         validate_snake_case(field)
       end
+    end
+
+    class Inflection
+      extend Sequel::Inflections
+      public_class_method :pluralize
+      public_class_method :underscore
+      public_class_method :demodulize
+    end
+
+    def validate_table_name_collisions
+      table_name = nil
+      model_name = @action_params[:model_name]
+      Inflection.class_eval do
+        table_name = pluralize(underscore(demodulize(model_name))).to_sym
+      end
+
+      conflicting_model, _ = project.models.find do |model_name, model|
+        model.implicit_table_name == table_name
+      end
+
+      return unless conflicting_model
+
+      @errors << Magma::ActionError.new(
+          message: "model_name '#{model_name}' clashes with model_name '#{conflicting_model}'",
+          source: @action_params.slice(:parent_model_name)
+      )
     end
 
     def required_fields

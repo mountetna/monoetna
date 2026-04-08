@@ -106,6 +106,24 @@ describe 'Vesta Commands' do
       described_class.new
     }
 
+    def stub_retrieve_publications(project)
+      stub_retrieve(
+        {
+          "project_name":project,
+          "model_name":"publication",
+          "attribute_names": "all",
+          "record_names":"all"
+        },
+        {
+          models: {
+            publication: {
+              documents: { "1" => { title: "blank" } }
+            }
+          }
+        }
+      )
+    end
+
     def stub_retrieve_project_info(project, response)
       stub_retrieve(
         {
@@ -171,6 +189,8 @@ describe 'Vesta Commands' do
         start_date: now,
         theme: "taxonomy"
       })
+      stub_retrieve_publications("labors")
+      stub_retrieve_publications("athena")
       stub_models("athena", [ "olympian", "blood" ])
       stub_models("labors", [ "victim", "form", "census" ])
       stub_profile("metis", "Titaness")
