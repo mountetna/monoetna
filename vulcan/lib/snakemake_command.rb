@@ -19,6 +19,7 @@ class Vulcan
           singularity_args: '',
           dry_run: false,
           summary: false,
+          latency_wait: 30,
         }
       end
 
@@ -46,6 +47,7 @@ class Vulcan
         # Optional flags and arguments
         cmd << "--workflow-profile #{@options[:workflow_profile_path]}" unless @options[:workflow_profile_path].nil?
         cmd << "--cores 1" if @options[:local]
+        cmd << "--latency-wait #{@options[:latency_wait]}"
         cmd << "--use-singularity" # For now we always use singularity
 
         unless @options[:singularity_args].nil?
