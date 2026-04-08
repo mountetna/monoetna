@@ -488,14 +488,16 @@ describe DataBlockController do
       expect(response[:summary][:space_freed]).to eq(wisdom_data_block.size + helmet_data_block.size)
       
       # Wisdom data block
-      expect(response[:vacuumed].first[:md5_hash]).to eq(wisdom_data_block.md5_hash)
-      expect(response[:vacuumed].first[:size]).to eq(wisdom_data_block.size)
-      expect(response[:vacuumed].first[:location]).to eq(wisdom_data_block.location)
-      
+      wisdom_vacuumed = response[:vacuumed].find { |v| v[:md5_hash] == wisdom_data_block.md5_hash }
+      expect(wisdom_vacuumed).to be_present
+      expect(wisdom_vacuumed[:size]).to eq(wisdom_data_block.size)
+      expect(wisdom_vacuumed[:location]).to eq(wisdom_data_block.location)
+
       # Helmet data block
-      expect(response[:vacuumed].last[:md5_hash]).to eq(helmet_data_block.md5_hash)
-      expect(response[:vacuumed].last[:size]).to eq(helmet_data_block.size)
-      expect(response[:vacuumed].last[:location]).to eq(helmet_data_block.location)
+      helmet_vacuumed = response[:vacuumed].find { |v| v[:md5_hash] == helmet_data_block.md5_hash }
+      expect(helmet_vacuumed).to be_present
+      expect(helmet_vacuumed[:size]).to eq(helmet_data_block.size)
+      expect(helmet_vacuumed[:location]).to eq(helmet_data_block.location)
 
       # Verify datablock is marked as removed
       wisdom_data_block.reload
