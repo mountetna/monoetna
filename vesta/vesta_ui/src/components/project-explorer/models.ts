@@ -1,5 +1,7 @@
 import { ThemeData } from "../themes/models";
 import { DATA_TYPES } from '@/lib/fixtures';
+import { Publication } from '@/lib/clients/vesta-api/models';
+
 
 
 export enum ProjectStatus {
@@ -58,6 +60,7 @@ export interface Project {
     startDate: Date
     dataCollectionComplete: boolean
     userCount: number
+    publications: Publication[]
     theme: ThemeData
     href: string
 }
