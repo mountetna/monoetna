@@ -224,7 +224,15 @@ class Metis
 
       # Log unlink events AFTER successful deletion
       files_and_blocks.each do |file, datablock, file_path|
-        Metis::DataBlockLedger.log_unlink(file, datablock, user, file_path: file_path)
+        Metis::DataBlockLedger.log_event(
+          event_type: Metis::DataBlockLedger::UNLINK_FILE_FROM_DATABLOCK,
+          datablock: datablock,
+          triggered_by: user,
+          project_name: file.project_name,
+          file_path: file_path,
+          file_id: file.id,
+          bucket_name: file.bucket.name
+        )
       end
     end
 
