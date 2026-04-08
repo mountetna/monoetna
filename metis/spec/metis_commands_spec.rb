@@ -157,6 +157,8 @@ describe Metis::BackfillDataBlockLedger do
       
       wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
 
+      enable_all_ledger_events
+
       backfill_ledger = Metis::BackfillDataBlockLedger.new
 
       # Run backfill first time - should create link event
@@ -179,6 +181,8 @@ describe Metis::BackfillDataBlockLedger do
       wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
       labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
       backup_file = upload_file_via_api('backup', 'backup.txt', WISDOM)
+
+      enable_all_ledger_events
 
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       backfill_ledger.execute(project_name: 'athena', links: true)
@@ -235,6 +239,7 @@ describe Metis::BackfillDataBlockLedger do
       delete("/athena/file/remove/files/helmet.jpg")
       expect(last_response.status).to eq(200)
 
+      enable_all_ledger_events
 
       # Mock the ask_user method to return 'y' automatically
       backfill_ledger = Metis::BackfillDataBlockLedger.new
@@ -283,6 +288,8 @@ describe Metis::BackfillDataBlockLedger do
       delete("/athena/file/remove/files/wisdom.txt")
       expect(last_response.status).to eq(200)
 
+      enable_all_ledger_events
+
       backfill_ledger = Metis::BackfillDataBlockLedger.new
 
       # Run backfill first time - should create unlink event
@@ -310,6 +317,8 @@ describe Metis::BackfillDataBlockLedger do
         delete("/athena/file/remove/files/wisdom.txt")
         expect(last_response.status).to eq(200)
   
+        enable_all_ledger_events
+
         backfill_ledger = Metis::BackfillDataBlockLedger.new
   
         # Run backfill should detect no orphaned datablocks

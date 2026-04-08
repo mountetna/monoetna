@@ -243,6 +243,8 @@ class Vesta
         record_names: 'all',
       )
       response.models.raw["publication"]["documents"].values
+    rescue
+      return []
     end
 
     def retrieve_model_names(project_name)
