@@ -152,7 +152,7 @@ export const TableFormat = ({value,update}:ScriptItem) => <Select displayEmpty v
 export const BlankTable = ({value, update, modelName, classes}:ScriptItem) => {
   const {models} = useContext(MagmaContext);
   const parentAttribute: string = models ? models[modelName]?.template?.parent : '__error__'
-  const isTable: boolean = parentAttribute!='project' && models[parentAttribute]?.template?.attributes[modelName].attribute_type=='table'
+  const isTable: boolean = modelName!='project' && models[parentAttribute]?.template?.attributes[modelName].attribute_type=='table'
 
   if (value==undefined) {
     update(true)
@@ -229,7 +229,7 @@ export const ColumnMap = ({value, update, modelName, classes}:ScriptItem) => {
   const idAttribute: string = models?.[modelName]?.template?.identifier || '__error__'
   const parentAttribute: string = models?.[modelName]?.template?.parent || '__error__'
   // Determine if table.
-  const isTable: boolean = parentAttribute!='project' && models[parentAttribute]?.template?.attributes[modelName].attribute_type=='table'
+  const isTable: boolean = modelName!='project' && models[parentAttribute]?.template?.attributes[modelName].attribute_type=='table'
   const autoAttribute: string = isTable ? parentAttribute : idAttribute
 
   useEffect( () => {
