@@ -6,9 +6,9 @@ class Vulcan
   class Snakemake
 
     class CommandBuilder
-      attr_accessor :options, :targets
+      attr_accessor :targets
+      attr_reader :options
 
-      # Initialize the CommandBuilder with default options
       def initialize
         @targets = []
         @options = {
@@ -45,12 +45,12 @@ class Vulcan
         cmd << "--profile #{@options[:profile_path]}"
 
         # Optional flags and arguments
-        cmd << "--workflow-profile #{@options[:workflow_profile_path]}" unless @options[:workflow_profile_path].nil?
+        cmd << "--workflow-profile #{@options[:workflow_profile_path]}" unless @options[:workflow_profile_path].to_s.empty?
         cmd << "--cores 1" if @options[:local]
         cmd << "--latency-wait #{@options[:latency_wait]}"
         cmd << "--use-singularity" # For now we always use singularity
 
-        unless @options[:singularity_args].nil?
+        unless @options[:singularity_args].to_s.empty?
           cmd << "--singularity-args '#{Shellwords.escape(@options[:singularity_args])}'"
         end
 
