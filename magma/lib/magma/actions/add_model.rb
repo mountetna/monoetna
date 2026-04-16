@@ -4,6 +4,8 @@ class Magma
   class AddModelAction < BaseAction
     include WithDateShift
 
+    DEFAULT_TEMPLATE_PROJECT = "coprojects_template"
+
     def perform
       @model = create_model
 
@@ -45,6 +47,8 @@ class Magma
 
       params[:dictionary] = @action_params[:dictionary] if @action_params[:dictionary]
       params[:date_shift_root] = !!@action_params[:date_shift_root]
+      params[:template_project_name] = template_project_name if @action_params[:template_model_name]
+      params[:template_model_name] = @action_params[:template_model_name] if @action_params[:template_model_name]
 
       # Here dictionary needs to be a JSON string, otherwise
       #   Sequel will try to find a column for each dictionary key.
@@ -63,7 +67,8 @@ class Magma
           :validate_parent_link_type,
           :validate_model_name,
           :validate_table_name_collisions,
-          :validate_date_shift_root_existence
+          :validate_date_shift_root_existence,
+          :validate_template_target
       ]
     end
 
@@ -174,11 +179,38 @@ class Magma
       ) if current_root
     end
 
+    def validate_template_target
+      return unless @action_params[:template_model_name]
+
+      if @project_name.to_s == template_project_name.to_s &&
+          @action_params[:model_name].to_s == @action_params[:template_model_name].to_s
+        @errors << Magma::ActionError.new(
+          message: "Model cannot point to itself as its template",
+          source: @action_params.slice(:model_name, :template_project_name, :template_model_name)
+        )
+        return
+      end
+
+      return if Magma.instance.db[:models].where(
+        project_name: template_project_name,
+        model_name: @action_params[:template_model_name]
+      ).first
+
+      @errors << Magma::ActionError.new(
+        message: "template_model_name does not match a model",
+        source: @action_params.slice(:template_project_name, :template_model_name)
+      )
+    end
+
     def table_parent_link?
       @action_params[:parent_link_type] == "table"
     end
 
     PARENT_LINK_TYPES = ["child", "collection", "table"]
+
+    def template_project_name
+      @action_params[:template_project_name] || DEFAULT_TEMPLATE_PROJECT
+    end
 
     def parent_model
       @parent_model ||= begin
