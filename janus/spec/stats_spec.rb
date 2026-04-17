@@ -9,6 +9,7 @@ describe StatsController do
     it "returns stats for all projects if none specified" do
       user1 = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
       user2 = create(:user, name: 'Vesta Bule', email: 'vesta@two-faces.org')
+      user3 = create(:user, name: 'Xenos Interloper', email: 'xenos@strangers.org', flags: ['inactive'])
 
       admin = create(:project, project_name: 'administration', project_name_full: 'Administration')
       gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
@@ -21,6 +22,9 @@ describe StatsController do
       create(:permission, project: tunnel, user: user2, role: 'viewer')
       create(:permission, project: mirror, user: user1, role: 'editor')
       create(:permission, project: gateway, user: user1, role: 'editor')
+
+      create(:permission, project: mirror, user: user3, role: 'editor')
+      create(:permission, project: gateway, user: user3, role: 'editor')
 
       header('Authorization', "Etna #{user1.create_token!}")
       get('/api/stats/projects')
