@@ -14,20 +14,20 @@ class User < Sequel::Model
     end
 
     # validate the nonce
-    return "invalid nonce #{nonce}" unless Janus::Nonce.valid_nonce?(nonce)
+    raise "Invalid nonce #{nonce}" unless Janus::Nonce.valid_nonce?(nonce)
 
     # validate the email
-    return "invalid email" if email =~ /[^[:print:]]/
+    raise "Invalid email" if email =~ /[^[:print:]]/
 
     # find the user
     user = User[email: email]
 
-    return "no user" unless user
+    raise "No user" unless user
 
     # check the user's signature
     txt_to_sign = signed_nonce.split('.')[0..1].join('.')
 
-    return "invalid signature" unless user.valid_signature?(txt_to_sign, signature)
+    raise "Invalid signature" unless user.valid_signature?(txt_to_sign, signature)
 
     return user
   end
@@ -39,9 +39,22 @@ class User < Sequel::Model
 
     user = User[email: payload[:email]]
 
-    return nil unless user and payload == user.jwt_payload
+    raise "Invalid user #{payload[:email]}" unless user
+    raise "Invalid token" unless payload == user.jwt_payload
 
     return user
+  end
+
+  def self.active
+    self.exclude(Sequel.lit("flags IS NOT NULL AND flags ? 'inactive'"))
+  end
+
+  def self.inactive
+    self.where(Sequel.lit("flags IS NOT NULL AND flags ? 'inactive'"))
+  end
+
+  def has_flag?(flag)
+    flags&.include?(flag)
   end
 
   def to_hash
