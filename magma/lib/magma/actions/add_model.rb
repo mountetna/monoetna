@@ -1,10 +1,10 @@
 require_relative "./with_date_shift_module"
+require_relative "./with_template_validation_module"
 
 class Magma
   class AddModelAction < BaseAction
     include WithDateShift
-
-    DEFAULT_TEMPLATE_PROJECT = "coprojects_template"
+    include WithTemplateValidation
 
     def perform
       @model = create_model
@@ -182,23 +182,11 @@ class Magma
     def validate_template_target
       return unless @action_params[:template_model_name]
 
-      if @project_name.to_s == template_project_name.to_s &&
-          @action_params[:model_name].to_s == @action_params[:template_model_name].to_s
-        @errors << Magma::ActionError.new(
-          message: "Model cannot point to itself as its template",
-          source: @action_params.slice(:model_name, :template_project_name, :template_model_name)
-        )
-        return
-      end
-
-      return if Magma.instance.db[:models].where(
-        project_name: template_project_name,
-        model_name: @action_params[:template_model_name]
-      ).first
-
-      @errors << Magma::ActionError.new(
-        message: "template_model_name does not match a model",
-        source: @action_params.slice(:template_project_name, :template_model_name)
+      validate_template_target!(
+        self_template_message: "Model cannot point to itself as its template",
+        self_template_source_keys: [:model_name, :template_project_name, :template_model_name],
+        missing_template_message: "template_model_name does not match a model",
+        missing_template_source_keys: [:template_project_name, :template_model_name]
       )
     end
 
@@ -207,10 +195,6 @@ class Magma
     end
 
     PARENT_LINK_TYPES = ["child", "collection", "table"]
-
-    def template_project_name
-      @action_params[:template_project_name] || DEFAULT_TEMPLATE_PROJECT
-    end
 
     def parent_model
       @parent_model ||= begin
