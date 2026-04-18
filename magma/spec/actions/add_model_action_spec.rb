@@ -123,6 +123,60 @@ describe Magma::AddModelAction do
         ).update(dictionary: nil)
       end
     end
+
+    context "with a template model reference" do
+      let(:action_params) do
+        {
+          action_name: "add_model",
+          model_name: "random",
+          identifier: "name",
+          parent_model_name: "labor",
+          parent_link_type: "child",
+          template_project_name: "labors_template",
+          template_model_name: "random"
+        }
+      end
+
+      after do
+        project = Magma.instance.get_project(:labors)
+        project.models.delete(:random)
+        Labors.send(:remove_const, :Random) if Labors.const_defined?(:Random)
+        Labors::Labor.attributes.delete(:random)
+      end
+
+      it "stores the template model reference" do
+        expect(action.perform).to eq(true)
+
+        model_row = Magma.instance.db[:models].where(
+          project_name: "labors",
+          model_name: "random"
+        ).first
+
+        expect(model_row[:template_project_name]).to eq("labors_template")
+        expect(model_row[:template_model_name]).to eq("random")
+        expect(Labors::Random.template_project_name).to eq("labors_template")
+        expect(Labors::Random.template_model_name).to eq(:random)
+      end
+
+      context "when the template model does not exist" do
+        let(:action_params) do
+          {
+            action_name: "add_model",
+            model_name: "random",
+            identifier: "name",
+            parent_model_name: "labor",
+            parent_link_type: "child",
+            template_project_name: "labors_template",
+            template_model_name: "missing_template"
+          }
+        end
+
+        it "returns false and adds an error" do
+          expect(action.validate).to eq(false)
+          expect(action.errors.first[:message]).to eq("template_model_name does not match a model")
+        end
+      end
+    end
   end
 
   describe "#validate" do
