@@ -1,3 +1,6 @@
+require "fileutils"
+require "json"
+
 class Metis
   class Console < Etna::Command
     usage "Open a console with a connected magma instance."
@@ -529,23 +532,26 @@ class Metis
   end
 
   class LedgerStats < Etna::Command
-    usage "Usage: bin/metis ledger_stats [--project_name <project_name>] [--backfilled]
+    usage "Usage: bin/metis ledger_stats [--project_name <project_name>] [--backfilled] [--dump]
            # Query ledger statistics and vacuum candidates
            # --project_name: Query stats for a specific project (tracked mode)
-           # --backfilled: Query stats for backfilled datablocks"
+           # --backfilled: Query stats for backfilled datablocks
+           # --dump: Write backfilled full_metadata records to disk as JSON"
 
     string_flags << "--project_name"
     boolean_flags << "--backfilled"
+    boolean_flags << "--dump"
 
-    def execute(project_name: nil, backfilled: false)
+    def execute(project_name: nil, backfilled: false, dump: false)
       if !project_name && !backfilled
         puts "Error: Must specify either --project_name or --backfilled"
         puts ""
-        puts "Usage: bin/metis ledger_stats [--project_name <project_name>] [--backfilled]"
+        puts "Usage: bin/metis ledger_stats [--project_name <project_name>] [--backfilled] [--dump]"
         puts ""
         puts "Examples:"
         puts "  bin/metis ledger_stats --project_name athena"
         puts "  bin/metis ledger_stats --backfilled"
+        puts "  bin/metis ledger_stats --backfilled --dump"
         return
       end
 
@@ -606,29 +612,59 @@ class Metis
         end
       end
 
+      if vacuum[:date_distribution] && !vacuum[:date_distribution].empty?
+        puts ""
+        puts "  Date distribution (datablocks by date):"
+        vacuum[:date_distribution].sort.each do |date, count|
+          puts "    #{date.to_s.ljust(25)} #{count}"
+        end
+      end
+
+      if vacuum[:size_distribution] && !vacuum[:size_distribution].empty?
+        puts ""
+        puts "  Size distribution (datablock count):"
+        vacuum[:size_distribution].each do |bucket, count|
+          puts "    #{bucket.to_s.ljust(25)} #{count}"
+        end
+      end
+
+      if vacuum[:extension_distribution] && !vacuum[:extension_distribution].empty?
+        puts ""
+        puts "  Extension distribution (datablock count):"
+        vacuum[:extension_distribution].sort_by { |type, _| type.to_s }.each do |type, count|
+          puts "    #{type.to_s.ljust(25)} #{count}"
+        end
+      end
+
       puts ""
 
-      if vacuum[:details] && !vacuum[:details].empty?
-        puts "VACUUM DETAILS (first 10 datablocks):"
+      if dump
+        dump_path = dump_full_metadata(data: data, backfilled: backfilled)
+        puts "full_metadata dump written to: #{dump_path}" if dump_path
+      end
+
+      records = vacuum[:full_metadata]
+      if records && !records.empty?
+        puts "VACUUM DATABLOCKS (first 10):"
         puts "-" * 70
-        vacuum[:details].first(10).each do |detail|
-          puts "  MD5: #{detail[:md5_hash]}"
-          puts "  Size: #{format_size(detail[:size])}"
-          puts "  Datablock ID: #{detail[:data_block_id]}"
-          if detail[:description]
-            puts "  Description: #{detail[:description]}"
+        records.first(10).each do |record|
+          puts "  MD5: #{record[:md5_hash]}"
+          puts "  Size: #{format_size(record[:size])}"
+          puts "  Datablock ID: #{record[:data_block_id]}"
+          if record[:description]
+            puts "  Description: #{record[:description]}"
           end
-          if detail[:files] && !detail[:files].empty?
+          if record[:files] && !record[:files].empty?
             puts "  Files:"
-            detail[:files].first(3).each do |file|
+            record[:files].first(3).each do |file|
               puts "    - #{file[:bucket_name]}/#{file[:file_path]}" if file[:file_path]
             end
           end
           puts ""
         end
 
-        if vacuum[:details].length > 10
-          puts "  ... and #{vacuum[:details].length - 10} more datablocks"
+        if records.length > 10
+          puts "  ... and #{records.length - 10} more datablocks"
           puts ""
         end
       end
@@ -664,6 +700,38 @@ class Metis
     end
 
     private
+
+    def dump_full_metadata(data:, backfilled:)
+      unless backfilled
+        puts "Skipping --dump: full_metadata dump is currently available only with --backfilled."
+        return nil
+      end
+
+      full_metadata = data.dig(:vacuum, :full_metadata)
+      if full_metadata.nil? || full_metadata.empty?
+        puts "No full_metadata records available to dump."
+        return nil
+      end
+
+      dump_dir = ::File.join("tmp", "ledger_stats_dumps")
+      FileUtils.mkdir_p(dump_dir)
+
+      timestamp = Time.now.utc.strftime("%Y%m%dT%H%M%SZ")
+      output_path = ::File.join(dump_dir, "ledger_full_metadata_backfilled_#{timestamp}.json")
+
+      ::File.write(
+        output_path,
+        JSON.pretty_generate(
+          {
+            project_name: data[:project_name],
+            generated_at: Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            full_metadata: full_metadata
+          }
+        )
+      )
+
+      output_path
+    end
 
     def format_size(bytes)
       return "0 bytes" if bytes.nil? || bytes == 0
