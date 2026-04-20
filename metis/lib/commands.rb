@@ -1,5 +1,6 @@
 require "fileutils"
 require "json"
+require "csv"
 
 class Metis
   class Console < Etna::Command
@@ -876,6 +877,55 @@ class Metis
       else
         "#{(bytes / 1024.0 / 1024.0 / 1024.0).round(2)} GB"
       end
+    end
+  end
+
+  class ChangeDatablockDescription < Etna::Command
+    usage "Usage: bin/metis change_datablock_description <md5_csv_path> --description <description>
+           # Update datablock descriptions for MD5 hashes listed in a CSV file"
+
+    string_flags << "--description"
+
+    def execute(csv_path, description: nil)
+      if csv_path.nil? || csv_path.strip.empty?
+        puts "Error: csv file path is required."
+        return
+      end
+
+      if description.nil? || description.strip.empty?
+        puts "Error: --description is required."
+        return
+      end
+
+      unless ::File.exist?(csv_path)
+        puts "Error: csv file not found at #{csv_path}."
+        return
+      end
+
+      normalized_md5_hashes = CSV.read(csv_path).flatten
+        .map { |value| value.to_s.strip }
+        .reject(&:empty?)
+        .uniq
+
+      if normalized_md5_hashes.empty?
+        puts "Found 0 unique md5 hashes."
+        puts "Updated 0 data blocks."
+        return
+      end
+
+      puts "Found #{normalized_md5_hashes.length} unique md5 hash#{'es' if normalized_md5_hashes.length != 1}."
+
+      changed_count = Metis::DataBlock
+        .where(md5_hash: normalized_md5_hashes)
+        .exclude(description: description)
+        .update(description: description, updated_at: DateTime.now)
+
+      puts "Updated #{changed_count} data block#{'s' if changed_count != 1}."
+    end
+
+    def setup(config)
+      super
+      Metis.instance.load_models
     end
   end
 end
