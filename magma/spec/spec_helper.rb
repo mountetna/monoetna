@@ -141,16 +141,22 @@ def create_labors_template_project(magma_client)
         parent_link_type: "collection",
       ),
       Etna::Clients::Magma::AddModelAction.new(
-        model_name: "monster",
-        identifier: "name",
-        parent_model_name: "labor",
-        parent_link_type: "child",
-      ),
-      Etna::Clients::Magma::AddModelAction.new(
         model_name: "random",
         identifier: "name",
         parent_model_name: "project",
         parent_link_type: "collection",
+      ),
+    ]
+  ))
+
+  magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
+    project_name: "labors_template",
+    actions: [
+      Etna::Clients::Magma::AddModelAction.new(
+        model_name: "monster",
+        identifier: "name",
+        parent_model_name: "labor",
+        parent_link_type: "child",
       ),
     ]
   ))

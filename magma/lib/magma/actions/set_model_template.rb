@@ -26,8 +26,7 @@ class Magma
       [
         :validate_model,
         :validate_db_model,
-        :validate_template_reference,
-        :validate_template_target,
+        :validate_set_template_reference,
       ]
     end
 
@@ -35,27 +34,11 @@ class Magma
       !!@action_params[:clear_template]
     end
 
-    def validate_template_reference
+    def validate_set_template_reference
       return if clear_template?
+      return unless @errors.empty? || !template_model_name_provided?
 
-      return if @action_params[:template_model_name] && @action_params[:template_model_name] != ""
-
-      @errors << Magma::ActionError.new(
-        message: "Must include :template_model_name parameter",
-        source: @action_params.slice(:action_name, :model_name),
-      )
-    end
-
-    def validate_template_target
-      return if clear_template?
-      return unless @errors.empty?
-
-      validate_template_target!(
-        self_template_message: "Model cannot point to itself as its template",
-        self_template_source_keys: [:action_name, :model_name, :template_project_name, :template_model_name],
-        missing_template_message: "Template model does not exist.",
-        missing_template_source_keys: [:action_name, :template_project_name, :template_model_name]
-      )
+      validate_template_reference!
     end
   end
 end

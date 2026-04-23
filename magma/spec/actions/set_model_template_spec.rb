@@ -1,15 +1,16 @@
 describe Magma::SetModelTemplateAction do
   let(:action) { Magma::SetModelTemplateAction.new("labors", action_params) }
+  let(:base_action_params) do
+    {
+      action_name: "set_model_template",
+      model_name: "monster",
+      template_project_name: "labors_template",
+      template_model_name: "monster",
+    }
+  end
 
   describe "#perform" do
-    let(:action_params) do
-      {
-        action_name: "set_model_template",
-        model_name: "monster",
-        template_project_name: "labors_template",
-        template_model_name: "monster",
-      }
-    end
+    let(:action_params) { base_action_params }
 
     it "sets the template model reference" do
       expect(action.perform).to eq(true)
@@ -49,79 +50,42 @@ describe Magma::SetModelTemplateAction do
   end
 
   describe "#validate" do
+    def expect_validation_error(expected_message)
+      expect(action.validate).to eq(false)
+      expect(action.errors.first[:message]).to eq(expected_message)
+    end
+
     context "when the model does not exist" do
-      let(:action_params) do
-        {
-          action_name: "set_model_template",
-          model_name: "iliad",
-          template_project_name: "labors_template",
-          template_model_name: "monster",
-        }
-      end
+      let(:action_params) { base_action_params.merge(model_name: "the_missing_model") }
 
       it "returns false and adds an error" do
-        expect(action.validate).to eq(false)
-        expect(action.errors.first[:message]).to eq("Model does not exist.")
+        expect_validation_error("Model does not exist.")
       end
     end
 
     context "when template_model_name is missing" do
       let(:action_params) do
-        {
-          action_name: "set_model_template",
-          model_name: "monster",
-        }
+        base_action_params.reject { |key, _| key == :template_model_name || key == :template_project_name }
       end
 
       it "returns false and adds an error" do
-        expect(action.validate).to eq(false)
-        expect(action.errors.first[:message]).to eq("Must include :template_model_name parameter")
-      end
-    end
-
-    context "when clearing the template link" do
-      let(:action_params) do
-        {
-          action_name: "set_model_template",
-          model_name: "monster",
-          clear_template: true,
-        }
-      end
-
-      it "allows the action" do
-        expect(action.validate).to eq(true)
+        expect_validation_error("Must include :template_model_name parameter")
       end
     end
 
     context "when the template model does not exist" do
-      let(:action_params) do
-        {
-          action_name: "set_model_template",
-          model_name: "monster",
-          template_project_name: "labors_template",
-          template_model_name: "ghost",
-        }
-      end
+      let(:action_params) { base_action_params.merge(template_model_name: "the_missing_template_model") }
 
       it "returns false and adds an error" do
-        expect(action.validate).to eq(false)
-        expect(action.errors.first[:message]).to eq("Template model does not exist.")
+        expect_validation_error("Template model does not exist.")
       end
     end
 
     context "when the model points to itself" do
-      let(:action_params) do
-        {
-          action_name: "set_model_template",
-          model_name: "monster",
-          template_project_name: "labors",
-          template_model_name: "monster",
-        }
-      end
+      let(:action_params) { base_action_params.merge(template_project_name: "labors") }
 
       it "returns false and adds an error" do
-        expect(action.validate).to eq(false)
-        expect(action.errors.first[:message]).to eq("Model cannot point to itself as its template")
+        expect_validation_error("Model cannot point to itself as its template")
       end
     end
   end

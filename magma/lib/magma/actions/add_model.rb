@@ -68,7 +68,7 @@ class Magma
           :validate_model_name,
           :validate_table_name_collisions,
           :validate_date_shift_root_existence,
-          :validate_template_target
+          :validate_add_model_template_target
       ]
     end
 
@@ -179,15 +179,10 @@ class Magma
       ) if current_root
     end
 
-    def validate_template_target
+    def validate_add_model_template_target
       return unless @action_params[:template_model_name]
 
-      validate_template_target!(
-        self_template_message: "Model cannot point to itself as its template",
-        self_template_source_keys: [:model_name, :template_project_name, :template_model_name],
-        missing_template_message: "template_model_name does not match a model",
-        missing_template_source_keys: [:template_project_name, :template_model_name]
-      )
+      validate_template_reference!
     end
 
     def table_parent_link?

@@ -173,7 +173,7 @@ describe Magma::AddModelAction do
 
         it "returns false and adds an error" do
           expect(action.validate).to eq(false)
-          expect(action.errors.first[:message]).to eq("template_model_name does not match a model")
+          expect(action.errors.first[:message]).to eq("Template model does not exist.")
         end
       end
     end
