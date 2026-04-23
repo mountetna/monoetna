@@ -149,6 +149,11 @@ def create_labors_template_project(magma_client)
     ]
   ))
 
+  # Ensure parent model metadata is reloaded before creating child links.
+  Object.class_eval { remove_const(:LaborsTemplate) if Object.const_defined?(:LaborsTemplate) }
+  Magma.instance.magma_projects.clear
+  Magma.instance.load_models(false)
+
   magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
     project_name: "labors_template",
     actions: [
