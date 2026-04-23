@@ -1,6 +1,9 @@
 require 'date'
 require 'logger'
+require 'yaml'
 require 'etna/command'
+require_relative './actions/base_action'
+require_relative './actions/set_model_template'
 
 class Magma
   class RetrieveProjectTemplate < Etna::Command
@@ -105,6 +108,70 @@ class Magma
     def options
       require_relative './attribute'
       @options ||= Magma::Attribute.options - [:loader] + [:created_at, :updated_at, :attribute_name]
+    end
+  end
+
+  class LinkTemplateModels < Etna::Command
+    usage '[project_name] # Link DB-defined models to canonical template models'
+    string_flags << '--template-project'
+    string_flags << '--mapping-file'
+
+    def execute(project_name, template_project: 'coprojects_template', mapping_file: default_mapping_file)
+      template = Magma.instance.get_project(template_project)
+      raise ArgumentError, "Template project '#{template_project}' does not exist" unless template
+
+      mappings = read_template_mapping(mapping_file)
+      link_project_models(project_name, template_project, template.models.values, mappings)
+    end
+
+    def setup(config)
+      super
+      Magma.instance.load_models
+    end
+
+    private
+
+    def read_template_mapping(mapping_file)
+      YAML.load_file(mapping_file)['mappings']
+    end
+
+    def link_project_models(project_name, template_project, template_models, mappings)
+      project = Magma.instance.get_project(project_name)
+      return unless project
+
+      mappings.each do |mapping|
+        template_model_name = mapping['template_model']
+        aliases = mapping['potential_project_model_names'].map(&:downcase)
+
+        template_model = template_models.find { |m| m.model_name.to_s == template_model_name }
+        next unless template_model
+
+        project.models.values.each do |model|
+          next unless aliases.include?(model.model_name.to_s.downcase)
+          next if model.template_model_name
+
+          link_model(project_name, template_project, model, template_model)
+        end
+      end
+    end
+
+    def link_model(project_name, template_project, model, template_model)
+      action = Magma::SetModelTemplateAction.new(project_name.to_s, {
+        action_name: 'set_model_template',
+        model_name: model.model_name.to_s,
+        template_project_name: template_project,
+        template_model_name: template_model.model_name.to_s,
+      })
+
+      if action.validate && action.perform
+        puts "Linked #{project_name}.#{model.model_name} -> #{template_project}.#{template_model.model_name}"
+      else
+        puts "Failed to link #{project_name}.#{model.model_name}: #{action.errors.map { |e| e[:message] }.join(', ')}"
+      end
+    end
+
+    def default_mapping_file
+      File.expand_path('template_model_name_mappings.yml', __dir__)
     end
   end
 

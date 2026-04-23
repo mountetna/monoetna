@@ -1,0 +1,11 @@
+mappings:
+  - template_model: sc_seq
+    potential_project_model_names:
+      - sc_seq
+      - single_cell_seq
+      - single_cell_sequencing
+
+  - template_model: patient
+    potential_project_model_names:
+      - patient
+      - subject
