@@ -115,10 +115,7 @@ def load_labors_project
     end
   end
 
-  create_labors_template_project(magma_client)
-
   Object.class_eval { remove_const(:Labors) if Object.const_defined?(:Labors) }
-  Object.class_eval { remove_const(:LaborsTemplate) if Object.const_defined?(:LaborsTemplate) }
   Magma.instance.magma_projects.clear
   Magma.instance.load_models(false)
 
@@ -126,45 +123,41 @@ def load_labors_project
 end
 
 def create_labors_template_project(magma_client)
-  magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
-    project_name: "labors_template",
-    actions: [Etna::Clients::Magma::AddProjectAction.new(no_metis_bucket: true)]
-  ))
+  perform_template_actions = lambda do |actions|
+    update_actions = Magma::ModelUpdateActions.build(
+      "labors_template",
+      actions,
+      magma_client.user,
+    )
 
-  magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
-    project_name: "labors_template",
-    actions: [
-      Etna::Clients::Magma::AddModelAction.new(
-        model_name: "labor",
-        identifier: "name",
-        parent_model_name: "project",
-        parent_link_type: "collection",
-      ),
-      Etna::Clients::Magma::AddModelAction.new(
-        model_name: "random",
-        identifier: "name",
-        parent_model_name: "project",
-        parent_link_type: "collection",
-      ),
-    ]
-  ))
+    return if update_actions.perform
 
-  # Ensure parent model metadata is reloaded before creating child links.
-  Object.class_eval { remove_const(:LaborsTemplate) if Object.const_defined?(:LaborsTemplate) }
-  Magma.instance.magma_projects.clear
-  Magma.instance.load_models(false)
+    raise "Failed to set up labors_template: #{update_actions.errors}"
+  end
 
-  magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
-    project_name: "labors_template",
-    actions: [
-      Etna::Clients::Magma::AddModelAction.new(
-        model_name: "monster",
-        identifier: "name",
-        parent_model_name: "labor",
-        parent_link_type: "child",
-      ),
-    ]
-  ))
+  perform_template_actions.call([
+    { action_name: "add_project", no_metis_bucket: true },
+  ])
+
+  perform_template_actions.call([
+    {
+      action_name: "add_model",
+      model_name: "labor",
+      identifier: "name",
+      parent_model_name: "project",
+      parent_link_type: "collection",
+    },
+  ])
+
+  perform_template_actions.call([
+    {
+      action_name: "add_model",
+      model_name: "monster",
+      identifier: "name",
+      parent_model_name: "labor",
+      parent_link_type: "child",
+    },
+  ])
 
   # This side loads some attributes, specifically the dictionary attribute, which is not currently supported
   # via the csv api.
@@ -189,6 +182,16 @@ def create_labors_template_project(magma_client)
       ).update(row)
     end
   end
+end
+
+def ensure_labors_template_project
+  project = Magma.instance.get_project(:labors_template)
+  return if project && project.models.key?(:monster)
+
+  create_labors_template_project(Etna::Clients::LocalMagmaClient.new)
+  Object.class_eval { remove_const(:LaborsTemplate) if Object.const_defined?(:LaborsTemplate) }
+  Magma.instance.magma_projects.clear
+  Magma.instance.load_models(false)
 end
 
 Magma.instance.setup_db

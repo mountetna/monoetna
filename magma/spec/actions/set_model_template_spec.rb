@@ -1,4 +1,8 @@
 describe Magma::SetModelTemplateAction do
+  before(:context) do
+    ensure_labors_template_project
+  end
+
   let(:action) { Magma::SetModelTemplateAction.new("labors", action_params) }
   let(:base_action_params) do
     {

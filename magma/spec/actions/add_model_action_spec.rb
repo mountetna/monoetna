@@ -125,6 +125,10 @@ describe Magma::AddModelAction do
     end
 
     context "with a template model reference" do
+      before(:context) do
+        ensure_labors_template_project
+      end
+
       let(:action_params) do
         {
           action_name: "add_model",

@@ -28,6 +28,10 @@ describe UpdateModelController do
   end
 
   context "valid and authorized request" do
+    before(:context) do
+      ensure_labors_template_project
+    end
+
     before do
       @original_attribute = Labors::Monster.attributes[:name].dup
     end
