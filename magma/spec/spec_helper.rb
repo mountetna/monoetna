@@ -122,7 +122,7 @@ def load_labors_project
   require_relative './labors/metrics/labor_metrics'
 end
 
-def create_labors_template_project(magma_client)
+def create_labors_template_project(magma_client = Etna::Clients::LocalMagmaClient.new)
   reload_projects = lambda do
     Object.class_eval { remove_const(:LaborsTemplate) if Object.const_defined?(:LaborsTemplate) }
     Magma.instance.magma_projects.clear
@@ -175,8 +175,7 @@ def create_labors_template_project(magma_client)
     },
   ])
 
-  # This side loads some attributes, specifically the dictionary attribute, which is not currently supported
-  # via the csv api.
+  # Load the same labors attributes as in the labors project.
   YAML.load(File.read("./spec/fixtures/labors_model_attributes.yml")).each do |model_name, attributes|
     next unless %w[labor monster].include?(model_name)
 
@@ -200,18 +199,9 @@ def create_labors_template_project(magma_client)
   end
 end
 
-def ensure_labors_template_project
-  project = Magma.instance.get_project(:labors_template)
-  return if project && project.models.key?(:monster)
-
-  create_labors_template_project(Etna::Clients::LocalMagmaClient.new)
-  Object.class_eval { remove_const(:LaborsTemplate) if Object.const_defined?(:LaborsTemplate) }
-  Magma.instance.magma_projects.clear
-  Magma.instance.load_models(false)
-end
-
 Magma.instance.setup_db
 load_labors_project
+create_labors_template_project
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
