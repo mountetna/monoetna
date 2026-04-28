@@ -144,7 +144,7 @@ describe Magma::AddModelAction do
       after do
         project = Magma.instance.get_project(:labors)
         project.models.delete(:random)
-        Labors.send(:remove_const, :Random) if Labors.const_defined?(:Random)
+        Labors.send(:remove_const, :Random) if Labors.const_defined?(:Random, false)
         Labors::Labor.attributes.delete(:random)
       end
 

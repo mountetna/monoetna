@@ -123,6 +123,12 @@ def load_labors_project
 end
 
 def create_labors_template_project(magma_client)
+  reload_projects = lambda do
+    Object.class_eval { remove_const(:LaborsTemplate) if Object.const_defined?(:LaborsTemplate) }
+    Magma.instance.magma_projects.clear
+    Magma.instance.load_models(false)
+  end
+
   perform_template_actions = lambda do |actions|
     update_actions = Magma::ModelUpdateActions.build(
       "labors_template",
@@ -130,9 +136,9 @@ def create_labors_template_project(magma_client)
       magma_client.user,
     )
 
-    return if update_actions.perform
+    raise "Failed to set up labors_template: #{update_actions.errors}" unless update_actions.perform
 
-    raise "Failed to set up labors_template: #{update_actions.errors}"
+    reload_projects.call
   end
 
   perform_template_actions.call([
@@ -156,6 +162,16 @@ def create_labors_template_project(magma_client)
       identifier: "name",
       parent_model_name: "labor",
       parent_link_type: "child",
+    },
+  ])
+
+  perform_template_actions.call([
+    {
+      action_name: "add_model",
+      model_name: "random",
+      identifier: "name",
+      parent_model_name: "project",
+      parent_link_type: "collection",
     },
   ])
 
