@@ -122,6 +122,94 @@ def load_labors_project
   require_relative './labors/metrics/labor_metrics'
 end
 
+def create_labors_template_project(magma_client)
+  reload_projects = lambda do
+    Object.class_eval { remove_const(:LaborsTemplate) if Object.const_defined?(:LaborsTemplate) }
+    Magma.instance.magma_projects.clear
+    Magma.instance.load_models(false)
+  end
+
+  perform_template_actions = lambda do |actions|
+    update_actions = Magma::ModelUpdateActions.build(
+      "labors_template",
+      actions,
+      magma_client.user,
+    )
+
+    raise "Failed to set up labors_template: #{update_actions.errors}" unless update_actions.perform
+
+    reload_projects.call
+  end
+
+  perform_template_actions.call([
+    { action_name: "add_project", no_metis_bucket: true },
+  ])
+
+  perform_template_actions.call([
+    {
+      action_name: "add_model",
+      model_name: "labor",
+      identifier: "name",
+      parent_model_name: "project",
+      parent_link_type: "collection",
+    },
+  ])
+
+  perform_template_actions.call([
+    {
+      action_name: "add_model",
+      model_name: "monster",
+      identifier: "name",
+      parent_model_name: "labor",
+      parent_link_type: "child",
+    },
+  ])
+
+  perform_template_actions.call([
+    {
+      action_name: "add_model",
+      model_name: "random",
+      identifier: "name",
+      parent_model_name: "project",
+      parent_link_type: "collection",
+    },
+  ])
+
+  # This side loads some attributes, specifically the dictionary attribute, which is not currently supported
+  # via the csv api.
+  YAML.load(File.read("./spec/fixtures/labors_model_attributes.yml")).each do |model_name, attributes|
+    next unless %w[labor monster].include?(model_name)
+
+    Magma.instance.db[:models].where(
+      project_name: "labors_template",
+      model_name: model_name,
+    ).update(
+      dictionary: attributes.delete("dictionary")
+    )
+
+    attributes.each do |attribute_name, options|
+      row = options
+      row["column_name"] = attribute_name unless row["column_name"]
+
+      Magma.instance.db[:attributes].where(
+        project_name: "labors_template",
+        model_name: model_name,
+        attribute_name: attribute_name,
+      ).update(row)
+    end
+  end
+end
+
+def ensure_labors_template_project
+  project = Magma.instance.get_project(:labors_template)
+  return if project && project.models.key?(:monster)
+
+  create_labors_template_project(Etna::Clients::LocalMagmaClient.new)
+  Object.class_eval { remove_const(:LaborsTemplate) if Object.const_defined?(:LaborsTemplate) }
+  Magma.instance.magma_projects.clear
+  Magma.instance.load_models(false)
+end
+
 Magma.instance.setup_db
 load_labors_project
 
