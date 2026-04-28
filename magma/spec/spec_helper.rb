@@ -168,7 +168,7 @@ def create_labors_template_project(magma_client = Etna::Clients::LocalMagmaClien
   perform_template_actions.call([
     {
       action_name: "add_model",
-      model_name: "random",
+      model_name: "something",
       identifier: "name",
       parent_model_name: "project",
       parent_link_type: "collection",
