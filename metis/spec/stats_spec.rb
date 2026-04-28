@@ -34,22 +34,29 @@ describe StatsController do
       expect(response[:vacuum][:datablocks_ready]).to be >= 2
       expect(response[:vacuum][:space_ready]).to be >= (WISDOM.bytesize + HELMET.bytesize)
       expect(response[:vacuum][:datablocks_blocked]).to eq(0)
-      expect(response[:vacuum][:details].length).to eq(2)
+      full_metadata = response[:vacuum][:full_metadata]
+      expect(full_metadata.length).to eq(2)
+      expect(response[:vacuum][:date_distribution].values.sum).to eq(2)
+      size_distribution = response[:vacuum][:size_distribution].transform_keys(&:to_s)
+      extension_distribution = response[:vacuum][:extension_distribution].transform_keys(&:to_s)
+      expect(size_distribution["0B-1MB"]).to eq(2)
+      expect(extension_distribution["txt"]).to eq(1)
+      expect(extension_distribution["jpg"]).to eq(1)
       
-      # Verify the two datablock details
-      wisdom_detail = response[:vacuum][:details].find { |d| d[:data_block_id] == wisdom_datablock.id }
-      expect(wisdom_detail).not_to be_nil
-      expect(wisdom_detail[:md5_hash]).to eq(wisdom_datablock.md5_hash)
-      expect(wisdom_detail[:size]).to eq(WISDOM.bytesize)
-      expect(wisdom_detail[:description]).to eq("Originally for wisdom.txt")
-      expect(wisdom_detail[:files]).to eq([])
+      # Verify the two datablock metadata records
+      wisdom_record = full_metadata.find { |d| d[:data_block_id] == wisdom_datablock.id }
+      expect(wisdom_record).not_to be_nil
+      expect(wisdom_record[:md5_hash]).to eq(wisdom_datablock.md5_hash)
+      expect(wisdom_record[:size]).to eq(WISDOM.bytesize)
+      expect(wisdom_record[:description]).to eq("Originally for wisdom.txt")
+      expect(wisdom_record[:files]).to eq([])
       
-      helmet_detail = response[:vacuum][:details].find { |d| d[:data_block_id] == helmet_datablock.id }
-      expect(helmet_detail).not_to be_nil
-      expect(helmet_detail[:md5_hash]).to eq(helmet_datablock.md5_hash)
-      expect(helmet_detail[:size]).to eq(HELMET.bytesize)
-      expect(helmet_detail[:description]).to eq("Originally for helmet.jpg")
-      expect(helmet_detail[:files]).to eq([])
+      helmet_record = full_metadata.find { |d| d[:data_block_id] == helmet_datablock.id }
+      expect(helmet_record).not_to be_nil
+      expect(helmet_record[:md5_hash]).to eq(helmet_datablock.md5_hash)
+      expect(helmet_record[:size]).to eq(HELMET.bytesize)
+      expect(helmet_record[:description]).to eq("Originally for helmet.jpg")
+      expect(helmet_record[:files]).to eq([])
     end
 
     it "returns details for multiple projects" do
@@ -76,15 +83,21 @@ describe StatsController do
       expect(response[:vacuum][:datablocks_ready]).to eq(1)
       expect(response[:vacuum][:space_ready]).to eq(WISDOM.bytesize)
       expect(response[:vacuum][:datablocks_blocked]).to eq(0)
-      expect(response[:vacuum][:details].length).to eq(1)
+      full_metadata = response[:vacuum][:full_metadata]
+      expect(full_metadata.length).to eq(1)
+      expect(response[:vacuum][:date_distribution].values.sum).to eq(1)
+      size_distribution = response[:vacuum][:size_distribution].transform_keys(&:to_s)
+      extension_distribution = response[:vacuum][:extension_distribution].transform_keys(&:to_s)
+      expect(size_distribution["0B-1MB"]).to eq(1)
+      expect(extension_distribution["txt"]).to eq(1)
       
-      # Verify the wisdom datablock detail (shared across projects, now orphaned)
-      wisdom_detail = response[:vacuum][:details].find { |d| d[:data_block_id] == wisdom_datablock.id }
-      expect(wisdom_detail).not_to be_nil
-      expect(wisdom_detail[:md5_hash]).to eq(wisdom_datablock.md5_hash)
-      expect(wisdom_detail[:size]).to eq(WISDOM.bytesize)
-      expect(wisdom_detail[:description]).to eq("Originally for wisdom.txt")
-      expect(wisdom_detail[:files]).to eq([]) # no files are associated with the datablock
+      # Verify the wisdom datablock metadata (shared across projects, now orphaned)
+      wisdom_record = full_metadata.find { |d| d[:data_block_id] == wisdom_datablock.id }
+      expect(wisdom_record).not_to be_nil
+      expect(wisdom_record[:md5_hash]).to eq(wisdom_datablock.md5_hash)
+      expect(wisdom_record[:size]).to eq(WISDOM.bytesize)
+      expect(wisdom_record[:description]).to eq("Originally for wisdom.txt")
+      expect(wisdom_record[:files]).to eq([]) # no files are associated with the datablock
     end
 
 
@@ -155,8 +168,8 @@ describe StatsController do
       # No include_projects in the response
       expect(response[:vacuum]).not_to have_key(:include_projects)
 
-      response[:vacuum][:details].each do |detail|
-        expect(detail).not_to have_key(:project_name)
+      response[:vacuum][:full_metadata].each do |record|
+        expect(record).not_to have_key(:project_name)
       end
     end
   end
@@ -227,18 +240,25 @@ describe StatsController do
       expect(backfilled_response[:vacuum][:datablocks_ready]).to eq(2)
       expect(backfilled_response[:vacuum][:space_ready]).to eq(WISDOM.bytesize + HELMET.bytesize)
       expect(backfilled_response[:vacuum][:datablocks_blocked]).to eq(0)
+      full_metadata = backfilled_response[:vacuum][:full_metadata]
+      expect(full_metadata.length).to eq(2)
+      expect(backfilled_response[:vacuum][:date_distribution].values.sum).to eq(2)
+      size_distribution = backfilled_response[:vacuum][:size_distribution].transform_keys(&:to_s)
+      extension_distribution = backfilled_response[:vacuum][:extension_distribution].transform_keys(&:to_s)
+      expect(size_distribution["0B-1MB"]).to eq(2)
+      expect(extension_distribution["txt"]).to eq(1)
+      expect(extension_distribution["jpg"]).to eq(1)
       
-      # Verify vacuum details for backfilled datablocks
-      expect(backfilled_response[:vacuum][:details].length).to eq(2)
+      # Verify backfilled full metadata records
       # Verify wisdom datablock has the tracked file associated with it (since tracked_file_1 reused it)
-      wisdom_detail = backfilled_response[:vacuum][:details].find { |d| d[:data_block_id] == backfilled_wisdom_datablock_id }
-      expect(wisdom_detail).not_to be_nil
-      expect(wisdom_detail[:files]).to eq([{file_path: "tracked_file_1.txt", bucket_name: "files"}])
+      wisdom_record = backfilled_response[:vacuum][:full_metadata].find { |d| d[:data_block_id] == backfilled_wisdom_datablock_id }
+      expect(wisdom_record).not_to be_nil
+      expect(wisdom_record[:files]).to eq([{file_path: "tracked_file_1.txt", bucket_name: "files"}])
       
       # Verify helmet datablock has an empty files array (no files are using it)
-      helmet_detail = backfilled_response[:vacuum][:details].find { |d| d[:data_block_id] == backfilled_helmet_datablock_id }
-      expect(helmet_detail).not_to be_nil
-      expect(helmet_detail[:files]).to eq([])
+      helmet_record = backfilled_response[:vacuum][:full_metadata].find { |d| d[:data_block_id] == backfilled_helmet_datablock_id }
+      expect(helmet_record).not_to be_nil
+      expect(helmet_record[:files]).to eq([])
       
       # Query tracked stats for athena - should ONLY show tracked events for athena
       get('/api/stats/ledger', project_name: 'athena')
@@ -256,13 +276,13 @@ describe StatsController do
       expect(tracked_response[:event_counts][:unlink_file_from_datablock]).to eq(1) # tracked_file_1 deleted
       expect(tracked_response[:event_counts][:remove_datablock]).to eq(0)
 
-      # Verify tracked vacuum details
-      expect(tracked_response[:vacuum][:details].length).to eq(1)
+      # Verify tracked vacuum metadata
+      expect(tracked_response[:vacuum][:full_metadata].length).to eq(1)
       
       # Verify wisdom datablock shows tracked_file_1.txt as orphaned
-      tracked_wisdom_detail = tracked_response[:vacuum][:details].find { |d| d[:data_block_id] == backfilled_wisdom_datablock_id }
-      expect(tracked_wisdom_detail).not_to be_nil
-      expect(tracked_wisdom_detail[:files]).to eq([{file_path: "tracked_file_1.txt", bucket_name: "files"}])
+      tracked_wisdom_record = tracked_response[:vacuum][:full_metadata].find { |d| d[:data_block_id] == backfilled_wisdom_datablock_id }
+      expect(tracked_wisdom_record).not_to be_nil
+      expect(tracked_wisdom_record[:files]).to eq([{file_path: "tracked_file_1.txt", bucket_name: "files"}])
       
     end
 

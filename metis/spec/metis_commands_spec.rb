@@ -91,6 +91,35 @@ describe 'Metis Commands' do
       end
     end
   end
+
+  describe Metis::ChangeDatablockDescription do
+    let(:description) { "Updated by command" }
+    let(:csv) { Tempfile.new(["md5s", ".csv"]) }
+
+    let!(:db1) { create(:data_block, md5_hash: "md5_one", description: "To Update", size: 10) }
+    let!(:db2) { create(:data_block, md5_hash: "md5_two", description: "To Update", size: 20) }
+    let!(:db3) { create(:data_block, md5_hash: "md5_three", description: "To Update", size: 30) }
+
+    before do
+      csv.write("md5_one\nmd5_two\nmd5_three\nmd5_one\n")
+      csv.rewind
+    end
+
+    after do
+      csv.close
+      csv.unlink
+    end
+
+    it "updates datablock descriptions from csv md5s" do
+      expect {
+        described_class.new.execute(csv.path, description: description)
+      }.to output("Found 3 unique md5 hashes.\nUpdated 3 data blocks.\n").to_stdout
+
+      expect(db1.refresh.description).to eq("Updated by command")
+      expect(db2.refresh.description).to eq("Updated by command")
+      expect(db3.refresh.description).to eq("Updated by command")
+    end
+  end
 end
 
 describe Metis::BackfillDataBlockLedger do
