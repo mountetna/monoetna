@@ -108,31 +108,31 @@ class Metis
     def self.orphaned_datablock_ids_for_project(project_name)
       linked_datablock_ids = where(project_name: project_name)
         .where(event_type: [LINK_FILE_TO_DATABLOCK, REUSE_DATABLOCK, RESTORE_DATABLOCK])
+        .distinct(:data_block_id)
         .select_map(:data_block_id)
-        .uniq
 
       unlinked_datablock_ids = where(
         project_name: project_name,
         event_type: UNLINK_FILE_FROM_DATABLOCK
-      ).select_map(:data_block_id)
-        .uniq
+      ).distinct(:data_block_id)
+        .select_map(:data_block_id)
 
       live_datablock_ids = Metis::File
         .where(project_name: project_name)
+        .distinct(:data_block_id)
         .select_map(:data_block_id)
-        .uniq
 
       vacuumed_datablock_ids = where(
         project_name: project_name,
         event_type: REMOVE_DATABLOCK
-      ).select_map(:data_block_id)
-        .uniq
+      ).distinct(:data_block_id)
+        .select_map(:data_block_id)
 
       restored_datablock_ids = where(
         project_name: project_name,
         event_type: RESTORE_DATABLOCK
-      ).select_map(:data_block_id)
-        .uniq
+      ).distinct(:data_block_id)
+        .select_map(:data_block_id)
 
       # A block that was vacuumed but later restored is eligible again
       already_removed_ids = vacuumed_datablock_ids - restored_datablock_ids
@@ -141,8 +141,8 @@ class Metis
 
       used_by_other_projects = Metis::File
         .exclude(project_name: project_name)
+        .distinct(:data_block_id)
         .select_map(:data_block_id)
-        .uniq
 
       [orphaned_by_project, used_by_other_projects]
     end
@@ -154,7 +154,9 @@ class Metis
 
     def self.find_orphaned_datablocks_backfilled_for_vacuum
       candidate_ids = backfilled_orphan_candidate_ids
-      live_datablock_ids = Metis::File.select_map(:data_block_id).uniq
+      live_datablock_ids = Metis::File
+        .distinct(:data_block_id)
+        .select_map(:data_block_id)
 
       # Block if any project has a live file — vacuum is only safe when no one points to the datablock
       Metis::DataBlock.exclude_removed_and_temp_blocks(candidate_ids - live_datablock_ids)
@@ -164,15 +166,18 @@ class Metis
       backfilled_datablock_ids = where(
         triggered_by: SYSTEM_BACKFILL,
         event_type: UNLINK_FILE_FROM_DATABLOCK
-      ).select_map(:data_block_id).uniq
+      ).distinct(:data_block_id)
+        .select_map(:data_block_id)
 
       vacuumed_datablock_ids = where(
         event_type: REMOVE_DATABLOCK
-      ).select_map(:data_block_id).uniq
+      ).distinct(:data_block_id)
+        .select_map(:data_block_id)
 
       restored_datablock_ids = where(
         event_type: RESTORE_DATABLOCK
-      ).select_map(:data_block_id).uniq
+      ).distinct(:data_block_id)
+        .select_map(:data_block_id)
 
       # A block that was vacuumed but later restored is eligible again
       already_removed_ids = vacuumed_datablock_ids - restored_datablock_ids
