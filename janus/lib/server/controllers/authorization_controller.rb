@@ -83,9 +83,13 @@ class AuthorizationController < Janus::Controller
 
     token_type = @params[:token_type] || 'login'
 
-    user = @user ? User[email: @user.email] : signed_nonce ? User.from_signed_nonce(signed_nonce) : User.from_token(token)
+    begin
+      user = @user ? User[email: @user.email] : signed_nonce ? User.from_signed_nonce(signed_nonce) : User.from_token(token)
+    rescue Exception => e
+      raise Etna::Unauthorized, e.message
+    end
 
-    raise Etna::Unauthorized, user if user.is_a?(String)
+    raise Etna::Unauthorized if user.has_flag?('inactive')
 
     if token_type == 'task'
       raise Etna::BadRequest, "No project_name specified!" unless @params[:project_name]

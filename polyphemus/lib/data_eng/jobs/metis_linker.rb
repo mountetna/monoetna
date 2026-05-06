@@ -21,16 +21,18 @@ class MetisLinkerJob < Polyphemus::ETLJob
     config['config']['bucket_name']
   end
 
+  def updates_only?
+    !!(runtime_config['config'] || {})[:updates_only]
+  end
+
   def pre(context)
-    context[:start_time] = Time.at(fetch_last_scan).to_datetime.iso8601
+    context[:start_time] = updates_only? ? fetch_last_scan : Time.at(0).to_datetime.iso8601
     context[:end_time] = Time.now.to_datetime.iso8601
     true
   end
 
   # Process method containing the main File Discovery ETL logic
   def process(context)
-    last_scan = fetch_last_scan
-
     rules = gnomon_client.project_rules(project_name).rules
 
     project_def = magma_client.retrieve(project_name: project_name)
@@ -53,7 +55,7 @@ class MetisLinkerJob < Polyphemus::ETLJob
 
     summary = <<EOT
 ===============================
-Upload Summary : #{context[:start_time]} -> #{context[:end_time]} 
+Upload Window: #{context[:start_time]} -> #{context[:end_time]} 
 Models: #{response.models.model_keys.join(', ')}
 Committed to Magma: #{!loader.config.dry_run?}
 Autolinked Parent Identifiers: #{loader.config.autolink?}
@@ -94,7 +96,7 @@ EOT
        workflow_config_id,
        state: [:end_time]
       )
-      return response['end_time'].to_i
+      return response['end_time']
     rescue Etna::Error => e
       return 0
     end

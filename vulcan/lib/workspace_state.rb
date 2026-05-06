@@ -17,12 +17,10 @@ class Vulcan
       # This gets us the files and jobs planned and completed, also note that these are just the compute jobs and files, not the UI jobs and files.
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = all_targets
-      command.options = {
-        config_path: config_path,
-        profile_path: Vulcan::Path.profile_dir(@workspace.path, "default"),
-        dry_run: true,
-        summary: true  # Use summary to get detailed output
-      }
+      command.options[:config_path] = config_path
+      command.options[:profile_path] = Vulcan::Path.profile_dir(@workspace.path, "default")
+      command.options[:dry_run] = true
+      command.options[:summary] = true
       # === COMPUTE STATE (from snakemake dry run) ===
       # Get compute files/jobs in all three states: planned, completed, unscheduled
       # Note that these are just the compute jobs and files, not the UI jobs and files.

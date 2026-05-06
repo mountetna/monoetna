@@ -63,13 +63,30 @@ class Metis
         f.author = author
         f.data_block = data_block
       end
+
       file.update(folder: folder, author: author, data_block: data_block)
-      Metis::DataBlockLedger.log_create(
-        file,
-        data_block,
-        author
+
+      Metis::DataBlockLedger.log_event(
+        event_type: Metis::DataBlockLedger::CREATE_DATABLOCK,
+        datablock: data_block,
+        triggered_by: author,
+        project_name: file.project_name,
+        file_path: file.file_path,
+        file_id: file.id,
+        bucket_name: file.bucket.name,
+        event_meta: upload_timing_meta
       )
-      Metis::DataBlockLedger.log_link(file, data_block, author)
+
+      Metis::DataBlockLedger.log_event(
+        event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK,
+        datablock: data_block,
+        triggered_by: author,
+        project_name: file.project_name,
+        file_path: file.file_path,
+        file_id: file.id,
+        bucket_name: file.bucket.name
+      )
+
       return file
     end
 
@@ -90,8 +107,23 @@ class Metis
             current_byte_position: 0,
             next_blob_size: -1,
             next_blob_hash: '',
+            started_at: DateTime.now,
         )
       end
+    end
+
+    private
+
+    def upload_timing_meta
+      return {} unless started_at
+
+      duration = Time.now - started_at.to_time
+      throughput = duration.round(2) > 0 && file_size.to_i > 0 ? (file_size.to_f / duration).round(2) : nil
+
+      {
+        upload_duration_seconds: duration.round(2),
+        throughput_bytes_per_second: throughput
+      }
     end
 
   end

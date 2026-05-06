@@ -13,6 +13,7 @@ class Metis
     @db = Sequel.connect(config(:db))
     @db.extension :connection_validator
     @db.extension :pg_streaming
+    @db.extension :pg_json
     @db.pool.connection_validation_timeout = -1
   end
 

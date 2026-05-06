@@ -255,10 +255,8 @@ class VulcanV2Controller < Vulcan::Controller
       state = config.state
       command = Vulcan::Snakemake::CommandBuilder.new
       command.targets = state['files']['planned']
-      command.options = {
-        config_path: config.path,
-        profile_path: Vulcan::Path.profile_dir(workspace.path, "default"), # only one profile for now
-      }
+      command.options[:config_path] = config.path
+      command.options[:profile_path] = Vulcan::Path.profile_dir(workspace.path, "default") # only one profile for now
       slurm_run_uuid = @snakemake_manager.run_snakemake(workspace.path, command.build)
       log = @snakemake_manager.get_snakemake_log(workspace.path, slurm_run_uuid)
       obj = Vulcan::Run.create(

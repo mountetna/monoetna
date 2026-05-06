@@ -120,6 +120,8 @@ class Magma
             identifier: identity.attribute_name.to_sym,
             dictionary: @dictionary && @dictionary.to_hash,
             parent: parent_model_name,
+            template_project_name: template_project_name,
+            template_model_name: template_model_name,
             # Consider adding again if we decide for using version based locking.
             # version: version,
         }.delete_if { |k, v| v.nil? }
@@ -172,6 +174,22 @@ class Magma
 
       def model_record
         Magma.instance.db[:models].where(project_name: project_name.to_s, model_name: model_name.to_s).first
+      end
+
+      def template_project_name
+        model_record && model_record[:template_project_name]
+      end
+
+      def template_model_name
+        model_record && model_record[:template_model_name]&.to_sym
+      end
+
+      def template_model
+        return nil unless template_project_name && template_model_name
+
+        Magma.instance.get_model(template_project_name, template_model_name)
+      rescue NameError
+        nil
       end
 
       def version

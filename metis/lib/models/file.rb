@@ -133,7 +133,15 @@ class Metis
           data_block: params[:source_data_block]
         )
       end
-      Metis::DataBlockLedger.log_link(saved_file, params[:source_data_block], params[:user])
+      Metis::DataBlockLedger.log_event(
+        event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK,
+        datablock: params[:source_data_block],
+        triggered_by: params[:user],
+        project_name: saved_file.project_name,
+        file_path: saved_file.file_path,
+        file_id: saved_file.id,
+        bucket_name: saved_file.bucket.name
+      )
       return saved_file
     end
 

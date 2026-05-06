@@ -123,6 +123,60 @@ describe Magma::AddModelAction do
         ).update(dictionary: nil)
       end
     end
+
+    context "with a template model reference" do
+      let(:action_params) do
+        {
+          action_name: "add_model",
+          model_name: "something",
+          identifier: "name",
+          parent_model_name: "labor",
+          parent_link_type: "child",
+          template_project_name: "labors_template",
+          template_model_name: "something"
+        }
+      end
+
+      after do
+        project = Magma.instance.get_project(:labors)
+        project.models.delete(:something)
+        Labors.send(:remove_const, :Something) if Labors.const_defined?(:Something, false)
+        Labors::Labor.attributes.delete(:something)
+      end
+
+      it "stores the template model reference" do
+        expect(action.perform).to eq(true)
+
+        model_row = Magma.instance.db[:models].where(
+          project_name: "labors",
+          model_name: "something"
+        ).first
+
+        expect(model_row[:template_project_name]).to eq("labors_template")
+        expect(model_row[:template_model_name]).to eq("something")
+        expect(Labors::Something.template_project_name).to eq("labors_template")
+        expect(Labors::Something.template_model_name).to eq(:something)
+      end
+
+      context "when the template model does not exist" do
+        let(:action_params) do
+          {
+            action_name: "add_model",
+            model_name: "something",
+            identifier: "name",
+            parent_model_name: "labor",
+            parent_link_type: "child",
+            template_project_name: "labors_template",
+            template_model_name: "missing_template"
+          }
+        end
+
+        it "returns false and adds an error" do
+          expect(action.validate).to eq(false)
+          expect(action.errors.first[:message]).to eq("Template model does not exist.")
+        end
+      end
+    end
   end
 
   describe "#validate" do
@@ -156,6 +210,23 @@ describe Magma::AddModelAction do
       it "returns false and adds an error" do
         expect(action.validate).to eq(false)
         expect(action.errors.first[:message]).to eq("model_name must be snake_case")
+      end
+    end
+
+    context "when there is an implicit name conflict" do
+      let(:action_params) do
+        {
+          action_name: "add_model",
+          identifier: "name",
+          model_name: "monsters",
+          parent_model_name: "labor",
+          parent_link_type: "collection"
+        }
+      end
+
+      it "returns false and adds an error" do
+        expect(action.validate).to eq(false)
+        expect(action.errors.first[:message]).to eq("model_name 'monsters' clashes with model_name 'monster'")
       end
     end
 

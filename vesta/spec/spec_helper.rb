@@ -84,12 +84,12 @@ def json_post(endpoint, hash)
   post(URI.encode("/#{endpoint.reverse.chomp('/').reverse}"), hash.to_json, { "CONTENT_TYPE" => "application/json" })
 end
 
-def stub_retrieve(request, response)
+def stub_retrieve(request, response, status=200)
   stub_request(:post, "https://magma.test/retrieve").
     with(
       body: request
      ).to_return(
-       status: 200, body: response.to_json, headers: { 'Content-Type': 'application/json' }
+       status: status, body: response.to_json, headers: { 'Content-Type': 'application/json' }
      )
 end
 

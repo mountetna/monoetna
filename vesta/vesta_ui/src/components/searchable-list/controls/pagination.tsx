@@ -33,7 +33,7 @@ export default function Pagination({
 }) {
     const infoElements = [
         { text: 'Showing', type: 'basic' },
-        { text: Math.min(currentPage * pageSize + 1, listSize), type: 'highlight' },
+        { text: Math.min(currentPage * pageSize + 1, listSize, pageSize), type: 'highlight' },
         { text: 'to', type: 'basic' },
         { text: Math.min(currentPage * pageSize + pageSize, listSize), type: 'highlight' },
         { text: 'of', type: 'basic' },

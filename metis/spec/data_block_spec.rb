@@ -254,6 +254,67 @@ describe Metis::DataBlock do
       expect(wisdom_data.md5_hash).to eq(Digest::MD5.hexdigest(WISDOM))
       expect(wisdom_data.has_data?).to be_truthy
     end
+
+    it 'restores a removed data block when re-uploading same content' do
+      enable_all_ledger_events
+
+      # Create a data block
+      original_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      original_datablock = original_file.data_block
+      expected_hash = original_datablock.md5_hash
+      
+      # Delete the file (orphans the data block)
+      original_file.remove!
+      
+      # Vacuum the orphaned data block (marks as removed, deletes physical file)
+      expect(::File.exists?(original_datablock.location)).to eq(true)
+      original_datablock.remove!
+      original_datablock.refresh
+      expect(original_datablock.removed).to eq(true)
+      expect(::File.exists?(original_datablock.location)).to eq(false)
+
+      # Create a new temp block with the same content (simulates new upload)
+      temp_hash = "temp-ef15c9bd4c7836612b1567f4c8396726"
+      new_file = create_file('athena', 'wisdom2.txt', WISDOM, md5_hash: temp_hash)
+      stubs.create_file('athena', 'files', 'wisdom2.txt', WISDOM, temp_hash)
+      new_temp_datablock = new_file.data_block
+      
+      # Verify the temp block has physical data
+      expect(::File.exists?(new_temp_datablock.location)).to eq(true)
+
+      # Compute hash should find the removed block and restore it
+      new_temp_datablock.compute_hash!
+
+      # The removed block should now be restored
+      original_datablock.refresh
+      expect(original_datablock.removed).to eq(false)
+      
+      # The new file should point to the restored block (deduplication)
+      new_file.refresh
+      expect(new_file.data_block_id).to eq(original_datablock.id)
+      
+      # The physical file should exist at the restored block's location
+      expect(::File.exists?(original_datablock.location)).to eq(true)
+      expect(original_datablock.has_data?).to eq(true)
+      
+      # The temp block should be destroyed
+      expect(Metis::DataBlock.where(id: new_temp_datablock.id).first).to be_nil
+
+      # A RESTORE_DATABLOCK event should be logged (not REUSE_DATABLOCK)
+      restore_event = Metis::DataBlockLedger.where(
+        event_type: Metis::DataBlockLedger::RESTORE_DATABLOCK,
+        data_block_id: original_datablock.id
+      ).first
+      expect(restore_event).to be_present
+      expect(restore_event.project_name).to eq('athena')
+      expect(restore_event.triggered_by).to eq(Metis::DataBlockLedger::CHECKSUM_COMMAND)
+
+      expect(Metis::DataBlockLedger.where(
+        event_type: Metis::DataBlockLedger::REUSE_DATABLOCK,
+        data_block_id: original_datablock.id
+      ).count).to eq(0)
+    end
   end
 
   context '#backup!' do
@@ -378,7 +439,8 @@ describe DataBlockController do
       ])
 
       expect(last_response.status).to eq(200)
-      expect(json_body).to eq(found: [wisdom_md5, folly_md5], missing: [helmet_md5])
+      expect(json_body[:found]).to match_array([wisdom_md5, folly_md5])
+      expect(json_body[:missing]).to match_array([helmet_md5])
     end
 
     it 'finds data blocks only for a specified project' do
@@ -414,6 +476,7 @@ describe DataBlockController do
       wisdom_data_block = Metis::DataBlock.where(id: result[:wisdom_data_block_id]).first
       helmet_data_block = Metis::DataBlock.where(id: result[:helmet_data_block_id]).first
       
+      enable_all_ledger_events
       token_header(:supereditor)
       json_post('/api/vacuum_datablocks/backfilled', { commit: true })
       
@@ -425,14 +488,16 @@ describe DataBlockController do
       expect(response[:summary][:space_freed]).to eq(wisdom_data_block.size + helmet_data_block.size)
       
       # Wisdom data block
-      expect(response[:vacuumed].first[:md5_hash]).to eq(wisdom_data_block.md5_hash)
-      expect(response[:vacuumed].first[:size]).to eq(wisdom_data_block.size)
-      expect(response[:vacuumed].first[:location]).to eq(wisdom_data_block.location)
-      
+      wisdom_vacuumed = response[:vacuumed].find { |v| v[:md5_hash] == wisdom_data_block.md5_hash }
+      expect(wisdom_vacuumed).to be_present
+      expect(wisdom_vacuumed[:size]).to eq(wisdom_data_block.size)
+      expect(wisdom_vacuumed[:location]).to eq(wisdom_data_block.location)
+
       # Helmet data block
-      expect(response[:vacuumed].last[:md5_hash]).to eq(helmet_data_block.md5_hash)
-      expect(response[:vacuumed].last[:size]).to eq(helmet_data_block.size)
-      expect(response[:vacuumed].last[:location]).to eq(helmet_data_block.location)
+      helmet_vacuumed = response[:vacuumed].find { |v| v[:md5_hash] == helmet_data_block.md5_hash }
+      expect(helmet_vacuumed).to be_present
+      expect(helmet_vacuumed[:size]).to eq(helmet_data_block.size)
+      expect(helmet_vacuumed[:location]).to eq(helmet_data_block.location)
 
       # Verify datablock is marked as removed
       wisdom_data_block.reload
@@ -456,6 +521,11 @@ describe DataBlockController do
         event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK
       ).first
       expect(vacuum_event).to be_present
+
+      # Backfilled vacuum events have no project scope
+      expect(
+        Metis::DataBlockLedger.where(event_type: Metis::DataBlockLedger::REMOVE_DATABLOCK).all.map(&:project_name).uniq
+      ).to eq([nil])
     end
 
   end
@@ -597,15 +667,127 @@ describe DataBlockController do
       expect(last_response.status).to eq(403)
     end
 
+    it 'captures errors during removal and returns them in the response' do
+      enable_all_ledger_events
+
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+
+      token_header(:editor)
+      delete("/athena/file/remove/files/wisdom.txt")
+      expect(last_response.status).to eq(200)
+
+      allow_any_instance_of(Metis::DataBlock).to receive(:remove!).and_raise(RuntimeError, 'disk full')
+
+      token_header(:supereditor)
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
+
+      expect(last_response.status).to eq(200)
+      response = json_body
+
+      expect(response[:vacuumed]).to be_empty
+      expect(response[:errors].length).to eq(1)
+      expect(response[:errors].first).to include(wisdom_file.data_block.md5_hash)
+      expect(response[:errors].first).to include('disk full')
+      expect(response[:summary][:errors_count]).to eq(1)
+      expect(response[:summary][:total_vacuumed]).to eq(0)
+    end
+
+    it 'continues vacuuming remaining datablocks when one fails' do
+      enable_all_ledger_events
+
+      wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      helmet_file = upload_file_via_api('athena', 'helmet.jpg', HELMET)
+
+      token_header(:editor)
+      delete("/athena/file/remove/files/wisdom.txt")
+      delete("/athena/file/remove/files/helmet.jpg")
+      expect(last_response.status).to eq(200)
+
+      call_count = 0
+      allow_any_instance_of(Metis::DataBlock).to receive(:remove!).and_wrap_original do |original, *args|
+        call_count += 1
+        raise RuntimeError, 'disk full' if call_count == 1
+        original.call(*args)
+      end
+
+      token_header(:supereditor)
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
+
+      expect(last_response.status).to eq(200)
+      response = json_body
+
+      expect(response[:errors].length).to eq(1)
+      expect(response[:errors].first).to include('disk full')
+      expect(response[:vacuumed].length).to eq(1)
+      expect(response[:summary][:errors_count]).to eq(1)
+      expect(response[:summary][:total_vacuumed]).to eq(1)
+    end
+
     it 'returns empty result when no orphaned datablocks exist' do
       token_header(:supereditor)
       json_post('/api/vacuum_datablocks/athena', { commit: true })
       
       expect(last_response.status).to eq(200)
       response = json_body
+      expect(response[:dry_run]).to be_falsey
       expect(response[:vacuumed]).to be_empty
       expect(response[:summary][:total_vacuumed]).to eq(0)
       expect(response[:summary][:space_freed]).to eq(0)
+    end
+
+    it 'restores a vacuumed data block when re-uploading same content' do
+      enable_all_ledger_events
+      
+      # Create a file via upload API
+      original_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+      original_datablock = original_file.data_block
+      original_datablock_id = original_datablock.id
+      expected_hash = original_datablock.md5_hash
+      
+      # Delete the file via API (orphans the data block)
+      token_header(:editor)
+      delete("/athena/file/remove/files/wisdom.txt")
+      expect(last_response.status).to eq(200)
+      
+      # Vacuum the orphaned data block via API
+      expect(::File.exists?(original_datablock.location)).to eq(true)
+      token_header(:supereditor)
+      json_post('/api/vacuum_datablocks/athena', { commit: true })
+      expect(last_response.status).to eq(200)
+      
+      # Verify the datablock was vacuumed
+      original_datablock.reload
+      expect(original_datablock.removed).to eq(true)
+      expect(::File.exists?(original_datablock.location)).to eq(false)
+      
+      # Re-upload a file with the same content
+      new_file = upload_file_via_api('athena', 'wisdom2.txt', WISDOM)
+      new_file.reload
+      
+      # The removed block should now be restored
+      original_datablock.reload
+      expect(original_datablock.removed).to eq(false)
+      
+      # The new file should point to the restored block (deduplication)
+      expect(new_file.data_block_id).to eq(original_datablock_id)
+      
+      # The physical file should exist at the restored block's location
+      expect(::File.exists?(original_datablock.location)).to eq(true)
+      expect(original_datablock.has_data?).to eq(true)
+
+      # A RESTORE_DATABLOCK event should be logged (not REUSE_DATABLOCK)
+      restore_event = Metis::DataBlockLedger.where(
+        event_type: Metis::DataBlockLedger::RESTORE_DATABLOCK,
+        data_block_id: original_datablock_id
+      ).first
+      expect(restore_event).to be_present
+      expect(restore_event.project_name).to eq('athena')
+      expect(restore_event.triggered_by).to eq(Metis::DataBlockLedger::CHECKSUM_COMMAND)
+
+      expect(Metis::DataBlockLedger.where(
+        event_type: Metis::DataBlockLedger::REUSE_DATABLOCK,
+        data_block_id: original_datablock_id
+      ).count).to eq(0)
     end
   end
 
