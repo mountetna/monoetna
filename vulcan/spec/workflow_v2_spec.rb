@@ -393,7 +393,7 @@ describe VulcanV2Controller do
       expect(json_body[:files][:completed]).to match_array([])
        
       config = Vulcan::Config.first(id: json_body[:config_id])
-      expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
+      expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt", "resources/vignette.md"])
       expect(config.input_params.to_h.transform_values(&:to_s)).to eq(request[:params].transform_keys(&:to_s).transform_values(&:to_s))
     end
 
@@ -427,7 +427,7 @@ describe VulcanV2Controller do
       expect(json_body[:files][:unscheduled]).to match_array(["output/ui_job_one.txt", "output/ui_job_two.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
 
       config = Vulcan::Config.first(id: json_body[:config_id])
-      expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
+      expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt", "resources/vignette.md"])
       expect(config.input_params.to_h.transform_values(&:to_s)).to eq(request[:params].transform_keys(&:to_s).transform_values(&:to_s))
     end
 
@@ -697,6 +697,7 @@ describe VulcanV2Controller do
       expect(json_body[:dag_flattened]).to_not be_nil
       expect(json_body[:vulcan_config]).to_not be_nil
       expect(json_body[:last_run_id]).to be_nil
+      expect(json_body[:vignette]).to_not be_nil
     end
 
     it 'returns the last run and last config' do
