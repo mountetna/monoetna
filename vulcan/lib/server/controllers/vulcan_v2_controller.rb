@@ -69,8 +69,8 @@ class VulcanV2Controller < Vulcan::Controller
           Vulcan::Path.dl_config(workspace_dir), 
           Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
         )
-        config = @remote_manager.read_yaml_file(Vulcan::Path.default_snakemake_config(workspace_dir))
-        target_mapping = @snakemake_manager.generate_target_mapping(workspace_dir, config)
+        default_config = @remote_manager.read_yaml_file(Vulcan::Path.default_snakemake_config(workspace_dir))
+        target_mapping = @snakemake_manager.generate_target_mapping(workspace_dir, default_config)
         obj = Vulcan::Workspace.create(
           workflow_id: workflow.id,
           name: @params[:workspace_name],
@@ -83,10 +83,33 @@ class VulcanV2Controller < Vulcan::Controller
           created_at: Time.now,
           updated_at: Time.now
         )
+        # Set first config with defaults, if any are established in the vulcan_config
+        vulcan_config = @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace_dir))
+        config_defaults = vulcan_config.select{|c| c.key?("default") && c.key?("output") && c["output"].key?("params")}
+        .map{ |c| [c["output"]["params"][0], c["default"]]}
+        .to_h
+        if !config_defaults.empty?
+          config_hash = Digest::MD5.hexdigest("initial_config" + Time.now.to_i.to_s)
+          config_path = Vulcan::Path.workspace_config_path(workspace_dir, config_hash)
+          @remote_manager.write_file(config_path, config_defaults.to_json)
+          workspace_state = Vulcan::WorkspaceState.new(obj, @snakemake_manager, @remote_manager)
+          available_files = workspace_state.get_available_files
+          state = workspace_state.state(config_defaults.keys.map(&:to_s), Vulcan::Path.default_snakemake_config(workspace_dir), available_files)
+          Vulcan::Config.create(
+            workspace_id: obj.id,
+            path: config_path,
+            hash: config_hash,
+            input_files: "{#{available_files.join(',')}}",
+            input_params: config_defaults,
+            state: state.to_json,
+            created_at: Time.now,
+            updated_at: Time.now
+          )
+        end
         response = {
           workspace_id: obj.id,
           workflow_id: obj.workflow_id,
-          vulcan_config: @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace_dir)),
+          vulcan_config: vulcan_config,
           dag: obj.dag,
           dag_flattened: Vulcan::Snakemake::Inference.flatten_adjacency_list(obj.dag),
           file_dag: Vulcan::Snakemake::Inference.file_graph(target_mapping)

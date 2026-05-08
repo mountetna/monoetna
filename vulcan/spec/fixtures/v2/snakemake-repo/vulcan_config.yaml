@@ -1,20 +1,39 @@
-# Lets assume that a ui component fetches some files from metis to populate in a dropdown
-- display: "location of files on metis to count"
-  ui_component: "metis_file_selector_dropdown"
+### Config UIs
+# For a real workflow, all config elements would have a UI
+- display: "count bytes"
+  ui_component: "boolean"
+  default: true
   output:
-    params: ["poem", "poem_2"] # These are the names of the params that would contain the file names down below
-                               # So the UI would send {poem: poem.txt and poem_2: poem_2.txt}
-    files: ["poem.txt", "poem_2.txt"] # Here the UI would call the /write API to write these files to the workspace
+    params: ["count_bytes"]
+- display: "count characters"
+  ui_component: "boolean"
+  default: false
+  output:
+    params: ["count_chars"]
 
-- display: "count selector to perform on files"
-  ui_component: "boolean_selector"
+- display: "whether to add a number"
+  ui_component: "boolean"
+  default: true
   output:
-    params: ["count_bytes", "count_chars"] # These are the names of the params
+    params: ["add"]
+- display: "number to multiply by"
+  ui_component: "integer"
+  default: 3
+  output:
+    params: ["add_and_multiply"]
 
-- display: "type of numeric arithmetic to perform"
-  ui_component: "boolean_selector"
+### File-Producing UIs
+- display: "poem to count"
+  name: "set_poem_1"
+  ui_component: "multiline-string"
   output:
-    params: ["add", "add_and_multiply"]
+    files: ["poem.txt"]
+
+- display: "poem 2 to count"
+  name: "set_poem_2"
+  ui_component: "multiline-string"
+  output:
+    files: ["poem_2.txt"]
 
 - display: "some ui component that does a job"
   ui_component: "text_box"
