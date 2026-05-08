@@ -171,6 +171,11 @@ class VulcanV2Controller < Vulcan::Controller
       last_run_id: last_run ? last_run.id : nil,
       last_job_status: last_run ? slurm_status : nil
     })
+    # Fetch vignette
+    vignette_path = "#{workspace.path}/resources/vignette.md"
+    if @remote_manager.file_exists?(vignette_path)
+      response[:vignette] = @remote_manager.read_file_to_memory(vignette_path)
+    end
     success_json(response)
   end
   # Update workspace name and tags
