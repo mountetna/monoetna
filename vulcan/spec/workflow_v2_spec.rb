@@ -27,6 +27,11 @@ describe VulcanV2Controller do
     }.merge(params))
   end
 
+  let(:expected_default_params) {{
+    count_bytes: true,
+    count_chars: false
+  }}
+
   def setup_workspace(workflow=nil, params={})
     workflow = create_workflow unless workflow
 
@@ -203,7 +208,7 @@ describe VulcanV2Controller do
       expect(workspace.git_sha).to_not eq(nil)
     end
 
-    it 'successfully creates a first config entry from the default-config.json' do
+    it 'successfully creates a first config, treating un-defaulted params as unfilled in state' do
       auth_header(:editor)
       post_workspace_create(workspace_request)
       expect(last_response.status).to eq(200)
@@ -211,6 +216,13 @@ describe VulcanV2Controller do
       config = Vulcan::Config.first(workspace_id: json_body[:workspace_id])
       # Make sure the corresponding config file exists
       expect(remote_manager.file_exists?(config.path)).to be_truthy
+      file_content = remote_manager.read_json_file(config.path)
+      # Confirm that the config file has the correct values
+      expect(file_content).to eq(expected_default_params.transform_keys(&:to_s))
+      # Steps downstream of un-defaulted params are deemed downstream
+      expect(config[:state]['jobs']['completed']).to match_array([])
+      expect(config[:state]['jobs']['planned']).to match_array([])
+      expect(config[:state]['jobs']['unscheduled']).to match_array(["count", "set_poem_1", "set_poem_2", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
     end
 
     it 'successfully sends back vulcan_config and dag, file_dag, and dag_flattened' do
@@ -266,10 +278,10 @@ describe VulcanV2Controller do
       workspace = Vulcan::Workspace.all[0]
       # We need to write some initial input files to the workspace.
       write_files_to_workspace(workspace.id)
-      # Next we run the first snakemake job
+      # Next we set a new config (values distinct from the default)
       request = {
           params: {
-            count_bytes: false,
+            count_bytes: true,
             count_chars: true
           },
           paramsChanged: [],
@@ -285,9 +297,10 @@ describe VulcanV2Controller do
       expect(remote_manager.file_exists?(config.path)).to be_truthy
 
       # Make sure the config file also has the correct default values as well as the new values
-      default_config_content = remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
-      expected_config_content = default_config_content.merge(JSON.parse(request[:params].to_json))
-      expect(remote_manager.read_json_file(config.path)).to eq(expected_config_content)
+      default_config_content = remote_manager.read_json_file(Vulcan::Path.stub_snakemake_config(workspace.path))
+      expected_stubbed_content = default_config_content.merge(JSON.parse(request[:params].to_json))
+      expect(remote_manager.read_json_file(config.path)).to eq(request[:params].transform_keys(&:to_s))
+      expect(remote_manager.read_json_file(Vulcan::Path.stub_snakemake_config(workspace.path))).to eq(expected_stubbed_content.transform_keys(&:to_s))
     end
 
     it 'creates a new config if the same config already exists' do  
@@ -295,7 +308,7 @@ describe VulcanV2Controller do
       workspace = Vulcan::Workspace.all[0]
       # We need to write some initial input files to the workspace.
       write_files_to_workspace(workspace.id)
-      # Next we run the first snakemake job
+      # Next we set a new config (but values same as the default)
       request = {
         params: {
           count_bytes: false,
@@ -305,12 +318,10 @@ describe VulcanV2Controller do
         uiFilesSent: []
       }
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      config_id = json_body[:config_id]
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       expect(last_response.status).to eq(200)
       # Make sure the config file exists
       config = Vulcan::Config.all
-      expect(config.count).to eq(3)
+      expect(config.count).to eq(2)
       config_1 = config.first
       config_2 = config.last
       expect(remote_manager.file_exists?(config_1.path)).to be_truthy
@@ -322,17 +333,10 @@ describe VulcanV2Controller do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
       write_files_to_workspace(workspace.id)
-      # Create a config and run a job
-      request = {
-        params: {
-          count_bytes: false,
-          count_chars: true 
-        },
-        paramsChanged: [],
-        uiFilesSent: []
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      config_1 = Vulcan::Config.first(id: json_body[:config_id])
+      # Initial config from defaulted values
+      config_1 = Vulcan::Config.first(workspace_id: workspace.id)
+
+      # Next we set a new config (values distinct from the default)
       request_2 = {
         params: {
           count_bytes: false,
@@ -342,20 +346,11 @@ describe VulcanV2Controller do
         uiFilesSent: []
       }
 
-      # NOTE: when we set
-      # params: {
-      #   count_bytes: true,
-      #   count_chars: false 
-      # }
-      # after the first request snakemake does not detect that the config has changed.
-      # Not entirely sure why, but this just happens with our example workflow.
-
-
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request_2)
       config_2 = Vulcan::Config.first(id: json_body[:config_id])
 
       # Make sure the config object exists
-      expect(Vulcan::Config.where(workspace_id: workspace.id).count).to eq(3)
+      expect(Vulcan::Config.where(workspace_id: workspace.id).count).to eq(2)
 
       # Make sure the the 2 config files exists
       expect(remote_manager.file_exists?(config_1.path)).to be_truthy
@@ -368,7 +363,7 @@ describe VulcanV2Controller do
       expect(config_content_1).to_not eq(config_content_2)
 
       # Confirm that the config files have the correct values
-      request[:params].each do |key, expected_value|
+      expected_default_params.each do |key, expected_value|
         expect(config_content_1[key.to_s]).to eq(expected_value)
       end
 
@@ -472,7 +467,7 @@ describe VulcanV2Controller do
         params: {
           count_bytes: false,
           count_chars: true,
-          add: 4, # Change the add param
+          add: 4, # Change the add param -- affects arithmetic step and downstream.
           add_and_multiply_by: 2
         },
         paramsChanged: ["add"],
@@ -707,9 +702,7 @@ describe VulcanV2Controller do
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
       expect(last_response.status).to eq(200)
       # Make sure the config file also has the correct default values as well as the new values
-      default_config_content = remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
-      expected_config_content = default_config_content.merge(JSON.parse(request[:params].to_json))
-      expect(json_body[:last_config]).to eq(expected_config_content.transform_keys(&:to_sym))
+      expect(json_body[:last_config]).to eq(request[:params].transform_keys(&:to_sym))
       expect(json_body[:last_config_id]).to_not be_nil
       expect(json_body[:last_job_status]).to be_nil
       expect(json_body[:dag]).to_not be_nil
@@ -758,11 +751,8 @@ describe VulcanV2Controller do
 
       # Check that the last config is the second config
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
-      workspace = Vulcan::Workspace.first(id: workspace_id)
-      default_config_content = remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
-      expected_config_content = default_config_content.merge(JSON.parse(request_2[:params].to_json))
-      expect(json_body[:last_config]).to eq(expected_config_content.transform_keys(&:to_sym))
-      expect(json_body[:last_config_id]).to_not be_nil
+      expect(json_body[:last_config]).to eq(request_2[:params].transform_keys(&:to_sym))
+      expect(json_body[:last_config_id]).to eq(config_id)
       expect(json_body[:last_job_status]).to_not be_nil
       expect(json_body[:last_run_id]).to_not be_nil
       expect(json_body[:dag]).to_not be_nil

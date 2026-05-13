@@ -13,12 +13,10 @@
 
 - display: "whether to add a number"
   ui_component: "boolean"
-  default: true
   output:
     params: ["add"]
 - display: "number to multiply by"
   ui_component: "integer"
-  default: 3
   output:
     params: ["add_and_multiply"]
 

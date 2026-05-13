@@ -38,7 +38,7 @@ class Vulcan
       "#{workspace_dir}/dl_config.yaml"
     end
 
-    def self.default_snakemake_config(workspace_dir)
+    def self.stub_snakemake_config(workspace_dir)
       "#{workspace_dir}/default-config.json"
     end
 
