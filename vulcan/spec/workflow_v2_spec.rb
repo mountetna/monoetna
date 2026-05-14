@@ -41,7 +41,6 @@ describe VulcanV2Controller do
     request = {
       workflow_id: workflow.id,
       workspace_name: "running-tiger",
-      branch: "main",
       git_request: "v1"
     }.merge(params)
     post("/api/v2/#{project_name}/workspace/create", request)
@@ -759,16 +758,6 @@ describe VulcanV2Controller do
       expect(json_body[:vulcan_config]).to_not be_nil
     end
 
-    # With the test workflow, a first config is now established during workspace_creation
-    # To bring back test, an alternate workflow is required.
-    # it 'returns no configs if they do not exist' do
-    #   workspace_id = json_body[:workspace_id]
-    #   get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
-    #   expect(last_response.status).to eq(200)
-    #   expect(json_body[:last_config]).to be_nil
-    #   expect(json_body[:last_job_status]).to be_nil
-    # end
-
     it 'updates the token in the dl_config.yaml when the author views the workspace' do
       workspace_id = json_body[:workspace_id]
       stub_generate_token(PROJECT, "another_token")
@@ -792,6 +781,24 @@ describe VulcanV2Controller do
       # Token should remain unchanged
       expect(remote_manager.read_yaml_file(Vulcan::Path.dl_config(json_body[:workspace_path]))["token"]).to eq(original_token)
       expect(remote_manager.read_yaml_file(Vulcan::Path.dl_config(json_body[:workspace_path]))["token"]).to_not eq("editor_token")
+    end
+
+  end
+
+  context 'list a specific workspace' do
+
+    before do
+      setup_workspace(nil, {git_request: 'no-default'})
+    end
+
+    # With the test workflow, a first config is now established during workspace_creation
+    # To bring back test, an alternate workflow is required.
+    it 'returns no configs if they do not exist' do
+      workspace_id = json_body[:workspace_id]
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:last_config]).to be_nil
+      expect(json_body[:last_job_status]).to be_nil
     end
 
   end
