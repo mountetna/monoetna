@@ -109,4 +109,182 @@ describe 'Magma Commands' do
       expect(loader).to have_received(:dispatch).once
     end
   end
+
+  describe Magma::AutoDisconnect do
+    let(:project_name) { 'labors' }
+    let(:project) { create(:project, name: project_name) }
+
+    before(:each) do
+      @labor1 = create(:labor, name: 'Nemean Lion', project: project)
+      @labor2 = create(:labor, name: 'Lernean Hydra', project: project)
+      
+      @monster1 = create(:monster, name: 'Lion', labor: @labor1)
+      @monster2 = create(:monster, name: 'Hydra', labor: @labor2)
+      @monster3 = create(:monster, name: 'Disconnected Monster') # Already disconnected
+      
+      @victim1 = create(:victim, name: 'Villager1', monster: @monster1)
+      @victim2 = create(:victim, name: 'Villager2', monster: @monster2)
+    end
+
+    describe '#execute without --auto flag' do
+      it 'disconnects all records of a single model' do
+        expect(Labors::Monster.where(Sequel.~(labor_id: nil)).count).to eq(2)
+        expect(Labors::Monster.where(labor_id: nil).count).to eq(1)
+
+        command = described_class.new
+        command.setup(YAML.load(File.read('config.yml')))
+        
+        expect {
+          command.execute(project_name, 'monster', auto: false)
+        }.to output(/Successfully disconnected 2 record\(s\)/).to_stdout
+
+        expect(Labors::Monster.where(labor_id: nil).count).to eq(3)
+        
+        @monster1.refresh
+        @monster2.refresh
+        expect(@monster1.labor).to be_nil
+        expect(@monster2.labor).to be_nil
+      end
+
+      it 'reports when no connected records are found' do
+        # First disconnect all monsters
+        Labors::Monster.where(Sequel.~(labor_id: nil)).update(labor_id: nil)
+
+        command = described_class.new
+        command.setup(YAML.load(File.read('config.yml')))
+        
+        expect {
+          command.execute(project_name, 'monster', auto: false)
+        }.to output(/No connected records found/).to_stdout
+      end
+
+      it 'reports error for models without parent attribute' do
+        command = described_class.new
+        command.setup(YAML.load(File.read('config.yml')))
+        
+        expect {
+          command.execute(project_name, 'project', auto: false)
+        }.to output(/does not have a parent attribute/).to_stdout
+      end
+
+      it 'preserves child relationships when disconnecting parent' do
+        # Disconnect monsters
+        command = described_class.new
+        command.setup(YAML.load(File.read('config.yml')))
+        command.execute(project_name, 'monster', auto: false)
+
+        # Victims should still be connected to their monsters
+        @victim1.refresh
+        @victim2.refresh
+        expect(@victim1.monster).to eq(@monster1)
+        expect(@victim2.monster).to eq(@monster2)
+      end
+    end
+
+    describe '#execute with --auto flag' do
+      it 'disconnects records up the hierarchy' do
+        # Create a deeper hierarchy: labor -> monster -> victim
+        expect(Labors::Victim.where(Sequel.~(monster_id: nil)).count).to eq(2)
+        expect(Labors::Monster.where(Sequel.~(labor_id: nil)).count).to eq(2)
+
+        command = described_class.new
+        command.setup(YAML.load(File.read('config.yml')))
+        
+        expect {
+          command.execute(project_name, 'victim', auto: true)
+        }.to output(/Auto mode.*victim.*monster.*labor/m).to_stdout
+
+        # All victims should be disconnected
+        expect(Labors::Victim.where(monster_id: nil).count).to eq(2)
+        
+        # All monsters should be disconnected
+        expect(Labors::Monster.where(labor_id: nil).count).to eq(3)
+
+        @victim1.refresh
+        @victim2.refresh
+        @monster1.refresh
+        @monster2.refresh
+
+        expect(@victim1.monster).to be_nil
+        expect(@victim2.monster).to be_nil
+        expect(@monster1.labor).to be_nil
+        expect(@monster2.labor).to be_nil
+      end
+
+      it 'stops at project level and does not disconnect project' do
+        command = described_class.new
+        command.setup(YAML.load(File.read('config.yml')))
+        
+        output = nil
+        expect {
+          command.execute(project_name, 'monster', auto: true)
+        }.to output { |out| output = out }.to_stdout
+
+        # Should not mention project in the hierarchy
+        expect(output).not_to match(/\bproject\b/)
+        expect(output).to match(/monster/)
+        expect(output).to match(/labor/)
+      end
+
+      it 'disconnects in correct order (children before parents)' do
+        command = described_class.new
+        command.setup(YAML.load(File.read('config.yml')))
+        
+        disconnection_order = []
+        
+        # Track when disconnect_model is called
+        original_disconnect = command.method(:disconnect_model)
+        allow(command).to receive(:disconnect_model) do |model|
+          disconnection_order << model.model_name.to_s
+          original_disconnect.call(model)
+        end
+
+        command.execute(project_name, 'victim', auto: true)
+
+        # Victims should be disconnected before monsters, monsters before labors
+        victim_index = disconnection_order.index('victim')
+        monster_index = disconnection_order.index('monster')
+        labor_index = disconnection_order.index('labor')
+
+        expect(victim_index).to be < monster_index if victim_index && monster_index
+        expect(monster_index).to be < labor_index if monster_index && labor_index
+      end
+    end
+
+    describe 'edge cases' do
+      it 'handles models with no records gracefully' do
+        # Create a new labor with no monsters
+        labor3 = create(:labor, name: 'Empty Labor', project: project)
+
+        # Delete all monsters first
+        Labors::Monster.where(Sequel.~(labor_id: nil)).delete
+
+        command = described_class.new
+        command.setup(YAML.load(File.read('config.yml')))
+        
+        expect {
+          command.execute(project_name, 'monster', auto: false)
+        }.to output(/No connected records found/).to_stdout
+      end
+
+      it 'handles table-type models' do
+        # Prize is a table-type model
+        prize1 = create(:prize, labor: @labor1, name: 'Gold', worth: 100)
+        prize2 = create(:prize, labor: @labor2, name: 'Silver', worth: 50)
+
+        expect(Labors::Prize.where(Sequel.~(labor_id: nil)).count).to eq(2)
+
+        command = described_class.new
+        command.setup(YAML.load(File.read('config.yml')))
+        command.execute(project_name, 'prize', auto: false)
+
+        expect(Labors::Prize.where(labor_id: nil).count).to eq(2)
+        
+        prize1.refresh
+        prize2.refresh
+        expect(prize1.labor_id).to be_nil
+        expect(prize2.labor_id).to be_nil
+      end
+    end
+  end
 end
