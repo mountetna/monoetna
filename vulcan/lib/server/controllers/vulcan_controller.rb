@@ -14,6 +14,11 @@ class Vulcan
     private
 
     def task_token
+      if :development == Vulcan.instance.environment
+        inject_token = Vulcan.instance.config(:inject_token)
+        return inject_token unless inject_token.nil?
+      end
+
       janus_client = Etna::Clients::Janus.new(token: @user.token, host: Vulcan.instance.config(:janus)[:host])
       janus_client.generate_token("task", project_name: @params[:project_name], read_only: true)
     end
