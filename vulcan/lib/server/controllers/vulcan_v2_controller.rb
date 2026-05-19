@@ -67,7 +67,7 @@ class VulcanV2Controller < Vulcan::Controller
         @remote_manager.touch("#{Vulcan::Path.workspace_output_dir(workspace_dir)}/.keep")
         @remote_manager.write_file(
           Vulcan::Path.dl_config(workspace_dir), 
-          Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
+          Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token)
         )
         stub_config = @remote_manager.read_yaml_file(Vulcan::Path.stub_snakemake_config(workspace_dir))
         target_mapping = @snakemake_manager.generate_target_mapping(workspace_dir, stub_config)
@@ -144,7 +144,7 @@ class VulcanV2Controller < Vulcan::Controller
     if @user.email == workspace.user_email
       @remote_manager.write_file(
         Vulcan::Path.dl_config(workspace.path), 
-        Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token, Vulcan.instance.config(:magma)[:host])
+        Vulcan::Path.dl_config_yaml(@escaped_params[:project_name], task_token)
       )
     end
 
@@ -161,6 +161,7 @@ class VulcanV2Controller < Vulcan::Controller
     vignette_path = "#{workspace.path}/resources/vignette.md"
     if @remote_manager.file_exists?(vignette_path)
       response[:vignette] = @remote_manager.read_file_to_memory(vignette_path)
+      .encode("ASCII", invalid: :replace, undef: :replace, replace: "_unknown_char_")
     end
     success_json(response)
   end
