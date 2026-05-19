@@ -161,7 +161,7 @@ class Vulcan
         # Therefore, we adopt a convention in the config.yaml - such that all input files
         # be defined starting with the string "output/". We can then create dummy files and run
         # our meta commands.
-        config_path = Vulcan::Path.default_snakemake_config(Shellwords.escape(dir))
+        config_path = Vulcan::Path.stub_snakemake_config(Shellwords.escape(dir))
         config = @remote_manager.read_yaml_file(config_path)
 
         # Identify input files and create them with "DUMMY FILE" content

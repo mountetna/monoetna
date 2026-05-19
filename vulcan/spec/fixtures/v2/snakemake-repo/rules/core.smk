@@ -1,9 +1,21 @@
+rule set_poem_1:
+    params:
+        ui=True
+    output:
+        "output/poem.txt"
+
+rule set_poem_2:
+    params:
+        ui=True
+    output:
+        "output/poem_2.txt"
+
 rule count:
     input:
         # Any jobs that use a config as input and are file paths, must make sure the config values
         # match the vulcan_config.yaml
-        poem1=config["poem"],
-        poem2=config["poem_2"]
+        poem1="output/poem.txt",
+        poem2="output/poem_2.txt"
     output:
         poem_count="output/count_poem.txt",
         poem_count_2="output/count_poem_2.txt"
