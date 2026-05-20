@@ -137,6 +137,7 @@ interface WorkspaceMinusInconsistent {
   last_job_status: {[k: string]: StatusStringFine} | null;
   last_run_id: number | null;
   tags: string[] | null;
+  vignette?: string
 }
 export interface WorkspaceRaw extends WorkspaceMinusInconsistent {
   vulcan_config: VulcanConfigElement[];
@@ -145,7 +146,6 @@ export interface WorkspaceRaw extends WorkspaceMinusInconsistent {
 export interface Workspace extends WorkspaceMinusInconsistent {
   vulcan_config: VulcanConfig;
   // project?: string;
-  vignette?: string;
   thumbnails?: string[];
 }
 

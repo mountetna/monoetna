@@ -13,23 +13,30 @@ class Vulcan
         params, 
         available_files
       )
-      # Use dry run to get the all the files, jobs that snakemake ACTUALLY plans to generate
-      # This gets us the files and jobs planned and completed, also note that these are just the compute jobs and files, not the UI jobs and files.
-      command = Vulcan::Snakemake::CommandBuilder.new
-      command.targets = all_targets
-      command.options[:config_path] = config_path
-      command.options[:profile_path] = Vulcan::Path.profile_dir(@workspace.path, "default")
-      command.options[:dry_run] = true
-      command.options[:summary] = true
-      # === COMPUTE STATE (from snakemake dry run) ===
-      # Get compute files/jobs in all three states: planned, completed, unscheduled
-      # Note that these are just the compute jobs and files, not the UI jobs and files.
+      if all_targets.empty?
+        files_planned = []
+        jobs_planned = []
+        files_completed = []
+        jobs_completed = []
+      else
+        # Use dry run to get the all the files, jobs that snakemake ACTUALLY plans to generate
+        # This gets us the files and jobs planned and completed, also note that these are just the compute jobs and files, not the UI jobs and files.
+        command = Vulcan::Snakemake::CommandBuilder.new
+        command.targets = all_targets
+        command.options[:config_path] = config_path
+        command.options[:profile_path] = Vulcan::Path.profile_dir(@workspace.path, "default")
+        command.options[:dry_run] = true
+        command.options[:summary] = true
+        # === COMPUTE STATE (from snakemake dry run) ===
+        # Get compute files/jobs in all three states: planned, completed, unscheduled
+        # Note that these are just the compute jobs and files, not the UI jobs and files.
 
-      dry_run_info = @snakemake_manager.dry_run_snakemake_files(@workspace.path, command.build)
-      files_planned = dry_run_info[:files_scheduled].to_set.to_a
-      jobs_planned = dry_run_info[:jobs_scheduled].to_set.to_a
-      files_completed = dry_run_info[:files_completed].to_set.to_a
-      jobs_completed = dry_run_info[:jobs_completed].to_set.to_a
+        dry_run_info = @snakemake_manager.dry_run_snakemake_files(@workspace.path, command.build)
+        files_planned = dry_run_info[:files_scheduled].to_set.to_a
+        jobs_planned = dry_run_info[:jobs_scheduled].to_set.to_a
+        files_completed = dry_run_info[:files_completed].to_set.to_a
+        jobs_completed = dry_run_info[:jobs_completed].to_set.to_a
+      end
 
       Vulcan.instance.logger.debug("Files scheduled: #{files_planned}")
       Vulcan.instance.logger.debug("Jobs scheduled: #{jobs_planned}")
@@ -108,13 +115,35 @@ class Vulcan
       end
     end
 
-
     def get_available_files
       output_files = @remote_manager.list_files(Vulcan::Path.workspace_output_dir(@workspace.path))
         .map { |file| "output/#{file}" }
       resources_files = @remote_manager.list_files(Vulcan::Path.workspace_resources_dir(@workspace.path))
         .map { |file| "resources/#{file}" }
       output_files + resources_files
+    end
+
+    def set_config(config_values, config_hash)
+      config_path = Vulcan::Path.workspace_config_path(@workspace.path, config_hash)
+      available_files = get_available_files
+      # Write file to workspace
+      @remote_manager.write_file(config_path, config_values.to_json)
+      # Fill filled values into the stub_config
+      stub_path = Vulcan::Path.stub_snakemake_config(@workspace.path)
+      @remote_manager.write_file(stub_path, @remote_manager.read_json_file(stub_path).merge(config_values).to_json)
+      # Determine state afterward
+      state = state(config_values.keys.map(&:to_s), stub_path, available_files)
+      # Create db entry
+      Vulcan::Config.create(
+        workspace_id: @workspace.id,
+        path: config_path,
+        hash: config_hash,
+        input_files: "{#{available_files.join(',')}}",
+        input_params: config_values,
+        state: state.to_json,
+        created_at: Time.now,
+        updated_at: Time.now
+      )
     end
 
     private

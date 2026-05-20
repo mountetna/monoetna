@@ -242,6 +242,10 @@ module Metis
         return match ? match[0] : nil
       end
 
+      def updates_only?
+        !!@params[:updates_only]
+      end
+
       def dry_run?
         ! @params[:commit]
       end

@@ -110,6 +110,38 @@ describe MetisLinkerJob do
     stub_request(:post, "#{POLYPHEMUS_HOST}/api/workflows/labors/run/update/#{run_id}").to_return(body: "{}")
   end
 
+  context 'tail' do
+    it 'filters the tail if updates_only' do
+      stub_request(:post, "https://polyphemus.test/api/workflows/labors/run/previous/1").to_return(
+        body: { end_time: Time.now.iso8601 }.to_json,
+        headers: { 'Content-Type': "application/json" },
+      )
+
+      job = MetisLinkerJob.new(TEST_TOKEN, config, runtime_config.merge('config' => { 'updates_only' => true }))
+
+      context = {}
+
+      job.pre(context)
+
+      expect(context[:start_time]).to be > '1970'
+    end
+
+    it 'includes all files if not updates_only' do
+      stub_request(:post, "https://polyphemus.test/api/workflows/labors/run/previous/1").to_return(
+        body: { end_time: Time.now.iso8601 }.to_json,
+        headers: { 'Content-Type': "application/json" },
+      )
+
+      job = MetisLinkerJob.new(TEST_TOKEN, config, runtime_config.merge('config' => { 'commit' => true }))
+
+      context = {}
+
+      job.pre(context)
+
+      expect(context[:start_time]).to eq('1970-01-01T00:00:00+00:00')
+    end
+  end
+
   context 'linking' do
     it 'successfully links records' do
       stub_request(:post, "https://polyphemus.test/api/workflows/labors/run/previous/1").to_return(

@@ -32,7 +32,9 @@ describe Vulcan::Snakemake::TargetParser do
         "output/count_poem.txt",
         "output/count_poem_2.txt",
         "output/arithmetic.txt",
-        "output/check.txt"
+        "output/check.txt",
+        "output/poem.txt",
+        "output/poem_2.txt"
         )
     end
 

@@ -11,6 +11,11 @@ class Polyphemus
           commit: {
             type: 'boolean',
             description: 'Commit results to Magma'
+          },
+          updates_only: {
+            type: 'boolean',
+            description: 'Only link files updated on Metis since the last loader run',
+            default: nil
           }
         },
         workflow_path: '/app/workflows/argo/metis_linker/workflow.yaml'
