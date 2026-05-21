@@ -187,7 +187,7 @@ class Vulcan
     def clone(repo, target_dir)
       # Swap from https repo_url to form that will rely on ssh
       # Unless in development, where we don't establish ssh credentials
-      if repo.start_with?("https://") && :development != Vulcan.instance.environment
+      if repo.start_with?("https://") && !Vulcan.instance.config(:base_dir).start_with?('/app')
         repo = repo.sub("https://github.com/", "git@github.com:") + ".git"
       end
       # For now we ignore specifically desired version, and start with the default branch
