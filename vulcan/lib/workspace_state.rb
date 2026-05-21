@@ -13,6 +13,7 @@ class Vulcan
         params, 
         available_files
       )
+      # ToDo: Fix target_mapping calculation and remove the "&& ! @workspace.target_mapping.empty?" hotfix below
       if all_targets.empty? && ! @workspace.target_mapping.empty?
         files_planned = []
         jobs_planned = []
