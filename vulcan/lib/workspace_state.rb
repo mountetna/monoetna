@@ -13,7 +13,7 @@ class Vulcan
         params, 
         available_files
       )
-      if all_targets.empty?
+      if all_targets.empty? && ! @workspace.target_mapping.empty?
         files_planned = []
         jobs_planned = []
         files_completed = []
