@@ -32,6 +32,7 @@ interface AutocompleteProps<Value> extends UseAutocompleteProps<Value, boolean, 
   renderGroup?: (params: _AutocompleteGroupedOption<Value>) => React.ReactNode;
   renderNoResults?: () => React.ReactNode;
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
+  inputRef?: React.Ref<HTMLInputElement>;
   sx?: SxProps;
   size?: string;
 }
@@ -52,6 +53,9 @@ function Autocomplete<Value>(
     anchorEl,
     setAnchorEl,
   } = useAutocomplete(props);
+
+  const { ref: inputPropsRef, ...inputProps } = getInputProps();
+  const inputRef = useForkRef(props.inputRef, inputPropsRef);
 
   const rootRef = useForkRef(ref, setAnchorEl);
 
@@ -153,7 +157,8 @@ function Autocomplete<Value>(
           />
 
           <StyledInput
-            {...getInputProps()}
+            {...inputProps}
+            ref={inputRef}
             placeholder={props.placeholder}
             onKeyDown={props.onKeyDown}
             sx={{
