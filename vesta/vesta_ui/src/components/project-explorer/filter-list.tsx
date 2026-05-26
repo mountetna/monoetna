@@ -128,13 +128,22 @@ const OpenCloseToggle = ({open, onClick}:{
   />
 }
 
-const Filter = ({title, highlight, children}:{
+const Filter = ({title, highlight, children, inputRef}:{
   title: string;
   highlight: boolean;
   children: React.ReactNode;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }) => {
   const [ active, setActive ] = React.useState(false);
   const [ fold, setFold ] = React.useState(true);
+  const [ doFocus, setDoFocus ] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!fold && doFocus) {
+      inputRef?.current?.focus();
+      setDoFocus(false);
+    }
+  }, [fold, inputRef]);
 
   const { state: { visibleColumns }, toggleColumnVisibility } = React.useContext(ProjectExplorerContext);
 
@@ -154,7 +163,12 @@ const Filter = ({title, highlight, children}:{
       </Box>
       <Box sx={{ width: '76px' }}>
         <ShowHideToggle shown={visible} onClick={ () => toggleColumnVisibility(title) }/>
-        <OpenCloseToggle open={!fold} onClick={ () => setFold(!fold) }/>
+        <OpenCloseToggle open={!fold}
+          onClick={ () => {
+            if (fold) setDoFocus(true);
+            setFold(!fold);
+          }}
+        />
       </Box>
     </Box>
     {
@@ -173,6 +187,7 @@ const BasicFilter = ({title, filter, items, render}:{
   filter: FilterFunction,
   render: (params:any) => any;
 }) => {
+  const inputRef = React.useRef<HTMLInputElement>(null);
   const {
     state: { projectData, filters, filterItemSet },
     createFilter,
@@ -207,13 +222,15 @@ const BasicFilter = ({title, filter, items, render}:{
     }, [filterItemSet]
   );
 
-  return <Filter title={title} highlight={ title in filterItemSet }>
+  return <Filter title={title} highlight={ title in filterItemSet } inputRef={inputRef}>
     <Autocomplete<string>
       size='small'
       multiple
       filterSelectedOptions
       icon={searchDarkIcon}
       options={itemNames}
+      inputRef={inputRef}
+      openOnFocus
       // @ts-ignore
       onChange={(_, value:string[] | null, reason) => {
           if (reason === 'removeOption') return;
