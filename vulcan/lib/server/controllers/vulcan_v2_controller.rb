@@ -161,7 +161,7 @@ class VulcanV2Controller < Vulcan::Controller
     vignette_path = "#{workspace.path}/resources/vignette.md"
     if @remote_manager.file_exists?(vignette_path)
       response[:vignette] = @remote_manager.read_file_to_memory(vignette_path)
-      .encode("ASCII", invalid: :replace, undef: :replace, replace: "_unknown_char_")
+      .encode("UTF-8", invalid: :replace, undef: :replace, replace: "[unknown_char]")
     end
     success_json(response)
   end
