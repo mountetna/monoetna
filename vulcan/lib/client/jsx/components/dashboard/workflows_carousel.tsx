@@ -24,14 +24,13 @@ const useStyles = makeStyles((theme) => ({
 
 export default function WorkflowsCarousel({
   project_name,
-  onSelectWorkflow
+  onSelectWorkflow,
+  selectedWorkflow
 }: {
   project_name: string;
+  selectedWorkflow: Workflow;
   onSelectWorkflow: (workflow: Workflow | null) => void;
 }) {
-  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(
-    null
-  );
 
   const classes = useStyles();
   let {state} = useContext(VulcanContext);
@@ -52,16 +51,12 @@ export default function WorkflowsCarousel({
     );
   }, [projectWorkflows]);
 
-  useEffect(() => {
-    onSelectWorkflow(selectedWorkflow);
-  }, [selectedWorkflow]);
-
   const handleOnSelectWorkflow = useCallback(
     (workflow: Workflow) => {
       if (workflow.id === selectedWorkflow?.id) {
-        setSelectedWorkflow(null);
+        onSelectWorkflow(null);
       } else {
-        setSelectedWorkflow(workflow);
+        onSelectWorkflow(workflow);
       }
     },
     [selectedWorkflow]

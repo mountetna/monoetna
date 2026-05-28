@@ -7,6 +7,7 @@ import LoadingIcon from '../dashboard/loading_icon';
 import TimerIcon from '@material-ui/icons/Timer';
 import {makeStyles} from '@material-ui/core/styles';
 import ClusterStatusBox from './cluster_status_box';
+import {getConnectionLatency} from '../../contexts/api';
 
 const useStyles = makeStyles((theme) => ({
   latency: {
@@ -19,18 +20,16 @@ export default function LatencyCheck({projectName}: {
 }) {
   const [latency, setLatency] = useState<number | null>(null);
 
-  let { getConnectionLatency } = useContext(VulcanContext);
-
   const classes = useStyles();
 
-  useEffect( () => {
-    const getLatency = async () => {
-      const { latency } = await getConnectionLatency();
-      setLatency( Math.round(latency / 100) / 10 );
-    }
+  const getLatency = async () => {
+    const { latency } = await getConnectionLatency();
+    setLatency( Math.round(latency / 100) / 10 );
+  }
 
+  useEffect( () => {
     getLatency();
-    const timer = setInterval( getLatency, 5000 );
+    const timer = setInterval( getLatency, 120000 );
 
     return () => clearInterval(timer);
   }, [] );
@@ -39,7 +38,7 @@ export default function LatencyCheck({projectName}: {
 
   return <ClusterStatusBox>
     <Tooltip title='Cluster latency (delay)'>
-      <Grid container alignItems='center' className={ classes.latency }>
+      <Grid container alignItems='center' className={ classes.latency } onClick={() => getLatency()}>
         <TimerIcon fontSize="small"/>
         {valShow}
       </Grid>

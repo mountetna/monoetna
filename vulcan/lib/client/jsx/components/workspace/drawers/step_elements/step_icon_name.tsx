@@ -13,6 +13,8 @@ const StepIconName = ({
 }) => {
   const label = labelOfStepOrGroupedStep(step).replaceAll('_', ' ');
 
+  console.log({step});
+
   return (
     <div className='step-name'>
       <StepIcon step={step}/>

@@ -47,12 +47,6 @@ setRoutes(ROUTES);
 
 const Empty = () => <div />;
 
-// Used To simulate remount whenever router params changes
-// TODO: Can this be removed post refactoring?
-function RemountOnParamsChange({params, children}) {
-  return children;
-}
-
 class VulcanUI extends React.Component {
   constructor(props) {
     super(props);
@@ -87,9 +81,6 @@ class VulcanUI extends React.Component {
       Component = route.component;
     }
 
-    // wait until the user loads to avoid race conditions
-    if (!user) return null;
-
     // this key allows us to remount the component when the params change
     let key = JSON.stringify(params);
 
@@ -99,12 +90,9 @@ class VulcanUI extends React.Component {
           <VulcanProvider params={params}>
             <ThemeProvider theme={theme}>
               <div id='ui-container'>
-                <RemountOnParamsChange params={params}>
-                  <Notifications />
-                  <VulcanNav environment={environment} mode={mode} />
-                  <Messages />
-                  <Component key={key} {...params} />
-                </RemountOnParamsChange>
+                <Notifications />
+                <VulcanNav environment={environment} mode={mode} />
+                <Component key={key} {...params} />
               </div>
             </ThemeProvider>
           </VulcanProvider>

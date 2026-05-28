@@ -103,7 +103,7 @@ export default function WorkspaceCreateButtonModal({
     .catch((e: any) => {
       // Show Error unless due to private repo authentication
       if ( !(!!e && !!e['data'] && !!e['data']['statusCode'] && e['data']['statusCode']==401)) {
-        showError(e)
+        //showError(e)
       }
       setBranches(['main'])
       setTags([])

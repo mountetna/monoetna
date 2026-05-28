@@ -4,7 +4,7 @@ import 'regenerator-runtime/runtime';
 import {VulcanContext} from '../contexts/vulcan_context';
 import {useFeatureFlag} from "etna-js/hooks/useFeatureFlag";
 
-import WorkspaceInitializer from './workspace/workspace_initializer';
+import WorkspaceManager from './workspace/workspace_manager';
 import Typography from '@material-ui/core/Typography';
 
 interface Props {
@@ -34,18 +34,13 @@ export default function Browser({
     </div>
   }
 
-  const {
-    state: {workflows}
-  } = useContext(VulcanContext);
+  const { state: {workflows} } = useContext(VulcanContext);
 
   if (workflows.length === 0 || !project_name) return null;
 
   return (
     <main className='vulcan-browser browser'>
-      <WorkspaceInitializer
-        workspaceId={workspace_id}
-        projectName={project_name}
-      />
+      <WorkspaceManager workspaceId={workspace_id} />
     </main>
   );
 }

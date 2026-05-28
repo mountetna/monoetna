@@ -4,23 +4,17 @@ import {VulcanContext} from '../../contexts/vulcan_context';
 
 import OutputUI from './drawers/output_user_input';
 import { outputUIsWithInputsReady } from '../../selectors/workflow_selectors';
-import {useWorkspace} from '../../contexts/workspace_context';
+import {WorkspaceContext} from '../../contexts/workspace_context';
 import { LoadingIconWithText } from '../dashboard/loading_icon';
 
 export default function OutputFeed() {
-  // Shows stream of Output, Plots, etc.,
-  //   as the session object updates.
-  const {state} = useContext(VulcanContext);
-  const {workspace} = useWorkspace();
-  const {status, update_files} = state;
+  const {state: { workspaceDetails, file_contents } } = useContext(WorkspaceContext);
 
   const outputFeed = useMemo(() => {
-    return state.update_files ?
-      <LoadingIconWithText text='Refreshing Files'/> :
-      outputUIsWithInputsReady(workspace, status.file_contents).map((s, index) => (
+    return outputUIsWithInputsReady(workspaceDetails, file_contents).map((s, index) => (
         <OutputUI key={index} step={s}/>
       ));
-  }, [workspace, status.file_contents, update_files]);
+  }, [workspaceDetails, file_contents]);
 
   return (
     <div className="session-output-feed">

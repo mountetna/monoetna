@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useState} from 'react';
 
 import markdown from 'etna-js/utils/markdown';
 
-import {VulcanContext} from '../../../contexts/vulcan_context';
+import {WorkspaceContext} from '../../../contexts/workspace_context';
 
 export default function Vignette({}) {
   let {state} = useContext(VulcanContext);

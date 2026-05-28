@@ -54,8 +54,6 @@ export function uniqueValues(original: any[]) {
 }
 
 export function parseIfCan(data: any, encoding: string) {
-  // ToDo: REMOVE
-  // console.log({raw: data, parse: data.replace(/\n$/, '').replaceAll(/:(\w+)=>/g, '"$1":').replaceAll(/nil/g, 'null')})
   if (encoding=='base64') {
     data = atob(data);
   }
@@ -251,7 +249,7 @@ export function outputUINames(
   given: VulcanState | VulcanState['workspace']
 ): string[] {
   const workspace = !!given && 'workspace' in given ? given.workspace : given;
-  if (!workspace) return [];
+  if (!workspace || !('vulcan_config' in workspace)) return [];
   let uiNames: string[] = [];
   for (const [key,value] of Object.entries(workspace.vulcan_config)) {
     // No outputs.  (MIGHT need to change this in the future)

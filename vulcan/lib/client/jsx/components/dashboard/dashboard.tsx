@@ -58,9 +58,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
   const [tags, setTags] = useState<string[]>(['highlighted']);
 
   let {state} = useContext(VulcanContext);
-  const {workflows, workspaces} = useMemo(() => {
-    return state
-  }, [state.workflows, state.workspaces])
+  const {workflows, workspaces} = state;
 
   const {canEdit} = useUserHooks();
   const visibleWorkspaces = useMemo(() => {
@@ -94,7 +92,8 @@ export default function Dashboard({project_name}: {project_name: string}) {
         </Grid>
         <WorkflowsCarousel
           project_name={project_name}
-          onSelectWorkflow={(workflow) => setSelectedWorkflow(workflow)}
+          selectedWorkflow={selectedWorkflow}
+          onSelectWorkflow={setSelectedWorkflow}
         />
         <Grid item container className={classes.tableHeader}>
           <Grid item xs={2}>
