@@ -3,9 +3,9 @@
 import * as React from 'react'
 import Container from '@mui/system/Container'
 import Box from '@mui/system/Box'
-import { Breakpoint, useTheme } from '@mui/material/styles';
+import { Breakpoint } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 import _ from 'lodash'
-import { FocusTrap } from '@mui/base';
 import { usePathname } from 'next/navigation';
 
 import UCSFNav, { Classes as UCSFNavClasses } from './ucsf-nav'
@@ -119,9 +119,6 @@ export default function MainNav({
                 </Container>
             </Box>
 
-            <FocusTrap
-                open={dlNavFocus}
-            >
                 {/* DL Nav */}
                 <Box
                     ref={mainNavRef}
@@ -183,7 +180,6 @@ export default function MainNav({
                         onClickOverlayNavButton={handleClickOverlayNavButton}
                     />
                 </Box>
-            </FocusTrap>
         </React.Fragment >
     )
 }
