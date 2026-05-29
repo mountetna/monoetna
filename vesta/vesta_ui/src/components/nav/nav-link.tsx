@@ -1,6 +1,7 @@
 import * as React from 'react'
 import Box from '@mui/material/Box';
-import { Typography, useTheme } from '@mui/material';
+import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 
 import { TypographyVariant } from '@/lib/utils/types'
 import Link from '../link/link';

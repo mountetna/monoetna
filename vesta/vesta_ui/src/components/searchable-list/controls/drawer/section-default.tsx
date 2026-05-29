@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import _ from 'lodash'
 
 import { DrawerSectionProps } from './models';

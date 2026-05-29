@@ -17,7 +17,7 @@ import Pagination, { PaginationClasses } from '@/components/searchable-list/cont
 import ThemeChip from '@/components/themes/theme-chip';
 import DataFieldChip from '@/components/data/data-field-chip';
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { projectDataTypes } from '@/lib/utils/filters';
 import LinkoutButton from '../link/linkout-button';
 

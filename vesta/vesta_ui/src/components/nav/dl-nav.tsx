@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
-import { SxProps, Typography, useTheme } from '@mui/material';
+import { SxProps } from '@mui/material';
 
 import { Heights as NavBarHeights } from './nav-bar';
 import { useBreakpoint } from '@/lib/utils/responsive';

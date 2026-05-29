@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { styled, alpha, Box } from '@mui/system'
-import { Slider as BaseSlider, sliderClasses } from '@mui/base/Slider';
+import { Slider as BaseSlider, sliderClasses } from '@mui/material';
 
 const grey = {
   50: '#F3F6F9',

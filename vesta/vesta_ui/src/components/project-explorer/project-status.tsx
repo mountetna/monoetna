@@ -3,7 +3,8 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import { Collapse, Fade, useTheme } from '@mui/material';
+import { Collapse, Fade } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 
 export default function ProjectStatus({

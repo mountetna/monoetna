@@ -3,7 +3,8 @@
 import * as React from 'react';
 import Box from '@mui/system/Box';
 import ButtonBase from '@mui/material/ButtonBase';
-import { useTheme, alpha } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 import { Swiper, SwiperSlide, SwiperClass } from 'swiper/react';
 import { A11y, Autoplay } from 'swiper/modules';
 import Image from 'next/image';

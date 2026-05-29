@@ -5,7 +5,6 @@ import IconButton from '@mui/material/IconButton';
 import Image from 'next/image';
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg';
 import LinkoutButton from '../link/linkout-button';
-import { useTheme } from '@mui/material';
 
 import { useWindowDimensions } from '@/lib/utils/responsive';
 import { ProjectExplorerContext } from './context';

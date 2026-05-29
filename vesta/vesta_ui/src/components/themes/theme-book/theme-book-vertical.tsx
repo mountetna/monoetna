@@ -6,7 +6,7 @@ import Collapse from '@mui/material/Collapse'
 import Fade from '@mui/material/Fade'
 import { TransitionProps } from '@mui/material/transitions';
 import ButtonBase from '@mui/material/ButtonBase';
-import { useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 import { ProjectCount, ThemeBookProps } from './shared';
 

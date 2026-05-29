@@ -2,11 +2,8 @@
 
 import * as React from 'react';
 import BaseInput, { InputBaseProps } from '@mui/material/InputBase'
-import { styled } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import _ from 'lodash'
-
-// import { styled } from '@/lib/utils/types';
-
 
 type GradeVariant = 'light' | 'mid'
 

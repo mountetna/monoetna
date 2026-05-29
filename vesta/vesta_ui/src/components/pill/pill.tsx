@@ -3,7 +3,8 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import { SxProps, useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { SxProps } from '@mui/material';
 import Image, { StaticImageData } from 'next/image';
 
 import { TypographyVariant } from '@/lib/utils/types';

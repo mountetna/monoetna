@@ -5,11 +5,12 @@ import Collapse from '@mui/material/Collapse'
 import Fade from '@mui/material/Fade'
 import { TransitionProps } from '@mui/material/transitions';
 import { useParentSize } from '@visx/responsive'
-import Pie, { ProvidedProps, PieArcDatum } from '@visx/shape/lib/shapes/Pie';
+import { Pie, ProvidedProps, PieArcDatum } from '@visx/shape';
 import { Group } from '@visx/group';
 import { scaleOrdinal } from '@visx/scale';
 import { animated, useTransition, to, useSpring, UseTransitionProps, SpringValue } from 'react-spring';
-import { alpha, useTheme } from '@mui/material';
+import { alpha } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import Image from 'next/image';
 
 import { ThemeData } from '../themes/models';

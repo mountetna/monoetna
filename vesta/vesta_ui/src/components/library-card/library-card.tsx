@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Box from '@mui/system/Box'
-import { Typography, useTheme } from '@mui/material';
+import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import Image from 'next/image';
 
 import { User } from '../user/models';

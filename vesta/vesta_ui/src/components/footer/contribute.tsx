@@ -4,13 +4,13 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 import Image from 'next/image';
-import { useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import _ from 'lodash'
 
 import contributeImage from '/public/images/footer/contribute.png'
 import TextInput from '../inputs/text-input';
 import ArrowLinkButton from '../inputs/arrow-link-button';
-import { FormControl } from '@mui/base';
+import FormControl from '@mui/material/FormControl';
 import { sendContributeEmail } from '@/app/actions/contact';
 import { SendContactStatus } from '@/lib/clients/vesta-api/models';
 

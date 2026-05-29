@@ -17,7 +17,7 @@ import ButtonBase from '@mui/material/ButtonBase';
 import ProjectPI from './project-pi';
 import FilterPill from '../searchable-list/filter-pill';
 import Image from 'next/image';
-import { FormControl } from '@mui/base';
+import FormControl from '@mui/material/FormControl';
 import { FilterSet, ProjectExplorerContext } from '@/components/project-explorer/context';
 import { FilterItem, Project, FilterRange, ProjectDataType, PrincipalInvestigator, FreeFilter as FreeFilterType } from '@/components/project-explorer/models';
 import { ThemeData } from '@/components/themes/models';

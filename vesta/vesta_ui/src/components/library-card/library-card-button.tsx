@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react';
 import ButtonBase from '@mui/material/ButtonBase';
 import { SxProps, Typography } from '@mui/material';
