@@ -452,14 +452,22 @@ let theme = createTheme({
   components: {
     // https://mui.com/material-ui/customization/theme-components/#theme-default-props
     MuiContainer: {
-      defaultProps: {
-        maxWidth: 'desktopLg',
-      },
+      styleOverrides: {
+        root: {
+          defaultProps: {
+            maxWidth: 'desktopLg',
+          },
+        }
+      }
     },
     MuiButtonBase: {
-      defaultProps: {
-        disableRipple: true,
-      },
+      styleOverrides: {
+        root: {
+          defaultProps: {
+            disableRipple: true,
+          },
+        }
+      }
     },
     MuiTypography: {
       styleOverrides: {
