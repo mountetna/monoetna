@@ -12,7 +12,12 @@
   :upload_expiration: 60
   :download_expiration: 60
 
-  :data_path: ./spec/data
+  :storage:
+    :data:
+      :path: ./spec/data
+      :active: true
+    :oldstorage:
+      :path: ./spec/oldstorage
   :thumbnail_path: ./spec/data/thumbnails
   :backup:
     :directory: 'metis-test-athena'
@@ -43,6 +48,9 @@
   :metis:
     :host: https://metis.development.local
     :hmac_key: haggis
+  :magma:
+    :host: https://magma.development.local
+    :hmac_key: haggis
   :janus:
     :host: https://janus.development.local
     :hmac_key: haggis
@@ -55,7 +63,7 @@
   :gnomon:
     :host: https://gnomon.development.local
     :hmac_key: haggis
-  :log_file: log/error.log
+  :log_file: /dev/stdout
   :auth_redirect: https://janus.development.local
   :token_name: JANUS_DEV_TOKEN
   :token_algo: RS256
@@ -64,7 +72,10 @@
   :token_life: 31536000
   :upload_expiration: 86400
   :download_expiration: 86400
-  :data_path: ./data
+  :storage:
+    :default:
+      :path: ./data
+      :active: true
   :thumbnail_path: ./thumbs
   :rsa_public: |
     -----BEGIN PUBLIC KEY-----

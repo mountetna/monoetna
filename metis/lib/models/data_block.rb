@@ -25,6 +25,7 @@ class Metis
         md5_hash: "#{TEMP_PREFIX}#{Metis.instance.sign.uid}",
         description: "Originally for #{file_name}",
         size: size,
+        storage: Metis.instance.active_storage
       )
 
       data_block.set_file_data(location, copy)
@@ -205,14 +206,22 @@ class Metis
     end
 
     def file_location(hash)
-      directory = ::File.join(
-        Metis.instance.config(:data_path),
-        "data_blocks",
-        hash[0],
-        hash[1]
-      )
+      begin
+        directory = ::File.join(
+          Metis.instance.storage_path(storage),
+          "data_blocks",
+          hash[0],
+          hash[1]
+        )
 
-      FileUtils.mkdir_p(directory) unless ::File.directory?(directory)
+        FileUtils.mkdir_p(directory) unless ::File.directory?(directory)
+      rescue Exception => e
+        if e.message.start_with?("Could not find storage")
+          raise e.message.sub(/.$/, " for data_block #{id}")
+        else
+          raise e
+        end
+      end
 
       ::File.expand_path(
         ::File.join(

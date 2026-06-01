@@ -286,9 +286,9 @@ class Stubs
     #add_stub(folder_path)
   end
 
-  def create_file(project_name, bucket_name, name, contents, md5_hash=nil)
+  def create_file(project_name, bucket_name, name, contents, md5_hash=nil, storage=nil)
     hash = md5_hash || Digest::MD5.hexdigest(contents)
-    file_path = ::File.expand_path("#{Metis.instance.config(:data_path)}/data_blocks/#{hash[0]}/#{hash[1]}/#{hash}")
+    file_path = ::File.expand_path("#{Metis.instance.storage_path(storage || Metis.instance.active_storage)}/data_blocks/#{hash[0]}/#{hash[1]}/#{hash}")
     stub_file(file_path, contents)
     add_stub(file_path)
   end
@@ -510,6 +510,7 @@ def create_file(project_name, file_name, contents, params={})
       description: file_name,
       md5_hash: md5_hash,
       size: contents.length,
+      storage: params.delete(:storage) || Metis.instance.active_storage
     )
   end
 
