@@ -1250,6 +1250,8 @@ EOT
 
       raise ShellError, 'No input files selected!' if input_files.empty?
 
+      raise ShellError, 'Remote folder location cannot target the project root' unless @shell.relative_path(folder_path)
+
       # get a listing of the folder
       folder_path = @shell.relative_path(folder_path)
 
