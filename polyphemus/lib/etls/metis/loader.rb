@@ -190,9 +190,10 @@ module Metis
       end
 
       def files(tail)
+        prefix = folder_path.length>0 ? "#{folder_path}/**/" : '**/'
         tail.files.select do |file|
           ::File.fnmatch?(
-            folder_path + '/**/' + file_match,
+            prefix + file_match,
             file.file_path,
             ::File::FNM_PATHNAME | ::File::FNM_EXTGLOB
           )
