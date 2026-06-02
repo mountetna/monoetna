@@ -57,6 +57,7 @@ class MetisLinkerJob < Polyphemus::ETLJob
 ===============================
 Upload Window: #{context[:start_time]} -> #{context[:end_time]} 
 Models: #{response.models.model_keys.join(', ')}
+Files in window: #{tail.files.length}
 Committed to Magma: #{!loader.config.dry_run?}
 Autolinked Parent Identifiers: #{loader.config.autolink?}
 EOT
