@@ -311,7 +311,7 @@ class Stubs
   end
 
   def project_path(project_name, name)
-    ::File.expand_path("#{Metis.instance.config(:data_path)}/#{project_name}/#{name}")
+    ::File.expand_path("#{Metis.instance.storage_path(Metis.instance.active_storage)}/#{project_name}/#{name}")
   end
 
   def stub_dir(path)
@@ -354,7 +354,7 @@ class Stubs
   def clear(project_name=nil)
     existing_stub_files.each { |stub| File.delete(stub) }
     existing_stub_dirs.each { |stub| FileUtils.rm_r(stub) }
-    FileUtils.rm_r(Dir["#{Metis.instance.config(:data_path)}/#{project_name}/*"]) unless project_name.nil?
+    FileUtils.rm_r(Dir["#{Metis.instance.storage_path(Metis.instance.active_storage)}/#{project_name}/*"]) unless project_name.nil?
     @stubs = []
   end
 

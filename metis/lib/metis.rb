@@ -36,10 +36,6 @@ class Metis
     require_relative 'models'
   end
 
-  def project_path(project)
-    ::File.join(config(:data_path), project)
-  end
-
   def storage_path(storage)
     config(:storage)[storage.to_sym]&.[](:path) || raise("Could not find storage '#{storage}'!")
   end
