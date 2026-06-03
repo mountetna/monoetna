@@ -41,7 +41,6 @@ class Magma
     def initialize(user, project_name, dry_run: false)
       @user = user
       @project_name = project_name
-      @validator = Magma::Validation.new
       @censor = Magma::Censor.new(@user,@project_name)
       @records = {}
       @temp_id_counter = 0
@@ -51,6 +50,7 @@ class Magma
       @dry_run = dry_run
       @flags = Magma::Project.flags(project_name)
       @grammar = Magma::Gnomon::Grammar.for_project(project_name)
+      @validator = Magma::Validation.new(@grammar)
     end
 
     def push_record(model, record_name, revision)
@@ -263,6 +263,7 @@ class Magma
             end
           end
         end
+
         implicit_revisions(revisions, model, revised_model_records) do |child_model, record_name, attribute_name|
           push_record(
             child_model, record_name.to_s,
@@ -331,6 +332,20 @@ class Magma
       end
     end
 
+    def ensure_project_name!
+      project_model = Magma.instance.get_project(@project_name).models[:project]
+      records = @records[project_model]
+
+      if records && !records.empty?
+        real_project_name = project_model.select_map( project_model.identity.column_name.to_sym).first
+
+        return unless real_project_name
+
+        records[real_project_name] = records.delete(records.keys.first)
+        records[real_project_name].record_name = real_project_name
+      end
+    end
+
     # Once we have loaded up all the records we wish to insert/update (upsert)
     # we run this function to kick off the DB insert and update queries.
     def dispatch_record_set
@@ -339,6 +354,8 @@ class Magma
       censor_revisions!
 
       run_attribute_hooks!
+
+      ensure_project_name!
 
       begin
         upsert
@@ -355,7 +372,7 @@ class Magma
 
     def reset
       @records = {}
-      @validator = Magma::Validation.new
+      @validator = Magma::Validation.new(@grammar)
       @censor = Magma::Censor.new(@user,@project_name)
       @attribute_entries = {}
       @identifiers = {}

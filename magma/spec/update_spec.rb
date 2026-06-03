@@ -327,6 +327,9 @@ describe UpdateController do
       end
     end
 
+    context 'project name' do
+    end
+
     context 'from the "parent" or "link model" record' do
       it 'creates new child records for parent-collection' do
         expect(Labors::Labor.count).to be(0)
@@ -2716,7 +2719,7 @@ describe UpdateController do
 
       expect(Labors::Project.count).to eq(1)
       expect(last_response.status).to eq(422)
-      expect(json_body[:errors]).to eq(["Project name must match 'The Twelve Labors of Hercules'"])
+      expect(json_body[:errors]).to eq(["Project name must match one of: The Twelve Labors of Hercules, labors, LABORS"])
     end
 
     it 'prevents additional project parents from being created' do
@@ -2724,7 +2727,7 @@ describe UpdateController do
 
       expect(Labors::Project.count).to eq(1)
       expect(last_response.status).to eq(422)
-      expect(json_body[:errors]).to eq(["Project name must match 'The Twelve Labors of Hercules'"])
+      expect(json_body[:errors]).to eq(["Project name must match one of: The Twelve Labors of Hercules, labors, LABORS"])
     end
 
     it 'allows a root record to be created if there is none' do
@@ -2734,6 +2737,62 @@ describe UpdateController do
 
       expect(last_response.status).to eq(200)
       expect(Labors::Project.count).to eq(1)
+    end
+
+    context 'alternative project names' do
+      before(:each) do
+        @config = {
+          tokens: {
+            "PROJ": {
+              "name": "PROJ",
+              "label": "project",
+              "values": {
+                "LABORS1": "The Twelve Labors of Hercules"
+              }
+            },
+            "PROJECT": {
+              "name": "PROJECT",
+              "label": "project",
+              "values": {
+                "The Twelve Labours of Hercules": "The Twelve Labors of Hercules"
+              }
+            }
+          }
+        }
+        grammar = create(:grammar, project_name: 'labors', version_number: 1, config: @config, comment: 'first')
+      end
+
+      it 'accepts the short_name as the project record name' do
+        update(project: { "labors": { } })
+
+        expect(Labors::Project.count).to eq(1)
+        expect(Labors::Project.first[:name]).to eq('The Twelve Labors of Hercules')
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'accepts the capitalized short_name as the project record name' do
+        update(project: { "LABORS": { } })
+
+        expect(Labors::Project.count).to eq(1)
+        expect(Labors::Project.first[:name]).to eq('The Twelve Labors of Hercules')
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'accepts the PROJ token as the project record name' do
+        update(project: { "LABORS1": { } })
+
+        expect(Labors::Project.count).to eq(1)
+        expect(Labors::Project.first[:name]).to eq('The Twelve Labors of Hercules')
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'accepts the PROJECT token as the project record name' do
+        update(project: { "The Twelve Labours of Hercules": { } })
+
+        expect(Labors::Project.count).to eq(1)
+        expect(Labors::Project.first[:name]).to eq('The Twelve Labors of Hercules')
+        expect(last_response.status).to eq(200)
+      end
     end
   end
 
