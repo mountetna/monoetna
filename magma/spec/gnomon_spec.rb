@@ -51,6 +51,35 @@ describe GnomonController do
     )
   end
 
+  context 'project name' do
+    it 'sets the project name in Magma from the grammar' do
+      grammar = create_grammar
+
+      config = VALID_GRAMMAR_CONFIG
+      auth_header(:editor)
+      json_post('/gnomon/labors', config: config, comment: 'eh')
+
+      expect(last_response.status).to eq(200)
+
+      expect(Labors::Project.count).to eq(1)
+      expect(Labors::Project.first[:name]).to eq('The Twelve Labors of Hercules')
+    end
+
+    it 'updates the project name in Magma from the grammar' do
+      grammar = create_grammar
+      project_record = create(:project, name: 'The Ten Labors of Hercules')
+
+      config = VALID_GRAMMAR_CONFIG
+      auth_header(:editor)
+      json_post('/gnomon/labors', config: config, comment: 'eh')
+
+      expect(last_response.status).to eq(200)
+
+      expect(Labors::Project.count).to eq(1)
+      expect(Labors::Project.first[:name]).to eq('The Twelve Labors of Hercules')
+    end
+  end
+
   it 'does not allow an invalid grammar' do
     config = {
       text: "Some content"

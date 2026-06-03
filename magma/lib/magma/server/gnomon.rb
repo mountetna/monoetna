@@ -57,6 +57,16 @@ class GnomonController < Magma::Controller
       version_number: version_number
     )
 
+    if grammar.token_project_name
+      project_model = Magma.instance.get_project(@project_name).models[:project]
+
+      if project_model.count == 1
+        project_model.dataset.update( project_model.identity.attribute_name => grammar.token_project_name )
+      else
+        project_model.create( project_model.identity.attribute_name => grammar.token_project_name )
+      end
+    end
+
     event_log(
       event: 'update_rules',
       message: "created version #{version_number} of rules"
