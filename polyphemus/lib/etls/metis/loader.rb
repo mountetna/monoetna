@@ -184,7 +184,7 @@ module Metis
 
         grouped_files.each do |name, name_files|
           next unless name
-          @stats[:mapped].conat(name_files.map{ |f| f.file_path })
+          @stats[:mapped].concat(name_files.map{ |f| f.file_path })
           update.update_revision(
             model_name,
             name,
