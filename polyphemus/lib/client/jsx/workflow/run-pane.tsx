@@ -357,8 +357,8 @@ const RunPane = ({
         <Grid className={classes.params} item>
           {Object.keys(param_opts)
             .sort()
-            .map((param_name) => (
-              <Grid
+            .map((param_name) => {
+              const param_comp = <Grid
                 alignItems='center'
                 key={param_name}
                 className={classes.param}
@@ -379,7 +379,12 @@ const RunPane = ({
                   />
                 </Grid>
               </Grid>
-            ))}
+              return param_opts[param_name].description ? 
+                <Tooltip title={param_opts[param_name].description} placement="bottom-start">
+                  {param_comp}
+                </Tooltip> :
+                param_comp
+          })}
         </Grid>
       </Grid>
     </WorkflowPane>
