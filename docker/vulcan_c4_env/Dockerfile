@@ -22,7 +22,7 @@ RUN apt-get update && \
     echo 'root:root' | chpasswd
 
 # Setup SSH server
-RUN mkdir /var/run/sshd
+RUN mkdir -p /var/run/sshd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
 # Expose the default SSH port
