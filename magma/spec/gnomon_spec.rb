@@ -15,6 +15,7 @@ describe GnomonController do
 
   before(:each) do
     stub_event_log
+    stub_request(:post, "https://janus.test/api/admin/labors/update").to_return(status: 200, body: "", headers: {})
   end
 
   it 'complains if there is no grammar' do

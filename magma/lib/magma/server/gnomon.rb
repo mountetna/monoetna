@@ -60,10 +60,18 @@ class GnomonController < Magma::Controller
     if grammar.token_project_name
       project_model = Magma.instance.get_project(@project_name).models[:project]
 
-      if project_model.count == 1
-        project_model.dataset.update( project_model.identity.attribute_name => grammar.token_project_name )
-      else
+      updated = false
+      if project_model.count == 0
         project_model.create( project_model.identity.attribute_name => grammar.token_project_name )
+        updated = true
+      elsif project_model.first[ project_model.identity.attribute_name.to_sym ] != grammar.token_project_name
+        project_model.dataset.update( project_model.identity.attribute_name => grammar.token_project_name )
+        updated = true
+      end
+
+      if updated
+        janus_client = Etna::Clients::Janus.new(token: @user.token, host: Magma.instance.config(:janus)[:host])
+        janus_client.update_project(Etna::Clients::Janus::UpdateProjectRequest.new(project_name: @params[:project_name], project_name_full: grammar.token_project_name))
       end
     end
 

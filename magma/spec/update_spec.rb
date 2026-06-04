@@ -19,6 +19,8 @@ describe UpdateController do
     ])
     stub_request(:post, /https:\/\/metis.test\/labors\/files\/copy?/).
       to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
+    stub_request(:post, "https://janus.test/api/tokens/generate").
+      to_return(status: 200, body: "", headers: {})
     @project = create(:project, name: 'The Twelve Labors of Hercules')
     stub_event_log
   end
