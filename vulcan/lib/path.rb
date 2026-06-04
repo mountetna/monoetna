@@ -63,7 +63,13 @@ class Vulcan
     end
 
     # Other
-    def self.dl_config_yaml(project_name, token, magma_url)
+    def self.dl_config_yaml(project_name, token)
+      magma_url = Vulcan.instance.config(:magma)[:host]
+      # Allow alternative in development
+      if :development == Vulcan.instance.environment && Vulcan.instance.config(:magma).key?(:runner_host)
+        # Note: The front-end will still rely on :host, which should remain as development magma or else http requests will fail
+        magma_url = Vulcan.instance.config(:magma)[:runner_host]
+      end
       yaml_content = <<~YAML
       project_name: "#{project_name}"
       token: "#{token}"

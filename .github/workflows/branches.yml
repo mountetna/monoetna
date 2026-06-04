@@ -66,6 +66,11 @@ jobs:
   # TODO: eventually we might want to hook these tests into the existing app framework
   test-vulcan:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tests:
+          - most
+          - running
     steps:
       - uses: actions/checkout@v3
       - name: docker login
@@ -109,7 +114,11 @@ jobs:
           ./bin/vulcan migrate
 
           echo "=== Running specs ==="
-          bundle exec rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb spec/command_builder_spec.rb
+          if [[ ${TEST_SET} == "most" ]]; then
+            bundle exec rspec spec/workflow_v2_spec.rb spec/snakemake_parser_spec.rb spec/snakemake_inference_spec.rb spec/command_builder_spec.rb
+          else
+            bundle exec rspec spec/workflow_v2_running_spec.rb
+          fi
           EOF
           chmod +x vulcan/test-all.sh
       - name: Services check 
@@ -118,7 +127,7 @@ jobs:
           docker images
           docker ps
           docker compose exec vulcan_c4_env ps aux | grep [s]shd
-      - name: Install, migrate & run tests
+      - name: Install, migrate & run ${{ matrix.tests }} tests
         run: |
           cd vulcan
-          docker compose run --rm -e VULCAN_ENV=test vulcan_app ./test-all.sh
+          docker compose run --rm -e VULCAN_ENV=test -e TEST_SET=${{ matrix.tests }} vulcan_app ./test-all.sh
