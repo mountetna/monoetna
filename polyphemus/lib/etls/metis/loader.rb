@@ -7,7 +7,10 @@ module Metis
         @config = config
         @raw_script = script
         @model_name = model_name
+        @stats = {:matched => [], :mapped => [], :dataframe => []}
       end
+
+      attr_reader :stats
 
       def self.script_params(*params)
         params.each do |param|
@@ -50,6 +53,7 @@ module Metis
         files(tail).each do |file|
           name = @config.identifier(model_name, file.file_path)
           next unless name
+          @stats[:mapped] << file.file_path
           update.update_revision(
             model_name,
             name,
@@ -101,6 +105,7 @@ module Metis
 
         # Parse Files
         files(tail).each do |file|
+          @stats[:dataframe] << file.file_path
           file_contents = String.new
           metis.download_file(file) do |chunk|
             file_contents << chunk
@@ -179,6 +184,7 @@ module Metis
 
         grouped_files.each do |name, name_files|
           next unless name
+          @stats[:mapped].conat(name_files.map{ |f| f.file_path })
           update.update_revision(
             model_name,
             name,
@@ -191,13 +197,15 @@ module Metis
 
       def files(tail)
         prefix = folder_path.length>0 ? "#{folder_path}/**/" : '**/'
-        tail.files.select do |file|
+        matched = tail.files.select do |file|
           ::File.fnmatch?(
             prefix + file_match,
             file.file_path,
             ::File::FNM_PATHNAME | ::File::FNM_EXTGLOB
           )
         end
+        @stats[:matched].concat(matched.map{ |f| f.file_path })
+        matched
       end
 
     end
@@ -272,6 +280,7 @@ module Metis
     end
 
     def update_for(tail, metis_client=nil)
+      @stats = {}
       update = Etna::Clients::Magma::UpdateRequest.new(
         project_name: @config.project_name,
         dry_run: @config.dry_run?,
@@ -281,10 +290,11 @@ module Metis
       @config.models.each do |model_name, scripts|
         scripts.each do |script|
           script.add_to_update(update, tail, metis_client)
+          @stats[model_name] = script.stats
         end
       end
 
-      return update
+      return [ update, @stats ]
     end
 
     def self.to_schema

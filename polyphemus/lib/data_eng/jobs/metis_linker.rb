@@ -49,7 +49,7 @@ class MetisLinkerJob < Polyphemus::ETLJob
 
     loader = Metis::Loader.new(config, rules, params, project_def.models)
 
-    update = loader.update_for(tail, metis_client)
+    update, all_stats = loader.update_for(tail, metis_client)
 
     response = magma_client.update_json(update, page_size=100)
 
@@ -63,7 +63,16 @@ Autolinked Parent Identifiers: #{loader.config.autolink?}
 EOT
 
     response.models.each do |model_name, model|
-      summary += "#{model_name} records updated: #{model.documents.document_keys.join(', ')}\n"
+      stats=all_stats[model_name.to_sym]
+      summary += "-------------------------------\n"
+      summary += "Per #{model_name}:\n"
+      summary += "Records updated: #{model.documents.document_keys.join(', ')}\n"
+      matched_len = stats[:matched].uniq.length
+      summary += "#{matched_len} files matched to scripts#{matched_len >0 && matched_len < 6 ? ": #{stats[:matched].uniq.join(', ')}" : ""}\n"
+      mapped_len = stats[:mapped].uniq.length
+      summary += "#{mapped_len} files mapped to records#{mapped_len > 0 && mapped_len < 6 ? ": #{stats[:mapped].uniq.join(', ')}" : ""}\n"
+      dataframe_len = stats[:dataframe].uniq.length
+      summary += "#{dataframe_len} files parsed as data_frame#{dataframe_len > 0 && dataframe_len <6 ? ": #{stats[:dataframe].uniq.join(', ')}" : ""}\n"
     end
 
     summary += "==============================="
