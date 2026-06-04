@@ -25,6 +25,10 @@ class MetisLinkerJob < Polyphemus::ETLJob
     !!(runtime_config['config'] || {})[:updates_only]
   end
 
+  def debug?
+    !!(runtime_config['config'] || {})[:debug]
+  end
+
   def pre(context)
     context[:start_time] = updates_only? ? fetch_last_scan : Time.at(0).to_datetime.iso8601
     context[:end_time] = Time.now.to_datetime.iso8601
