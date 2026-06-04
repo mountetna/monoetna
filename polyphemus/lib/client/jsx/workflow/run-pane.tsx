@@ -14,7 +14,7 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import {makeStyles} from '@material-ui/core/styles';
 import WorkflowPane, {WorkflowPaneHeader} from './workflow-pane';
 import Autocomplete from '@material-ui/lab/Autocomplete';
-import ReportProblemOutlinedIcon from '@material-ui/icons/ReportProblemOutlined';
+import LinkOffIcon from '@material-ui/icons/LinkOff';
 
 import {
   RUN_NEVER,
@@ -334,7 +334,7 @@ const RunPane = ({
               <Tooltip title="Parsed updates will not be 'commit'ed to the database">
                 <Grid item container alignItems='center' spacing={0}>
                   <Grid item>
-                    <ReportProblemOutlinedIcon/>
+                    <LinkOffIcon/>
                   </Grid>
                   <Grid item>
                     <Typography>Dry Run Mode</Typography>
