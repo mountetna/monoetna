@@ -57,12 +57,26 @@ class MetisLinkerJob < Polyphemus::ETLJob
 
     response = magma_client.update_json(update, page_size=100)
 
+    def summarize_stat(files, descriptor)
+      if files.length == 0
+        "#{files.length} #{descriptor}\n"
+      elsif !debug? && files.length > 5
+        "#{files.length} #{descriptor}: #{files.take(5).join(', ')}, ...\n"
+      else
+        "#{files.length} #{descriptor}: #{files.join(', ')}\n"
+      end
+    end
+
     summary = <<EOT
 ===============================
 Upload Window: #{context[:start_time]} -> #{context[:end_time]} 
 Models: #{response.models.model_keys.join(', ')}
 Files in window: #{tail.files.length}
-Committed to Magma: #{!loader.config.dry_run?}
+#{if !loader.config.dry_run?
+    "Committed to Magma: true (your changes are saved to Magma)"
+  else
+    "Committed to Magma: false (your changes are NOT saved to Magma - DRY RUN)"
+  end}
 Autolinked Parent Identifiers: #{loader.config.autolink?}
 EOT
 
@@ -72,12 +86,9 @@ EOT
       summary += "For #{model_name} model:\n"
       summary += "Records updated: #{model.documents.document_keys.join(', ')}\n"
       next unless stats
-      matched_len = stats[:matched].uniq.length
-      summary += "#{matched_len} files matched to scripts#{matched_len >0 && matched_len < 6 ? ": #{stats[:matched].uniq.join(', ')}" : ""}\n"
-      mapped_len = stats[:mapped].uniq.length
-      summary += "#{mapped_len} files mapped to records#{mapped_len > 0 && mapped_len < 6 ? ": #{stats[:mapped].uniq.join(', ')}" : ""}\n"
-      dataframe_len = stats[:dataframe].uniq.length
-      summary += "#{dataframe_len} files parsed as data_frame#{dataframe_len > 0 && dataframe_len <6 ? ": #{stats[:dataframe].uniq.join(', ')}" : ""}\n"
+      summary += summarize_stat(stats[:matched].uniq, "files matched by script file patterns")
+      summary += summarize_stat(stats[:mapped].uniq, "files also matched by Gnomon rule")
+      summary += summarize_stat(stats[:dataframe].uniq, "files parsed as data_frame")
     end
 
     summary += "==============================="

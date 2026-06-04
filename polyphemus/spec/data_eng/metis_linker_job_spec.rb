@@ -82,7 +82,8 @@ describe MetisLinkerJob do
   let(:runtime_config) {
     {
       'config' => {
-        "commit" => true
+        :commit => true,
+        :debug => false
       },
       'run_interval' => 0
     }
@@ -183,9 +184,9 @@ describe MetisLinkerJob do
         MetisLinkerJob.new(TEST_TOKEN, config, runtime_config).execute
       }
       expectation.to output(include('Files in window: 4')).to_stdout
-      expectation.to output(include('2 files matched to scripts:')).to_stdout
+      expectation.to output(include('2 files matched by script file patterns:')).to_stdout
       expectation.to output(include('LABORS-LION-H2-C1.deceased.png')).to_stdout
-      expectation.to output(include('1 files mapped to records:')).to_stdout
+      expectation.to output(include('1 files also matched by Gnomon rule:')).to_stdout
       expectation.to output(include("0 files parsed as data_frame\n")).to_stdout
     end
 
@@ -208,24 +209,12 @@ describe MetisLinkerJob do
       end
 
       let(:config2) {
-        config = labors_config([
+        labors_config([
           {
             type: "file_collection",
             folder_path: "victims",
             file_match: "*.deceased*.png",
             attribute_name: "photo_deceased"
-          },
-          {
-            type: "data_frame",
-            folder_path: "victims",
-            file_match: "*NO-ID.deceased.png",
-            format: "tsv",
-            blank_table: true,
-            column_map: {
-              name: "name",
-              species: "SPECIES",
-              target_name: "target_name"
-            }
           }
         ])
       }
@@ -237,14 +226,36 @@ describe MetisLinkerJob do
         )
       end
 
-      it 'counts and lists files' do
+      it 'counts and lists some files with debug false' do
         expectation = expect{
-          MetisLinkerJob.new(TEST_TOKEN, config, runtime_config).execute
+          MetisLinkerJob.new(TEST_TOKEN, config2, runtime_config).execute
         }
         expectation.to output(include('Files in window: 9')).to_stdout
-        expectation.to output(include("7 files matched to scripts\n")).to_stdout
-        expectation.not_to output(include('LABORS-LION-H2-C1.deceased.png')).to_stdout
-        expectation.to output(include("6 files mapped to records\n")).to_stdout
+        expectation.to output(include("7 files matched by script file patterns:")).to_stdout
+        expectation.to output(include("...")).to_stdout
+        expectation.to output(include('LABORS-LION-H2-C1.deceased.png')).to_stdout
+        expectation.not_to output(include('LABORS-LION-H7-C1.deceased.png')).to_stdout
+        expectation.to output(include("6 files also matched by Gnomon rule:")).to_stdout
+        expectation.to output(include("0 files parsed as data_frame\n")).to_stdout
+      end
+
+      it 'counts and lists files with debug true' do
+        runtime_debug = {
+          'config' => {
+            :commit => true,
+            :debug => true
+          },
+          'run_interval' => 0
+        }
+        expectation = expect{
+          MetisLinkerJob.new(TEST_TOKEN, config2, runtime_debug).execute
+        }
+        expectation.to output(include('Files in window: 9')).to_stdout
+        expectation.to output(include("7 files matched by script file patterns:")).to_stdout
+        expectation.not_to output(include("...")).to_stdout
+        expectation.to output(include('LABORS-LION-H2-C1.deceased.png')).to_stdout
+        expectation.to output(include('LABORS-LION-H7-C1.deceased.png')).to_stdout
+        expectation.to output(include("6 files also matched by Gnomon rule:")).to_stdout
         expectation.to output(include("0 files parsed as data_frame\n")).to_stdout
       end
     end
