@@ -65,8 +65,9 @@ EOT
     response.models.each do |model_name, model|
       stats=all_stats[model_name.to_sym]
       summary += "-------------------------------\n"
-      summary += "Per #{model_name}:\n"
+      summary += "For #{model_name} model:\n"
       summary += "Records updated: #{model.documents.document_keys.join(', ')}\n"
+      next unless stats
       matched_len = stats[:matched].uniq.length
       summary += "#{matched_len} files matched to scripts#{matched_len >0 && matched_len < 6 ? ": #{stats[:matched].uniq.join(', ')}" : ""}\n"
       mapped_len = stats[:mapped].uniq.length
