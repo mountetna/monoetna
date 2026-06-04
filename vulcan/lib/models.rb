@@ -1,8 +1,3 @@
-require_relative 'server/models/session'
-require_relative 'server/models/figure'
-require_relative 'server/models/workflow'
-require_relative 'server/models/workflow_error'
-require_relative 'server/models/workflow_snapshot'
 require_relative 'server/models/workflow_v2'
 require_relative 'server/models/workspace'
 require_relative 'server/models/config'

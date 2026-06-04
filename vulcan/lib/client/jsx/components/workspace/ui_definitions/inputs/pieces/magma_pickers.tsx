@@ -40,12 +40,15 @@ export function SingleMagmaRecordSelectionPieceRct({
     const targets = !hasAttributes ? 
       arrayLevels(attributesDisplay.concat(targetAttribute)) :
       arrayLevels(attributesDisplay.concat(hasAttributes).concat(targetAttribute));
-    getDocuments({
-      project_name: projectName,
-      model_name: modelName,
-      record_names: 'all',
-      attribute_names: targets
-    }).then((recs) => {
+    getDocuments(
+      {
+        project_name: projectName,
+        model_name: modelName,
+        record_names: 'all',
+        attribute_names: targets
+      },
+      fetch
+    ).then((recs) => {
       const allRecs = recs.models[modelName].documents
       setAllRecords(recs.models[modelName].documents)
     }).catch((e) => showError(e));

@@ -6,6 +6,9 @@
     :database: janus_development
     :user: developer
     :password: password
+  :magma:
+    :host: https://magma.development.local
+    :hmac_key: haggis
   :metis:
     :host: https://metis.development.local
     :hmac_key: haggis

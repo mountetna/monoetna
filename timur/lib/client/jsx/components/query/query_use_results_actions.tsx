@@ -48,7 +48,7 @@ const useResultsActions = ({
       .then((countData: {answer: number}) => {
         numRecords = countData.answer;
         return invoke(
-          requestAnswer({query, page_size: pageSize, page: queryPage + 1, show_disconnected: showDisconnected})
+          requestAnswer({query, event_log: true, page_size: pageSize, page: queryPage + 1, show_disconnected: showDisconnected})
         );
       })
       .then((answerData: QueryResponse) => {

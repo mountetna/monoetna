@@ -1555,7 +1555,7 @@ describe UpdateController do
           }
         )
         expect(last_response.status).to eq(422)
-        expect(json_body[:errors]).to eq(["The identifier '#{identifier}' does not conform to a grammar in Gnomon."])
+        expect(json_body[:errors]).to eq(["The identifier '#{identifier}' does not conform to the rule for victim in Gnomon."])
 
       end
 

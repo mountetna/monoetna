@@ -145,6 +145,11 @@ class AdminController < Janus::Controller
               'project' => { project.project_name => { name: project.project_name } },
           }))
 
+        magma_client.set_flags(
+          project_name: project.project_name,
+          flags: [{ 'gnomon_mode' => 'pattern' }]
+        )
+
         copy_project_template(magma_client) if template_project_name_provided?
       end if magma_client
 

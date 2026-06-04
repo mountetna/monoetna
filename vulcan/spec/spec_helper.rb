@@ -34,7 +34,7 @@ end
 
 AUTH_USERS = {
   superuser: {
-    email: 'zeus@twelve-labors.org', name: 'Zeus', perm: 'a:administration'
+    email: 'zeus@twelve-labors.org', name: 'Zeus', perm: 'a:administration', exp: Time.now.to_i + 6000 , flags: 'vulcan'
   },
   admin: {
     email: 'hera@olympus.org', name: 'Hera', perm: 'a:labors', exp: Time.now.to_i + 6000, flags: 'vulcan'
@@ -57,22 +57,6 @@ AUTH_USERS = {
 }
 
 PROJECT = "labors"
-
-def store(hash, filename, data)
-  storage = Vulcan::Storage.new
-
-  path = storage.data_path(project_name: PROJECT, cell_hash: hash, data_filename: filename)
-  ::FileUtils.mkdir_p(::File.dirname(path))
-  ::File.write(path, data)
-  path
-end
-
-def clear_store
-  storage = Vulcan::Storage.new
-
-  FileUtils.rm_rf(storage.data_root) if ::File.exist?(storage.data_root)
-end
-
 
 def auth_header(user_type, task: false, additional: {})
   user = AUTH_USERS[user_type].dup
@@ -114,33 +98,11 @@ RSpec.configure do |config|
 
 end
 
-def create_figure(params)
-  now = DateTime.now
-  create(
-    :figure,
-    {
-      figure_id: 1,
-      project_name: 'labors',
-      workflow_name: 'workflow',
-      author: 'author',
-      inputs: {},
-      title: 'title',
-      created_at: now,
-      updated_at: now
-    }.update(params)
-  )
-end
-
 FactoryBot.define do
-  factory :figure, class: Vulcan::Figure do
-    to_create(&:save)
-  end
-
-  factory :workflow_snapshot, class: Vulcan::WorkflowSnapshot do
+  factory :workflow, class: Vulcan::WorkflowV2 do
     to_create(&:save)
   end
 end
-
 def json_body
   JSON.parse(last_response.body, symbolize_names: true)
 end
@@ -157,99 +119,6 @@ def save_last_response_json(fixture_name, type)
   ::File.write(fixture_path, "import {#{type}} from \"../../api_types\";\n\nexport const #{constName}: #{type} = #{last_response.body};")
 end
 
-def create_figure_with_snapshot
-  fig = create_figure(
-    title: "Lion of Nemea",
-    workflow_name: "test_workflow.cwl",
-    dependencies: {
-      something: "sha:abc",
-    },
-  )
-
-  # Tweak the snapshot to be slightly different
-  current_yaml = fig.workflow_snapshot.cwl_as_yaml
-  fig.workflow_snapshot.update(
-    cwl_yaml: YAML.dump(
-      current_yaml.update({
-        "inputs" => {
-          "someInt" => {
-            "default" => 200,
-            "format" => nil,
-            "label" => "it is an int",
-            "type" => "int",
-            "doc" => "help tip",
-          },
-          "someIntWithoutDefault" => {
-            "default" => nil,
-            "format" => nil,
-            "label" => nil,
-            "type" => "int",
-            "doc" => "another tip",
-          },
-          "removedInt" => {
-            "default" => nil,
-            "format" => nil,
-            "label" => nil,
-            "type" => "int",
-            "doc" => "deprecated tip",
-          },
-        }, "steps" => [
-          [
-            {
-              "in" => [{ "id" => "a", "source" => "someInt" },
-                      { "id" => "b", "source" => "someIntWithoutDefault" }],
-              "doc" => nil,
-              "label" => nil,
-              "out" => ["sum"],
-              "id" => "firstAdd",
-              "run" => "scripts/add.cwl",
-            },
-            {
-              "in" => [{ "id" => "a", "source" => "firstAdd/sum" },
-                      { "id" => "b", "source" => "removedInt" }],
-              "doc" => nil,
-              "label" => nil,
-              "out" => ["sum"],
-              "id" => "secondAdd",
-              "run" => "scripts/add.cwl",
-            },
-            {
-              "in" => [{ "id" => "num", "source" => "secondAdd/sum" }],
-              "doc" => nil,
-              "label" => nil,
-              "out" => ["num"],
-              "id" => "pickANum",
-              "run" => "ui-queries/pick-a-number.cwl",
-            },
-            {
-              "in" => [{ "id" => "a", "source" => "secondAdd/sum" },
-                      { "id" => "b", "source" => "pickANum/num" }],
-              "doc" => nil,
-              "label" => nil,
-              "out" => ["sum", "thumb.png"],
-              "id" => "finalStep",
-              "run" => "scripts/add.cwl",
-            },
-            {
-              "in" => [{ "id" => "a", "source" => "finalStep/sum" },
-                      { "id" => "b", "source" => "finalStep/thumb.png" }],
-              "doc" => nil,
-              "label" => nil,
-              "id" => "aPlot",
-              "out" => [],
-              "run" => "ui-outputs/plotly.cwl",
-            },
-          ],
-        ]
-        }
-      ),
-    )
-  )
-
-  fig.refresh
-
-  fig
-end
 
 def below_admin_roles
   [:editor, :viewer, :guest]
@@ -259,16 +128,6 @@ def below_editor_roles
   [:viewer, :guest]
 end
 
-def configure_etna_yml_ignore_dependencies(value=true)
-  Vulcan.instance.configure({
-    test: Vulcan.instance.env_config(:test).update({
-        ignore_dependencies: value
-    })
-  })
-end
-
-# For Vulcan V2
-#
 class TestRemoteServerManager < Vulcan::RemoteManager
   # Auxiliary functions to help with testing but not needed for prod
   def initialize(ssh_pool)
@@ -290,6 +149,14 @@ class TestRemoteServerManager < Vulcan::RemoteManager
   def cp_file(src, dest)
     command = "cp #{src} #{dest}"
     invoke_ssh_command(command)
+  end
+
+  def create_large_file(remote_file_path, size_mb: 1, size_bytes: nil)
+    size_bytes ||= (size_mb.to_f * 1024 * 1024).to_i
+    invoke_ssh_command(build_command.add('mkdir', '-p', File.dirname(remote_file_path)).to_s)
+    count_kb = (size_bytes / 1024.0).ceil
+    invoke_ssh_command("dd if=/dev/zero of=#{Shellwords.escape(remote_file_path)} bs=1024 count=#{count_kb} 2>/dev/null", timeout: 30)
+    remote_file_path
   end
 
 end
@@ -404,6 +271,27 @@ def run_with_retry(max_attempts = 5, base_delay = 15)
     else
       break
     end
+  end
+end
+
+def retry_until(max_attempts: 5, base_delay: 2, &block)
+  attempts = 0
+
+  loop do
+    attempts += 1
+    result = yield
+    Vulcan.instance.logger.info("last response: #{json_body}") 
+    if result
+      break
+    end
+    
+    if attempts >= max_attempts
+      raise "Timeout: Condition not met after #{max_attempts} attempts"
+    end
+    
+    # Exponential backoff
+    sleep_duration = base_delay * (2 ** (attempts - 1))
+    sleep(sleep_duration)
   end
 end
 

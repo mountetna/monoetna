@@ -1,7 +1,0 @@
-,gene1,gene2,cell_type,has_thing
-1,0,0,"T",true
-2,0.5,0.1,"B",true
-3,0,0.5,"Myeloid",true
-4,0.5,0.5,"T",false
-5,0.5,0,"B",false
-6,2,2,"Myeloid",false

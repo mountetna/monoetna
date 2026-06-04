@@ -83,7 +83,10 @@ class Metis
         existing_block = Metis::DataBlock.where(md5_hash: md5_hash).first
 
         if existing_block
-          # Point the files to the old block
+          # Get all files pointing to this temp block
+          files_to_deduplicate = Metis::File.where(data_block_id: id).all
+          
+          # Point all the files to the existing block
           Metis::File.where(
             data_block_id: id,
           ).update(
@@ -97,6 +100,12 @@ class Metis
           # destroy this redundant record
           yield [:temp_destroy] if block_given?
           destroy
+
+          # Log deduplicate event for each file AFTER destroying the redundant file
+          files_to_deduplicate.each do |file|
+            Metis::DataBlockLedger.log_deduplicate(file, existing_block, Metis::DataBlockLedger::CHECKSUM_COMMAND)
+          end
+
           return
         else
           # Create a stub in position without removing the exist file, to ensure that
@@ -111,6 +120,14 @@ class Metis
 
           yield [:new_update] if block_given?
           update(md5_hash: md5_hash)
+
+          # Log RESOLVE_DATABLOCK for the temp block being resolved
+          first_file = Metis::File.where(data_block_id: id).first
+          if first_file
+            Metis::DataBlockLedger.log_resolve(first_file, self, Metis::DataBlockLedger::CHECKSUM_COMMAND)
+          else
+            Metis.instance.logger.error("No file found for data block #{id}")
+          end
         end
       end
 
@@ -144,7 +161,7 @@ class Metis
     end
 
     def has_data?
-      ::File.exists?(location)
+      ::File.exist?(location)
     end
 
     def location
@@ -214,7 +231,7 @@ class Metis
     private
 
     def delete_block!
-      if ::File.exists?(location)
+      if ::File.exist?(location)
         ::File.delete(location)
       end
     end

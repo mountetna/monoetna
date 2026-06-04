@@ -41,6 +41,58 @@ class Vulcan
       invoke_ssh_command(command.to_s)[:stdout]
     end
 
+    def stream_file_simple(remote_path, chunk: 256 * 1024, max_duration: 300)
+      bytes_read = 0
+      start_time = Time.now
+      
+      # Wrap the entire SFTP operation in a timeout to prevent hanging
+      Timeout.timeout(max_duration) do
+        @ssh_pool.with_conn do |ssh|
+          sftp = ssh.sftp
+          sftp.file.open(remote_path, 'r') do |file|
+            loop do
+              # Check timeout
+              elapsed = Time.now - start_time
+              if elapsed > max_duration
+                Vulcan.instance.logger.warn(
+                  "Stream timeout after #{elapsed.round(1)}s, #{bytes_read} bytes read from #{remote_path}"
+                )
+                raise Timeout::Error, "Stream exceeded #{max_duration}s limit"
+              end
+              
+              data = file.read(chunk)
+              break if data.nil? || data.empty?
+              
+              bytes_read += data.bytesize
+              yield data
+              
+              # Log progress every 100MB for large files
+              if bytes_read % (100 * 1024 * 1024) < chunk
+                Vulcan.instance.logger.info(
+                  "Streaming progress: #{(bytes_read / 1024.0 / 1024.0).round(1)}MB from #{remote_path}"
+                )
+              end
+            end
+          end
+        end
+      end
+    rescue Timeout::Error => e
+      Vulcan.instance.logger.error("Stream timeout after #{(Time.now - start_time).round(1)}s, #{bytes_read} bytes read")
+      raise "Stream timeout: #{e.message}"
+    rescue Net::SFTP::StatusException => e
+      Vulcan.instance.logger.error("SFTP error: #{e.description}")
+      raise "Remote file error: #{e.description}"
+    rescue IOError, Errno::EPIPE => e
+      # Client likely disconnected
+      Vulcan.instance.logger.warn(
+        "Client disconnected after #{bytes_read} bytes: #{e.message}"
+      )
+      # Don't re-raise - stream was interrupted by client
+    rescue Net::SSH::Disconnect, Errno::ECONNRESET => e
+      Vulcan.instance.logger.error("SSH connection error: #{e.message}")
+      raise "SSH connection lost during streaming: #{e.message}"
+    end
+
     def touch(remote_file_path)
       command = build_command.add('touch', remote_file_path)
       invoke_ssh_command(command.to_s)
@@ -133,7 +185,11 @@ class Vulcan
     end
 
     def clone(repo, target_dir)
-      # For now we ignore branch and assume the default branch
+      # Swap from https repo_url to form that will rely on ssh
+      if repo.start_with?("https://")
+        repo = repo.sub("https://github.com/", "git@github.com:") + ".git"
+      end
+      # For now we ignore specifically desired version, and start with the default branch
       command = build_command.add('git', 'clone', repo, target_dir)
       invoke_ssh_command(command.to_s)
     end
@@ -146,12 +202,19 @@ class Vulcan
       invoke_ssh_command(command.to_s)
     end
 
-    def checkout_version(dir, sha_or_tag)
+    def checkout_version(dir, sha_or_tag_or_branch)
       command = build_command
         .add('cd', dir)
-        .add('git', 'checkout', sha_or_tag)
+        .add('git', 'checkout', sha_or_tag_or_branch)
 
       invoke_ssh_command(command.to_s)
+
+      command = build_command
+        .add('cd', dir)
+        .add('git', 'rev-parse', '--short', 'HEAD')
+
+      result = invoke_ssh_command(command.to_s)
+      result[:stdout].chomp
     end
 
     def get_repo_remote_url(repo_dir)
@@ -198,9 +261,26 @@ class Vulcan
       else
         file_found = remote_file_exists?(file_path)
       end
-      
-      Vulcan.instance.logger.info("File #{file_path} #{file_found ? 'found' : 'not found'}")
+     
+      if !file_found
+        Vulcan.instance.logger.warn("File #{file_path} not found")
+      end
       file_found
+    end
+
+    def file_mtime(file_path)
+      # Get the modification time of a file
+      return nil unless file_exists?(file_path)
+      
+      command = build_command
+        .add('stat', '-c', '%Y', file_path) # %Y gives mtime as Unix timestamp
+      result = invoke_ssh_command(command.to_s)
+      
+      timestamp = result[:stdout].strip.to_i
+      Time.at(timestamp)
+    rescue => e
+      Vulcan.instance.logger.error("Error getting mtime for #{file_path}: #{e.message}")
+      nil
     end
 
     def invoke_and_close(command)
@@ -213,86 +293,90 @@ class Vulcan
       end
     end
 
-    def invoke_ssh_command(command, timeout: 10, retries: 3, retry_delay: 1)
-      # This function runs a async command and keeps polling until the command has completed
-      # or until the timeout occurs.
-      # This function gathers metadata about a command, so is useful when you want
-      # explicit return information.
-      last_error = nil
+    def measure_latency
+      # Measure SSH latency by running a simple command multiple times and taking the median
+      start_time = Time.now
+      command = build_command.add('echo', 'latency_test')
+      result = invoke_ssh_command(command.to_s)
+      end_time = Time.now
+      
+      latency_ms = ((end_time - start_time) * 1000).round(2)
+
+      return latency_ms
+    end
+    
+    def invoke_ssh_command(command, timeout: 10, retries: 5, retry_delay: 2)
+      last_error  = nil
       retry_count = 0
-
-      def execute_command(command, timeout)
-        stdout_data = ""
-        stderr_data = ""
-        exit_status = nil
-        completed = false
-
-        @ssh_pool.with_conn do |ssh|
-          ssh.open_channel do |channel|
-            channel.exec(command) do |ch, success|
-              unless success
-                raise "Command execution failed: #{command}"
-              end
-
-              ch.on_data do |_, data|
-                stdout_data += data
-              end
-
-              ch.on_extended_data do |_, _, data|
-                stderr_data += data
-              end
-
-              ch.on_request("exit-status") do |_, data|
-                exit_status = data.read_long
-                completed = true
-              end
-
-              ch.on_close do
-                completed = true
-              end
-            end
-          end
-
-          # Start a separate thread to monitor the timeout
-          timeout_thread = Thread.new do
-            sleep timeout
-            unless completed
-              ssh.close
-              raise "Command execution timed out: #{command}"
-            end
-          end
-
-          until completed
-            ssh.loop(0.1) # 0.1 second loop interval
-          end
-
-          # Ensure the timeout thread is terminated
-          timeout_thread.kill
-
-          if exit_status != 0
-            raise "Command exited with status #{exit_status}. \n Command: #{command} \n Msg: #{stderr_data} \n Stdout: #{stdout_data}"
-          end
-
-          return {command: command, stdout: stdout_data, stderr_or_info: stderr_data, exit_status: exit_status }
-        end
-      end
+      backoff     = retry_delay
 
       while retry_count < retries
         begin
-          return execute_command(command, timeout)
+          return exec_with_timeout(command, timeout)
         rescue => e
-          last_error = e
+          last_error  = e
           retry_count += 1
-          Vulcan.instance.logger.warn("Command #{command} failed on attempt #{retry_count}/#{retries}. Retrying in #{retry_delay} seconds...")
-          if retry_count < retries
-            sleep retry_delay
-            retry_delay *= 2 # Exponential backoff
-          end
+          Vulcan.instance.logger.warn(
+            "Command `#{command}` failed (#{e.class}: #{e.message}) " \
+            "– attempt #{retry_count}/#{retries}, retrying in #{backoff}s…"
+          )
+          sleep(backoff) if retry_count < retries
+          backoff *= 2
         end
       end
 
-      raise "Command failed after #{retries} attempts. Last error: #{last_error.message}"
+      raise "Command failed after #{retries} attempts. Last error: #{last_error.class}: #{last_error.message}"
     end
 
+    private
+
+    def exec_with_timeout(command, timeout)
+      stdout_data  = ""
+      stderr_data  = ""
+      exit_status  = nil
+      completed    = false
+      timed_out    = false
+
+      @ssh_pool.with_conn do |ssh|
+        channel = ssh.open_channel do |ch|
+          ch.exec(command) { |_, ok| raise "exec failed" unless ok }
+
+          ch.on_data          { |_, data| stdout_data << data }
+          ch.on_extended_data { |_, _, data| stderr_data << data }
+          ch.on_request("exit-status") do |_, data|
+            exit_status = data.read_long
+            completed   = true
+          end
+          ch.on_close { completed = true }
+        end
+
+        # watcher thread only closes the one channel and marks timed_out
+        watcher = Thread.new do
+          sleep(timeout)
+          unless completed
+            channel.close
+            timed_out = true
+          end
+        end
+
+        until completed
+          ssh.loop(0.1)
+        end
+
+        watcher.kill
+        raise "Command execution timed out: #{command}" if timed_out
+
+        if exit_status != 0
+          raise "Command exited #{exit_status}: #{stderr_data}"
+        end
+
+        {
+          command:        command,
+          stdout:         stdout_data,
+          stderr_or_info: stderr_data,
+          exit_status:    exit_status
+        }
+      end
+    end
   end
 end

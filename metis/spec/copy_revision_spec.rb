@@ -1,4 +1,5 @@
 describe Metis::CopyRevision do
+  include Rack::Test::Methods
 
     def app
       OUTER_APP
@@ -6,6 +7,9 @@ describe Metis::CopyRevision do
 
     before(:each) do
       default_bucket('athena')
+
+      @metis_uid = Metis.instance.sign.uid
+      set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
 
       @user = Etna::User.new({
         name: 'Athena',
@@ -232,6 +236,43 @@ describe Metis::CopyRevision do
         learn_wisdom = revision.revise!
         expect(Metis::File.count).to eq(2)
         expect(learn_wisdom.data_block).to eq(@wisdom_file.data_block)
+    end
+
+    it 'logs a LINK_FILE_TO_DATABLOCK ledger entry when copying a file' do
+        enable_all_ledger_events
+        
+        # Create the source file via API so ledger events are properly tracked
+        source_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+        
+        expect(Metis::File.count).to eq(1)
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/wisdom.txt',
+            dest: 'metis://athena/files/learn-wisdom.txt',
+            user: @user
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        revision.validate
+        learn_wisdom = revision.revise!
+        expect(Metis::File.count).to eq(2)
+        expect(learn_wisdom.data_block).to eq(source_file.data_block)
+
+        # Assert LINK_FILE_TO_DATABLOCK event was logged for the copied file
+        link_event = Metis::DataBlockLedger.where(
+            file_id: learn_wisdom.id,
+            event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK
+        ).first
+        expect(link_event).to be_present
+        expect(link_event.project_name).to eq('athena')
+        expect(link_event.md5_hash).to eq(source_file.data_block.md5_hash)
+        expect(link_event.file_path).to eq('learn-wisdom.txt')
+        expect(link_event.file_id).to eq(learn_wisdom.id)
+        expect(link_event.data_block_id).to eq(source_file.data_block_id)
+        expect(link_event.event_type).to eq(Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK)
+        expect(link_event.triggered_by).to eq('athena@olympus.org')
+        expect(link_event.size).to eq(source_file.data_block.size)
+        expect(link_event.bucket_name).to eq('files')
+        expect(link_event.created_at).to be_within(1).of(Time.now)
     end
 
     it 'can revise to different project' do

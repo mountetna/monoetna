@@ -7,6 +7,7 @@ import {hasRunningSteps} from '../selectors/workflow_selectors';
 import Nav from 'etna-js/components/Nav';
 import Link from 'etna-js/components/link';
 import {selectUser} from 'etna-js/selectors/user-selector';
+import ClusterStatus from './cluster_status/cluster_status';
 
 const {sin, cos, PI, random, max, min, pow, abs, sqrt} = Math;
 
@@ -145,6 +146,7 @@ const getTabs = (workspace) => ({
 
 const ModeBar = ({mode, workspace}) => (
   <div id='nav'>
+    <ClusterStatus/>
     {Object.entries(getTabs(workspace)).map(([tab_name, route]) => (
       <div
         key={tab_name}

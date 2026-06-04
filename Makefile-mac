@@ -14,8 +14,6 @@ export DOCKER_DEFAULT_PLATFORM=linux/amd64
 build-dev-etna-images:
 	# Stand alone
 	echo "Building stand alone docker images..."
-	cd known_hosts && docker build . -t known_hosts
-	cd bash_mocker &&  docker build . -t bash_mocker
 	cd development-certs && docker build . -t development-certs
 	cd docker/development-psql && docker build . -t development-psql
 

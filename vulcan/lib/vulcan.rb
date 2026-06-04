@@ -1,7 +1,4 @@
 require_relative 'commands'
-require_relative 'storage'
-require_relative 'orchestration'
-require_relative 'dependency_manager'
 require_relative 'ssh_connection_pool'
 
 class Vulcan
@@ -19,13 +16,12 @@ class Vulcan
       @ssh_pool.with_conn do |ssh|
         result = ssh.exec!("echo 'SSH connection test successful'")
         if result.nil? || !result.include?('successful')
-          raise "SSH test connection failed..."
+          Vulcan.instance.logger.warn("SSH test connection failed...")
         end
       end
     rescue => e
-      Vulcan.instance.logger.error("Failed to establish SSH connection: #{e.message}")
-      Vulcan.instance.logger.error(e.backtrace.join("\n"))
-      raise e
+      Vulcan.instance.logger.warn("Failed to establish SSH connection: #{e.message}")
+      Vulcan.instance.logger.warn(e.backtrace.join("\n"))
     end
     
     Vulcan.instance.logger.info("SSH connection pool setup complete.")
@@ -40,8 +36,38 @@ class Vulcan
     require_relative 'models' if load_models
   end
 
+  LATENCY_SAMPLES=5
+  LATENCY_TIME=600
+
+  def update_latency!
+    @latency ||= []
+
+    @latency = @latency.select do |latency_sample|
+      latency_sample[:date] > Time.now - (config(:latency_time) || LATENCY_TIME)
+    end
+
+    if @latency.length < (config(:latency_samples) || LATENCY_SAMPLES)
+      @remote_manager ||= Vulcan::RemoteManager.new(Vulcan.instance.ssh_pool)
+
+      @latency.push({
+        date: Time.now,
+        latency: @remote_manager.measure_latency
+      })
+    end
+  end
+
+  def median_latency
+    latencies = @latency.map{|l| l[:latency]}.sort
+
+    (latencies[ latencies.length / 2 ] + latencies[ (latencies.length - 1) / 2 ]) / 2.0
+  end
+
+  def has_latency?
+    @latency && !@latency.empty?
+  end
+
   def vulcan_checks
-    @remote_manager = Vulcan::RemoteManager.new(Vulcan.instance.ssh_pool)
+    @remote_manager ||= Vulcan::RemoteManager.new(Vulcan.instance.ssh_pool)
     if config(:conda_env)
       Vulcan.instance.logger.info("Vulcan conda env: #{config(:conda_env)}")
       Vulcan.instance.logger.info("Attempting to activate conda environment...")
@@ -53,51 +79,11 @@ class Vulcan
       if result[:exit_status] == 0
         Vulcan.instance.logger.info("Snakemake version: #{result[:stdout].strip}")
       else
-        Vulcan.instance.logger.error("Failed to activate conda environment and invoke Snakemake binary")
+        Vulcan.instance.logger.warn("Failed to activate conda environment and invoke Snakemake binary")
         raise "Snakemake binary does not exist or failed to execute"
       end
     else
       Vulcan.instance.logger.error("Please specify a conda environment in the config...")
     end
-
-    unless config(:snakemake_profile_dir)
-      Vulcan.instance.logger.error("Please specify a snakemake profile directory in the config...")
-    end
-  end
-
-
-  def setup_yabeda
-    Yabeda.configure do
-      group :vulcan do
-        histogram :job_runtime do
-          comment "Time spent by each cell, including storage and docker execution."
-          unit :seconds
-          tags [:script_hash]
-          buckets [1, 5, 15, 60, 150, 300]
-        end
-
-        gauge :storage_disk_usage do
-          comment "Amount (in bytes) used by vulcan storage directories"
-          tags [:dir]
-        end
-      end
-
-      collect do
-        output = `du #{Vulcan.instance.config(:data_folder)} --max-depth 1` rescue ""
-        output.split("\n").each do |line|
-          parts = line.split("\t")
-          if parts.length > 1
-            bytes, dir = parts
-            vulcan.storage_disk_usage.set({dir: dir}, bytes.to_i)
-          end
-        end
-      end
-    end
-
-    super
-  end
-
-  def dependency_manager
-    @dependency_manager ||= Vulcan::DependencyManager.new
   end
 end

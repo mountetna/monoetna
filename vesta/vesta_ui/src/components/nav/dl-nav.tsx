@@ -3,12 +3,13 @@ import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
 import { SxProps, Typography, useTheme } from '@mui/material';
 
-import { TypographyVariant } from '@/lib/utils/types'
 import { Heights as NavBarHeights } from './nav-bar';
 import { useBreakpoint } from '@/lib/utils/responsive';
-import Link from '../link/link';
+import RelatedResourcesMenu from './related-resources-menu';
+import NavLink from './nav-link';
 import { toSearchParamsString } from '@/lib/utils/uri';
 import { ABOUT_SERACH_PARAMS_KEY, AboutSearchParamsState } from '../about/models';
+import { TypographyVariant } from '@/lib/utils/types'
 
 
 export enum Classes {
@@ -16,52 +17,6 @@ export enum Classes {
     linkContainer = 'link-container',
     link = 'link',
 }
-
-
-function NavLink({
-    text,
-    href,
-    onClick,
-    typography,
-}: {
-    text: string,
-    href: string,
-    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void,
-    typography: TypographyVariant,
-}) {
-    const theme = useTheme()
-
-    return (
-        <Box
-            className={Classes.linkContainer}
-            component='li'
-        >
-            <Link
-                className={Classes.link}
-                href={href}
-                tabIndex={0}
-                onClick={onClick}
-                sx={{
-                    '&:hover, &:focus': {
-                        color: 'blue.grade50',
-                    },
-                    transition: theme.transitions.create(
-                        ['color'],
-                        {
-                            easing: theme.transitions.easing.ease,
-                            duration: theme.transitions.duration.ease,
-                        },
-                    ),
-                }}
-            >
-                <Typography variant={typography}>
-                    {text}
-                </Typography>
-            </Link>
-        </Box>
-    )
-}
-
 
 export default function DLNav({
     sx = {},
@@ -79,21 +34,27 @@ export default function DLNav({
     const handleClickNavLink = (event: React.MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault()
 
-        const href = event.currentTarget.href
-        const elId = href.split('#')[1]
-        const el = document.getElementById(elId)
+        const href = event.currentTarget.href;
+        const [ url, elId ] = href.split('#');
+        const host = (new URL(url)).hostname;
 
-        router.push(href, { scroll: false })
+        const currHref = window.location.href;
+        const [ currUrl, currElId ] = currHref.split('#');
+        const currHost = window.location.hostname;
 
-        if (el) {
-            window.scrollTo({
-                top: el.offsetTop - NavBarHeights[breakpoint].condensed,
-                behavior: 'smooth',
-            })
+        if (currHost != host) {
+          window.open(href, '_blank');
+          return;
         }
+
+        router.push(href, { scroll: true });
 
         onClickNavLink && onClickNavLink()
     }
+
+    const [anchorEl, setAnchorEl] = React.useState<HTMLAnchorElement|null>(null);
+    const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => setAnchorEl(event.currentTarget);
+    const handleClose = () => setAnchorEl(null);
 
     const aboutSearchParams: AboutSearchParamsState = { index: 0 }
     const aboutHref = '/?' + toSearchParamsString({ [ABOUT_SERACH_PARAMS_KEY]: aboutSearchParams }) + '#about'
@@ -125,7 +86,13 @@ export default function DLNav({
             />
             <NavLink
                 text='Projects'
-                href='/#projects'
+                href='/projects'
+                onClick={handleClickNavLink}
+                typography={linkTypography}
+            />
+            <NavLink
+                text='People'
+                href='/people'
                 onClick={handleClickNavLink}
                 typography={linkTypography}
             />
@@ -136,10 +103,16 @@ export default function DLNav({
                 typography={linkTypography}
             />
             <NavLink
-                text='Legacy Version'
-                href={'https://datalibraryarchive.ucsf.edu/'}
-                onClick={handleClickNavLink}
+                text='Related Resources'
+                href={'/'}
+                onClick={handleClick}
                 typography={linkTypography}
+            />
+            <RelatedResourcesMenu
+              anchorEl={anchorEl}
+              typography={linkTypography}
+              onClick={handleClickNavLink}
+              onClose={handleClose}
             />
         </Box>
     )

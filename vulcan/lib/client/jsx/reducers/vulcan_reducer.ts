@@ -6,7 +6,8 @@ import {
   defaultWorkspaceStatus,
   defaultWorkflow,
   StatusStringBroaden,
-  WorkspaceMinimal
+  WorkspaceMinimal,
+  StepStatuses
 } from '../api_types';
 import {
   allUIStepNames,
@@ -36,14 +37,17 @@ export const defaultVulcanState = {
   workspaceId: defaultId,
   configId: defaultId,
   runId: defaultId,
+
+  attemptingToRun: false,
   isRunning: false,
 
   // rule/step statuses, ui&param contents per local, file&param contents per server 
   status: defaultStatus, // Only filled input/outputs in here
 
-  // Trigger re-pull via useEffect inside vulcan_context
+  // Trigger re-pull via useEffect inside vulcan_context or workspace_manager
   update_workflows: true,
   update_files: false, // ui-related files needed for the workspace-manager
+  update_state: false,
 
   // Trigger send to server
   pushSteps: [] as string[],
@@ -62,7 +66,7 @@ export const defaultVulcanState = {
 
   // Request Run and trigger polling state
   triggerRun: [] as (string | null)[],
-  pollingState: 0,
+  isSyncing: false,
   
   validationErrors: defaultValidationErrors,
 };
@@ -74,15 +78,22 @@ function useAccounting(
   action: {type: 'USE_UI_ACCOUNTING'} & {
     accounting: AccountingReturn;
     submittingStep: string;
-    removeSync: boolean;
   }
 ): VulcanState {
   /*
   v1: "filterStaleness" outputs matching hash of step inputs were used for determining staleness
   v2: snakemake determines staleness and the back-end returns:
         - 'config_id' = an id unique to the workspace setup
-        - 'scheduled' = will run in next Run, and
-        - 'downstream' = not ready to run yet, but is downstream in the dag of scheduled steps.
+        - 'jobs':
+            - 'completed' = previously ran, with match to current UI setup
+            - 'scheduled' = will run in next 'Run'
+            - 'downstream' = not ready to run yet, but is downstream in the dag of scheduled steps.
+        - 'files':
+            - 'completed' = previously generated, with match to current UI setup
+            - 'scheduled' = will be generated in next 'Run'
+            - 'downstream' = not generated, and generation is downstream in the dag of scheduled steps.
+        - 'params':
+            - return of the sent params
       Filters staleness, updates step statuses, and sets the new configId.
   */
   const {workspace, status} = state;
@@ -93,32 +104,37 @@ function useAccounting(
   newStatus.last_params = action.accounting.params;
   // Clear ui_content knowledge and output_files knowledge. We will fill it back in next via 'update_files: true' below.
   newStatus.output_files = [];
+  newStatus.last_file_accounting = action.accounting.files;
+  newStatus.last_jobs_accounting = action.accounting.jobs;
   newStatus.ui_contents = uiContentsFromFiles(workspace);
 
   let newSteps = {...newStatus.steps};
-  for (let step of action.accounting.scheduled.concat(action.accounting.downstream)) {
+  for (let step of action.accounting.jobs.planned.concat(action.accounting.jobs.unscheduled)) {
     // The submitting step is pushing a new value from the client up, thus
     // it should not have its input made stale.
     if (step === action.submittingStep || !Object.keys(newSteps).includes(step)) {
-      console.log(`${step} not tracked, skipping`)
+      // console.log(`${step} not tracked, skipping`)
       continue;
     }
 
     // Update steps' statuses
     newSteps[step] = {
       name: step,
-      statusFine: "NOT STARTED",
-      status: action.accounting.scheduled.includes(step) ? 'upcoming' : 'pending'
+      statusFine: action.accounting.jobs.planned.includes(step) ? "PLANNED" : "NOT STARTED",
+      status: action.accounting.jobs.planned.includes(step) ? 'upcoming' : 'pending'
     }
   }
+
+  const newPushSteps = state.pushSteps.filter(s => s!=action.submittingStep)
 
   return {
     ...state,
     status: {...newStatus, steps: {...newSteps}},
     workQueueable: upcomingStepNames(workspace, newStatus).length > 0,
     configId: action.accounting.config_id,
-    update_files: true,
-    pushSteps: action.removeSync ? state.pushSteps.filter(s => s!=action.submittingStep) : state.pushSteps,
+    update_files: newPushSteps.length < 1, // await all step syncs before triggering file pulls
+    isSyncing: false,
+    pushSteps: newPushSteps,
   };
 }
 
@@ -144,11 +160,45 @@ export default function VulcanReducer(
     //     ...state,
     //     workspaces: action.workspaces
     //   };
-    case 'MODIFY_POLLING':
+    case 'MODIFY_SYNCING':
       return {
         ...state,
-        pollingState: Math.max(state.pollingState + action.delta, 0)
+        isSyncing: action.to,
+        pushSteps: !!action.submittingStep ? state.pushSteps.filter(s => s!=action.submittingStep) : state.pushSteps,
       };
+    case 'UPDATE_FROM_STATE':
+      // files: plug directly into 'last_file_accounting'
+      // jobs: ensure completed steps are marked as 'complete'
+      const newCompletedStepStatuses: StepStatuses = Object.fromEntries(
+        action.stateUpdates.jobs.completed
+        .filter(s => (s in state.status.steps))
+        .map(s => [s, {
+            name: s,
+            status: 'complete',
+            statusFine: 'COMPLETED'
+          }])
+      )
+      const newUpcomingStepStatuses: StepStatuses = Object.fromEntries(
+        action.stateUpdates.jobs.planned
+        .filter(s => (s in state.status.steps) && state.status.steps[s].status!='running')
+        .map(s => [s, {
+            name: s,
+            status: 'upcoming',
+            statusFine: 'PLANNED'
+          }])
+      )
+      return {
+        ...state,
+        isSyncing: false,
+        update_state: false,
+        update_files: true,
+        status: {
+          ...state.status,
+          steps: {...state.status.steps, ...newCompletedStepStatuses, ...newUpcomingStepStatuses},
+          last_file_accounting: action.stateUpdates.files,
+          last_jobs_accounting: action.stateUpdates.jobs
+        }
+      }
     case 'SET_WORKFLOW':
       const workflowProject = action.workflow.project_name;
       if (!["all", action.projectName].includes(workflowProject)) {
@@ -213,10 +263,18 @@ export default function VulcanReducer(
         ...state,
         configId: action.configId
       };
-    case 'SET_RUN_ID':
+    case 'SET_ATTEMPTING_RUN':
       return {
         ...state,
-        runId: action.runId
+        attemptingToRun: action.to
+      }
+    case 'SET_RUNNING':
+      return {
+        ...state,
+        runId: action.runId,
+        attemptingToRun: false,
+        isRunning: true,
+        workQueueable: false
       };
     case 'SET_LAST_CONFIG':
       return {
@@ -233,11 +291,8 @@ export default function VulcanReducer(
       // ToDo once cache'ing: Also assess if 'stale' inputs can be filled in with versions matching sent setup.
       return useAccounting(state, action);
     case 'SET_STATUS_FROM_STATUSES':
-      if (!action.statusReturns) {
-        console.log("empty data")
-      }
-      // Arrive here from polling return
-      const newStepStatus = {};
+      // Arrive here from runPolling
+      const newStepStatus: StepStatuses = {};
       const newCompletions = [] as string[];
       for (let [stepName, statusFine] of Object.entries(action.statusReturns)) {
         const statusBroad = StatusStringBroaden(statusFine);
@@ -259,7 +314,7 @@ export default function VulcanReducer(
         isRunning: action.isRunning,
         status: {...newStatus},
         workQueueable: upcomingStepNames(state.workspace as Workspace, newStatus).length > 0,
-        update_files: newCompletions.length > 0
+        update_state: newCompletions.length > 0
       };
 
     case 'SET_BUFFERED_INPUT':
@@ -347,8 +402,8 @@ export default function VulcanReducer(
       };
 
     case 'SET_UI_VALUES':
-      if (state.pollingState) {
-        console.error('cannot change inputs while polling...');
+      if (state.isSyncing) {
+        console.error('cannot change inputs while already syncing...');
         return state;
       }
 
@@ -357,7 +412,7 @@ export default function VulcanReducer(
       }
 
       // Map elements from ui-intenal keys to external keys (param and filenames)
-      const newValues = {}
+      const newValues: {[k:string]: Maybe<any>} = {}
       const mapping = stepOutputMapping(state.workspace.vulcan_config[action.stepName])
       Object.entries(mapping).forEach(
         ([internal, external]) => {
@@ -379,15 +434,10 @@ export default function VulcanReducer(
         }
       };
 
-    case 'REMOVE_SYNC':
-      return {
-        ...state,
-        pushSteps: state.pushSteps.filter(s => s!=action.stepName)
-      };
-
     case 'UPDATE_FILES':
       return {
         ...state,
+        isSyncing: false,
         status: {
           ...state.status,
           ...action.statusUpdates,
@@ -413,21 +463,21 @@ export default function VulcanReducer(
         )
       };
 
-    case 'CHECK_CHANGES_READY':
-      const stepName = withDefault(action.step, null);
-      let ready: boolean;
-      if (action.step == null) {
-        ready = false;
-      } else {
-        const stepNum = state.status[0].findIndex(
-          (element) => element['name'] == stepName
-        );
-        ready = state.status[0][stepNum]['status'] == 'pending';
-      }
-      return {
-        ...state,
-        workQueueable: ready
-      };
+    // case 'CHECK_CHANGES_READY':
+    //   const stepName = withDefault(action.step, null);
+    //   let ready: boolean;
+    //   if (action.step == null) {
+    //     ready = false;
+    //   } else {
+    //     const stepNum = state.status[0].findIndex(
+    //       (element) => element['name'] == stepName
+    //     );
+    //     ready = state.status[0][stepNum]['status'] == 'pending';
+    //   }
+    //   return {
+    //     ...state,
+    //     workQueueable: ready
+    //   };
 
     case 'CLEAR_RUNNING':
       return {

@@ -543,6 +543,8 @@ def create_flags_in_db(flag_hash)
   end
 end
 
+POLYPHEMUS_HOST = Magma.instance.config(:polyphemus)[:host]
+
 VALID_GRAMMAR_CONFIG={
   tokens: {
     PROJECT: {

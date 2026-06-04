@@ -115,9 +115,9 @@ class SftpDepositUploaderJob < Polyphemus::ETLJob
       files = (response["deposit_successful_files"] || []).flatten.map do |filename|
         override_root_path ? [
           filename,
-          filename.sub(/^#{raw_ingest_root_path}/, override_root_path)
+          filename&.sub(/^#{raw_ingest_root_path}/, override_root_path)
         ] : filename
-      end.flatten
+      end.flatten.compact
 
       return Set.new(files)
     rescue Etna::Error => e

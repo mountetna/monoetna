@@ -12,6 +12,7 @@ ENV['METIS_ENV'] = 'test'
 
 require_relative '../lib/metis'
 require_relative '../lib/server'
+require_relative '../lib/commands'
 
 require 'etna/spec/event_log'
 
@@ -92,7 +93,27 @@ RSpec.configure do |config|
   end
 end
 
+# Helper method to disable all ledger event logging during test setup
+# This prevents ledger events from being created during setup operations
+# Tests that need ledger events should explicitly allow them with and_call_original
+def disable_all_ledger_events
+  allow(Metis::DataBlockLedger).to receive(:log_create).and_return(nil)
+  allow(Metis::DataBlockLedger).to receive(:log_link).and_return(nil)
+  allow(Metis::DataBlockLedger).to receive(:log_unlink).and_return(nil)
+  allow(Metis::DataBlockLedger).to receive(:log_resolve).and_return(nil)
+  allow(Metis::DataBlockLedger).to receive(:log_deduplicate).and_return(nil)
+end
 
+# Helper method to enable all ledger event logging for tests
+# This restores the original behavior of all ledger logging methods
+# Use this when you want ledger events to be created during test execution
+def enable_all_ledger_events
+  allow(Metis::DataBlockLedger).to receive(:log_create).and_call_original
+  allow(Metis::DataBlockLedger).to receive(:log_link).and_call_original
+  allow(Metis::DataBlockLedger).to receive(:log_unlink).and_call_original
+  allow(Metis::DataBlockLedger).to receive(:log_resolve).and_call_original
+  allow(Metis::DataBlockLedger).to receive(:log_deduplicate).and_call_original
+end
 
 FactoryBot.define do
   factory :file, class: Metis::File do
@@ -389,6 +410,22 @@ SHINY_HELMET=<<EOT
   xXx
  xO|Ox
 EOT
+LABORS_LIST=<<EOT
+The Twelve Labors of Hercules
+- The Nemean Lion
+- The Lernaean Hydra
+- The Ceryneian Hind
+- The Erymanthian Boar
+- The Augean Stables
+- The Stymphalian Birds
+- The Cretan Bull
+- The Mares of Diomedes
+- The Belt of Hippolyta
+- The Cattle of Geryon
+- The Golden Apples of the Hesperides
+- Cerberus
+EOT
+
 
 
 AUTH_USERS = {
@@ -396,7 +433,7 @@ AUTH_USERS = {
     email: 'vesta@olympus.org', name: 'Vesta', perm: 'a:administration'
   },
   editor: {
-    email: 'metis@olympus.org', name: 'Metis', perm: 'e:athena,backup'
+    email: 'metis@olympus.org', name: 'Metis', perm: 'e:athena,backup,labors'
   },
   restricted_editor: {
     email: 'metis@olympus.org', name: 'Metis', perm: 'E:athena,backup'
@@ -472,11 +509,17 @@ def create_folder(project_name, folder_name, params={})
 end
 
 def create_file(project_name, file_name, contents, params={})
-  data_block = create(:data_block,
-    description: file_name,
-    md5_hash: params.delete(:md5_hash) || Digest::MD5.hexdigest(contents),
-    size: contents.length,
-  )
+  md5_hash = params.delete(:md5_hash) || Digest::MD5.hexdigest(contents)
+  
+  # Find or create datablock (reuse if same content already exists)
+  data_block = Metis::DataBlock.where(md5_hash: md5_hash).first
+  unless data_block
+    data_block = create(:data_block,
+      description: file_name,
+      md5_hash: md5_hash,
+      size: contents.length,
+    )
+  end
 
   create( :file,
     {
@@ -487,6 +530,138 @@ def create_file(project_name, file_name, contents, params={})
       data_block: data_block
     }.merge(params)
   )
+end
+
+def upload_file_via_api(project_name, file_name, contents, bucket_name: 'files')
+  # Start upload (uses HMAC authentication)
+  hmac_header
+  json_post(
+    "/#{project_name}/upload/#{bucket_name}/#{file_name}",
+    file_size: contents.length,
+    action: 'start',
+    next_blob_size: contents.length,
+    next_blob_hash: Digest::MD5.hexdigest(contents)
+  )
+  expect(last_response.status).to eq(200)
+  
+  # Upload the file content as a single blob
+  blob_file = Tempfile.new('upload_blob')
+  blob_file.write(contents)
+  blob_file.rewind
+  
+  hmac_header
+  post(
+    "/#{project_name}/upload/#{bucket_name}/#{file_name}",
+    action: 'blob',
+    next_blob_size: 0,
+    next_blob_hash: '',
+    current_byte_position: 0,
+    blob_data: Rack::Test::UploadedFile.new(blob_file.path, 'application/octet-stream')
+  )
+  expect(last_response.status).to eq(200)
+  
+  blob_file.close
+  blob_file.unlink
+  
+  # Return the created file (reload to get latest data)
+  # Extract just the file name from the path (e.g., "blueprints/helmet.jpg" -> "helmet.jpg")
+  folder_path, just_file_name = Metis::File.path_parts(file_name)
+  file = Metis::File.where(file_name: just_file_name, project_name: project_name).first
+  
+  if file
+    # Run ChecksumFiles command to compute actual hash from temporary hash
+    cmd = Metis::ChecksumFiles.new
+    cmd.execute
+    file.reload
+  end
+  
+  file
+end
+
+def multi_project_backfilled_lifecycle
+  # Set up buckets for all projects
+  default_bucket('athena')
+  default_bucket('labors')
+  default_bucket('backup')
+  
+  # Set up metis_uid for upload API
+  metis_uid = Metis.instance.sign.uid
+  set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{metis_uid}"
+  
+  wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+  helmet_file = upload_file_via_api('athena', 'helmet.jpg', HELMET)
+
+  labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
+
+  another_labors_file = upload_file_via_api('labors', 'labors2.txt', "lol")
+
+  backup_file = upload_file_via_api('backup', 'backup.txt', WISDOM)
+
+  wisdom_datablock_id = wisdom_file.data_block_id
+  helmet_datablock_id = helmet_file.data_block_id
+  labors_datablock_id = labors_file.data_block_id
+
+  # Delete files using the API (simulating real user deletion)
+  token_header(:supereditor)
+  delete("/athena/file/remove/files/wisdom.txt")
+  expect(last_response.status).to eq(200)
+  delete("/labors/file/remove/files/labors.txt")
+  expect(last_response.status).to eq(200)
+  delete("/backup/file/remove/files/backup.txt")
+  expect(last_response.status).to eq(200)
+
+  # So now we have:
+  # - athena: wisdom.txt (orphaned)
+  # - athena: helmet.jpg (not orphaned)
+  # - labors: labors2.txt (not orphaned)
+  # - labors: labors.txt (orphaned)
+  # - backup: backup.txt (orphaned)
+
+  backfill_ledger = Metis::BackfillDataBlockLedger.new
+  backfill_ledger.execute(project_name: 'athena', links: true)
+  backfill_ledger.execute(project_name: 'labors', links: true)
+  backfill_ledger.execute(project_name: 'backup', links: true)
+  backfill_ledger.execute(orphaned: true)
+
+  {
+    wisdom_data_block_id: wisdom_datablock_id,
+    helmet_data_block_id: helmet_datablock_id,
+    labors_data_block_id: labors_datablock_id,
+    another_labors_datablock_id: another_labors_file.data_block_id,
+    backup_datablock_id: backup_file.data_block_id
+  }
+end
+
+
+def athena_backfilled_lifecycle
+  # Set up bucket
+  default_bucket('athena')
+  
+  # Set up metis_uid for upload API
+  metis_uid = Metis.instance.sign.uid
+  set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{metis_uid}"
+  
+  wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
+  helmet_file = upload_file_via_api('athena', 'helmet.jpg', HELMET)
+
+  wisdom_datablock_id = wisdom_file.data_block_id
+  helmet_datablock_id = helmet_file.data_block_id
+
+  # Delete both files using the API (simulating real user deletion)
+  token_header(:editor)
+  delete("/athena/file/remove/files/wisdom.txt")
+  expect(last_response.status).to eq(200)
+  delete("/athena/file/remove/files/helmet.jpg")
+  expect(last_response.status).to eq(200)
+
+  backfill_ledger = Metis::BackfillDataBlockLedger.new
+  backfill_ledger.execute(project_name: 'athena', links: true)
+  backfill_ledger.execute(orphaned: true)
+
+  {
+    wisdom_data_block_id: wisdom_datablock_id,
+    helmet_data_block_id: helmet_datablock_id
+  }
 end
 
 # From Ruby stdlib tests

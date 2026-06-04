@@ -7,6 +7,7 @@ import {
   WorkspaceRaw,
   RunStatus,
   MultiFileContent,
+  StateReturn,
 } from '../api_types';
 import { DataEnvelope } from '../components/workspace/ui_definitions/input_types';
 import {Maybe} from '../selectors/maybe';
@@ -50,9 +51,12 @@ export function setWorkspaceStateSyncd() {
 export function setConfigId(configId: Workspace['workspace_id']) {
   return actionObject('SET_CONFIG_ID', {configId});
 }
+export function setAttemptingToRun(to: boolean) {
+  return actionObject('SET_ATTEMPTING_RUN', {to});
+}
 
-export function setRunId(runId: Workspace['workspace_id']) {
-  return actionObject('SET_RUN_ID', {runId});
+export function setRunning(runId: Workspace['workspace_id']) {
+  return actionObject('SET_RUNNING', {runId});
 }
 
 export function setLastConfig(lastConfig: WorkspaceStatus['last_params']) {
@@ -62,9 +66,8 @@ export function setLastConfig(lastConfig: WorkspaceStatus['last_params']) {
 export function useUIAccounting(
   accounting: AccountingReturn,
   submittingStep: Maybe<string> = null,
-  removeSync: boolean = false
 ) {
-  return actionObject('USE_UI_ACCOUNTING', {accounting, submittingStep, removeSync});
+  return actionObject('USE_UI_ACCOUNTING', {accounting, submittingStep});
 }
 
 export function setStatusFromStatuses(
@@ -102,16 +105,20 @@ export function removeValidationErrors(errors: string[]) {
   return actionObject('REMOVE_VALIDATION_ERRORS', {errors});
 }
 
-export function startPolling() {
-  return actionObject('MODIFY_POLLING', {delta: 1});
+export function startSyncing() {
+  return actionObject('MODIFY_SYNCING', {to: true, submittingStep: undefined});
 }
 
-export function finishPolling() {
-  return actionObject('MODIFY_POLLING', {delta: -1});
+export function endSyncing(submittingStep?: string) {
+  return actionObject('MODIFY_SYNCING', {to: false, submittingStep: submittingStep});
 }
 
 export function updateFiles(statusUpdates: Pick<WorkspaceStatus, 'output_files' | 'file_contents'>) {
   return actionObject('UPDATE_FILES', {statusUpdates});
+}
+
+export function updateFromState(stateUpdates: StateReturn) {
+  return actionObject('UPDATE_FROM_STATE', {stateUpdates});
 }
 
 export function setBufferedInput(step: string | null) {
@@ -138,9 +145,9 @@ export function clearRunTriggers(steps: (string | null)[]) {
   return actionObject('CLEAR_RUN_TRIGGERS', {steps});
 }
 
-export function checkCommittedStepPending(step: string | null) {
-  return actionObject('CHECK_CHANGES_READY', {step});
-}
+// export function checkCommittedStepPending(step: string | null) {
+//   return actionObject('CHECK_CHANGES_READY', {step});
+// }
 
 export function clearRunning() {
   return actionObject('CLEAR_RUNNING', {});
@@ -160,16 +167,17 @@ export type VulcanAction =
   | ReturnType<typeof setStateFromStorage>
   | ReturnType<typeof setWorkspaceStateSyncd>
   | ReturnType<typeof setConfigId>
-  | ReturnType<typeof setRunId>
+  | ReturnType<typeof setAttemptingToRun>
+  | ReturnType<typeof setRunning>
   | ReturnType<typeof setLastConfig>
   | ReturnType<typeof useUIAccounting>
   | ReturnType<typeof setStatusFromStatuses>
   | ReturnType<typeof setWorkspaceFiles>
   | ReturnType<typeof setUIValues>
-  | ReturnType<typeof startPolling>
-  | ReturnType<typeof finishPolling>
-  | ReturnType<typeof removeSync>
+  | ReturnType<typeof startSyncing>
+  | ReturnType<typeof endSyncing>
   | ReturnType<typeof updateFiles>
+  | ReturnType<typeof updateFromState>
   | ReturnType<typeof addValidationErrors>
   | ReturnType<typeof removeValidationErrors>
   | ReturnType<typeof setBufferedInput>
@@ -179,5 +187,5 @@ export type VulcanAction =
   | ReturnType<typeof setRunTrigger>
   | ReturnType<typeof clearRunTriggers>
   | ReturnType<typeof clearRunning>
-  | ReturnType<typeof checkCommittedStepPending>
+  // | ReturnType<typeof checkCommittedStepPending>
   | ReturnType<typeof clearCommittedStepPending>

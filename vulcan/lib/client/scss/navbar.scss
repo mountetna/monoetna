@@ -1,6 +1,8 @@
 #nav {
   flex-grow: 1;
   font-family: $body_font;
+  display: flex;
+  align-items: center;
 
   .nav_tab {
     height: 100%;

@@ -12,7 +12,8 @@ class Vulcan
         user_email: user_email,
         tags: tags,
         workspace_path: path,
-        git_version: git_version,
+        git_ref: git_ref,
+        git_sha: git_sha,
         created_at: created_at,
         updated_at: updated_at
       }

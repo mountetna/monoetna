@@ -66,7 +66,7 @@ class LayoutNode {
     let maxdepth = grid.length;
     this.center = {
       x: (this.pos/(maxpos + 1)) * this.layout.width,
-      y: (this.depth / maxdepth) * this.layout.height
+      y: ((this.depth-0.5) / maxdepth) * this.layout.height
     };
     this.size = 40;
   }

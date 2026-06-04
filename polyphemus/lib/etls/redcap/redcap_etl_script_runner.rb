@@ -158,6 +158,7 @@ class Polyphemus
           update_request = Etna::Clients::Magma::UpdateRequest.new(
             project_name: @project_name,
             revisions: records,
+            autolink: true,
             dry_run: !commit)
           select_documents(magma_client.update_json(update_request))
         end

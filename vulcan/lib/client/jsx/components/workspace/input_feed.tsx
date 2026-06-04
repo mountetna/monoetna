@@ -16,7 +16,7 @@ import {
   stepOfName
 } from '../../selectors/workflow_selectors';
 import GroupedStepUI from './drawers/step_user_input';
-import LoadingIcon from '../dashboard/loading_icon';
+import { LoadingIconWithText } from '../dashboard/loading_icon';
 import { makeStyles } from '@material-ui/core/styles';
 
 export const useInputFeedStyles = makeStyles((theme) => ({
@@ -54,10 +54,7 @@ export default function InputFeed() {
 
   const stepInputs = useMemo(() => {
     return update_files ?
-      <div>
-        <LoadingIcon/>
-        Refreshing Files
-      </div> :
+      <LoadingIconWithText text='Refreshing Files'/>:
       groupedSteps.map((s, index) => (
         <GroupedStepUI key={index} group={s} />
       ));

@@ -6,7 +6,6 @@ on:
       - '*/*'
       - '*/*/*'
       - '!master'
-      - '!swarm/stacks'
       - '!production'
       - '!staging'
       - '!production-build'

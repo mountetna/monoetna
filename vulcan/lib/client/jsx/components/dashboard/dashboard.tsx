@@ -7,7 +7,7 @@ import {makeStyles} from '@material-ui/core/styles';
 
 import {Workflow} from '../../api_types';
 import WorkflowsCarousel from './workflows_carousel';
-import WorkspacesGrid from './workspace_control/workspaces_grid';
+import WorkspacesGrid from './workspaces_grid';
 import WorkspacesControls from './workspace_control/workspaces_controls';
 import WorkflowControls from './workflow_control/workflow_controls';
 import ProjectHeader from 'etna-js/components/project-header';
@@ -65,9 +65,8 @@ export default function Dashboard({project_name}: {project_name: string}) {
   const {canEdit} = useUserHooks();
   const visibleWorkspaces = useMemo(() => {
     const projectWorkflowIds = workflows.filter(w => w.project_name == project_name).map(w => w.id)
-    return workspaces.filter((w) => projectWorkflowIds.includes(w.workflow_id)
-      && canEdit(w) || (w.tags || []).includes('published')
-    )
+    const projectWorkspaces = workspaces.filter((w) => projectWorkflowIds.includes(w.workflow_id))
+    return projectWorkspaces.filter((w) => canEdit(w) || (w.tags || []).includes('published'))
   }, [workflows, workspaces, project_name]);
 
   return (
@@ -89,6 +88,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
               workflow={selectedWorkflow}
               project_name={project_name}
               workspaces={workspaces}
+              workflows={workflows}
             />
           </Grid>
         </Grid>

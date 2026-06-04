@@ -1,5 +1,5 @@
 import {useCallback, useRef, useState} from 'react';
-import {showMessages} from 'etna-js/actions/message_actions';
+import {showMessages, dismissMessages} from 'etna-js/actions/message_actions';
 import {
   checkStatus,
   handleFetchError,
@@ -23,7 +23,10 @@ import {
   WorkflowCreateResponse,
   CreateWorkspaceResponse,
   isRunningReturn,
-  WorkspacesResponseRaw
+  WorkspacesResponseRaw,
+  LatencyReturn,
+  StateReturn,
+  ConfigReturn
 } from '../api_types';
 import { paramValuesToRaw, workspacesFromResponse } from '../selectors/workflow_selectors';
 import { isSome } from '../selectors/maybe';
@@ -33,6 +36,9 @@ import * as _ from 'lodash';
 export const defaultApiHelpers = {
   vulcanPath(endpoint: string): string {
     return `${CONFIG.vulcan_host}${endpoint}`
+  },
+  showError(e: string, dismissOld = false) {
+    console.error(e);
   },
   showErrors<T>(work: Promise<T>, additional: (e: any) => void = (e) => {}): Promise<T> {
     work.catch((e) => {
@@ -57,7 +63,7 @@ export const defaultApiHelpers = {
   getWorkflows(projectName: string): Promise<WorkflowsResponse> {
     return new Promise(() => null);
   },
-  createWorkspace(projectName: string, workflowId: number, workspaceName: string, branch: string, git_version: string): Promise<CreateWorkspaceResponse> {
+  createWorkspace(projectName: string, workflowId: number, workspaceName: string, git_request: string): Promise<CreateWorkspaceResponse> {
     return new Promise(() => null);
   },
   getWorkspaces(projectName: string): Promise<WorkspacesResponse> {
@@ -90,6 +96,12 @@ export const defaultApiHelpers = {
   postUIValues(projectName: string, workspaceId: number, status: WorkspaceStatus, steps: string | null): Promise<AccountingReturn> {
     return new Promise(() => null);
   },
+  getState(projectName: string, configId: number): Promise<StateReturn> {
+    return new Promise(() => null);
+  },
+  getConfig(projectName: string, workspaceId: number, configId: number): Promise<ConfigReturn> {
+    return new Promise(() => null);
+  },
   requestRun(projectName: string, workspaceId: number, configId: number): Promise<RunReturn> {
     return new Promise(() => null);
   },
@@ -97,6 +109,9 @@ export const defaultApiHelpers = {
     return new Promise(() => null);
   },
   pullRunStatus(projectName: string, workspaceId: number, runId: number): Promise<RunStatus> {
+    return new Promise(() => null);
+  },
+  getConnectionLatency(projectName: string): Promise<LatencyReturn> {
     return new Promise(() => null);
   }
 };
@@ -153,7 +168,11 @@ export function useApi(
     });
   }, []);
 
-  const showError = useCallback((e: any) => {
+  const showError = useCallback((e: any, dismissOld: boolean = false) => {
+    if (dismissOld) invoke(dismissMessages());
+    if (!(e instanceof Array)) {
+      e = [`${e}`];
+    }
     console.error(e);
     invoke(showMessages(e));
   }, [invoke]);
@@ -188,14 +207,13 @@ export function useApi(
       });
   }, [vulcanPost, vulcanPath]);
 
-  const createWorkspace = useCallback((projectName: string, workflowId: number, workspaceName: string, branch: string, git_version: string): Promise<CreateWorkspaceResponse> => {
+  const createWorkspace = useCallback((projectName: string, workflowId: number, workspaceName: string, git_request: string): Promise<CreateWorkspaceResponse> => {
     return vulcanPost(
       vulcanPath(`/api/v2/${projectName}/workspace/create`),
       {
         workflow_id: workflowId,
-        branch: branch,
+        git_request: git_request,
         workspace_name: workspaceName,
-        git_version: git_version,
       });
   }, [vulcanPost, vulcanPath]);
 
@@ -217,7 +235,7 @@ export function useApi(
       if (!!name) params['name'] = name;
       if (!!tags) params['tags'] = tags;
       if (Object.keys(params).length < 1) {
-        showError('Possible Error: updateWorkspace was called without any updates provided.')
+        showError('UI Error: updateWorkspace was called without any updates to send.')
       }
       return vulcanPost(
         vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/update`),
@@ -227,7 +245,7 @@ export function useApi(
 
   const deleteWorkspace = useCallback(
     (projectName: string, workspaceId: number): Promise<Response> => {
-      return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/delete`));
+      return vulcanDelete(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}`));
   }, [vulcanGet, vulcanPath]);
 
   const getFileNames = useCallback(
@@ -327,6 +345,20 @@ export function useApi(
     [vulcanPost, vulcanPath, writeFiles, setConfig]
   );
 
+  const getState = useCallback(
+    (projectName: string, configId: number): Promise<StateReturn> => {
+      return vulcanGet(
+        vulcanPath(`/api/v2/${projectName}/config/${configId}/state`)
+      );
+  }, [vulcanGet, vulcanPath]);
+
+  const getConfig = useCallback(
+    (projectName: string, workspaceId: number, configId: number): Promise<ConfigReturn> => {
+      return vulcanGet(
+        vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/config/${configId}`)
+      );
+  }, [vulcanGet, vulcanPath]);
+
   const requestRun = useCallback(
     (projectName: string, workspaceId: number, configId: number): Promise<RunReturn> => {
       return vulcanPost(
@@ -344,8 +376,13 @@ export function useApi(
       return vulcanGet(vulcanPath(`/api/v2/${projectName}/workspace/${workspaceId}/run/${runId}`))
   }, [vulcanGet, vulcanPath]);
 
+  const getConnectionLatency = useCallback((): Promise<LatencyReturn> => {
+    return vulcanGet(vulcanPath(`/api/v2/cluster-latency`))
+  }, [vulcanGet, vulcanPath]);
+
   return {
     vulcanPath,
+    showError,
     showErrors,
     createWorkflow,
     getWorkflows,
@@ -359,9 +396,12 @@ export function useApi(
     readFiles,
     setConfig,
     postUIValues,
+    getState,
+    getConfig,
     requestRun,
     getIsRunning,
     pullRunStatus,
-    getImage
+    getImage,
+    getConnectionLatency
   };
 }

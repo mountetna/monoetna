@@ -28,25 +28,23 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {
-  clearCommittedStepPending,
-  clearRunning,
   clearRunTriggers,
+  setAttemptingToRun,
+  setRunning,
   setWorkspace,
-  updateWorkflowsWorkspaces,
 } from '../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 // import Vignette from '../vignette';
 import VulcanHelp from './drawers/vulcan_help';
-import { workflowName, workspaceFromRaw } from '../../selectors/workflow_selectors';
+import { hasScheduledSteps, workflowName, workspaceFromRaw } from '../../selectors/workflow_selectors';
 import {useWorkspace} from '../../contexts/workspace_context';
 // import {json_get} from 'etna-js/utils/fetch';
 import useUserHooks from '../../contexts/useUserHooks';
 import Tag from '../dashboard/tag';
 import Grid from '@material-ui/core/Grid';
-import { VulcanState } from '../../reducers/vulcan_reducer';
-import { useDataSync } from './data_sync';
-import { WorkspaceRaw } from '../../api_types';
+import { useDataSync, useRunSyncing } from './data_sync';
+import Vignette from './drawers/vignette';
 
 // import RevisionHistory from 'etna-js/components/revision-history';
 
@@ -82,14 +80,17 @@ export default function WorkspaceManager() {
   const {
     state,
     dispatch,
+    showError,
     showErrors,
-    requestPoll,
-    cancelPolling,
     updateWorkspace,
     postUIValues,
     getFileNames,
     readFiles,
+    getState,
     getWorkspace,
+    pullRunStatus,
+    getIsRunning,
+    requestRun,
     // updateFigure,
     // createFigure,
     // clearLocalSession
@@ -101,7 +102,8 @@ export default function WorkspaceManager() {
 
   // const [modalIsOpen, setIsOpen] = useState(false);
   const [vulcanHelpIsOpen, setVulcanHelpIsOpen] = useState(false);
-  const {status, workQueueable: committedStepPending, projectName} = state;
+  const [workspaceHelpIsOpen, setWorkspaceHelpIsOpen] = useState(false);
+  const {projectName, configId, isRunning} = state;
 
   const [localTags, setLocalTags] = useState<string[]>(workspace.tags || []);
   const [openTagEditor, setOpenTagEditor] = useState(false);
@@ -122,30 +124,44 @@ export default function WorkspaceManager() {
     resetTags();
   }, [workspace.tags])
 
-  useDataSync(state, dispatch, showErrors, getFileNames, readFiles, postUIValues);
-
-  useEffect(() => {
-    if (state.configId && state.isRunning && state.pollingState < 1) {
-      requestPoll(state, true);
-    }
-  }, [state.isRunning, state.pollingState])
-
-  const invoke = useActionInvoker();
+  useDataSync(state, dispatch, showError, showErrors, getFileNames, readFiles, postUIValues, getState);
+  const {
+    requestRunPolling,
+    cancelRunning
+  } = useRunSyncing(projectName, workspaceId, state.runId, showError, showErrors, pullRunStatus, getIsRunning, dispatch);
 
   const classes = useStyles();
 
   const workflow_name = workflowName(workflow);
   // const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
-  // const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
+  // const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);;
 
-  const run = useCallback((_state: VulcanState) => {
-    showErrors(requestPoll(_state,true));
-    dispatch(clearCommittedStepPending());
-  }, [requestPoll, dispatch, showErrors]);
+  const run = useCallback(() => {
+    if (!workspaceId || !configId) {
+      showError('Possible UI Bug?: Missing info needed for requesting workspace run')
+      return
+    };
+    if (isRunning) {
+      showError('Possible UI Bug?: Cannot request run initiation while already running')
+      return
+    };
+    dispatch(setAttemptingToRun(true));
+    showErrors(requestRun(projectName, workspaceId, configId), (e) => {dispatch(setAttemptingToRun(false))})
+    .then(runResponse => {
+      dispatch(setRunning(runResponse.run_id));
+    })
+  }, [workspaceId, configId, isRunning, projectName])
+  useEffect(() => {
+    if (state.isRunning) {
+      showErrors(requestRunPolling());
+    }
+  }, [state.isRunning, state.isSyncing, requestRunPolling])
+
   const stop = useCallback(() => {
-    cancelPolling()
-    dispatch(clearRunning());
-  }, [cancelPolling]);
+    // ToDo: Make and hook up a cancel_running api!
+    // This does nothing currently
+    cancelRunning();
+  }, [cancelRunning]);
 
   // ToDo Later: once we figure out revisions.
   // const cancelSaving = useCallback(() => {
@@ -273,15 +289,25 @@ export default function WorkspaceManager() {
     handleUpdateWorkspace(undefined, newTags);
   }
 
-  const running = useMemo(() => state.pollingState > 0, [state.pollingState]);
+  const running = useMemo(() => state.isRunning, [state.isRunning]);
+  const workQueueable = useMemo(() => hasScheduledSteps(state.status), [state.status]);
   const disableRunButton =
-    complete || running || (hasPendingEdits && !committedStepPending);
+    complete || running || !workQueueable || state.isSyncing || state.attemptingToRun;
+  const disableRunReason = running ?
+    'Workspace is already runnning' :
+    state.attemptingToRun ?
+    'Requesting to Run' :
+    !workQueueable ?
+    'No steps to run' :
+    state.isSyncing ?
+    'Awaiting sync with remote workspace' :
+    'no remaining work to run'
 
   // Catch auto-pass 'Run' trigger
   useEffect(() => {
-    if (state.triggerRun.length > 0) {
+    if (state.triggerRun.length > 0 && !isRunning) {
       dispatch(clearRunTriggers(state.triggerRun));
-      run(state);
+      run();
     }
   }, [state.triggerRun, dispatch, run]);
 
@@ -382,14 +408,33 @@ export default function WorkspaceManager() {
           <FlatButton
             icon='book'
             className='header-btn vignette'
+            label='Workflow'
+            title={'vignette.md' in state.status.file_contents ? 'Workflow Readme' : 'Workflow Readme Unavailable'}
+            disabled={!('vignette.md' in state.status.file_contents)}
+            onClick={() => {setWorkspaceHelpIsOpen(true)}}
+          />
+          <ReactModal
+            isOpen={workspaceHelpIsOpen}
+            onRequestClose={() => setWorkspaceHelpIsOpen(false)}
+            style={modalStyles}
+            contentLabel='Workspace Vignette'
+          >
+            <Vignette/>
+          </ReactModal>
+        </React.Fragment>
+        <React.Fragment>
+          <FlatButton
+            icon='book'
+            className='header-btn vignette'
             label='Vulcan'
+            title='Vulcan Interface Overview'
             onClick={() => setVulcanHelpIsOpen(true)}
           />
           <ReactModal
             isOpen={vulcanHelpIsOpen}
             onRequestClose={() => setVulcanHelpIsOpen(false)}
             style={modalStyles}
-            contentLabel='Vignette'
+            contentLabel='Vulcan Interface Overview'
           >
             <VulcanHelp/>
           </ReactModal>
@@ -412,21 +457,22 @@ export default function WorkspaceManager() {
             </ReactModal>
           </React.Fragment>
         )} */}
-        {state.pollingState ? (
+        {running ? (
           <FlatButton
             className={'header-btn'}
             icon='stop'
             label='Stop'
-            title='Stop workflow'
+            title='Coming soon, Cancel running work'
             onClick={stop}
+            disabled={true}
           />
         ) : (
           <FlatButton
             className={'header-btn run'}
-            icon='play'
+            icon={state.attemptingToRun ? 'spinner fa-spin' : 'play'}
             label='Run'
-            title='Run workflow'
-            onClick={() => run(state)}
+            title={disableRunButton ? disableRunReason : 'Run workflow'}
+            onClick={() => run()}
             disabled={disableRunButton}
           />
         )}
