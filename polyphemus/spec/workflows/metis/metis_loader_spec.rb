@@ -41,7 +41,7 @@ describe Metis::Loader do
           victim: '^LABORS-LION-H\d+-C\d+$'
       }
 
-      update = Metis::Loader.new(config, rules).update_for(tail)
+      update, stats = Metis::Loader.new(config, rules).update_for(tail)
 
       expect(update['revisions']).to eq(
           victim: {
@@ -79,7 +79,7 @@ describe Metis::Loader do
         victim: '^LABORS-LION-H\d+-C\d+$'
       }
 
-      update = Metis::Loader.new(config, rules).update_for(tail)
+      update, stats = Metis::Loader.new(config, rules).update_for(tail)
 
       expect(update['revisions']).to eq(
         victim: {
@@ -121,7 +121,7 @@ describe Metis::Loader do
         victim: '^LABORS-LION-H\d+-C\d+$'
       }
 
-      update = Metis::Loader.new(config, rules).update_for(tail)
+      update, stats = Metis::Loader.new(config, rules).update_for(tail)
 
       expect(update['revisions']).to eq(
         victim: {
@@ -243,7 +243,7 @@ describe Metis::Loader do
         }
       ])
 
-      update = Metis::Loader.new(config, rules, {}, model_std).update_for(
+      update, stats = Metis::Loader.new(config, rules, {}, model_std).update_for(
         tail, metis
       )
 
@@ -273,7 +273,7 @@ describe Metis::Loader do
         }
       ])
 
-      update = Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)
+      update, stats = Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)
 
       expect(update['revisions']).to eq(
         'victim' => {
@@ -301,7 +301,7 @@ describe Metis::Loader do
         }
       ])
 
-      update = Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)
+      update, stats = Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)
 
       expect(update['revisions']).to eq(
         'victim' => {
@@ -404,7 +404,7 @@ describe Metis::Loader do
         }
       ])
 
-      update = Metis::Loader.new(config, rules, {}, model_std).update_for(
+      update, stats = Metis::Loader.new(config, rules, {}, model_std).update_for(
         tail, metis
       )
 
@@ -434,7 +434,7 @@ describe Metis::Loader do
                               }
                           ]
           )
-        update = Metis::Loader.new(config, rules, {}, model_table).update_for(tail, metis)
+        update, stats = Metis::Loader.new(config, rules, {}, model_table).update_for(tail, metis)
 
         expect(update['revisions']).to eq(
           'victim' => {
@@ -490,7 +490,7 @@ describe Metis::Loader do
           }
         ]
       )
-      update = Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)
+      update, stats = Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)
       expect(update['revisions']).to eq(
         'victim' => {
           'LABORS-LION-H1-C1' => {}
@@ -513,7 +513,7 @@ describe Metis::Loader do
           }
         }
       ])
-      update = Metis::Loader.new(config, rules, {commit: false}, model_std).update_for(tail, metis)
+      update, stats = Metis::Loader.new(config, rules, {commit: false}, model_std).update_for(tail, metis)
       expect(update['dry_run']).to be_truthy
       expect(update['autolink']).to be_truthy
     end
