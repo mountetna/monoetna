@@ -15,7 +15,9 @@ class Metis
     def partial_location
       ::File.expand_path(
           ::File.join(
-              Metis.instance.config(:data_path),
+              Metis.instance.storage_path(
+                Metis.instance.active_storage
+              ),
               'uploads',
               Digest::MD5.hexdigest("#{metis_uid}-#{id.to_s}")
           )
