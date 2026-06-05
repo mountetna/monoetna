@@ -144,7 +144,7 @@ module Etna::Application
   # the application logger is available globally
   attr_reader :logger
 
-  def event_log(project_name:, user:, event:, message:, payload: nil, consolidate: nil)
+  def event_log(project_name:, user:, event:, message:, payload: nil, application: nil, consolidate: nil)
     begin
       @polyphemus_client ||= Etna::Clients::Polyphemus.new(
         token: nil,
@@ -160,6 +160,7 @@ module Etna::Application
         message: message,
         payload: JSON.generate(payload),
         consolidate: consolidate,
+        application: application,
         signatory: self
       )
     rescue => e
