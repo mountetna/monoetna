@@ -82,7 +82,8 @@ describe MetisLinkerJob do
   let(:runtime_config) {
     {
       'config' => {
-        "commit" => true
+        :commit => true,
+        :debug => false
       },
       'run_interval' => 0
     }
@@ -174,6 +175,89 @@ describe MetisLinkerJob do
       }.not_to raise_error
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
       expect(WebMock).to have_requested(:post, /#{POLYPHEMUS_HOST}\/api\/workflows\/labors\/run\/update/)
+    end
+  end
+
+  context 'summary' do
+    it 'for simple tail and file config counts and lists files' do
+      expectation = expect{
+        MetisLinkerJob.new(TEST_TOKEN, config, runtime_config).execute
+      }
+      expectation.to output(include('Files in window: 4')).to_stdout
+      expectation.to output(include('2 files matched by script file patterns:')).to_stdout
+      expectation.to output(include('LABORS-LION-H2-C1.deceased.png')).to_stdout
+      expectation.to output(include('1 files also matched by Gnomon rule:')).to_stdout
+      expectation.to output(include("0 files parsed as data_frame\n")).to_stdout
+    end
+
+    context 'for longer tail and file_collection config' do
+
+      let(:tail2) do
+          [
+            {"type":"file","id":50,"parent_id":nil,"node_name":"ignore.deceased.png","updated_at":"2023-08-03 22:39:17 +0000","file_hash":"0cc175b9c0f1b6a831c399e269772661","archive_id":nil},
+            {"type":"file","id":51,"parent_id":40,"node_name":"LABORS-LION-H2-C1.deceased.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":nil},
+            {"type":"file","id":52,"parent_id":40,"node_name":"NO-ID.deceased.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":nil},
+            {"type":"file","id":53,"parent_id":40,"node_name":"nonmatch_deceased.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":nil},
+            {"type":"file","id":54,"parent_id":40,"node_name":"LABORS-LION-H3-C1.deceased.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":nil},
+            {"type":"file","id":55,"parent_id":40,"node_name":"LABORS-LION-H4-C1.deceased.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":nil},
+            {"type":"file","id":56,"parent_id":40,"node_name":"LABORS-LION-H5-C1.deceased.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":nil},
+            {"type":"file","id":57,"parent_id":40,"node_name":"LABORS-LION-H6-C1.deceased.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":nil},
+            {"type":"file","id":58,"parent_id":40,"node_name":"LABORS-LION-H7-C1.deceased.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":nil},
+            {"type":"parent","id":40,"parent_id":nil,"node_name":"victims","updated_at":"2023-08-03 22:39:17 +0000","file_hash":nil,"archive_id":nil},
+            {"type":"parent","id":41,"parent_id":40,"node_name":"archived","updated_at":"2024-02-19 22:39:17 +0000","file_hash":nil,"archive_id":nil},
+          ]
+      end
+
+      let(:config2) {
+        labors_config([
+          {
+            type: "file_collection",
+            folder_path: "victims",
+            file_match: "*.deceased*.png",
+            attribute_name: "photo_deceased"
+          }
+        ])
+      }
+      
+      before do
+        stub_request(:post, "https://metis.test/labors/tail/pics").to_return(
+          body: tail2.map(&:to_json).join("\n"),
+          headers: { 'Content-Type': "application/x-json-stream" }
+        )
+      end
+
+      it 'counts and lists some files with debug false' do
+        expectation = expect{
+          MetisLinkerJob.new(TEST_TOKEN, config2, runtime_config).execute
+        }
+        expectation.to output(include('Files in window: 9')).to_stdout
+        expectation.to output(include("7 files matched by script file patterns:")).to_stdout
+        expectation.to output(include("...")).to_stdout
+        expectation.to output(include('LABORS-LION-H2-C1.deceased.png')).to_stdout
+        expectation.not_to output(include('LABORS-LION-H7-C1.deceased.png')).to_stdout
+        expectation.to output(include("6 files also matched by Gnomon rule:")).to_stdout
+        expectation.to output(include("0 files parsed as data_frame\n")).to_stdout
+      end
+
+      it 'counts and lists files with debug true' do
+        runtime_debug = {
+          'config' => {
+            :commit => true,
+            :debug => true
+          },
+          'run_interval' => 0
+        }
+        expectation = expect{
+          MetisLinkerJob.new(TEST_TOKEN, config2, runtime_debug).execute
+        }
+        expectation.to output(include('Files in window: 9')).to_stdout
+        expectation.to output(include("7 files matched by script file patterns:")).to_stdout
+        expectation.not_to output(include("...")).to_stdout
+        expectation.to output(include('LABORS-LION-H2-C1.deceased.png')).to_stdout
+        expectation.to output(include('LABORS-LION-H7-C1.deceased.png')).to_stdout
+        expectation.to output(include("6 files also matched by Gnomon rule:")).to_stdout
+        expectation.to output(include("0 files parsed as data_frame\n")).to_stdout
+      end
     end
   end
 end
