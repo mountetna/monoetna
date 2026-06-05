@@ -12,6 +12,7 @@ describe RetrieveController do
 
   before(:each) do
     @project = create(:project, name: 'The Twelve Labors of Hercules')
+    stub_janus_projects
   end
 
   it 'fails for non-users' do

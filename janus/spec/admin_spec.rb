@@ -54,6 +54,39 @@ describe AdminController do
       expect(last_response.status).to eq(200)
     end
 
+    context 'inactive users' do
+      it 'excludes inactive users' do
+        user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+        user2 = create(:user, name: 'Lar Familiaris', email: 'lar@two-faces.org', flags: [ 'inactive' ])
+
+        door = create(:project, project_name: 'door', project_name_full: 'Door')
+        create(:permission, project: door, user: user, role: 'administrator')
+        create(:permission, project: door, user: user2, role: 'viewer')
+
+        auth_header(:janus)
+        get('/api/admin/door/info')
+
+        expect(last_response.status).to eq(200)
+        expect(json_body[:project][:permissions].length).to eq(1)
+        expect(json_body[:project][:permissions].first[:user_email]).to eq('janus@two-faces.org')
+      end
+
+      it 'shows inactive users to admins' do
+        user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+        user2 = create(:user, name: 'Lar Familiaris', email: 'lar@two-faces.org', flags: [ 'inactive' ])
+
+        door = create(:project, project_name: 'door', project_name_full: 'Door')
+        create(:permission, project: door, user: user, role: 'administrator')
+        create(:permission, project: door, user: user2, role: 'viewer')
+
+        auth_header(:zeus)
+        get('/api/admin/door/info')
+
+        expect(last_response.status).to eq(200)
+        expect(json_body[:project][:permissions].length).to eq(2)
+      end
+    end
+
     it 'forbids the project data to viewers' do
       user = create(:user, name: 'Lar Familiaris', email: 'lar@two-faces.org')
 
@@ -764,6 +797,8 @@ describe AdminController do
       to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
       stub_request(:post, /https:\/\/magma.test\/update$/).
       to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
+      stub_request(:post, /https:\/\/magma.test\/flags\/door/).
+      to_return(status: 200, body: '{"success": 200}', headers: {'Content-Type': 'application/json'})
 
       create_zeus
 
@@ -795,6 +830,10 @@ describe AdminController do
           }
         },
         dry_run: false
+      })
+      expect(WebMock).to have_requested(:post, "https://magma.test/flags/door").
+      with(body: {
+        flags: [{ 'gnomon_mode' => 'pattern' }]
       })
     end
 
@@ -853,6 +892,8 @@ describe AdminController do
       to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
       stub_request(:post, /https:\/\/magma.test\/update$/).
       to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
+      stub_request(:post, /https:\/\/magma.test\/flags\/door/).
+      to_return(status: 200, body: '{"success": 200}', headers: {'Content-Type': 'application/json'})
 
 
       stub_request(:post, /https:\/\/magma.test\/retrieve$/).

@@ -1,6 +1,6 @@
 describe Magma::Validation do
   def validate(model, record_name, document)
-    @validator ||= Magma::Validation.new
+    @validator ||= Magma::Validation.new(nil)
     errors = []
     @validator.validate(model, record_name, document) do |error|
       errors.push error

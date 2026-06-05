@@ -80,6 +80,7 @@ class UploadController < Metis::Controller
 
     if requires_reset
       upload_update[:author] = Metis::File.author(user)
+      upload_update[:started_at] = DateTime.now
       upload.delete_partial!
     end
 
@@ -107,7 +108,7 @@ class UploadController < Metis::Controller
 
     blob = Metis::Blob.new(@params[:blob_data])
 
-    raise Etna::BadRequest, 'Blob integrity failed' unless blob.continues?(upload)
+    raise Etna::BadRequest, 'Blob integrity failed' unless @params[:no_checksum] || blob.continues?(upload)
 
     upload.append_blob(
       blob,
@@ -183,8 +184,17 @@ class UploadController < Metis::Controller
     raise Etna::BadRequest, 'Upload has not been started' unless upload
 
     response = success_json(upload: upload.to_hash)
-    # axe the upload data and record
     upload.delete_with_partial!
+
+    event_log(
+      event: Metis::DataBlockLedger::CANCEL_UPLOAD,
+      message: "cancelled upload in bucket #{@params[:bucket_name]}",
+      payload: {
+        file: @params[:file_path],
+        bytes_received: upload.current_byte_position,
+        file_size: upload.file_size
+      }
+    )
 
     return response
   end

@@ -8,6 +8,20 @@ describe Vulcan::Snakemake::Inference do
     summary_parser = Vulcan::Snakemake::TargetParser.new(summary_snakefile, config_yaml)
     core_parser.parse.merge(summary_parser.parse)
   end
+  let(:job_adjacency_list) do
+    {
+      "final"      => ["ui_summary"],
+      "ui_summary" => ["ui_job_one", "ui_job_two", "summary"],
+      "ui_job_one" => ["checker"],
+      "checker"    => ["arithmetic"],
+      "arithmetic" => ["count"],
+      "count"      => ["set_poem_1", "set_poem_2"],
+      "set_poem_1" => [],
+      "set_poem_2" => [],
+      "ui_job_two" => [],
+      "summary"    => ["count", "arithmetic", "checker", "ui_job_one", "ui_job_two"]
+    }
+  end
 
 
   context 'find_buildable_targets' do
@@ -30,7 +44,7 @@ describe Vulcan::Snakemake::Inference do
 
     it 'correctly finds all targets with all params' do
       provided_params = ["count_bytes", "count_chars", "add", "add_and_multiply_by", "ui"]
-      available_files = ["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt", "output/ui_job_one.txt", "output/ui_job_two.txt"]
+      available_files = ["output/poem.txt", "output/poem_2.txt", "output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt", "output/ui_job_one.txt", "output/ui_job_two.txt"]
       targets = Vulcan::Snakemake::Inference.find_buildable_targets(target_mapping, provided_params, available_files)
       expect(targets).to eq(["output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt", "output/summary.txt"])
     end
@@ -39,67 +53,61 @@ describe Vulcan::Snakemake::Inference do
   context 'find_ui_targets' do
     it 'correctly finds the ui targets' do
       result = Vulcan::Snakemake::Inference.ui_targets(target_mapping)
-      expect(result).to eq(["output/ui_job_one.txt", "output/ui_job_two.txt", "output/ui_summary.txt"])
+      expect(result).to eq(["output/poem.txt", "output/poem_2.txt", "output/ui_job_one.txt", "output/ui_job_two.txt", "output/ui_summary.txt"])
     end
   end
 
   context 'file graph' do
-    it 'correctly builds the adjacency list' do
+    it 'correctly builds the adjacency list (reverse dependency graph) form the target mapping' do
       result = Vulcan::Snakemake::Inference.file_graph(target_mapping)
       expect(result).to match(
           a_hash_including(
-              "output/poem.txt"=>["output/count_poem.txt", "output/count_poem_2.txt"],
-              "output/poem_2.txt"=>["output/count_poem.txt", "output/count_poem_2.txt"],
-              "output/count_poem.txt"=>["output/arithmetic.txt", "output/summary.txt"],
-              "output/count_poem_2.txt"=>["output/arithmetic.txt", "output/summary.txt"],
-              "output/arithmetic.txt"=>["output/check.txt", "output/summary.txt"],
-              "output/check.txt"=>["output/ui_job_one.txt", "output/summary.txt"],
-              "output/ui_job_one.txt"=>["output/summary.txt", "output/ui_summary.txt"],
-              "output/ui_job_two.txt"=>["output/summary.txt", "output/ui_summary.txt"],
-              "output/summary.txt"=>["output/ui_summary.txt"],
-              "output/ui_summary.txt"=>["output/final.txt"]
+            "output/count_poem.txt"=>["output/poem.txt", "output/poem_2.txt"],
+            "output/count_poem_2.txt"=>["output/poem.txt", "output/poem_2.txt"],
+            "output/arithmetic.txt"=>["output/count_poem.txt", "output/count_poem_2.txt", "resources/number_to_add.txt"],
+            "output/check.txt"=>["output/arithmetic.txt"],
+            "output/ui_job_one.txt"=>["output/check.txt"],
+            "output/ui_job_two.txt"=>[],
+            "output/summary.txt"=>[
+              "output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt", "output/ui_job_one.txt", "output/ui_job_two.txt"
+            ],
+            "output/ui_summary.txt"=>["output/ui_job_one.txt", "output/ui_job_two.txt", "output/summary.txt"],
+            "output/final.txt"=>["output/ui_summary.txt"]
           )
       )
+    end
+  end
+
+  context 'flattens an adjacency list' do
+    it 'correctly flattens the dag' do
+      result = Vulcan::Snakemake::Inference.flatten_adjacency_list(job_adjacency_list)
+      expect(result).to eq(["set_poem_1", "set_poem_2", "count", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
     end
   end
 
   context 'downstream_nodes' do
     let(:file_graph) { Vulcan::Snakemake::Inference.file_graph(target_mapping) }
   
-    it 'correctly finds downstream nodes' do
+    it 'finds downstream nodes for a single target' do
       result = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, ["output/summary.txt"])
       expect(result).to eq(Set.new(["output/ui_summary.txt", "output/final.txt"]))
     end
 
-    it 'correctly finds downstream nodes when there are multiple targets' do
+    it 'doesnt include targets on the same level' do 
+      result = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, ["output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt"])
+      expect(result).to eq(Set.new(["output/ui_job_one.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"]))
+    end
+
+    it 'finds downstream nodes when there are multiple targets' do
       result = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, ["output/arithmetic.txt", "output/ui_job_two.txt"])
       expect(result).to eq(Set.new(["output/check.txt", "output/summary.txt", "output/ui_summary.txt", "output/ui_job_one.txt", "output/final.txt"]))
     end
 
-    it 'correctly ignores downstream nodes on the same level' do
+    it 'ignores downstream nodes on the same level' do
       result = Vulcan::Snakemake::Inference.downstream_nodes(file_graph, ["output/ui_job_one.txt"])
       # ui_job_two.txt is on the same level as ui_job_one.txt
       expect(result).to eq(Set.new(["output/summary.txt", "output/ui_summary.txt", "output/final.txt"]))
     end
   end
 
-  context 'find_affected_downstream_jobs' do
-    let(:dag) { ['job1', 'job2', 'job3', 'job4', 'job5'] }
-    it 'returns jobs after the last matched job' do
-      jobs = ['job2', 'job3']
-      result = Vulcan::Snakemake::Inference.find_affected_downstream_jobs(dag, jobs)
-      expect(result).to eq(['job4', 'job5'])
-    end
-
-    it 'returns an empty array if the last job is the last element' do
-      jobs = ['job5']
-      result = Vulcan::Snakemake::Inference.find_affected_downstream_jobs(dag, jobs)
-      expect(result).to eq([])
-    end
-
-    it 'raises an error indicating no matching elements found' do
-      jobs = ['job6']
-      expect { Vulcan::Snakemake::Inference.find_affected_downstream_jobs(dag, jobs) }.to raise_error("Cannot find any matching jobs in the dag")
-    end
-  end
 end

@@ -71,8 +71,8 @@ def setup_base_vcr(spec_helper_dir, server: nil, application: nil)
       end
     end
 
-    if File.exists?('log')
-      c.debug_logger = File.open('log/vcr_debug.log', 'w')
+    if ::File.exist?('log')
+      c.debug_logger = ::File.open('log/vcr_debug.log', 'w')
     end
 
     c.default_cassette_options = {

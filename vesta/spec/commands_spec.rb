@@ -171,6 +171,33 @@ describe 'Vesta Commands' do
         start_date: now,
         theme: "taxonomy"
       })
+      stub_retrieve(
+        {
+          "project_name": "labors",
+          "model_name":"publication",
+          "attribute_names": "all",
+          "record_names":"all"
+        },
+        {
+          models: {
+            publication: {
+              documents: { "1" => { title: "blank" } }
+            }
+          }
+        }
+      )
+      stub_retrieve(
+        {
+          "project_name": "athena",
+          "model_name":"publication",
+          "attribute_names": "all",
+          "record_names":"all"
+        },
+        {
+          error: "That project or model does not exist."
+        },
+        404
+      )
       stub_models("athena", [ "olympian", "blood" ])
       stub_models("labors", [ "victim", "form", "census" ])
       stub_profile("metis", "Titaness")

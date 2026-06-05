@@ -15,7 +15,9 @@ class Metis
     def partial_location
       ::File.expand_path(
           ::File.join(
-              Metis.instance.config(:data_path),
+              Metis.instance.storage_path(
+                Metis.instance.active_storage
+              ),
               'uploads',
               Digest::MD5.hexdigest("#{metis_uid}-#{id.to_s}")
           )
@@ -42,7 +44,7 @@ class Metis
     end
 
     def delete_partial!
-      if ::File.exists?(partial_location)
+      if ::File.exist?(partial_location)
         ::File.delete(partial_location)
       end
     end
@@ -66,6 +68,27 @@ class Metis
 
       file.update(folder: folder, author: author, data_block: data_block)
 
+      Metis::DataBlockLedger.log_event(
+        event_type: Metis::DataBlockLedger::CREATE_DATABLOCK,
+        datablock: data_block,
+        triggered_by: author,
+        project_name: file.project_name,
+        file_path: file.file_path,
+        file_id: file.id,
+        bucket_name: file.bucket.name,
+        event_meta: upload_timing_meta
+      )
+
+      Metis::DataBlockLedger.log_event(
+        event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK,
+        datablock: data_block,
+        triggered_by: author,
+        project_name: file.project_name,
+        file_path: file.file_path,
+        file_id: file.id,
+        bucket_name: file.bucket.name
+      )
+
       return file
     end
 
@@ -86,8 +109,23 @@ class Metis
             current_byte_position: 0,
             next_blob_size: -1,
             next_blob_hash: '',
+            started_at: DateTime.now,
         )
       end
+    end
+
+    private
+
+    def upload_timing_meta
+      return {} unless started_at
+
+      duration = Time.now - started_at.to_time
+      throughput = duration.round(2) > 0 && file_size.to_i > 0 ? (file_size.to_f / duration).round(2) : nil
+
+      {
+        upload_duration_seconds: duration.round(2),
+        throughput_bytes_per_second: throughput
+      }
     end
 
   end

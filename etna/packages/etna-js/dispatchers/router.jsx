@@ -1,4 +1,3 @@
-
 const NAMED_PARAM=/:([\w]+)/g;
 const GLOB_PARAM=/\*([\w]+)$/g;
 const ROUTE_PART=/(:[\w]+|\*[\w]+$)/g;

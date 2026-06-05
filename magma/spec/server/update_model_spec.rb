@@ -58,6 +58,26 @@ describe UpdateModelController do
       expect(attribute_json["description"]).to eq("The monster's name")
       expect(attribute_json["display_name"]).to eq("NAME")
     end
+
+    it "returns model template links after a model metadata update" do
+      auth_header(:superuser)
+      json_post(:update_model, {
+        project_name: "labors",
+        actions: [{
+          action_name: "set_model_template",
+          model_name: "monster",
+          template_project_name: "labors_template",
+          template_model_name: "monster"
+        }]
+      })
+
+      expect(last_response.status).to eq(200)
+
+      response_json = JSON.parse(last_response.body)
+      model_json = response_json["models"]["monster"]["template"]
+      expect(model_json["template_project_name"]).to eq("labors_template")
+      expect(model_json["template_model_name"]).to eq("monster")
+    end
   end
 
   context "invalid action" do

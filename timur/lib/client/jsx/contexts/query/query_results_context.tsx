@@ -142,6 +142,7 @@ export const QueryResultsProvider = (
     builder.addRecordFilters(queryState.recordFilters);
     builder.setFlatten(queryState.flattenQuery);
     builder.setOrRecordFilterIndices(queryState.orRecordFilterIndices);
+    builder.setGlobalOr(queryState.globalOr);
 
     const unpackedQuery = JSON.stringify(builder.query(), null, 2);
 
@@ -174,6 +175,7 @@ export const QueryResultsProvider = (
     setRootModel(params.rootModel);
     setWhereState({
       recordFilters: params.recordFilters,
+      globalOr: params.globalOr,
       orRecordFilterIndices: params.orRecordFilterIndices
     });
   }

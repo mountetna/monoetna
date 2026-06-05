@@ -58,7 +58,7 @@ module Etna
         end
       end
 
-      class AddModelAction < Struct.new(:action_name, :model_name, :parent_model_name, :parent_link_type, :identifier, :date_shift_root, keyword_init: true)
+      class AddModelAction < Struct.new(:action_name, :model_name, :parent_model_name, :parent_link_type, :identifier, :date_shift_root, :template_project_name, :template_model_name, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**args)
@@ -71,6 +71,14 @@ module Etna
 
         def initialize(**args)
           super({action_name: 'set_date_shift_root'}.update(args))
+        end
+      end
+
+      class SetModelTemplateAction < Struct.new(:action_name, :model_name, :template_project_name, :template_model_name, :clear_template, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**args)
+          super({action_name: 'set_model_template', clear_template: false}.update(args))
         end
       end
 
@@ -395,6 +403,14 @@ module Etna
 
         def attributes
           Attributes.new(raw['attributes'] ||= {})
+        end
+
+        def template_project_name
+          raw['template_project_name']
+        end
+
+        def template_model_name
+          raw['template_model_name']
         end
 
         def build_attributes

@@ -50,6 +50,13 @@ class AuthorizationController < Janus::Controller
     # Create a new token for the user.
     token = user.create_token!
 
+    event_log(
+      project_name: 'janus',
+      event: 'token',
+      message: "logged in via #{@params[:refer]}",
+      user: user
+    )
+
     # On success return the user info.
     respond_with_cookie(token, @params[:refer])
   end
@@ -76,9 +83,13 @@ class AuthorizationController < Janus::Controller
 
     token_type = @params[:token_type] || 'login'
 
-    user = @user ? User[email: @user.email] : signed_nonce ? User.from_signed_nonce(signed_nonce) : User.from_token(token)
+    begin
+      user = @user ? User[email: @user.email] : signed_nonce ? User.from_signed_nonce(signed_nonce) : User.from_token(token)
+    rescue Exception => e
+      raise Etna::Unauthorized, e.message
+    end
 
-    raise Etna::Unauthorized, user if user.is_a?(String)
+    raise Etna::Unauthorized if user.has_flag?('inactive')
 
     if token_type == 'task'
       raise Etna::BadRequest, "No project_name specified!" unless @params[:project_name]
@@ -164,6 +175,14 @@ class AuthorizationController < Janus::Controller
 
     # Create a new token for the user.
     token = user.create_token!
+
+    event_log(
+      project_name: 'janus',
+      event: 'token',
+      message: "logged in via #{@params[:refer]}",
+      user: user,
+      consolidate: true
+    )
 
     respond_with_cookie(token, @params[:refer])
   end

@@ -34,7 +34,7 @@ end
 
 AUTH_USERS = {
   superuser: {
-    email: 'zeus@twelve-labors.org', name: 'Zeus', perm: 'a:administration'
+    email: 'zeus@twelve-labors.org', name: 'Zeus', perm: 'a:administration', exp: Time.now.to_i + 6000 , flags: 'vulcan'
   },
   admin: {
     email: 'hera@olympus.org', name: 'Hera', perm: 'a:labors', exp: Time.now.to_i + 6000, flags: 'vulcan'
@@ -98,6 +98,11 @@ RSpec.configure do |config|
 
 end
 
+FactoryBot.define do
+  factory :workflow, class: Vulcan::WorkflowV2 do
+    to_create(&:save)
+  end
+end
 def json_body
   JSON.parse(last_response.body, symbolize_names: true)
 end
@@ -144,6 +149,14 @@ class TestRemoteServerManager < Vulcan::RemoteManager
   def cp_file(src, dest)
     command = "cp #{src} #{dest}"
     invoke_ssh_command(command)
+  end
+
+  def create_large_file(remote_file_path, size_mb: 1, size_bytes: nil)
+    size_bytes ||= (size_mb.to_f * 1024 * 1024).to_i
+    invoke_ssh_command(build_command.add('mkdir', '-p', File.dirname(remote_file_path)).to_s)
+    count_kb = (size_bytes / 1024.0).ceil
+    invoke_ssh_command("dd if=/dev/zero of=#{Shellwords.escape(remote_file_path)} bs=1024 count=#{count_kb} 2>/dev/null", timeout: 30)
+    remote_file_path
   end
 
 end
@@ -258,6 +271,27 @@ def run_with_retry(max_attempts = 5, base_delay = 15)
     else
       break
     end
+  end
+end
+
+def retry_until(max_attempts: 5, base_delay: 2, &block)
+  attempts = 0
+
+  loop do
+    attempts += 1
+    result = yield
+    Vulcan.instance.logger.info("last response: #{json_body}") 
+    if result
+      break
+    end
+    
+    if attempts >= max_attempts
+      raise "Timeout: Condition not met after #{max_attempts} attempts"
+    end
+    
+    # Exponential backoff
+    sleep_duration = base_delay * (2 ** (attempts - 1))
+    sleep(sleep_duration)
   end
 end
 

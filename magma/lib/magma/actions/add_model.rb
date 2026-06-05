@@ -1,8 +1,10 @@
 require_relative "./with_date_shift_module"
+require_relative "./with_template_validation_module"
 
 class Magma
   class AddModelAction < BaseAction
     include WithDateShift
+    include WithTemplateValidation
 
     def perform
       @model = create_model
@@ -45,6 +47,8 @@ class Magma
 
       params[:dictionary] = @action_params[:dictionary] if @action_params[:dictionary]
       params[:date_shift_root] = !!@action_params[:date_shift_root]
+      params[:template_project_name] = template_project_name if @action_params[:template_model_name]
+      params[:template_model_name] = @action_params[:template_model_name] if @action_params[:template_model_name]
 
       # Here dictionary needs to be a JSON string, otherwise
       #   Sequel will try to find a column for each dictionary key.
@@ -62,7 +66,9 @@ class Magma
           :validate_parent_model,
           :validate_parent_link_type,
           :validate_model_name,
-          :validate_date_shift_root_existence
+          :validate_table_name_collisions,
+          :validate_date_shift_root_existence,
+          :validate_add_model_template_target
       ]
     end
 
@@ -71,6 +77,32 @@ class Magma
         validate_presence(field)
         validate_snake_case(field)
       end
+    end
+
+    class Inflection
+      extend Sequel::Inflections
+      public_class_method :pluralize
+      public_class_method :underscore
+      public_class_method :demodulize
+    end
+
+    def validate_table_name_collisions
+      table_name = nil
+      model_name = @action_params[:model_name]
+      Inflection.class_eval do
+        table_name = pluralize(underscore(demodulize(model_name))).to_sym
+      end
+
+      conflicting_model, _ = project.models.find do |model_name, model|
+        model.implicit_table_name == table_name
+      end
+
+      return unless conflicting_model
+
+      @errors << Magma::ActionError.new(
+          message: "model_name '#{model_name}' clashes with model_name '#{conflicting_model}'",
+          source: @action_params.slice(:parent_model_name)
+      )
     end
 
     def required_fields
@@ -145,6 +177,12 @@ class Magma
         message: "date_shift_root exists for project: #{current_root[:model_name]}",
         source: @action_params.slice(:model_name),
       ) if current_root
+    end
+
+    def validate_add_model_template_target
+      return unless @action_params[:template_model_name]
+
+      validate_template_reference!
     end
 
     def table_parent_link?

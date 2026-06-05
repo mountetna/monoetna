@@ -5,6 +5,7 @@ import {useReduxState} from 'etna-js/hooks/useReduxState';
 import ModelLink, {Arrowhead} from './model_link';
 import ModelNode from './model_node';
 import Layout from './tree_layout';
+import Grid from '@material-ui/core/Grid';
 
 const ModelMapGraphic = ({
   selected_models,
@@ -26,7 +27,7 @@ const ModelMapGraphic = ({
   let layout = new Layout(templates, width, height);
 
   return (
-    <div style={{ position: 'relative' }}>
+    <Grid style={{ width, height, position: 'relative' }}>
       <svg id='map' width={width} height={height}>
         <defs>
           <Arrowhead />
@@ -67,7 +68,7 @@ const ModelMapGraphic = ({
           />
         );
       })}
-    </div>
+    </Grid>
   );
 };
 

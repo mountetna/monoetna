@@ -97,7 +97,7 @@ class FolderController < Metis::Controller
 
     # remove contents if necessary
     if @params[:recursive]
-      folder.remove_contents!
+      folder.remove_contents!(@user)
     end
 
     # actually remove the folder

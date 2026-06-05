@@ -12,6 +12,8 @@ describe QueryController do
     stub_request(:options, 'https://metis.test').
     to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
 
+    stub_janus_projects
+
     #stub_request(:any, /https:\/\/metis.test/).
       #to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
     @project = create(:project, name: 'The Twelve Labors of Hercules')
@@ -3187,6 +3189,36 @@ describe QueryController do
       expect(header).to eq(["labors::project#name", "labors::labor#contributions.Athens", "labors::labor#contributions.Sparta"])
       expect(table.length).to eq(1)
       expect(table.first).to eq(["The Twelve Labors of Hercules", "10", "11"])
+    end
+  end
+
+  context 'logging' do
+    before(:each) do
+      stub_event_log
+    end
+
+    it 'logs the query if requested' do
+      labors = create_list(:labor, 3, project: @project)
+
+      query([ 'labor', '::all', '::identifier' ], :viewer, event_log: true)
+
+      expect(WebMock).to have_requested(:post, %r!#{POLYPHEMUS_HOST}/api/log/labors/write!)
+    end
+
+    it 'does not log the query if not requested' do
+      labors = create_list(:labor, 3, project: @project)
+
+      query([ 'labor', '::all', '::identifier' ], :viewer)
+
+      expect(WebMock).not_to have_requested(:post, %r!#{POLYPHEMUS_HOST}/api/log/labors/write!)
+    end
+
+    it 'does not log extra pages in query' do
+      labors = create_list(:labor, 3, project: @project)
+
+      query([ 'labor', '::all', '::identifier' ], :viewer, event_log: true, page: 2)
+
+      expect(WebMock).not_to have_requested(:post, %r!#{POLYPHEMUS_HOST}/api/log/labors/write!)
     end
   end
 end

@@ -52,7 +52,7 @@ class Magma
         return
       end
 
-      unless @action_params[:links].map{|v| v.slice(:model_name, :attribute_name)}.compact.length == 2
+      unless @action_params[:links].map{|v| v.slice(:model_name, :attribute_name)}.uniq.length == 2
         @errors << Magma::ActionError.new(
             message: 'links entries must not collide',
             source: @action_params.slice(:action_name, :links)

@@ -25,7 +25,7 @@ module Etna
             until private_key_file
               puts "Location of private key file?"
               private_key_file = ::File.expand_path(STDIN.gets.chomp)
-              unless File.exists?(private_key_file)
+              unless ::File.exist?(private_key_file)
                 puts "No such file."
                 private_key_file = nil
               end

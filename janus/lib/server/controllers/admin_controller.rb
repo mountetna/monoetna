@@ -9,8 +9,16 @@ class AdminController < Janus::Controller
 
     raise Etna::BadRequest, "No such project #{@params[:project_name]}" unless @project
 
+    project_hash = @project.to_hash
+
+    unless @user.is_superviewer?
+      project_hash.update(
+        permissions: @project.active_permissions
+      )
+    end
+
     success_json(
-      project: @project.to_hash
+      project: project_hash
     )
   end
 
@@ -144,6 +152,11 @@ class AdminController < Janus::Controller
           revisions: {
               'project' => { project.project_name => { name: project.project_name } },
           }))
+
+        magma_client.set_flags(
+          project_name: project.project_name,
+          flags: [{ 'gnomon_mode' => 'pattern' }]
+        )
 
         copy_project_template(magma_client) if template_project_name_provided?
       end if magma_client

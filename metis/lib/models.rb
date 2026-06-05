@@ -5,3 +5,7 @@ require_relative 'models/upload'
 require_relative 'models/data_block'
 require_relative 'models/blob'
 require_relative 'models/folder_tree'
+require_relative 'models/data_block_ledger'
+
+require_relative 'services/ledger_stats_service'
+require_relative 'services/vacuum_service'

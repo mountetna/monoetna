@@ -29,6 +29,15 @@ interface PrincipalInvestigator {
     profile_url?: string
 }
 
+export interface Publication {
+    project: string
+    title: string
+    authors: string
+    publication_year: number
+    doi: string
+    journal: string
+}
+
 export interface ApiProjectInfo {
     id: string
     name: string
@@ -43,6 +52,7 @@ export interface ApiProjectInfo {
     start_date: Date  // really just the year is valid
     theme: string  // just the name
     data_collection_complete: boolean
+    publications: Publication[]
     created_at: Date
     updated_at: Date
 }

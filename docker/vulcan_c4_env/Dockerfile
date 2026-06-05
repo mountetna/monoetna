@@ -22,7 +22,7 @@ RUN apt-get update && \
     echo 'root:root' | chpasswd
 
 # Setup SSH server
-RUN mkdir /var/run/sshd
+RUN mkdir -p /var/run/sshd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
 # Expose the default SSH port
@@ -35,6 +35,8 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 
 # Create conda environmnent
 RUN . /$HOME/miniconda/etc/profile.d/conda.sh && \
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && \
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r && \
     conda create -n conda-vulcan -c conda-forge -c bioconda snakemake=8.10.4 snakemake-executor-plugin-slurm=0.4.2 -y
 
 # TODO inject conda func into bashrc

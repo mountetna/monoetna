@@ -131,7 +131,7 @@ class Magma
 
     def load_models
       Magma.instance.db[:models].where(project_name: @project_name.to_s).
-        reject { |model| project_container.const_defined?(model[:model_name].camelize) }.
+        reject { |model| project_container.const_defined?(model[:model_name].camelize, false) }.
         each { |model| load_model(model) }
     end
 

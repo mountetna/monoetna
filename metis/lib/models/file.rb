@@ -116,15 +116,15 @@ class Metis
       )
 
       dest_folder = Metis::Folder.from_path(dest_bucket, dest_folder_path).last
-
+      saved_file = nil
       if Metis::File.exists?(dest_file_name, dest_bucket, dest_folder)
         old_dest_file = Metis::File.from_path(dest_bucket, params[:dest_file_path])
         old_dest_file.data_block = params[:source_data_block]
         old_dest_file.save
         old_dest_file.refresh
-        return old_dest_file
+        saved_file = old_dest_file
       else
-        return Metis::File.create(
+        saved_file = Metis::File.create(
           project_name: dest_bucket.project_name,
           file_name: dest_file_name,
           folder_id: dest_folder&.id,
@@ -133,6 +133,16 @@ class Metis
           data_block: params[:source_data_block]
         )
       end
+      Metis::DataBlockLedger.log_event(
+        event_type: Metis::DataBlockLedger::LINK_FILE_TO_DATABLOCK,
+        datablock: params[:source_data_block],
+        triggered_by: params[:user],
+        project_name: saved_file.project_name,
+        file_path: saved_file.file_path,
+        file_id: saved_file.id,
+        bucket_name: saved_file.bucket.name
+      )
+      return saved_file
     end
 
     def self.total_size(query)

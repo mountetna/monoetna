@@ -3,22 +3,18 @@ import React, {useContext, useEffect, useState} from 'react';
 import markdown from 'etna-js/utils/markdown';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {workflowByName} from '../../../selectors/workflow_selectors';
 
-export default function Vignette({workflowName}: {workflowName: string}) {
+export default function Vignette({}) {
   let {state} = useContext(VulcanContext);
-  const workflow = workflowByName(workflowName, state);
   const [text, setText] = useState('');
 
   useEffect(() => {
-    if (workflow) {
+    if (!!state.workspace && !!state.workspace.vignette) {
       setText(
-        workflow.vignette
-          ? workflow.vignette
-          : 'No vignette provided.'
+        state.workspace.vignette
       );
     }
-  }, [workflow, setText]);
+  }, [state.workspace]);
 
   return (
     <div

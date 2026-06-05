@@ -120,6 +120,7 @@ async function getData() {
   return {
     user,
     accessUrl: process.env.TIMUR_URL,
+    loginUrl: process.env.JANUS_URL,
   }
 }
 
@@ -141,7 +142,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             >
 
               <MainNav
-                accessUrl={data.accessUrl}
+                loginUrl={data.loginUrl}
               />
               <main>{props.children}</main>
               <Footer />

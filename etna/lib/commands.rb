@@ -328,15 +328,16 @@ class EtnaApp
         string_flags << '--target-model'
 
         def execute(project_name, target_model: 'project', file: "#{project_name}_models_#{target_model}_tree.csv")
-          unless File.exists?(file)
-            puts "File #{file} is being prepared from the #{project_name} project."
-            puts "Copying models descending from #{target_model}..."
-            prepare_template(file, project_name, target_model)
-            puts
-            puts "Done!  You can start editing the file #{file} now"
-          else
+          if ::File.exist?(file)
             puts "File #{file} already exists!  Please remove or specify a different file name before running again."
+            return
           end
+
+          puts "File #{file} is being prepared from the #{project_name} project."
+          puts "Copying models descending from #{target_model}..."
+          prepare_template(file, project_name, target_model)
+          puts
+          puts "Done!  You can start editing the file #{file} now"
         end
 
         def workflow
@@ -366,7 +367,7 @@ class EtnaApp
         def execute(project_name, target_model: 'project', file: "#{project_name}_models_#{target_model}_tree.csv")
           reset
 
-          unless File.exists?(file)
+          unless ::File.exist?(file)
             puts "Could not find file #{file}"
             return
           end
