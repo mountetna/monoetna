@@ -12,6 +12,8 @@ describe QueryController do
     stub_request(:options, 'https://metis.test').
     to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
 
+    stub_janus_projects
+
     #stub_request(:any, /https:\/\/metis.test/).
       #to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
     @project = create(:project, name: 'The Twelve Labors of Hercules')
