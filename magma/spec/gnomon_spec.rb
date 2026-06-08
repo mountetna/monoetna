@@ -15,7 +15,6 @@ describe GnomonController do
 
   before(:each) do
     stub_event_log
-    stub_request(:post, "https://janus.test/api/admin/labors/update").to_return(status: 200, body: "", headers: {})
   end
 
   it 'complains if there is no grammar' do
@@ -50,35 +49,6 @@ describe GnomonController do
       config: config,
       version_number: 2
     )
-  end
-
-  context 'project name' do
-    it 'sets the project name in Magma from the grammar' do
-      grammar = create_grammar
-
-      config = VALID_GRAMMAR_CONFIG
-      auth_header(:editor)
-      json_post('/gnomon/labors', config: config, comment: 'eh')
-
-      expect(last_response.status).to eq(200)
-
-      expect(Labors::Project.count).to eq(1)
-      expect(Labors::Project.first[:name]).to eq('The Twelve Labors of Hercules')
-    end
-
-    it 'updates the project name in Magma from the grammar' do
-      grammar = create_grammar
-      project_record = create(:project, name: 'The Ten Labors of Hercules')
-
-      config = VALID_GRAMMAR_CONFIG
-      auth_header(:editor)
-      json_post('/gnomon/labors', config: config, comment: 'eh')
-
-      expect(last_response.status).to eq(200)
-
-      expect(Labors::Project.count).to eq(1)
-      expect(Labors::Project.first[:name]).to eq('The Twelve Labors of Hercules')
-    end
   end
 
   it 'does not allow an invalid grammar' do

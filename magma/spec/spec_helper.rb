@@ -516,7 +516,7 @@ AUTH_USERS = {
 }
 
 def auth_header(user_type)
-  header(*Etna::TestAuth.token_header(AUTH_USERS[user_type].merge(exp: Time.now.to_i + 6000)))
+  header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
 end
 
 def json_post(endpoint, hash)
@@ -561,11 +561,6 @@ def set_date_shift_root(model_name, value)
     model_name: model_name,
     date_shift_root: value,
   }).perform
-end
-
-def stub_janus_projects
-  stub_request(:get, "https://janus.test/api/user/projects").
-    to_return(status: 200, body: "", headers: {})
 end
 
 def stub_date_shift_data(project)

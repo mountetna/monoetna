@@ -40,14 +40,6 @@ module Etna
         end
       end
 
-      def update_project(update_project_request = UpdateProjectRequest.new)
-        @etna_client.post(
-          "/api/admin/#{update_project_request.project_name}/update",
-          update_project_request) do |res|
-          # Redirect, no response data
-        end
-      end
-
       def update_permission(update_permission_request = UpdatePermissionRequest.new)
         @etna_client.post(
           "/api/admin/#{update_permission_request.project_name}/update_permission",

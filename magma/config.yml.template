@@ -6,14 +6,8 @@
     :adapter: postgres
     :user: developer
     :password: password
-  :polyphemus:
-    :host: https://polyphemus.development.local
-    :hmac_key: haggis
   :magma:
     :host: https://magma.development.local
-    :hmac_key: haggis
-  :metis:
-    :host: https://metis.development.local
     :hmac_key: haggis
   :janus:
     :host: https://janus.development.local
@@ -58,9 +52,6 @@
     :hmac_key: haggis
   :magma:
     :host: https://magma.test
-    :hmac_key: haggis
-  :janus:
-    :host: https://janus.test
     :hmac_key: haggis
   :storage:
     :provider: metis
