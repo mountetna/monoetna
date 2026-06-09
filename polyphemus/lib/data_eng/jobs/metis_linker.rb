@@ -25,6 +25,10 @@ class MetisLinkerJob < Polyphemus::ETLJob
     !!(runtime_config['config'] || {})[:updates_only]
   end
 
+  def debug?
+    !!(runtime_config['config'] || {})[:debug]
+  end
+
   def pre(context)
     context[:start_time] = updates_only? ? fetch_last_scan : Time.at(0).to_datetime.iso8601
     context[:end_time] = Time.now.to_datetime.iso8601
@@ -49,20 +53,42 @@ class MetisLinkerJob < Polyphemus::ETLJob
 
     loader = Metis::Loader.new(config, rules, params, project_def.models)
 
-    update = loader.update_for(tail, metis_client)
+    update, all_stats = loader.update_for(tail, metis_client)
 
     response = magma_client.update_json(update, page_size=100)
+
+    def summarize_stat(files, descriptor)
+      if files.length == 0
+        "#{files.length} #{descriptor}\n"
+      elsif !debug? && files.length > 5
+        "#{files.length} #{descriptor}: #{files.take(5).join(', ')}, ...\n"
+      else
+        "#{files.length} #{descriptor}: #{files.join(', ')}\n"
+      end
+    end
 
     summary = <<EOT
 ===============================
 Upload Window: #{context[:start_time]} -> #{context[:end_time]} 
 Models: #{response.models.model_keys.join(', ')}
-Committed to Magma: #{!loader.config.dry_run?}
+Files in window: #{tail.files.length}
+#{if !loader.config.dry_run?
+    "Committed to Magma: true (your changes are saved to Magma)"
+  else
+    "Committed to Magma: false (your changes are NOT saved to Magma - DRY RUN)"
+  end}
 Autolinked Parent Identifiers: #{loader.config.autolink?}
 EOT
 
     response.models.each do |model_name, model|
-      summary += "#{model_name} records updated: #{model.documents.document_keys.join(', ')}\n"
+      stats=all_stats[model_name.to_sym]
+      summary += "-------------------------------\n"
+      summary += "For #{model_name} model:\n"
+      summary += "Records updated: #{model.documents.document_keys.join(', ')}\n"
+      next unless stats
+      summary += summarize_stat(stats[:matched].uniq, "files matched by script file patterns")
+      summary += summarize_stat(stats[:mapped].uniq, "files also matched by Gnomon rule")
+      summary += summarize_stat(stats[:dataframe].uniq, "files parsed as data_frame")
     end
 
     summary += "==============================="

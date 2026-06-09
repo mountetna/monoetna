@@ -36,8 +36,14 @@ class Metis
     require_relative 'models'
   end
 
-  def project_path(project)
-    ::File.join(config(:data_path), project)
+  def storage_path(storage)
+    config(:storage)[storage.to_sym]&.[](:path) || raise("Could not find storage '#{storage}'!")
+  end
+
+  def active_storage
+    config(:storage).keys.find do |storage_name|
+      config(:storage)[storage_name][:active]
+    end
   end
 
   def setup_yabeda

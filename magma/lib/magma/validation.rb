@@ -2,8 +2,11 @@ require_relative 'validation/model'
 
 class Magma
   class Validation
-    def initialize
+    attr_reader :grammar
+
+    def initialize(grammar)
       @models = {}
+      @grammar = grammar
     end
 
     def validate(model, record_name, record)

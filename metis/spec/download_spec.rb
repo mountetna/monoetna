@@ -101,6 +101,9 @@ describe DownloadController do
       stubs.clear('thumbnails')
       @tips = "1. Burn the hydra's neck after cutting.\n2. Use a river to clean the stables."
       @location = stubs.create_file('labors', 'files', 'readme_hercules.txt', @tips)
+
+      @quips = "1. 'Roasts up just like a duck.'\n2. 'Bathers downstream will not love this.'"
+      @location2 = stubs.create_file('labors', 'files', 'quotes_hercules.txt', @quips, nil, 'oldstorage')
       default_bucket('labors')
     end
 
@@ -119,6 +122,19 @@ describe DownloadController do
       # normally our web server should catch this header and replace the
       # contents; we can't do that with Rack::Test
       expect(last_response.headers['X-Sendfile']).to eq(@location)
+    end
+
+    it 'downloads a file from non-active storage' do
+      file = create_file('labors', 'quotes_hercules.txt', @quips, storage: 'oldstorage')
+
+      hmac_header
+      get('/labors/download/files/quotes_hercules.txt')
+
+      expect(last_response.status).to eq(200)
+
+      # normally our web server should catch this header and replace the
+      # contents; we can't do that with Rack::Test
+      expect(last_response.headers['X-Sendfile']).to eq(@location2)
     end
 
     it 'fails if there is no file data' do

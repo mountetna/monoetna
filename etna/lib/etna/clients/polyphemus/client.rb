@@ -112,7 +112,7 @@ module Etna
         json
       end
 
-      def log(project_name:, user:, event:, message:, payload:, signatory:, consolidate:)
+      def log(project_name:, user:, event:, message:, payload:, signatory:, consolidate:, application:nil)
         params = {
           project_name: project_name,
           user: user,
@@ -120,6 +120,7 @@ module Etna
           message: message,
           payload: payload,
           consolidate: consolidate,
+          application: application,
           signatory: signatory
         }
         json = nil
