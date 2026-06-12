@@ -1,6 +1,6 @@
 anyAPI <- function(
-        app_url,
-        api_path,
+        app = c('magma', 'janus', 'metis', 'gnomon', 'timur', 'vulcan', 'polyphemus', 'vesta', 'etna'),
+        api,
         target,
         method = c('get', 'post', 'delete'),
         requestBody = NULL,
@@ -8,7 +8,10 @@ anyAPI <- function(
         jsonparse = TRUE,
         verbose = FALSE) {
 
+    app <- match.arg(app)
     method <- match.arg(method)
+
+    app_url <- gsub('magma', app, target$url)
 
     opts <- target$opts
     opts$postfields <- requestBody
@@ -28,7 +31,7 @@ anyAPI <- function(
         get = curl$get,
         post = curl$post,
         delete = curl$delete)
-    curl <- curl$get(path = api_path)
+    curl <- curl$get(path = api)
 
     # Summarize
     if (verbose) {
