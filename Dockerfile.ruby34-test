@@ -39,10 +39,28 @@ ENV GEM_PATH="/root/.gem/ruby/$RUBY_MAJOR_VERSION:/usr/local/lib/ruby/gems/$RUBY
 # Copy entrypoints from the dev base image directory
 COPY docker/etna-base-dev/entrypoints /entrypoints
 
-# Copy the etna gem source so bundle install can resolve the path gem + compile its extensions
-COPY etna /etna
+# Copy only dependency inputs first so Docker can cache native gem builds.
+# The local etna path gem needs its gemspec, lib files, extensions, and completion files.
+COPY etna/Gemfile etna/Gemfile.lock etna/etna.gemspec /etna/
+COPY etna/lib /etna/lib
+COPY etna/ext /etna/ext
+COPY etna/*.completion /etna/
 
-# Install all gems (generates a fresh Gemfile.lock for Ruby 3.4)
-RUN bundle install -j "$(nproc)"
+# Install all gems with detailed logging so long-running steps are visible.
+RUN bash -lc 'set -euo pipefail; \
+  echo "[bundle] start: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; \
+  echo "[bundle] ruby: $(ruby -v)"; \
+  echo "[bundle] bundler: $(bundle -v)"; \
+  echo "[bundle] gem source(s):"; \
+  bundle config get source || true; \
+  echo "[bundle] lock platforms:"; \
+  ruby -e "lock = File.read(\"/etna/Gemfile.lock\"); puts(lock[/PLATFORMS\\n(.*?)\\n\\n/m, 1] || \"(missing)\")"; \
+  echo "[bundle] install begin"; \
+  time bundle install -j 6 --verbose; \
+  echo "[bundle] install done: $(date -u +%Y-%m-%dT%H:%M:%SZ)"'
+
+# Copy the rest of the etna source after bundle install so app code changes do not
+# force recompilation of native gems like curb.
+COPY etna /etna
 
 RUN mkdir -p /app/tmp/pids /app/public/js /app/public/css /app/log /app/data /tmp/metrics.prom
