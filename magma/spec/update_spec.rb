@@ -23,7 +23,8 @@ describe UpdateController do
     stub_event_log
   end
 
-  def update(revisions, user_type=:editor, params: {autolink: true})
+  def update(revisions = {}, user_type=:editor, params: {autolink: true}, **revision_kwds)
+    revisions = revisions.update(revision_kwds)
     auth_header(user_type)
     json_post(:update, {project_name: 'labors', revisions: revisions}.update(params))
   end
@@ -3621,7 +3622,7 @@ describe UpdateController do
       expect(last_response.status).to eq(200)
 
       output = <<EOT
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User copreus@twelve-labors.org calling update#action with params {:project_name=>"labors", :revisions=>{:victim=>{:"John Doe"=>{:birthday=>"*"}}}, :autolink=>\"true\"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User copreus@twelve-labors.org calling update#action with params {project_name: "labors", revisions: {victim: {"John Doe": {birthday: "*"}}}, autolink: "true"}
 EOT
 
       expect(File.read(@log_file)).to eq(output)
@@ -3646,7 +3647,7 @@ EOT
 
       output = <<EOT
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 ["Cannot revise restricted attribute :birthday on victim 'John Doe'"]
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User eurystheus@twelve-labors.org calling update#action with params {:project_name=>"labors", :revisions=>{:victim=>{:"John Doe"=>{:birthday=>"*"}}}, :autolink=>\"true\"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User eurystheus@twelve-labors.org calling update#action with params {project_name: "labors", revisions: {victim: {"John Doe": {birthday: "*"}}}, autolink: "true"}
 EOT
 
       expect(File.read(@log_file)).to eq(output)
@@ -3674,7 +3675,7 @@ EOT
         expect(last_response.status).to eq(200)
 
         output = <<EOT
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User copreus@twelve-labors.org calling update#action with params {:project_name=>"labors", :revisions=>{:victim=>{:"John Doe"=>{:birthday=>"*"}}}, :dry_run=>"true"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User copreus@twelve-labors.org calling update#action with params {project_name: "labors", revisions: {victim: {"John Doe": {birthday: "*"}}}, dry_run: "true"}
 EOT
 
         expect(File.read(@log_file)).to eq(output)
@@ -3702,7 +3703,7 @@ EOT
 
         output = <<EOT
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 ["Cannot revise restricted attribute :birthday on victim 'John Doe'"]
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User eurystheus@twelve-labors.org calling update#action with params {:project_name=>"labors", :revisions=>{:victim=>{:"John Doe"=>{:birthday=>"*"}}}, :dry_run=>"true"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User eurystheus@twelve-labors.org calling update#action with params {project_name: "labors", revisions: {victim: {"John Doe": {birthday: "*"}}}, dry_run: "true"}
 EOT
 
         expect(File.read(@log_file)).to eq(output)

@@ -49,7 +49,7 @@ gem 'ostruct' # Ruby 3.4/3.5: stdlib gem used by etna clients and filigree.
 group :test do
   gem 'rspec'
   gem 'rack-test', require: "rack/test"
-  gem "pry", "~>0.13.0"
+  gem "pry", "~> 0.15.2" # Ruby 3.4: pry 0.13.x uses APIs removed from Ruby.
   gem "pry-byebug"
   gem "timecop"
   gem "webmock"

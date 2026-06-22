@@ -26,7 +26,7 @@ module Etna
 
     def event_log(params)
       begin
-        Etna::Application.instance.event_log({
+        Etna::Application.instance.event_log(**{
           project_name: @params[:project_name],
           user: @user
         }.compact.merge(params))

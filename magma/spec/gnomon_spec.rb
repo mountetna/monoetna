@@ -59,7 +59,7 @@ describe GnomonController do
     json_post('/gnomon/labors', config: config, comment: 'eh')
 
     expect(last_response.status).to eq(422)
-    expect(json_body).to match_array(errors: [
+    expect(json_body[:errors]).to match_array([
       "root is missing required keys: tokens, rules",
       "property '/text' is invalid: error_type=schema",
       "No separator token defined!"
