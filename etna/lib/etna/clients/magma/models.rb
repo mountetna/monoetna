@@ -13,8 +13,8 @@ module Etna
       class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, :page, :page_size, :order, :filter, :hide_templates, keyword_init: true)
         include JsonSerializableStruct
 
-        def initialize(**params)
-          super({model_name: 'all', attribute_names: 'all', record_names: []}.update(params))
+        def initialize(params = {}, **kwds)
+          super(**{model_name: 'all', attribute_names: 'all', record_names: []}.update(params).update(kwds))
         end
       end
 
@@ -26,8 +26,8 @@ module Etna
         include JsonSerializableStruct
         include MultipartSerializableNestedHash
 
-        def initialize(**params)
-          super({revisions: {}, dry_run: false}.update(params))
+        def initialize(params = {}, **kwds)
+          super(**{revisions: {}, dry_run: false}.update(params).update(kwds))
         end
 
         def update_revision(model_name, record_name, attrs)
@@ -49,8 +49,8 @@ module Etna
       class UpdateModelRequest < Struct.new(:project_name, :actions, keyword_init: true)
         include JsonSerializableStruct
 
-        def initialize(**params)
-          super({actions: []}.update(params))
+        def initialize(params = {}, **kwds)
+          super(**{actions: []}.update(params).update(kwds))
         end
 
         def add_action(action)
@@ -61,24 +61,24 @@ module Etna
       class AddModelAction < Struct.new(:action_name, :model_name, :parent_model_name, :parent_link_type, :identifier, :date_shift_root, keyword_init: true)
         include JsonSerializableStruct
 
-        def initialize(**args)
-          super({action_name: 'add_model', date_shift_root: false}.update(args))
+        def initialize(args = {}, **kwds)
+          super(**{action_name: 'add_model', date_shift_root: false}.update(args).update(kwds))
         end
       end
 
       class SetDateShiftRootAction < Struct.new(:action_name, :model_name, :date_shift_root, keyword_init: true)
         include JsonSerializableStruct
 
-        def initialize(**args)
-          super({action_name: 'set_date_shift_root'}.update(args))
+        def initialize(args = {}, **kwds)
+          super(**{action_name: 'set_date_shift_root'}.update(args).update(kwds))
         end
       end
 
       class AddAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
 
-        def initialize(**args)
-          super({action_name: 'add_attribute'}.update(args))
+        def initialize(args = {}, **kwds)
+          super(**{action_name: 'add_attribute'}.update(args).update(kwds))
         end
 
         def attribute_type=(val)
@@ -101,8 +101,8 @@ module Etna
       class AddLinkAction < Struct.new(:action_name, :links, keyword_init: true)
         include JsonSerializableStruct
 
-        def initialize(**args)
-          super({action_name: 'add_link', links: []}.update(args))
+        def initialize(args = {}, **kwds)
+          super(**{action_name: 'add_link', links: []}.update(args).update(kwds))
         end
       end
 
@@ -113,16 +113,16 @@ module Etna
       class AddProjectAction < Struct.new(:action_name, :no_metis_bucket, keyword_init: true)
         include JsonSerializableStruct
 
-        def initialize(**args)
-          super({action_name: 'add_project'}.update(args))
+        def initialize(args = {}, **kwds)
+          super(**{action_name: 'add_project'}.update(args).update(kwds))
         end
       end
 
       class UpdateAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
 
-        def initialize(**args)
-          super({action_name: 'update_attribute'}.update(args))
+        def initialize(args = {}, **kwds)
+          super(**{action_name: 'update_attribute'}.update(args).update(kwds))
         end
 
         def as_json
@@ -133,8 +133,8 @@ module Etna
       class RenameAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :new_attribute_name, keyword_init: true)
         include JsonSerializableStruct
 
-        def initialize(**args)
-          super({action_name: 'rename_attribute'}.update(args))
+        def initialize(args = {}, **kwds)
+          super(**{action_name: 'rename_attribute'}.update(args).update(kwds))
         end
       end
 
