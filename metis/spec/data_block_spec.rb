@@ -283,7 +283,7 @@ describe Metis::DataBlock do
 
       wisdom_data = wisdom_file.data_block
 
-      expect(::File.exists?(wisdom_data.location)).to eq(true)
+      expect(::File.exist?(wisdom_data.location)).to eq(true)
       expect(wisdom_data.removed).to eq(false)
       expect(wisdom_data.updated_at.iso8601).to eq(@creation_time.to_s)
 
@@ -292,7 +292,7 @@ describe Metis::DataBlock do
 
       wisdom_data.remove!
 
-      expect(::File.exists?(wisdom_data.location)).to eq(false)
+      expect(::File.exist?(wisdom_data.location)).to eq(false)
       expect(wisdom_data.removed).to eq(true)
       expect(wisdom_data.updated_at.iso8601).to eq(@update_time.to_s)
       Timecop.return
@@ -306,12 +306,12 @@ describe Metis::DataBlock do
 
       ::File.delete(wisdom_data.location)
 
-      expect(::File.exists?(wisdom_data.location)).to eq(false)
+      expect(::File.exist?(wisdom_data.location)).to eq(false)
       expect(wisdom_data.removed).to eq(false)
 
       wisdom_data.remove!
 
-      expect(::File.exists?(wisdom_data.location)).to eq(false)
+      expect(::File.exist?(wisdom_data.location)).to eq(false)
       expect(wisdom_data.removed).to eq(true)
     end
 
@@ -324,7 +324,7 @@ describe Metis::DataBlock do
       wisdom_data = wisdom_file.data_block
       wisdom_data.update(removed: true)
 
-      expect(::File.exists?(wisdom_data.location)).to eq(true)
+      expect(::File.exist?(wisdom_data.location)).to eq(true)
       expect(wisdom_data.removed).to eq(true)
       expect(wisdom_data.updated_at.iso8601).to eq(past_time.to_s)
 
@@ -333,7 +333,7 @@ describe Metis::DataBlock do
       wisdom_data.remove!
 
       # Since no action should have been taken
-      expect(::File.exists?(wisdom_data.location)).to eq(true)
+      expect(::File.exist?(wisdom_data.location)).to eq(true)
       expect(wisdom_data.removed).to eq(true)
       expect(wisdom_data.updated_at.iso8601).to eq(past_time.to_s)
     end
@@ -441,8 +441,8 @@ describe DataBlockController do
       expect(helmet_data_block.removed).to be_truthy
 
       # Verify the file contents are no longer present
-      expect(::File.exists?(wisdom_data_block.location)).to eq(false)
-      expect(::File.exists?(helmet_data_block.location)).to eq(false)
+      expect(::File.exist?(wisdom_data_block.location)).to eq(false)
+      expect(::File.exist?(helmet_data_block.location)).to eq(false)
       
       # Verify vacuum event was logged
       vacuum_event = Metis::DataBlockLedger.where(
@@ -638,7 +638,7 @@ describe DataBlockController do
       # BUT the datablock should NOT actually be removed
       wisdom_data_block.reload
       expect(wisdom_data_block.removed).to be_falsey
-      expect(::File.exists?(wisdom_data_block.location)).to be_truthy
+      expect(::File.exist?(wisdom_data_block.location)).to be_truthy
       
       # No vacuum event should be logged in dry-run mode
       vacuum_events = Metis::DataBlockLedger.where(
@@ -674,8 +674,8 @@ describe DataBlockController do
       helmet_file.data_block.reload
       expect(wisdom_file.data_block.removed).to be_falsey
       expect(helmet_file.data_block.removed).to be_falsey
-      expect(::File.exists?(wisdom_file.data_block.location)).to be_truthy
-      expect(::File.exists?(helmet_file.data_block.location)).to be_truthy
+      expect(::File.exist?(wisdom_file.data_block.location)).to be_truthy
+      expect(::File.exist?(helmet_file.data_block.location)).to be_truthy
     end
 
     it 'works with backfilled datablocks in dry-run mode' do
@@ -701,8 +701,8 @@ describe DataBlockController do
       helmet_data_block.reload
       expect(wisdom_data_block.removed).to be_falsey
       expect(helmet_data_block.removed).to be_falsey
-      expect(::File.exists?(wisdom_data_block.location)).to be_truthy
-      expect(::File.exists?(helmet_data_block.location)).to be_truthy
+      expect(::File.exist?(wisdom_data_block.location)).to be_truthy
+      expect(::File.exist?(helmet_data_block.location)).to be_truthy
     end
 
     it 'defaults to commit=false (dry-run) when commit param is omitted' do
@@ -728,7 +728,7 @@ describe DataBlockController do
       # Datablock should NOT be removed
       wisdom_data_block.reload
       expect(wisdom_data_block.removed).to be_falsey
-      expect(::File.exists?(wisdom_data_block.location)).to be_truthy
+      expect(::File.exist?(wisdom_data_block.location)).to be_truthy
     end
 
   end
