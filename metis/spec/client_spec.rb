@@ -771,9 +771,9 @@ describe MetisShell do
 
       MetisShell.new("metis://athena", "nuke", "athena-copy").run
 
-      expect(::File.exists?('athena-copy/old/folly-copy.txt')).to be_truthy
-      expect(::File.exists?('athena-copy/old')).to be_truthy
-      expect(::File.exists?('athena-copy/new')).to be_falsy
+      expect(::File.exist?('athena-copy/old/folly-copy.txt')).to be_truthy
+      expect(::File.exist?('athena-copy/old')).to be_truthy
+      expect(::File.exist?('athena-copy/new')).to be_falsy
 
       FileUtils.rm_r('athena-copy')
     end
@@ -791,8 +791,8 @@ describe MetisShell do
 
       MetisShell.new("metis://athena", "nuke", "athena-copy").run
 
-      expect(::File.exists?('athena-copy/old')).to be_falsy
-      expect(::File.exists?('athena-copy')).to be_truthy
+      expect(::File.exist?('athena-copy/old')).to be_falsy
+      expect(::File.exist?('athena-copy')).to be_truthy
 
       FileUtils.rm_r('athena-copy')
     end
