@@ -45,6 +45,9 @@ jobs:
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :production
           NO_TEST: 1
+          # Space-delimited app names to build with docker/etna-base-dev/Dockerfile.ruby34.
+          # Example: "metis timur"
+          RUBY34_ROLLOUT_APPS: ""
         shell: bash
         run: |
           sudo rm -rf /usr/share/dotnet
@@ -56,6 +59,14 @@ jobs:
           PARTS=(${APP/\// })
           IMGNAME=${PARTS[1]}
           TAG=${IMAGES_PREFIX}${IMGNAME}${IMAGES_POSTFIX}
+          if [[ " ${RUBY34_ROLLOUT_APPS} " == *" ${APP} "* ]]
+          then
+            export USE_RUBY34_IMAGE=1
+            echo "Building $APP with Ruby 3.4 base image"
+          else
+            export USE_RUBY34_IMAGE=0
+            echo "Building $APP with Ruby 2.7 base image"
+          fi
           if [[ $APP =~ "vesta_ui" ]]
           then
             cd $APP

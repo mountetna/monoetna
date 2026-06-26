@@ -45,6 +45,16 @@ monoetnaSha=$(git rev-parse HEAD)
 #- The final tag will also include env variables IMAGES_PREFIX and IMAGES_POSTFIX
 tag="${IMAGES_PREFIX}${baseTag}${IMAGES_POSTFIX}"
 
+if [[ "${USE_RUBY34_IMAGE:-}" == "1" && "$baseTag" == "etna-base-dev" ]]; then
+  ruby34Dockerfile="$(dirname "$Dockerfile")/Dockerfile.ruby34"
+  if [[ ! -f "$ruby34Dockerfile" ]]; then
+    echo "USE_RUBY34_IMAGE=1 was set, but $ruby34Dockerfile does not exist." 1>&2
+    exit 1
+  fi
+  Dockerfile="$(readlink -m "$ruby34Dockerfile")"
+  echo "Using Ruby 3.4 base Dockerfile: $Dockerfile"
+fi
+
 function imageExists() {
   docker inspect --type=image $tag &>/dev/null
 }

@@ -39,7 +39,20 @@ jobs:
           IS_CI: 1
           CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
+          # Space-delimited app names to build and test with docker/etna-base-dev/Dockerfile.ruby34.
+          # Example: "metis timur"
+          RUBY34_ROLLOUT_APPS: ""
+        shell: bash
         run: |
+          APP="${{ matrix.test-app }}"
+          if [[ " ${RUBY34_ROLLOUT_APPS} " == *" ${APP} "* ]]
+          then
+            export USE_RUBY34_IMAGE=1
+            echo "Testing $APP with Ruby 3.4 base image"
+          else
+            export USE_RUBY34_IMAGE=0
+            echo "Testing $APP with Ruby 2.7 base image"
+          fi
           make -C ${{ matrix.test-app }} release
   test-vesta:
     runs-on: ubuntu-latest
@@ -57,7 +70,20 @@ jobs:
           IS_CI: 1
           CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
+          # Space-delimited app names to build and test with docker/etna-base-dev/Dockerfile.ruby34.
+          # Example: "vesta"
+          RUBY34_ROLLOUT_APPS: ""
+        shell: bash
         run: |
+          APP="vesta"
+          if [[ " ${RUBY34_ROLLOUT_APPS} " == *" ${APP} "* ]]
+          then
+            export USE_RUBY34_IMAGE=1
+            echo "Testing $APP with Ruby 3.4 base image"
+          else
+            export USE_RUBY34_IMAGE=0
+            echo "Testing $APP with Ruby 2.7 base image"
+          fi
           make -C vesta release
           make -f Makefile-mac vesta-ui-test
 
@@ -81,8 +107,22 @@ jobs:
           docker tag etnaagent/development-psql:master development-psql
           docker tag etnaagent/vulcan_c4_env:latest vulcan_c4_env
       - name: Build etna-base image
+        env:
+          # Space-delimited app names to build and test with docker/etna-base-dev/Dockerfile.ruby34.
+          # Example: "vulcan"
+          RUBY34_ROLLOUT_APPS: ""
+        shell: bash
         run: |
+          APP="vulcan"
           docker build -t etna -f etna/Dockerfile --build-arg APP_NAME=etna etna
+          if [[ " ${RUBY34_ROLLOUT_APPS} " == *" ${APP} "* ]]
+          then
+            docker build -t etna-base-dev -f docker/etna-base-dev/Dockerfile.ruby34 docker/etna-base-dev
+            echo "Testing $APP with Ruby 3.4 base image"
+          else
+            docker build -t etna-base-dev -f docker/etna-base-dev/Dockerfile docker/etna-base-dev
+            echo "Testing $APP with Ruby 2.7 base image"
+          fi
           docker build -t etna-base -f docker/etna-base/Dockerfile --build-arg APP_NAME=etna-base docker/etna-base
       - name: Build vulcan_app image
         run: docker build -t vulcan_app -f vulcan/Dockerfile --build-arg APP_NAME=vulcan vulcan
