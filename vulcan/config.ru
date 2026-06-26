@@ -7,7 +7,7 @@ Bundler.require(:default)
 require_relative 'lib/vulcan'
 require_relative 'lib/server'
 
-Vulcan.instance.configure(YAML.load(File.read('config.yml'), aliases: true))
+Vulcan.instance.configure(YAML.load(File.read('config.yml')))
 use Etna::CrossOrigin
 use Etna::MetricsExporter
 use Etna::ParseBody

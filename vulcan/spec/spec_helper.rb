@@ -20,7 +20,7 @@ require_relative '../lib/snakemake_command'
 require_relative '../lib/snakemake_parser'
 require 'etna/spec/vcr'
 
-Vulcan.instance.configure(YAML.load(File.read('config.yml'), aliases: true))
+Vulcan.instance.configure(YAML.load(File.read('config.yml')))
 setup_base_vcr(__dir__)
 
 OUTER_APP = Rack::Builder.new do

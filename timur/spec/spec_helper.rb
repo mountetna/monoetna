@@ -17,7 +17,7 @@ require 'etna/spec/event_log'
 require_relative '../lib/server'
 require_relative '../lib/timur'
 
-Timur.instance.configure(YAML.load(File.read('config.yml'), aliases: true))
+Timur.instance.configure(YAML.load(File.read('config.yml')))
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
