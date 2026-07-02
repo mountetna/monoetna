@@ -82,6 +82,7 @@ jobs:
           docker tag etnaagent/vulcan_c4_env:latest vulcan_c4_env
       - name: Build etna-base image
         run: |
+          docker build -t development-certs -f development-certs/Dockerfile development-certs
           docker build -t etna-base-dev -f docker/etna-base-dev/Dockerfile docker/etna-base-dev
           docker build -t etna -f etna/Dockerfile --build-arg APP_NAME=etna etna
           docker build -t etna-base -f docker/etna-base/Dockerfile --build-arg APP_NAME=etna-base docker/etna-base
