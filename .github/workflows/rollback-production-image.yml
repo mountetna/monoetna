@@ -1,0 +1,69 @@
+name: Rollback production image tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "DockerHub image to retag"
+        required: true
+        type: choice
+        options:
+          - etna
+          - magma
+          - metis
+          - janus
+          - gnomon
+          - polyphemus
+          - vulcan
+          - timur
+          - vesta
+      digest:
+        description: "DockerHub digest to restore, e.g. sha256:..."
+        required: true
+        type: string
+
+jobs:
+  retag-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate inputs
+        env:
+          IMAGE: ${{ inputs.image }}
+          DIGEST: ${{ inputs.digest }}
+        run: |
+          set -euo pipefail
+
+          case "$IMAGE" in
+            etna|magma|metis|janus|gnomon|polyphemus|vulcan|timur|vesta)
+              ;;
+            *)
+              echo "Unsupported image: $IMAGE" >&2
+              exit 1
+              ;;
+          esac
+
+          if [[ ! "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "Digest must look like sha256:<64 lowercase hex chars>" >&2
+            exit 1
+          fi
+
+      - name: Docker login
+        env:
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: echo "${DOCKER_TOKEN}" | docker login -u etnaagent --password-stdin
+
+      - name: Move production tag back to digest
+        env:
+          IMAGE: ${{ inputs.image }}
+          DIGEST: ${{ inputs.digest }}
+        run: |
+          set -euo pipefail
+
+          docker buildx imagetools create \
+            -t "etnaagent/${IMAGE}:production" \
+            "etnaagent/${IMAGE}@${DIGEST}"
+
+      - name: Verify production tag
+        env:
+          IMAGE: ${{ inputs.image }}
+        run: docker buildx imagetools inspect "etnaagent/${IMAGE}:production"
