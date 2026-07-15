@@ -21,7 +21,7 @@ class Metis
         next (parents << existing) unless existing.nil?
 
 
-        if Metis::File.exists?(folder_name, bucket, parents.last)
+        if Metis::File.exist?(folder_name, bucket, parents.last)
           raise Etna::BadRequest, "Cannot overwrite existing file"
         end
 

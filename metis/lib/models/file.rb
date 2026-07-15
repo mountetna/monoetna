@@ -101,7 +101,7 @@ class Metis
       user.display_name
     end
 
-    def self.exists?(file_name, bucket, parent_folder)
+    def self.exist?(file_name, bucket, parent_folder)
       Metis::File.where(file_name: file_name, bucket: bucket, folder_id: parent_folder ? parent_folder.id : nil).count > 0
     end
 
@@ -117,7 +117,7 @@ class Metis
 
       dest_folder = Metis::Folder.from_path(dest_bucket, dest_folder_path).last
       saved_file = nil
-      if Metis::File.exists?(dest_file_name, dest_bucket, dest_folder)
+      if Metis::File.exist?(dest_file_name, dest_bucket, dest_folder)
         old_dest_file = Metis::File.from_path(dest_bucket, params[:dest_file_path])
         old_dest_file.data_block = params[:source_data_block]
         old_dest_file.save
