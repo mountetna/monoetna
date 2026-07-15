@@ -83,7 +83,7 @@ describe Magma do
     it 'writes the hold file' do
       Magma.instance.write_hold_file
 
-      expect(::File.exists?(Magma.instance.config(:hold_file))).to be_truthy
+      expect(::File.exist?(Magma.instance.config(:hold_file))).to be_truthy
 
       ::File.unlink(Magma.instance.config(:hold_file))
     end
@@ -93,7 +93,7 @@ describe Magma do
 
       Magma.instance.remove_hold_file
 
-      expect(::File.exists?(Magma.instance.config(:hold_file))).to be_falsy
+      expect(::File.exist?(Magma.instance.config(:hold_file))).to be_falsy
     end
 
     it 'passes the healthcheck if hold file exists and is not expired' do

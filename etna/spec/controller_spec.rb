@@ -70,7 +70,7 @@ describe Etna::Controller do
       expect(last_response.status).to eq(403)
 
       output = <<EOT
-# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/v1.4.2
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/v#{Logger::VERSION}
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {}
 ERROR:2000-01-01T00:00:00+00:00 8fzmq8 Exiting with 403, You cannot do that.
 EOT
@@ -94,7 +94,7 @@ EOT
       get('/test')
       expect(last_response.status).to eq(500)
       output = <<EOT
-# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/v1.4.2
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/v#{Logger::VERSION}
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {}
 ERROR:2000-01-01T00:00:00+00:00 8fzmq8 Caught unspecified error
 ERROR:2000-01-01T00:00:00+00:00 8fzmq8 Something broke.
@@ -104,7 +104,7 @@ EOT
       expect(log_contents[0..3].join).to eq(output)
 
       # it reports backtraces
-      BACKTRACE = %r!(/[^/]+)+:[0-9]+:in `.*'!
+      BACKTRACE = %r!(/[^/]+)+:[0-9]+:in [`'].*'!
       expect(log_contents[4..-1]).to all( match(BACKTRACE) )
     end
 
@@ -132,8 +132,8 @@ EOT
       expect(last_response.status).to eq(200)
       output = <<EOT
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {}
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {:secret=>"*"}
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {:not_secret=>"bar"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {secret: "*"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {not_secret: "bar"}
 EOT
       # it reports the requests
       log_contents = File.foreach(@log_file).to_a
@@ -167,8 +167,8 @@ EOT
       expect(last_response.status).to eq(200)
       output = <<EOT
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling test#action with params {}
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling test#action with params {:secret=>"*"}
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling test#action with params {:not_secret=>"bar"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling test#action with params {secret: "*"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling test#action with params {not_secret: "bar"}
 EOT
       # it reports the requests
       log_contents = File.foreach(@log_file).to_a
@@ -202,8 +202,8 @@ EOT
       expect(last_response.status).to eq(200)
       output = <<EOT
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling strict#action with params {}
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling strict#action with params {:secret=>"*"}
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling strict#action with params {:not_secret=>"*"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling strict#action with params {secret: "*"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling strict#action with params {not_secret: "*"}
 EOT
       # it reports the requests
       log_contents = File.foreach(@log_file).to_a
@@ -228,7 +228,7 @@ EOT
       expect(last_response.status).to eq(403)
 
       output = <<EOT
-# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/v1.4.2
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/v#{Logger::VERSION}
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {}
 ERROR:2000-01-01T00:00:00+00:00 8fzmq8 Exiting with 403, You cannot do that.
 EOT
@@ -253,7 +253,7 @@ EOT
       expect(last_response.status).to eq(200)
 
       output = <<EOT
-# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/v1.4.2
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/v#{Logger::VERSION}
 EOT
       expect(File.read(@log_file)).to eq(output)
     end

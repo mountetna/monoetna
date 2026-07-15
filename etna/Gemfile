@@ -1,13 +1,14 @@
-source "http://rubygems.org"
+source "https://rubygems.org"
 
-ruby "~> 2.7"
+ruby "~> 3.4"
 
 gem 'mini_magick'
 gem 'daru'
+gem 'matrix' # Ruby 3.4: daru requires matrix, which is no longer bundled by default.
 gem 'rltk'
 gem 'filigree', '0.3.3'
 gem 'fog-aws'
-gem 'puma', '>=5.0.2'
+gem 'puma', '~> 6.4' # Ruby 3.4: Puma 5.x is not compatible with Ruby 3.4.
 gem 'etna', path: '/etna'
 gem 'pg'
 gem 'sequel'
@@ -29,8 +30,8 @@ gem 'activesupport', '>= 4.2.6'
 gem 'addressable', '~> 2.8.1'
 gem "yabeda"
 gem "yabeda-prometheus"
-gem "yabeda-puma-plugin"
-gem "curb"
+gem "yabeda-puma-plugin", "~> 0.7", ">= 0.7.1" # Puma 6: 0.6.0 calls APIs removed in Puma 6.
+gem "curb", "1.0.8" # Ruby 3.4 amd64: newer curb native builds hung under Docker emulation.
 gem "net-ssh"
 gem "net-scp"
 gem "net-sftp"
@@ -39,17 +40,22 @@ gem 'bcrypt_pbkdf', '>= 1.0', '< 2.0'
 gem 'connection_pool'
 gem "rsync", "~> 1.0", ">= 1.0.9"
 gem "json_schemer"
+gem 'base64' # Ruby 3.4: stdlib gem used directly by etna client/token code.
+gem 'csv' # Ruby 3.4: stdlib gem used directly by etna CSV helpers/workflows.
+gem 'logger' # Ruby 3.4: stdlib gem used directly by Etna::Logger and commands.
+gem 'net-smtp' # Ruby 3.4: stdlib gem required by Etna::Controller mail handling.
+gem 'ostruct' # Ruby 3.4/3.5: stdlib gem used by etna clients and filigree.
 
 group :test do
   gem 'rspec'
   gem 'rack-test', require: "rack/test"
-  gem "pry", "~>0.13.0"
+  gem "pry", "~> 0.15.2" # Ruby 3.4: pry 0.13.x uses APIs removed from Ruby.
   gem "pry-byebug"
   gem "timecop"
   gem "webmock"
-  gem "debase"
   gem "simplecov"
   gem 'factory_bot'
-  gem 'database_cleaner', '1.8.5'
+  gem 'database_cleaner'
+  gem 'database_cleaner-sequel' # database_cleaner 2.x: Sequel adapter is split into its own gem.
   gem 'net-http-persistent'
 end

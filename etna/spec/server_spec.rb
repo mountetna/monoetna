@@ -147,7 +147,7 @@ describe Etna::Server do
     end
     @app = setup_app(Arachne::Server)
 
-    get URI.encode("/silk/#{description}")
+    get "/silk/#{description.gsub(' ', '%20')}"
     expect(last_response.status).to eq(200)
     expect(last_response.body).to eq(description)
 
@@ -280,7 +280,7 @@ describe Etna::Server do
       )
 
       expect(io.string.include?(
-        "with params {:image=>\"athena-is-fat.jpg\", :thread_weight=>\"25\", :shape=>\"octagon\"}")).to eq(true)
+        "with params {image: \"athena-is-fat.jpg\", thread_weight: \"25\", shape: \"octagon\"}")).to eq(true)
       expect(last_response.status).to eq(200)
     end
 
@@ -303,7 +303,7 @@ describe Etna::Server do
       )
 
       expect(io.string.include?(
-        "with params {:image=>\"*\", :thread_weight=>\"25\", :shape=>\"*\"}")).to eq(true)
+        "with params {image: \"*\", thread_weight: \"25\", shape: \"*\"}")).to eq(true)
       expect(last_response.status).to eq(200)
     end
 
@@ -332,7 +332,7 @@ describe Etna::Server do
       )
 
       expect(io.string.include?(
-        "with params {:something=>{:deep=>{:dark=>{:scary=>\"*\"}}}, :thread_weight=>\"25\", :shape=>\"octagon\"}")).to eq(true)
+        "with params {something: {deep: {dark: {scary: \"*\"}}}, thread_weight: \"25\", shape: \"octagon\"}")).to eq(true)
       expect(last_response.status).to eq(200)
     end
   end
