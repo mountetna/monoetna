@@ -49,13 +49,13 @@ describe FileController do
       expect(Metis::File.count).to eq(1)
 
       # the data is not destroyed
-      expect(::File.exists?(location)).to be_truthy
+      expect(::File.exist?(location)).to be_truthy
 
       location = @wisdom_file.data_block.location
       remove_file('wisdom.txt')
 
       # the data is not destroyed
-      expect(::File.exists?(location)).to be_truthy
+      expect(::File.exist?(location)).to be_truthy
       expect(last_response.status).to eq(200)
       expect(Metis::File.count).to eq(0)
     end
@@ -92,7 +92,7 @@ describe FileController do
       expect(unlink_event.created_at).to be_within(1).of(Time.now)
 
       # the data is not destroyed
-      expect(::File.exists?(location)).to be_truthy
+      expect(::File.exist?(location)).to be_truthy
     end
 
     it 'refuses to remove a file without permissions' do
@@ -1662,7 +1662,7 @@ describe FileController do
       expect(last_response.status).to eq(200)
 
       # the data is not destroyed
-      expect(::File.exists?(location)).to be_truthy
+      expect(::File.exist?(location)).to be_truthy
 
       # There are some new files
       expect(Metis::File.count).to eq(5)
@@ -1700,8 +1700,8 @@ describe FileController do
       expect(last_response.status).to eq(200)
 
       # the data is not destroyed
-      expect(::File.exists?(original_wisdom_block.location)).to be_truthy
-      expect(::File.exists?(original_helmet_block.location)).to be_truthy
+      expect(::File.exist?(original_wisdom_block.location)).to be_truthy
+      expect(::File.exist?(original_helmet_block.location)).to be_truthy
 
       # There are some new files
       expect(Metis::File.count).to eq(2)
@@ -1792,7 +1792,7 @@ describe FileController do
       expect(last_response.status).to eq(200)
 
       # the data is not destroyed
-      expect(::File.exists?(location)).to be_truthy
+      expect(::File.exist?(location)).to be_truthy
 
       # There are new files
       expect(Metis::File.count).to eq(8)
@@ -1853,7 +1853,7 @@ describe FileController do
       expect(Metis::File.count).to eq(3)
 
       # the data is not destroyed
-      expect(::File.exists?(location)).to be_truthy
+      expect(::File.exist?(location)).to be_truthy
     end
   end
 

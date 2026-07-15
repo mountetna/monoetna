@@ -26,7 +26,7 @@ module Etna
 
     def event_log(params)
       begin
-        Etna::Application.instance.event_log({
+        Etna::Application.instance.event_log(**{
           project_name: @params[:project_name],
           user: @user
         }.compact.merge(params))
@@ -87,7 +87,16 @@ module Etna
         @response.close
       else
         @response['Content-Type'] = content_type
-        block.call(@response)
+        response = @response
+        # Rack::Response is not a full IO object in Rack 3. JSON.dump calls
+        # flush after writing, so adapt the non-hijack/test response path to
+        # the same small stream interface provided by a hijacked socket.
+        stream = Object.new
+        stream.define_singleton_method(:write) { |data| response.write(data) }
+        stream.define_singleton_method(:<<) { |data| write(data) }
+        stream.define_singleton_method(:flush) {}
+
+        block.call(stream)
         @response.finish
       end
     end

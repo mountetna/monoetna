@@ -638,7 +638,7 @@ describe UploadController do
       expect(last_response.status).to eq(200)
 
       # the partial is destroyed
-      expect(File.exists?(@partial_file)).to be_falsy
+      expect(File.exist?(@partial_file)).to be_falsy
 
       file = Metis::File.first
 
@@ -856,7 +856,7 @@ describe UploadController do
       expect(last_response.status).to eq(200)
 
       # the partial is destroyed
-      expect(File.exists?(@partial_file)).to be_falsy
+      expect(File.exist?(@partial_file)).to be_falsy
 
       file = Metis::File.first
 
@@ -891,7 +891,7 @@ describe UploadController do
       expect(last_response.status).to eq(403)
 
       # the partial is destroyed
-      expect(File.exists?(@partial_file)).to be_falsy
+      expect(File.exist?(@partial_file)).to be_falsy
 
       file = Metis::File.first
 
@@ -923,7 +923,7 @@ describe UploadController do
       expect(json_body[:error]).to eq('Cannot overwrite existing folder')
 
       # the partial is destroyed
-      expect(File.exists?(@partial_file)).to be_falsy
+      expect(File.exist?(@partial_file)).to be_falsy
 
       # the folder still exists
       expect(Metis::Folder.count).to eq(1)
@@ -944,7 +944,7 @@ describe UploadController do
       expect(last_response.status).to eq(200)
 
       # the partial is destroyed
-      expect(File.exists?(@partial_file)).to be_falsy
+      expect(File.exist?(@partial_file)).to be_falsy
 
       # there is a new file
       file = Metis::File.last
@@ -982,7 +982,7 @@ describe UploadController do
       expect(last_response.status).to eq(403)
 
       # the partial is destroyed
-      expect(File.exists?(@partial_file)).to be_falsy
+      expect(File.exist?(@partial_file)).to be_falsy
 
       expect(Metis::File.count).to eq(0)
     end
@@ -998,7 +998,7 @@ describe UploadController do
       expect(json_body[:error]).to eq('Invalid folder: "blueprints"')
 
       # the partial is destroyed
-      expect(File.exists?(@partial_file)).to be_falsy
+      expect(File.exist?(@partial_file)).to be_falsy
 
       expect(Metis::File.count).to eq(0)
     end
@@ -1027,7 +1027,7 @@ describe UploadController do
       )
 
       # the partial is deleted
-      expect(File.exists?(partial_file)).to be_falsy
+      expect(File.exist?(partial_file)).to be_falsy
       expect(Metis::Upload.count).to eq(0)
 
       expect(last_response.status).to eq(200)
@@ -1055,7 +1055,7 @@ describe UploadController do
       )
 
       # the partial is deleted
-      expect(File.exists?(partial_file)).to be_falsy
+      expect(File.exist?(partial_file)).to be_falsy
       expect(Metis::Upload.count).to eq(0)
       expect(Metis::File.count).to eq(0)
 
@@ -1088,7 +1088,7 @@ describe UploadController do
       )
 
       # the partial is deleted
-      expect(File.exists?(partial_file)).to be_falsy
+      expect(File.exist?(partial_file)).to be_falsy
       expect(Metis::Upload.count).to eq(0)
       expect(Metis::File.count).to eq(1)
 

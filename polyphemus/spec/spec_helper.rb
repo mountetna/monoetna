@@ -153,7 +153,7 @@ def json_body
 end
 
 def json_post(endpoint, hash)
-  post(URI.encode("/#{endpoint.reverse.chomp('/').reverse}"), hash.to_json, { "CONTENT_TYPE" => "application/json" })
+  post(Rack::Utils.escape_path("/#{endpoint.reverse.chomp('/').reverse}"), hash.to_json, { "CONTENT_TYPE" => "application/json" })
 end
 
 def stub_parent_exists(params = {})
@@ -807,6 +807,6 @@ def stub_remote_ssh_file_upload(success: true)
   end
 end
 
-def stub_slack(hook_url=Polyphemus.instance.config(:slack_webhook_url))
+def stub_slack(hook_url=Polyphemus.instance.config(:slack_webhook_url) || "https://hooks.slack.test/services/BLAH/BLAH/randomkey")
   stub_request(:post, hook_url)
 end
