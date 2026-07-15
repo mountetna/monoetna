@@ -4,8 +4,9 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
 
-const DataFieldChip = ({ value, count }:{
+const DataFieldChip = ({ value, color, count, }:{
   value: string,
+  color?: string,
   count?: number
 }) => {
   return <Box
@@ -14,7 +15,7 @@ const DataFieldChip = ({ value, count }:{
           py: '4px',
           px: '8px',
           alignItems: 'center',
-          bgcolor: 'ground.grade75',
+          bgcolor: color || 'ground.grade75',
           borderRadius: '8px',
       }}
   >

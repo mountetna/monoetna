@@ -8,9 +8,10 @@ default: &default
   :timeout: 5000
 
 :development:
-  :archimedes_token: your-production-token-to-use-in-development
+  # :inject_token: <your-production-token-to-use-in-development>
   :magma:
-    :host: https://magma.development.local # Change this to production host if you want to use :archimedes_token for development
+    :host: https://magma.development.local
+    :runner_host: https://magma.development.local # Change this to production host to use production data and have a functional connection from a true HPC remote.
     :hmac_key: haggis
   :vulcan:
     :host: https://vulcan.development.local
@@ -51,7 +52,11 @@ default: &default
     <<: *default
     :database: vulcan_development
   :advisory_lock_file: /app/storage.lock
-  :ignore_dependencies: false
+  :latency_time: 600
+  :snakemake_profile_dir: /app/spec/fixtures/v2/profiles/
+  # Remote = vulcan_c4_env
+  :base_dir: /app/vulcan
+  :conda_env: conda-vulcan
   :ssh:
     :host: vulcan_c4_env
     :username: root
@@ -60,14 +65,16 @@ default: &default
     :use_ssh_config: false
     :settings:
       :verify_host_key: :never
-  :base_dir: /app/vulcan
-  :conda_env: conda-vulcan
-  :latency_time: 600
-  :snakemake_profile_dir: /app/spec/fixtures/v2/profiles/
-  # # Alternates for connecting local development with c4
-  # change 'default' below to something specific to you in order to avoid possibility of conflicts with other engineers
-  # :base_dir: /dscolab/vulcan/development/default
+  # Remote = real c4
+  # :base_dir: /dscolab/vulcan/development/default # Change 'default' to be specific to you in order to avoid possibility of conflicts with other engineers
   # :conda_env: snakemake_env
+  # :ssh:
+  #   :host: c4-vulcan-dev # This should match a definition in your .ssh/config that targets c4-n20 or a c4 dev node.
+  #   :username: svc-vulcan-dev
+  #   :password: # Grab from 1password
+  #   :use_ssh_config: true
+  #   :settings:
+  #     :verify_host_key: :never
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".

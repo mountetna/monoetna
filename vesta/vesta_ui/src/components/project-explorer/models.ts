@@ -1,9 +1,12 @@
 import { ThemeData } from "../themes/models";
 import { DATA_TYPES } from '@/lib/fixtures';
+import { Publication } from '@/lib/clients/vesta-api/models';
+
 
 
 export enum ProjectStatus {
     team = 'Team',
+    resource = 'Resource',
     community = 'Community',
 }
 
@@ -57,6 +60,7 @@ export interface Project {
     startDate: Date
     dataCollectionComplete: boolean
     userCount: number
+    publications: Publication[]
     theme: ThemeData
     href: string
 }
@@ -95,6 +99,5 @@ export interface ProjectsSearchParamsControls {
 }
 
 export interface ProjectsSearchParamsState {
-    filters?: Record<string, string[]>
-    controls?: ProjectsSearchParamsControls
+    [name: string]: any
 }

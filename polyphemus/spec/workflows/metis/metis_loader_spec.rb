@@ -41,7 +41,7 @@ describe Metis::Loader do
           victim: '^LABORS-LION-H\d+-C\d+$'
       }
 
-      update = Metis::Loader.new(config, rules).update_for(tail)
+      update, stats = Metis::Loader.new(config, rules).update_for(tail)
 
       expect(update['revisions']).to eq(
           victim: {
@@ -79,7 +79,49 @@ describe Metis::Loader do
         victim: '^LABORS-LION-H\d+-C\d+$'
       }
 
-      update = Metis::Loader.new(config, rules).update_for(tail)
+      update, stats = Metis::Loader.new(config, rules).update_for(tail)
+
+      expect(update['revisions']).to eq(
+        victim: {
+          'LABORS-LION-H2-C1' => {
+            'family_photos' => [
+              {
+                original_filename: 'family_photo.1.png',
+                path: 'metis://labors/pics/family/LABORS-LION-H2-C1/family_photo.1.png'
+              },
+              {
+                original_filename: 'family_photo.2.png',
+                path: 'metis://labors/pics/family/LABORS-LION-H2-C1/family_photo.2.png'
+              }
+            ]
+          }
+        }
+      )
+    end
+
+    it 'can properly match with an empty tartget_folder' do
+      tail = prep_tail('labors', 'pics', [
+        {"type":"file","id":50,"parent_id":nil,"node_name":"ignore.png","updated_at":"2023-08-03 22:39:17 +0000","file_hash":"0cc175b9c0f1b6a831c399e269772661","archive_id":nil},
+        {"type":"file","id":51,"parent_id":41,"node_name":"family_photo.1.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":nil},
+        {"type":"file","id":52,"parent_id":41,"node_name":"family_photo.2.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"9277e0910d750195b448797616e091ad","archive_id":nil},
+        {"type":"parent","id":40,"parent_id":nil,"node_name":"family","updated_at":"2023-08-03 22:39:17 +0000","file_hash":nil,"archive_id":nil},
+        {"type":"parent","id":41,"parent_id":40,"node_name":"LABORS-LION-H2-C1","updated_at":"2024-02-19 22:39:17 +0000","file_hash":nil,"archive_id":nil},
+      ])
+
+      config = labors_config([
+        {
+          "type": "file_collection",
+          "folder_path": "",
+          "file_match": "{LABORS-LION-H2-C1,LABORS-LION-H2-C2}/family_photo.*.png",
+          "attribute_name": "family_photos"
+        }
+      ])
+
+      rules = {
+        victim: '^LABORS-LION-H\d+-C\d+$'
+      }
+
+      update, stats = Metis::Loader.new(config, rules).update_for(tail)
 
       expect(update['revisions']).to eq(
         victim: {
@@ -201,7 +243,7 @@ describe Metis::Loader do
         }
       ])
 
-      update = Metis::Loader.new(config, rules, {}, model_std).update_for(
+      update, stats = Metis::Loader.new(config, rules, {}, model_std).update_for(
         tail, metis
       )
 
@@ -231,7 +273,7 @@ describe Metis::Loader do
         }
       ])
 
-      update = Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)
+      update, stats = Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)
 
       expect(update['revisions']).to eq(
         'victim' => {
@@ -259,7 +301,7 @@ describe Metis::Loader do
         }
       ])
 
-      update = Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)
+      update, stats = Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)
 
       expect(update['revisions']).to eq(
         'victim' => {
@@ -362,7 +404,7 @@ describe Metis::Loader do
         }
       ])
 
-      update = Metis::Loader.new(config, rules, {}, model_std).update_for(
+      update, stats = Metis::Loader.new(config, rules, {}, model_std).update_for(
         tail, metis
       )
 
@@ -392,7 +434,7 @@ describe Metis::Loader do
                               }
                           ]
           )
-        update = Metis::Loader.new(config, rules, {}, model_table).update_for(tail, metis)
+        update, stats = Metis::Loader.new(config, rules, {}, model_table).update_for(tail, metis)
 
         expect(update['revisions']).to eq(
           'victim' => {
@@ -448,7 +490,7 @@ describe Metis::Loader do
           }
         ]
       )
-      update = Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)
+      update, stats = Metis::Loader.new(config, rules, {}, model_std).update_for(tail, metis)
       expect(update['revisions']).to eq(
         'victim' => {
           'LABORS-LION-H1-C1' => {}
@@ -471,7 +513,7 @@ describe Metis::Loader do
           }
         }
       ])
-      update = Metis::Loader.new(config, rules, {commit: false}, model_std).update_for(tail, metis)
+      update, stats = Metis::Loader.new(config, rules, {commit: false}, model_std).update_for(tail, metis)
       expect(update['dry_run']).to be_truthy
       expect(update['autolink']).to be_truthy
     end

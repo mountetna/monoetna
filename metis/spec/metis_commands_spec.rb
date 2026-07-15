@@ -91,6 +91,35 @@ describe 'Metis Commands' do
       end
     end
   end
+
+  describe Metis::ChangeDatablockDescription do
+    let(:description) { "Updated by command" }
+    let(:csv) { Tempfile.new(["md5s", ".csv"]) }
+
+    let!(:db1) { create(:data_block, md5_hash: "md5_one", description: "To Update", size: 10) }
+    let!(:db2) { create(:data_block, md5_hash: "md5_two", description: "To Update", size: 20) }
+    let!(:db3) { create(:data_block, md5_hash: "md5_three", description: "To Update", size: 30) }
+
+    before do
+      csv.write("md5_one\nmd5_two\nmd5_three\nmd5_one\n")
+      csv.rewind
+    end
+
+    after do
+      csv.close
+      csv.unlink
+    end
+
+    it "updates datablock descriptions from csv md5s" do
+      expect {
+        described_class.new.execute(csv.path, description: description)
+      }.to output("Found 3 unique md5 hashes.\nUpdated 3 data blocks.\n").to_stdout
+
+      expect(db1.refresh.description).to eq("Updated by command")
+      expect(db2.refresh.description).to eq("Updated by command")
+      expect(db3.refresh.description).to eq("Updated by command")
+    end
+  end
 end
 
 describe Metis::BackfillDataBlockLedger do
@@ -157,6 +186,8 @@ describe Metis::BackfillDataBlockLedger do
       
       wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
 
+      enable_all_ledger_events
+
       backfill_ledger = Metis::BackfillDataBlockLedger.new
 
       # Run backfill first time - should create link event
@@ -179,6 +210,8 @@ describe Metis::BackfillDataBlockLedger do
       wisdom_file = upload_file_via_api('athena', 'wisdom.txt', WISDOM)
       labors_file = upload_file_via_api('labors', 'labors.txt', WISDOM)
       backup_file = upload_file_via_api('backup', 'backup.txt', WISDOM)
+
+      enable_all_ledger_events
 
       backfill_ledger = Metis::BackfillDataBlockLedger.new
       backfill_ledger.execute(project_name: 'athena', links: true)
@@ -235,6 +268,7 @@ describe Metis::BackfillDataBlockLedger do
       delete("/athena/file/remove/files/helmet.jpg")
       expect(last_response.status).to eq(200)
 
+      enable_all_ledger_events
 
       # Mock the ask_user method to return 'y' automatically
       backfill_ledger = Metis::BackfillDataBlockLedger.new
@@ -283,6 +317,8 @@ describe Metis::BackfillDataBlockLedger do
       delete("/athena/file/remove/files/wisdom.txt")
       expect(last_response.status).to eq(200)
 
+      enable_all_ledger_events
+
       backfill_ledger = Metis::BackfillDataBlockLedger.new
 
       # Run backfill first time - should create unlink event
@@ -310,6 +346,8 @@ describe Metis::BackfillDataBlockLedger do
         delete("/athena/file/remove/files/wisdom.txt")
         expect(last_response.status).to eq(200)
   
+        enable_all_ledger_events
+
         backfill_ledger = Metis::BackfillDataBlockLedger.new
   
         # Run backfill should detect no orphaned datablocks

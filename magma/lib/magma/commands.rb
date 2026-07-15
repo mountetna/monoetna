@@ -1,6 +1,8 @@
 require 'date'
 require 'logger'
+require 'yaml'
 require 'etna/command'
+require_relative './actions/base_action'
 
 class Magma
   class RetrieveProjectTemplate < Etna::Command

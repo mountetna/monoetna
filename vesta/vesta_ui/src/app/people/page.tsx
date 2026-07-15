@@ -81,7 +81,7 @@ export default function People() {
       }}>
         <Typography variant='h2'>People</Typography>
         <Box sx={{ mt: '32px' }}>
-        <Typography variant='pLarge'>The Data Library hosts a series of research projects containing multi-omic data and de-identified clinical data. Project data is shared in our research community to best leverage these rich datasets toward biological discovery. </Typography>
+        <Typography variant='pLarge'>Meet the people behind the Data Library. This page showcases the collaborative team of engineers, scientists, support staff, and steering committee members who together build and guide the platform.</Typography>
         </Box>
       </Box>
       <Section title='Data library team'>

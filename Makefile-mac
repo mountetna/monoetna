@@ -54,6 +54,17 @@ web-up:
 
 web-restart: stop-all web-up
 
+web-down:
+	cd edge-apache && docker compose down
+	cd magma && docker compose down
+	cd janus && docker compose down
+	cd timur && docker compose down
+	cd gnomon && docker compose down
+	cd polyphemus && docker compose down
+	cd metis && docker compose down
+	cd vulcan && docker compose down
+	cd vesta && docker compose down
+
 migrate-all: magma-migrate janus-migrate timur-migrate gnomon-migrate poly-migrate metis-migrate airflow-migrate vulcan-migrate
 
 ## Etna ##
@@ -193,6 +204,12 @@ metis-remove:
 	cd metis && docker compose down
 
 metis-migrate:
+	cd metis && docker compose run --rm -e UPDATE_STATE=1 metis_app
+
+metis-clear:
+	cd metis && docker compose rm -f -s
+	docker volume rm -f db-data data-dir
+	cd metis && docker compose up -d
 	cd metis && docker compose run --rm -e UPDATE_STATE=1 metis_app
 
 ## Etna Edge ##

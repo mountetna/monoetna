@@ -9,12 +9,12 @@ export default function Vignette({}) {
   const [text, setText] = useState('');
 
   useEffect(() => {
-    if ('vignette.md' in state.status.file_contents) {
+    if (!!state.workspace && !!state.workspace.vignette) {
       setText(
-        state.status.file_contents['vignette.md']
+        state.workspace.vignette
       );
     }
-  }, [state.status.file_contents]);
+  }, [state.workspace]);
 
   return (
     <div

@@ -57,6 +57,24 @@ class GnomonController < Magma::Controller
       version_number: version_number
     )
 
+    if grammar.token_project_name
+      project_model = Magma.instance.get_project(@project_name).models[:project]
+
+      updated = false
+      if project_model.count == 0
+        project_model.create( project_model.identity.attribute_name => grammar.token_project_name )
+        updated = true
+      elsif project_model.first[ project_model.identity.attribute_name.to_sym ] != grammar.token_project_name
+        project_model.dataset.update( project_model.identity.attribute_name => grammar.token_project_name )
+        updated = true
+      end
+
+      if updated
+        janus_client = Etna::Clients::Janus.new(token: @user.token, host: Magma.instance.config(:janus)[:host])
+        janus_client.update_project(Etna::Clients::Janus::UpdateProjectRequest.new(project_name: @params[:project_name], project_name_full: grammar.token_project_name))
+      end
+    end
+
     event_log(
       event: 'update_rules',
       message: "created version #{version_number} of rules"

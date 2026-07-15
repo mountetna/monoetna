@@ -72,10 +72,10 @@ export default function FeatureProject({
                 }}
             >
               <LinkoutButton size='large'
-                tooltip='Open in Library'
+                tooltip={ `Open ${project.name.toUpperCase()}` }
                 link={
                   // @ts-ignore
-                  project.href
+                  '/project/' + project.name
                 }/>
             </Box>
         </Box>

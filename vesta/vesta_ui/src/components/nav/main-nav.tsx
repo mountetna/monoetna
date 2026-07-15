@@ -25,9 +25,9 @@ export function getMainNavHeight(breakpoint: Breakpoint): number {
 
 
 export default function MainNav({
-    accessUrl,
+    loginUrl,
 }: {
-    accessUrl: string,
+    loginUrl: string,
 }) {
     const theme = useTheme()
 
@@ -151,7 +151,7 @@ export default function MainNav({
                 >
                     <DrawerNav
                         open={overlayNavOpen}
-                        accessUrl={accessUrl}
+                        loginUrl={loginUrl}
                         onClose={() => setOverlayNavOpen(false)}
                         onClickNavLink={() => setOverlayNavOpen(false)}
                         sx={{
@@ -173,7 +173,7 @@ export default function MainNav({
                     />
 
                     <NavBar
-                        accessUrl={accessUrl}
+                        loginUrl={loginUrl}
                         variant={shouldAndIsStuck ? 'condensed' : 'default'}
                         sx={{
                             position: 'absolute',

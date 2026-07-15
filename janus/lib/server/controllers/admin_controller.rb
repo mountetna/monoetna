@@ -9,8 +9,16 @@ class AdminController < Janus::Controller
 
     raise Etna::BadRequest, "No such project #{@params[:project_name]}" unless @project
 
+    project_hash = @project.to_hash
+
+    unless @user.is_superviewer?
+      project_hash.update(
+        permissions: @project.active_permissions
+      )
+    end
+
     success_json(
-      project: @project.to_hash
+      project: project_hash
     )
   end
 

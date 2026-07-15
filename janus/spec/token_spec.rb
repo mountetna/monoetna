@@ -103,6 +103,21 @@ describe "Token Generation" do
     expect(last_response.status).to eq(401)
   end
 
+  it "rejects token generation with an inactive user" do
+    @user.flags = [ 'inactive' ]
+    @user.save
+
+    get('/api/tokens/nonce')
+
+    request = request_token(@rsa_key, last_response.body, @user.email)
+
+    header 'Authorization', "Signed-Nonce #{request}"
+    post('/api/tokens/generate')
+
+    # The request is rejected
+    expect(last_response.status).to eq(401)
+  end
+
   it "rejects token generation with an invalid signature" do
     # We get the valid nonce
     get('/api/tokens/nonce')

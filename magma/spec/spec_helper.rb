@@ -122,8 +122,86 @@ def load_labors_project
   require_relative './labors/metrics/labor_metrics'
 end
 
+def create_labors_template_project(magma_client = Etna::Clients::LocalMagmaClient.new)
+  reload_projects = lambda do
+    Object.class_eval { remove_const(:LaborsTemplate) if Object.const_defined?(:LaborsTemplate) }
+    Magma.instance.magma_projects.clear
+    Magma.instance.load_models(false)
+  end
+
+  perform_template_actions = lambda do |actions|
+    update_actions = Magma::ModelUpdateActions.build(
+      "labors_template",
+      actions,
+      magma_client.user,
+    )
+
+    raise "Failed to set up labors_template: #{update_actions.errors}" unless update_actions.perform
+
+    reload_projects.call
+  end
+
+  perform_template_actions.call([
+    { action_name: "add_project", no_metis_bucket: true },
+  ])
+
+  perform_template_actions.call([
+    {
+      action_name: "add_model",
+      model_name: "labor",
+      identifier: "name",
+      parent_model_name: "project",
+      parent_link_type: "collection",
+    },
+  ])
+
+  perform_template_actions.call([
+    {
+      action_name: "add_model",
+      model_name: "monster",
+      identifier: "name",
+      parent_model_name: "labor",
+      parent_link_type: "child",
+    },
+  ])
+
+  perform_template_actions.call([
+    {
+      action_name: "add_model",
+      model_name: "something",
+      identifier: "name",
+      parent_model_name: "project",
+      parent_link_type: "collection",
+    },
+  ])
+
+  # Load the same labors attributes as in the labors project.
+  YAML.load(File.read("./spec/fixtures/labors_model_attributes.yml")).each do |model_name, attributes|
+    next unless %w[labor monster].include?(model_name)
+
+    Magma.instance.db[:models].where(
+      project_name: "labors_template",
+      model_name: model_name,
+    ).update(
+      dictionary: attributes.delete("dictionary")
+    )
+
+    attributes.each do |attribute_name, options|
+      row = options
+      row["column_name"] = attribute_name unless row["column_name"]
+
+      Magma.instance.db[:attributes].where(
+        project_name: "labors_template",
+        model_name: model_name,
+        attribute_name: attribute_name,
+      ).update(row)
+    end
+  end
+end
+
 Magma.instance.setup_db
 load_labors_project
+create_labors_template_project
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
@@ -438,7 +516,7 @@ AUTH_USERS = {
 }
 
 def auth_header(user_type)
-  header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
+  header(*Etna::TestAuth.token_header(AUTH_USERS[user_type].merge(exp: Time.now.to_i + 6000)))
 end
 
 def json_post(endpoint, hash)
@@ -483,6 +561,11 @@ def set_date_shift_root(model_name, value)
     model_name: model_name,
     date_shift_root: value,
   }).perform
+end
+
+def stub_janus_projects
+  stub_request(:get, "https://janus.test/api/user/projects").
+    to_return(status: 200, body: "", headers: {})
 end
 
 def stub_date_shift_data(project)

@@ -15,7 +15,9 @@ describe Vulcan::Snakemake::Inference do
       "ui_job_one" => ["checker"],
       "checker"    => ["arithmetic"],
       "arithmetic" => ["count"],
-      "count"      => [],
+      "count"      => ["set_poem_1", "set_poem_2"],
+      "set_poem_1" => [],
+      "set_poem_2" => [],
       "ui_job_two" => [],
       "summary"    => ["count", "arithmetic", "checker", "ui_job_one", "ui_job_two"]
     }
@@ -42,7 +44,7 @@ describe Vulcan::Snakemake::Inference do
 
     it 'correctly finds all targets with all params' do
       provided_params = ["count_bytes", "count_chars", "add", "add_and_multiply_by", "ui"]
-      available_files = ["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt", "output/ui_job_one.txt", "output/ui_job_two.txt"]
+      available_files = ["output/poem.txt", "output/poem_2.txt", "output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt", "output/ui_job_one.txt", "output/ui_job_two.txt"]
       targets = Vulcan::Snakemake::Inference.find_buildable_targets(target_mapping, provided_params, available_files)
       expect(targets).to eq(["output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt", "output/summary.txt"])
     end
@@ -51,7 +53,7 @@ describe Vulcan::Snakemake::Inference do
   context 'find_ui_targets' do
     it 'correctly finds the ui targets' do
       result = Vulcan::Snakemake::Inference.ui_targets(target_mapping)
-      expect(result).to eq(["output/ui_job_one.txt", "output/ui_job_two.txt", "output/ui_summary.txt"])
+      expect(result).to eq(["output/poem.txt", "output/poem_2.txt", "output/ui_job_one.txt", "output/ui_job_two.txt", "output/ui_summary.txt"])
     end
   end
 
@@ -79,7 +81,7 @@ describe Vulcan::Snakemake::Inference do
   context 'flattens an adjacency list' do
     it 'correctly flattens the dag' do
       result = Vulcan::Snakemake::Inference.flatten_adjacency_list(job_adjacency_list)
-      expect(result).to eq(["count", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
+      expect(result).to eq(["set_poem_1", "set_poem_2", "count", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
     end
   end
 

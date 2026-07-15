@@ -28,11 +28,13 @@ class StatsController < Janus::Controller
       }
     end
 
+    inactive_users = Set.new( User.inactive.select_map(:id) )
+
     permissions.each do |perm|
       project_name = perm.project.project_name
       proj = projects.find { |proj| proj[:project_name] == project_name }
 
-      proj[:user_count] += 1
+      proj[:user_count] += 1 unless inactive_users.include?(perm.user_id)
 
       if perm[:affiliation] == 'PI'
 
@@ -45,7 +47,7 @@ class StatsController < Janus::Controller
       end
     end
 
-    user_count = User.count
+    user_count = User.active.count
 
     success_json({projects: projects, user_count: user_count})
   end

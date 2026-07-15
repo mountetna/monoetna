@@ -27,6 +27,11 @@ describe VulcanV2Controller do
     }.merge(params))
   end
 
+  let(:expected_default_params) {{
+    count_bytes: true,
+    count_chars: false
+  }}
+
   def setup_workspace(workflow=nil, params={})
     workflow = create_workflow unless workflow
 
@@ -36,7 +41,6 @@ describe VulcanV2Controller do
     request = {
       workflow_id: workflow.id,
       workspace_name: "running-tiger",
-      branch: "main",
       git_request: "v1"
     }.merge(params)
     post("/api/v2/#{project_name}/workspace/create", request)
@@ -192,13 +196,32 @@ describe VulcanV2Controller do
         "ui_job_one"=>["checker"],
         "checker"=>["arithmetic"],
         "arithmetic"=>["count"],
-        "count"=>[],
+        "count"=>["set_poem_1", "set_poem_2"],
+        "set_poem_1"=>[],
+        "set_poem_2"=>[],
         "ui_job_two"=>[],
         "summary"=>["count", "arithmetic", "checker", "ui_job_one", "ui_job_two"]
       })
       expect(File.basename(workspace.path).match?(/\A[a-f0-9]{32}\z/)).to be_truthy
       expect(workspace.git_ref).to eq("v1")
       expect(workspace.git_sha).to_not eq(nil)
+    end
+
+    it 'successfully creates a first config, treating un-defaulted params as unfilled in state' do
+      auth_header(:editor)
+      post_workspace_create(workspace_request)
+      expect(last_response.status).to eq(200)
+      # Make sure a config object exists
+      config = Vulcan::Config.first(workspace_id: json_body[:workspace_id])
+      # Make sure the corresponding config file exists
+      expect(remote_manager.file_exists?(config.path)).to be_truthy
+      file_content = remote_manager.read_json_file(config.path)
+      # Confirm that the config file has the correct values
+      expect(file_content).to eq(expected_default_params.transform_keys(&:to_s))
+      # Steps downstream of un-defaulted params are deemed downstream
+      expect(config[:state]['jobs']['completed']).to match_array([])
+      expect(config[:state]['jobs']['planned']).to match_array([])
+      expect(config[:state]['jobs']['unscheduled']).to match_array(["count", "set_poem_1", "set_poem_2", "arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
     end
 
     it 'successfully sends back vulcan_config and dag, file_dag, and dag_flattened' do
@@ -254,10 +277,10 @@ describe VulcanV2Controller do
       workspace = Vulcan::Workspace.all[0]
       # We need to write some initial input files to the workspace.
       write_files_to_workspace(workspace.id)
-      # Next we run the first snakemake job
+      # Next we set a new config (values distinct from the default)
       request = {
           params: {
-            count_bytes: false,
+            count_bytes: true,
             count_chars: true
           },
           paramsChanged: [],
@@ -273,9 +296,10 @@ describe VulcanV2Controller do
       expect(remote_manager.file_exists?(config.path)).to be_truthy
 
       # Make sure the config file also has the correct default values as well as the new values
-      default_config_content = remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
-      expected_config_content = default_config_content.merge(JSON.parse(request[:params].to_json))
-      expect(remote_manager.read_json_file(config.path)).to eq(expected_config_content)
+      default_config_content = remote_manager.read_json_file(Vulcan::Path.stub_snakemake_config(workspace.path))
+      expected_stubbed_content = default_config_content.merge(JSON.parse(request[:params].to_json))
+      expect(remote_manager.read_json_file(config.path)).to eq(request[:params].transform_keys(&:to_s))
+      expect(remote_manager.read_json_file(Vulcan::Path.stub_snakemake_config(workspace.path))).to eq(expected_stubbed_content.transform_keys(&:to_s))
     end
 
     it 'creates a new config if the same config already exists' do  
@@ -283,7 +307,7 @@ describe VulcanV2Controller do
       workspace = Vulcan::Workspace.all[0]
       # We need to write some initial input files to the workspace.
       write_files_to_workspace(workspace.id)
-      # Next we run the first snakemake job
+      # Next we set a new config (but values same as the default)
       request = {
         params: {
           count_bytes: false,
@@ -292,8 +316,6 @@ describe VulcanV2Controller do
         paramsChanged: [],
         uiFilesSent: []
       }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      config_id = json_body[:config_id]
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       expect(last_response.status).to eq(200)
       # Make sure the config file exists
@@ -310,17 +332,10 @@ describe VulcanV2Controller do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
       write_files_to_workspace(workspace.id)
-      # Create a config and run a job
-      request = {
-        params: {
-          count_bytes: false,
-          count_chars: true 
-        },
-        paramsChanged: [],
-        uiFilesSent: []
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      config_1 = Vulcan::Config.first(id: json_body[:config_id])
+      # Initial config from defaulted values
+      config_1 = Vulcan::Config.first(workspace_id: workspace.id)
+
+      # Next we set a new config (values distinct from the default)
       request_2 = {
         params: {
           count_bytes: false,
@@ -329,15 +344,6 @@ describe VulcanV2Controller do
         paramsChanged: ["count_chars"],
         uiFilesSent: []
       }
-
-      # NOTE: when we set
-      # params: {
-      #   count_bytes: true,
-      #   count_chars: false 
-      # }
-      # after the first request snakemake does not detect that the config has changed.
-      # Not entirely sure why, but this just happens with our example workflow.
-
 
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request_2)
       config_2 = Vulcan::Config.first(id: json_body[:config_id])
@@ -356,7 +362,7 @@ describe VulcanV2Controller do
       expect(config_content_1).to_not eq(config_content_2)
 
       # Confirm that the config files have the correct values
-      request[:params].each do |key, expected_value|
+      expected_default_params.each do |key, expected_value|
         expect(config_content_1[key.to_s]).to eq(expected_value)
       end
 
@@ -371,7 +377,7 @@ describe VulcanV2Controller do
     it 'correctly returns the scheduled and downstream files (first job)' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
-      # We need to write some initial input files to the workspace.
+      # We need to write some initial input files to the workspace (the outputs of 2 ui-steps)
       write_files_to_workspace(workspace.id)
       # Next we run the first snakemake job
       request = {
@@ -386,14 +392,14 @@ describe VulcanV2Controller do
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
       expect(json_body[:jobs][:planned]).to match_array(["count"])
       expect(json_body[:jobs][:unscheduled]).to match_array(["arithmetic", "checker", "ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
-      expect(json_body[:jobs][:completed]).to match_array([])
+      expect(json_body[:jobs][:completed]).to match_array(["set_poem_1", "set_poem_2"])
 
       expect(json_body[:files][:planned]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt"])
       expect(json_body[:files][:unscheduled]).to match_array(["output/arithmetic.txt", "output/check.txt", "output/ui_job_one.txt", "output/ui_job_two.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
-      expect(json_body[:files][:completed]).to match_array([])
+      expect(json_body[:files][:completed]).to match_array(["output/poem.txt", "output/poem_2.txt"])
        
       config = Vulcan::Config.first(id: json_body[:config_id])
-      expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
+      expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt", "resources/vignette.md"])
       expect(config.input_params.to_h.transform_values(&:to_s)).to eq(request[:params].transform_keys(&:to_s).transform_values(&:to_s))
     end
 
@@ -401,7 +407,7 @@ describe VulcanV2Controller do
     it 'correctly returns scheduled and downstream files and jobs (three jobs)' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
-      # We need to write some initial input files to the workspace.
+      # We need to write some initial input files to the workspace (the outputs of 2 ui-steps)
       write_files_to_workspace(workspace.id)
       # Next we run the first 3 snakemake jobs
       request = {
@@ -418,23 +424,23 @@ describe VulcanV2Controller do
       # TODO: figure maybe change algorithm to include ui_job_two and output/ui_job_two.txt
       # Both are root nodes but should probably be included
       post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      expect(json_body[:jobs][:completed]).to match_array([])
+      expect(json_body[:jobs][:completed]).to match_array(["set_poem_1", "set_poem_2"])
       expect(json_body[:jobs][:planned]).to match_array(["count", "arithmetic", "checker"])
       expect(json_body[:jobs][:unscheduled]).to match_array(["ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
 
-      expect(json_body[:files][:completed]).to match_array([])
+      expect(json_body[:files][:completed]).to match_array(["output/poem.txt", "output/poem_2.txt"])
       expect(json_body[:files][:planned]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt", "output/arithmetic.txt", "output/check.txt"])
       expect(json_body[:files][:unscheduled]).to match_array(["output/ui_job_one.txt", "output/ui_job_two.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
 
       config = Vulcan::Config.first(id: json_body[:config_id])
-      expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt"])
+      expect(config.input_files).to eq(["output/poem.txt", "output/poem_2.txt", "resources/number_to_add.txt", "resources/vignette.md"])
       expect(config.input_params.to_h.transform_values(&:to_s)).to eq(request[:params].transform_keys(&:to_s).transform_values(&:to_s))
     end
 
     it 'it correctly returns scheduled and downstream files and jobs after a config has been run and then changed' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
-      # We need to write some initial input files to the workspace.
+      # We need to write some initial input files to the workspace (the outputs of 2 ui-steps)
       write_files_to_workspace(workspace.id)
       # Next we run the first 3 snakemake jobs
       request = {
@@ -460,7 +466,7 @@ describe VulcanV2Controller do
         params: {
           count_bytes: false,
           count_chars: true,
-          add: 4, # Change the add param
+          add: 4, # Change the add param -- affects arithmetic step and downstream.
           add_and_multiply_by: 2
         },
         paramsChanged: ["add"],
@@ -474,20 +480,21 @@ describe VulcanV2Controller do
         get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}") 
       end 
       expect(last_response.status).to eq(200)
-      expect(config_request[:jobs][:completed]).to match_array(["count"])
+      expect(config_request[:jobs][:completed]).to match_array(["count", "set_poem_1", "set_poem_2"])
       expect(config_request[:jobs][:planned]).to match_array(["arithmetic", "checker"])
       expect(config_request[:jobs][:unscheduled]).to match_array(["ui_job_one", "ui_job_two", "summary", "ui_summary", "final"])
 
-      expect(config_request[:files][:completed]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt"])
+      expect(config_request[:files][:completed]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt", "output/poem.txt", "output/poem_2.txt"])
       expect(config_request[:files][:planned]).to match_array(["output/arithmetic.txt", "output/check.txt"])
       expect(config_request[:files][:unscheduled]).to match_array(["output/ui_job_one.txt", "output/ui_job_two.txt", "output/summary.txt", "output/ui_summary.txt", "output/final.txt"])
 
     end
 
+    # This test alone takes almost 3 minutes to run
     it 'correctly returns ui_jobs in completed and unscheduled' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
-      write_files_to_workspace(workspace.id)
+      write_files_to_workspace(workspace.id) # (the outputs of 2 ui-steps)
       
       # Run the first 3 jobs (count, arithmetic, checker)
       request = {
@@ -534,6 +541,8 @@ describe VulcanV2Controller do
         "output/count_poem_2.txt", 
         "output/arithmetic.txt", 
         "output/check.txt", 
+        "output/poem.txt",
+        "output/poem_2.txt",
         "output/ui_job_one.txt"
       )
       expect(json_body[:files][:unscheduled]).to contain_exactly(
@@ -544,7 +553,7 @@ describe VulcanV2Controller do
       )
       
       expect(json_body[:jobs][:planned]).to eq([])
-      expect(json_body[:jobs][:completed]).to contain_exactly("count", "arithmetic", "checker", "ui_job_one")
+      expect(json_body[:jobs][:completed]).to contain_exactly("count", "arithmetic", "checker", "set_poem_1", "set_poem_2", "ui_job_one")
       expect(json_body[:jobs][:unscheduled]).to contain_exactly("summary", "final", "ui_job_two", "ui_summary")
 
       # Now change upstream by modifying the add param and re-running checker
@@ -569,7 +578,7 @@ describe VulcanV2Controller do
       
       # After changing add param, arithmetic and checker need to be re-run
       expect(json_body[:files][:planned]).to contain_exactly("output/arithmetic.txt", "output/check.txt")
-      expect(json_body[:files][:completed]).to contain_exactly("output/count_poem.txt", "output/count_poem_2.txt")
+      expect(json_body[:files][:completed]).to contain_exactly("output/count_poem.txt", "output/count_poem_2.txt", "output/poem.txt", "output/poem_2.txt")
       expect(json_body[:files][:unscheduled]).to contain_exactly(
         "output/summary.txt", 
         "output/final.txt", 
@@ -579,7 +588,7 @@ describe VulcanV2Controller do
       )
       
       expect(json_body[:jobs][:planned]).to contain_exactly("arithmetic", "checker")
-      expect(json_body[:jobs][:completed]).to contain_exactly("count")
+      expect(json_body[:jobs][:completed]).to contain_exactly("count", "set_poem_1", "set_poem_2")
       expect(json_body[:jobs][:unscheduled]).to contain_exactly("summary", "final", "ui_job_one", "ui_job_two", "ui_summary")
       
       # Run the workflow with changed params
@@ -615,7 +624,9 @@ describe VulcanV2Controller do
         "output/count_poem_2.txt", 
         "output/arithmetic.txt", 
         "output/check.txt", 
-        "output/ui_job_one.txt"
+        "output/ui_job_one.txt",
+        "output/poem.txt",
+        "output/poem_2.txt"
       )
       expect(json_body[:files][:unscheduled]).to contain_exactly(
         "output/summary.txt", 
@@ -625,7 +636,7 @@ describe VulcanV2Controller do
       )
       
       expect(json_body[:jobs][:planned]).to eq([])
-      expect(json_body[:jobs][:completed]).to contain_exactly("count", "arithmetic", "checker", "ui_job_one")
+      expect(json_body[:jobs][:completed]).to contain_exactly("count", "arithmetic", "checker", "set_poem_1", "set_poem_2", "ui_job_one")
       expect(json_body[:jobs][:unscheduled]).to contain_exactly("summary", "final", "ui_job_two", "ui_summary")
       
       # Now write ui_job_two.txt and verify it moves to completed
@@ -652,7 +663,9 @@ describe VulcanV2Controller do
         "output/arithmetic.txt", 
         "output/check.txt", 
         "output/ui_job_one.txt",
-        "output/ui_job_two.txt"
+        "output/ui_job_two.txt",
+        "output/poem.txt",
+        "output/poem_2.txt"
       )
       expect(json_body[:files][:unscheduled]).to contain_exactly(
         "output/final.txt", 
@@ -660,7 +673,7 @@ describe VulcanV2Controller do
       )
       
       expect(json_body[:jobs][:planned]).to eq(["summary"])
-      expect(json_body[:jobs][:completed]).to contain_exactly("count", "arithmetic", "checker", "ui_job_one", "ui_job_two")
+      expect(json_body[:jobs][:completed]).to contain_exactly("count", "arithmetic", "checker", "set_poem_1", "set_poem_2", "ui_job_one", "ui_job_two")
       expect(json_body[:jobs][:unscheduled]).to contain_exactly("final", "ui_summary")
     end
 
@@ -688,15 +701,14 @@ describe VulcanV2Controller do
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
       expect(last_response.status).to eq(200)
       # Make sure the config file also has the correct default values as well as the new values
-      default_config_content = remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
-      expected_config_content = default_config_content.merge(JSON.parse(request[:params].to_json))
-      expect(json_body[:last_config]).to eq(expected_config_content.transform_keys(&:to_sym))
+      expect(json_body[:last_config]).to eq(request[:params].transform_keys(&:to_sym))
       expect(json_body[:last_config_id]).to_not be_nil
       expect(json_body[:last_job_status]).to be_nil
       expect(json_body[:dag]).to_not be_nil
       expect(json_body[:dag_flattened]).to_not be_nil
       expect(json_body[:vulcan_config]).to_not be_nil
       expect(json_body[:last_run_id]).to be_nil
+      expect(json_body[:vignette]).to_not be_nil
     end
 
     it 'returns the last run and last config' do
@@ -738,23 +750,12 @@ describe VulcanV2Controller do
 
       # Check that the last config is the second config
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
-      workspace = Vulcan::Workspace.first(id: workspace_id)
-      default_config_content = remote_manager.read_json_file(Vulcan::Path.default_snakemake_config(workspace.path))
-      expected_config_content = default_config_content.merge(JSON.parse(request_2[:params].to_json))
-      expect(json_body[:last_config]).to eq(expected_config_content.transform_keys(&:to_sym))
-      expect(json_body[:last_config_id]).to_not be_nil
+      expect(json_body[:last_config]).to eq(request_2[:params].transform_keys(&:to_sym))
+      expect(json_body[:last_config_id]).to eq(config_id)
       expect(json_body[:last_job_status]).to_not be_nil
       expect(json_body[:last_run_id]).to_not be_nil
       expect(json_body[:dag]).to_not be_nil
       expect(json_body[:vulcan_config]).to_not be_nil
-    end
-
-    it 'returns no configs if they do not exist' do
-      workspace_id = json_body[:workspace_id]
-      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
-      expect(last_response.status).to eq(200)
-      expect(json_body[:last_config]).to be_nil
-      expect(json_body[:last_job_status]).to be_nil
     end
 
     it 'updates the token in the dl_config.yaml when the author views the workspace' do
@@ -780,6 +781,24 @@ describe VulcanV2Controller do
       # Token should remain unchanged
       expect(remote_manager.read_yaml_file(Vulcan::Path.dl_config(json_body[:workspace_path]))["token"]).to eq(original_token)
       expect(remote_manager.read_yaml_file(Vulcan::Path.dl_config(json_body[:workspace_path]))["token"]).to_not eq("editor_token")
+    end
+
+  end
+
+  context 'list a specific workspace' do
+
+    before do
+      setup_workspace(nil, {git_request: 'no-default'})
+    end
+
+    # With the test workflow, a first config is now established during workspace_creation
+    # To bring back test, an alternate workflow is required.
+    it 'returns no configs if they do not exist' do
+      workspace_id = json_body[:workspace_id]
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}")
+      expect(last_response.status).to eq(200)
+      expect(json_body[:last_config]).to be_nil
+      expect(json_body[:last_job_status]).to be_nil
     end
 
   end
@@ -1041,7 +1060,7 @@ describe VulcanV2Controller do
     it 'returns different state after we have run the config' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
-      write_files_to_workspace(workspace.id)
+      write_files_to_workspace(workspace.id) # (the outputs of 2 ui-steps)
       
       # Create a config
       request = {
@@ -1082,8 +1101,8 @@ describe VulcanV2Controller do
       # Verify that the state has changed after running the workflow
       # Files that were planned should now be completed
       current_state = json_body
-      expect(current_state[:files][:completed]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt"])
-      expect(current_state[:jobs][:completed]).to match_array(["count"])
+      expect(current_state[:files][:completed]).to match_array(["output/count_poem.txt", "output/count_poem_2.txt", "output/poem.txt", "output/poem_2.txt"])
+      expect(current_state[:jobs][:completed]).to match_array(["count", "set_poem_1", "set_poem_2"])
       
       # The completed files/jobs should be different from the initial planned state
       expect(current_state[:files][:completed]).to_not eq(initial_state[:files][:completed])
@@ -1092,332 +1111,6 @@ describe VulcanV2Controller do
       # The planned arrays should be empty since the job completed
       expect(current_state[:files][:planned]).to be_empty
       expect(current_state[:jobs][:planned]).to be_empty
-    end
-  end
-
-  
-  context 'running workflows' do
-
-    # Refer to /spec/fixtures/snakemake-repo/ as the workflow that is being run
-
-    before do
-      setup_workspace
-    end
-
-    def write_file_to_workspace(original_request, workspace, file_name, content)
-      file_request = {
-        files: [{
-          filename: file_name,
-          content: content
-        }]
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/write", file_request)
-      expect(last_response.status).to eq(200)
-      config_request = original_request.merge(uiFilesSent: ["output/#{file_name}"])
-      run_with_retry do
-        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", config_request)
-      end
-    end
-
-    def run_entire_test_workflow(workspace)
-      auth_header(:editor)
-      write_files_to_workspace(workspace.id)
-
-      request_first_jobs = {
-        params: {
-          count_bytes: true,
-          count_chars: false,
-          add: 2,
-          add_and_multiply_by: 4
-        },
-        uiFilesSent: [],
-        paramsChanged: []
-      }
-
-      # Run the first 3 jobs
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request_first_jobs)
-      config_id = json_body[:config_id]
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
-      run_id = json_body[:run_id]
-      check_jobs_status(["count", "arithmetic", "checker"]) do
-        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
-      end
-      expect(last_response.status).to eq(200)
-
-      # Next step involves UI steps - so we just simulate this by writing files to the workspace
-      write_file_to_workspace(request_first_jobs, workspace, "ui_job_one.txt", "This is a test file, with content 1")
-      write_file_to_workspace(request_first_jobs, workspace, "ui_job_two.txt", "This is a test file, with content 2")
-      config_id = json_body[:config_id]
-      run_with_retry do
-        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
-      end
-      expect(last_response.status).to eq(200)
-
-      # Make sure jobs have finished
-      run_id = json_body[:run_id]
-      check_jobs_status(["summary"]) do
-        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
-      end
-      expect(last_response.status).to eq(200)
-
-      write_file_to_workspace(request_first_jobs, workspace, "ui_summary.txt", "This is a test file, with content 3")
-      # Run the final job
-      run_with_retry do
-        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
-      end
-      run_id = json_body[:run_id]
-      check_jobs_status(["final"]) do
-        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
-      end
-      expect(last_response.status).to eq(200)
-    end
-
-    it 'alerts if snakemake is still running' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      write_files_to_workspace(workspace.id)
-      request = {
-          params: {
-            count_bytes: true,
-            count_chars: false,
-            add: 2,
-            add_and_multiply_by: 4
-          },
-          uiFilesSent: [],
-          paramsChanged: []
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      config_id = json_body[:config_id]
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
-      expect(last_response.status).to eq(429)
-      expect(json_body[:error]).to eq("workflow is still running...")
-    end
-
-
-    it 'can run the first step of a workflow' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      # First step in the test workflow is a UI step that writes files to the workspace
-      # These are the initial inputs to the workspace.
-      write_files_to_workspace(workspace.id)
-      # Next we run the first snakemake job
-      request = {
-        params: {
-          count_bytes: false,
-          count_chars: true
-        },
-        uiFilesSent: [],
-        paramsChanged: []
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      expect(last_response.status).to eq(200)
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
-      run_id = json_body[:run_id]
-      expect(last_response.status).to eq(200)
-      expect(run_id).to_not be_nil
-      # Wait until jobs are completed
-      check_jobs_status(["count"]) do
-        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
-      end
-      # Outputs are created
-      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
-      # Run objects exist
-      obj = Vulcan::Run.first(id: run_id)
-      expect(obj).to_not be_nil
-      # Correct config file exists
-      expect(remote_manager.file_exists?(obj.log_path)). to be_truthy
-    end
-
-    it 'can run 3 steps of the workflow' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      write_files_to_workspace(workspace.id)
-      # Run the first 3 jobs at once
-      request = {
-        params: {
-            count_bytes: false,
-            count_chars: true,
-            add: 2,
-            add_and_multiply_by: 2
-        },
-        uiFilesSent: [],
-        paramsChanged: []
-      }
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
-      expect(last_response.status).to eq(200)
-      expect(json_body[:run_id]).to_not be_nil
-      run_id = json_body[:run_id]
-      # Make sure jobs are finished
-      check_jobs_status(["count", "arithmetic", "checker"], 5) do
-        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
-      end
-      # Outputs are created
-      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/check.txt")).to be_truthy
-      # Run objects exist
-      obj = Vulcan::Run.first(id: run_id)
-      expect(obj).to_not be_nil
-      # Log file exists
-      expect(remote_manager.file_exists?(obj.log_path)).to be_truthy
-    end
-
-    it 'can run one step and then another' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      write_files_to_workspace(workspace.id)
-      # Run the first job
-      request = {
-        params: {
-          count_bytes: false,
-          count_chars: true
-        },
-        uiFilesSent: [],
-        paramsChanged: []
-      }
-
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      expect(last_response.status).to eq(200)
-      post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{json_body[:config_id]}")
-      expect(last_response.status).to eq(200)
-      run_id = json_body[:run_id]
-      check_jobs_status(["count"]) do
-        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
-      end
-      expect(last_response.status).to eq(200)
-
-      # Run the next job
-      request = {
-        params: {
-          count_bytes: false,
-          count_chars: true,
-          add: 2,
-          add_and_multiply_by: 4
-        },
-        uiFilesSent: [],
-        paramsChanged: []
-      }
-      run_with_retry do
-        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      end
-      expect(last_response.status).to eq(200)
-      config_id = json_body[:config_id]
-      # Sometimes snakemake still needs a minute to shut-down even though slurm reports the job as complete
-      run_with_retry(5) do
-        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{config_id}")
-      end
-      expect(last_response.status).to eq(200)
-      run_id = json_body[:run_id]
-      # Make sure jobs have finished
-      check_jobs_status(["arithmetic", "checker"]) do
-        get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/run/#{run_id}")
-      end
-      expect(last_response.status).to eq(200)
-
-      # Make sure files exist
-      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")).to be_truthy
-
-      # Make sure two run objects exist
-      runs = Vulcan::Run.all
-      expect(runs.count).to eq(2)
-
-      # Log file exists
-      expect(remote_manager.file_exists?(runs[0].log_path)).to be_truthy
-      expect(remote_manager.file_exists?(runs[1].log_path)).to be_truthy
-      expect(runs[0].log_path).to_not eq(runs[1].log_path)
-    end
-
-    it 'runs the entire workflow' do
-      workspace = Vulcan::Workspace.all[0]
-      run_entire_test_workflow(workspace)
-      expect(last_response.status).to eq(200)
-
-      # Make sure files exist
-      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/count_poem_2.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/check.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/arithmetic.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/summary.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_summary.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/final.txt")).to be_truthy
-
-      # Make sure run objects exist
-      runs = Vulcan::Run.all
-      expect(runs.count).to eq(3)
-
-      # Log file exists
-      expect(remote_manager.file_exists?(runs[0].log_path)).to be_truthy
-      expect(remote_manager.file_exists?(runs[1].log_path)).to be_truthy
-      expect(remote_manager.file_exists?(runs[2].log_path)).to be_truthy
-      expect(runs[0].log_path).to_not eq(runs[1].log_path)
-      expect(runs[1].log_path).to_not eq(runs[2].log_path)
-      expect(runs[0].log_path).to_not eq(runs[2].log_path)
-
-    end
-
-    it 'halts execution of a UI step after a param has changed' do
-      # Run entire workflow
-      workspace = Vulcan::Workspace.all[0]
-      run_entire_test_workflow(workspace)
-      # Now we go back and change the param of earlier job
-      request = {
-        params: {
-          count_bytes: true,
-          count_chars: false,
-          add: 4, # Changed from 2
-          add_and_multiply_by: 4
-        },
-        uiFilesSent: [],
-        paramsChanged: ["add"]
-      }
-      run_with_retry do
-        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", request)
-      end
-      # Make sure that we removed all ui files
-      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_one.txt")).to be_falsey
-      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_summary.txt")).to be_falsey
-    end
-
-    it 'halts execution of a UI step after a UI step has changed' do
-      # Run entire workflow
-      workspace = Vulcan::Workspace.all[0]
-      run_entire_test_workflow(workspace)
-      request_first_jobs = {
-        params: {
-          count_bytes: true,
-          count_chars: false,
-          add: 2,
-          add_and_multiply_by: 4
-        },
-        uiFilesSent: [],
-        paramsChanged: []
-      }
-      write_file_to_workspace(request_first_jobs, workspace, "ui_job_one.txt", "This is a test file, with content haha")
-      # Next step involves UI steps - so we just simulate this by writing files to the workspace
-      # Change a file
-      ui_file_request = {
-        params: {
-          count_bytes: true,
-          count_chars: false,
-          add: 2,
-          add_and_multiply_by: 4
-        },
-        uiFilesSent: ["output/ui_job_one.txt"], # Do we want to include the output/ prefix?
-        paramsChanged: []
-      }
-      run_with_retry do
-        post("/api/v2/#{PROJECT}/workspace/#{workspace.id}/config", ui_file_request)
-      end
-      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_one.txt")).to be_truthy
-      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_job_two.txt")).to be_truthy # This should not be removed
-      expect(remote_manager.file_exists?("#{workspace.path}/output/ui_summary.txt")).to be_falsey
     end
   end
 

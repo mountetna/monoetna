@@ -83,7 +83,7 @@ const columnComponent = (columnName:string, project:Project) => {
       return <Typography variant="pBodyMediumWt">{project.startDate.getFullYear()}</Typography>
     case "Type":
       return <Typography variant="pBodyMediumWt">{project.type}</Typography>
-    case "Phase":
+    case "Status":
       return <Typography variant="pBodyMediumWt">{project.status}</Typography>
     case "Theme":
       return <ThemeChip theme={project.theme}/>
@@ -187,8 +187,8 @@ const ProjectTable = ({currentPage, setCurrentPage}:{
               borderBottom: 'none'
             }}>
               <LinkoutButton size='small'
-                tooltip='Open in Library'
-                link={ project.href }
+                tooltip={ `Open ${project.name.toUpperCase()}` }
+                link={ '/project/' + project.name }
                 />
             </TableCell>
           </TableRow>

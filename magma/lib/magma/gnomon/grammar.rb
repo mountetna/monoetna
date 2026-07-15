@@ -98,6 +98,10 @@ class Magma
         @parser ||= Parser.new(config)
       end
 
+      def token_project_name
+        config.dig("tokens","PROJECT","values")&.keys&.first
+      end
+
       def decompose(identifier)
         rule = parser.rules.for(identifier)
 

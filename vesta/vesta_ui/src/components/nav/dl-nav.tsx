@@ -47,16 +47,7 @@ export default function DLNav({
           return;
         }
 
-        router.push(href, { scroll: false });
-
-        const el = document.getElementById(elId);
-
-        if (el) {
-          window.scrollTo({
-              top: el.offsetTop - NavBarHeights[breakpoint].condensed,
-              behavior: 'smooth',
-          })
-        }
+        router.push(href, { scroll: true });
 
         onClickNavLink && onClickNavLink()
     }
@@ -102,6 +93,12 @@ export default function DLNav({
             <NavLink
                 text='People'
                 href='/people'
+                onClick={handleClickNavLink}
+                typography={linkTypography}
+            />
+            <NavLink
+                text='Publications'
+                href='/publications'
                 onClick={handleClickNavLink}
                 typography={linkTypography}
             />

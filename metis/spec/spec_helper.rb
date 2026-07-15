@@ -97,22 +97,14 @@ end
 # This prevents ledger events from being created during setup operations
 # Tests that need ledger events should explicitly allow them with and_call_original
 def disable_all_ledger_events
-  allow(Metis::DataBlockLedger).to receive(:log_create).and_return(nil)
-  allow(Metis::DataBlockLedger).to receive(:log_link).and_return(nil)
-  allow(Metis::DataBlockLedger).to receive(:log_unlink).and_return(nil)
-  allow(Metis::DataBlockLedger).to receive(:log_resolve).and_return(nil)
-  allow(Metis::DataBlockLedger).to receive(:log_deduplicate).and_return(nil)
+  allow(Metis::DataBlockLedger).to receive(:log_event).and_return(nil)
 end
 
 # Helper method to enable all ledger event logging for tests
 # This restores the original behavior of all ledger logging methods
 # Use this when you want ledger events to be created during test execution
 def enable_all_ledger_events
-  allow(Metis::DataBlockLedger).to receive(:log_create).and_call_original
-  allow(Metis::DataBlockLedger).to receive(:log_link).and_call_original
-  allow(Metis::DataBlockLedger).to receive(:log_unlink).and_call_original
-  allow(Metis::DataBlockLedger).to receive(:log_resolve).and_call_original
-  allow(Metis::DataBlockLedger).to receive(:log_deduplicate).and_call_original
+  allow(Metis::DataBlockLedger).to receive(:log_event).and_call_original
 end
 
 FactoryBot.define do
@@ -294,9 +286,9 @@ class Stubs
     #add_stub(folder_path)
   end
 
-  def create_file(project_name, bucket_name, name, contents, md5_hash=nil)
+  def create_file(project_name, bucket_name, name, contents, md5_hash=nil, storage=nil)
     hash = md5_hash || Digest::MD5.hexdigest(contents)
-    file_path = ::File.expand_path("#{Metis.instance.config(:data_path)}/data_blocks/#{hash[0]}/#{hash[1]}/#{hash}")
+    file_path = ::File.expand_path("#{Metis.instance.storage_path(storage || Metis.instance.active_storage)}/data_blocks/#{hash[0]}/#{hash[1]}/#{hash}")
     stub_file(file_path, contents)
     add_stub(file_path)
   end
@@ -319,7 +311,7 @@ class Stubs
   end
 
   def project_path(project_name, name)
-    ::File.expand_path("#{Metis.instance.config(:data_path)}/#{project_name}/#{name}")
+    ::File.expand_path("#{Metis.instance.storage_path(Metis.instance.active_storage)}/#{project_name}/#{name}")
   end
 
   def stub_dir(path)
@@ -362,7 +354,7 @@ class Stubs
   def clear(project_name=nil)
     existing_stub_files.each { |stub| File.delete(stub) }
     existing_stub_dirs.each { |stub| FileUtils.rm_r(stub) }
-    FileUtils.rm_r(Dir["#{Metis.instance.config(:data_path)}/#{project_name}/*"]) unless project_name.nil?
+    FileUtils.rm_r(Dir["#{Metis.instance.storage_path(Metis.instance.active_storage)}/#{project_name}/*"]) unless project_name.nil?
     @stubs = []
   end
 
@@ -518,6 +510,7 @@ def create_file(project_name, file_name, contents, params={})
       description: file_name,
       md5_hash: md5_hash,
       size: contents.length,
+      storage: params.delete(:storage) || Metis.instance.active_storage
     )
   end
 

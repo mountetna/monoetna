@@ -286,9 +286,9 @@ export function _AboutCarousel({ items }: Props) {
                         },
                     }}
                 >
-                    {items.map((item) => {
+                    {items.map((item, index) => {
                         return (
-                            <SwiperSlide key={item.header}>
+                            <SwiperSlide key={item.header} onClick={() => handleClickCarouselIndexIndicator(index)}>
                                 <AboutItem
                                     header={item.header}
                                     body={item.body}

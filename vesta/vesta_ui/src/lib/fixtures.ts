@@ -278,10 +278,10 @@ export const DATA_TYPES = {
 // Manage projects link
 THEMES.forEach(theme => {
   const projectsSearchParamsState: ProjectsSearchParamsState = {
-    filters: { theme: [theme.name] }
+    Theme: [theme.name]
   }
-  const search = toSearchParamsString({ [PROJECTS_SEARCH_PARAMS_KEY]: projectsSearchParamsState })
-  theme.projectsLink = '/?' + search + '#projects'
+  const search = toSearchParamsString(projectsSearchParamsState)
+  theme.projectsLink = '/projects?' + search + '#project-explorer'
 })
 
 export { VIDEOS, ABOUT_ITEMS, THEMES }

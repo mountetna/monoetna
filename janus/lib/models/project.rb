@@ -18,4 +18,10 @@ class Project < Sequel::Model
       contact_email: contact_email
     }
   end
+
+  def active_permissions
+    permissions.filter do |perm|
+      !perm.user.has_flag?('inactive')
+    end
+  end
 end

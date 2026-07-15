@@ -7,8 +7,6 @@ binary files in folder hierarchies and access them via HTTP API. The underlying
 object storage uses an ordinary filesystem (i.e., files in Metis are stored on
 disk as files)
 
-##
-
 ## Organization
 
 ### Projects
@@ -139,75 +137,118 @@ If we are dissatisfied with our progress we may cancel the upload:
 { action: 'cancel' }
 ```
 
-### Ledger
+## File Lifecycle
 
-The ledger tracks all data block events (create, link, unlink, reuse, resolve, remove) for files in Metis. There are two modes of operation:
+Every file in Metis is backed by a **DataBlock** — the physical content on disk — while the file record is a named pointer to that block. The two can evolve independently, which is what makes deduplication and safe deletion possible.
 
-- Backfilled
-- Tracked
+### 1. Upload completes
 
-There is no env var to control this these modes, instead these are just good conceptual ways to think of the ledger.
+When an upload finishes, a DataBlock is created with a temporary identifier since the real checksum is not yet known. The uploaded file is moved to a holding location on disk and the file record is immediately associated with this temporary block. A `create_datablock` and a `link_file_to_datablock` event are logged.
 
-The ledger is an accounting mechanism for Metis, but it also serves as a method to safely DELETE datablocks and reduce storage space. 
+### 2. Checksum computed
 
-In order to delete a data block:
+A background checksum job runs after the upload and computes the real MD5 of the file. One of three outcomes follows:
 
-- The a datablock must be ORPHANED. A datablock is orphaned if it is not associated to any files. In terms of our ledger, this means that the datablock is UNLINKED.
+- **New content** — the temporary block is promoted to a permanent one with its real checksum and moved to its final location on disk. A `resolve_datablock` event is logged.
 
-#### Backfilled
+- **Duplicate of existing live content** — the file is re-pointed to the already-existing block. The temporary block is discarded. A `reuse_datablock` event is logged. This is deduplication.
 
-Backfilled mode refers to datablocks and events that existed before the ledger was enabled system-wide. These were backfilled into the ledger using the `SYSTEM_BACKFILL` trigger.
+- **Duplicate of previously vacuumed content** — the file data is moved back to the old block's location, the old block is brought back to life, and the file is re-pointed to it. The temporary block is discarded. A `restore_datablock` event is logged. This is resurrection — the original block's history is preserved and it becomes active again.
 
-Since the ledger was introduced post Library, we need a command to "backfill" all existing entries. There are only 2 events we can reliably create during backfilling: link and unlink events.
+### 3. File copied or moved
 
-If you are running the backfiller there are two commands that MUST be run:
+When a file is copied to a new path, or linked to a new location, a `link_file_to_datablock` event is logged. Multiple files can point to the same DataBlock at the same time.
 
-`bin/metis backfill_data_block_ledger project_name -links`
+### 4. File deleted
 
-- This backfills all links for a given project.
+When a file is removed, the file record is deleted and an `unlink_file_from_datablock` event is logged. The underlying DataBlock is not touched — it may still be referenced by files in other projects.
 
-- Run this for EVERY project.
+### 5. DataBlock vacuumed
 
-`bin/metis backfill_data_block_ledger -orphaned` 
+Once a DataBlock is orphaned and eligible for vacuum, its physical file is deleted from disk and the block is marked as removed. Importantly, the block's database record is never destroyed — this is what makes resurrection possible if the same content is uploaded again later. A `remove_datablock` event is logged.
 
-- This finds all files that are considered orphaned. No project name is required here because we cannot determine the original projects the databock came from. Datablocks can span multiple projects.
+### 6. DataBlock blacklisted
 
-While these commands can be run in parrallel, it is best to run the `-link` command first, logically makes a bit more sense.
+A DataBlock can be marked as blacklisted to signal that its content was intentionally purged, distinct from a normal vacuum. Blacklisted blocks are excluded from active use but their records are retained for audit purposes.
 
-##### Vacuuming
- 
-Vacuuming backfilled datablocks only requires UNLINK events. So `bin/metis backfill_data_block_ledger -orphaned` must be run, before you hit the `/vacuum` endpoint. The command is what finds all orphaned
-datablocks.
+---
 
-Why not LINK and UNLINK events?
+## Vacuum Eligibility
 
-There are really two cases to think about when backfilling:
+A DataBlock is eligible for vacuum only when all of the following are true:
 
-- A file is created, and then deleted, in this case during backfilling we only know about an unlink event.
+1. **It was linked to a file at some point** — the ledger has a record of the block being associated with a file in this project, whether through a fresh upload, deduplication, or restoration.
 
-- The same file is created for two projects, FILE A, FILE B, but then one of those files is deleted. Delete(FILE A). The datablock will still exist. In this case `bin/metis backfill_data_block_ledger -orphaned` will not return any datablocks - but we can still log a LINK event (which is important for future vacuums in TRACKED mode).
+2. **It was later unlinked** — the ledger has a record of the block's last file being removed in this project.
 
-So in order to vacuum backfilled files, we just need to search for unlink events.
+3. **No file anywhere currently points to it** — not just in this project, but in any project. If another project still has a live file backed by this block, it cannot be vacuumed.
 
-However, this does not mean you should not run : `bin/metis backfill_data_block_ledger project_name -links`. This is needed for future runs.
+4. **It has not already been vacuumed since its last restoration** — a block that has been vacuumed is normally excluded from future vacuum runs. However, if it was subsequently restored (because the same content was re-uploaded), that exclusion is lifted and it becomes eligible again.
 
-#### Tracked
+> **Temp blocks are never vacuumed.** A block that is still in the middle of checksum resolution is never eligible for vacuum, preventing a race condition where an in-flight upload's data could be deleted before the checksum job finishes.
 
-Tracked mode refers to normal ledger operation where events are tracked in real-time as files are created, linked, unlinked, etc. 
+### Blocked datablocks
 
-This is the standard mode of operation once the ledger is enabled system-wide and backfilling is complete.
+A DataBlock can be **orphaned by one project but still live in another**. For example, if project A and project B both have files backed by the same block, and project A deletes its file, the block is orphaned from project A's perspective but project B still needs it. In this case the block is considered **blocked** — it cannot be vacuumed until all projects have orphaned it.
 
-##### Vacuuming
+The stats endpoint (see below) surfaces which of your orphaned blocks are blocked and which projects are holding them, so you can coordinate with those teams before vacuuming.
 
-In tracked mode, you can vacuum orphaned data blocks PER PROJECT only if they have a LINK and UNLINK event. 
+---
 
-It is often the case that datablocks span multiple projects, so if you want to do a cross project vacuum, you must specify the `include_projects` param.
+## Ledger
 
-This will allow you to vacuum across projects, if a datablock is present in a project you haven't specificed, it will not be vacuumed.
+The ledger records all data block events in Metis and is the source of truth for vacuum decisions. There are two modes of operation — these are not controlled by a flag, they are just useful conceptual distinctions.
 
-You can check what projects a datablock belongs to by hitting the `/stats` endpoint.
+### Backfilled
 
-In order to actually vacuum, you must also pass `commit: True` to the API. Default is false.
+Backfilled mode refers to datablocks and events that existed before the ledger was enabled system-wide. These were backfilled using the `SYSTEM_BACKFILL` trigger. Only link and unlink events can be reliably reconstructed during backfilling.
+
+Two commands must be run to fully backfill a project:
+
+```
+bin/metis backfill_data_block_ledger --project_name <project_name> --links
+```
+
+Backfills link events for a given project. Run this for every project.
+
+```
+bin/metis backfill_data_block_ledger --orphaned
+```
+
+Finds all orphaned datablocks across all projects and creates unlink events for them. No project name is needed because datablocks can span multiple projects and the original project is often unknown.
+
+It is best to run `--links` before `--orphaned`. Vacuuming backfilled datablocks only requires the unlink events created by `--orphaned`, but running `--links` is logically nice and is necessary for future tracked-mode vacuums.
+
+### Tracked
+
+Tracked mode is the standard mode of operation once the ledger is enabled system-wide and backfilling is complete. Events are recorded in real-time as files are created, linked, unlinked, and so on.
+
+### Commands
+
+#### `bin/metis ledger_stats`
+
+Shows ledger event counts and vacuum candidates for a project. Run this before vacuuming to understand what is ready and what is blocked.
+
+```
+bin/metis ledger_stats --project_name <project_name>   # tracked mode
+bin/metis ledger_stats --backfilled                    # backfilled mode
+```
+
+Output includes how many datablocks are ready to vacuum, how many are blocked and by which projects, and a detailed list of the orphaned datablocks with their associated file paths.
+
+#### `bin/metis vacuum_datablocks`
+
+Deletes orphaned datablocks. Defaults to a dry run — add `--commit` to actually delete. The CLI will prompt for confirmation before committing.
+
+```
+bin/metis vacuum_datablocks <project_name>          # dry run
+bin/metis vacuum_datablocks <project_name> --commit # actually delete
+bin/metis vacuum_datablocks backfilled --commit     # vacuum backfilled orphans
+```
+
+#### `bin/metis backfill_data_block_ledger`
+
+Reconstructs ledger history for datablocks that existed before the ledger was enabled. See the Backfilled section above for the full backfilling workflow.
 
 ## Documentation
 

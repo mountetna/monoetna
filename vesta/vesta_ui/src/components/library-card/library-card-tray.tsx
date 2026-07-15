@@ -17,7 +17,7 @@ export enum Classes {
 
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
-    accessUrl: string
+    loginUrl: string
     open: boolean
     onSetOpen: (open: boolean) => void
     user: User | null
@@ -26,7 +26,7 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
 
 
 function LibraryCardTray(props: Props, ref: React.ForwardedRef<unknown>) {
-    const { accessUrl, open, onSetOpen, user, disabled = false, ...htmlProps } = props
+    const { loginUrl, open, onSetOpen, user, disabled = false, ...htmlProps } = props
     const theme = useTheme()
 
     const libraryCardRef = React.useRef<HTMLElement>()
@@ -135,7 +135,7 @@ function LibraryCardTray(props: Props, ref: React.ForwardedRef<unknown>) {
                 >
                     <LibraryCardButton
                         isLoggedIn={user !== null}
-                        accessUrl={accessUrl}
+                        loginUrl={loginUrl}
                         onClick={() => onSetOpen(!open)}
                         textOverride={open ? 'Hide your Library Card' : undefined}
                         disabled={disabled}

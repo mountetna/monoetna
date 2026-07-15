@@ -31,6 +31,14 @@ module Etna
         end
       end
 
+      class UpdateProjectRequest < Struct.new(:project_name, :resource, :requires_agreement, :cc_text, :contact_email, :project_name_full, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+      end
+
       class UpdatePermissionRequest < Struct.new(:project_name, :email, :role, :privileged, :affiliation, keyword_init: true)
         include JsonSerializableStruct
 

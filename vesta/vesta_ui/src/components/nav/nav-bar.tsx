@@ -44,12 +44,12 @@ export const Heights: Record<Breakpoint, BreakpointHeights> = {
 
 
 export default function NavBar({
-    accessUrl,
+    loginUrl,
     variant,
     onClickOverlayNavButton,
     sx = {},
 }: {
-    accessUrl: string,
+    loginUrl: string,
     variant: 'default' | 'condensed',
     onClickOverlayNavButton: () => void,
     sx?: SxProps
@@ -274,7 +274,7 @@ export default function NavBar({
                     >
                         <LibraryCardButton
                             isLoggedIn={!!user}
-                            accessUrl={accessUrl}
+                            loginUrl={loginUrl}
                             onClick={() => handleSetLibraryCardModalOpen(!libraryCardModalOpen)}
                         />
 
@@ -311,7 +311,7 @@ export default function NavBar({
                         <LibraryCardTray
                             aria-hidden={true}
                             open={false}
-                            accessUrl={accessUrl}
+                            loginUrl={loginUrl}
                             onSetOpen={() => { }}
                             user={user}
                             disabled={true}
@@ -320,7 +320,7 @@ export default function NavBar({
                         {/* actually-interactive el */}
                         <LibraryCardTray
                             open={libraryCardTrayOpen}
-                            accessUrl={accessUrl}
+                            loginUrl={loginUrl}
                             onSetOpen={handleSetLibraryCardTrayOpen}
                             user={user}
                         />
