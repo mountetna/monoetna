@@ -29,6 +29,7 @@ class Magma
   end
 
   def get_project(project_name)
+    hot_load(project_name) unless hot_loaded?(project_name)
     magma_projects[project_name.to_sym]
   end
 
@@ -72,9 +73,9 @@ class Magma
     setup_sequel
 
     @storage = Magma::Storage.setup
-    load_db_projects
+    #load_db_projects
 
-    validate_models if validate
+    #validate_models if validate
 
     remove_hold_file
   end
@@ -88,6 +89,20 @@ class Magma
   def get_or_load_project(project_name)
     project_name = project_name.to_sym
     magma_projects[project_name] ||= Magma::Project.new(project_name: project_name)
+  end
+
+  def hot_loaded?(project_name)
+    @hot_loaded ||= {}
+
+    return @hot_loaded[project_name]
+  end
+
+  def hot_load(project_name)
+    @hot_loaded[project_name] = true
+
+    return unless Magma.instance.db[:models].where(project_name: project_name.to_s).any?
+
+    get_or_load_project(project_name)
   end
 
   def setup_sequel
