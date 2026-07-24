@@ -33,9 +33,13 @@ class QueryController < Magma::Controller
           message: 'made a query',
           consolidate: true,
           payload: {
-            query: @params[:query],
-            show_disconnected: @params[:show_disconnected]
-          }.compact
+            queries: [
+              {
+                query: @params[:query],
+                show_disconnected: @params[:show_disconnected]
+              }.compact
+            ]
+          }
         )
       end
 
