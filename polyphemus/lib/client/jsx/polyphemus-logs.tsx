@@ -2,6 +2,7 @@ import React, {useState, useEffect, useCallback, useContext} from 'react';
 import {json_post} from 'etna-js/utils/fetch';
 import {getModels} from 'etna-js/api/magma_api';
 import {MagmaContext} from 'etna-js/contexts/magma-context';
+import {downloadTSV} from 'etna-js/utils/tsv';
 
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
@@ -25,16 +26,30 @@ import TableHead from '@material-ui/core/TableHead';
 import Paper from '@material-ui/core/Paper';
 import Chip from '@material-ui/core/Chip';
 import CodeIcon from '@material-ui/icons/Code';
+import RefreshIcon from '@material-ui/icons/Refresh';
+import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
+import TimelineIcon from '@material-ui/icons/Timeline';
 import IconButton from '@material-ui/core/IconButton';
 import Collapse from '@material-ui/core/Collapse';
 
 import {formatTime} from './workflow/run-state';
 import {Log} from './polyphemus';
+import Chart from './polyphemus-log-chart';
 import { getItem } from 'etna-js/utils/cookies';
 import { parseToken } from 'etna-js/utils/janus';
 
 declare var CONFIG: { [key: string]: string };
 
+
+export const APP_COLORS= {
+  janus: 'rgba(155,86,255,0.33)',
+  magma: '#cd4a34',
+  timur: 'rgba(117,255,117,0.30)',
+  metis: '#5fe2e4',
+  gnomon: '#e6e6e6',
+  polyphemus: '#d0d835',
+  vulcan: 'rgba(255,8,4,0.49)'
+}
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -63,27 +78,9 @@ const useStyles = makeStyles((theme) => ({
   app_filter: {
     minWidth: '120px'
   },
-  janus: {
-    background: 'rgba(155,86,255,0.33)'
-  },
-  magma: {
-    background: '#cd4a34'
-  },
-  timur: {
-    background: 'rgba(117,255,117,0.30)'
-  },
-  metis: {
-    background: '#5fe2e4'
-  },
-  gnomon: {
-    background: '#e6e6e6'
-  },
-  polyphemus: {
-    background: '#d0d835'
-  },
-  vulcan: {
-    background: 'rgba(255,8,4,0.49)'
-  }
+  ...Object.fromEntries(
+    Object.entries(APP_COLORS).map( ([app,background]) => [ app, {background}] )
+  )
 }));
 
 const applications = [
@@ -140,14 +137,15 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
   const [order, setOrder] = useState< 'desc' | 'asc' | undefined>('asc');
   const [orderBy, setOrderBy] = useState('Job Type');
   const [logs, setLogs] = useState<Log[]>([]);
+  const [chartShown, setChartShown] = useState(true);
 
   const [ filterApplications, setFilterApplications ] = useState<string[]>([]);
   const [ filterUser, setFilterUser ] = useState('');
   const [ filterEvent, setFilterEvent ] = useState('');
   const [ filterMessage, setFilterMessage ] = useState('');
   const [ filterProjects, setFilterProjects ] = useState<string[]>([]);
-  const [ filterFrom, setFilterFrom ] = useState('');
-  const [ filterTo, setFilterTo ] = useState('');
+  const [ filterFrom, setFilterFrom ] = useState('1980-01-01');
+  const [ filterTo, setFilterTo ] = useState('2980-01-01');
 
   const token = parseToken(getItem(CONFIG.token_name) as string);
 
@@ -158,6 +156,14 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
     token.permissions[project_name].privileged
   );
 
+  const downloadLogs = useCallback( () => {
+    downloadTSV(
+      logs,
+      [ 'created_at', 'application', 'project_name', 'user', 'event', 'message' ],
+      `polyphemus-${project_name}-logs-${(new Date()).toISOString().slice(0,10)}.tsv`
+    );
+  }, [ logs ] );
+
   const getLogs = useCallback(() => {
     let params: any = {};
 
@@ -165,10 +171,8 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
     if (filterEvent) params.event = filterEvent;
     if (filterMessage) params.message = filterMessage;
     if (filterApplications.length) params.application = filterApplications;
-    if (filterTo && filterFrom) {
-      params.from = filterFrom;
-      params.to = filterTo;
-    }
+    if (filterTo) params.to = filterTo;
+    if (filterFrom) params.from = filterFrom;
     if (filterProjects.length && project_name == 'administration') {
       params.project_names = filterProjects;
     }
@@ -183,7 +187,7 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
   }, []);
 
   useEffect(() => {
-    const timeout = setInterval(getLogs, 10000);
+    const timeout = setInterval(getLogs, 1000000);
 
     return () => clearInterval(timeout);
   }, [getLogs]);
@@ -296,7 +300,13 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
               }
             </Select>
           </FormControl>
+          <IconButton title="Refresh" onClick={ getLogs } size="small"><RefreshIcon fontSize="small"/></IconButton>
+          <IconButton title="Download TSV" onClick={ downloadLogs } size="small"><ArrowDownwardIcon fontSize="small"/></IconButton>
+          <IconButton color={ chartShown ? 'primary' : 'default' } title={ chartShown ? "Show table" : "Show Chart" } onClick={ () => setChartShown(!chartShown) } size="small"><TimelineIcon fontSize="small"/></IconButton>
         </Grid>
+        { chartShown ? <div style={{ width: '100%', height: 'calc(100% - 75px)' }}>
+          <Chart logs={logs}/>
+        </div> :
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
@@ -329,6 +339,7 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
               ))}
           </TableBody>
         </Table>
+        }
       </TableContainer>
     </Grid>
   </Grid>
