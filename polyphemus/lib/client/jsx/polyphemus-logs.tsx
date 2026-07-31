@@ -42,13 +42,13 @@ declare var CONFIG: { [key: string]: string };
 
 
 export const APP_COLORS= {
-  janus: 'rgba(155,86,255,0.33)',
+  janus: '#dec7ff',
   magma: '#cd4a34',
-  timur: 'rgba(117,255,117,0.30)',
+  timur: '#d6ffd6',
   metis: '#5fe2e4',
   gnomon: '#e6e6e6',
   polyphemus: '#d0d835',
-  vulcan: 'rgba(255,8,4,0.49)'
+  vulcan: '#ff8684'
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -69,7 +69,7 @@ const useStyles = makeStyles((theme) => ({
   filters: {
     borderBottom: '1px solid #ccc',
     padding: '10px',
-    height: '70px',
+    height: '75px',
     alignItems: 'end'
   },
   filter: {
@@ -137,15 +137,15 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
   const [order, setOrder] = useState< 'desc' | 'asc' | undefined>('asc');
   const [orderBy, setOrderBy] = useState('Job Type');
   const [logs, setLogs] = useState<Log[]>([]);
-  const [chartShown, setChartShown] = useState(true);
+  const [chartShown, setChartShown] = useState(false);
 
   const [ filterApplications, setFilterApplications ] = useState<string[]>([]);
   const [ filterUser, setFilterUser ] = useState('');
   const [ filterEvent, setFilterEvent ] = useState('');
   const [ filterMessage, setFilterMessage ] = useState('');
   const [ filterProjects, setFilterProjects ] = useState<string[]>([]);
-  const [ filterFrom, setFilterFrom ] = useState('1980-01-01');
-  const [ filterTo, setFilterTo ] = useState('2980-01-01');
+  const [ filterFrom, setFilterFrom ] = useState('');
+  const [ filterTo, setFilterTo ] = useState('');
 
   const token = parseToken(getItem(CONFIG.token_name) as string);
 
@@ -187,7 +187,7 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
   }, []);
 
   useEffect(() => {
-    const timeout = setInterval(getLogs, 1000000);
+    const timeout = setInterval(getLogs, 10000);
 
     return () => clearInterval(timeout);
   }, [getLogs]);

@@ -4,6 +4,8 @@ import Legend from 'etna-js/plots/components/legend';
 import * as d3 from 'd3';
 import Box from '@material-ui/core/Box';
 import { APP_COLORS } from './polyphemus-logs';
+import TextField from '@material-ui/core/TextField';
+import MenuItem from '@material-ui/core/MenuItem';
 
 const scale = (domain, range) => {
   let s;
@@ -91,7 +93,9 @@ const PlotCanvas = ({
         }
       }
       ref={stage}>
-      <Legend width={stageSize.width} height={margin.top} labels={labels} />
+      <Box sx={{ display: 'flex', gap: '15px', position: 'absolute', alignItems: 'center', paddingLeft: margin.left }}>
+        <Legend height={margin.top} labels={labels} />
+      </Box>
       <svg width={stageSize.width} height={stageSize.height}>
         <rect
           fill='aliceblue'
@@ -162,13 +166,15 @@ const HistogramChart = ({logs}) => {
   const fromDate = logs.reduce((min, d) => (min > d.created_at ? d.created_at : min), '3000-01-01');
   const toDate = logs.reduce((max, d) => (max < d.created_at ? d.created_at : max), '1970-01-01');
 
+  const [interval, setInterval] = useState('week');
+
   let groups = Object.groupBy(logs, log => log.application);
   groups.all = logs
 
   const xdomain = [new Date(fromDate), new Date(toDate)];
 
   const xScale = scale(xdomain, [ 0, 1 ]);
-  const hist = d3.histogram().value(d => d).domain(xdomain).thresholds(xScale.ticks(d3.timeMonth));
+  const hist = d3.histogram().value(d => d).domain(xdomain).thresholds(xScale.ticks(interval == 'month' ? d3.timeMonth : d3.timeWeek));
 
   groups = Object.fromEntries( Object.keys(groups).map(
     group => [ group, {
@@ -181,24 +187,35 @@ const HistogramChart = ({logs}) => {
 
   console.log({fromDate,toDate, logs, groups, maxBinSize});
 
-  return <PlotCanvas
-    xdomain={xdomain}
-    ydomain={[-0.5,maxBinSize+1]}
-    labels={Object.keys(groups).map(name => ({name, color: APP_COLORS[name] || 'pink' }))}
-  >
-  {
-    Object.keys(groups).map( group => <Line
-      key={group}
-      name={group}
-      color={ APP_COLORS[group] || 'pink' }
-      series={
-        groups[group].bins.map(
-          bin => ({ x: bin.x0, y: bin.length })
-        )
-      }
-    /> )
-  }
-  </PlotCanvas>;
+  return <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+    <PlotCanvas
+      xdomain={xdomain}
+      ydomain={[-0.5,maxBinSize+1]}
+      labels={Object.keys(groups).map(name => ({name, color: APP_COLORS[name] || 'pink' }))}
+    >
+    {
+      Object.keys(groups).map( group => <Line
+        key={group}
+        name={group}
+        color={ APP_COLORS[group] || 'pink' }
+        series={
+          groups[group].bins.map(
+            bin => ({ x: bin.x0, y: bin.length })
+          )
+        }
+      /> )
+    }
+    </PlotCanvas>
+    <Box sx={{ position: 'absolute', right: 39, top: 0 }} >
+      <TextField select size='small' style={{ width: '100px' }} margin='dense'
+          value={interval}
+          onChange={ e => setInterval(e.target.value)}
+      >
+        <MenuItem fontSize='small' value={'week'}>Week</MenuItem>
+        <MenuItem fontSize='small' value={'month'}>Month</MenuItem>
+      </TextField>
+    </Box>
+  </Box>;
 }
 
 export default HistogramChart;

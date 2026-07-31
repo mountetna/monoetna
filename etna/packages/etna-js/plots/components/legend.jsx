@@ -5,8 +5,6 @@ const Legend = ({labels, width, height}) =>
   <Box sx={{
     display: 'flex',
     justifyContent: 'center',
-          position: 'absolute',
-          top: '0px',
     width, height
   }}>
     {
