@@ -28,6 +28,10 @@ describe UploadController do
     "/#{project_name}/upload/files/#{file_name}"
   end
 
+  def set_read_only(state)
+    Metis.instance.instance_variable_get("@config")[:test][:read_only] = state
+  end
+
   context '#authorize' do
     it 'should authorize an upload' do
       params = {
@@ -212,6 +216,25 @@ describe UploadController do
         expect(Metis::Upload.count).to eq(0)
       end
     end
+
+    it 'does not authorize if metis is read_only' do
+      params = {
+        file_path: 'wisdom.txt',
+        project_name: 'athena',
+        bucket_name: 'files'
+      }
+
+      set_read_only(true)
+
+      token_header(:supereditor)
+      json_post('/authorize/upload', params)
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Metis is currently read-only')
+      expect(Metis::Upload.count).to eq(0)
+
+      set_read_only(false)
+    end
   end
 
   context '#upload_start' do
@@ -242,6 +265,30 @@ describe UploadController do
         next_blob_hash: '10',
         next_blob_size: 10
       )
+    end
+
+    it 'should not start an upload if metis is read_only' do
+      set_read_only(true)
+      upload = create_upload( 'athena', 'wisdom.txt', @metis_uid, file_size: WISDOM.length)
+
+      # we post to the upload path with hmac authorization
+      hmac_header
+      json_post(
+        upload_path('athena', 'wisdom.txt'),
+        file_size: WISDOM.length,
+        action: 'start',
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
+
+      # the file has not been made yet
+      expect(Metis::File.count).to eq(0)
+
+      # we expect the upload as a json object
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Metis is currently read-only')
+
+      set_read_only(false)
     end
 
     it 'should resume an existing upload' do
