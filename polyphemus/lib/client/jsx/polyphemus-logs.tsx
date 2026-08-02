@@ -302,7 +302,7 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
           </FormControl>
           <IconButton title="Refresh" onClick={ getLogs } size="small"><RefreshIcon fontSize="small"/></IconButton>
           <IconButton title="Download TSV" onClick={ downloadLogs } size="small"><ArrowDownwardIcon fontSize="small"/></IconButton>
-          <IconButton color={ chartShown ? 'primary' : 'default' } title={ chartShown ? "Show table" : "Show Chart" } onClick={ () => setChartShown(!chartShown) } size="small"><TimelineIcon fontSize="small"/></IconButton>
+          <IconButton color={ chartShown ? 'primary' : 'default' } title={ chartShown ? 'Show table' : 'Show Chart' } onClick={ () => setChartShown(!chartShown) } size="small"><TimelineIcon fontSize="small"/></IconButton>
         </Grid>
         { chartShown ? <div style={{ width: '100%', height: 'calc(100% - 75px)' }}>
           <Chart logs={logs}/>
