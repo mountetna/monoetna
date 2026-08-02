@@ -17,6 +17,8 @@ class UploadController < Metis::Controller
 
     raise Etna::Forbidden, 'File cannot be overwritten' if file && file.read_only?
 
+    raise Etna::Forbidden, 'Metis is currently read-only' if Metis.instance.config(:read_only)
+
     # Make a MAC url
     url = Metis::File.upload_url(
       @request,
@@ -39,6 +41,8 @@ class UploadController < Metis::Controller
     action = @params[:action].to_sym
 
     raise Etna::BadRequest, 'Incorrect upload action' unless UPLOAD_ACTIONS.include?(action)
+
+    raise Etna::Forbidden, 'Metis is currently read-only' if Metis.instance.config(:read_only)
 
     send :"upload_#{action}"
   end
