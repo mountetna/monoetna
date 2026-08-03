@@ -182,15 +182,19 @@ const PolyphemusLogs = ({project_name}: {project_name: string}) => {
     ).then(({logs}) => setLogs(logs));
   }, [ filterApplications, filterUser, filterEvent, filterMessage, filterFrom, filterTo, filterProjects ]);
 
+  const updateLogs = useCallback( () => {
+    if (!filterTo) getLogs();
+  }, [ getLogs ]);
+
   useEffect(() => {
     getLogs();
   }, []);
 
   useEffect(() => {
-    const timeout = setInterval(getLogs, 10000);
+    const timeout = setInterval(updateLogs, 10000);
 
     return () => clearInterval(timeout);
-  }, [getLogs]);
+  }, [updateLogs]);
 
   const headCells = [
     {
