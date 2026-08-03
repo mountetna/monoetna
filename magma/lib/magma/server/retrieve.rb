@@ -67,6 +67,24 @@ class RetrieveController < Magma::Controller
 
       @payload = Magma::Payload.new
 
+      if @params[:event_log] && (!@params[:page] || @params[:page] == 1)
+        event_log(
+          event: 'search',
+          message: 'did a search',
+          consolidate: true,
+          payload: {
+            search: [
+              {
+                model_name: @model_name,
+                record_names: @record_names,
+                attribute_names: @attribute_names,
+                show_disconnected: @params[:show_disconnected]
+              }.compact
+            ]
+          }
+        )
+      end
+
       case @format
       when 'tsv'
         return tsv_payload

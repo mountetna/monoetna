@@ -63,13 +63,15 @@ class LogController < Polyphemus::Controller
       user: @params[:user] ? Regexp.new(@params[:user]) : nil,
       event: @params[:event] ? Regexp.new(@params[:event]) : nil,
       message: @params[:message] ? Regexp.new(@params[:message]) : nil,
-      created_at: @params[:from] && @params[:to] ? DateTime.parse(@params[:from])..DateTime.parse(@params[:to]) : nil,
+      created_at: (@params[:from] || @params[:to]) ?
+        DateTime.parse(@params[:from] || '1970-01-01')..(@params[:to] ? DateTime.parse(@params[:to]) : DateTime.now) :
+        (DateTime.now - 7)..DateTime.now,
       hidden: false,
     }.compact
 
     logs = Polyphemus::Log.where(
       query
-    ).order(Sequel.desc(:created_at)).limit(100).all
+    ).order(Sequel.desc(:created_at)).all
 
     success_json(logs: logs.map(&:to_report))
   end
