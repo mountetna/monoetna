@@ -71,7 +71,11 @@ class LogController < Polyphemus::Controller
 
     logs = Polyphemus::Log.where(
       query
-    ).order(Sequel.desc(:created_at)).all
+    ).order(Sequel.desc(:created_at)).select(
+      :application, :created_at, :event, :message, :project_name, :user, :id
+    ).select_append {
+      Sequel.~(payload: nil).as(:payload)
+    }.all
 
     success_json(logs: logs.map(&:to_report))
   end
