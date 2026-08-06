@@ -30,6 +30,7 @@ const scale = (domain, range) => {
 
 const PlotCanvas = ({
     labels,
+    onClick,
     xdomain,
     ydomain,
     xlabel,
@@ -37,7 +38,7 @@ const PlotCanvas = ({
     children
   }) => {
     console.log({xdomain,ydomain});
-  const margin = { left: 40, right: 40, top: 40, bottom: 40 };
+  const margin = { left: 60, right: 40, top: 40, bottom: 40 };
 
   const [stageSize, setStageSize] = useState({width: 100, height: 100});
   const stage = React.useRef(null);
@@ -94,12 +95,12 @@ const PlotCanvas = ({
       }
       ref={stage}>
       <Box sx={{ display: 'flex', gap: '15px', position: 'absolute', alignItems: 'center', paddingLeft: margin.left }}>
-        <Legend height={margin.top} labels={labels} />
+        <Legend height={margin.top} labels={labels} onClick={onClick}/>
       </Box>
       <svg width={stageSize.width} height={stageSize.height}>
         <rect
           fill='aliceblue'
-          x={ margin.right }
+          x={ margin.left }
           y={ margin.top }
           width={ stageSize.width - margin.right - margin.left }
           height={ stageSize.height - margin.top - margin.bottom } />
@@ -174,7 +175,7 @@ const HistogramChart = ({logs}) => {
   const xdomain = [new Date(fromDate), new Date(toDate)];
 
   const xScale = scale(xdomain, [ 0, 1 ]);
-  const hist = d3.histogram().value(d => d).domain(xdomain).thresholds(xScale.ticks(interval == 'month' ? d3.timeMonth : d3.timeWeek));
+  const hist = d3.histogram().value(d => d).domain(xdomain).thresholds(xScale.ticks(interval == 'month' ? d3.timeMonth : interval == 'week' ? d3.timeWeek : d3.timeDay));
 
   groups = Object.fromEntries( Object.keys(groups).map(
     group => [ group, {
@@ -187,23 +188,26 @@ const HistogramChart = ({logs}) => {
 
   console.log({fromDate,toDate, logs, groups, maxBinSize});
 
+  const [ groupsHidden, setGroupsHidden ] = React.useState({});
+
   return <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
     <PlotCanvas
       xdomain={xdomain}
       ydomain={[-0.5,maxBinSize+1]}
-      labels={Object.keys(groups).map(name => ({name, color: APP_COLORS[name] || 'pink' }))}
+      onClick={group => { setGroupsHidden( { ...groupsHidden, [group]: !groupsHidden[group] }) }}
+      labels={Object.keys(groups).map(name => ({name, color: APP_COLORS[name] || '#888', disabled: groupsHidden[name] }))}
     >
     {
-      Object.keys(groups).map( group => <Line
+      Object.keys(groups).map( group => groupsHidden[group] ? null : <Line
         key={group}
         name={group}
-        color={ APP_COLORS[group] || 'pink' }
+        color={ APP_COLORS[group] || '#888' }
         series={
           groups[group].bins.map(
             bin => ({ x: bin.x0, y: bin.length })
           )
         }
-      /> )
+      /> ).filter(_=>_)
     }
     </PlotCanvas>
     <Box sx={{ position: 'absolute', right: 39, top: 0 }} >
@@ -211,6 +215,7 @@ const HistogramChart = ({logs}) => {
           value={interval}
           onChange={ e => setInterval(e.target.value)}
       >
+        <MenuItem fontSize='small' value={'day'}>Day</MenuItem>
         <MenuItem fontSize='small' value={'week'}>Week</MenuItem>
         <MenuItem fontSize='small' value={'month'}>Month</MenuItem>
       </TextField>
