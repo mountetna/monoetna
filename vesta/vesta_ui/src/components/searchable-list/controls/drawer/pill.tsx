@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
-import { useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import Pill, { Classes as PillClasses } from '@/components/pill/pill';
 
 

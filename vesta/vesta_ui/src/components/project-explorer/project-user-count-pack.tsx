@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Box, Fade, useTheme } from '@mui/material';
+import { Box, Fade } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { Group } from '@visx/group';
 import { Pack, hierarchy } from '@visx/hierarchy';
 import { useParentSize } from '@visx/responsive'

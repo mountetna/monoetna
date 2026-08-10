@@ -4,7 +4,7 @@ import * as React from 'react'
 import Box from '@mui/system/Box'
 import Collapse from '@mui/material/Collapse'
 import Fade from '@mui/material/Fade'
-import { Typography, useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 import { DrawerItem, DisplayStyle, DrawerSectionProps, DrawerSectionClasses, DrawerSectionsContainerClasses, DrawerClasses } from './models';
 import DrawerSectionDefault from './section-default';

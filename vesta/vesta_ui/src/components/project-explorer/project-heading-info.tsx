@@ -3,7 +3,8 @@
 import * as React from 'react'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import { useMediaQuery, useTheme } from '@mui/material';
+import { useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 import { ProjectHeadingInfoSet, Project } from './models'
 import Pill from '../pill/pill';

@@ -4,7 +4,7 @@ import * as React from 'react'
 import Container from '@mui/system/Container'
 import Box from '@mui/system/Box'
 import Typography from '@mui/material/Typography';
-import { useMediaQuery, useTheme } from '@mui/system';
+import { useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
 
 import ThemeBookVertical from './theme-book/theme-book-vertical'

@@ -1,13 +1,13 @@
 'use client'
 
 import * as React from 'react'
-import { styled } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import Box from '@mui/system/Box'
 import ButtonBase from '@mui/material/ButtonBase';
 import Fade from '@mui/material/Fade';
 import Slide from '@mui/material/Slide';
 import { useTheme } from '@mui/material/styles';
-import { Modal as BaseModal } from '@mui/base/Modal';
+import { Modal as BaseModal } from '@mui/material';
 import Typography from '@mui/material/Typography';
 
 import LibraryCard from './library-card';

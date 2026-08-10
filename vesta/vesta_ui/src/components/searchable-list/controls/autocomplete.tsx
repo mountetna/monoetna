@@ -2,17 +2,17 @@
 
 import * as React from 'react'
 import Box from '@mui/system/Box'
-import {
-  useAutocomplete,
+import useAutocomplete, {
   UseAutocompleteProps,
   UseAutocompleteRenderedOption,
   UseAutocompleteReturnValue,
   AutocompleteGroupedOption,
-} from '@mui/base/useAutocomplete';
-import { Popper } from '@mui/base/Popper';
-import { styled } from '@mui/material';
+} from '@mui/material/useAutocomplete';
+import Popper from '@mui/material/Popper';
+import { styled } from '@mui/material/styles';
 import useForkRef from '@mui/utils/useForkRef';
-import { useTheme, SxProps } from '@mui/material';
+import { SxProps } from '@mui/system';
+import { useTheme } from '@mui/material/styles';
 import Image, { StaticImageData } from 'next/image';
 import _ from 'lodash'
 

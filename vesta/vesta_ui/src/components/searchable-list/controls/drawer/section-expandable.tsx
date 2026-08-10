@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import Collapse from '@mui/material/Collapse';
 import Fade from '@mui/material/Fade';
-import { useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
 import _ from 'lodash'
 import Image from 'next/image';

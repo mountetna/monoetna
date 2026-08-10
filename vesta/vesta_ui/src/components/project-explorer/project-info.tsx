@@ -4,7 +4,7 @@ import * as React from 'react';
 import Box from '@mui/system/Box';
 import Grid from '@mui/system/Grid';
 import Button from '@mui/material/Button';
-import { useTheme }  from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Image from '../../components/image/image';
 import projectHeroImg from '/public/images/projects-hero-img.svg'

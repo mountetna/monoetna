@@ -1,7 +1,5 @@
 import * as React from 'react';
-import { styled } from '@mui/material';
 import { Box } from '@mui/system';
-import { useTheme } from '@mui/material';
 
 const Toggle = ({active,setActive}:{
   active: boolean,

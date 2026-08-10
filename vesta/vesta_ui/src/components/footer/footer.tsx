@@ -8,7 +8,7 @@ import Image from 'next/image';
 import logoWordmarkRightLightSrc from '/public/images/logo/logo-wordmark-right-light.svg'
 import Copyright from '../legal/copyright';
 import Contribute from './contribute';
-import { useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import Link from '../link/link';
 
 

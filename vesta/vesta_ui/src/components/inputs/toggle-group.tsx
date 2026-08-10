@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { styled } from '@mui/material';
-import { Tabs as BaseTabs } from '@mui/base/Tabs';
-import { TabsList as BaseTabsList } from '@mui/base/TabsList';
-import { buttonClasses } from '@mui/base/Button';
-import { Tab as BaseTab, tabClasses } from '@mui/base/Tab';
+import { styled } from '@mui/material/styles';
+import { Tabs as BaseTabs } from '@mui/material/Tabs';
+import { TabsList as BaseTabsList } from '@mui/material/TabsList';
+import { buttonClasses } from '@mui/material/Button';
+import { Tab as BaseTab, tabClasses } from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 
 export const Classes = {

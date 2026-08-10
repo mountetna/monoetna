@@ -8,7 +8,7 @@ import ButtonBase from '@mui/material/ButtonBase';
 
 import arrowUpRightLight from '/public/images/icons/arrow-up-right-light.svg'
 import { ProjectCount, ThemeBookProps } from './shared';
-import { useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import Link from '@/components/link/link';
 
 

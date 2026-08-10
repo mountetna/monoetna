@@ -7,7 +7,7 @@ import Image, { StaticImageData } from 'next/image';
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import MUILink from '@mui/material/Link';
-import { Fade, useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import Link from 'next/link'
 
 import StatsCarousel, { Stats } from '@/components/stats/stats-carousel';

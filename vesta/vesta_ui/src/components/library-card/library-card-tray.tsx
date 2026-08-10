@@ -1,13 +1,16 @@
 import * as React from 'react';
 import Box from '@mui/system/Box'
-import { Collapse, Fade, Typography, useTheme } from '@mui/material';
+import Collapse from '@mui/material/Collapse';
+import Fade from '@mui/material/Fade';
+import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
 import ButtonBase from '@mui/material/ButtonBase';
 
 import LibraryCardButton, { Classes as LibraryCardButtonClasses } from './library-card-button';
 import { User } from '../user/models';
 import LibraryCard from './library-card';
-import { ClickAwayListener } from '@mui/base';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
 import { FILE_EXPORT_STATUS, handleExportElementToImage } from '@/lib/utils/file-export';
 
 

@@ -14,7 +14,7 @@ import TableRow from '@mui/material/TableRow';
 import publicationsHeroImg from '/public/images/publications-hero-img.svg'
 import searchDarkIcon from '/public/images/icons/search.svg'
 import Pagination, { PaginationClasses } from '@/components/searchable-list/controls/pagination'
-import { SxProps, useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import arrowUpRightDark from '/public/images/icons/arrow-up-right-dark.svg';
 import Link from './link/link';
 import { Publication } from '@/lib/clients/vesta-api/models';

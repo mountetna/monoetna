@@ -2,16 +2,18 @@
 
 import * as React from 'react';
 import Box from '@mui/system/Box'
-import { Select } from '@mui/base/Select';
-import { Option as BaseOption, optionClasses } from '@mui/base/Option';
+import { Select } from '@mui/material';
 import Typography, { TypographyOwnProps } from '@mui/material/Typography';
 import { useParentSize } from '@visx/responsive'
 import _ from 'lodash'
 import Image from 'next/image';
 
 import indicatorArrowDark from '/public/images/icons/indicator-arrow-dark.svg'
-import { styled } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import MenuItem from '@mui/material/MenuItem';
+import generateUtilityClasses from '@mui/utils/generateUtilityClasses';
 
+const MenuItemClasses = generateUtilityClasses(MenuItem, ['root', 'disabled', 'selected', 'highlighted']);
 
 interface OptionType {
     value: any
@@ -75,7 +77,7 @@ export default function Dropdown({
         `,
     )
 
-    const Option = styled(BaseOption)(
+    const Option = styled(MenuItem)(
         ({ theme }) => `
         list-style: none;
         padding: 8px;
@@ -88,17 +90,17 @@ export default function Dropdown({
           margin-bottom: 0;
         }
       
-        &.${optionClasses.selected} {
+        &.${MenuItemClasses.selected} {
           background-color: ${theme.palette.blue.grade50};
           color: ${theme.palette.utilityWhite.main};
         }
       
-        &.${optionClasses.highlighted} {
+        &.${MenuItemClasses.highlighted} {
           background-color: ${theme.palette.blue.grade50};
           color: ${theme.palette.utilityWhite.main};
         }
       
-        &.${optionClasses.highlighted}.${optionClasses.selected} {
+        &.${MenuItemClasses.highlighted}.${MenuItemClasses.selected} {
           background-color: ${theme.palette.blue.grade50};
           color: ${theme.palette.utilityWhite.main};
         }
@@ -107,15 +109,15 @@ export default function Dropdown({
           outline: 3px solid ${theme.palette.blue.grade50};
         }
       
-        &.${optionClasses.disabled} {
+        &.${MenuItemClasses.disabled} {
           color: unset;
         }
 
-        &:hover:not(.${optionClasses.disabled}) {
+        &:hover:not(.${MenuItemClasses.disabled}) {
           cursor: pointer;
         }
       
-        &:hover:not(.${optionClasses.disabled}, .${optionClasses.selected}, ${optionClasses.highlighted}) {
+        &:hover:not(.${MenuItemClasses.disabled}, .${MenuItemClasses.selected}, ${MenuItemClasses.highlighted}) {
           background-color: ${theme.palette.utilityHighlight.main};
         }
 

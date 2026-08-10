@@ -1,6 +1,6 @@
 import * as React from 'react'
 import BaseImage, { ImageProps } from 'next/image'
-import { useTheme } from '@mui/material'
+import { useTheme } from '@mui/material/styles';
 
 
 interface Props extends ImageProps {
