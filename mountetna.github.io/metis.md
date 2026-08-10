@@ -56,7 +56,45 @@ upload.
 
 `bin/metis_client` is a command-line client to interact with metis. To run the client requires Ruby 2.5+.
 
-You should install Ruby via [rbenv](https://github.com/rbenv/rbenv) and select one of the above versions (2.5 - 2.6). If you are using a non-Linux operating system, you will need to install the dependencies listed in [the non-Linux OS section](#non-linux-operating-system-dependencies) **before** installing `rbenv` or any of the target Ruby versions.
+You will need to install Ruby of at least v2.5. If you are using a non-Linux operating system, you will need to install the dependencies listed in [the non-Linux OS section](#non-linux-operating-system-dependencies) **before** installing `rbenv` or any of the target Ruby versions.
+
+#### Recommended Ruby Installation Method
+
+These instructions install a version of Ruby using the environment manager `rbenv`, and they should work on for Linux and macOS, but may not work as is in Windows.
+See [rbenv](https://github.com/rbenv/rbenv) for more details.
+
+1. Install `rbenv` inside your home directory, and set it to be loaded in all future terminals
+
+```
+git clone https://github.com/rbenv/rbenv.git ~/.rbenv
+cd ~/.rbenv && src/configure && make -C src
+echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(~/.rbenv/bin/rbenv init - bash)"' >> ~/.bashrc
+~/.rbenv/bin/rbenv init
+```
+
+2. Add the ruby-build plugin
+
+```
+mkdir -p "$(rbenv root)"/plugins
+git clone https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-build
+```
+
+3. Check the rbenv and ruby-build installation
+
+```
+curl -fsSL https://github.com/rbenv/rbenv-installer/raw/main/bin/rbenv-doctor | bash
+```
+
+4. Install a version of Ruby
+
+Here, we'll install v2.7.8, but many other versions will also work.
+We will also set this version as the 'global' version to use.
+
+```
+rbenv install 2.7.8
+rbenv global 2.7.8
+```
 
 #### Non-Linux operating system dependencies
 
@@ -130,6 +168,20 @@ $ metis_client.rb < instructions.txt
 If you have edit permission you may also:
 - *mv* - Rename a file on metis
 - *put* - Upload a folder to metis
+
+Run `[command] --help`, (e.g. `nuke --help`) to see further documentation from inside the client!
+
+##### Usage notes for nuke & validate
+
+`nuke` and `validate` each compare md5s of local files to md5s of files in metis.
+By default, they compare to files across ALL of metis, but this can be restricted
+to the context of a single project using the `-p` or `--project-name` option.
+
+Adding this project scoping is highly recommended in most use cases, e.g. `nuke -p <project_name> .`.
+
+Additionally, `validate` by default will yield only a counts of archived vs unarchived files,
+but you can use the `-l` ot `--list` option to have it also output the file names.
+E.g. `validate -l -p <project_name> .`
 
 #### Avoiding token expiration
 
