@@ -107,7 +107,7 @@ const NewProject = ({currentProjects, retrieveAllProjects}) => {
   let [newproject, setNewProject] = useState({});
   let [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [projectTemplate, setProjectTemplate] = useState('coprojects_template');
+  const [projectTemplate, setProjectTemplate] = useState('blank');
   const invoke = useActionInvoker();
 
   const [_, addProject] = useAsyncWork(
