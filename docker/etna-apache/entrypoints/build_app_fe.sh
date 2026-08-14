@@ -23,7 +23,7 @@ sed main.conf.template -e "s/-app_name-/$PROXY_APP_NAME/g" > /usr/opt/httpd.conf
 
 if [ -e "/app/build" ]; then
   for hook in /app/build/*; do
-    if stat -c  %A $hook | grep x &>/dev/null; then
+    if stat -c  %A $hook | grep -v d | grep x &>/dev/null; then
       $hook
     fi
   done
