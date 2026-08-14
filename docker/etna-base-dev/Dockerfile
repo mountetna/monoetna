@@ -39,6 +39,7 @@ RUN apt-get update \
       libvips \
       libvips-tools \
       sqlite3 \
+      ca-certificates \
       --no-install-recommends &&\
     rm -rf /var/lib/apt/lists/*
 
