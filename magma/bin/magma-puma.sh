@@ -15,23 +15,6 @@ RESTART_DELAY_SECONDS=2
 
 puma_pid=""
 
-start_puma() {
-  echo "Starting Puma"
-  puma -C "$PUMA_CONFIG" &
-  puma_pid=$!
-}
-
-wait_for_puma_then_restart() {
-  local puma_status
-
-  wait "$puma_pid"
-  puma_status=$?
-  puma_pid=""
-
-  echo "Puma exited with status ${puma_status}; restarting in ${RESTART_DELAY_SECONDS}s"
-  sleep "$RESTART_DELAY_SECONDS"
-}
-
 shutdown() {
   if [ -n "$puma_pid" ]; then
     echo "Stopping Puma pid ${puma_pid}"
@@ -42,15 +25,20 @@ shutdown() {
   exit 0
 }
 
-main() {
-  # Kubernetes stops the container by sending SIGTERM to PID 1; forward it to Puma.
-  trap shutdown TERM INT
+# Kubernetes stops the container by sending SIGTERM to PID 1; forward it to Puma.
+trap shutdown TERM INT
 
-  while true; do
-    # Run Puma as a child so this wrapper can restart it without restarting the container.
-    start_puma
-    wait_for_puma_then_restart
-  done
-}
+while true; do
+  # Run Puma as a child so this wrapper can restart it without restarting the container.
+  echo "Starting Puma"
+  puma -C "$PUMA_CONFIG" &
+  puma_pid=$!
 
-main
+  wait "$puma_pid"
+  puma_status=$?
+  puma_pid=""
+
+  # The loop repeats after this pause, starting a fresh Puma process.
+  echo "Puma exited with status ${puma_status}; restarting in ${RESTART_DELAY_SECONDS}s"
+  sleep "$RESTART_DELAY_SECONDS"
+done
