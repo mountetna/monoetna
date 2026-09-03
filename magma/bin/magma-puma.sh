@@ -34,11 +34,11 @@ while true; do
   puma -C "$PUMA_CONFIG" &
   puma_pid=$!
 
+  # This blocks until Puma exits; when it returns, the loop will restart Puma.
   wait "$puma_pid"
   puma_status=$?
   puma_pid=""
 
-  # The loop repeats after this pause, starting a fresh Puma process.
   echo "Puma exited with status ${puma_status}; restarting in ${RESTART_DELAY_SECONDS}s"
   sleep "$RESTART_DELAY_SECONDS"
 done
