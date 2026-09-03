@@ -38,7 +38,7 @@ const PIExportAttrs: (keyof PrincipalInvestigator)[] = ['name', 'title']
 const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsLink']
 
 
-function _ProjectExplorer({ }) {
+function BaseProjectExplorer({ }) {
     const {
       state: { projectData, filters, filterItemSet },
       searchOptions, updateFilterItems, updateFilterItemSet, clearFilterItems
@@ -320,7 +320,7 @@ function _ProjectExplorer({ }) {
 export default function ProjectExplorer({ }) {
     return (
         <React.Suspense fallback={null}>
-            <_ProjectExplorer/>
+            <BaseProjectExplorer/>
         </React.Suspense>
     )
 }
