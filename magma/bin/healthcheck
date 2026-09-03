@@ -2,7 +2,6 @@
 
 HOLD_FILE=$(grep -E "^\s+:hold_file:" config.yml | awk '{ print $2 }')
 HOLD_URL=$(grep -E "^\s+:hold_url:" config.yml | awk '{ print $2 }')
-PUMA_PATTERN="puma.*-C /entrypoints/puma.rb"
 
 if [ -f "$HOLD_FILE" ];
 then
@@ -12,19 +11,6 @@ then
     if [[ $curr_time < $hold_time ]];
     then
         exit 0
-    else
-        # The hold file expired, so Puma did not finish restarting in time.
-        # Kill Puma so the magma-puma.sh script can start a fresh process, then let this
-        # healthcheck pass because it kicked off local recovery.
-        puma_pids=$(pgrep -f "$PUMA_PATTERN")
-
-        if [ -n "$puma_pids" ];
-        then
-            echo "puma.hold expired; killing Puma pid(s): $puma_pids"
-            kill -9 $puma_pids
-            rm -f "$HOLD_FILE"
-            exit 0
-        fi
     fi
 fi
 
