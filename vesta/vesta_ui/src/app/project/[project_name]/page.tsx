@@ -3,11 +3,7 @@ import { getData } from '@/lib/clients/vesta-api/request';
 import { Box, Typography } from '@mui/material';
 import ProjectViewer from '@/components/project-viewer';
 
-export default async function Project({params}:{
-  params: {
-    project_name: string;
-  }
-}) {
+export default async function Project({params}: any) {
   const { projects } = await getData();
   const project = projects.find(p => p.name == params.project_name)
 
