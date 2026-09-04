@@ -12,12 +12,11 @@ if [ "$#" -lt 1 ]; then
 fi
 
 PUMA_PID="$1"
-HOLD_FILE=$(grep -E "^\s+:hold_file:" config.yml | awk '{ print $2 }')
+HOLD_FILE="./tmp/puma.hold"
 MONITOR_INTERVAL_SECONDS=1
 
-[ -z "$HOLD_FILE" ] && exit 0
-
 while true; do
+  # Stop monitoring if this Puma process has already exited.
   if ! kill -0 "$PUMA_PID" 2>/dev/null; then
     exit 0
   fi

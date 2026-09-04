@@ -11,7 +11,6 @@
 set -u
 
 PUMA_CONFIG="/entrypoints/puma.rb"
-RESTART_DELAY_SECONDS=2
 HOLD_MONITOR_SCRIPT="$(dirname "$0")/puma-hold-monitor.sh"
 
 puma_pid=""
@@ -58,6 +57,6 @@ while true; do
   puma_pid=""
   stop_hold_monitor
 
-  echo "Puma exited with status ${puma_status}; restarting in ${RESTART_DELAY_SECONDS}s"
-  sleep "$RESTART_DELAY_SECONDS"
+  echo "Puma exited with status ${puma_status}; restarting in 1s"
+  sleep 1
 done
