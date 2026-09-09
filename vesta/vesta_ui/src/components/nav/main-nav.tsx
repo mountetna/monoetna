@@ -5,7 +5,7 @@ import Container from '@mui/system/Container'
 import Box from '@mui/system/Box'
 import { Breakpoint, useTheme } from '@mui/material/styles';
 import _ from 'lodash'
-import { FocusTrap } from '@mui/base';
+import { FocusTrap } from '@mui/base/FocusTrap';
 import { usePathname } from 'next/navigation';
 
 import UCSFNav, { Classes as UCSFNavClasses } from './ucsf-nav'

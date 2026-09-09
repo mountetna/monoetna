@@ -68,6 +68,22 @@ export function ProjectExplorerContextProvider({projectData, children}:{
         );
       }
     );
+
+    projectData.forEach((project:Project) => {
+      options.push({
+        type: 'Project Name',
+        value: project.name,
+        label: project.name,
+        key: 'Project Name.' + project.name
+      });
+      options.push({
+        type: 'Project Title',
+        value: project.fullName,
+        label: project.fullName,
+        key: 'Project Title.' + project.fullName
+      });
+    });
+
     return options;
   }, [ filters ] );
 
@@ -79,6 +95,7 @@ export function ProjectExplorerContextProvider({projectData, children}:{
         project.name,
         project.fullName
       ]);
+      console.log({labels});
       return labels.some( label => label.toLowerCase().includes((filterItem as string).toLowerCase()) )
     }, [ filters ]
   );
