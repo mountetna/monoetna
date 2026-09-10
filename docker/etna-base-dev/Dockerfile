@@ -1,6 +1,6 @@
 FROM development-certs
 
-FROM ruby:3.4-bullseye
+FROM ruby:3.4-bookworm
 WORKDIR /app
 
 ENV DOCKER_VERSION 20.10.6
@@ -22,14 +22,15 @@ ENV PATH "/app/bin:/etna/node_modules/.bin:/app/node_modules/.bin:$BUNDLE_BIN:$P
 COPY --from=0 /certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
 RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
 
-# add postgres 14 repo for debian bullseye
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ bullseye-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
+# add postgres 14 repo for debian bookworm
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ bookworm-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
 RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
 RUN apt-get update \
    && apt-get install -y \
       curl \
-      libopenblas-base \
+      libopenblas0 \
+      libopenblas-dev \
       libcurl4-openssl-dev \
       libssl-dev \
       parallel \
