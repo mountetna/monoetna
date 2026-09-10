@@ -67,7 +67,7 @@ const columnComponent = (columnName:string, project:Project) => {
         overflow: 'hidden',
         textOverflow: 'ellipsis'
 
-      }} variant="pBodyMediumWt">{project.fullName}</Typography>;
+      }} title={project.fullName} variant="pBodyMediumWt">{project.fullName}</Typography>;
     case "Data types":
       return <DataTypeColumn project={project}/>;
     case "Investigators":

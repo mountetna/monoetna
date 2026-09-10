@@ -71,13 +71,15 @@ export function ProjectExplorerContextProvider({projectData, children}:{
 
     projectData.forEach((project:Project) => {
       options.push({
-        type: 'Project Name',
+        type: 'free',
+        menuTitle: 'Project Name',
         value: project.name,
         label: project.name,
         key: 'Project Name.' + project.name
       });
       options.push({
-        type: 'Project Title',
+        type: 'free',
+        menuTitle: 'Project Title',
         value: project.fullName,
         label: project.fullName,
         key: 'Project Title.' + project.fullName

@@ -34,10 +34,6 @@ export default function MainNav({
     const [overlayNavOpen, setOverlayNavOpen] = React.useState(false)
     const [dlNavFocus, setDlNavFocus] = React.useState(false)
 
-    React.useEffect(() => {
-        // document.body.style.overflow = overlayNavOpen ? 'hidden' : 'visible'
-    }, [overlayNavOpen])
-
     const breakpoint = useBreakpoint()
     const isDesktop = ['desktop', 'desktopLg'].includes(breakpoint)
 
@@ -119,9 +115,7 @@ export default function MainNav({
                 </Container>
             </Box>
 
-            <FocusTrap
-                open={dlNavFocus}
-            >
+            <>
                 {/* DL Nav */}
                 <Box
                     ref={mainNavRef}
@@ -183,7 +177,7 @@ export default function MainNav({
                         onClickOverlayNavButton={handleClickOverlayNavButton}
                     />
                 </Box>
-            </FocusTrap>
+            </>
         </React.Fragment >
     )
 }
