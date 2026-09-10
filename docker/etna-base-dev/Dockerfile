@@ -29,7 +29,8 @@ RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 RUN apt-get update \
    && apt-get install -y \
       curl \
-      libopenblas-base \
+      libopenblas0 \
+      libopenblas-dev \
       libcurl4-openssl-dev \
       libssl-dev \
       parallel \
