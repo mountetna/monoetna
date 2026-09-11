@@ -48,10 +48,10 @@ class Magma
             .first
         end
 
-        def validate(config)
+        def validate(config, comment, project_record_name)
           parser = Magma::Gnomon::Grammar::Parser.new(config)
 
-          validation = Magma::Gnomon::Validation.new(parser)
+          validation = Magma::Gnomon::Validation.new(parser, config, comment, project_record_name)
 
           validation.valid? ? [] : validation.errors
         end
