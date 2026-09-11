@@ -67,7 +67,7 @@ const columnComponent = (columnName:string, project:Project) => {
         overflow: 'hidden',
         textOverflow: 'ellipsis'
 
-      }} variant="pBodyMediumWt">{project.fullName}</Typography>;
+      }} title={project.fullName} variant="pBodyMediumWt">{project.fullName}</Typography>;
     case "Data types":
       return <DataTypeColumn project={project}/>;
     case "Investigators":
@@ -138,6 +138,10 @@ const ProjectTable = ({currentPage, setCurrentPage}:{
       <Table aria-label="project table">
         <TableHead>
           <TableRow sx={ theme => ({ borderBottom: `1px solid ${theme.palette.ground.grade50}`}) }>
+            <TableCell sx={{
+              bgcolor: 'utilityHighlight.main',
+              borderBottom: 'none',
+            }}></TableCell>
             {
               visibleColumns.map(
                 (columnName:string) =>
@@ -155,10 +159,6 @@ const ProjectTable = ({currentPage, setCurrentPage}:{
                 </TableCell>
               )
             }
-            <TableCell sx={{
-              bgcolor: 'utilityHighlight.main',
-              borderBottom: 'none',
-            }}></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -167,6 +167,15 @@ const ProjectTable = ({currentPage, setCurrentPage}:{
           <TableRow key={project.name} sx={{
                     height: '73px'
           }}>
+            <TableCell sx={{
+              bgcolor: 'utilityHighlight.main',
+              borderBottom: 'none'
+            }}>
+              <LinkoutButton size='small'
+                tooltip={ `Open ${project.name.toUpperCase()}` }
+                link={ '/project/' + project.name }
+                />
+            </TableCell>
             {
               visibleColumns.map(
                 (columnName:string) => <TableCell
@@ -182,15 +191,6 @@ const ProjectTable = ({currentPage, setCurrentPage}:{
                 </TableCell>
               )
             }
-            <TableCell sx={{
-              bgcolor: 'utilityHighlight.main',
-              borderBottom: 'none'
-            }}>
-              <LinkoutButton size='small'
-                tooltip={ `Open ${project.name.toUpperCase()}` }
-                link={ '/project/' + project.name }
-                />
-            </TableCell>
           </TableRow>
           )
         }
