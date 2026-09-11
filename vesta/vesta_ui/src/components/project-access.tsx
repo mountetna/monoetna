@@ -18,8 +18,12 @@ const ProjectAccess = ({project, loginUrl, accessUrl}:{
   const pi = project.principalInvestigators[0];
   const router = useRouter()
 
-  const janusUrl = loginUrl + `/login?refer=${location.href}`;
+  const [ janusUrl, setJanusUrl ] = React.useState('');
   const timurUrl = accessUrl + '/' + project.name;
+
+  React.useEffect(
+    () => setJanusUrl(loginUrl + `/login?refer=${location.href}`), []
+  );
 
   if (user && (project.name in user.permissions || project.status == "Community" || project.status == "Resource")) {
     router.push(timurUrl, { scroll: true });
