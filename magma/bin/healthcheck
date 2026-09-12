@@ -19,4 +19,5 @@ then
     exit 1
 fi
 
-curl -f -X OPTIONS ${HOLD_URL:-http://localhost:3000} || exit 1
+# Normal healthcheck: Puma should answer quickly when no hold file is active.
+curl -f --connect-timeout 1 --max-time 2 -o /dev/null -X OPTIONS "${HOLD_URL:-http://127.0.0.1:3000}" || exit 1
