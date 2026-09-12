@@ -3,10 +3,10 @@ import { getData } from '@/lib/clients/vesta-api/request';
 import { Box, Typography } from '@mui/material';
 import ProjectAccess from '@/components/project-access';
 
+type Params = Promise<{ project_name: string }>;
+
 export default async function Access({params}:{
-  params: {
-    project_name: string;
-  }
+  params: Params 
 }) {
   const { projects } = await getData();
   const { project_name } = await params;
