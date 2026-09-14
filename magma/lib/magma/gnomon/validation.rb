@@ -3,7 +3,7 @@ class Magma
     class Validation
       attr_reader :errors
 
-      def initialize(grammar, config, comment, project_record_name)
+      def initialize(grammar, config = {}, comment = '', project_record_name = 'fake-project')
         @grammar = grammar
         @config = config
         @comment = comment
