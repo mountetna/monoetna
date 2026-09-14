@@ -3,7 +3,7 @@ require 'json'
 
 
 def create_grammar(params={})
-  grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' }.merge(params))
+  grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: "update, #{VALID_GRAMMAR_CONFIG_PROJ_HASH}" }.merge(params))
 end
 
 describe GnomonController do
@@ -40,7 +40,7 @@ describe GnomonController do
 
     config = VALID_GRAMMAR_CONFIG
     auth_header(:editor)
-    json_post('/gnomon/labors', config: config, comment: 'eh')
+    json_post('/gnomon/labors', config: config, comment: VALID_GRAMMAR_CONFIG_PROJ_HASH)
 
     expect(last_response.status).to eq(200)
 
@@ -53,12 +53,23 @@ describe GnomonController do
   end
 
   context 'project name' do
-    it 'sets the project name in Magma from the grammar' do
+    it 'requires confirmation via hash in comment' do
       grammar = create_grammar
 
       config = VALID_GRAMMAR_CONFIG
       auth_header(:editor)
       json_post('/gnomon/labors', config: config, comment: 'eh')
+
+      expect(last_response.status).to eq(422)
+      expect(JSON.parse(last_response.body)['errors']).to include(match(/#{VALID_GRAMMAR_CONFIG_PROJ_HASH}/))
+    end
+    
+    it 'sets the project name in Magma from the grammar' do
+      grammar = create_grammar
+
+      config = VALID_GRAMMAR_CONFIG
+      auth_header(:editor)
+      json_post('/gnomon/labors', config: config, comment: "eh, #{VALID_GRAMMAR_CONFIG_PROJ_HASH}")
 
       expect(last_response.status).to eq(200)
 
@@ -72,7 +83,7 @@ describe GnomonController do
 
       config = VALID_GRAMMAR_CONFIG
       auth_header(:editor)
-      json_post('/gnomon/labors', config: config, comment: 'eh')
+      json_post('/gnomon/labors', config: config, comment: "eh, #{VALID_GRAMMAR_CONFIG_PROJ_HASH}")
 
       expect(last_response.status).to eq(200)
 
