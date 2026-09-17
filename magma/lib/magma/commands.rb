@@ -1,8 +1,10 @@
 require 'date'
+require 'json'
 require 'logger'
 require 'yaml'
 require 'etna/command'
 require_relative './actions/base_action'
+require_relative './template_audit'
 
 class Magma
   class RetrieveProjectTemplate < Etna::Command
@@ -224,6 +226,28 @@ class Magma
           Yabeda.magma.data_rows.set(tags, model.count)
         end
       end
+    end
+  end
+
+  class GenerateModelTemplateAuditReport < Etna::Command
+    usage '[--file <path>] # Generate a model template conformance report as JSON'
+    string_flags << '--file'
+
+    def execute(file: nil)
+      report = Magma::TemplateAudit.new.report
+      json = JSON.pretty_generate(report)
+
+      if file
+        ::File.write(file, "#{json}\n")
+        puts "Wrote model template audit report to #{file}"
+      else
+        puts json
+      end
+    end
+
+    def setup(config)
+      super
+      Magma.instance.setup_db
     end
   end
 end

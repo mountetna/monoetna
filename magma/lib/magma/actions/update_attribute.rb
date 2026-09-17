@@ -27,7 +27,12 @@ class Magma
     private
 
     def validations
-      [:validate_attribute_exists, :validate_options, :validate_changes, :validate_restricted_attribute]
+      [
+        :validate_attribute_exists,
+        :validate_options,
+        :validate_changes,
+        :validate_restricted_attribute
+      ]
     end
 
     def validate_attribute_exists

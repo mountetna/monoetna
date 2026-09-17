@@ -123,6 +123,7 @@ class Magma
         Magma::Attribute::EDITABLE_OPTIONS
 
       @action_params.slice(*fields).merge(
+        template_enforced: @action_params.fetch(:template_enforced, false),
         project_name: @project_name,
         magma_model: model
       )
