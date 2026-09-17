@@ -58,6 +58,15 @@ describe Magma::Attribute do
 
       expect(template[:attribute_group]).to eq("odors")
     end
+
+    it 'includes template enforcement metadata' do
+      attribute = Magma::Attribute.new(
+        attribute_name: 'species',
+        template_enforced: true
+      )
+
+      expect(attribute.json_template[:template_enforced]).to eq(true)
+    end
   end
 
   describe "#revision_to_loader" do
