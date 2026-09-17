@@ -689,6 +689,7 @@ VALID_GRAMMAR_CONFIG={
     victim: ".village SEP VICT .n"
   }
 }
+VALID_GRAMMAR_CONFIG_PROJ_HASH = Digest::MD5.hexdigest("The Twelve Labors of Hercules")
 
 HIERARCHY_GRAMMAR_CONFIG={
   tokens: {
@@ -765,3 +766,4 @@ HIERARCHY_GRAMMAR_CONFIG={
     victim: ".village SEP VICT .n"
   }
 }
+HIERARCHY_GRAMMAR_CONFIG_PROJ_HASH = Digest::MD5.hexdigest("The Twelve Labors of Hercules")
