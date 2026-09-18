@@ -154,6 +154,29 @@ class Metis
     end
   end
 
+  class GlacierDeleteCommand < Etna::Command
+    usage "Delete all Glacier archives referenced by Metis data blocks."
+
+    def execute
+      backup = Metis.instance.config(:backup)
+      glacier = Fog::AWS::Glacier.new(backup[:credentials])
+      data_blocks = Metis::DataBlock.exclude(archive_id: nil)
+      total = data_blocks.count
+
+      data_blocks.each_with_index do |data_block, index|
+        glacier.delete_archive(backup[:directory], data_block.archive_id) unless data_block.archive_id == 'zero-byte-file'
+        data_block.update(archive_id: nil)
+
+        puts "Deleted #{index + 1}/#{total}" if ((index + 1) % 100).zero? || index + 1 == total
+      end
+    end
+
+    def setup(config)
+      super
+      Metis.instance.load_models
+    end
+  end
+
   class CreateDb < Etna::Command
     usage "# create the initial database per config.yml"
 
