@@ -75,7 +75,7 @@ export const addFilesSensor = (setInfo: Function, state: DashboardState) => {
   if (files == null || bytes == null) return;
   setInfo({
     level: files < 10 ? 0 : (bytes < 10000000000 ? 1 : 2),
-    text: `${files} ${plural('file',files)}, ${byteFormat(bytes)} stored`
+    text: `${files} ${plural('file',files)}, ${byteFormat(bytes, true)} stored`
   });
 };
 
