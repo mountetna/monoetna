@@ -162,12 +162,21 @@ class Metis
       glacier = Fog::AWS::Glacier.new(backup[:credentials])
       data_blocks = Metis::DataBlock.exclude(archive_id: nil)
       total = data_blocks.count
+      started_at = Time.now
 
+      puts "#{started_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ')} Deleting #{total} archives"
       data_blocks.each_with_index do |data_block, index|
         glacier.delete_archive(backup[:directory], data_block.archive_id) unless data_block.archive_id == 'zero-byte-file'
         data_block.update(archive_id: nil)
 
-        puts "Deleted #{index + 1}/#{total}" if ((index + 1) % 100).zero? || index + 1 == total
+        deleted = index + 1
+        next unless deleted == 50 || (deleted % 100).zero? || deleted == total
+
+        now = Time.now
+        elapsed = now - started_at
+        rate = deleted / elapsed
+        hours_remaining = (total - deleted) / rate / 3600
+        puts "#{now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')} Deleted #{deleted}/#{total} (#{rate.round(2)}/sec, ~#{hours_remaining.round(1)} hours remaining)"
       end
     end
 
