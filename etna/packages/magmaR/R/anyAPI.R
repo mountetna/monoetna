@@ -21,14 +21,15 @@
 #' }
 #' @export
 anyAPI <- function(
-        appName = c('magma', 'janus', 'metis', 'timur', 'vulcan', 'polyphemus', 'vesta', 'etna'),
-        api,
-        target,
-        method = c('get', 'post', 'delete'),
-        requestBody = NULL,
-        raw = FALSE,
-        jsonparse = TRUE,
-        verbose = FALSE) {
+    appName = c('magma', 'janus', 'metis', 'timur', 'vulcan', 'polyphemus', 'vesta', 'etna'),
+    api,
+    target,
+    method = c('get', 'post', 'delete'),
+    requestBody = NULL,
+    raw = FALSE,
+    jsonparse = TRUE,
+    verbose = FALSE
+) {
 
     appName <- match.arg(appName)
     method <- match.arg(method)
@@ -53,19 +54,20 @@ anyAPI <- function(
     )
 
     # Perform
-    fxn <- switch(
-        method,
-        get = curl$get,
-        post = curl$post,
-        delete = curl$delete)
-    curl <- fxn(path = api)
+    curl <- if (method=='get') {
+        curl$get(path = api)
+    } else if (method=='post') {
+        curl$post(path = api, body = opts$postfields)
+    } else {
+        curl$delete(path = api, body = opts$postfields)
+    }
 
     # Summarize
     if (verbose) {
         if (curl$success()) {
-            cat(paste0(url, ": successful."))
+            cat(app_url, "/", api, " call: successful.", sep = '')
         } else {
-            cat(url, ":\n")
+            cat(app_url, "/", api, " call:\n", sep = '')
             print(curl$status_http())
         }
     }
