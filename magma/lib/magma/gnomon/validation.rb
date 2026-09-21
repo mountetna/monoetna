@@ -3,11 +3,9 @@ class Magma
     class Validation
       attr_reader :errors
 
-      def initialize(grammar, config = {}, comment = '', project_record_name = 'fake-project')
+      def initialize(grammar, metadata = {:comment => '', :project_record_name => 'fake-project'})
         @grammar = grammar
-        @config = config
-        @comment = comment
-        @project_record_name = project_record_name
+        @metadata = metadata
         @errors = []
       end
 
@@ -56,11 +54,11 @@ class Magma
       end
 
       def confirm_project_token_change
-        project_token_name = @config.dig('tokens','PROJECT','values')&.first&.first
+        project_token_name = @grammar.config.dig('tokens','PROJECT','values')&.first&.first
         if project_token_name
           project_new_hash = Digest::MD5.hexdigest(project_token_name)
-          if @project_record_name != project_token_name && !@comment.include?(project_new_hash)
-            @errors += ["Add \"#{project_new_hash}\" in comment to confirm intent to change project name to provided PROJECT token value, \"#{project_token_name}\"."]
+          if @metadata[:project_record_name] != project_token_name && !@metadata[:comment].include?(project_new_hash)
+            @errors += ["Add \"#{project_new_hash}\" in comment to confirm intent to change project name to provided PROJECT token value, \"#{project_token_name}\", from current \"#{@metadata[:project_record_name]}\"."]
           end
         end
       end
