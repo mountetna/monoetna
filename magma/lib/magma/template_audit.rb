@@ -1,98 +1,66 @@
 class Magma
   class TemplateAudit
     TEMPLATE_PROJECT = 'coprojects_template'.freeze
+    EXCLUDED_PROJECTS = [TEMPLATE_PROJECT, Magma::OntologyValidationObject::PROJECT].freeze
 
-    def call
-      { projects: audited_projects }
+    def report
+      projects = project_models.group_by { |model| model[:project_name] }
+
+      { projects: projects.map { |project_name, models| audit_project(project_name, models) } }
     end
 
     private
 
-    def audited_projects
-      models_by_project.keys.sort.map do |project_name|
-        audit_project(project_name, models_by_project[project_name])
-      end
-    end
-
-    def models_by_project
-      @models_by_project ||= project_models.group_by { |model| model[:project_name] }
-    end
-
     def audit_project(project_name, models)
-      model_groups = classify_models(models)
+      unmapped, mapped = models.partition do |model|
+        blank?(model[:template_project_name]) && blank?(model[:template_model_name])
+      end
+      valid, invalid = mapped.partition do |model|
+        model[:template_project_name] == TEMPLATE_PROJECT &&
+          template_model_names.include?(model[:template_model_name])
+      end
 
       issues = {
-        unmapped_models: unmapped_model_names(model_groups[:unmapped]),
-        invalid_mappings: invalid_mapping_reports(model_groups[:invalid]),
-        missing_template_columns: missing_template_columns(project_name, model_groups[:valid])
+        unmapped_models: unmapped.map { |model| model[:model_name] },
+        invalid_mappings: invalid.map { |model| model_mapping(model) },
+        missing_template_columns: valid.filter_map { |model| missing_columns(project_name, model) },
+        invalid_ontology_values: valid.flat_map { |model| invalid_values(project_name, model) }
       }
 
-      {
-        project: project_name,
-        conforming: issues.values.all?(&:empty?),
-        **issues
-      }
+      { project: project_name, conforming: issues.values.all?(&:empty?), **issues }
     end
 
-    def classify_models(models)
-      unmapped, mapped = models.partition { |model| mapping_blank?(model) }
-      valid, invalid = mapped.partition { |model| valid_mapping?(model) }
+    def missing_columns(project_name, model)
+      required = template_attributes(model).select { |attribute| attribute[:template_required] }
+      missing = required.map { |attribute| attribute[:attribute_name] } - local_columns(project_name, model).keys
+      return if missing.empty?
 
-      {
-        unmapped: unmapped,
-        valid: valid,
-        invalid: invalid
-      }
+      model_mapping(model).merge(columns: missing)
     end
 
-    def unmapped_model_names(models)
-      models.map { |model| model[:model_name] }.sort
-    end
+    def invalid_values(project_name, model)
+      template_attributes(model).filter_map do |attribute|
+        next unless attribute[:validation_type] == 'Ontology'
 
-    def invalid_mapping_reports(models)
-      models.map do |model|
-        {
-          model: model[:model_name],
-          template_model: model[:template_model_name]
-        }
-      end.sort_by { |mapping| mapping[:model] }
-    end
+        column = local_columns(project_name, model)[attribute[:attribute_name]]
+        next unless column
 
-    def missing_template_columns(project_name, models)
-      models.filter_map do |model|
-        expected = enforced_attributes_for(model[:template_model_name])
-        actual = attributes_for(project_name, model[:model_name])
-        missing = expected.reject { |attribute_name| actual.include?(attribute_name) }
-        next if missing.empty?
+        table = attribute[:validation_value]
+        validator = Magma::OntologyValidationObject.new(value: table)
+        values = stored_values(project_name, model, column).reject { |value| validator.validate(value) }
+        next if values.empty?
 
-        {
-          model: model[:model_name],
-          template_model: model[:template_model_name],
-          columns: missing
-        }
+        model_mapping(model).merge(column: attribute[:attribute_name], table: table, values: values)
       end
     end
 
-    def mapping_blank?(model)
-      blank?(model[:template_project_name]) && blank?(model[:template_model_name])
-    end
-
-    def valid_mapping?(model)
-      model[:template_project_name] == TEMPLATE_PROJECT &&
-        template_model_names.include?(model[:template_model_name])
-    end
-
-    def enforced_attributes_for(model_name)
-      template_enforced_attributes.fetch(model_name, [])
-    end
-
-    def attributes_for(project_name, model_name)
-      local_attributes.fetch([project_name, model_name], [])
+    def model_mapping(model)
+      { model: model[:model_name], template_model: model[:template_model_name] }
     end
 
     def project_models
       Magma.instance.db[:models].
-        exclude(project_name: TEMPLATE_PROJECT).
+        exclude(project_name: EXCLUDED_PROJECTS).
         select(:project_name, :model_name, :template_project_name, :template_model_name).
         order(:project_name, :model_name).
         all
@@ -104,27 +72,42 @@ class Magma
         select_map(:model_name)
     end
 
-    def template_enforced_attributes
-      @template_enforced_attributes ||= Magma.instance.db[:attributes].
-        where(project_name: TEMPLATE_PROJECT, template_enforced: true).
-        select(:model_name, :attribute_name).
-        order(:model_name, :attribute_name).
+    def template_attributes(model)
+      validation = Sequel.pg_json_op(:validation)
+
+      @template_attributes ||= Magma.instance.db[:attributes].
+        where(project_name: TEMPLATE_PROJECT).
+        select(
+          :model_name,
+          :attribute_name,
+          :template_required,
+          validation.get_text('type').as(:validation_type),
+          validation.get_text('value').as(:validation_value)
+        ).
+        order(:attribute_name).
         all.
-        group_by { |attribute| attribute[:model_name] }.
-        transform_values do |attributes|
-          attributes.map { |attribute| attribute[:attribute_name] }
-        end
+        group_by { |attribute| attribute[:model_name] }
+
+      @template_attributes.fetch(model[:template_model_name], [])
     end
 
-    def local_attributes
-      @local_attributes ||= Magma.instance.db[:attributes].
-        exclude(project_name: TEMPLATE_PROJECT).
-        select(:project_name, :model_name, :attribute_name).
+    def local_columns(project_name, model)
+      @local_columns ||= Magma.instance.db[:attributes].
+        exclude(project_name: EXCLUDED_PROJECTS).
+        select(:project_name, :model_name, :attribute_name, :column_name).
         all.
-        group_by { |attribute| [attribute[:project_name], attribute[:model_name]] }.
-        transform_values do |attributes|
-          attributes.map { |attribute| attribute[:attribute_name] }
-        end
+        group_by { |attribute| [attribute[:project_name], attribute[:model_name]] }
+
+      @local_columns.fetch([project_name, model[:model_name]], []).
+        to_h { |attribute| [attribute[:attribute_name], attribute[:column_name]] }
+    end
+
+    def stored_values(project_name, model, column)
+      Magma.instance.db[Sequel[project_name.to_sym][model[:model_name].pluralize.to_sym]].
+        exclude(column.to_sym => nil).
+        exclude(column.to_sym => '').
+        distinct.
+        select_order_map(column.to_sym)
     end
 
     def blank?(value)
