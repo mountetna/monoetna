@@ -14,6 +14,7 @@ export type Attribute = {
   display_name?: string;
   format_hint?: string;
   restricted?: boolean;
+  template_required?: boolean;
   read_only?: boolean;
   hidden?: boolean;
   validation?: {[key: string]: any} | null;
@@ -58,6 +59,7 @@ type UpdateAttributeParams = {
   hidden?: boolean;
   read_only?: boolean;
   restricted?: boolean;
+  template_required?: boolean;
 };
 
 type UpdateAttributeAction = UpdateAttributeParams & {

@@ -227,6 +227,20 @@ export default function EditAttributeModal({
           }
           label='Restricted'
         />
+        {CONFIG.project_name === 'coprojects_template' && (
+          <FormControlLabel
+            control={
+              <Checkbox
+                onChange={(e: React.ChangeEvent<any>) =>
+                  updateAttribute([['template_required', e.target.checked]])
+                }
+                checked={!!updatedAttribute.template_required}
+                inputProps={{'aria-label': 'controlled'}}
+              />
+            }
+            label='Template Required'
+          />
+        )}
     </ModelActionsModal>
   );
 }
