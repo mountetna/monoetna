@@ -8,7 +8,7 @@ export const COMMA_SEP = '^[a-zA-Z0-9]*(,[a-zA-Z0-9]*)*$';
 
 export const COMMA_SEP_WITH_SPACES = '^[a-zA-Z0-9 ]*(,[a-zA-Z0-9 ]*)*$';
 
-export const VALIDATION_TYPES = ['Array', 'Regexp'];
+export const VALIDATION_TYPES = ['Array', 'Regexp', 'Ontology'];
 
 export const EDITABLE_OPTIONS = [
     'description',

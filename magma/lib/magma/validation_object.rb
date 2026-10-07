@@ -104,4 +104,32 @@ class Magma
       end
     end
   end
+
+  class OntologyValidationObject < ValidationObject
+    PROJECT = 'ontologies'.freeze
+
+    def initialize(options = {})
+      @options = options
+      @table = options.fetch(:value)
+    end
+
+    def validate(value)
+      allowed_values.include?(value.to_s)
+    end
+
+    def error_message(name, value, hint)
+      "On #{name}, '#{value}' is not a valid #{@table} term."
+    end
+
+    private
+
+    def allowed_values
+      @allowed_values ||= begin
+        model = Magma.instance.get_model(PROJECT, @table)
+        model.select_map(model.identity.column_name.to_sym).map(&:to_s)
+      rescue NameError
+        []
+      end
+    end
+  end
 end

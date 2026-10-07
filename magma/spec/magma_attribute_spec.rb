@@ -58,6 +58,15 @@ describe Magma::Attribute do
 
       expect(template[:attribute_group]).to eq("odors")
     end
+
+    it 'includes template required metadata' do
+      attribute = Magma::Attribute.new(
+        attribute_name: 'species',
+        template_required: true
+      )
+
+      expect(attribute.json_template[:template_required]).to eq(true)
+    end
   end
 
   describe "#revision_to_loader" do
@@ -214,6 +223,31 @@ describe Magma::Attribute do
       )
 
       expect(attribute.validation_object.validate("A")).to eq(true)
+    end
+
+    it "builds OntologyValidationObjects from a table in the ontologies project" do
+      model = double("ncbitaxon", identity: double(column_name: :name), select_map: ["Homo sapiens"])
+      allow(Magma.instance).to receive(:get_model).with("ontologies", "ncbitaxon").and_return(model)
+
+      attribute = Magma::StringAttribute.new(
+        attribute_name: "species",
+        validation: { type: "Ontology", value: "ncbitaxon" }
+      )
+
+      expect(attribute.validation_object.validate("Homo sapiens")).to eq(true)
+      expect(attribute.validation_object.validate("NCBITaxon:9606")).to eq(false)
+      expect(attribute.validation_object.validate("Lion")).to eq(false)
+    end
+
+    it "rejects every value when the ontology table does not exist" do
+      attribute = Magma::StringAttribute.new(
+        attribute_name: "species",
+        validation: { type: "Ontology", value: "ncbitaxom" }
+      )
+
+      expect(attribute.validation_object.validate("Human")).to eq(false)
+      expect(attribute.validation_object.error_message(:species, "Human", nil)).
+        to eq("On species, 'Human' is not a valid ncbitaxom term.")
     end
   end
 

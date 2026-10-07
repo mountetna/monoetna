@@ -1,3 +1,5 @@
+require_relative './actions/with_template_validation_module'
+
 class Magma
   class Attribute < Sequel::Model
     plugin :single_table_inheritance, :type,
@@ -22,6 +24,7 @@ class Magma
       :link_model_name,
       :read_only,
       :restricted,
+      :template_required,
       :unique,
       :validation,
       :link_attribute_name
@@ -119,6 +122,7 @@ class Magma
         options: validation_object.options,
         match: validation_object.match,
         restricted: restricted,
+        template_required: template_required,
         format_hint: format_hint,
         read_only: read_only?,
         hidden: hidden?,
@@ -209,6 +213,7 @@ class Magma
       validate_type
       validate_attribute_name_unique
       validate_attribute_group_format
+      validate_template_required_project
     end
 
     def validate_validation_json
@@ -231,6 +236,13 @@ class Magma
       parts = attribute_group.split(",", -1)
       return if parts.all? { |p| p =~ SNAKE_CASE_WORD }
       errors.add(:attribute_group, "must contain a comma-separated set of snake_case values with no spaces")
+    end
+
+    def validate_template_required_project
+      return unless template_required
+      return if project_name.to_s == Magma::WithTemplateValidation::DEFAULT_TEMPLATE_PROJECT
+
+      errors.add(:template_required, 'can only be set on template project attributes')
     end
 
     def validate_type

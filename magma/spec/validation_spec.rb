@@ -84,6 +84,25 @@ describe Magma::Validation do
       expect(errors).to be_empty
     end
 
+    it 'validates an ontology term' do
+      model = double('ncbitaxon', identity: double(column_name: :name), select_map: ['Homo sapiens'])
+      allow(Magma.instance).to receive(:get_model).and_call_original
+      allow(Magma.instance).to receive(:get_model).with('ontologies', 'ncbitaxon').and_return(model)
+
+      stub_validation(Labors::Monster, :species, {
+        type: 'Ontology', value: 'ncbitaxon'
+      })
+
+      errors = validate(Labors::Monster, 'Nemean Lion', name: 'Nemean Lion', species: 'Lion')
+      expect(errors).to eq(["On species, 'Lion' is not a valid ncbitaxon term."])
+
+      errors = validate(Labors::Monster, 'Nemean Lion', name: 'Nemean Lion', species: 'Homo sapiens')
+      expect(errors).to be_empty
+
+      errors = validate(Labors::Monster, 'Nemean Lion', name: 'Nemean Lion', species: 'NCBITaxon:9606')
+      expect(errors).to eq(["On species, 'NCBITaxon:9606' is not a valid ncbitaxon term."])
+    end
+
     it 'validates a child identifier' do
       stub_validation(Labors::Monster, :name, {
         type: "Regexp", value: /^[A-Z][a-z]+ [A-Z][a-z]+$/

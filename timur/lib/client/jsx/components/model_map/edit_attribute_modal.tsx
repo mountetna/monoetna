@@ -3,6 +3,8 @@ import React, {useState, useCallback, useEffect} from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 
+import {getModels} from 'etna-js/api/magma_api';
+
 import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 import {Attribute} from '../../api/magma_api';
 import {SNAKE_CASE, COMMA_SEP, COMMA_SEP_WITH_SPACES, VALIDATION_TYPES} from '../../utils/edit_map';
@@ -23,6 +25,18 @@ export default function EditAttributeModal({
     attribute.validation ? attribute.validation.value : ''
   );
   const isArrayValidation = 'Array' === validationType;
+  const isOntologyValidation = 'Ontology' === validationType;
+  const [ontologyTables, setOntologyTables] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!open || !isOntologyValidation) return;
+
+    getModels('ontologies')
+      .then(({models}: {models: {[name: string]: any}}) => setOntologyTables(Object.keys(models)))
+      .catch(() => setOntologyTables([]));
+  }, [open, isOntologyValidation]);
+
+  const showOntologySelect = isOntologyValidation && ontologyTables.length > 0;
 
   const handleOnSave = useCallback(() => {
     let params = {
@@ -150,7 +164,16 @@ export default function EditAttributeModal({
             options={VALIDATION_TYPES}
           />
         )}
-        {validationType && (
+        {showOntologySelect && (
+          <ModalSelect
+            id='edit-attribute-validation-value'
+            label='Ontology Table'
+            value={validationValue}
+            onChange={setValidationValue}
+            options={ontologyTables}
+          />
+        )}
+        {validationType && !showOntologySelect && (
           <ShrinkingLabelTextField
             id='edit-attribute-validation-value'
             label={`Validation ${
@@ -158,7 +181,7 @@ export default function EditAttributeModal({
                 attribute.attribute_type=='matrix' ?
                   `Array (comma-separated list) -- UI length limit: ${validationValue.length} / 2000 characters` :
                   'Array (comma-separated list)' :
-                'Regex'
+                isOntologyValidation ? 'Ontology Table' : 'Regex'
             }`}
             disabled={validationValue.length > validation_length_limit}
             value={validationValue.length <= validation_length_limit ? validationValue : 'Validation too long to edit here'}
@@ -204,6 +227,20 @@ export default function EditAttributeModal({
           }
           label='Restricted'
         />
+        {CONFIG.project_name === 'coprojects_template' && (
+          <FormControlLabel
+            control={
+              <Checkbox
+                onChange={(e: React.ChangeEvent<any>) =>
+                  updateAttribute([['template_required', e.target.checked]])
+                }
+                checked={!!updatedAttribute.template_required}
+                inputProps={{'aria-label': 'controlled'}}
+              />
+            }
+            label='Template Required'
+          />
+        )}
     </ModelActionsModal>
   );
 }

@@ -121,5 +121,24 @@ describe Magma::UpdateAttributeAction do
         expect(action.errors.first[:message]).to eq("validation is not properly formatted")
       end
     end
+
+    context 'when template_required is set outside the template project' do
+      let(:action_params) do
+        {
+          action_name: 'update_attribute',
+          model_name: 'monster',
+          attribute_name: 'name',
+          template_required: true
+        }
+      end
+
+      it 'rejects the update' do
+        expect(action.validate).to eq(false)
+        expect(action.errors.last[:message]).to eq(
+          'template_required can only be set on template project attributes'
+        )
+      end
+    end
+
   end
 end

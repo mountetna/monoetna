@@ -109,4 +109,44 @@ describe 'Magma Commands' do
       expect(loader).to have_received(:dispatch).once
     end
   end
+
+  describe Magma::GenerateModelTemplateAuditReport do
+    subject(:command) { described_class.new }
+
+    let(:audit) { instance_double(Magma::TemplateAudit, report: report) }
+    let(:report) do
+      {
+        projects: [
+          {
+            project: 'example_project',
+            conforming: true,
+            unmapped_models: [],
+            invalid_mappings: []
+          }
+        ]
+      }
+    end
+
+    before do
+      allow(Magma::TemplateAudit).
+        to receive(:new).
+        and_return(audit)
+    end
+
+    it 'prints the report as JSON' do
+      expect { command.execute }.
+        to output("#{JSON.pretty_generate(report)}\n").
+        to_stdout
+    end
+
+    it 'writes the report to a file' do
+      Tempfile.create do |file|
+        expect { command.execute(file: file.path) }.
+          to output("Wrote model template audit report to #{file.path}\n").
+          to_stdout
+
+        expect(::File.read(file.path)).to eq("#{JSON.pretty_generate(report)}\n")
+      end
+    end
+  end
 end
