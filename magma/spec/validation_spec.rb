@@ -102,7 +102,7 @@ describe Magma::Validation do
       expect(errors).to be_empty
 
       errors = validate(Labors::Monster, 'Nemean Lion', name: 'Nemean Lion', species: 'NCBITaxon:9606')
-      expect(errors).to be_empty
+      expect(errors).to eq(["On species, 'NCBITaxon:9606' is not a valid ncbitaxon term."])
     end
 
     it 'validates a child identifier' do

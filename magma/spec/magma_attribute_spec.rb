@@ -227,8 +227,7 @@ describe Magma::Attribute do
 
     it "builds OntologyValidationObjects from a table in the ontologies project" do
       model = double("ncbitaxon", identity: double(column_name: :name), all: [
-        { name: "Homo sapiens", ontology_id: "NCBITaxon:9606" },
-        { name: "Unclassified" }
+        { name: "Homo sapiens", ontology_id: "NCBITaxon:9606" }
       ])
       allow(Magma.instance).to receive(:get_model).with("ontologies", "ncbitaxon").and_return(model)
 
@@ -238,8 +237,7 @@ describe Magma::Attribute do
       )
 
       expect(attribute.validation_object.validate("Homo sapiens")).to eq(true)
-      expect(attribute.validation_object.validate("NCBITaxon:9606")).to eq(true)
-      expect(attribute.validation_object.validate("Unclassified")).to eq(true)
+      expect(attribute.validation_object.validate("NCBITaxon:9606")).to eq(false)
       expect(attribute.validation_object.validate("Lion")).to eq(false)
     end
 
