@@ -85,9 +85,7 @@ describe Magma::Validation do
     end
 
     it 'validates an ontology term' do
-      model = double('ncbitaxon', identity: double(column_name: :name), all: [
-        { name: 'Homo sapiens', ontology_id: 'NCBITaxon:9606' }
-      ])
+      model = double('ncbitaxon', identity: double(column_name: :name), select_map: ['Homo sapiens'])
       allow(Magma.instance).to receive(:get_model).and_call_original
       allow(Magma.instance).to receive(:get_model).with('ontologies', 'ncbitaxon').and_return(model)
 

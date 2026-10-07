@@ -1,5 +1,4 @@
 require 'date'
-require 'json'
 require 'logger'
 require 'yaml'
 require 'etna/command'

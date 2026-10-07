@@ -226,9 +226,7 @@ describe Magma::Attribute do
     end
 
     it "builds OntologyValidationObjects from a table in the ontologies project" do
-      model = double("ncbitaxon", identity: double(column_name: :name), all: [
-        { name: "Homo sapiens", ontology_id: "NCBITaxon:9606" }
-      ])
+      model = double("ncbitaxon", identity: double(column_name: :name), select_map: ["Homo sapiens"])
       allow(Magma.instance).to receive(:get_model).with("ontologies", "ncbitaxon").and_return(model)
 
       attribute = Magma::StringAttribute.new(

@@ -1,3 +1,5 @@
+require_relative './actions/with_template_validation_module'
+
 class Magma
   class Attribute < Sequel::Model
     plugin :single_table_inheritance, :type,
@@ -238,7 +240,7 @@ class Magma
 
     def validate_template_required_project
       return unless template_required
-      return if project_name.to_s == 'coprojects_template'
+      return if project_name.to_s == Magma::WithTemplateValidation::DEFAULT_TEMPLATE_PROJECT
 
       errors.add(:template_required, 'can only be set on template project attributes')
     end

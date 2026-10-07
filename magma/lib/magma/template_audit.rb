@@ -1,6 +1,8 @@
+require_relative './actions/with_template_validation_module'
+
 class Magma
   class TemplateAudit
-    TEMPLATE_PROJECT = 'coprojects_template'.freeze
+    TEMPLATE_PROJECT = Magma::WithTemplateValidation::DEFAULT_TEMPLATE_PROJECT
     EXCLUDED_PROJECTS = [TEMPLATE_PROJECT, Magma::OntologyValidationObject::PROJECT].freeze
 
     def report
@@ -23,14 +25,14 @@ class Magma
       issues = {
         unmapped_models: unmapped.map { |model| model[:model_name] },
         invalid_mappings: invalid.map { |model| model_mapping(model) },
-        missing_template_columns: valid.filter_map { |model| missing_columns(project_name, model) },
-        invalid_ontology_values: valid.flat_map { |model| invalid_values(project_name, model) }
+        missing_template_columns: valid.filter_map { |model| check_template_required(project_name, model) },
+        invalid_ontology_values: valid.flat_map { |model| check_ontology_values(project_name, model) }
       }
 
       { project: project_name, conforming: issues.values.all?(&:empty?), **issues }
     end
 
-    def missing_columns(project_name, model)
+    def check_template_required(project_name, model)
       required = template_attributes(model).select { |attribute| attribute[:template_required] }
       missing = required.map { |attribute| attribute[:attribute_name] } - local_columns(project_name, model).keys
       return if missing.empty?
@@ -38,20 +40,27 @@ class Magma
       model_mapping(model).merge(columns: missing)
     end
 
-    def invalid_values(project_name, model)
+    def check_ontology_values(project_name, model)
+      columns = local_columns(project_name, model)
+
       template_attributes(model).filter_map do |attribute|
         next unless attribute[:validation_type] == 'Ontology'
 
-        column = local_columns(project_name, model)[attribute[:attribute_name]]
+        column = columns[attribute[:attribute_name]]
         next unless column
 
         table = attribute[:validation_value]
-        validator = Magma::OntologyValidationObject.new(value: table)
+        validator = ontology_validator(table)
         values = stored_values(project_name, model, column).reject { |value| validator.validate(value) }
         next if values.empty?
 
         model_mapping(model).merge(column: attribute[:attribute_name], table: table, values: values)
       end
+    end
+
+    def ontology_validator(table)
+      @ontology_validators ||= {}
+      @ontology_validators[table] ||= Magma::OntologyValidationObject.new(value: table)
     end
 
     def model_mapping(model)
@@ -73,16 +82,14 @@ class Magma
     end
 
     def template_attributes(model)
-      validation = Sequel.pg_json_op(:validation)
-
       @template_attributes ||= Magma.instance.db[:attributes].
         where(project_name: TEMPLATE_PROJECT).
         select(
           :model_name,
           :attribute_name,
           :template_required,
-          validation.get_text('type').as(:validation_type),
-          validation.get_text('value').as(:validation_value)
+          Sequel.pg_json_op(:validation).get_text('type').as(:validation_type),
+          Sequel.pg_json_op(:validation).get_text('value').as(:validation_value)
         ).
         order(:attribute_name).
         all.

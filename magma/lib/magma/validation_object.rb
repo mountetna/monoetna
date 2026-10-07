@@ -126,7 +126,7 @@ class Magma
     def allowed_values
       @allowed_values ||= begin
         model = Magma.instance.get_model(PROJECT, @table)
-        model.all.map { |term| term[model.identity.column_name.to_sym].to_s }
+        model.select_map(model.identity.column_name.to_sym).map(&:to_s)
       rescue NameError
         []
       end

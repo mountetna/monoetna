@@ -35,7 +35,7 @@ describe TemplateAuditController do
 
   def audit_report(project_name)
     auth_header(:superuser)
-    get('/template_audit/')
+    get('/template_audit')
 
     expect(last_response.status).to eq(200)
     json_body[:projects].find { |project| project[:project] == project_name }
@@ -90,7 +90,7 @@ describe TemplateAuditController do
 
   it 'reports stored values that are not in the ontology table' do
     add_attribute('coprojects_template', 'sample', 'tissue', validation: { type: 'Ontology', value: 'uberon' })
-    uberon = double('uberon', identity: double(column_name: :name), all: [{ name: 'blood' }, { name: 'lung' }])
+    uberon = double('uberon', identity: double(column_name: :name), select_map: ['blood', 'lung'])
     allow(Magma.instance).to receive(:get_model).and_call_original
     allow(Magma.instance).to receive(:get_model).with('ontologies', 'uberon').and_return(uberon)
 
@@ -111,14 +111,14 @@ describe TemplateAuditController do
     add_model('ontologies', 'uberon')
 
     auth_header(:superuser)
-    get('/template_audit/')
+    get('/template_audit')
 
     expect(json_body[:projects].map { |project| project[:project] }).not_to include('coprojects_template', 'ontologies')
   end
 
   it 'requires a supereditor' do
     auth_header(:viewer)
-    get('/template_audit/')
+    get('/template_audit')
 
     expect(last_response.status).to eq(403)
   end

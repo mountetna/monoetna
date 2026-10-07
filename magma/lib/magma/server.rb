@@ -27,7 +27,7 @@ class Magma
 
     post '/update_model', action: 'update_model#action', auth: { user: { is_admin?: :project_name } }
 
-    get '/template_audit/', action: 'template_audit#models', auth: { user: { is_supereditor?: true } }
+    get '/template_audit', action: 'template_audit#report', auth: { user: { is_supereditor?: true } }
 
     get '/flags/:project_name', action: 'flags#get', auth: { user: { can_view?: :project_name } }
     post '/flags/:project_name', action: 'flags#set', auth: { user: { is_admin?: :project_name } }
