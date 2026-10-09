@@ -46,7 +46,10 @@ class GnomonController < Magma::Controller
 
     version_number = (old_grammar&.version_number || 0) + 1
 
-    errors = Magma::Gnomon::Grammar.validate(JSON.parse(@params[:config].to_json))
+    project_model = Magma.instance.get_project(@project_name).models[:project]
+    project_current_name = project_model.select_map(project_model.identity.attribute_name.to_sym).first
+
+    errors = Magma::Gnomon::Grammar.validate(JSON.parse(@params[:config].to_json), @params[:comment], project_current_name)
 
     return failure(422, errors: errors) unless errors.empty?
 
@@ -64,7 +67,7 @@ class GnomonController < Magma::Controller
       if project_model.count == 0
         project_model.create( project_model.identity.attribute_name => grammar.token_project_name )
         updated = true
-      elsif project_model.first[ project_model.identity.attribute_name.to_sym ] != grammar.token_project_name
+      elsif project_current_name != grammar.token_project_name
         project_model.dataset.update( project_model.identity.attribute_name => grammar.token_project_name )
         updated = true
       end
