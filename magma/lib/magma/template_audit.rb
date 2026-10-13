@@ -34,14 +34,14 @@ class Magma
 
     def check_template_required(project_name, model)
       required = template_attributes(model).select { |attribute| attribute[:template_required] }
-      missing = required.map { |attribute| attribute[:attribute_name] } - local_columns(project_name, model).keys
+      missing = required.map { |attribute| attribute[:attribute_name] } - child_columns(project_name, model).keys
       return if missing.empty?
 
       model_mapping(model).merge(columns: missing)
     end
 
     def check_ontology_values(project_name, model)
-      columns = local_columns(project_name, model)
+      columns = child_columns(project_name, model)
 
       template_attributes(model).filter_map do |attribute|
         next unless attribute[:validation_type] == 'Ontology'
@@ -51,7 +51,7 @@ class Magma
 
         table = attribute[:validation_value]
         validator = ontology_validator(table)
-        values = stored_values(project_name, model, column).reject { |value| validator.validate(value) }
+        values = child_column_values(project_name, model, column).reject { |value| validator.validate(value) }
         next if values.empty?
 
         model_mapping(model).merge(column: attribute[:attribute_name], table: table, values: values)
@@ -98,18 +98,18 @@ class Magma
       @template_attributes.fetch(model[:template_model_name], [])
     end
 
-    def local_columns(project_name, model)
-      @local_columns ||= Magma.instance.db[:attributes].
+    def child_columns(project_name, model)
+      @child_columns ||= Magma.instance.db[:attributes].
         exclude(project_name: EXCLUDED_PROJECTS).
         select(:project_name, :model_name, :attribute_name, :column_name).
         all.
         group_by { |attribute| [attribute[:project_name], attribute[:model_name]] }
 
-      @local_columns.fetch([project_name, model[:model_name]], []).
+      @child_columns.fetch([project_name, model[:model_name]], []).
         to_h { |attribute| [attribute[:attribute_name], attribute[:column_name]] }
     end
 
-    def stored_values(project_name, model, column)
+    def child_column_values(project_name, model, column)
       Magma.instance.db[Sequel[project_name.to_sym][model[:model_name].pluralize.to_sym]].
         exclude(column.to_sym => nil).
         exclude(column.to_sym => '').
