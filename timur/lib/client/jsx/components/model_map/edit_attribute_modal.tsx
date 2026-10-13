@@ -32,7 +32,9 @@ export default function EditAttributeModal({
     if (!open || !isOntologyValidation) return;
 
     getModels('ontologies')
-      .then(({models}: {models: {[name: string]: any}}) => setOntologyTables(Object.keys(models)))
+      .then(({models}: {models: {[name: string]: any}}) =>
+        setOntologyTables(Object.keys(models).filter((name) => name !== 'project'))
+      )
       .catch(() => setOntologyTables([]));
   }, [open, isOntologyValidation]);
 
