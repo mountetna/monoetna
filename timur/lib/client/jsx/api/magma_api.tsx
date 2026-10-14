@@ -138,6 +138,15 @@ type ReparentModelAction = ReparentModelParams & {
   action_name: 'reparent_model';
 };
 
+type SetModelTemplateParams = {
+  model_name: string;
+  template_model_name: string;
+};
+
+type SetModelTemplateAction = SetModelTemplateParams & {
+  action_name: 'set_model_template';
+};
+
 // Basically params returned by the server but not
 //   accepted as part of an update_attribute action.
 const uneditableAttributes = [
@@ -159,6 +168,7 @@ const cleanPayload = (
     | AddModelAction
     | RemoveModelAction
     | ReparentModelAction
+    | SetModelTemplateAction
   )[]
 ) => {
   return payload.map((action: any) => {
@@ -183,6 +193,7 @@ const updateModel = (
     | AddModelAction
     | RemoveModelAction
     | ReparentModelAction
+    | SetModelTemplateAction
   )[]
 ) => {
   payload = cleanPayload(payload);
@@ -310,6 +321,17 @@ export const reparentModel = (params: ReparentModelParams) => {
   };
 
   let actions: ReparentModelAction[] = [reparentModelAction];
+
+  return updateModel(actions);
+};
+
+export const setModelTemplate = (params: SetModelTemplateParams) => {
+  let setModelTemplateAction: SetModelTemplateAction = {
+    action_name: 'set_model_template',
+    ...params
+  };
+
+  let actions: SetModelTemplateAction[] = [setModelTemplateAction];
 
   return updateModel(actions);
 };
