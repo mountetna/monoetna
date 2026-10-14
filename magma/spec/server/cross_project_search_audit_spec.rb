@@ -190,6 +190,16 @@ describe CrossProjectSearchAuditController do
     expect(json_body[:projects].map { |project| project[:project] }).not_to include('coprojects_template', 'ontologies')
   end
 
+  it 'reports only the requested project' do
+    add_child_model('local_sample', template_model_name: 'sample')
+    create_model('other_project', 'other_sample')
+
+    auth_header(:superuser)
+    get('/cross_project_search_audit', project_name: 'audit_project')
+
+    expect(json_body[:projects].map { |project| project[:project] }).to eq(['audit_project'])
+  end
+
   it 'requires a supereditor' do
     auth_header(:viewer)
     get('/cross_project_search_audit')

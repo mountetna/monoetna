@@ -229,11 +229,12 @@ class Magma
   end
 
   class CrossProjectSearchAudit < Etna::Command
-    usage '[--file <path>] # Check that child projects conform to the template for cross-project search, as JSON'
+    usage '[--project-name <project_name>] [--file <path>] # Check that child projects conform to the template for cross-project search, as JSON'
+    string_flags << '--project-name'
     string_flags << '--file'
 
-    def execute(file: nil)
-      report = Magma::CrossProjectSearchAuditor.new.report
+    def execute(project_name: nil, file: nil)
+      report = Magma::CrossProjectSearchAuditor.new(project_name: project_name).report
       json = JSON.pretty_generate(report)
 
       if file

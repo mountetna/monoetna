@@ -4,6 +4,10 @@ class Magma
   class CrossProjectSearchAuditor
     TEMPLATE_PROJECT = Magma::WithTemplateValidation::DEFAULT_TEMPLATE_PROJECT
 
+    def initialize(project_name: nil)
+      @project_name = project_name
+    end
+
     def report
       projects = project_models.group_by { |model| model[:project_name] }
 
@@ -97,9 +101,12 @@ class Magma
     end
 
     def project_models
-      Magma.instance.db[:models].
+      models = Magma.instance.db[:models].
         exclude(project_name: excluded_projects).
-        exclude(model_name: 'project').
+        exclude(model_name: 'project')
+      models = models.where(project_name: @project_name) if @project_name
+
+      models.
         select(:project_name, :model_name, :template_project_name, :template_model_name).
         order(:project_name, :model_name).
         all
