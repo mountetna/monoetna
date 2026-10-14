@@ -57,6 +57,10 @@ describe TemplateAuditController do
     json_body[:projects].find { |project| project[:project] == 'audit_project' }
   end
 
+  let(:uberon_validation) do
+    { type: 'Ontology', project_name: 'ontologies', model_name: 'uberon', attribute_name: 'name' }
+  end
+
   before do
     add_template_model('sample')
     add_template_attribute('sample', 'species', template_required: true)
@@ -105,8 +109,8 @@ describe TemplateAuditController do
   end
 
   it 'reports stored values that are not in the ontology table' do
-    add_template_attribute('sample', 'tissue', validation: { type: 'Ontology', value: 'uberon' })
-    uberon = double('uberon', identity: double(column_name: :name), select_map: ['blood', 'lung'])
+    add_template_attribute('sample', 'tissue', validation: uberon_validation)
+    uberon = double('uberon', attributes: { name: double(column_name: 'name') }, select_map: ['blood', 'lung'])
     allow(Magma.instance).to receive(:get_model).and_call_original
     allow(Magma.instance).to receive(:get_model).with('ontologies', 'uberon').and_return(uberon)
 
@@ -119,11 +123,18 @@ describe TemplateAuditController do
 
     expect(report[:conforming]).to eq(false)
     expect(report[:invalid_ontology_values]).to eq([
-      { model: 'local_sample', template_model: 'sample', column: 'tissue', table: 'uberon', values: ['PBMC'] }
+      {
+        model: 'local_sample',
+        template_model: 'sample',
+        column: 'tissue',
+        ontology: { project_name: 'ontologies', model_name: 'uberon', attribute_name: 'name' },
+        values: ['PBMC']
+      }
     ])
   end
 
-  it 'excludes the template and ontologies projects' do
+  it 'excludes the template and ontology projects' do
+    add_template_attribute('sample', 'tissue', validation: uberon_validation)
     create_model('ontologies', 'uberon')
 
     auth_header(:superuser)

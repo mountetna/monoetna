@@ -4,12 +4,19 @@ import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 import {getModels} from 'etna-js/api/magma_api';
+import {getProjects} from 'etna-js/api/janus-api';
 
 import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 import {Attribute} from '../../api/magma_api';
 import {SNAKE_CASE, COMMA_SEP, COMMA_SEP_WITH_SPACES, VALIDATION_TYPES} from '../../utils/edit_map';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 import ModalSelect from './modal_select';
+
+const ontologyOf = (attribute: Attribute) => ({
+  project_name: attribute.validation?.project_name || '',
+  model_name: attribute.validation?.model_name || '',
+  attribute_name: attribute.validation?.attribute_name || ''
+});
 
 export default function EditAttributeModal({
   onSave,
@@ -26,19 +33,35 @@ export default function EditAttributeModal({
   );
   const isArrayValidation = 'Array' === validationType;
   const isOntologyValidation = 'Ontology' === validationType;
-  const [ontologyTables, setOntologyTables] = useState<string[]>([]);
+  const [ontology, setOntology] = useState(ontologyOf(attribute));
+  const [ontologyProjects, setOntologyProjects] = useState<string[]>([]);
+  const [ontologyModels, setOntologyModels] = useState<{[name: string]: any}>({});
 
   useEffect(() => {
     if (!open || !isOntologyValidation) return;
 
-    getModels('ontologies')
-      .then(({models}: {models: {[name: string]: any}}) =>
-        setOntologyTables(Object.keys(models).filter((name) => name !== 'project'))
+    getProjects()
+      .then((projects: {project_name: string, resource: boolean}[]) =>
+        setOntologyProjects(
+          projects.filter((project) => project.resource).map((project) => project.project_name)
+        )
       )
-      .catch(() => setOntologyTables([]));
+      .catch(() => setOntologyProjects([]));
   }, [open, isOntologyValidation]);
 
-  const showOntologySelect = isOntologyValidation && ontologyTables.length > 0;
+  useEffect(() => {
+    if (!open || !isOntologyValidation || !ontology.project_name) return;
+
+    getModels(ontology.project_name)
+      .then(({models: {project, ...models}}: {models: {[name: string]: any}}) =>
+        setOntologyModels(models)
+      )
+      .catch(() => setOntologyModels({}));
+  }, [open, isOntologyValidation, ontology.project_name]);
+
+  const ontologyAttributes = Object.keys(
+    ontologyModels[ontology.model_name]?.template.attributes || {}
+  );
 
   const handleOnSave = useCallback(() => {
     let params = {
@@ -47,7 +70,9 @@ export default function EditAttributeModal({
       new_attribute_name: updatedAttribute.attribute_name
     };
 
-    if (validationType && validationValue) {
+    if (isOntologyValidation) {
+      params.validation = ontology.attribute_name ? {type: validationType, ...ontology} : null;
+    } else if (validationType && validationValue) {
       params.validation = {
         type: validationType,
         value:
@@ -68,6 +93,8 @@ export default function EditAttributeModal({
     validationType,
     validationValue,
     isArrayValidation,
+    isOntologyValidation,
+    ontology,
     onSave
   ]);
 
@@ -75,6 +102,7 @@ export default function EditAttributeModal({
     setUpdatedAttribute({...attribute});
     setValidationType( attribute.validation ? attribute.validation.type : '');
     setValidationValue( attribute.validation ? attribute.validation.value : '');
+    setOntology(ontologyOf(attribute));
   }, [attribute]);
 
   useEffect(() => {
@@ -166,16 +194,38 @@ export default function EditAttributeModal({
             options={VALIDATION_TYPES}
           />
         )}
-        {showOntologySelect && (
-          <ModalSelect
-            id='edit-attribute-validation-value'
-            label='Ontology Table'
-            value={validationValue}
-            onChange={setValidationValue}
-            options={ontologyTables}
-          />
+        {isOntologyValidation && (
+          <>
+            <ModalSelect
+              id='edit-attribute-ontology-project'
+              label='Ontology Project'
+              value={ontology.project_name}
+              onChange={(value: string) =>
+                setOntology({project_name: value, model_name: '', attribute_name: ''})
+              }
+              options={ontologyProjects}
+            />
+            <ModalSelect
+              id='edit-attribute-ontology-model'
+              label='Ontology Table'
+              value={ontology.model_name}
+              onChange={(value: string) =>
+                setOntology({...ontology, model_name: value, attribute_name: ''})
+              }
+              options={Object.keys(ontologyModels)}
+            />
+            <ModalSelect
+              id='edit-attribute-ontology-attribute'
+              label='Ontology Column'
+              value={ontology.attribute_name}
+              onChange={(value: string) =>
+                setOntology({...ontology, attribute_name: value})
+              }
+              options={ontologyAttributes}
+            />
+          </>
         )}
-        {validationType && !showOntologySelect && (
+        {validationType && !isOntologyValidation && (
           <ShrinkingLabelTextField
             id='edit-attribute-validation-value'
             label={`Validation ${
@@ -183,7 +233,7 @@ export default function EditAttributeModal({
                 attribute.attribute_type=='matrix' ?
                   `Array (comma-separated list) -- UI length limit: ${validationValue.length} / 2000 characters` :
                   'Array (comma-separated list)' :
-                isOntologyValidation ? 'Ontology Table' : 'Regex'
+                'Regex'
             }`}
             disabled={validationValue.length > validation_length_limit}
             value={validationValue.length <= validation_length_limit ? validationValue : 'Validation too long to edit here'}

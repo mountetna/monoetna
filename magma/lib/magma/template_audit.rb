@@ -3,7 +3,6 @@ require_relative './actions/with_template_validation_module'
 class Magma
   class TemplateAudit
     TEMPLATE_PROJECT = Magma::WithTemplateValidation::DEFAULT_TEMPLATE_PROJECT
-    EXCLUDED_PROJECTS = [TEMPLATE_PROJECT, Magma::OntologyValidationObject::PROJECT].freeze
 
     def report
       projects = project_models.group_by { |model| model[:project_name] }
@@ -44,23 +43,34 @@ class Magma
       columns = child_columns(project_name, model)
 
       template_attributes(model).filter_map do |attribute|
-        next unless attribute[:validation_type] == 'Ontology'
+        ontology = ontology_validation(attribute)
+        next unless ontology
 
         column = columns[attribute[:attribute_name]]
         next unless column
 
-        table = attribute[:validation_value]
-        validator = ontology_validator(table)
+        validator = ontology_validator(ontology)
         values = child_column_values(project_name, model, column).reject { |value| validator.validate(value) }
         next if values.empty?
 
-        model_mapping(model).merge(column: attribute[:attribute_name], table: table, values: values)
+        model_mapping(model).merge(column: attribute[:attribute_name], ontology: ontology.except(:type), values: values)
       end
     end
 
-    def ontology_validator(table)
+    def ontology_validation(attribute)
+      validation = attribute[:validation]&.to_h&.symbolize_keys
+      validation if validation && validation[:type] == 'Ontology'
+    end
+
+    def ontology_validator(ontology)
       @ontology_validators ||= {}
-      @ontology_validators[table] ||= Magma::OntologyValidationObject.new(value: table)
+      @ontology_validators[ontology] ||= Magma::ValidationObject.build(ontology)
+    end
+
+    def excluded_projects
+      @excluded_projects ||= [TEMPLATE_PROJECT] + all_template_attributes.filter_map do |attribute|
+        ontology_validation(attribute)&.dig(:project_name)
+      end.uniq
     end
 
     def model_mapping(model)
@@ -69,7 +79,7 @@ class Magma
 
     def project_models
       Magma.instance.db[:models].
-        exclude(project_name: EXCLUDED_PROJECTS).
+        exclude(project_name: excluded_projects).
         select(:project_name, :model_name, :template_project_name, :template_model_name).
         order(:project_name, :model_name).
         all
@@ -82,25 +92,21 @@ class Magma
     end
 
     def template_attributes(model)
-      @template_attributes ||= Magma.instance.db[:attributes].
-        where(project_name: TEMPLATE_PROJECT).
-        select(
-          :model_name,
-          :attribute_name,
-          :template_required,
-          Sequel.pg_json_op(:validation).get_text('type').as(:validation_type),
-          Sequel.pg_json_op(:validation).get_text('value').as(:validation_value)
-        ).
-        order(:attribute_name).
-        all.
-        group_by { |attribute| attribute[:model_name] }
-
+      @template_attributes ||= all_template_attributes.group_by { |attribute| attribute[:model_name] }
       @template_attributes.fetch(model[:template_model_name], [])
+    end
+
+    def all_template_attributes
+      @all_template_attributes ||= Magma.instance.db[:attributes].
+        where(project_name: TEMPLATE_PROJECT).
+        select(:model_name, :attribute_name, :template_required, :validation).
+        order(:attribute_name).
+        all
     end
 
     def child_columns(project_name, model)
       @child_columns ||= Magma.instance.db[:attributes].
-        exclude(project_name: EXCLUDED_PROJECTS).
+        exclude(project_name: excluded_projects).
         select(:project_name, :model_name, :attribute_name, :column_name).
         all.
         group_by { |attribute| [attribute[:project_name], attribute[:model_name]] }

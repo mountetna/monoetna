@@ -85,12 +85,12 @@ describe Magma::Validation do
     end
 
     it 'validates an ontology term' do
-      model = double('ncbitaxon', identity: double(column_name: :name), select_map: ['Homo sapiens'])
+      model = double('ncbitaxon', attributes: { name: double(column_name: 'name') }, select_map: ['Homo sapiens'])
       allow(Magma.instance).to receive(:get_model).and_call_original
       allow(Magma.instance).to receive(:get_model).with('ontologies', 'ncbitaxon').and_return(model)
 
       stub_validation(Labors::Monster, :species, {
-        type: 'Ontology', value: 'ncbitaxon'
+        type: 'Ontology', project_name: 'ontologies', model_name: 'ncbitaxon', attribute_name: 'name'
       })
 
       errors = validate(Labors::Monster, 'Nemean Lion', name: 'Nemean Lion', species: 'Lion')

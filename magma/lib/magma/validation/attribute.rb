@@ -53,7 +53,7 @@ class Magma
         end
 
         def validation_object
-          @attribute.validation_object
+          @validation_object ||= @attribute.validation_object
         end
 
         private
