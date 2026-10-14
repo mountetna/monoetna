@@ -246,6 +246,7 @@ class Magma
 
     def setup(config)
       super
+      Magma.instance.load_models
       Magma.instance.setup_db
     end
   end

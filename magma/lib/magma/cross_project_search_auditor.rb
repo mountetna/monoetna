@@ -99,6 +99,7 @@ class Magma
     def project_models
       Magma.instance.db[:models].
         exclude(project_name: excluded_projects).
+        exclude(model_name: 'project').
         select(:project_name, :model_name, :template_project_name, :template_model_name).
         order(:project_name, :model_name).
         all

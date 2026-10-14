@@ -84,6 +84,7 @@ describe CrossProjectSearchAuditController do
   it 'reports unmapped models and invalid mappings' do
     add_child_model('assay', template_model_name: 'unknown_model')
     add_child_model('patient', template_project_name: 'another_template', template_model_name: 'sample')
+    add_child_model('project')
     add_child_model('subject')
     add_child_model('visit', template_project_name: 'coprojects_template')
 
