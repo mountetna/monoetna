@@ -22,6 +22,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
 import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
+import DescriptionIcon from '@material-ui/icons/Description';
 
 import AddAttributeModal from './add_attribute_modal';
 import AddLinkModal from './add_link_modal';
@@ -29,6 +30,7 @@ import ReparentModelModal from './reparent_model_modal';
 import AddModelModal from './add_model_modal';
 import CopyModelModal from './copy_model_modal';
 import RemoveModelModal from './remove_model_modal';
+import SetModelTemplateModal from './set_model_template_modal';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
@@ -37,13 +39,14 @@ import {
   addLink,
   removeModel,
   reparentModel,
+  setModelTemplate,
   addModel
 } from '../../api/magma_api';
 import {
   addTemplatesAndDocuments,
   removeModelAction
 } from 'etna-js/actions/magma_actions';
-import {isLeafModel, CHILD_ATTRIBUTE_TYPES} from '../../utils/edit_map';
+import {isLeafModel, CHILD_ATTRIBUTE_TYPES, TEMPLATE_PROJECT} from '../../utils/edit_map';
 import useMagmaActions from './use_magma_actions';
 import ModelAttributesTable from './model_attributes_table';
 
@@ -60,6 +63,7 @@ const ManageModelActions = ({
   handleCopyModel,
   handleRemoveModel,
   handleReparentModel,
+  handleSetModelTemplate,
   isLeaf,
   canReparent,
   determiningCanReparent,
@@ -72,6 +76,7 @@ const ManageModelActions = ({
   const [ showAddLinkModal, setShowAddLinkModal ] = useState(false);
   const [ showReparentModelModal, setShowReparentModelModal ] = useState(false);
   const [ showRemoveModelModal, setShowRemoveModelModal ] = useState(false);
+  const [ showSetModelTemplateModal, setShowSetModelTemplateModal ] = useState(false);
 
   const reparentTooltip = determiningCanReparent ? 'Determining if reparenting is possible' :
     canReparent ? 'Reparent Model' : 'Cannot reparent a model containing records';
@@ -153,6 +158,25 @@ const ManageModelActions = ({
         open={showReparentModelModal}
         onSave={handleReparentModel}
       />
+      {CONFIG.project_name !== TEMPLATE_PROJECT && (
+        <>
+          <Tooltip title='Map to Template' aria-label='Map to Template'>
+            <Button
+              className={classes.addBtn}
+              startIcon={<DescriptionIcon />}
+              onClick={() => setShowSetModelTemplateModal(true)}
+            >
+              Map to Template
+            </Button>
+          </Tooltip>
+          <SetModelTemplateModal
+            modelName={modelName}
+            onClose={ () => setShowSetModelTemplateModal(false) }
+            open={showSetModelTemplateModal}
+            onSave={handleSetModelTemplate}
+          />
+        </>
+      )}
       <>
         <Tooltip title={removeTooltip} aria-label= {removeTooltip}>
           <span>
@@ -310,6 +334,13 @@ const ModelReport = ({
     [model_name]
   );
 
+  const handleSetModelTemplate = useCallback(
+    (template_model_name) => {
+      executeAction(setModelTemplate({model_name, template_model_name}));
+    },
+    [model_name]
+  );
+
   const handleCopyModel = useCallback(
     (attributes) => {
       executeAction(
@@ -363,6 +394,9 @@ const ModelReport = ({
             }}
           />
         )}
+        {template.template_model_name && (
+          <Chip label={`template: ${template.template_model_name}`} />
+        )}
         {modelCount != undefined && modelCount >= 0 && (
           <Chip
             label={`${modelCount} ${
@@ -415,6 +449,7 @@ const ModelReport = ({
           handleAddLink={handleAddLink}
           handleRemoveModel={handleRemoveModel}
           handleReparentModel={handleReparentModel}
+          handleSetModelTemplate={handleSetModelTemplate}
           handleAddModel={handleAddModel}
           handleCopyModel={handleCopyModel}
           isLeaf={isLeaf}

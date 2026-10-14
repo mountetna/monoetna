@@ -139,6 +139,5 @@ describe Magma::UpdateAttributeAction do
         )
       end
     end
-
   end
 end
