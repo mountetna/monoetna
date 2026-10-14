@@ -353,7 +353,8 @@ const RuleEditor = ({project_name}) => {
 
   return <Grid>
     <ProjectHeader project_name={project_name} className={classes.header}>
-      <Grid container className={classes.buttons}>
+      <Grid container className={classes.buttons} alignContent='flex-start' justifyContent='flex-start'>
+      <Grid item className={classes.buttons} container alignContent='flex-start' justifyContent='flex-start'>
       {
         changed && <>
             <Grid item>
@@ -416,9 +417,12 @@ const RuleEditor = ({project_name}) => {
           onClose={() => setShowRevisions(false)}
         />
       )}
+      </Grid>
+      <Grid item>
       {
         error && <Typography color='error'>{error}</Typography>
       }
+      </Grid>
       </Grid>
     </ProjectHeader>
 

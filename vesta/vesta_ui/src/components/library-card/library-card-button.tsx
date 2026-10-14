@@ -1,3 +1,4 @@
+'use client'
 import * as React from 'react';
 import ButtonBase from '@mui/material/ButtonBase';
 import { SxProps, Typography } from '@mui/material';
@@ -29,7 +30,11 @@ export default function LibraryCardButton({
         </Typography>
     )
 
-    const janusUrl = loginUrl + `/login?refer=${location.href}`;
+    const [ janusUrl, setJanusUrl ] = React.useState('');
+
+    React.useEffect(
+      () => setJanusUrl(loginUrl + `/login?refer=${location.href}`), []
+    );
 
     const sx: SxProps = {
         width: 'fit-content',

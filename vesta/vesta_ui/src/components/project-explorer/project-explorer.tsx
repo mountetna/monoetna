@@ -71,9 +71,11 @@ function BaseProjectExplorer({ }) {
 
     const handleChangeFilterItems = React.useCallback(
       (filterItem: FilterItem) => {
-        if (!(filterItem.type in filterItemSet) || !filterItemSet[filterItem.type].includes(filterItem.label))
-        updateFilterItems(filterItem.type, (filterItemSet[filterItem.type] || []).concat(filterItem.label))
-        setCurrentPage(0)
+        if (!(filterItem.type in filterItemSet)
+          || !filterItemSet[filterItem.type].includes(filterItem.label)) {
+          updateFilterItems(filterItem.type, (filterItemSet[filterItem.type] || []).concat(filterItem.label))
+          setCurrentPage(0)
+        }
       }, [ filterItemSet, updateFilterItems ]
     );
 
@@ -209,7 +211,7 @@ function BaseProjectExplorer({ }) {
                                             option={params.option}
                                         />
                                     )}
-                                    groupBy={option => option.type}
+                                    groupBy={option => option.menuTitle || option.type}
                                     renderGroup={(params) => (
                                         <Box
                                             key={params.key}
