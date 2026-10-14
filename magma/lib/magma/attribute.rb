@@ -24,7 +24,7 @@ class Magma
       :link_model_name,
       :read_only,
       :restricted,
-      :template_required,
+      :required_on_child_models,
       :unique,
       :validation,
       :link_attribute_name
@@ -122,7 +122,7 @@ class Magma
         options: validation_object.options,
         match: validation_object.match,
         restricted: restricted,
-        template_required: template_required,
+        required_on_child_models: required_on_child_models,
         format_hint: format_hint,
         read_only: read_only?,
         hidden: hidden?,
@@ -213,7 +213,7 @@ class Magma
       validate_type
       validate_attribute_name_unique
       validate_attribute_group_format
-      validate_template_required_project
+      validate_required_on_child_models_project
     end
 
     def validate_validation_json
@@ -238,11 +238,11 @@ class Magma
       errors.add(:attribute_group, "must contain a comma-separated set of snake_case values with no spaces")
     end
 
-    def validate_template_required_project
-      return unless template_required
+    def validate_required_on_child_models_project
+      return unless required_on_child_models
       return if project_name.to_s == Magma::WithTemplateValidation::DEFAULT_TEMPLATE_PROJECT
 
-      errors.add(:template_required, 'can only be set on template project attributes')
+      errors.add(:required_on_child_models, 'can only be set on template project attributes')
     end
 
     def validate_type

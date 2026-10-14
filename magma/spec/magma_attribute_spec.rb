@@ -59,13 +59,13 @@ describe Magma::Attribute do
       expect(template[:attribute_group]).to eq("odors")
     end
 
-    it 'includes template required metadata' do
+    it 'includes required on child models metadata' do
       attribute = Magma::Attribute.new(
         attribute_name: 'species',
-        template_required: true
+        required_on_child_models: true
       )
 
-      expect(attribute.json_template[:template_required]).to eq(true)
+      expect(attribute.json_template[:required_on_child_models]).to eq(true)
     end
   end
 

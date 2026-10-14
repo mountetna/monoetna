@@ -24,15 +24,15 @@ class Magma
       issues = {
         unmapped_models: unmapped.map { |model| model[:model_name] },
         invalid_mappings: invalid.map { |model| model_mapping(model) },
-        missing_template_columns: valid.filter_map { |model| check_template_required(project_name, model) },
+        missing_template_columns: valid.filter_map { |model| check_required_on_child_models(project_name, model) },
         invalid_ontology_values: valid.flat_map { |model| check_ontology_values(project_name, model) }
       }
 
       { project: project_name, conforming: issues.values.all?(&:empty?), **issues }
     end
 
-    def check_template_required(project_name, model)
-      required = template_attributes(model).select { |attribute| attribute[:template_required] }
+    def check_required_on_child_models(project_name, model)
+      required = template_attributes(model).select { |attribute| attribute[:required_on_child_models] }
       missing = required.map { |attribute| attribute[:attribute_name] } - child_columns(project_name, model).keys
       return if missing.empty?
 
@@ -99,7 +99,7 @@ class Magma
     def all_template_attributes
       @all_template_attributes ||= Magma.instance.db[:attributes].
         where(project_name: TEMPLATE_PROJECT).
-        select(:model_name, :attribute_name, :template_required, :validation).
+        select(:model_name, :attribute_name, :required_on_child_models, :validation).
         order(:attribute_name).
         all
     end

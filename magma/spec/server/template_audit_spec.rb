@@ -30,14 +30,14 @@ describe TemplateAuditController do
     )
   end
 
-  def create_attribute(project_name, model_name, attribute_name, template_required: false, validation: nil)
+  def create_attribute(project_name, model_name, attribute_name, required_on_child_models: false, validation: nil)
     Magma.instance.db[:attributes].insert(
       project_name: project_name,
       model_name: model_name,
       attribute_name: attribute_name,
       column_name: attribute_name,
       type: 'string',
-      template_required: template_required,
+      required_on_child_models: required_on_child_models,
       validation: validation && Sequel.pg_json_wrap(validation)
     )
   end
@@ -63,7 +63,7 @@ describe TemplateAuditController do
 
   before do
     add_template_model('sample')
-    add_template_attribute('sample', 'species', template_required: true)
+    add_template_attribute('sample', 'species', required_on_child_models: true)
   end
 
   it 'reports a conforming project' do

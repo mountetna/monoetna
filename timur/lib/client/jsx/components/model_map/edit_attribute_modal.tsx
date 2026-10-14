@@ -284,13 +284,13 @@ export default function EditAttributeModal({
             control={
               <Checkbox
                 onChange={(e: React.ChangeEvent<any>) =>
-                  updateAttribute([['template_required', e.target.checked]])
+                  updateAttribute([['required_on_child_models', e.target.checked]])
                 }
-                checked={!!updatedAttribute.template_required}
+                checked={!!updatedAttribute.required_on_child_models}
                 inputProps={{'aria-label': 'controlled'}}
               />
             }
-            label='Template Required'
+            label='Required on child models'
           />
         )}
     </ModelActionsModal>
