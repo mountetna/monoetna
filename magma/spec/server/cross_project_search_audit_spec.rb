@@ -1,4 +1,4 @@
-describe TemplateAuditController do
+describe CrossProjectSearchAuditController do
   include Rack::Test::Methods
 
   def app
@@ -17,8 +17,8 @@ describe TemplateAuditController do
     create_model('audit_project', model_name, template_project_name: template_project_name, template_model_name: template_model_name)
   end
 
-  def add_child_attribute(model_name, attribute_name)
-    create_attribute('audit_project', model_name, attribute_name)
+  def add_child_attribute(model_name, attribute_name, **options)
+    create_attribute('audit_project', model_name, attribute_name, **options)
   end
 
   def create_model(project_name, model_name, template_project_name: nil, template_model_name: nil)
@@ -51,7 +51,7 @@ describe TemplateAuditController do
 
   def audit_report
     auth_header(:superuser)
-    get('/template_audit')
+    get('/cross_project_search_audit')
 
     expect(last_response.status).to eq(200)
     json_body[:projects].find { |project| project[:project] == 'audit_project' }
@@ -76,6 +76,7 @@ describe TemplateAuditController do
       unmapped_models: [],
       invalid_mappings: [],
       missing_template_columns: [],
+      ontology_mismatches: [],
       invalid_ontology_values: []
     )
   end
@@ -108,20 +109,55 @@ describe TemplateAuditController do
     ])
   end
 
+  it 'reports required columns with a missing or different ontology' do
+    add_template_attribute('sample', 'tissue', required_on_child_models: true, validation: uberon_validation)
+
+    add_child_model('blood_sample', template_model_name: 'sample')
+    add_child_attribute('blood_sample', 'species')
+    add_child_attribute('blood_sample', 'tissue')
+    add_child_records('blood_sample', :tissue, [])
+
+    add_child_model('local_sample', template_model_name: 'sample')
+    add_child_attribute('local_sample', 'species')
+    add_child_attribute('local_sample', 'tissue', validation: uberon_validation.merge(model_name: 'my_tissues'))
+    add_child_records('local_sample', :tissue, [])
+
+    report = audit_report
+
+    expect(report[:conforming]).to eq(false)
+    expect(report[:ontology_mismatches]).to eq([
+      {
+        model: 'blood_sample',
+        template_model: 'sample',
+        column: 'tissue',
+        expected: { project_name: 'ontologies', model_name: 'uberon', attribute_name: 'name' },
+        actual: nil
+      },
+      {
+        model: 'local_sample',
+        template_model: 'sample',
+        column: 'tissue',
+        expected: { project_name: 'ontologies', model_name: 'uberon', attribute_name: 'name' },
+        actual: { project_name: 'ontologies', model_name: 'my_tissues', attribute_name: 'name' }
+      }
+    ])
+  end
+
   it 'reports stored values that are not in the ontology table' do
-    add_template_attribute('sample', 'tissue', validation: uberon_validation)
+    add_template_attribute('sample', 'tissue', required_on_child_models: true, validation: uberon_validation)
     uberon = double('uberon', attributes: { name: double(column_name: 'name') }, select_map: ['blood', 'lung'])
     allow(Magma.instance).to receive(:get_model).and_call_original
     allow(Magma.instance).to receive(:get_model).with('ontologies', 'uberon').and_return(uberon)
 
     add_child_model('local_sample', template_model_name: 'sample')
     add_child_attribute('local_sample', 'species')
-    add_child_attribute('local_sample', 'tissue')
+    add_child_attribute('local_sample', 'tissue', validation: uberon_validation)
     add_child_records('local_sample', :tissue, ['blood', 'lung', 'PBMC', nil])
 
     report = audit_report
 
     expect(report[:conforming]).to eq(false)
+    expect(report[:ontology_mismatches]).to eq([])
     expect(report[:invalid_ontology_values]).to eq([
       {
         model: 'local_sample',
@@ -133,19 +169,29 @@ describe TemplateAuditController do
     ])
   end
 
+  it 'ignores ontologies on columns that are not required' do
+    add_template_attribute('sample', 'tissue', validation: uberon_validation)
+
+    add_child_model('local_sample', template_model_name: 'sample')
+    add_child_attribute('local_sample', 'species')
+    add_child_attribute('local_sample', 'tissue')
+
+    expect(audit_report[:conforming]).to eq(true)
+  end
+
   it 'excludes the template and ontology projects' do
     add_template_attribute('sample', 'tissue', validation: uberon_validation)
     create_model('ontologies', 'uberon')
 
     auth_header(:superuser)
-    get('/template_audit')
+    get('/cross_project_search_audit')
 
     expect(json_body[:projects].map { |project| project[:project] }).not_to include('coprojects_template', 'ontologies')
   end
 
   it 'requires a supereditor' do
     auth_header(:viewer)
-    get('/template_audit')
+    get('/cross_project_search_audit')
 
     expect(last_response.status).to eq(403)
   end

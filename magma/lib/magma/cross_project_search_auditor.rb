@@ -1,7 +1,7 @@
 require_relative './actions/with_template_validation_module'
 
 class Magma
-  class TemplateAudit
+  class CrossProjectSearchAuditor
     TEMPLATE_PROJECT = Magma::WithTemplateValidation::DEFAULT_TEMPLATE_PROJECT
 
     def report
@@ -25,6 +25,7 @@ class Magma
         unmapped_models: unmapped.map { |model| model[:model_name] },
         invalid_mappings: invalid.map { |model| model_mapping(model) },
         missing_template_columns: valid.filter_map { |model| check_required_on_child_models(project_name, model) },
+        ontology_mismatches: valid.flat_map { |model| check_ontology_mismatches(project_name, model) },
         invalid_ontology_values: valid.flat_map { |model| check_ontology_values(project_name, model) }
       }
 
@@ -32,28 +33,46 @@ class Magma
     end
 
     def check_required_on_child_models(project_name, model)
-      required = template_attributes(model).select { |attribute| attribute[:required_on_child_models] }
-      missing = required.map { |attribute| attribute[:attribute_name] } - child_columns(project_name, model).keys
+      missing = required_attributes(model).map { |attribute| attribute[:attribute_name] } - child_columns(project_name, model).keys
       return if missing.empty?
 
       model_mapping(model).merge(columns: missing)
     end
 
+    def check_ontology_mismatches(project_name, model)
+      required_ontology_columns(project_name, model).filter_map do |attribute, ontology, column|
+        actual = ontology_validation(column)
+        next if actual == ontology
+
+        model_mapping(model).merge(
+          column: attribute[:attribute_name],
+          expected: ontology.except(:type),
+          actual: actual&.except(:type)
+        )
+      end
+    end
+
     def check_ontology_values(project_name, model)
-      columns = child_columns(project_name, model)
-
-      template_attributes(model).filter_map do |attribute|
-        ontology = ontology_validation(attribute)
-        next unless ontology
-
-        column = columns[attribute[:attribute_name]]
-        next unless column
-
+      required_ontology_columns(project_name, model).filter_map do |attribute, ontology, column|
         validator = ontology_validator(ontology)
-        values = child_column_values(project_name, model, column).reject { |value| validator.validate(value) }
+        values = child_column_values(project_name, model, column[:column_name]).reject { |value| validator.validate(value) }
         next if values.empty?
 
         model_mapping(model).merge(column: attribute[:attribute_name], ontology: ontology.except(:type), values: values)
+      end
+    end
+
+    def required_attributes(model)
+      template_attributes(model).select { |attribute| attribute[:required_on_child_models] }
+    end
+
+    def required_ontology_columns(project_name, model)
+      columns = child_columns(project_name, model)
+
+      required_attributes(model).filter_map do |attribute|
+        ontology = ontology_validation(attribute)
+        column = columns[attribute[:attribute_name]]
+        [attribute, ontology, column] if ontology && column
       end
     end
 
@@ -107,12 +126,12 @@ class Magma
     def child_columns(project_name, model)
       @child_columns ||= Magma.instance.db[:attributes].
         exclude(project_name: excluded_projects).
-        select(:project_name, :model_name, :attribute_name, :column_name).
+        select(:project_name, :model_name, :attribute_name, :column_name, :validation).
         all.
         group_by { |attribute| [attribute[:project_name], attribute[:model_name]] }
 
       @child_columns.fetch([project_name, model[:model_name]], []).
-        to_h { |attribute| [attribute[:attribute_name], attribute[:column_name]] }
+        to_h { |attribute| [attribute[:attribute_name], attribute] }
     end
 
     def child_column_values(project_name, model, column)

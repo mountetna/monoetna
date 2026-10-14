@@ -3,7 +3,7 @@ require 'logger'
 require 'yaml'
 require 'etna/command'
 require_relative './actions/base_action'
-require_relative './template_audit'
+require_relative './cross_project_search_auditor'
 
 class Magma
   class RetrieveProjectTemplate < Etna::Command
@@ -228,17 +228,17 @@ class Magma
     end
   end
 
-  class GenerateModelTemplateAuditReport < Etna::Command
-    usage '[--file <path>] # Generate a model template conformance report as JSON'
+  class CrossProjectSearchAudit < Etna::Command
+    usage '[--file <path>] # Check that child projects conform to the template for cross-project search, as JSON'
     string_flags << '--file'
 
     def execute(file: nil)
-      report = Magma::TemplateAudit.new.report
+      report = Magma::CrossProjectSearchAuditor.new.report
       json = JSON.pretty_generate(report)
 
       if file
         ::File.write(file, "#{json}\n")
-        puts "Wrote model template audit report to #{file}"
+        puts "Wrote cross-project search audit report to #{file}"
       else
         puts json
       end

@@ -7,7 +7,7 @@ require_relative '../magma/server/update'
 require_relative '../magma/server/gnomon'
 require_relative '../magma/server/update_model'
 require_relative '../magma/server/flag'
-require_relative '../magma/server/template_audit'
+require_relative '../magma/server/cross_project_search_audit'
 
 class Magma
   class Server < Etna::Server
@@ -27,7 +27,7 @@ class Magma
 
     post '/update_model', action: 'update_model#action', auth: { user: { is_admin?: :project_name } }
 
-    get '/template_audit', action: 'template_audit#report', auth: { user: { is_supereditor?: true } }
+    get '/cross_project_search_audit', action: 'cross_project_search_audit#report', auth: { user: { is_supereditor?: true } }
 
     get '/flags/:project_name', action: 'flags#get', auth: { user: { can_view?: :project_name } }
     post '/flags/:project_name', action: 'flags#set', auth: { user: { is_admin?: :project_name } }
