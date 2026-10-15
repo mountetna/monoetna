@@ -19,6 +19,7 @@ import Avatar from '@material-ui/core/Avatar';
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import LaunchIcon from '@material-ui/icons/Launch';
 import Grid from '@material-ui/core/Grid';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
@@ -130,6 +131,8 @@ const WorkspaceCard = ({
 
   const {canEdit} = useUserHooks();
 
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+
   const workflow = workflows && workspace.workflow_id
     ? workflows.find((w) => w.id == workspace.workflow_id) || null
     : null;
@@ -167,6 +170,11 @@ const WorkspaceCard = ({
     onRemove();
   }, [onRemove]);
 
+  const openTagEditor = useCallback(() => {
+    handleClose();
+    setTagModalOpen(true);
+  }, [])
+
   const editor = useMemo(() => canEdit(workspace), [
     workspace,
     canEdit
@@ -185,6 +193,7 @@ const WorkspaceCard = ({
         {/* <MenuItem onClick={handleOnCopy}>Copy</MenuItem> */}
         {editor ? <MenuItem onClick={handleOnRename}>Rename</MenuItem> : null}
         {editor ? <MenuItem onClick={handleOnRemove}>Remove</MenuItem> : null}
+        {editor ? <MenuItem onClick={openTagEditor}>Edit Tags</MenuItem> : null}
       </Menu>
       <CardHeader
         title={workspace.name}
@@ -193,12 +202,19 @@ const WorkspaceCard = ({
           title: workspace.name,
           className: classes.title
         }}
-        subheader={'Workflow: ' + workflowName(workflow) || ''}
-        subheaderTypographyProps={{variant: 'subtitle2'}}
         action={
-          <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)}>
-            <MoreVertIcon />
-          </IconButton>
+          <div>
+            <IconButton
+              onClick={visitWorkspace}
+              title={`Jump into this workspace!`}
+              color={editor? 'primary' : 'default'}
+            >
+              <LaunchIcon/>
+            </IconButton>
+            {editor && <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)}>
+              <MoreVertIcon />
+            </IconButton>}
+          </div>
         }
       />
       <CardMedia
@@ -218,12 +234,16 @@ const WorkspaceCard = ({
         >
           <Grid item>
             <Typography variant='body2' component="p" style={{maxWidth: '225px', padding: '0px'}}>
+              {`Pipeline: ${workflowName(workflow) || ''}`}
+            </Typography>
+            <Typography variant='body2' component="p" style={{maxWidth: '225px', padding: '0px'}}>
               {`Version: ${workspace.git_ref}`}
             </Typography>
             <Typography variant='body2' component="p" style={{maxWidth: '225px', padding: '0px'}}>
-              {`Id: ${workspace.workspace_id} | Created: ${workspace.created_at.split(' ')[0]}`}
+              {`SHA: ${workspace.git_sha}`}
             </Typography>
             <Typography variant='body2' component="p" style={{maxWidth: '225px', padding: '0px'}}>
+              {`Id: ${workspace.workspace_id} | Created: ${workspace.created_at.split(' ')[0]}`}
             </Typography>
           </Grid>
           <Grid

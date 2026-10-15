@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 
 import Tooltip from '@material-ui/core/Tooltip';
 import Button from '@material-ui/core/Button';
@@ -28,6 +28,8 @@ import FlatButton from 'etna-js/components/flat-button';
 
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/web";
+import WorkflowsCarousel from './workflows_carousel';
+import { Variant } from '@mui/material/styles/createTypography';
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
@@ -48,11 +50,9 @@ const useStyles = makeStyles((theme) => ({
 
 export default function WorkspaceCreateButtonModal({
   projectName,
-  workflow,
   workspaces,
 }: {
   projectName: string;
-  workflow: VulcanState['workflow'] | null;
   workspaces: VulcanState['workspaces'];
 }) {
   const classes = useStyles();
@@ -64,16 +64,18 @@ export default function WorkspaceCreateButtonModal({
   } = useContext(VulcanContext);
 
   const [workspaceName, setWorkspaceName] = useState('');
-  const [valUse, setValUse] = useState({version: '...awaiting...', lastUsed: 'never'});
   const [branches, setBranches] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [requestBy, setRequestBy] = useState<'branch' | 'tagOrSha'>('branch');
+  const defaultValUse={version: requestBy=='branch' ? '...awaiting...' : '', lastUsed: 'never'}
+  const [valUse, setValUse] = useState(defaultValUse);
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [versionText, setVersionText] = useState('main');
   const [versionHelperText, setVersionHelperText] = useState('Branch name (e.g. main)');
   const [createTag, setCreateTag] = useState('Create Workspace');
   const [advanced, setAdvanced] = useState(false);
+  const [workflow, setWorkflow] = useState<VulcanState['workflow'] | null>(null)
 
   const [handleCreateWorkspace] = useAsyncCallback(function* (name: string, version: string) {
     if (!workflow || !workflow.id) return;
@@ -108,6 +110,8 @@ export default function WorkspaceCreateButtonModal({
       setBranches(['main'])
       setTags([])
     })
+    setWorkspaceName(workflow.name)
+    setValUse(defaultValUse)
   }, [workflow])
 
   // Options to show
@@ -166,31 +170,21 @@ export default function WorkspaceCreateButtonModal({
 
   // Creation button label & disabling, and update versionUI helper text
   useEffect(() => {
-    if (valUse.version === '' || valUse.version == '...awaiting...') {
-      setCreateTag('Workflow Version not set')
+    if (!workflow) {
+      setCreateTag('Pipeline not selected')
+    } else if (valUse.version == '...awaiting...') {
+      setCreateTag('Pipeline Version not set')
+    } else if (valUse.version === '') {
+      setCreateTag('Pipeline Version not set')
       setVersionHelperText(helperBase + ', *Hit Enter/Return to use the current value*')
     } else if (valUse.version != versionText) {
-      setCreateTag('Workflow Version input in error sate')
+      setCreateTag('Pipeline Version input in error sate')
       setVersionHelperText(helperBase + ', *Hit Enter/Return to use the current value*')
     } else if (createTag!='Create Workspace') {
       setVersionHelperText(helperBase);
       setCreateTag('Create Workspace');
     }
   }, [valUse, versionText, createTag])
-
-  if (!workflow || !workflow.id) {
-    return <Tooltip title='Select a Workflow to enable'>
-        <Button
-          className={classes.button}
-          onClick={() => {}}
-          size='large'
-          startIcon={<WorkIcon />}
-          color='secondary'
-        >
-          Create New Workspace
-        </Button>
-      </Tooltip>
-  };
 
   // versionUI
   const helperBase = requestBy == 'branch' ? 'Branch name (e.g. main)' : 'Tag or Commit SHA';
@@ -265,7 +259,7 @@ export default function WorkspaceCreateButtonModal({
             {...params}
             label='Git Reference'
             helperText={versionHelperText}
-            error={valUse.version == '...awaiting...' || valUse.version==='' || valUse.version != versionText}
+            error={advanced && valUse.version == '...awaiting...' || valUse.version==='' || valUse.version != versionText}
             InputLabelProps={{shrink: true}}
             size="small"
           />
@@ -285,12 +279,17 @@ export default function WorkspaceCreateButtonModal({
   </Grid>
   const disableCreate = createTag!='Create Workspace' || creating;
 
+  const SectionTitle = (title: string) => <Typography
+    variant='h6'
+  >
+    {title}
+  </Typography>
+
   return (
     <>
-      <Tooltip title={`Create New \'${workflow.name}\' Workspace`}>
+      <Tooltip title={`Create New Workspace`}>
         <Button
           className={classes.button}
-          disabled={!workflow}
           onClick={() => {
             setWorkspaceName(defaultName);
             setOpen(true);
@@ -307,35 +306,19 @@ export default function WorkspaceCreateButtonModal({
           onClose={() => setOpen(false)}
           maxWidth='xl'
         >
-        <DialogTitle>
-          {`Create New \'${workflow.name}\' Workspace`} 
+        <DialogTitle disableTypography>
+          <Typography variant='h4'>Set up your Workspace</Typography>
         </DialogTitle>
         <DialogContent className={classes.dialog}>
           <Grid container direction='column' spacing={2}>
             <Grid item>
-              <Typography className={classes.helpdoc} variant='body1'>
-                This will set up a "workspace", a folder on our compute server where you can run the workflow.
-                After it's ready, we'll send you over to your Workspace Control Panel.
-              </Typography>
-              <Typography className={classes.helpdoc} variant='body2' style={{marginTop: '1rem'}}>
-                The choices below are optional.
-              </Typography>
-            </Grid>
-            <Grid item>
-              <TextField
-                value={workspaceName}
-                fullWidth
-                label='Workspace Name'
-                helperText="You will be able to change this later."
-                InputLabelProps={{ shrink: true }}
-                onChange={(event) => setWorkspaceName(event.target.value)}
-                size="small"
+              {SectionTitle("Pipeline")}
+              <WorkflowsCarousel
+                onSelectWorkflow={(workflow) => setWorkflow(workflow)}
               />
             </Grid>
             <Grid item>
-              <InputLabel htmlFor='version-basic-advanced' shrink>
-                Workflow Version
-              </InputLabel>
+              {SectionTitle("Pipeline Version")}
               <Grid
                 key='version-basic-advanced'
                 container alignItems='center'
@@ -348,6 +331,7 @@ export default function WorkspaceCreateButtonModal({
                 </Grid>
                 <Grid item>
                   <Switch
+                    disabled={!workflow}
                     checked={advanced}
                     onChange={() => {
                       setValUse({version: '...awaiting...' , lastUsed: 'never'});
@@ -364,6 +348,16 @@ export default function WorkspaceCreateButtonModal({
                 </Grid>
               </Grid>
               {advancedVersionUI}
+            </Grid>
+            <Grid item>
+              {SectionTitle("Workspace Title")}
+              <TextField
+                value={workspaceName}
+                fullWidth
+                helperText="You will be able to change this later."
+                onChange={(event) => setWorkspaceName(event.target.value)}
+                size="small"
+              />
             </Grid>
           </Grid>
         </DialogContent>
