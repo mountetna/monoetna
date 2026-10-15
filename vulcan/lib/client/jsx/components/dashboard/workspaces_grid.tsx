@@ -113,6 +113,13 @@ export default function WorkspacesGrid({
     [dispatch, showErrors, deleteWorkspace, project_name, accessibleWorkspaces]
   );
 
+  const handleUpdateTags = useCallback((tags: string[], workspace: WorkspaceMinimal) => {
+    if (!workspace.workspace_id) return;
+    // ToDo: Handle this update from the api return instead, to be sure we stay accurate
+    showErrors(updateWorkspace(CONFIG.project_name, workspace.workspace_id as number, undefined, tags))
+    .then(() => {dispatch(updateWorkflowsWorkspaces())});
+  }, [CONFIG.project_name])
+
   const hasTag = useCallback(
     (workspace: WorkspaceMinimal) => {
       if (!tags || 0 === tags.length) return true;
@@ -179,6 +186,7 @@ export default function WorkspacesGrid({
               // onCopy={() => handleOnCopy(workspace)}
               onRemove={() => handleOnRemove(workspace)}
               onRename={() => handleOnRename(workspace)}
+              updateTags={(tags: string[]) => handleUpdateTags(tags, workspace)}
             />
           );
         }

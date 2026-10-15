@@ -29,6 +29,7 @@ import useUserHooks from '../../contexts/useUserHooks';
 import Tag from './tag';
 import { workflowName } from '../../selectors/workflow_selectors';
 import Typography from '@material-ui/core/Typography';
+import WorkspaceTagEditorModal from '../tag_editor_modal';
 
 const workspaceStyles = makeStyles((theme) => ({
   content: {
@@ -118,15 +119,18 @@ const WorkspaceCard = ({
   workspace,
   // onCopy,
   onRename,
-  onRemove
+  onRemove,
+  updateTags
 }: {
   workspace: WorkspaceMinimal;
   // onCopy: () => void;
   onRename: () => void;
   onRemove: () => void;
+  updateTags: (tags: string[]) => void;
 }) => {
   const invoke = useActionInvoker();
   let {state} = useContext(VulcanContext);
+
   const {workflows, projectName} = state;
 
   const {canEdit} = useUserHooks();
@@ -170,10 +174,14 @@ const WorkspaceCard = ({
     onRemove();
   }, [onRemove]);
 
-  const openTagEditor = useCallback(() => {
+  const openTagEditor = () => {
     handleClose();
     setTagModalOpen(true);
-  }, [])
+  }
+  const closeTagEditor = () => {
+    handleClose();
+    setTagModalOpen(false);
+  }
 
   const editor = useMemo(() => canEdit(workspace), [
     workspace,
@@ -269,6 +277,7 @@ const WorkspaceCard = ({
           </Grid>
         </Grid>
       </CardContent>
+      <WorkspaceTagEditorModal workspace={workspace} open={tagModalOpen} onClose={closeTagEditor} handleUpdate={updateTags} showPushlishedOption/>
     </Card>
   );
 };

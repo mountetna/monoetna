@@ -91,7 +91,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
               variant='h6'
               className={classes.headerTitle}
             >
-              Your Private Workspaces
+              Your Unpublished Workspaces
             </Typography>
           </Grid>
           <Grid item xs={2}>
