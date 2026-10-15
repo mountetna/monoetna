@@ -32,10 +32,6 @@ import Typography from '@material-ui/core/Typography';
 import WorkspaceTagEditorModal from '../tag_editor_modal';
 
 const workspaceStyles = makeStyles((theme) => ({
-  content: {
-    width: '100%',
-    height: '100%'
-  },
   workspace: {
     border: '1px solid #eee',
     margin: '25px',
@@ -64,6 +60,14 @@ const workspaceStyles = makeStyles((theme) => ({
     height: '2rem',
     whiteSpace: 'nowrap',
     maxWidth: '225px'
+  },
+  content: {
+    width: '280px',
+    padding: '10px 10px 0px 10px'
+  },
+  info: {
+    maxWidth: '280px',
+    padding: '0px'
   },
   tags: {
     maxWidth: '225px',
@@ -133,7 +137,7 @@ const WorkspaceCard = ({
 
   const {workflows, projectName} = state;
 
-  const {canEdit} = useUserHooks();
+  const {canEdit, superuser} = useUserHooks();
 
   const [tagModalOpen, setTagModalOpen] = useState(false);
 
@@ -190,6 +194,22 @@ const WorkspaceCard = ({
 
   const [defaultImage, image] = workspaceImage(workflow, workspace);
 
+  const ContentLine = ({text, tooltip}: {text: string, tooltip?: string}) => {
+    if (!tooltip) {
+      tooltip = text;
+    }
+    return ( <Tooltip title={tooltip}>
+      <Typography
+        variant='body2'
+        component="p"
+        noWrap
+        className={classes.info}
+      >
+        {text}
+      </Typography>
+    </Tooltip>)
+  }
+
   return (
     <Card className={classes.workspace}>
       <Menu
@@ -233,7 +253,7 @@ const WorkspaceCard = ({
         image={image}
         title={`Jump into this workspace!`}
       />
-      <CardContent style={{width: '280px', padding: '10px 10px 0px'}}>
+      <CardContent className={classes.content}>
         <Grid
           alignItems='flex-start'
           justifyContent='space-between'
@@ -241,18 +261,21 @@ const WorkspaceCard = ({
           direction='column'
         >
           <Grid item>
-            <Typography variant='body2' component="p" style={{maxWidth: '225px', padding: '0px'}}>
-              {`Pipeline: ${workflowName(workflow) || ''}`}
-            </Typography>
-            <Typography variant='body2' component="p" style={{maxWidth: '225px', padding: '0px'}}>
-              {`Version: ${workspace.git_ref}`}
-            </Typography>
-            <Typography variant='body2' component="p" style={{maxWidth: '225px', padding: '0px'}}>
-              {`SHA: ${workspace.git_sha}`}
-            </Typography>
-            <Typography variant='body2' component="p" style={{maxWidth: '225px', padding: '0px'}}>
-              {`Id: ${workspace.workspace_id} | Created: ${workspace.created_at.split(' ')[0]}`}
-            </Typography>
+            <ContentLine text={`Pipeline: ${workflowName(workflow) || ''}`}/>
+            <ContentLine
+              text={
+                workspace.git_ref != workspace.git_sha ?
+                  `Version: ${workspace.git_ref} (${workspace.git_sha})` :
+                  `Version: ${workspace.git_ref}`
+              }
+              tooltip={
+                `Version Requested: ${workspace.git_ref} (Retrieved SHA: ${workspace.git_sha})`
+              }
+            />
+            <ContentLine
+              text={`Created: ${workspace.created_at.split(' ')[0]}`}
+              tooltip={`Created: ${workspace.created_at.split(' ')[0]} (Id: ${workspace.workspace_id})`}
+            />
           </Grid>
           <Grid
             item
