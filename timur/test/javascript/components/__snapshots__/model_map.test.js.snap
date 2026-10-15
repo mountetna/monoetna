@@ -1563,6 +1563,36 @@ exports[`ModelMap for model with no records renders with action buttons and repa
               />
             </button>
           </span>
+          <button
+            aria-label="Map to Template"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59"
+            tabindex="0"
+            title="Map to Template"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
+                  />
+                </svg>
+              </span>
+              Map to Template
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
           <span
             aria-label="Cannot remove a model with any attribute of the types: table, child, collection"
             class=""
@@ -2341,6 +2371,36 @@ exports[`ModelMap for model with no records renders with model action buttons fo
               </span>
             </button>
           </span>
+          <button
+            aria-label="Map to Template"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-47"
+            tabindex="0"
+            title="Map to Template"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
+                  />
+                </svg>
+              </span>
+              Map to Template
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
           <span
             aria-label="Cannot remove a model with any attribute of the types: table, child, collection"
             class=""
@@ -2998,6 +3058,36 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
               </span>
             </button>
           </span>
+          <button
+            aria-label="Map to Template"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-71"
+            tabindex="0"
+            title="Map to Template"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
+                  />
+                </svg>
+              </span>
+              Map to Template
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
           <span
             aria-label="Remove Model"
             class=""
