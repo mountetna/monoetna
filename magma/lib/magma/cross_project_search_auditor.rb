@@ -1,11 +1,8 @@
-require_relative './actions/with_template_validation_module'
-
 class Magma
   class CrossProjectSearchAuditor
-    TEMPLATE_PROJECT = Magma::WithTemplateValidation::DEFAULT_TEMPLATE_PROJECT
-
     def initialize(project_name: nil)
       @project_name = project_name
+      @template_project = Magma.instance.config(:template_project)
     end
 
     def report
@@ -21,7 +18,7 @@ class Magma
         blank?(model[:template_project_name]) && blank?(model[:template_model_name])
       end
       valid, invalid = mapped.partition do |model|
-        model[:template_project_name] == TEMPLATE_PROJECT &&
+        model[:template_project_name] == @template_project &&
           template_model_names.include?(model[:template_model_name])
       end
 
@@ -91,7 +88,7 @@ class Magma
     end
 
     def excluded_projects
-      @excluded_projects ||= [TEMPLATE_PROJECT] + all_template_attributes.filter_map do |attribute|
+      @excluded_projects ||= [@template_project] + all_template_attributes.filter_map do |attribute|
         ontology_validation(attribute)&.dig(:project_name)
       end.uniq
     end
@@ -114,7 +111,7 @@ class Magma
 
     def template_model_names
       @template_model_names ||= Magma.instance.db[:models].
-        where(project_name: TEMPLATE_PROJECT).
+        where(project_name: @template_project).
         select_map(:model_name)
     end
 
@@ -125,7 +122,7 @@ class Magma
 
     def all_template_attributes
       @all_template_attributes ||= Magma.instance.db[:attributes].
-        where(project_name: TEMPLATE_PROJECT).
+        where(project_name: @template_project).
         select(:model_name, :attribute_name, :required_on_child_models, :validation).
         order(:attribute_name).
         all

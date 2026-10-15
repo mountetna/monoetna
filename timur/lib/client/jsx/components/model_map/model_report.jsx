@@ -46,7 +46,7 @@ import {
   addTemplatesAndDocuments,
   removeModelAction
 } from 'etna-js/actions/magma_actions';
-import {isLeafModel, CHILD_ATTRIBUTE_TYPES, TEMPLATE_PROJECT} from '../../utils/edit_map';
+import {isLeafModel, CHILD_ATTRIBUTE_TYPES} from '../../utils/edit_map';
 import useMagmaActions from './use_magma_actions';
 import ModelAttributesTable from './model_attributes_table';
 
@@ -158,7 +158,7 @@ const ManageModelActions = ({
         open={showReparentModelModal}
         onSave={handleReparentModel}
       />
-      {CONFIG.project_name !== TEMPLATE_PROJECT && (
+      {CONFIG.project_name !== CONFIG.template_project && (
         <>
           <Tooltip title='Map to Template' aria-label='Map to Template'>
             <Button

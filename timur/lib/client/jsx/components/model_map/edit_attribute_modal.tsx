@@ -8,7 +8,7 @@ import {getProjects} from 'etna-js/api/janus-api';
 
 import ModelActionsModal, { ModelModalParams } from './model_actions_modal';
 import {Attribute} from '../../api/magma_api';
-import {SNAKE_CASE, COMMA_SEP, COMMA_SEP_WITH_SPACES, VALIDATION_TYPES, TEMPLATE_PROJECT} from '../../utils/edit_map';
+import {SNAKE_CASE, COMMA_SEP, COMMA_SEP_WITH_SPACES, VALIDATION_TYPES} from '../../utils/edit_map';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 import ModalSelect from './modal_select';
 
@@ -279,7 +279,7 @@ export default function EditAttributeModal({
           }
           label='Restricted'
         />
-        {CONFIG.project_name === TEMPLATE_PROJECT && (
+        {CONFIG.project_name === CONFIG.template_project && (
           <FormControlLabel
             control={
               <Checkbox
