@@ -146,6 +146,17 @@ exports[`ModelMap for model with no records renders 1`] = `
         <div
           className="MuiGrid-root makeStyles-buttons-8 MuiGrid-container"
         >
+          <div
+            className="MuiChip-root"
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+          >
+            <span
+              className="MuiChip-label"
+            >
+              template: none
+            </span>
+          </div>
           <button
             className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
             disabled={false}
@@ -748,6 +759,17 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
         <div
           className="MuiGrid-root makeStyles-buttons-8 MuiGrid-container"
         >
+          <div
+            className="MuiChip-root"
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+          >
+            <span
+              className="MuiChip-label"
+            >
+              template: none
+            </span>
+          </div>
           <button
             className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
             disabled={false}
@@ -1372,6 +1394,15 @@ exports[`ModelMap for model with no records renders with action buttons and repa
           <div
             class="MuiGrid-root makeStyles-buttons-8 MuiGrid-container"
           >
+            <div
+              class="MuiChip-root"
+            >
+              <span
+                class="MuiChip-label"
+              >
+                template: none
+              </span>
+            </div>
             <div
               class="MuiChip-root"
             >
@@ -2161,6 +2192,15 @@ exports[`ModelMap for model with no records renders with model action buttons fo
           <div
             class="MuiGrid-root makeStyles-buttons-8 MuiGrid-container"
           >
+            <div
+              class="MuiChip-root"
+            >
+              <span
+                class="MuiChip-label"
+              >
+                template: none
+              </span>
+            </div>
             <button
               class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
               tabindex="0"
@@ -2818,6 +2858,15 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
           <div
             class="MuiGrid-root makeStyles-buttons-8 MuiGrid-container"
           >
+            <div
+              class="MuiChip-root"
+            >
+              <span
+                class="MuiChip-label"
+              >
+                template: none
+              </span>
+            </div>
             <button
               class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
               tabindex="0"
@@ -3388,6 +3437,15 @@ exports[`ModelMap for model with no records renders without model action buttons
           <div
             class="MuiGrid-root makeStyles-buttons-8 MuiGrid-container"
           >
+            <div
+              class="MuiChip-root"
+            >
+              <span
+                class="MuiChip-label"
+              >
+                template: none
+              </span>
+            </div>
             <button
               class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
               tabindex="0"

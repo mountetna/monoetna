@@ -175,7 +175,7 @@ export default function CopyModelModal({
               onChange={(e) => setSetAsTemplate(e.target.checked)}
             />
           }
-          label={`Associate this model to ${templateProjectName}.${templateModelName}`}
+          label={`Use ${templateProjectName}.${templateModelName} as this model's template`}
         />
       }
       { template && <>

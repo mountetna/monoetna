@@ -377,10 +377,10 @@ const ModelReport = ({
             }}
           />
         )}
-        {template.template_model_name && (
+        {CONFIG.project_name !== CONFIG.template_project && (
           <Chip
-            label={`template: ${template.template_model_name}`}
-            onDelete={isAdminUser ? () => setShowRemoveTemplateModal(true) : undefined}
+            label={`template: ${template.template_model_name || 'none'}`}
+            onDelete={isAdminUser && template.template_model_name ? () => setShowRemoveTemplateModal(true) : undefined}
           />
         )}
         {modelCount != undefined && modelCount >= 0 && (

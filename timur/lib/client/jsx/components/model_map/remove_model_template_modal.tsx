@@ -14,7 +14,7 @@ export default function RemoveModelTemplateModal({
   return (
     <ModelActionsModal onClose={onClose} open={open} onSave={onSave} title='Remove Template' saveDisabled={false} saveLabel='Remove'>
         <Typography>
-          {modelName} will no longer be associated to {templateName}.
+          {modelName} will no longer use {templateName} as its template.
         </Typography>
     </ModelActionsModal>
   );
