@@ -3,6 +3,8 @@ import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
@@ -57,6 +59,7 @@ export default function CopyModelModal({
   const [template, setTemplate] = useState<Template|null>(null);
   const [error, setError] = useState(null);
   const [selected, setSelected] = useState({});
+  const [setAsTemplate, setSetAsTemplate] = useState(false);
 
   const classes = useStyles();
 
@@ -99,6 +102,7 @@ export default function CopyModelModal({
     setTemplate(null);
     setError(null);
     setSelected({});
+    setSetAsTemplate(false);
   }, [] );
 
   const setTemplateProject = useCallback( newProjectName => {
@@ -126,8 +130,8 @@ export default function CopyModelModal({
         };
       }
     );
-    onSave(attributes);
-  }, [selected, template]);
+    onSave(attributes, setAsTemplate ? templateModelName : null);
+  }, [selected, template, setAsTemplate, templateModelName]);
 
   const reset = useCallback(() => {
     setTemplateProjectName(null);
@@ -135,6 +139,7 @@ export default function CopyModelModal({
     setTemplate(null);
     setError(null);
     setSelected({});
+    setSetAsTemplate(false);
   }, [])
 
   const handleOnCancel = useCallback(() => {
@@ -146,7 +151,11 @@ export default function CopyModelModal({
 
   const numAttributes = template?.attributes ? Object.keys(template.attributes).length : 0;
 
-  const disabled = numSelected == 0;
+  const canSetAsTemplate = templateProjectName === CONFIG.template_project
+    && CONFIG.project_name !== CONFIG.template_project
+    && !!template;
+
+  const disabled = numSelected == 0 && !setAsTemplate;
 
   return (
     <ModelActionsModal onClose={handleOnCancel} open={open} onSave={handleOnSave} title='Copy Model' saveDisabled={disabled}>
@@ -159,6 +168,16 @@ export default function CopyModelModal({
         error={error}
         setError={setError}
       />
+      { canSetAsTemplate && <FormControlLabel
+          control={
+            <Checkbox
+              checked={setAsTemplate}
+              onChange={(e) => setSetAsTemplate(e.target.checked)}
+            />
+          }
+          label={`Associate this model to ${templateProjectName}.${templateModelName}`}
+        />
+      }
       { template && <>
         { numSelected > 0
             ? <Typography className={classes.selected_attribute_text}>{numSelected} selected</Typography>

@@ -22,7 +22,6 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
 import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
-import DescriptionIcon from '@material-ui/icons/Description';
 
 import AddAttributeModal from './add_attribute_modal';
 import AddLinkModal from './add_link_modal';
@@ -30,7 +29,7 @@ import ReparentModelModal from './reparent_model_modal';
 import AddModelModal from './add_model_modal';
 import CopyModelModal from './copy_model_modal';
 import RemoveModelModal from './remove_model_modal';
-import SetModelTemplateModal from './set_model_template_modal';
+import RemoveModelTemplateModal from './remove_model_template_modal';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
@@ -63,7 +62,6 @@ const ManageModelActions = ({
   handleCopyModel,
   handleRemoveModel,
   handleReparentModel,
-  handleSetModelTemplate,
   isLeaf,
   canReparent,
   determiningCanReparent,
@@ -76,7 +74,6 @@ const ManageModelActions = ({
   const [ showAddLinkModal, setShowAddLinkModal ] = useState(false);
   const [ showReparentModelModal, setShowReparentModelModal ] = useState(false);
   const [ showRemoveModelModal, setShowRemoveModelModal ] = useState(false);
-  const [ showSetModelTemplateModal, setShowSetModelTemplateModal ] = useState(false);
 
   const reparentTooltip = determiningCanReparent ? 'Determining if reparenting is possible' :
     canReparent ? 'Reparent Model' : 'Cannot reparent a model containing records';
@@ -126,13 +123,13 @@ const ManageModelActions = ({
         onClose={ () => setShowAddModelModal(false) }
         open={showAddModelModal}
         onSave={handleAddModel} />
-      <Tooltip title='Copy Model Attributes' aria-label='Copy Model Attributes'>
+      <Tooltip title='Copy Model' aria-label='Copy Model'>
         <Button
           className={classes.addBtn}
           startIcon={<FileCopyIcon />}
           onClick={() => setShowCopyModelModal(true)}
         >
-          Copy Attributes
+          Copy Model
         </Button>
       </Tooltip>
       <CopyModelModal
@@ -158,25 +155,6 @@ const ManageModelActions = ({
         open={showReparentModelModal}
         onSave={handleReparentModel}
       />
-      {CONFIG.project_name !== CONFIG.template_project && (
-        <>
-          <Tooltip title='Map to Template' aria-label='Map to Template'>
-            <Button
-              className={classes.addBtn}
-              startIcon={<DescriptionIcon />}
-              onClick={() => setShowSetModelTemplateModal(true)}
-            >
-              Map to Template
-            </Button>
-          </Tooltip>
-          <SetModelTemplateModal
-            modelName={modelName}
-            onClose={ () => setShowSetModelTemplateModal(false) }
-            open={showSetModelTemplateModal}
-            onSave={handleSetModelTemplate}
-          />
-        </>
-      )}
       <>
         <Tooltip title={removeTooltip} aria-label= {removeTooltip}>
           <span>
@@ -334,18 +312,23 @@ const ModelReport = ({
     [model_name]
   );
 
-  const handleSetModelTemplate = useCallback(
-    (template_model_name) => {
-      executeAction(setModelTemplate({model_name, template_model_name}));
-    },
-    [model_name]
-  );
+  const [showRemoveTemplateModal, setShowRemoveTemplateModal] = useState(false);
+
+  const handleRemoveModelTemplate = useCallback(() => {
+    executeAction(setModelTemplate({model_name, clear_template: true}));
+  }, [model_name]);
 
   const handleCopyModel = useCallback(
-    (attributes) => {
-      executeAction(
-        addAttributes(attributes)
-      );
+    (attributes, template_model_name) => {
+      const copy = attributes.length > 0
+        ? executeAction(addAttributes(attributes))
+        : Promise.resolve();
+
+      if (template_model_name) {
+        copy.then(() =>
+          executeAction(setModelTemplate({model_name, template_model_name}))
+        );
+      }
     },
     [model_name]
   );
@@ -395,7 +378,10 @@ const ModelReport = ({
           />
         )}
         {template.template_model_name && (
-          <Chip label={`template: ${template.template_model_name}`} />
+          <Chip
+            label={`template: ${template.template_model_name}`}
+            onDelete={isAdminUser ? () => setShowRemoveTemplateModal(true) : undefined}
+          />
         )}
         {modelCount != undefined && modelCount >= 0 && (
           <Chip
@@ -449,7 +435,6 @@ const ModelReport = ({
           handleAddLink={handleAddLink}
           handleRemoveModel={handleRemoveModel}
           handleReparentModel={handleReparentModel}
-          handleSetModelTemplate={handleSetModelTemplate}
           handleAddModel={handleAddModel}
           handleCopyModel={handleCopyModel}
           isLeaf={isLeaf}
@@ -467,6 +452,13 @@ const ModelReport = ({
         title='Compare Models'
         buttonLabel='Compare'
         description='Select a comparison project and model'
+      />
+      <RemoveModelTemplateModal
+        modelName={model_name}
+        templateName={`${template.template_project_name}.${template.template_model_name}`}
+        open={showRemoveTemplateModal}
+        onClose={() => setShowRemoveTemplateModal(false)}
+        onSave={handleRemoveModelTemplate}
       />
       <ModelAttributesTable
         className={classes.attributes}

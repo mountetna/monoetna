@@ -140,7 +140,8 @@ type ReparentModelAction = ReparentModelParams & {
 
 type SetModelTemplateParams = {
   model_name: string;
-  template_model_name: string;
+  template_model_name?: string;
+  clear_template?: boolean;
 };
 
 type SetModelTemplateAction = SetModelTemplateParams & {
