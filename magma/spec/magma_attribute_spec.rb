@@ -58,6 +58,15 @@ describe Magma::Attribute do
 
       expect(template[:attribute_group]).to eq("odors")
     end
+
+    it 'includes required on child models metadata' do
+      attribute = Magma::Attribute.new(
+        attribute_name: 'species',
+        required_on_child_models: true
+      )
+
+      expect(attribute.json_template[:required_on_child_models]).to eq(true)
+    end
   end
 
   describe "#revision_to_loader" do

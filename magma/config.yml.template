@@ -19,6 +19,7 @@
     :host: https://janus.development.local
     :hmac_key: haggis
   :host: https://magma.development.local
+  :template_project: coprojects_template
   :log_file: /dev/stdout
   :log_level: info
   :storage:
@@ -49,6 +50,7 @@
     :user: developer
     :password: password
   :host: https://magma.test
+  :template_project: coprojects_template
   :log_file: /dev/stdout
   :log_level: error
   :hold_file: tmp/test.hold
