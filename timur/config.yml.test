@@ -26,6 +26,7 @@
   :upload_expiration: 60
   :download_expiration: 60
   :timur_uid_name: TIMUR_TEST_UID
+  :template_project: coprojects_template
   :token_domain: example.org
   :token_life: 31536000
   :backup:

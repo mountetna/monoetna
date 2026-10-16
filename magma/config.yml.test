@@ -8,6 +8,7 @@
     :user: developer
     :password: password
   :project_path: ./spec/labors/
+  :template_project: coprojects_template
   :host: https://magma.test
   :log_file: /dev/stdout
   :log_level: error

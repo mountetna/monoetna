@@ -1,7 +1,5 @@
 class Magma
   module WithTemplateValidation
-    DEFAULT_TEMPLATE_PROJECT = "coprojects_template"
-
     def validate_template_reference!
       unless template_model_name_provided?
         add_missing_template_model_name_error
@@ -21,7 +19,7 @@ class Magma
     private
 
     def template_project_name
-      @action_params[:template_project_name] || DEFAULT_TEMPLATE_PROJECT
+      @action_params[:template_project_name] || Magma.instance.config(:template_project)
     end
 
     def template_model_name_provided?

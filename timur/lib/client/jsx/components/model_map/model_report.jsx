@@ -29,6 +29,7 @@ import ReparentModelModal from './reparent_model_modal';
 import AddModelModal from './add_model_modal';
 import CopyModelModal from './copy_model_modal';
 import RemoveModelModal from './remove_model_modal';
+import RemoveModelTemplateModal from './remove_model_template_modal';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
@@ -37,6 +38,7 @@ import {
   addLink,
   removeModel,
   reparentModel,
+  setModelTemplate,
   addModel
 } from '../../api/magma_api';
 import {
@@ -121,13 +123,13 @@ const ManageModelActions = ({
         onClose={ () => setShowAddModelModal(false) }
         open={showAddModelModal}
         onSave={handleAddModel} />
-      <Tooltip title='Copy Model Attributes' aria-label='Copy Model Attributes'>
+      <Tooltip title='Copy Model' aria-label='Copy Model'>
         <Button
           className={classes.addBtn}
           startIcon={<FileCopyIcon />}
           onClick={() => setShowCopyModelModal(true)}
         >
-          Copy Attributes
+          Copy Model
         </Button>
       </Tooltip>
       <CopyModelModal
@@ -310,11 +312,23 @@ const ModelReport = ({
     [model_name]
   );
 
+  const [showRemoveTemplateModal, setShowRemoveTemplateModal] = useState(false);
+
+  const handleRemoveModelTemplate = useCallback(() => {
+    executeAction(setModelTemplate({model_name, clear_template: true}));
+  }, [model_name]);
+
   const handleCopyModel = useCallback(
-    (attributes) => {
-      executeAction(
-        addAttributes(attributes)
-      );
+    (attributes, template_model_name) => {
+      const copy = attributes.length > 0
+        ? executeAction(addAttributes(attributes))
+        : Promise.resolve();
+
+      if (template_model_name) {
+        copy.then(() =>
+          executeAction(setModelTemplate({model_name, template_model_name}))
+        );
+      }
     },
     [model_name]
   );
@@ -361,6 +375,12 @@ const ModelReport = ({
               setDiffModel(null);
               setDiffProject(null);
             }}
+          />
+        )}
+        {CONFIG.project_name !== CONFIG.template_project && (
+          <Chip
+            label={`template: ${template.template_model_name || 'none'}`}
+            onDelete={isAdminUser && template.template_model_name ? () => setShowRemoveTemplateModal(true) : undefined}
           />
         )}
         {modelCount != undefined && modelCount >= 0 && (
@@ -432,6 +452,13 @@ const ModelReport = ({
         title='Compare Models'
         buttonLabel='Compare'
         description='Select a comparison project and model'
+      />
+      <RemoveModelTemplateModal
+        modelName={model_name}
+        templateName={`${template.template_project_name}.${template.template_model_name}`}
+        open={showRemoveTemplateModal}
+        onClose={() => setShowRemoveTemplateModal(false)}
+        onSave={handleRemoveModelTemplate}
       />
       <ModelAttributesTable
         className={classes.attributes}
