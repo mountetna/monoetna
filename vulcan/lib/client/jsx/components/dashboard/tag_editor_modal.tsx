@@ -2,7 +2,8 @@ import React, {
   useCallback,
   useEffect,
   useState,
-  useMemo
+  useMemo,
+  useContext
 } from 'react';
 
 import Dialog from '@material-ui/core/Dialog';
@@ -13,9 +14,11 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import Button from '@material-ui/core/Button';
 import {makeStyles} from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
-import Tag from './dashboard/tag';
-import { Workspace, WorkspaceMinimal } from '../api_types';
+import Tag from './tag';
+import { Workspace, WorkspaceMinimal } from '../../api_types';
 import * as _ from 'lodash';
+import {VulcanContext} from '../../contexts/vulcan_context';
+import useUserHooks from '../../contexts/useUserHooks';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -52,6 +55,17 @@ export default function WorkspaceTagEditorModal({
 
   const classes = useStyles();
 
+  let {state} = useContext(VulcanContext);
+  const {workflows, workspaces} = useMemo(() => {
+    return state
+  }, [state.workflows, state.workspaces])
+  const {canEdit} = useUserHooks();
+  const userVisibleWorkspaceTags = useMemo(() => {
+    const projectWorkflowIds = workflows.filter(w => w.project_name == CONFIG.project_name).map(w => w.id)
+    const projectWorkspaces = workspaces.filter((w) => projectWorkflowIds.includes(w.workflow_id))
+    return [...new Set(projectWorkspaces.filter((w) => canEdit(w) || (w.tags || []).includes('published')).map(w => w.tags || []).flat())]
+  }, [workflows, workspaces, CONFIG.project_name]);
+
   const [localTags, setLocalTags] = useState<string[]>(workspace.tags || []);
 
   function resetTags() {
@@ -63,7 +77,7 @@ export default function WorkspaceTagEditorModal({
   }, [workspace.tags, open])
 
   const tapOptionsUse = useMemo(() => {
-    const tagOptionsUse = tagOptions || []
+    const tagOptionsUse = tagOptions || userVisibleWorkspaceTags || []
     if (!tagOptionsUse?.includes('published') && showPushlishedOption) {
       tagOptionsUse?.push('published')
     }
@@ -71,7 +85,7 @@ export default function WorkspaceTagEditorModal({
       tagOptionsUse?.push('highlighted')
     }
     return tagOptionsUse
-  }, [tagOptions])
+  }, [tagOptions, userVisibleWorkspaceTags])
 
   // const isPublic = useMemo(() => (workspace.tags || []).includes('published'), [workspace.tags]);
   // function togglePublicTag() {

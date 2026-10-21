@@ -29,7 +29,7 @@ import useUserHooks from '../../contexts/useUserHooks';
 import Tag from './tag';
 import { workflowName } from '../../selectors/workflow_selectors';
 import Typography from '@material-ui/core/Typography';
-import WorkspaceTagEditorModal from '../tag_editor_modal';
+import WorkspaceTagEditorModal from './tag_editor_modal';
 
 const workspaceStyles = makeStyles((theme) => ({
   workspace: {
