@@ -171,8 +171,16 @@ export default function WorkspacesGrid({
         if (null == b.workspace_id) return 1;
         return a.workspace_id - b.workspace_id;
       });
-
-    setFilteredWorkspaces([...results]);
+    // Prioritize published
+    results = [
+      ...results.filter((w) => (w.tags || []).includes('published')),
+      ...results.filter((w) => !(w.tags || []).includes('published'))
+    ]
+    // Prioritize highlighted more
+    setFilteredWorkspaces([
+      ...results.filter((w) => (w.tags || []).includes('highlighted')),
+      ...results.filter((w) => !(w.tags || []).includes('highlighted'))
+    ]);
   }, [accessibleWorkspaces, matchesSearch, hasTag, workflowId]);
 
   return (

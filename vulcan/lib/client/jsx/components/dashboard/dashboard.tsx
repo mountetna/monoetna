@@ -59,7 +59,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
   const [privateSearchString, setPrivateSearchString] = useState('');
   const [privateTags, setPrivateTags] = useState<string[]>([]);
   const [publishedSearchString, setPublishedSearchString] = useState('');
-  const [publishedTags, setPublishedTags] = useState<string[]>(['highlighted']);
+  const [publishedTags, setPublishedTags] = useState<string[]>([]);
 
   // ToDo: Move this to VulcanContext or the etna-js ProjectHeader component itself.
   const [projectNameShow, setProjectNameShow] = useState(project_name);
@@ -85,7 +85,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
   }, [workflows, workspaces, project_name]);
 
   const personalWorkspaces = useMemo(() => {
-    return visibleWorkspaces.filter((w) => canEdit(w) && !(w.tags || []).includes('published'))
+    return visibleWorkspaces.filter((w) => canEdit(w))
   }, [workflows, workspaces, project_name]);
 
   const publishedWorkspaces = useMemo(() => {
@@ -103,7 +103,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
               variant='h6'
               className={classes.headerTitle}
             >
-              Your Unpublished Workspaces
+              Your Workspaces
             </Typography>
           </Grid>
           <Grid item xs={2}>
