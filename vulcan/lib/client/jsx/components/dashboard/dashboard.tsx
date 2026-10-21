@@ -11,6 +11,7 @@ import WorkspacesControls from './workspace_control/workspaces_controls';
 import ProjectHeader from 'etna-js/components/project-header';
 import { VulcanContext } from '../../contexts/vulcan_context';
 import {useFeatureFlag} from "etna-js/hooks/useFeatureFlag";
+import {getProjects} from "etna-js/api/janus-api";
 import useUserHooks from '../../contexts/useUserHooks';
 import WorkflowCreateButtonModal from './workflow_control/workflow_creation';
 import WorkspaceCreateButtonModal from './workspace_control/workspace_creation';
@@ -60,6 +61,17 @@ export default function Dashboard({project_name}: {project_name: string}) {
   const [publishedSearchString, setPublishedSearchString] = useState('');
   const [publishedTags, setPublishedTags] = useState<string[]>(['highlighted']);
 
+  // ToDo: Move this to VulcanContext or the etna-js ProjectHeader component itself.
+  const [projectNameShow, setProjectNameShow] = useState(project_name);
+  useEffect(() => {
+    getProjects().then((r: any) => {
+      const project_name_full: string[] = r.filter((p: any) => p.project_name==project_name).map((p: any) => p.project_name_full)
+      if (project_name_full.length > 0) {
+        setProjectNameShow(project_name_full[0])
+      }
+    })
+  }, [project_name])
+
   let {state} = useContext(VulcanContext);
   const {workflows, workspaces} = useMemo(() => {
     return state
@@ -83,7 +95,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
   return (
     <main className='vulcan-dashboard'>
       <Grid container direction='column'>
-        <ProjectHeader project_name={ project_name } className={classes.title}/>
+        <ProjectHeader project_name={ project_name } project_name_full={projectNameShow}  className={classes.title}/>
         <Grid item container className={classes.tableHeader}>
           <Grid item xs={2}>
             <Typography
