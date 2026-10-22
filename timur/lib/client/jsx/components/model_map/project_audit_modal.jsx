@@ -261,9 +261,9 @@ const OntologyValidation = ({audit}) => {
   const mismatches = audit.ontology_mismatches || [];
   const missing = audit.missing_ontology_columns || [];
   const failures = values.filter((row) => row.valid === false);
-  const valid = values.filter((row) => row.valid).length;
+  const valid = audit.ontology_valid_count || 0;
   const failed = failures.length + mismatches.length + missing.length;
-  const noColumns = !values.length && !mismatches.length && !missing.length;
+  const noColumns = !valid && !values.length && !mismatches.length && !missing.length;
 
   return (
     <Section

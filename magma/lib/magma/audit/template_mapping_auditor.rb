@@ -6,6 +6,18 @@ class Magma
     end
 
     def report
+      build[:payload]
+    end
+
+    def conforming?
+      build[:conforming]
+    end
+
+    private
+
+    def build
+      return @build if @build
+
       project_name = @mapping.project_name
       unmapped, valid, invalid = @mapping.unmapped_models, @mapping.valid_models, @mapping.invalid_models
 
@@ -16,48 +28,19 @@ class Magma
         ontology_mismatches: valid.flat_map { |model| check_ontology_mismatches(project_name, model) },
         invalid_ontology_values: valid.flat_map { |model| check_ontology_values(project_name, model) }
       }
+      ontology_values = valid.flat_map { |model| ontology_value_results(project_name, model) }
 
-      {
+      @build = {
         conforming: issues.values.all?(&:empty?),
-        summary: audit_summary(project_name, issues),
-        mapped_models: valid.map { |model| model_mapping(model) },
-        **issues,
-        required_column_results: valid.flat_map { |model| required_column_results(project_name, model) },
-        ontology_value_results: valid.flat_map { |model| ontology_value_results(project_name, model) },
-        missing_ontology_columns: valid.flat_map { |model| missing_ontology_columns(project_name, model) }
-      }
-    end
-
-    private
-
-    def audit_summary(project_name, issues)
-      valid = @mapping.valid_models
-      required_total = valid.sum { |model| required_attributes(model).length }
-      required_missing = issues[:missing_template_columns].sum { |entry| entry[:columns].length }
-      ontology_total = valid.sum { |model| required_ontology_attributes(model).length }
-      ontology_missing = valid.sum do |model|
-        columns = child_columns(project_name, model)
-        required_ontology_attributes(model).count { |attribute| !columns.key?(attribute[:attribute_name]) }
-      end
-
-      {
-        models: {
-          total: @mapping.models.length,
-          mapped: valid.length,
-          unmapped: @mapping.unmapped_models.length,
-          invalid: @mapping.invalid_models.length
-        },
-        required_columns: {
-          total: required_total,
-          confirmed: required_total - required_missing,
-          missing: required_missing
-        },
-        ontologies: {
-          total: ontology_total,
-          confirmed: ontology_total - ontology_missing - issues[:ontology_mismatches].length,
-          missing_columns: ontology_missing,
-          mismatched: issues[:ontology_mismatches].length,
-          invalid_values: issues[:invalid_ontology_values].sum { |entry| entry[:values].length }
+        payload: {
+          mapped_models: valid.map { |model| model_mapping(model) },
+          unmapped_models: issues[:unmapped_models],
+          invalid_mappings: issues[:invalid_mappings],
+          required_column_results: valid.flat_map { |model| required_column_results(project_name, model) },
+          ontology_mismatches: issues[:ontology_mismatches],
+          ontology_value_results: ontology_values.reject { |value| value[:valid] },
+          ontology_valid_count: ontology_values.count { |value| value[:valid] },
+          missing_ontology_columns: valid.flat_map { |model| missing_ontology_columns(project_name, model) }
         }
       }
     end

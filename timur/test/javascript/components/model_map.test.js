@@ -109,7 +109,6 @@ describe('ModelMap for model with no records', () => {
         project: 'labors',
         conforming: false,
         template_mapping: {
-          conforming: false,
           mapped_models: [{model: 'labor', template_model: 'labor'}],
           unmapped_models: ['monster'],
           invalid_mappings: [
@@ -121,9 +120,9 @@ describe('ModelMap for model with no records', () => {
             {model: 'labor', template_model: 'labor', column: 'species', present: false}
           ],
           ontology_value_results: [
-            {model: 'labor', template_model: 'labor', column: 'organism', value: 'human', valid: true},
             {model: 'labor', template_model: 'labor', column: 'organism', value: 'PBMC', valid: false}
           ],
+          ontology_valid_count: 1,
           ontology_mismatches: [{
             model: 'labor',
             column: 'tissue',
@@ -238,16 +237,14 @@ describe('ModelMap for model with no records', () => {
         project: 'labors',
         conforming: false,
         template_mapping: {
-          conforming: false,
           mapped_models: [],
           unmapped_models: ['monster'],
           invalid_mappings: [],
           required_column_results: [
             {model: 'labor', template_model: 'labor', column: 'species', present: false}
           ],
-          ontology_value_results: [
-            {model: 'labor', template_model: 'labor', column: 'organism', value: 'human', valid: true}
-          ],
+          ontology_value_results: [],
+          ontology_valid_count: 1,
           ontology_mismatches: [],
           missing_ontology_columns: []
         },

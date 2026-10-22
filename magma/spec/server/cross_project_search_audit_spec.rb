@@ -97,24 +97,17 @@ describe CrossProjectSearchAuditController do
 
     expect(report).to include(project: 'audit_project', conforming: true)
     expect(report[:template_mapping]).to eq(
-      conforming: true,
-      summary: {
-        models: { total: 1, mapped: 1, unmapped: 0, invalid: 0 },
-        required_columns: { total: 1, confirmed: 1, missing: 0 },
-        ontologies: { total: 0, confirmed: 0, missing_columns: 0, mismatched: 0, invalid_values: 0 }
-      },
       mapped_models: [
         { model: 'local_sample', template_model: 'sample' }
       ],
       unmapped_models: [],
       invalid_mappings: [],
-      missing_template_columns: [],
-      ontology_mismatches: [],
-      invalid_ontology_values: [],
       required_column_results: [
         { model: 'local_sample', template_model: 'sample', column: 'species', present: true }
       ],
+      ontology_mismatches: [],
       ontology_value_results: [],
+      ontology_valid_count: 0,
       missing_ontology_columns: []
     )
   end
@@ -128,8 +121,6 @@ describe CrossProjectSearchAuditController do
 
     report = audit_report
 
-    expect(report[:conforming]).to eq(false)
-    expect(report[:summary][:models]).to eq(total: 4, mapped: 0, unmapped: 1, invalid: 3)
     expect(report[:mapped_models]).to eq([])
     expect(report[:unmapped_models]).to eq(['subject'])
     expect(report[:invalid_mappings]).to eq([
@@ -144,11 +135,6 @@ describe CrossProjectSearchAuditController do
 
     report = audit_report
 
-    expect(report[:conforming]).to eq(false)
-    expect(report[:summary][:required_columns]).to eq(total: 1, confirmed: 0, missing: 1)
-    expect(report[:missing_template_columns]).to eq([
-      { model: 'local_sample', template_model: 'sample', columns: ['species'] }
-    ])
     expect(report[:required_column_results]).to eq([
       { model: 'local_sample', template_model: 'sample', column: 'species', present: false }
     ])
@@ -169,14 +155,6 @@ describe CrossProjectSearchAuditController do
 
     report = audit_report
 
-    expect(report[:conforming]).to eq(false)
-    expect(report[:summary][:ontologies]).to eq(
-      total: 2,
-      confirmed: 0,
-      missing_columns: 0,
-      mismatched: 2,
-      invalid_values: 0
-    )
     expect(report[:ontology_mismatches]).to eq([
       {
         model: 'blood_sample',
@@ -208,33 +186,15 @@ describe CrossProjectSearchAuditController do
 
     report = audit_report
 
-    expect(report[:conforming]).to eq(false)
-    expect(report[:summary][:ontologies]).to eq(
-      total: 1,
-      confirmed: 1,
-      missing_columns: 0,
-      mismatched: 0,
-      invalid_values: 1
-    )
     expect(report[:ontology_mismatches]).to eq([])
-    expect(report[:invalid_ontology_values]).to eq([
-      {
-        model: 'local_sample',
-        template_model: 'sample',
-        column: 'tissue',
-        ontology: { project_name: 'ontologies', model_name: 'uberon', attribute_name: 'name' },
-        values: ['PBMC']
-      }
-    ])
     expect(report[:required_column_results]).to include(
       { model: 'local_sample', template_model: 'sample', column: 'species', present: true },
       { model: 'local_sample', template_model: 'sample', column: 'tissue', present: true }
     )
-    expect(report[:ontology_value_results]).to include(
-      { model: 'local_sample', template_model: 'sample', column: 'tissue', value: 'blood', valid: true },
-      { model: 'local_sample', template_model: 'sample', column: 'tissue', value: 'lung', valid: true },
+    expect(report[:ontology_valid_count]).to eq(2)
+    expect(report[:ontology_value_results]).to eq([
       { model: 'local_sample', template_model: 'sample', column: 'tissue', value: 'PBMC', valid: false }
-    )
+    ])
     expect(report[:missing_ontology_columns]).to eq([])
   end
 
@@ -264,7 +224,15 @@ describe CrossProjectSearchAuditController do
     add_child_attribute('local_sample', 'species')
     add_child_attribute('local_sample', 'tissue')
 
-    expect(audit_report[:conforming]).to eq(true)
+    report = audit_report
+
+    expect(report[:required_column_results]).to eq([
+      { model: 'local_sample', template_model: 'sample', column: 'species', present: true }
+    ])
+    expect(report[:ontology_mismatches]).to eq([])
+    expect(report[:ontology_value_results]).to eq([])
+    expect(report[:ontology_valid_count]).to eq(0)
+    expect(report[:missing_ontology_columns]).to eq([])
   end
 
   it 'audits only the requested project' do
@@ -275,7 +243,11 @@ describe CrossProjectSearchAuditController do
     report = project_audit
 
     expect(report[:project]).to eq('audit_project')
-    expect(report[:template_mapping][:summary][:models]).to eq(total: 1, mapped: 1, unmapped: 0, invalid: 0)
+    expect(report[:template_mapping][:mapped_models]).to eq([
+      { model: 'local_sample', template_model: 'sample' }
+    ])
+    expect(report[:template_mapping][:unmapped_models]).to eq([])
+    expect(report[:template_mapping][:invalid_mappings]).to eq([])
   end
 
   it 'allows a project administrator to audit their project' do
@@ -294,13 +266,15 @@ describe CrossProjectSearchAuditController do
 
     expect(last_response.status).to eq(200)
     expect(json_body).to include(project: 'empty_project', conforming: true)
-    expect(json_body[:template_mapping]).to include(
-      conforming: true,
-      summary: {
-        models: { total: 0, mapped: 0, unmapped: 0, invalid: 0 },
-        required_columns: { total: 0, confirmed: 0, missing: 0 },
-        ontologies: { total: 0, confirmed: 0, missing_columns: 0, mismatched: 0, invalid_values: 0 }
-      }
+    expect(json_body[:template_mapping]).to eq(
+      mapped_models: [],
+      unmapped_models: [],
+      invalid_mappings: [],
+      required_column_results: [],
+      ontology_mismatches: [],
+      ontology_value_results: [],
+      ontology_valid_count: 0,
+      missing_ontology_columns: []
     )
   end
 
@@ -334,7 +308,6 @@ describe CrossProjectSearchAuditController do
       report = project_audit
 
       expect(report[:conforming]).to eq(false)
-      expect(report[:template_mapping][:conforming]).to eq(true)
       expect(report[:model_relationships][:hierarchy]).to eq(
         conforming: false,
         issues: [
@@ -386,7 +359,6 @@ describe CrossProjectSearchAuditController do
       single_cell = report[:model_relationships][:single_cell]
 
       expect(report[:conforming]).to eq(false)
-      expect(report[:template_mapping][:conforming]).to eq(true)
       expect(single_cell).to include(
         applicable: true,
         conforming: false,

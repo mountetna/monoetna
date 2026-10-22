@@ -9,7 +9,7 @@ class Magma
     end
 
     def report
-      template_mapping = TemplateMappingAuditor.new(@mapping).report
+      mapping_auditor = TemplateMappingAuditor.new(@mapping)
       relationships = ModelRelationshipAuditor.new(@mapping)
       model_relationships = {
         hierarchy: relationships.hierarchy,
@@ -18,8 +18,8 @@ class Magma
 
       {
         project: @mapping.project_name,
-        conforming: template_mapping[:conforming] && model_relationships.values.all? { |check| check[:conforming] },
-        template_mapping: template_mapping,
+        conforming: mapping_auditor.conforming? && model_relationships.values.all? { |check| check[:conforming] },
+        template_mapping: mapping_auditor.report,
         model_relationships: model_relationships
       }
     end
