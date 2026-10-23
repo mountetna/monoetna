@@ -48,7 +48,7 @@ const ModelMapGraphic = ({
           );
         })}
       </svg>
-      {model_names.map((model_name) => {
+      {model_names.map((model_name, i) => {
         let node = layout.nodes[model_name];
 
         return (
@@ -60,6 +60,7 @@ const ModelMapGraphic = ({
             selected={
               selected_models ? selected_models.includes(model_name) : false
             }
+            templated={Boolean(templates[i]?.template_model_name)}
             handler={handler}
             model_name={model_name}
             disabled={

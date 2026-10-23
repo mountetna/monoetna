@@ -7,12 +7,15 @@ import React, {
 } from 'react';
 
 import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
+import Tooltip from '@material-ui/core/Tooltip';
 import {makeStyles} from '@material-ui/core/styles';
 
 import AttributeReport from './model_map/attribute_report';
 import MapHeading from './model_map/map_heading';
 import ModelReport from './model_map/model_report';
 import ModelMapGraphic from './model_map/model_map_graphic';
+import ProjectAuditModal from './model_map/project_audit_modal';
 
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {isAdmin} from 'etna-js/utils/janus';
@@ -83,6 +86,7 @@ const countsReducer = (state, action) => {
 const ModelMap = ({}) => {
   const [model, setModel] = useState('project');
   const [attribute_name, setAttribute] = useState(null);
+  const [showProjectAudit, setShowProjectAudit] = useState(false);
   const invoke = useActionInvoker();
   const state = useReduxState();
   const modelNames = useReduxState((state) => selectModelNames(state));
@@ -123,6 +127,8 @@ const ModelMap = ({}) => {
     return isAdmin(user, CONFIG.project_name);
   }, [user, CONFIG.project_name]);
 
+  const showRunAudit = isAdminUser && CONFIG.project_name !== CONFIG.template_project;
+
   return (
     <Grid className={classes.model_map} container>
       <Grid item container direction='column'>
@@ -130,6 +136,22 @@ const ModelMap = ({}) => {
           className={classes.heading}
           name='Project'
           title={full_name}
+        >
+          {showRunAudit && (
+            <Tooltip title='Audit project against the template'>
+              <Button
+                onClick={() => setShowProjectAudit(true)}
+                size='small'
+                color='secondary'
+              >
+                Run audit
+              </Button>
+            </Tooltip>
+          )}
+        </MapHeading>
+        <ProjectAuditModal
+          open={showProjectAudit}
+          onClose={() => setShowProjectAudit(false)}
         />
         <Grid item className={classes.map}>
           <ModelMapGraphic

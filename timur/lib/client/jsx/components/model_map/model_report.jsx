@@ -379,8 +379,8 @@ const ModelReport = ({
         )}
         {CONFIG.project_name !== CONFIG.template_project && (
           <Chip
-            label={`template: ${template.template_model_name || 'none'}`}
-            onDelete={isAdminUser && template.template_model_name ? () => setShowRemoveTemplateModal(true) : undefined}
+            label={`template: ${template?.template_model_name || 'none'}`}
+            onDelete={isAdminUser && template?.template_model_name ? () => setShowRemoveTemplateModal(true) : undefined}
           />
         )}
         {modelCount != undefined && modelCount >= 0 && (
@@ -455,7 +455,7 @@ const ModelReport = ({
       />
       <RemoveModelTemplateModal
         modelName={model_name}
-        templateName={`${template.template_project_name}.${template.template_model_name}`}
+        templateName={`${template?.template_project_name}.${template?.template_model_name}`}
         open={showRemoveTemplateModal}
         onClose={() => setShowRemoveTemplateModal(false)}
         onSave={handleRemoveModelTemplate}
