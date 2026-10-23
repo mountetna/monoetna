@@ -63,7 +63,10 @@ const workspaceStyles = makeStyles((theme) => ({
   },
   content: {
     width: '280px',
-    padding: '10px 10px 0px 10px'
+    padding: '10px 10px 0px 10px',
+    '&:last-child': {
+      paddingBottom: '14px'
+    },
   },
   info: {
     maxWidth: '280px',
@@ -71,9 +74,10 @@ const workspaceStyles = makeStyles((theme) => ({
   },
   tags: {
     maxWidth: '225px',
-    maxHeight: '65px',
+    maxHeight: '38px',
     overflow: 'hidden',
     position: 'relative',
+    paddingTop: '5px',
     '&:after': {
       content: "''",
       position: 'absolute',
@@ -83,7 +87,6 @@ const workspaceStyles = makeStyles((theme) => ({
       backgroundImage:
         'linear-gradient(to bottom, rgba(255,255,255, 0), rgba(255,255,255,0) 90%, rgba(255,255,255, 1) 100%)',
       width: '100%',
-      height: '65px'
     },
     '&:hover': {
       overflow: 'visible',
@@ -259,6 +262,7 @@ const WorkspaceCard = ({
           justifyContent='space-between'
           container
           direction='column'
+          spacing={1}
         >
           <Grid item>
             <ContentLine text={`Pipeline: ${workflowName(workflow) || ''}`}/>
@@ -283,7 +287,6 @@ const WorkspaceCard = ({
             justifyContent='space-between'
             container
             direction='row'
-            style={{height: '65px'}}
           >
             <Grid item xs={2}>
               <Tooltip title={workspace.user_email || ''}>
