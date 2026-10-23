@@ -95,7 +95,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
     <main className='vulcan-dashboard'>
       <Grid container direction='column'>
         <ProjectHeader project_name={ project_name } project_name_full={projectNameShow}  className={classes.title}/>
-        <Grid item container className={classes.tableHeader}>
+        <Grid item container className={classes.tableHeader} justifyContent='space-between'>
           <Grid item xs={2}>
             <Typography
               color='secondary'
@@ -105,13 +105,13 @@ export default function Dashboard({project_name}: {project_name: string}) {
               Your Workspaces
             </Typography>
           </Grid>
-          <Grid item xs={2}>
+          <Grid item xs={4}>
             <WorkspaceCreateButtonModal
               projectName={project_name}
               workspaces={workspaces}
             />
           </Grid>
-          <Grid item xs={8}>
+          <Grid item xs={6}>
             <WorkspacesFilterBar
               setSearchString={setPrivateSearchString}
               setTags={setPrivateTags}
@@ -129,7 +129,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
           allWorkflows={workflows}
           accessibleWorkspaces={personalWorkspaces}
         />
-        <Grid item container className={classes.tableHeader}>
+        <Grid item container className={classes.tableHeader} justifyContent='space-between'>
           <Grid item xs={2}>
             <Typography
               color='secondary'
@@ -139,7 +139,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
               Published Workspaces
             </Typography>
           </Grid>
-          <Grid item xs={10}>
+          <Grid item xs={6}>
             <WorkspacesFilterBar
               setSearchString={setPublishedSearchString}
               setTags={setPublishedTags}
