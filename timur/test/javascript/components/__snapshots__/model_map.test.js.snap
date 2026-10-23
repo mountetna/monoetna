@@ -82,7 +82,7 @@ exports[`ModelMap for model with no records renders 1`] = `
           </g>
         </svg>
         <div
-          className="makeStyles-model_node-9  "
+          className="makeStyles-model_node-35   "
           onClick={[Function]}
           style={
             Object {
@@ -95,7 +95,7 @@ exports[`ModelMap for model with no records renders 1`] = `
           labor
         </div>
         <div
-          className="makeStyles-model_node-9  "
+          className="makeStyles-model_node-35   "
           onClick={[Function]}
           style={
             Object {
@@ -108,7 +108,7 @@ exports[`ModelMap for model with no records renders 1`] = `
           monster
         </div>
         <div
-          className="makeStyles-model_node-9 makeStyles-selected-10 "
+          className="makeStyles-model_node-35 makeStyles-selected-36  "
           onClick={[Function]}
           style={
             Object {
@@ -127,10 +127,10 @@ exports[`ModelMap for model with no records renders 1`] = `
     className="MuiGrid-root makeStyles-report-1 MuiGrid-container MuiGrid-direction-xs-column"
   >
     <div
-      className="MuiGrid-root makeStyles-model_report-12"
+      className="MuiGrid-root makeStyles-model_report-39"
     >
       <div
-        className="MuiGrid-root makeStyles-heading-5 makeStyles-heading-14 MuiGrid-container"
+        className="MuiGrid-root makeStyles-heading-5 makeStyles-heading-41 MuiGrid-container"
       >
         <h6
           className="MuiTypography-root makeStyles-name-6 MuiTypography-h6"
@@ -196,10 +196,10 @@ exports[`ModelMap for model with no records renders 1`] = `
         </div>
       </div>
       <div
-        className="MuiGrid-root makeStyles-container-26 makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
+        className="MuiGrid-root makeStyles-container-53 makeStyles-attributes-40 MuiGrid-container MuiGrid-direction-xs-column"
       >
         <div
-          className="MuiFormControl-root MuiTextField-root makeStyles-filter-25 MuiFormControl-fullWidth"
+          className="MuiFormControl-root MuiTextField-root makeStyles-filter-52 MuiFormControl-fullWidth"
         >
           <div
             className="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-fullWidth MuiInputBase-formControl MuiInputBase-adornedStart MuiOutlinedInput-adornedStart MuiInputBase-marginDense MuiOutlinedInput-marginDense"
@@ -235,7 +235,7 @@ exports[`ModelMap for model with no records renders 1`] = `
             />
             <fieldset
               aria-hidden={true}
-              className="PrivateNotchedOutline-root-45 MuiOutlinedInput-notchedOutline"
+              className="PrivateNotchedOutline-root-72 MuiOutlinedInput-notchedOutline"
               style={
                 Object {
                   "paddingLeft": 8,
@@ -243,7 +243,7 @@ exports[`ModelMap for model with no records renders 1`] = `
               }
             >
               <legend
-                className="PrivateNotchedOutline-legend-46"
+                className="PrivateNotchedOutline-legend-73"
                 style={
                   Object {
                     "width": 0.01,
@@ -262,10 +262,10 @@ exports[`ModelMap for model with no records renders 1`] = `
           </div>
         </div>
         <div
-          className="MuiPaper-root MuiTableContainer-root makeStyles-table_container-42 MuiPaper-elevation1 MuiPaper-rounded"
+          className="MuiPaper-root MuiTableContainer-root makeStyles-table_container-69 MuiPaper-elevation1 MuiPaper-rounded"
         >
           <table
-            className="MuiTable-root makeStyles-table-43 MuiTable-stickyHeader"
+            className="MuiTable-root makeStyles-table-70 MuiTable-stickyHeader"
             role={null}
           >
             <thead
@@ -278,7 +278,7 @@ exports[`ModelMap for model with no records renders 1`] = `
               >
                 <th
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-head makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                  className="MuiTableCell-root MuiTableCell-head makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                   scope="col"
                 >
                   <span
@@ -386,7 +386,7 @@ exports[`ModelMap for model with no records renders 1`] = `
                 </th>
                 <th
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-head makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                  className="MuiTableCell-root MuiTableCell-head makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                   scope="col"
                 >
                   <span
@@ -427,22 +427,22 @@ exports[`ModelMap for model with no records renders 1`] = `
               role={null}
             >
               <tr
-                className="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                className="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 role={null}
               >
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
                   <div
-                    className="makeStyles-typeWrapper-41"
+                    className="makeStyles-typeWrapper-68"
                   >
                     identifier
                   </div>
                 </td>
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   onClick={[Function]}
                 >
                   <span
@@ -466,12 +466,12 @@ exports[`ModelMap for model with no records renders 1`] = `
                 />
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                 >
                   <div
                     aria-describedby={null}
                     aria-label="Description"
-                    className="makeStyles-descbox-34"
+                    className="makeStyles-descbox-61"
                     onBlur={[Function]}
                     onFocus={[Function]}
                     onMouseLeave={[Function]}
@@ -485,22 +485,22 @@ exports[`ModelMap for model with no records renders 1`] = `
                 </td>
               </tr>
               <tr
-                className="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                className="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 role={null}
               >
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
                   <div
-                    className="makeStyles-typeWrapper-41"
+                    className="makeStyles-typeWrapper-68"
                   >
                     collection
                   </div>
                 </td>
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   onClick={[Function]}
                 >
                   <span
@@ -524,12 +524,12 @@ exports[`ModelMap for model with no records renders 1`] = `
                 />
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                 >
                   <div
                     aria-describedby={null}
                     aria-label="Description"
-                    className="makeStyles-descbox-34"
+                    className="makeStyles-descbox-61"
                     onBlur={[Function]}
                     onFocus={[Function]}
                     onMouseLeave={[Function]}
@@ -541,22 +541,22 @@ exports[`ModelMap for model with no records renders 1`] = `
                 </td>
               </tr>
               <tr
-                className="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                className="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 role={null}
               >
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
                   <div
-                    className="makeStyles-typeWrapper-41"
+                    className="makeStyles-typeWrapper-68"
                   >
                     collection
                   </div>
                 </td>
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   onClick={[Function]}
                 >
                   <span
@@ -580,12 +580,12 @@ exports[`ModelMap for model with no records renders 1`] = `
                 />
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                 >
                   <div
                     aria-describedby={null}
                     aria-label="Description"
-                    className="makeStyles-descbox-34"
+                    className="makeStyles-descbox-61"
                     onBlur={[Function]}
                     onFocus={[Function]}
                     onMouseLeave={[Function]}
@@ -597,22 +597,22 @@ exports[`ModelMap for model with no records renders 1`] = `
                 </td>
               </tr>
               <tr
-                className="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                className="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 role={null}
               >
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
                   <div
-                    className="makeStyles-typeWrapper-41"
+                    className="makeStyles-typeWrapper-68"
                   >
                     table
                   </div>
                 </td>
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   onClick={[Function]}
                 >
                   <span
@@ -636,12 +636,12 @@ exports[`ModelMap for model with no records renders 1`] = `
                 />
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                 >
                   <div
                     aria-describedby={null}
                     aria-label="Description"
-                    className="makeStyles-descbox-34"
+                    className="makeStyles-descbox-61"
                     onBlur={[Function]}
                     onFocus={[Function]}
                     onMouseLeave={[Function]}
@@ -721,7 +721,7 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
           </defs>
         </svg>
         <div
-          className="makeStyles-model_node-9 makeStyles-selected-10 "
+          className="makeStyles-model_node-35 makeStyles-selected-36  "
           onClick={[Function]}
           style={
             Object {
@@ -740,10 +740,10 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
     className="MuiGrid-root makeStyles-report-1 MuiGrid-container MuiGrid-direction-xs-column"
   >
     <div
-      className="MuiGrid-root makeStyles-model_report-12"
+      className="MuiGrid-root makeStyles-model_report-39"
     >
       <div
-        className="MuiGrid-root makeStyles-heading-5 makeStyles-heading-14 MuiGrid-container"
+        className="MuiGrid-root makeStyles-heading-5 makeStyles-heading-41 MuiGrid-container"
       >
         <h6
           className="MuiTypography-root makeStyles-name-6 MuiTypography-h6"
@@ -809,10 +809,10 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
         </div>
       </div>
       <div
-        className="MuiGrid-root makeStyles-container-26 makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
+        className="MuiGrid-root makeStyles-container-53 makeStyles-attributes-40 MuiGrid-container MuiGrid-direction-xs-column"
       >
         <div
-          className="MuiFormControl-root MuiTextField-root makeStyles-filter-25 MuiFormControl-fullWidth"
+          className="MuiFormControl-root MuiTextField-root makeStyles-filter-52 MuiFormControl-fullWidth"
         >
           <div
             className="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-fullWidth MuiInputBase-formControl MuiInputBase-adornedStart MuiOutlinedInput-adornedStart MuiInputBase-marginDense MuiOutlinedInput-marginDense"
@@ -848,7 +848,7 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
             />
             <fieldset
               aria-hidden={true}
-              className="PrivateNotchedOutline-root-45 MuiOutlinedInput-notchedOutline"
+              className="PrivateNotchedOutline-root-72 MuiOutlinedInput-notchedOutline"
               style={
                 Object {
                   "paddingLeft": 8,
@@ -856,7 +856,7 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
               }
             >
               <legend
-                className="PrivateNotchedOutline-legend-46"
+                className="PrivateNotchedOutline-legend-73"
                 style={
                   Object {
                     "width": 0.01,
@@ -875,10 +875,10 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
           </div>
         </div>
         <div
-          className="MuiPaper-root MuiTableContainer-root makeStyles-table_container-42 MuiPaper-elevation1 MuiPaper-rounded"
+          className="MuiPaper-root MuiTableContainer-root makeStyles-table_container-69 MuiPaper-elevation1 MuiPaper-rounded"
         >
           <table
-            className="MuiTable-root makeStyles-table-43 MuiTable-stickyHeader"
+            className="MuiTable-root makeStyles-table-70 MuiTable-stickyHeader"
             role={null}
           >
             <thead
@@ -891,7 +891,7 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
               >
                 <th
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-head makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                  className="MuiTableCell-root MuiTableCell-head makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                   scope="col"
                 >
                   <span
@@ -999,7 +999,7 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
                 </th>
                 <th
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-head makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                  className="MuiTableCell-root MuiTableCell-head makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                   scope="col"
                 >
                   <span
@@ -1040,22 +1040,22 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
               role={null}
             >
               <tr
-                className="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                className="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 role={null}
               >
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
                   <div
-                    className="makeStyles-typeWrapper-41"
+                    className="makeStyles-typeWrapper-68"
                   >
                     identifier
                   </div>
                 </td>
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   onClick={[Function]}
                 >
                   <span
@@ -1079,12 +1079,12 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
                 />
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                 >
                   <div
                     aria-describedby={null}
                     aria-label="Description"
-                    className="makeStyles-descbox-34"
+                    className="makeStyles-descbox-61"
                     onBlur={[Function]}
                     onFocus={[Function]}
                     onMouseLeave={[Function]}
@@ -1098,22 +1098,22 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
                 </td>
               </tr>
               <tr
-                className="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                className="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 role={null}
               >
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
                   <div
-                    className="makeStyles-typeWrapper-41"
+                    className="makeStyles-typeWrapper-68"
                   >
                     collection
                   </div>
                 </td>
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   onClick={[Function]}
                 >
                   <span
@@ -1137,12 +1137,12 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
                 />
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                 >
                   <div
                     aria-describedby={null}
                     aria-label="Description"
-                    className="makeStyles-descbox-34"
+                    className="makeStyles-descbox-61"
                     onBlur={[Function]}
                     onFocus={[Function]}
                     onMouseLeave={[Function]}
@@ -1154,22 +1154,22 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
                 </td>
               </tr>
               <tr
-                className="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                className="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 role={null}
               >
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
                   <div
-                    className="makeStyles-typeWrapper-41"
+                    className="makeStyles-typeWrapper-68"
                   >
                     collection
                   </div>
                 </td>
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   onClick={[Function]}
                 >
                   <span
@@ -1193,12 +1193,12 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
                 />
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                 >
                   <div
                     aria-describedby={null}
                     aria-label="Description"
-                    className="makeStyles-descbox-34"
+                    className="makeStyles-descbox-61"
                     onBlur={[Function]}
                     onFocus={[Function]}
                     onMouseLeave={[Function]}
@@ -1210,22 +1210,22 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
                 </td>
               </tr>
               <tr
-                className="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                className="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 role={null}
               >
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
                   <div
-                    className="makeStyles-typeWrapper-41"
+                    className="makeStyles-typeWrapper-68"
                   >
                     table
                   </div>
                 </td>
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   onClick={[Function]}
                 >
                   <span
@@ -1249,12 +1249,12 @@ exports[`ModelMap for model with no records renders an incomplete graph 1`] = `
                 />
                 <td
                   aria-sort={null}
-                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                  className="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                 >
                   <div
                     aria-describedby={null}
                     aria-label="Description"
-                    className="makeStyles-descbox-34"
+                    className="makeStyles-descbox-61"
                     onBlur={[Function]}
                     onFocus={[Function]}
                     onMouseLeave={[Function]}
@@ -1298,7 +1298,23 @@ exports[`ModelMap for model with no records renders with action buttons and repa
         </h6>
         <div
           class="MuiGrid-root makeStyles-buttons-8 MuiGrid-container"
-        />
+        >
+          <button
+            class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textSecondary MuiButton-textSizeSmall MuiButton-sizeSmall"
+            tabindex="0"
+            title="Audit project against the template"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              Run audit
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+        </div>
       </div>
       <div
         class="MuiGrid-root makeStyles-map-3 MuiGrid-item"
@@ -1351,19 +1367,19 @@ exports[`ModelMap for model with no records renders with action buttons and repa
             </g>
           </svg>
           <div
-            class="makeStyles-model_node-9  "
+            class="makeStyles-model_node-35   "
             style="top: 225px; left: 300px; max-width: 285px;"
           >
             labor
           </div>
           <div
-            class="makeStyles-model_node-9 makeStyles-selected-10 "
+            class="makeStyles-model_node-35 makeStyles-selected-36  "
             style="top: 375px; left: 300px; max-width: 285px;"
           >
             monster
           </div>
           <div
-            class="makeStyles-model_node-9  "
+            class="makeStyles-model_node-35   "
             style="top: 75px; left: 300px; max-width: 285px;"
           >
             project
@@ -1375,10 +1391,10 @@ exports[`ModelMap for model with no records renders with action buttons and repa
       class="MuiGrid-root makeStyles-report-1 MuiGrid-container MuiGrid-direction-xs-column"
     >
       <div
-        class="MuiGrid-root makeStyles-model_report-12"
+        class="MuiGrid-root makeStyles-model_report-39"
       >
         <div
-          class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-14 MuiGrid-container"
+          class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-41 MuiGrid-container"
         >
           <h6
             class="MuiTypography-root makeStyles-name-6 MuiTypography-h6"
@@ -1442,7 +1458,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
         >
           <button
             aria-label="Add Attribute"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-136"
             tabindex="0"
             title="Add Attribute"
             type="button"
@@ -1472,7 +1488,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
           </button>
           <button
             aria-label="Add Link"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-136"
             tabindex="0"
             title="Add Link"
             type="button"
@@ -1502,7 +1518,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
           </button>
           <button
             aria-label="Add Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-136"
             tabindex="0"
             title="Add Model"
             type="button"
@@ -1532,7 +1548,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
           </button>
           <button
             aria-label="Copy Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-136"
             tabindex="0"
             title="Copy Model"
             type="button"
@@ -1566,7 +1582,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
             title="Reparent Model"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-136"
               tabindex="0"
               type="button"
             >
@@ -1600,7 +1616,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
             title="Cannot remove a model with any attribute of the types: table, child, collection"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-59 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-136 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
@@ -1628,10 +1644,10 @@ exports[`ModelMap for model with no records renders with action buttons and repa
           </span>
         </div>
         <div
-          class="MuiGrid-root makeStyles-container-26 makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
+          class="MuiGrid-root makeStyles-container-53 makeStyles-attributes-40 MuiGrid-container MuiGrid-direction-xs-column"
         >
           <div
-            class="MuiFormControl-root MuiTextField-root makeStyles-filter-25 MuiFormControl-fullWidth"
+            class="MuiFormControl-root MuiTextField-root makeStyles-filter-52 MuiFormControl-fullWidth"
           >
             <div
               class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-fullWidth MuiInputBase-formControl MuiInputBase-adornedStart MuiOutlinedInput-adornedStart MuiInputBase-marginDense MuiOutlinedInput-marginDense"
@@ -1659,11 +1675,11 @@ exports[`ModelMap for model with no records renders with action buttons and repa
               />
               <fieldset
                 aria-hidden="true"
-                class="PrivateNotchedOutline-root-45 MuiOutlinedInput-notchedOutline"
+                class="PrivateNotchedOutline-root-72 MuiOutlinedInput-notchedOutline"
                 style="padding-left: 8px;"
               >
                 <legend
-                  class="PrivateNotchedOutline-legend-46"
+                  class="PrivateNotchedOutline-legend-73"
                   style="width: 0.01px;"
                 >
                   <span>
@@ -1674,10 +1690,10 @@ exports[`ModelMap for model with no records renders with action buttons and repa
             </div>
           </div>
           <div
-            class="MuiPaper-root MuiTableContainer-root makeStyles-table_container-42 MuiPaper-elevation1 MuiPaper-rounded"
+            class="MuiPaper-root MuiTableContainer-root makeStyles-table_container-69 MuiPaper-elevation1 MuiPaper-rounded"
           >
             <table
-              class="MuiTable-root makeStyles-table-43 MuiTable-stickyHeader"
+              class="MuiTable-root makeStyles-table-70 MuiTable-stickyHeader"
             >
               <thead
                 class="MuiTableHead-root"
@@ -1686,7 +1702,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                   class="MuiTableRow-root MuiTableRow-head"
                 >
                   <th
-                    class="MuiTableCell-root MuiTableCell-head makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                    class="MuiTableCell-root MuiTableCell-head makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                     scope="col"
                   >
                     <span
@@ -1755,7 +1771,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                     </span>
                   </th>
                   <th
-                    class="MuiTableCell-root MuiTableCell-head makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                    class="MuiTableCell-root MuiTableCell-head makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                     scope="col"
                   >
                     <span
@@ -1783,19 +1799,19 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                 class="MuiTableBody-root"
               >
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       parent
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -1808,29 +1824,29 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       identifier
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -1843,29 +1859,29 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       collection
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -1878,29 +1894,29 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       collection
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -1913,29 +1929,29 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       link
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -1948,29 +1964,29 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       file
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -1983,29 +1999,29 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       file_collection
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -2018,29 +2034,29 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       string
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -2053,11 +2069,11 @@ exports[`ModelMap for model with no records renders with action buttons and repa
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
@@ -2096,7 +2112,23 @@ exports[`ModelMap for model with no records renders with model action buttons fo
         </h6>
         <div
           class="MuiGrid-root makeStyles-buttons-8 MuiGrid-container"
-        />
+        >
+          <button
+            class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textSecondary MuiButton-textSizeSmall MuiButton-sizeSmall"
+            tabindex="0"
+            title="Audit project against the template"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              Run audit
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+        </div>
       </div>
       <div
         class="MuiGrid-root makeStyles-map-3 MuiGrid-item"
@@ -2149,19 +2181,19 @@ exports[`ModelMap for model with no records renders with model action buttons fo
             </g>
           </svg>
           <div
-            class="makeStyles-model_node-9  "
+            class="makeStyles-model_node-35   "
             style="top: 225px; left: 300px; max-width: 285px;"
           >
             labor
           </div>
           <div
-            class="makeStyles-model_node-9  "
+            class="makeStyles-model_node-35   "
             style="top: 375px; left: 300px; max-width: 285px;"
           >
             monster
           </div>
           <div
-            class="makeStyles-model_node-9 makeStyles-selected-10 "
+            class="makeStyles-model_node-35 makeStyles-selected-36  "
             style="top: 75px; left: 300px; max-width: 285px;"
           >
             project
@@ -2173,10 +2205,10 @@ exports[`ModelMap for model with no records renders with model action buttons fo
       class="MuiGrid-root makeStyles-report-1 MuiGrid-container MuiGrid-direction-xs-column"
     >
       <div
-        class="MuiGrid-root makeStyles-model_report-12"
+        class="MuiGrid-root makeStyles-model_report-39"
       >
         <div
-          class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-14 MuiGrid-container"
+          class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-41 MuiGrid-container"
         >
           <h6
             class="MuiTypography-root makeStyles-name-6 MuiTypography-h6"
@@ -2231,7 +2263,7 @@ exports[`ModelMap for model with no records renders with model action buttons fo
         >
           <button
             aria-label="Add Attribute"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-49"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-76"
             tabindex="0"
             title="Add Attribute"
             type="button"
@@ -2261,7 +2293,7 @@ exports[`ModelMap for model with no records renders with model action buttons fo
           </button>
           <button
             aria-label="Add Link"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-49"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-76"
             tabindex="0"
             title="Add Link"
             type="button"
@@ -2291,7 +2323,7 @@ exports[`ModelMap for model with no records renders with model action buttons fo
           </button>
           <button
             aria-label="Add Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-49"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-76"
             tabindex="0"
             title="Add Model"
             type="button"
@@ -2321,7 +2353,7 @@ exports[`ModelMap for model with no records renders with model action buttons fo
           </button>
           <button
             aria-label="Copy Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-49"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-76"
             tabindex="0"
             title="Copy Model"
             type="button"
@@ -2355,7 +2387,7 @@ exports[`ModelMap for model with no records renders with model action buttons fo
             title="Determining if reparenting is possible"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-49 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-76 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
@@ -2387,7 +2419,7 @@ exports[`ModelMap for model with no records renders with model action buttons fo
             title="Cannot remove a model with any attribute of the types: table, child, collection"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-49 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-76 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
@@ -2415,10 +2447,10 @@ exports[`ModelMap for model with no records renders with model action buttons fo
           </span>
         </div>
         <div
-          class="MuiGrid-root makeStyles-container-26 makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
+          class="MuiGrid-root makeStyles-container-53 makeStyles-attributes-40 MuiGrid-container MuiGrid-direction-xs-column"
         >
           <div
-            class="MuiFormControl-root MuiTextField-root makeStyles-filter-25 MuiFormControl-fullWidth"
+            class="MuiFormControl-root MuiTextField-root makeStyles-filter-52 MuiFormControl-fullWidth"
           >
             <div
               class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-fullWidth MuiInputBase-formControl MuiInputBase-adornedStart MuiOutlinedInput-adornedStart MuiInputBase-marginDense MuiOutlinedInput-marginDense"
@@ -2446,11 +2478,11 @@ exports[`ModelMap for model with no records renders with model action buttons fo
               />
               <fieldset
                 aria-hidden="true"
-                class="PrivateNotchedOutline-root-45 MuiOutlinedInput-notchedOutline"
+                class="PrivateNotchedOutline-root-72 MuiOutlinedInput-notchedOutline"
                 style="padding-left: 8px;"
               >
                 <legend
-                  class="PrivateNotchedOutline-legend-46"
+                  class="PrivateNotchedOutline-legend-73"
                   style="width: 0.01px;"
                 >
                   <span>
@@ -2461,10 +2493,10 @@ exports[`ModelMap for model with no records renders with model action buttons fo
             </div>
           </div>
           <div
-            class="MuiPaper-root MuiTableContainer-root makeStyles-table_container-42 MuiPaper-elevation1 MuiPaper-rounded"
+            class="MuiPaper-root MuiTableContainer-root makeStyles-table_container-69 MuiPaper-elevation1 MuiPaper-rounded"
           >
             <table
-              class="MuiTable-root makeStyles-table-43 MuiTable-stickyHeader"
+              class="MuiTable-root makeStyles-table-70 MuiTable-stickyHeader"
             >
               <thead
                 class="MuiTableHead-root"
@@ -2473,7 +2505,7 @@ exports[`ModelMap for model with no records renders with model action buttons fo
                   class="MuiTableRow-root MuiTableRow-head"
                 >
                   <th
-                    class="MuiTableCell-root MuiTableCell-head makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                    class="MuiTableCell-root MuiTableCell-head makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                     scope="col"
                   >
                     <span
@@ -2542,7 +2574,7 @@ exports[`ModelMap for model with no records renders with model action buttons fo
                     </span>
                   </th>
                   <th
-                    class="MuiTableCell-root MuiTableCell-head makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                    class="MuiTableCell-root MuiTableCell-head makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                     scope="col"
                   >
                     <span
@@ -2570,19 +2602,19 @@ exports[`ModelMap for model with no records renders with model action buttons fo
                 class="MuiTableBody-root"
               >
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       identifier
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -2595,11 +2627,11 @@ exports[`ModelMap for model with no records renders with model action buttons fo
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title="Name for this project"
                     >
                       Name for this project
@@ -2607,19 +2639,19 @@ exports[`ModelMap for model with no records renders with model action buttons fo
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       collection
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -2632,29 +2664,29 @@ exports[`ModelMap for model with no records renders with model action buttons fo
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       collection
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -2667,29 +2699,29 @@ exports[`ModelMap for model with no records renders with model action buttons fo
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       table
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -2702,11 +2734,11 @@ exports[`ModelMap for model with no records renders with model action buttons fo
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
@@ -2745,7 +2777,23 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
         </h6>
         <div
           class="MuiGrid-root makeStyles-buttons-8 MuiGrid-container"
-        />
+        >
+          <button
+            class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textSecondary MuiButton-textSizeSmall MuiButton-sizeSmall"
+            tabindex="0"
+            title="Audit project against the template"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              Run audit
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+        </div>
       </div>
       <div
         class="MuiGrid-root makeStyles-map-3 MuiGrid-item"
@@ -2809,25 +2857,25 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
             </g>
           </svg>
           <div
-            class="makeStyles-model_node-9 makeStyles-selected-10 "
+            class="makeStyles-model_node-35 makeStyles-selected-36  "
             style="top: 420px; left: 300px; max-width: 285px;"
           >
             aspect
           </div>
           <div
-            class="makeStyles-model_node-9  "
+            class="makeStyles-model_node-35   "
             style="top: 180px; left: 300px; max-width: 285px;"
           >
             labor
           </div>
           <div
-            class="makeStyles-model_node-9  "
+            class="makeStyles-model_node-35   "
             style="top: 300px; left: 300px; max-width: 285px;"
           >
             monster
           </div>
           <div
-            class="makeStyles-model_node-9  "
+            class="makeStyles-model_node-35   "
             style="top: 60px; left: 300px; max-width: 285px;"
           >
             project
@@ -2839,10 +2887,10 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
       class="MuiGrid-root makeStyles-report-1 MuiGrid-container MuiGrid-direction-xs-column"
     >
       <div
-        class="MuiGrid-root makeStyles-model_report-12"
+        class="MuiGrid-root makeStyles-model_report-39"
       >
         <div
-          class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-14 MuiGrid-container"
+          class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-41 MuiGrid-container"
         >
           <h6
             class="MuiTypography-root makeStyles-name-6 MuiTypography-h6"
@@ -2897,7 +2945,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
         >
           <button
             aria-label="Add Attribute"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-69"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-146"
             tabindex="0"
             title="Add Attribute"
             type="button"
@@ -2927,7 +2975,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
           </button>
           <button
             aria-label="Add Link"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-69"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-146"
             tabindex="0"
             title="Add Link"
             type="button"
@@ -2957,7 +3005,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
           </button>
           <button
             aria-label="Add Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-69"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-146"
             tabindex="0"
             title="Add Model"
             type="button"
@@ -2987,7 +3035,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
           </button>
           <button
             aria-label="Copy Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-69"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-146"
             tabindex="0"
             title="Copy Model"
             type="button"
@@ -3021,7 +3069,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
             title="Determining if reparenting is possible"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-69 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-146 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
@@ -3053,7 +3101,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
             title="Remove Model"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-69"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-146"
               tabindex="0"
               type="button"
             >
@@ -3083,10 +3131,10 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
           </span>
         </div>
         <div
-          class="MuiGrid-root makeStyles-container-26 makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
+          class="MuiGrid-root makeStyles-container-53 makeStyles-attributes-40 MuiGrid-container MuiGrid-direction-xs-column"
         >
           <div
-            class="MuiFormControl-root MuiTextField-root makeStyles-filter-25 MuiFormControl-fullWidth"
+            class="MuiFormControl-root MuiTextField-root makeStyles-filter-52 MuiFormControl-fullWidth"
           >
             <div
               class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-fullWidth MuiInputBase-formControl MuiInputBase-adornedStart MuiOutlinedInput-adornedStart MuiInputBase-marginDense MuiOutlinedInput-marginDense"
@@ -3114,11 +3162,11 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
               />
               <fieldset
                 aria-hidden="true"
-                class="PrivateNotchedOutline-root-45 MuiOutlinedInput-notchedOutline"
+                class="PrivateNotchedOutline-root-72 MuiOutlinedInput-notchedOutline"
                 style="padding-left: 8px;"
               >
                 <legend
-                  class="PrivateNotchedOutline-legend-46"
+                  class="PrivateNotchedOutline-legend-73"
                   style="width: 0.01px;"
                 >
                   <span>
@@ -3129,10 +3177,10 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
             </div>
           </div>
           <div
-            class="MuiPaper-root MuiTableContainer-root makeStyles-table_container-42 MuiPaper-elevation1 MuiPaper-rounded"
+            class="MuiPaper-root MuiTableContainer-root makeStyles-table_container-69 MuiPaper-elevation1 MuiPaper-rounded"
           >
             <table
-              class="MuiTable-root makeStyles-table-43 MuiTable-stickyHeader"
+              class="MuiTable-root makeStyles-table-70 MuiTable-stickyHeader"
             >
               <thead
                 class="MuiTableHead-root"
@@ -3141,7 +3189,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
                   class="MuiTableRow-root MuiTableRow-head"
                 >
                   <th
-                    class="MuiTableCell-root MuiTableCell-head makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                    class="MuiTableCell-root MuiTableCell-head makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                     scope="col"
                   >
                     <span
@@ -3210,7 +3258,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
                     </span>
                   </th>
                   <th
-                    class="MuiTableCell-root MuiTableCell-head makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                    class="MuiTableCell-root MuiTableCell-head makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                     scope="col"
                   >
                     <span
@@ -3238,19 +3286,19 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
                 class="MuiTableBody-root"
               >
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       parent
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -3263,29 +3311,29 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       identifier
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -3298,11 +3346,11 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
@@ -3394,19 +3442,19 @@ exports[`ModelMap for model with no records renders without model action buttons
             </g>
           </svg>
           <div
-            class="makeStyles-model_node-9  "
+            class="makeStyles-model_node-35   "
             style="top: 225px; left: 300px; max-width: 285px;"
           >
             labor
           </div>
           <div
-            class="makeStyles-model_node-9  "
+            class="makeStyles-model_node-35   "
             style="top: 375px; left: 300px; max-width: 285px;"
           >
             monster
           </div>
           <div
-            class="makeStyles-model_node-9 makeStyles-selected-10 "
+            class="makeStyles-model_node-35 makeStyles-selected-36  "
             style="top: 75px; left: 300px; max-width: 285px;"
           >
             project
@@ -3418,10 +3466,10 @@ exports[`ModelMap for model with no records renders without model action buttons
       class="MuiGrid-root makeStyles-report-1 MuiGrid-container MuiGrid-direction-xs-column"
     >
       <div
-        class="MuiGrid-root makeStyles-model_report-12"
+        class="MuiGrid-root makeStyles-model_report-39"
       >
         <div
-          class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-14 MuiGrid-container"
+          class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-41 MuiGrid-container"
         >
           <h6
             class="MuiTypography-root makeStyles-name-6 MuiTypography-h6"
@@ -3472,10 +3520,10 @@ exports[`ModelMap for model with no records renders without model action buttons
           </div>
         </div>
         <div
-          class="MuiGrid-root makeStyles-container-26 makeStyles-attributes-13 MuiGrid-container MuiGrid-direction-xs-column"
+          class="MuiGrid-root makeStyles-container-53 makeStyles-attributes-40 MuiGrid-container MuiGrid-direction-xs-column"
         >
           <div
-            class="MuiFormControl-root MuiTextField-root makeStyles-filter-25 MuiFormControl-fullWidth"
+            class="MuiFormControl-root MuiTextField-root makeStyles-filter-52 MuiFormControl-fullWidth"
           >
             <div
               class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-fullWidth MuiInputBase-formControl MuiInputBase-adornedStart MuiOutlinedInput-adornedStart MuiInputBase-marginDense MuiOutlinedInput-marginDense"
@@ -3503,11 +3551,11 @@ exports[`ModelMap for model with no records renders without model action buttons
               />
               <fieldset
                 aria-hidden="true"
-                class="PrivateNotchedOutline-root-45 MuiOutlinedInput-notchedOutline"
+                class="PrivateNotchedOutline-root-72 MuiOutlinedInput-notchedOutline"
                 style="padding-left: 8px;"
               >
                 <legend
-                  class="PrivateNotchedOutline-legend-46"
+                  class="PrivateNotchedOutline-legend-73"
                   style="width: 0.01px;"
                 >
                   <span>
@@ -3518,10 +3566,10 @@ exports[`ModelMap for model with no records renders without model action buttons
             </div>
           </div>
           <div
-            class="MuiPaper-root MuiTableContainer-root makeStyles-table_container-42 MuiPaper-elevation1 MuiPaper-rounded"
+            class="MuiPaper-root MuiTableContainer-root makeStyles-table_container-69 MuiPaper-elevation1 MuiPaper-rounded"
           >
             <table
-              class="MuiTable-root makeStyles-table-43 MuiTable-stickyHeader"
+              class="MuiTable-root makeStyles-table-70 MuiTable-stickyHeader"
             >
               <thead
                 class="MuiTableHead-root"
@@ -3530,7 +3578,7 @@ exports[`ModelMap for model with no records renders without model action buttons
                   class="MuiTableRow-root MuiTableRow-head"
                 >
                   <th
-                    class="MuiTableCell-root MuiTableCell-head makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                    class="MuiTableCell-root MuiTableCell-head makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                     scope="col"
                   >
                     <span
@@ -3599,7 +3647,7 @@ exports[`ModelMap for model with no records renders without model action buttons
                     </span>
                   </th>
                   <th
-                    class="MuiTableCell-root MuiTableCell-head makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                    class="MuiTableCell-root MuiTableCell-head makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
                     scope="col"
                   >
                     <span
@@ -3627,19 +3675,19 @@ exports[`ModelMap for model with no records renders without model action buttons
                 class="MuiTableBody-root"
               >
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       identifier
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -3652,11 +3700,11 @@ exports[`ModelMap for model with no records renders without model action buttons
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title="Name for this project"
                     >
                       Name for this project
@@ -3664,19 +3712,19 @@ exports[`ModelMap for model with no records renders without model action buttons
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       collection
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -3689,29 +3737,29 @@ exports[`ModelMap for model with no records renders without model action buttons
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       collection
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -3724,29 +3772,29 @@ exports[`ModelMap for model with no records renders without model action buttons
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root makeStyles-attribute_row-24 makeStyles-ident-36"
+                  class="MuiTableRow-root makeStyles-attribute_row-51 makeStyles-ident-63"
                 >
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-31 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-type-58 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                   >
                     <div
-                      class="makeStyles-typeWrapper-41"
+                      class="makeStyles-typeWrapper-68"
                     >
                       table
                     </div>
                   </td>
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-27 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-value-54 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <span
                       class=""
@@ -3759,11 +3807,11 @@ exports[`ModelMap for model with no records renders without model action buttons
                     class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   />
                   <td
-                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-33 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                    class="MuiTableCell-root MuiTableCell-body makeStyles-description-60 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                   >
                     <div
                       aria-label="Description"
-                      class="makeStyles-descbox-34"
+                      class="makeStyles-descbox-61"
                       title=""
                     />
                   </td>

@@ -1,26 +1,25 @@
 class Magma
-  class CrossProjectSearchAuditor
-    def initialize(project_name: nil)
-      @project_name = project_name
-      @template_project = Magma.instance.config(:template_project)
+  class TemplateMappingAuditor
+    def initialize(mapping)
+      @mapping = mapping
+      @template_project = mapping.template_project
     end
 
     def report
-      projects = project_models.group_by { |model| model[:project_name] }
+      build[:payload]
+    end
 
-      { projects: projects.map { |project_name, models| audit_project(project_name, models) } }
+    def conforming?
+      build[:conforming]
     end
 
     private
 
-    def audit_project(project_name, models)
-      unmapped, mapped = models.partition do |model|
-        blank?(model[:template_project_name]) && blank?(model[:template_model_name])
-      end
-      valid, invalid = mapped.partition do |model|
-        model[:template_project_name] == @template_project &&
-          template_model_names.include?(model[:template_model_name])
-      end
+    def build
+      return @build if @build
+
+      project_name = @mapping.project_name
+      unmapped, valid, invalid = @mapping.unmapped_models, @mapping.valid_models, @mapping.invalid_models
 
       issues = {
         unmapped_models: unmapped.map { |model| model[:model_name] },
@@ -29,8 +28,21 @@ class Magma
         ontology_mismatches: valid.flat_map { |model| check_ontology_mismatches(project_name, model) },
         invalid_ontology_values: valid.flat_map { |model| check_ontology_values(project_name, model) }
       }
+      ontology_values = valid.flat_map { |model| ontology_value_results(project_name, model) }
 
-      { project: project_name, conforming: issues.values.all?(&:empty?), **issues }
+      @build = {
+        conforming: issues.values.all?(&:empty?),
+        payload: {
+          mapped_models: valid.map { |model| model_mapping(model) },
+          unmapped_models: issues[:unmapped_models],
+          invalid_mappings: issues[:invalid_mappings],
+          required_column_results: valid.flat_map { |model| required_column_results(project_name, model) },
+          ontology_mismatches: issues[:ontology_mismatches],
+          ontology_value_results: ontology_values.reject { |value| value[:valid] },
+          ontology_valid_count: ontology_values.count { |value| value[:valid] },
+          missing_ontology_columns: valid.flat_map { |model| missing_ontology_columns(project_name, model) }
+        }
+      }
     end
 
     def check_required_on_child_models(project_name, model)
@@ -63,6 +75,42 @@ class Magma
       end
     end
 
+    def required_column_results(project_name, model)
+      columns = child_columns(project_name, model)
+
+      required_attributes(model).map do |attribute|
+        model_mapping(model).merge(
+          column: attribute[:attribute_name],
+          present: columns.key?(attribute[:attribute_name])
+        )
+      end
+    end
+
+    def ontology_value_results(project_name, model)
+      required_ontology_columns(project_name, model).flat_map do |attribute, ontology, column|
+        next [] unless ontology_validation(column) == ontology
+
+        validator = ontology_validator(ontology)
+        child_column_values(project_name, model, column[:column_name]).map do |value|
+          model_mapping(model).merge(
+            column: attribute[:attribute_name],
+            value: value,
+            valid: validator.validate(value)
+          )
+        end
+      end
+    end
+
+    def missing_ontology_columns(project_name, model)
+      columns = child_columns(project_name, model)
+
+      required_ontology_attributes(model).filter_map do |attribute|
+        next if columns.key?(attribute[:attribute_name])
+
+        model_mapping(model).merge(column: attribute[:attribute_name])
+      end
+    end
+
     def required_attributes(model)
       template_attributes(model).select { |attribute| attribute[:required_on_child_models] }
     end
@@ -77,6 +125,10 @@ class Magma
       end
     end
 
+    def required_ontology_attributes(model)
+      required_attributes(model).select { |attribute| ontology_validation(attribute) }
+    end
+
     def ontology_validation(attribute)
       validation = attribute[:validation]&.to_h&.symbolize_keys
       validation if validation && validation[:type] == 'Ontology'
@@ -87,32 +139,8 @@ class Magma
       @ontology_validators[ontology] ||= Magma::ValidationObject.build(ontology)
     end
 
-    def excluded_projects
-      @excluded_projects ||= [@template_project] + all_template_attributes.filter_map do |attribute|
-        ontology_validation(attribute)&.dig(:project_name)
-      end.uniq
-    end
-
     def model_mapping(model)
       { model: model[:model_name], template_model: model[:template_model_name] }
-    end
-
-    def project_models
-      models = Magma.instance.db[:models].
-        exclude(project_name: excluded_projects).
-        exclude(model_name: 'project')
-      models = models.where(project_name: @project_name) if @project_name
-
-      models.
-        select(:project_name, :model_name, :template_project_name, :template_model_name).
-        order(:project_name, :model_name).
-        all
-    end
-
-    def template_model_names
-      @template_model_names ||= Magma.instance.db[:models].
-        where(project_name: @template_project).
-        select_map(:model_name)
     end
 
     def template_attributes(model)
@@ -129,14 +157,7 @@ class Magma
     end
 
     def child_columns(project_name, model)
-      @child_columns ||= Magma.instance.db[:attributes].
-        exclude(project_name: excluded_projects).
-        select(:project_name, :model_name, :attribute_name, :column_name, :validation).
-        all.
-        group_by { |attribute| [attribute[:project_name], attribute[:model_name]] }
-
-      @child_columns.fetch([project_name, model[:model_name]], []).
-        to_h { |attribute| [attribute[:attribute_name], attribute] }
+      @mapping.project_attributes(model[:model_name])
     end
 
     def child_column_values(project_name, model, column)
@@ -145,10 +166,6 @@ class Magma
         exclude(column.to_sym => '').
         distinct.
         select_order_map(column.to_sym)
-    end
-
-    def blank?(value)
-      value.nil? || value.empty?
     end
   end
 end
