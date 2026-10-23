@@ -11,9 +11,9 @@ import Grid from '@material-ui/core/Grid';
 
 import {makeStyles} from '@material-ui/core/styles';
 
-import {VulcanContext} from '../../../contexts/vulcan_context';
-import {Workflow} from '../../../api_types';
-import WorkflowCard from './workflow_card';
+import {VulcanContext} from '../../contexts/vulcan_context';
+import {Workflow} from '../../api_types';
+import WorkflowCard from './cards/workflow_card';
 const useStyles = makeStyles((theme) => ({
   workflows: {
     width: '100%',

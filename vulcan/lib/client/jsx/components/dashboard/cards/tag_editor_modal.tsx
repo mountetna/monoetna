@@ -15,10 +15,10 @@ import Button from '@material-ui/core/Button';
 import {makeStyles} from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Tag from './tag';
-import { Workspace, WorkspaceMinimal } from '../../api_types';
+import { Workspace, WorkspaceMinimal } from '../../../api_types';
 import * as _ from 'lodash';
-import {VulcanContext} from '../../contexts/vulcan_context';
-import useUserHooks from '../../contexts/useUserHooks';
+import {VulcanContext} from '../../../contexts/vulcan_context';
+import useUserHooks from '../../../contexts/useUserHooks';
 
 
 const useStyles = makeStyles((theme) => ({

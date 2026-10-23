@@ -11,11 +11,11 @@ import DialogActions from '@material-ui/core/DialogActions';
 import AddIcon from '@material-ui/icons/Add';
 import SaveIcon from '@material-ui/icons/Save';
 import CancelIcon from '@material-ui/icons/Cancel';
-import {VulcanContext} from '../../../contexts/vulcan_context';
+import {VulcanContext} from '../../contexts/vulcan_context';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
-import { updateWorkflowsWorkspaces } from '../../../actions/vulcan_actions';
-import { VulcanState } from '../../../reducers/vulcan_reducer';
+import { updateWorkflowsWorkspaces } from '../../actions/vulcan_actions';
+import { VulcanState } from '../../reducers/vulcan_reducer';
 
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/web";

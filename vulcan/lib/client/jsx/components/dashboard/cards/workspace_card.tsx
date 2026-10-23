@@ -22,12 +22,12 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import LaunchIcon from '@material-ui/icons/Launch';
 import Grid from '@material-ui/core/Grid';
 
-import {VulcanContext} from '../../contexts/vulcan_context';
-import {Workflow, Workspace, WorkspaceMinimal} from '../../api_types';
-import useUserHooks from '../../contexts/useUserHooks';
+import {VulcanContext} from '../../../contexts/vulcan_context';
+import {Workflow, Workspace, WorkspaceMinimal} from '../../../api_types';
+import useUserHooks from '../../../contexts/useUserHooks';
 
 import Tag from './tag';
-import { workflowName } from '../../selectors/workflow_selectors';
+import { workflowName } from '../../../selectors/workflow_selectors';
 import Typography from '@material-ui/core/Typography';
 import WorkspaceTagEditorModal from './tag_editor_modal';
 

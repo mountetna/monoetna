@@ -17,19 +17,17 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {pushLocation} from 'etna-js/actions/location_actions';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {WorkspaceMinimal} from '../../../api_types';
-import { VulcanContext } from '../../../contexts/vulcan_context';
+import {WorkspaceMinimal} from '../../api_types';
+import { VulcanContext } from '../../contexts/vulcan_context';
 import { useAsyncCallback } from 'etna-js/utils/cancellable_helpers';
-import { VulcanState } from '../../../reducers/vulcan_reducer';
-import LoadingIcon from '../loading_icon';
+import { VulcanState } from '../../reducers/vulcan_reducer';
+import LoadingIcon from './loading_icon';
 import Switch from '@material-ui/core/Switch';
 import InputLabel from '@material-ui/core/InputLabel';
-import FlatButton from 'etna-js/components/flat-button';
 
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/web";
 import WorkflowsCarousel from './workflows_carousel';
-import { Variant } from '@mui/material/styles/createTypography';
 
 const useStyles = makeStyles((theme) => ({
   dialog: {

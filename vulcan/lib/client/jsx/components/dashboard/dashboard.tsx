@@ -7,15 +7,14 @@ import {makeStyles} from '@material-ui/core/styles';
 
 import {Workflow} from '../../api_types';
 import WorkspacesGrid from './workspaces_grid';
-import WorkspacesControls from './workspace_control/workspaces_controls';
+import WorkspacesFilterBar from './workspaces_filter_bar';
 import ProjectHeader from 'etna-js/components/project-header';
 import { VulcanContext } from '../../contexts/vulcan_context';
 import {useFeatureFlag} from "etna-js/hooks/useFeatureFlag";
 import {getProjects} from "etna-js/api/janus-api";
 import useUserHooks from '../../contexts/useUserHooks';
-import WorkflowCreateButtonModal from './workflow_control/workflow_creation';
-import WorkspaceCreateButtonModal from './workspace_control/workspace_creation';
-import WorkflowsCarousel from './workspace_control/workflows_carousel';
+import WorkflowCreateButtonModal from './workflow_creation';
+import WorkspaceCreateButtonModal from './workspace_creation';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -113,7 +112,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
             />
           </Grid>
           <Grid item xs={8}>
-            <WorkspacesControls
+            <WorkspacesFilterBar
               setSearchString={setPrivateSearchString}
               setTags={setPrivateTags}
               workspaces={visibleWorkspaces}
@@ -141,7 +140,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
             </Typography>
           </Grid>
           <Grid item xs={10}>
-            <WorkspacesControls
+            <WorkspacesFilterBar
               setSearchString={setPublishedSearchString}
               setTags={setPublishedTags}
               workspaces={publishedWorkspaces}

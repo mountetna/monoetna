@@ -4,8 +4,7 @@ import Icon from 'etna-js/components/icon';
 
 import {workflowName} from '../../../selectors/workflow_selectors';
 import {Workflow} from '../../../api_types'
-import ImageMemo from '../image_memo';
-import Tag from '../tag';
+import ImageMemo from './image_memo';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 

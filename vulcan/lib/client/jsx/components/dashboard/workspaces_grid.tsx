@@ -7,17 +7,11 @@ import React, {
 } from 'react';
 import 'regenerator-runtime/runtime';
 
-import ImageList from '@material-ui/core/ImageList';
-import ImageListItem from '@material-ui/core/ImageListItem';
-import TextField from '@material-ui/core/TextField';
 import {makeStyles} from '@material-ui/core/styles';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import SearchIcon from '@material-ui/icons/Search';
-import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {Workflow, WorkspaceMinimal} from '../../api_types';
-import WorkspaceCard from './workspace_card';
+import WorkspaceCard from './cards/workspace_card';
 import Grid from '@material-ui/core/Grid';
 import { workflowByIdFromWorkflows } from '../../selectors/workflow_selectors';
 import { updateWorkflowsWorkspaces } from '../../actions/vulcan_actions';
