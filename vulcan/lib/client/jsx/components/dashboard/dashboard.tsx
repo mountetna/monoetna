@@ -6,14 +6,15 @@ import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
 
 import {Workflow} from '../../api_types';
-import WorkflowsCarousel from './workflows_carousel';
 import WorkspacesGrid from './workspaces_grid';
-import WorkspacesControls from './workspace_control/workspaces_controls';
-import WorkflowControls from './workflow_control/workflow_controls';
+import WorkspacesFilterBar from './workspaces_filter_bar';
 import ProjectHeader from 'etna-js/components/project-header';
 import { VulcanContext } from '../../contexts/vulcan_context';
 import {useFeatureFlag} from "etna-js/hooks/useFeatureFlag";
+import {getProjects} from "etna-js/api/janus-api";
 import useUserHooks from '../../contexts/useUserHooks';
+import WorkflowCreateButtonModal from './workflow_creation';
+import WorkspaceCreateButtonModal from './workspace_creation';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -54,76 +55,123 @@ export default function Dashboard({project_name}: {project_name: string}) {
   );
   const classes = useStyles();
 
-  const [searchString, setSearchString] = useState('');
-  const [tags, setTags] = useState<string[]>(['highlighted']);
+  const [privateSearchString, setPrivateSearchString] = useState('');
+  const [privateTags, setPrivateTags] = useState<string[]>([]);
+  const [publishedSearchString, setPublishedSearchString] = useState('');
+  const [publishedTags, setPublishedTags] = useState<string[]>([]);
+
+  // ToDo: Move this to VulcanContext or the etna-js ProjectHeader component itself.
+  const [projectNameShow, setProjectNameShow] = useState(project_name);
+  useEffect(() => {
+    getProjects().then((r: any) => {
+      const project_name_full: string[] = r.filter((p: any) => p.project_name==project_name).map((p: any) => p.project_name_full)
+      if (project_name_full.length > 0) {
+        setProjectNameShow(project_name_full[0])
+      }
+    })
+  }, [project_name])
 
   let {state} = useContext(VulcanContext);
   const {workflows, workspaces} = useMemo(() => {
     return state
   }, [state.workflows, state.workspaces])
 
-  const {canEdit} = useUserHooks();
+  const {canEdit, superuser} = useUserHooks();
   const visibleWorkspaces = useMemo(() => {
     const projectWorkflowIds = workflows.filter(w => w.project_name == project_name).map(w => w.id)
     const projectWorkspaces = workspaces.filter((w) => projectWorkflowIds.includes(w.workflow_id))
     return projectWorkspaces.filter((w) => canEdit(w) || (w.tags || []).includes('published'))
   }, [workflows, workspaces, project_name]);
 
+  const personalWorkspaces = useMemo(() => {
+    return visibleWorkspaces.filter((w) => canEdit(w))
+  }, [workflows, workspaces, project_name]);
+
+  const publishedWorkspaces = useMemo(() => {
+    return visibleWorkspaces.filter((w) => (w.tags || []).includes('published'))
+  }, [workflows, workspaces, project_name]);
+
   return (
     <main className='vulcan-dashboard'>
       <Grid container direction='column'>
-        <ProjectHeader project_name={ project_name } className={classes.title}/>
-        <Grid item container className={classes.tableHeader}>
+        <ProjectHeader project_name={ project_name } project_name_full={projectNameShow}  className={classes.title}/>
+        <Grid item container className={classes.tableHeader} justifyContent='space-between'>
           <Grid item xs={2}>
             <Typography
               color='secondary'
               variant='h6'
               className={classes.headerTitle}
             >
-              Workflows
+              Your Workspaces
             </Typography>
           </Grid>
-          <Grid item xs={10}>
-            <WorkflowControls
-              workflow={selectedWorkflow}
-              project_name={project_name}
+          <Grid item xs={4}>
+            <WorkspaceCreateButtonModal
+              projectName={project_name}
               workspaces={workspaces}
-              workflows={workflows}
             />
           </Grid>
-        </Grid>
-        <WorkflowsCarousel
-          project_name={project_name}
-          onSelectWorkflow={(workflow) => setSelectedWorkflow(workflow)}
-        />
-        <Grid item container className={classes.tableHeader}>
-          <Grid item xs={2}>
-            <Typography
-              color='secondary'
-              variant='h6'
-              className={classes.headerTitle}
-            >
-              Workspaces
-            </Typography>
-          </Grid>
-          <Grid item xs={10}>
-            <WorkspacesControls
-              setSearchString={setSearchString}
-              setTags={setTags}
+          <Grid item xs={6}>
+            <WorkspacesFilterBar
+              setSearchString={setPrivateSearchString}
+              setTags={setPrivateTags}
               workspaces={visibleWorkspaces}
-              tags={tags}
-              searchString={searchString}
+              tags={privateTags}
+              searchString={privateSearchString}
             />
           </Grid>
         </Grid>
         <WorkspacesGrid
           project_name={project_name}
           workflowId={selectedWorkflow?.id}
-          tags={tags}
-          searchString={searchString}
+          tags={privateTags}
+          searchString={privateSearchString}
           allWorkflows={workflows}
-          accessibleWorkspaces={visibleWorkspaces}
+          accessibleWorkspaces={personalWorkspaces}
         />
+        <Grid item container className={classes.tableHeader} justifyContent='space-between'>
+          <Grid item xs={2}>
+            <Typography
+              color='secondary'
+              variant='h6'
+              className={classes.headerTitle}
+            >
+              Published Workspaces
+            </Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <WorkspacesFilterBar
+              setSearchString={setPublishedSearchString}
+              setTags={setPublishedTags}
+              workspaces={publishedWorkspaces}
+              tags={publishedTags}
+              searchString={publishedSearchString}
+            />
+          </Grid>
+        </Grid>
+        <WorkspacesGrid
+          project_name={project_name}
+          workflowId={selectedWorkflow?.id}
+          tags={publishedTags}
+          searchString={publishedSearchString}
+          allWorkflows={workflows}
+          accessibleWorkspaces={publishedWorkspaces}
+        />
+        {superuser &&
+        <Grid item container className={classes.tableHeader}>
+          <Grid item xs={2}>
+            <Typography
+              color='secondary'
+              variant='h6'
+              className={classes.headerTitle}
+            >
+              Manage Workflows
+            </Typography>
+          </Grid>
+          <Grid item xs={10}>
+            <WorkflowCreateButtonModal projectName={project_name} workflows={workflows}/>
+          </Grid>
+        </Grid>}
       </Grid>
     </main>
   );

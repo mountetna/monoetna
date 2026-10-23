@@ -27,7 +27,7 @@ class Magma
 
     post '/update_model', action: 'update_model#action', auth: { user: { is_admin?: :project_name } }
 
-    get '/cross_project_search_audit', action: 'cross_project_search_audit#report', auth: { user: { is_supereditor?: true } }
+    get '/cross_project_search_audit/:project_name', action: 'cross_project_search_audit#report', auth: { user: { is_admin?: :project_name } }
 
     get '/flags/:project_name', action: 'flags#get', auth: { user: { can_view?: :project_name } }
     post '/flags/:project_name', action: 'flags#set', auth: { user: { is_admin?: :project_name } }

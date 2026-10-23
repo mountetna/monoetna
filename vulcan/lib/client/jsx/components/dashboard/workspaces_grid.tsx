@@ -7,17 +7,11 @@ import React, {
 } from 'react';
 import 'regenerator-runtime/runtime';
 
-import ImageList from '@material-ui/core/ImageList';
-import ImageListItem from '@material-ui/core/ImageListItem';
-import TextField from '@material-ui/core/TextField';
 import {makeStyles} from '@material-ui/core/styles';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import SearchIcon from '@material-ui/icons/Search';
-import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {Workflow, WorkspaceMinimal} from '../../api_types';
-import WorkspaceCard from './workspace_card';
+import WorkspaceCard from './cards/workspace_card';
 import Grid from '@material-ui/core/Grid';
 import { workflowByIdFromWorkflows } from '../../selectors/workflow_selectors';
 import { updateWorkflowsWorkspaces } from '../../actions/vulcan_actions';
@@ -113,6 +107,13 @@ export default function WorkspacesGrid({
     [dispatch, showErrors, deleteWorkspace, project_name, accessibleWorkspaces]
   );
 
+  const handleUpdateTags = useCallback((tags: string[], workspace: WorkspaceMinimal) => {
+    if (!workspace.workspace_id) return;
+    // ToDo: Handle this update from the api return instead, to be sure we stay accurate
+    showErrors(updateWorkspace(CONFIG.project_name, workspace.workspace_id as number, undefined, tags))
+    .then(() => {dispatch(updateWorkflowsWorkspaces())});
+  }, [CONFIG.project_name])
+
   const hasTag = useCallback(
     (workspace: WorkspaceMinimal) => {
       if (!tags || 0 === tags.length) return true;
@@ -123,18 +124,37 @@ export default function WorkspacesGrid({
     [tags]
   );
 
+  const searchTerms = useMemo(() => {
+    if (!searchString || '' === searchString) return '';
+    // Break terms at spaces, unless "quoted together"
+    let searchElements: string[] = [];
+    let searchStringRemnant = searchString || ''
+    const quotedRegex = /".+"/g
+    if ((searchStringRemnant).match(quotedRegex)) {
+      searchElements = (searchStringRemnant.match(quotedRegex) as string[]).map(s => s.replaceAll('"', ''))
+      searchStringRemnant = searchStringRemnant.replaceAll(quotedRegex, '')
+    }
+    if (searchStringRemnant.trim().length>0) {
+      searchElements.push(searchStringRemnant.trim().replaceAll('  ', ' ').replaceAll(' ', '|'))
+    }
+    return searchElements.join('|')
+  }, [searchString])
+
   const matchesSearch = useCallback(
     (workspace: WorkspaceMinimal) => {
-      if (!searchString || '' === searchString) return true;
+      if ('' === searchTerms) return true;
 
-      const regex = new RegExp(searchString, 'i');
-      return (
-        workspace.name?.match(regex) ||
-        workspace.user_email?.match(regex) ||
-        workflowByIdFromWorkflows(workspace.workflow_id, allWorkflows)?.name.match(regex)
-      );
+      const regex = new RegExp(searchTerms, 'i');
+      const matchTo = [
+        workspace.name,
+        workspace.user_email,
+        workspace.git_ref,
+        workspace.git_sha,
+        workflowByIdFromWorkflows(workspace.workflow_id, allWorkflows)?.name
+      ]
+      return matchTo.map(m => m?.match(regex)).some(m =>  m != null);
     },
-    [searchString]
+    [searchTerms]
   );
 
   useEffect(() => {
@@ -145,14 +165,16 @@ export default function WorkspacesGrid({
         if (null == b.workspace_id) return 1;
         return a.workspace_id - b.workspace_id;
       });
-
-    if (workflowId) {
-      setFilteredWorkspaces(
-        results.filter((workspace) => workspace.workflow_id === workflowId)
-      );
-    } else {
-      setFilteredWorkspaces([...results]);
-    }
+    // Prioritize published
+    results = [
+      ...results.filter((w) => (w.tags || []).includes('published')),
+      ...results.filter((w) => !(w.tags || []).includes('published'))
+    ]
+    // Prioritize highlighted more
+    setFilteredWorkspaces([
+      ...results.filter((w) => (w.tags || []).includes('highlighted')),
+      ...results.filter((w) => !(w.tags || []).includes('highlighted'))
+    ]);
   }, [accessibleWorkspaces, matchesSearch, hasTag, workflowId]);
 
   return (
@@ -166,6 +188,7 @@ export default function WorkspacesGrid({
               // onCopy={() => handleOnCopy(workspace)}
               onRemove={() => handleOnRemove(workspace)}
               onRename={() => handleOnRename(workspace)}
+              updateTags={(tags: string[]) => handleUpdateTags(tags, workspace)}
             />
           );
         }

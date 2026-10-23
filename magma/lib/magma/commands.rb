@@ -3,7 +3,7 @@ require 'logger'
 require 'yaml'
 require 'etna/command'
 require_relative './actions/base_action'
-require_relative './cross_project_search_auditor'
+require_relative './audit/project_auditor'
 
 class Magma
   class RetrieveProjectTemplate < Etna::Command
@@ -229,12 +229,14 @@ class Magma
   end
 
   class CrossProjectSearchAudit < Etna::Command
-    usage '[--project-name <project_name>] [--file <path>] # Check that child projects conform to the template for cross-project search, as JSON'
+    usage '--project-name <project_name> [--file <path>] # Audit a project against the template for cross-project search, as JSON'
     string_flags << '--project-name'
     string_flags << '--file'
 
     def execute(project_name: nil, file: nil)
-      report = Magma::CrossProjectSearchAuditor.new(project_name: project_name).report
+      raise ArgumentError, '--project-name is required' unless project_name
+
+      report = Magma::ProjectAuditor.new(project_name).report
       json = JSON.pretty_generate(report)
 
       if file

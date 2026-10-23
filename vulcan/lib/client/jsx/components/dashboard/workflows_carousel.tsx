@@ -13,7 +13,7 @@ import {makeStyles} from '@material-ui/core/styles';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {Workflow} from '../../api_types';
-import WorkflowCard from './workflow_card';
+import WorkflowCard from './cards/workflow_card';
 const useStyles = makeStyles((theme) => ({
   workflows: {
     width: '100%',
@@ -23,11 +23,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function WorkflowsCarousel({
-  project_name,
-  onSelectWorkflow
+  onSelectWorkflow,
+  allow_deselect = false
 }: {
-  project_name: string;
   onSelectWorkflow: (workflow: Workflow | null) => void;
+  allow_deselect?: boolean
 }) {
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(
     null
@@ -59,7 +59,7 @@ export default function WorkflowsCarousel({
   const handleOnSelectWorkflow = useCallback(
     (workflow: Workflow) => {
       if (workflow.id === selectedWorkflow?.id) {
-        setSelectedWorkflow(null);
+        if (allow_deselect) setSelectedWorkflow(null);
       } else {
         setSelectedWorkflow(workflow);
       }
