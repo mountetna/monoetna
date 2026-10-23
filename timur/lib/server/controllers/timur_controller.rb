@@ -12,7 +12,8 @@ class Timur
       {
         project_name: @params[:project_name],
         token_name: Timur.instance.config(:token_name),
-        metis_uid_name: Timur.instance.config(:metis_uid_name)
+        metis_uid_name: Timur.instance.config(:metis_uid_name),
+        template_project: Timur.instance.config(:template_project)
       }.merge(config_hosts).to_json
     end
 
