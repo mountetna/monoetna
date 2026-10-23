@@ -149,7 +149,7 @@ describe('ModelMap for model with no records', () => {
             issues: ['tube has no link attribute to pool'],
             counts: {
               pools: {total: 4, depooled: 3},
-              sc_seq: {total: 6, pool_linked: 5, depooled: 3},
+              sc_seq: {total: 6, pool_linked: 5, depooled: 3, missing_subject: 2},
               subjects: 2
             }
           }
@@ -191,6 +191,11 @@ describe('ModelMap for model with no records', () => {
     expect(dialog.getByText('prize → coprojects_template.award')).toBeTruthy();
     expect(dialog.getByText('cup → template model missing')).toBeTruthy();
     expect(dialog.getByText('Required columns')).toBeTruthy();
+    expect(dialog.getByText('1 present')).toBeTruthy();
+    expect(dialog.getByText('1 missing')).toBeTruthy();
+    expect(dialog.queryByText(/present, .*missing/)).toBeNull();
+    const requiredText = dialog.getByText('Required columns').closest('section').textContent;
+    expect(requiredText.indexOf('1 present')).toBeLessThan(requiredText.indexOf('1 missing'));
     expect(dialog.getByText('labor.name')).toBeTruthy();
     expect(dialog.getByText('labor.species')).toBeTruthy();
     expect(dialog.getByText('Ontology validation')).toBeTruthy();
@@ -217,8 +222,16 @@ describe('ModelMap for model with no records', () => {
     expect(dialog.getByText('tube: parent pool, expected specimen')).toBeTruthy();
     expect(dialog.getByText('tube has no link attribute to pool')).toBeTruthy();
     expect(dialog.getByText('2 subjects can be found in search')).toBeTruthy();
-    expect(dialog.getByText('2 sc_seq records have a pool but no subject')).toBeTruthy();
     expect(dialog.getByText('1 sc_seq record has no pool')).toBeTruthy();
+    expect(dialog.getByText('2 sc_seq records have no subject')).toBeTruthy();
+    const singleCellText = dialog.getByText('Single cell models').closest('section').textContent;
+    expect(singleCellText.indexOf('2 subjects can be found in search')).toBeLessThan(
+      singleCellText.indexOf('1 sc_seq record has no pool')
+    );
+    expect(singleCellText.indexOf('1 sc_seq record has no pool')).toBeLessThan(
+      singleCellText.indexOf('2 sc_seq records have no subject')
+    );
+    expect(dialog.queryByText(/have a pool but no subject/)).toBeNull();
     expect(dialog.queryByText('Sequencing records')).toBeNull();
     expect(dialog.queryByText('Pools')).toBeNull();
     expect(dialog.queryByText('Subjects reached')).toBeNull();
@@ -258,7 +271,7 @@ describe('ModelMap for model with no records', () => {
             issues: [],
             counts: {
               pools: {total: 1, depooled: 1},
-              sc_seq: {total: 1, pool_linked: 1, depooled: 1},
+              sc_seq: {total: 1, pool_linked: 1, depooled: 1, missing_subject: 0},
               subjects: 1
             }
           }
@@ -305,6 +318,128 @@ describe('ModelMap for model with no records', () => {
     expect(dialog.queryByText(/linked to a pool only/)).toBeNull();
     expect(dialog.queryByText(/not linked to a pool/)).toBeNull();
     expect(dialog.queryByText(/depooled|pool_linked/)).toBeNull();
+  });
+
+  it('counts sc_seq rows with no subject in the project audit even when the pool is empty', async () => {
+    stubUrl({
+      verb: 'get',
+      path: '/cross_project_search_audit/labors',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        project: 'labors',
+        conforming: true,
+        template_mapping: {
+          mapped_models: [],
+          unmapped_models: [],
+          invalid_mappings: [],
+          required_column_results: [],
+          ontology_value_results: [],
+          ontology_valid_count: 0,
+          ontology_mismatches: [],
+          missing_ontology_columns: []
+        },
+        model_relationships: {
+          hierarchy: {conforming: true, issues: []},
+          single_cell: {
+            applicable: true,
+            conforming: true,
+            pool_link: 'pool',
+            subject_path: ['tube', 'specimen', 'labor'],
+            issues: [],
+            counts: {
+              pools: {total: 2, depooled: 2},
+              sc_seq: {total: 4, pool_linked: 3, depooled: 2, missing_subject: 2},
+              subjects: 2
+            }
+          }
+        }
+      }
+    });
+
+    global.CONFIG.template_project = 'coprojects_template';
+
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {permissions: {labors: {role: 'administrator'}}}
+    });
+
+    render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('Run audit'));
+
+    expect(await screen.findByText('2 subjects can be found in search')).toBeTruthy();
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getByText('1 sc_seq record has no pool')).toBeTruthy();
+    expect(dialog.getByText('2 sc_seq records have no subject')).toBeTruthy();
+    expect(dialog.queryByText('1 sc_seq record has no subject')).toBeNull();
+    expect(dialog.queryByText(/have a pool but no subject/)).toBeNull();
+  });
+
+  it('shows not available for missing counts in the project audit', async () => {
+    stubUrl({
+      verb: 'get',
+      path: '/cross_project_search_audit/labors',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        project: 'labors',
+        conforming: false,
+        template_mapping: {
+          mapped_models: [],
+          unmapped_models: [],
+          invalid_mappings: [],
+          required_column_results: [],
+          ontology_value_results: [],
+          ontology_valid_count: 0,
+          ontology_mismatches: [],
+          missing_ontology_columns: []
+        },
+        model_relationships: {
+          hierarchy: {conforming: true, issues: []},
+          single_cell: {
+            applicable: true,
+            conforming: false,
+            pool_link: null,
+            subject_path: ['tube', 'specimen', 'labor'],
+            issues: ['tube has no link attribute to pool'],
+            counts: {
+              pools: {total: 1, depooled: null},
+              sc_seq: {total: null, pool_linked: 4, depooled: null, missing_subject: 0},
+              subjects: null
+            }
+          }
+        }
+      }
+    });
+
+    global.CONFIG.template_project = 'coprojects_template';
+
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {permissions: {labors: {role: 'administrator'}}}
+    });
+
+    render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('Run audit'));
+
+    expect(await screen.findByText('tube has no link attribute to pool')).toBeTruthy();
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getAllByText('not available')).toHaveLength(2);
+    expect(dialog.queryByText(/no subject/)).toBeNull();
+    expect(dialog.queryByText(/can be found in search/)).toBeNull();
+    expect(dialog.queryByText(/0 subject/)).toBeNull();
   });
 
   it('hides the project audit button on the template project', async () => {

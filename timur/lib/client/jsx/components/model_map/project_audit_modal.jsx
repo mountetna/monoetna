@@ -132,8 +132,6 @@ const mappingTarget = (templateProject, templateModel) => {
   return modelRef(templateProject, templateModel);
 };
 
-const tally = (parts) => parts.filter(([, count]) => count > 0).map(([label, count]) => `${count} ${label}`).join(', ');
-
 const countBadges = (parts) =>
   parts.filter(([, count]) => count > 0).map(([label, count, tone]) => ({text: `${count} ${label}`, tone}));
 
@@ -237,12 +235,11 @@ const RequiredColumns = ({audit}) => {
   const rows = audit.required_column_results || [];
   const present = rows.filter((row) => row.present).length;
   const missing = rows.length - present;
-  const summary = rows.length ? tally([['present', present], ['missing', missing]]) : '';
 
   return (
     <Section
       title='Required columns'
-      badges={summary ? [{text: summary, tone: missing > 0 ? 'fail' : 'pass'}] : []}
+      badges={countBadges([['present', present, 'pass'], ['missing', missing, 'fail']])}
     >
       {rows.length ? rows.map((row) => (
         <Line key={`${row.model}.${row.column}`} ok={row.present} mono>
@@ -310,34 +307,26 @@ const singleCellHierarchyIssues = (hierarchy, singleCell) => {
   ));
 };
 
-const searchSubjectLine = (subjects) => {
-  if (subjects == null) return 'not available';
-  const label = subjects === 1 ? 'subject' : 'subjects';
-  return `${subjects} ${label} can be found in search`;
+const countLine = (count, singular, plural) => {
+  if (count == null) return 'not available';
+  if (count === 0) return null;
+  return `${count} ${count === 1 ? singular : plural}`;
 };
 
+const searchSubjectLine = (subjects) => countLine(
+  subjects,
+  'subject can be found in search',
+  'subjects can be found in search'
+);
+
 const scSeqCountLines = (scSeq) => {
-  if (!scSeq || [scSeq.total, scSeq.pool_linked, scSeq.depooled].some((count) => count == null)) {
-    return ['not available'];
-  }
+  const seq = scSeq || {};
+  const missingPool = seq.total == null || seq.pool_linked == null ? null : seq.total - seq.pool_linked;
 
-  const lines = [];
-  const pooledWithoutSubject = scSeq.pool_linked - scSeq.depooled;
-  const withoutPool = scSeq.total - scSeq.pool_linked;
-
-  if (pooledWithoutSubject !== 0) {
-    const label = pooledWithoutSubject === 1
-      ? 'sc_seq record has a pool but no subject'
-      : 'sc_seq records have a pool but no subject';
-    lines.push(`${pooledWithoutSubject} ${label}`);
-  }
-
-  if (withoutPool !== 0) {
-    const label = withoutPool === 1 ? 'sc_seq record has no pool' : 'sc_seq records have no pool';
-    lines.push(`${withoutPool} ${label}`);
-  }
-
-  return lines;
+  return [
+    ['missing-pool', countLine(missingPool, 'sc_seq record has no pool', 'sc_seq records have no pool')],
+    ['missing-subject', countLine(seq.missing_subject, 'sc_seq record has no subject', 'sc_seq records have no subject')]
+  ].filter(([, text]) => text);
 };
 
 const SUBJECT_RELATIONSHIP = `Subject relationship: ${SINGLE_CELL_MODELS.join(' → ')}`;
@@ -353,6 +342,7 @@ const SingleCell = ({relationships}) => {
   const hierarchyOk = issues.length === 0 && pathPresent;
   const counts = check.counts || {};
   const poolDetail = check.pool_link ? null : ((check.issues || []).join('; ') || 'missing');
+  const subjectLine = searchSubjectLine(counts.subjects);
 
   return (
     <Section title='Single cell models'>
@@ -369,9 +359,9 @@ const SingleCell = ({relationships}) => {
       {poolDetail && (
         <Typography variant='body2' component='li' className={classes.note}>{poolDetail}</Typography>
       )}
-      <Line>{searchSubjectLine(counts.subjects)}</Line>
-      {scSeqCountLines(counts.sc_seq).map((text) => (
-        <Line key={text}>{text}</Line>
+      {subjectLine && <Line>{subjectLine}</Line>}
+      {scSeqCountLines(counts.sc_seq).map(([key, text]) => (
+        <Line key={key}>{text}</Line>
       ))}
     </Section>
   );

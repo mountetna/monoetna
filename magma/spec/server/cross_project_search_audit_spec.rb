@@ -368,7 +368,7 @@ describe CrossProjectSearchAuditController do
       )
       expect(single_cell[:counts]).to eq(
         pools: { total: 2, depooled: nil },
-        sc_seq: { total: 2, pool_linked: nil, depooled: nil },
+        sc_seq: { total: 2, pool_linked: nil, depooled: nil, missing_subject: 1 },
         subjects: nil
       )
     end
@@ -385,7 +385,8 @@ describe CrossProjectSearchAuditController do
         [2, 1],
         [3, 2],
         [nil, 2],
-        [1, nil]
+        [1, nil],
+        [nil, nil]
       ])
 
       report = project_audit
@@ -400,7 +401,7 @@ describe CrossProjectSearchAuditController do
         issues: [],
         counts: {
           pools: { total: 3, depooled: 2 },
-          sc_seq: { total: 5, pool_linked: 4, depooled: 3 },
+          sc_seq: { total: 6, pool_linked: 4, depooled: 3, missing_subject: 2 },
           subjects: 2
         }
       )
