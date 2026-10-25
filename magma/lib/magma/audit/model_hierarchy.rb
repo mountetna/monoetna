@@ -1,12 +1,13 @@
 class Magma
   class ModelHierarchy
+    ROOT_MODEL = 'project'
+
     attr_reader :project_name
 
     def initialize(project_name)
       @project_name = project_name
     end
 
-    # { model_name => parent_model_name }
     def parents
       @parents ||= attributes_of_type('parent').to_h do |attribute|
         [attribute[:model_name], attribute[:link_model_name]]
@@ -15,6 +16,28 @@ class Magma
 
     def parent_attribute(model_name)
       attributes_of_type('parent').find { |attribute| attribute[:model_name] == model_name }
+    end
+
+    def parent_path(start_model, target_model)
+      return if start_model.nil? || target_model.nil? || target_model == ROOT_MODEL
+
+      steps = []
+      current = start_model
+      seen = {}
+
+      until current == target_model
+        return if current.nil? || current == ROOT_MODEL || seen[current]
+
+        seen[current] = true
+        attribute = parent_attribute(current)
+        parent_name = attribute && attribute[:link_model_name]
+        return if parent_name.nil?
+
+        steps << { model: current, column: attribute[:column_name] }
+        current = parent_name
+      end
+
+      steps
     end
 
     def link_between(model_name, target_model)

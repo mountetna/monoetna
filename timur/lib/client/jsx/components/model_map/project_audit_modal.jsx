@@ -125,6 +125,11 @@ const useStyles = makeStyles(() => ({
 const ref = (o) =>
   o ? `${o.project_name}.${o.model_name}.${o.attribute_name}` : 'none';
 
+const ontologyMismatchDetail = (row) => {
+  if (row.actual == null) return 'must set an ontology validation';
+  return `expected ${ref(row.expected)}, found ${ref(row.actual)}`;
+};
+
 const modelRef = (project, model) => `${project}.${model}`;
 
 const mappingTarget = (templateProject, templateModel) => {
@@ -283,7 +288,7 @@ const OntologyValidation = ({audit}) => {
         <Line
           key={`${row.model}.${row.column}`}
           ok={false}
-          detail={`expected ${ref(row.expected)}, found ${ref(row.actual)}`}
+          detail={ontologyMismatchDetail(row)}
         >
           {`${row.model}.${row.column}`}
         </Line>
@@ -307,30 +312,82 @@ const singleCellHierarchyIssues = (hierarchy, singleCell) => {
   ));
 };
 
-const countLine = (count, singular, plural) => {
-  if (count == null) return 'not available';
+const countLine = (count, singular, plural, unavailable) => {
+  if (count == null) return unavailable;
   if (count === 0) return null;
   return `${count} ${count === 1 ? singular : plural}`;
 };
 
-const searchSubjectLine = (subjects) => countLine(
+const subjectRelationshipMatches = (singleCell) =>
+  Array.isArray(singleCell && singleCell.subject_path) && singleCell.subject_path.length > 0;
+
+const pooledRelationshipMatches = (singleCell) => Boolean(singleCell && singleCell.pool_link);
+
+const unavailableSubjectSearch = (singleCell) => {
+  if (!subjectRelationshipMatches(singleCell)) {
+    return 'Subjects in search could not be counted because the subject relationship does not match';
+  }
+  if (!pooledRelationshipMatches(singleCell)) {
+    return 'Subjects in search could not be counted because the pooled relationship does not match';
+  }
+  return 'Subjects in search could not be counted because the count is missing';
+};
+
+const unavailableMissingSubject = (singleCell) => {
+  if (!subjectRelationshipMatches(singleCell)) {
+    return 'sc_seq records with no subject could not be counted because the subject relationship does not match';
+  }
+  return 'sc_seq records with no subject could not be counted because the count is missing';
+};
+
+const unavailableMissingPool = (seq) => {
+  if (seq.pool_linked == null) {
+    return 'sc_seq records with no pool could not be counted because the pooled relationship does not match';
+  }
+  if (seq.total == null) {
+    return 'sc_seq records with no pool could not be counted because the sc_seq total is missing';
+  }
+  return 'sc_seq records with no pool could not be counted because the count is missing';
+};
+
+const searchSubjectLine = (subjects, singleCell) => countLine(
   subjects,
   'subject can be found in search',
-  'subjects can be found in search'
+  'subjects can be found in search',
+  unavailableSubjectSearch(singleCell)
 );
 
-const scSeqCountLines = (scSeq) => {
+const scSeqCountLines = (scSeq, singleCell) => {
   const seq = scSeq || {};
   const missingPool = seq.total == null || seq.pool_linked == null ? null : seq.total - seq.pool_linked;
 
   return [
-    ['missing-pool', countLine(missingPool, 'sc_seq record has no pool', 'sc_seq records have no pool')],
-    ['missing-subject', countLine(seq.missing_subject, 'sc_seq record has no subject', 'sc_seq records have no subject')]
+    ['missing-pool', countLine(
+      missingPool,
+      'sc_seq record has no pool',
+      'sc_seq records have no pool',
+      unavailableMissingPool(seq)
+    )],
+    ['missing-subject', countLine(
+      seq.missing_subject,
+      'sc_seq record has no subject',
+      'sc_seq records have no subject',
+      unavailableMissingSubject(singleCell)
+    )]
   ].filter(([, text]) => text);
 };
 
-const SUBJECT_RELATIONSHIP = `Subject relationship: ${SINGLE_CELL_MODELS.join(' → ')}`;
 const POOLED_RELATIONSHIP = 'Pooled relationship: sc_seq → sc_seq_pool';
+
+// subject_path is leaf to root: sc_seq, biospecimen, then any intermediates, then subject.
+const subjectRelationshipLabel = (subjectPath) => {
+  const direct = `Subject relationship: ${SINGLE_CELL_MODELS.join(' → ')}`;
+  if (!Array.isArray(subjectPath) || subjectPath.length <= SINGLE_CELL_MODELS.length) return direct;
+
+  const [subject, biospecimen, scSeq] = SINGLE_CELL_MODELS;
+  const intermediates = subjectPath.slice(2, -1).reverse();
+  return `Subject relationship: ${[subject, ...intermediates, biospecimen, scSeq].join(' → ')}`;
+};
 
 const SingleCell = ({relationships}) => {
   const classes = useStyles();
@@ -339,20 +396,19 @@ const SingleCell = ({relationships}) => {
 
   const issues = singleCellHierarchyIssues(relationships.hierarchy, check);
   const pathPresent = Array.isArray(check.subject_path) && check.subject_path.length > 0;
-  const hierarchyOk = issues.length === 0 && pathPresent;
   const counts = check.counts || {};
   const poolDetail = check.pool_link ? null : ((check.issues || []).join('; ') || 'missing');
-  const subjectLine = searchSubjectLine(counts.subjects);
+  const subjectLine = searchSubjectLine(counts.subjects, check);
 
   return (
     <Section title='Single cell models'>
-      <Line ok={hierarchyOk}>{SUBJECT_RELATIONSHIP}</Line>
-      {!hierarchyOk && issues.map((issue, i) => (
+      <Line ok={pathPresent}>{subjectRelationshipLabel(check.subject_path)}</Line>
+      {!pathPresent && issues.map((issue, i) => (
         <Typography key={i} variant='body2' component='li' className={classes.note}>
           {issue.model}: parent {issue.parent || 'none'}, expected {issue.expected_parent || 'none'}
         </Typography>
       ))}
-      {!hierarchyOk && !pathPresent && !issues.length && (
+      {!pathPresent && !issues.length && (
         <Typography variant='body2' component='li' className={classes.note}>subject path is missing</Typography>
       )}
       <Line ok={Boolean(check.pool_link)}>{POOLED_RELATIONSHIP}</Line>
@@ -360,7 +416,7 @@ const SingleCell = ({relationships}) => {
         <Typography variant='body2' component='li' className={classes.note}>{poolDetail}</Typography>
       )}
       {subjectLine && <Line>{subjectLine}</Line>}
-      {scSeqCountLines(counts.sc_seq).map(([key, text]) => (
+      {scSeqCountLines(counts.sc_seq, check).map(([key, text]) => (
         <Line key={key}>{text}</Line>
       ))}
     </Section>

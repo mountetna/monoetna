@@ -122,7 +122,7 @@ describe CrossProjectSearchAuditController do
     report = audit_report
 
     expect(report[:mapped_models]).to eq([])
-    expect(report[:unmapped_models]).to eq(['subject'])
+    expect(report[:unmapped_models]).to eq(['project', 'subject'])
     expect(report[:invalid_mappings]).to eq([
       { model: 'assay', template_model: 'unknown_model' },
       { model: 'patient', template_model: 'sample' },
@@ -401,10 +401,152 @@ describe CrossProjectSearchAuditController do
         issues: [],
         counts: {
           pools: { total: 3, depooled: 2 },
-          sc_seq: { total: 6, pool_linked: 4, depooled: 3, missing_subject: 2 },
+          sc_seq: { total: 6, pool_linked: 4, depooled: 3, missing_subject: 3 },
           subjects: 2
         }
       )
+    end
+  end
+
+  context 'single-cell subject path with intermediate models' do
+    before do
+      %w(subject biospecimen sc_seq sc_seq_pool).each { |model_name| add_template_model(model_name) }
+      add_template_attribute('biospecimen', 'subject', type: 'parent', link_model_name: 'subject', column_name: 'subject_id')
+      add_template_attribute('sc_seq', 'biospecimen', type: 'parent', link_model_name: 'biospecimen', column_name: 'biospecimen_id')
+    end
+
+    it 'counts subjects when timepoint sits between subject and biospecimen' do
+      add_template_model('timepoint')
+      add_child_model('patient', template_model_name: 'subject')
+      add_child_model('timepoint', template_model_name: 'timepoint')
+      add_child_model('specimen', template_model_name: 'biospecimen')
+      add_child_model('tube', template_model_name: 'sc_seq')
+      add_child_model('pool', template_model_name: 'sc_seq_pool')
+      add_child_foreign_key('timepoint', 'patient', 'parent', 'patient')
+      add_child_foreign_key('specimen', 'timepoint', 'parent', 'timepoint')
+      add_child_foreign_key('tube', 'specimen', 'parent', 'specimen')
+      add_child_foreign_key('tube', 'pool', 'link', 'pool')
+
+      add_child_table('patient', [], [[], []])
+      add_child_table('timepoint', [:patient_id], [[1], [2], [nil], [1]])
+      add_child_table('specimen', [:timepoint_id], [[1], [2], [nil], [3], [4]])
+      add_child_table('pool', [], [[], []])
+      add_child_table('tube', [:specimen_id, :pool_id], [
+        [1, 1],
+        [2, 1],
+        [5, 1],
+        [3, 2],
+        [4, 2],
+        [nil, 2],
+        [1, nil],
+        [nil, nil]
+      ])
+
+      report = project_audit
+      single_cell = report[:model_relationships][:single_cell]
+
+      expect(report[:model_relationships][:hierarchy]).to eq(
+        conforming: false,
+        issues: [
+          { model: 'specimen', template_model: 'biospecimen', parent: 'timepoint', expected_parent: 'patient' },
+          { model: 'timepoint', template_model: 'timepoint', parent: 'patient', expected_parent: nil }
+        ]
+      )
+      expect(single_cell).to eq(
+        applicable: true,
+        conforming: true,
+        child_models: { subject: 'patient', biospecimen: 'specimen', sc_seq: 'tube', sc_seq_pool: 'pool' },
+        pool_link: 'pool',
+        subject_path: ['tube', 'specimen', 'timepoint', 'patient'],
+        issues: [],
+        counts: {
+          pools: { total: 2, depooled: 2 },
+          sc_seq: { total: 8, pool_linked: 6, depooled: 5, missing_subject: 4 },
+          subjects: 2
+        }
+      )
+    end
+
+    it 'fails the subject relationship when the parent walk cycles' do
+      add_child_model('patient', template_model_name: 'subject')
+      add_child_model('timepoint')
+      add_child_model('specimen', template_model_name: 'biospecimen')
+      add_child_model('tube', template_model_name: 'sc_seq')
+      add_child_model('pool', template_model_name: 'sc_seq_pool')
+      add_child_foreign_key('timepoint', 'specimen', 'parent', 'specimen')
+      add_child_foreign_key('specimen', 'timepoint', 'parent', 'timepoint')
+      add_child_foreign_key('tube', 'specimen', 'parent', 'specimen')
+      add_child_foreign_key('tube', 'pool', 'link', 'pool')
+      add_child_table('patient', [])
+      add_child_table('timepoint', [:specimen_id])
+      add_child_table('specimen', [:timepoint_id])
+      add_child_table('pool', [])
+      add_child_table('tube', [:specimen_id, :pool_id])
+
+      single_cell = single_cell_report
+
+      expect(single_cell).to include(
+        applicable: true,
+        conforming: false,
+        pool_link: 'pool',
+        subject_path: nil,
+        issues: ['tube parent chain does not follow subject -> biospecimen -> sc_seq']
+      )
+      expect(single_cell[:counts][:subjects]).to be_nil
+      expect(single_cell[:counts][:sc_seq][:missing_subject]).to be_nil
+    end
+
+    it 'does not treat the project model as the subject' do
+      add_child_model('project', template_model_name: 'subject')
+      add_child_model('specimen', template_model_name: 'biospecimen')
+      add_child_model('tube', template_model_name: 'sc_seq')
+      add_child_model('pool', template_model_name: 'sc_seq_pool')
+      add_child_foreign_key('specimen', 'project', 'parent', 'project')
+      add_child_foreign_key('tube', 'specimen', 'parent', 'specimen')
+      add_child_foreign_key('tube', 'pool', 'link', 'pool')
+      add_child_table('project', [])
+      add_child_table('specimen', [:project_id])
+      add_child_table('pool', [])
+      add_child_table('tube', [:specimen_id, :pool_id])
+
+      report = project_audit
+      single_cell = report[:model_relationships][:single_cell]
+
+      expect(report[:model_relationships][:hierarchy]).to eq(conforming: true, issues: [])
+      expect(single_cell).to include(
+        applicable: true,
+        conforming: false,
+        pool_link: 'pool',
+        subject_path: nil,
+        issues: ['tube parent chain does not follow subject -> biospecimen -> sc_seq']
+      )
+      expect(single_cell[:counts][:subjects]).to be_nil
+      expect(single_cell[:counts][:sc_seq][:missing_subject]).to be_nil
+    end
+
+    it 'fails when sc_seq does not parent to the biospecimen model' do
+      add_child_model('patient', template_model_name: 'subject')
+      add_child_model('specimen', template_model_name: 'biospecimen')
+      add_child_model('tube', template_model_name: 'sc_seq')
+      add_child_model('pool', template_model_name: 'sc_seq_pool')
+      add_child_foreign_key('specimen', 'patient', 'parent', 'patient')
+      add_child_foreign_key('tube', 'patient', 'parent', 'patient')
+      add_child_foreign_key('tube', 'pool', 'link', 'pool')
+      add_child_table('patient', [])
+      add_child_table('specimen', [:patient_id])
+      add_child_table('pool', [])
+      add_child_table('tube', [:patient_id, :pool_id])
+
+      single_cell = single_cell_report
+
+      expect(single_cell).to include(
+        applicable: true,
+        conforming: false,
+        pool_link: 'pool',
+        subject_path: nil,
+        issues: ['tube parent chain does not follow subject -> biospecimen -> sc_seq']
+      )
+      expect(single_cell[:counts][:subjects]).to be_nil
     end
   end
 end
