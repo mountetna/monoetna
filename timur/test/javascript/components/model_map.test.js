@@ -203,7 +203,8 @@ describe('ModelMap for model with no records', () => {
     expect(dialog.getByText('1 valid')).toBeTruthy();
     expect(dialog.queryByText('human')).toBeNull();
     expect(dialog.getByText('PBMC')).toBeTruthy();
-    expect(dialog.getByText('expected ontologies.uberon.name, found none')).toBeTruthy();
+    expect(dialog.getByText('must set an ontology validation')).toBeTruthy();
+    expect(dialog.queryByText(/found none/)).toBeNull();
     expect(dialog.getByText('column missing')).toBeTruthy();
 
     fireEvent.click(dialog.getByText('Ontology validation'));
@@ -381,7 +382,7 @@ describe('ModelMap for model with no records', () => {
     expect(dialog.queryByText(/have a pool but no subject/)).toBeNull();
   });
 
-  it('shows not available for missing counts in the project audit', async () => {
+  it('explains single-cell counts that could not be computed in the project audit', async () => {
     stubUrl({
       verb: 'get',
       path: '/cross_project_search_audit/labors',
@@ -436,10 +437,146 @@ describe('ModelMap for model with no records', () => {
 
     expect(await screen.findByText('tube has no link attribute to pool')).toBeTruthy();
     const dialog = within(screen.getByRole('dialog'));
-    expect(dialog.getAllByText('not available')).toHaveLength(2);
+    expect(dialog.getByText('Subjects in search could not be counted because the pooled relationship does not match')).toBeTruthy();
+    expect(dialog.getByText('sc_seq records with no pool could not be counted because the sc_seq total is missing')).toBeTruthy();
+    expect(dialog.queryByText('not available')).toBeNull();
     expect(dialog.queryByText(/no subject/)).toBeNull();
     expect(dialog.queryByText(/can be found in search/)).toBeNull();
     expect(dialog.queryByText(/0 subject/)).toBeNull();
+  });
+
+  it('explains single-cell counts blocked by the subject relationship in the project audit', async () => {
+    stubUrl({
+      verb: 'get',
+      path: '/cross_project_search_audit/labors',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        project: 'labors',
+        conforming: false,
+        template_mapping: {
+          mapped_models: [],
+          unmapped_models: [],
+          invalid_mappings: [],
+          required_column_results: [],
+          ontology_value_results: [],
+          ontology_valid_count: 0,
+          ontology_mismatches: [],
+          missing_ontology_columns: []
+        },
+        model_relationships: {
+          hierarchy: {
+            conforming: false,
+            issues: [
+              {model: 'sc_seq', template_model: 'sc_seq', parent: 'biospecimen', expected_parent: null}
+            ]
+          },
+          single_cell: {
+            applicable: true,
+            conforming: false,
+            pool_link: 'pool',
+            subject_path: null,
+            issues: [],
+            counts: {
+              pools: {total: 10, depooled: null},
+              sc_seq: {total: 200, pool_linked: 12, depooled: null, missing_subject: null},
+              subjects: null
+            }
+          }
+        }
+      }
+    });
+
+    global.CONFIG.template_project = 'coprojects_template';
+
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {permissions: {labors: {role: 'administrator'}}}
+    });
+
+    render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('Run audit'));
+
+    expect(await screen.findByText('sc_seq: parent biospecimen, expected none')).toBeTruthy();
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getByText('Subjects in search could not be counted because the subject relationship does not match')).toBeTruthy();
+    expect(dialog.getByText('188 sc_seq records have no pool')).toBeTruthy();
+    expect(dialog.getByText('sc_seq records with no subject could not be counted because the subject relationship does not match')).toBeTruthy();
+    expect(dialog.queryByText('not available')).toBeNull();
+  });
+
+  it('shows intermediate models on a matching single-cell subject path in the project audit', async () => {
+    stubUrl({
+      verb: 'get',
+      path: '/cross_project_search_audit/labors',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        project: 'labors',
+        conforming: false,
+        template_mapping: {
+          mapped_models: [],
+          unmapped_models: [],
+          invalid_mappings: [],
+          required_column_results: [],
+          ontology_value_results: [],
+          ontology_valid_count: 0,
+          ontology_mismatches: [],
+          missing_ontology_columns: []
+        },
+        model_relationships: {
+          hierarchy: {
+            conforming: false,
+            issues: [
+              {model: 'specimen', template_model: 'biospecimen', parent: 'timepoint', expected_parent: 'labor'}
+            ]
+          },
+          single_cell: {
+            applicable: true,
+            conforming: true,
+            child_models: {subject: 'labor', biospecimen: 'specimen', sc_seq: 'tube', sc_seq_pool: 'pool'},
+            pool_link: 'pool',
+            subject_path: ['tube', 'specimen', 'timepoint', 'labor'],
+            issues: [],
+            counts: {
+              pools: {total: 1, depooled: 1},
+              sc_seq: {total: 2, pool_linked: 2, depooled: 2, missing_subject: 0},
+              subjects: 1
+            }
+          }
+        }
+      }
+    });
+
+    global.CONFIG.template_project = 'coprojects_template';
+
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {permissions: {labors: {role: 'administrator'}}}
+    });
+
+    render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('Run audit'));
+
+    expect(await screen.findByText('Subject relationship: subject → timepoint → biospecimen → sc_seq')).toBeTruthy();
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.queryByText('Subject relationship: subject → biospecimen → sc_seq')).toBeNull();
+    expect(dialog.queryByText('specimen: parent timepoint, expected labor')).toBeNull();
+    expect(dialog.getByText('Pooled relationship: sc_seq → sc_seq_pool')).toBeTruthy();
+    expect(dialog.getByText('1 subject can be found in search')).toBeTruthy();
+    expect(dialog.queryByText(/sc_seq record/)).toBeNull();
   });
 
   it('hides the project audit button on the template project', async () => {
