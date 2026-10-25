@@ -3,6 +3,7 @@ require_relative 'model_hierarchy'
 class Magma
   class SingleCellAuditor
     # Root to leaf. sc_seq also links to sc_seq_pool, which is not a parent.
+    # sc_seq must parent to biospecimen. biospecimen may reach subject through other models.
     SINGLE_CELL_HIERARCHY = %w[subject biospecimen sc_seq].freeze
     SINGLE_CELL_POOL = 'sc_seq_pool'
 
@@ -37,8 +38,7 @@ class Magma
       linked = pool_link && sc_seq_table.exclude(pool_link[:column_name].to_sym => nil)
       parent_column = subject_path&.first&.dig(:column)&.to_sym
       depooled = linked && parent_column && linked.exclude(parent_column => nil)
-      # Parent column null, with or without a pool. pool_linked - depooled misses rows that have neither.
-      missing_subject = parent_column && sc_seq_table.where(parent_column => nil).count
+      missing_subject = subject_path && missing_subject_count(subject_path)
 
       {
         applicable: true,
@@ -71,34 +71,55 @@ class Magma
       end
     end
 
-    # Leaf to root, so the first step is sc_seq. Nil unless every parent matches.
+    # Leaf to root, so the first step is sc_seq. Nil unless sc_seq parents to biospecimen
+    # and walking parent attributes from biospecimen reaches subject.
     def single_cell_subject_path(child_models)
-      path = []
-      SINGLE_CELL_HIERARCHY.reverse.each_cons(2) do |template_model, template_parent|
-        model = child_models[template_model.to_sym]
-        parent = child_models[template_parent.to_sym]
-        attribute = @child_hierarchy.parent_attribute(model)
-        return if attribute.nil? || attribute[:link_model_name] != parent
+      sc_seq = child_models[:sc_seq]
+      biospecimen = child_models[:biospecimen]
+      subject = child_models[:subject]
+      sc_seq_parent = @child_hierarchy.parent_attribute(sc_seq)
+      return if sc_seq_parent.nil? || sc_seq_parent[:link_model_name] != biospecimen
 
-        path << { model: model, column: attribute[:column_name] }
-      end
-      path
+      upward = @child_hierarchy.parent_path(biospecimen, subject)
+      return if upward.nil? || upward.empty?
+
+      [{ model: sc_seq, column: sc_seq_parent[:column_name] }] + upward
     end
 
     def depooled_subject_count(pool_link, subject_path)
-      aliases = subject_path.each_index.map { |i| :"t#{i}" }
-      dataset = @mapping.db.from(Sequel.as(@mapping.table_name(subject_path.first[:model]), aliases.first)).
-        exclude(Sequel[aliases.first][pool_link[:column_name].to_sym] => nil)
-
-      subject_path.each_cons(2).with_index do |(child, parent), i|
-        dataset = dataset.join(
-          Sequel.as(@mapping.table_name(parent[:model]), aliases[i + 1]),
-          id: Sequel[aliases[i]][child[:column].to_sym]
-        )
-      end
-
+      dataset, aliases = lineage_dataset(subject_path)
+      dataset = dataset.exclude(Sequel[aliases.first][pool_link[:column_name].to_sym] => nil)
       subject_column = Sequel[aliases.last][subject_path.last[:column].to_sym]
       dataset.exclude(subject_column => nil).select(subject_column).distinct.count
+    end
+
+    # Rows whose parent id is null somewhere between biospecimen and subject.
+    # A null biospecimen on sc_seq counts. A dangling id that points at no row does not.
+    def missing_subject_count(subject_path)
+      dataset, aliases = lineage_dataset(subject_path, left: true)
+      conditions = subject_path.each_with_index.map do |step, index|
+        column_null = { Sequel[aliases[index]][step[:column].to_sym] => nil }
+        next column_null if index.zero?
+
+        Sequel.&(Sequel.negate(Sequel[aliases[index]][:id] => nil), column_null)
+      end
+
+      dataset.where(Sequel.|(*conditions)).count
+    end
+
+    def lineage_dataset(subject_path, left: false)
+      aliases = subject_path.each_index.map { |i| :"t#{i}" }
+      dataset = @mapping.db.from(Sequel.as(@mapping.table_name(subject_path.first[:model]), aliases.first))
+
+      subject_path.each_cons(2).with_index do |(child, parent), index|
+        join_args = [
+          Sequel.as(@mapping.table_name(parent[:model]), aliases[index + 1]),
+          { id: Sequel[aliases[index]][child[:column].to_sym] }
+        ]
+        dataset = left ? dataset.left_join(*join_args) : dataset.join(*join_args)
+      end
+
+      [dataset, aliases]
     end
   end
 end
