@@ -1,6 +1,5 @@
 class Magma
   class ModelHierarchy
-    # The project model is the root and has no parent. Landing on it is not a subject.
     ROOT_MODEL = 'project'
 
     attr_reader :project_name
@@ -9,7 +8,6 @@ class Magma
       @project_name = project_name
     end
 
-    # { model_name => parent_model_name }
     def parents
       @parents ||= attributes_of_type('parent').to_h do |attribute|
         [attribute[:model_name], attribute[:link_model_name]]
@@ -20,9 +18,6 @@ class Magma
       attributes_of_type('parent').find { |attribute| attribute[:model_name] == model_name }
     end
 
-    # Parent steps from start_model up to, but not including, target_model.
-    # Each step is { model:, column: } for that model's parent attribute.
-    # Nil when the walk cycles, loses its parent, hits the project root, or never reaches target.
     def parent_path(start_model, target_model)
       return if start_model.nil? || target_model.nil? || target_model == ROOT_MODEL
 
