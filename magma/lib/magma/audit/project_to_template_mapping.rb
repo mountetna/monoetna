@@ -10,7 +10,6 @@ class Magma
     def models
       @models ||= db[:models].
         where(project_name: @project_name).
-        exclude(model_name: 'project').
         select(:project_name, :model_name, :template_project_name, :template_model_name).
         order(:model_name).
         all
