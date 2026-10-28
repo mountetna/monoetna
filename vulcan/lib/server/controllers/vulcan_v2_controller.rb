@@ -148,10 +148,15 @@ class VulcanV2Controller < Vulcan::Controller
       )
     end
 
+    filegraph = @snakemake_manager.get_filegraph(workspace.path, last_config)
+    summary = @snakemake_manager.get_summary(workspace.path, last_config)
+
     response = workspace.to_hash.merge({
       dag: workspace.dag,
       dag_flattened: Vulcan::Snakemake::Inference.flatten_adjacency_list(workspace.dag),
       vulcan_config: @remote_manager.read_yaml_file(Vulcan::Path.vulcan_config(workspace.path)),
+      filegraph: filegraph,
+      summary: summary,
       last_config: last_config ? @remote_manager.read_json_file(last_config.path) : nil,
       last_config_id: last_config ? last_config.id : nil,
       last_run_id: last_run ? last_run.id : nil,

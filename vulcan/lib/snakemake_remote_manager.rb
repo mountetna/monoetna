@@ -137,8 +137,93 @@ class Vulcan
         # Remove the all key, delete the outputs key, and remove any empty targets
         mapping.delete(:all)
         mapping
+      end
+
+      def get_summary(dir, config)
+        config_path = Vulcan::Path.stub_snakemake_config(Shellwords.escape(dir))
+        config = @remote_manager.read_yaml_file(config_path)
+
+        # Identify input files and create them with "DUMMY FILE" content
+        dummy_files = []
+        config.each do |key, value|
+          if value.is_a?(String)
+            if value.start_with?('output/')
+              remote_file_path = "#{Shellwords.escape(dir)}/#{Shellwords.escape(value)}"
+              dummy_files.append(remote_file_path)
+              @remote_manager.create_dummy_file(remote_file_path)
+            end
+          end
         end
 
+        snakemake_exec(
+          dir,
+          args: ['--configfile', config_path, '--detailed-summary' ],
+          output: 'summary.tsv'
+        )
+
+        summary = @remote_manager.read_file_to_memory("#{dir}/summary.tsv")
+
+        CSV.parse(summary, col_sep:"\t").then do |(h,*rows)|
+          header = h.map(&:to_sym)
+
+          rows.map do |r|
+            z = header.zip(r).to_h
+            file = z.delete :output_file
+            [ file, z ]
+          end.to_h
+        end
+      end
+
+      def get_filegraph(dir, config)
+        config_path = Vulcan::Path.stub_snakemake_config(Shellwords.escape(dir))
+        config = @remote_manager.read_yaml_file(config_path)
+
+        # Identify input files and create them with "DUMMY FILE" content
+        dummy_files = []
+        config.each do |key, value|
+          if value.is_a?(String)
+            if value.start_with?('output/')
+              remote_file_path = "#{Shellwords.escape(dir)}/#{Shellwords.escape(value)}"
+              dummy_files.append(remote_file_path)
+              @remote_manager.create_dummy_file(remote_file_path)
+            end
+          end
+        end
+
+        snakemake_exec(
+          dir,
+          args: ['--configfile', config_path, '--filegraph' ],
+          output: 'filegraph.dot'
+        )
+
+        filegraph = @remote_manager.read_file_to_memory("#{dir}/filegraph.dot")
+
+        # rather complex parse of DOT format with embedded HTML label!
+        return filegraph.scan(
+          /[0-9]\s+\[.*?label=\<(.*?)\>\]/m
+        ).map do |l|
+          rule, *files = Nokogiri::HTML(l.first)
+            .css('tr')
+            .map(&:text)
+            .map(&:strip).filter do |i|
+              !i.empty?
+            end
+
+          ii = files.index("↪ input")
+          oi = files.index("output →")
+          inputs = ii ? files[ii+1...oi] : []
+          outputs = oi ? files[oi+1..] : []
+
+          [
+            rule,
+            {
+              rule: rule,
+              inputs: inputs,
+              outputs: outputs
+            }
+          ]
+        end.to_h
+      end
 
       def find_includes_in_snakefile(dir, snakefile)
         included_files = [snakefile]  # Start with the main Snakefile
@@ -156,11 +241,21 @@ class Vulcan
         included_files.uniq  # Return unique files to avoid duplicates
       end
 
+      def snakemake_exec(dir, args: args, output: output)
+        dag_command = @remote_manager.build_command
+          .add('conda', 'activate', Vulcan.instance.config(:conda_env))
+          .add('cd', dir)
+          .add('snakemake', *args)
+          .redirect_to(output)
+        dag_output = @remote_manager.invoke_ssh_command(dag_command.to_s)
+
+        if !@remote_manager.file_exists?("#{dir}/#{output}", wait: true)
+          Vulcan.instance.logger.error("Failed to generate #{output}: #{dag_output[:stderr_or_info]}")
+          raise "Failed to generate #{output}: #{dag_output[:stderr_or_info]}"
+        end
+      end
+
       def get_dag(dir)
-        # Snakemake REQUIRES a pipeline to have all input files EXIST, before running any of the meta commands.
-        # Therefore, we adopt a convention in the config.yaml - such that all input files
-        # be defined starting with the string "output/". We can then create dummy files and run
-        # our meta commands.
         config_path = Vulcan::Path.stub_snakemake_config(Shellwords.escape(dir))
         config = @remote_manager.read_yaml_file(config_path)
 
@@ -176,18 +271,11 @@ class Vulcan
           end
         end
 
-        # Run snakemake --d3dag
-        dag_command = @remote_manager.build_command
-          .add('conda', 'activate', Vulcan.instance.config(:conda_env))
-          .add('cd', dir)
-          .add('snakemake', '--configfile', config_path, '--d3dag')
-          .redirect_to('rulegraph.json')
-        @remote_manager.invoke_ssh_command(dag_command.to_s)
-
-        if !@remote_manager.file_exists?("#{dir}/rulegraph.json", wait: true)
-          Vulcan.instance.logger.error("Failed to generate DAG: #{dag_output[:stderr_or_info]}")
-          raise "Failed to generate DAG: #{dag_output[:stderr_or_info]}"
-        end
+        snakemake_exec(
+          dir,
+          args: ['--configfile', config_path, '--d3dag' ],
+          output: 'rulegraph.json'
+        )
 
         # Parse the dag and create an adjacency list
         json = @remote_manager.read_json_file("#{dir}/rulegraph.json")
