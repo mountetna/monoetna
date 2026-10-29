@@ -38,7 +38,7 @@ const PIExportAttrs: (keyof PrincipalInvestigator)[] = ['name', 'title']
 const ThemeExportAttrs: (keyof ThemeData)[] = ['name', 'description', 'projectsLink']
 
 
-function _ProjectExplorer({ }) {
+function BaseProjectExplorer({ }) {
     const {
       state: { projectData, filters, filterItemSet },
       searchOptions, updateFilterItems, updateFilterItemSet, clearFilterItems
@@ -71,9 +71,11 @@ function _ProjectExplorer({ }) {
 
     const handleChangeFilterItems = React.useCallback(
       (filterItem: FilterItem) => {
-        if (!(filterItem.type in filterItemSet) || !filterItemSet[filterItem.type].includes(filterItem.label))
-        updateFilterItems(filterItem.type, (filterItemSet[filterItem.type] || []).concat(filterItem.label))
-        setCurrentPage(0)
+        if (!(filterItem.type in filterItemSet)
+          || !filterItemSet[filterItem.type].includes(filterItem.label)) {
+          updateFilterItems(filterItem.type, (filterItemSet[filterItem.type] || []).concat(filterItem.label))
+          setCurrentPage(0)
+        }
       }, [ filterItemSet, updateFilterItems ]
     );
 
@@ -209,7 +211,7 @@ function _ProjectExplorer({ }) {
                                             option={params.option}
                                         />
                                     )}
-                                    groupBy={option => option.type}
+                                    groupBy={option => option.menuTitle || option.type}
                                     renderGroup={(params) => (
                                         <Box
                                             key={params.key}
@@ -320,7 +322,7 @@ function _ProjectExplorer({ }) {
 export default function ProjectExplorer({ }) {
     return (
         <React.Suspense fallback={null}>
-            <_ProjectExplorer/>
+            <BaseProjectExplorer/>
         </React.Suspense>
     )
 }

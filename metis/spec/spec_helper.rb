@@ -345,7 +345,7 @@ class Stubs
     [ :athena, :labors ].each do |project|
       [ :uploads, :buckets ].each do |bucket|
         dir = "spec/#{project}/#{bucket}"
-        FileUtils.rm_r(dir) if Dir.exists?(dir)
+        FileUtils.rm_r(dir) if Dir.exist?(dir)
         FileUtils.mkdir_p(dir)
       end
     end
@@ -362,13 +362,13 @@ class Stubs
 
   def existing_stub_files
     @stubs.select do |stub|
-      File.exists?(stub) && !File.directory?(stub)
+      File.exist?(stub) && !File.directory?(stub)
     end.sort_by(&:size).reverse
   end
 
   def existing_stub_dirs
     @stubs.select do |stub|
-      File.exists?(stub) && File.directory?(stub)
+      File.exist?(stub) && File.directory?(stub)
     end.sort_by(&:size).reverse
   end
 end

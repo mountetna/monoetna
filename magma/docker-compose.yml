@@ -34,7 +34,7 @@ x-base-etna-services:
   &base-etna-services # Default list of services an etna app may have.
   'magma_app': &base-etna-app # The ruby webserver
     <<: *base-etna-service
-    command: ./bin/puma.sh
+    command: ./bin/magma-puma.sh
     depends_on:
       - 'magma_db'
 

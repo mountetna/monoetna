@@ -36,7 +36,7 @@ describe Etna::Auth do
 
   context "tokens" do
     before(:each) do
-      @private_key = OpenSSL::PKey::RSA.generate 1024
+      @private_key = OpenSSL::PKey::RSA.generate 2048
       class Arachne
         include Etna::Application
         class Server < Etna::Server; end
@@ -203,7 +203,7 @@ describe Etna::Auth do
         # We generate a new public key that does not match with
         # @private_key
 
-        @invalid_public_key = OpenSSL::PKey::RSA.generate(1024).public_key
+        @invalid_public_key = OpenSSL::PKey::RSA.generate(2048).public_key
       end
 
       it "fails with an invalid token" do

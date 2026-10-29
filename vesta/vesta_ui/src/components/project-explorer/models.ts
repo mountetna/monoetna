@@ -30,6 +30,7 @@ export interface FilterItem {
     type: string;
     label: string;
     key: string;
+    menuTitle?: string;
 }
 
 export interface PrincipalInvestigator {

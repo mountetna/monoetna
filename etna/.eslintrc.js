@@ -36,7 +36,7 @@ module.exports = {
   plugins: ['@typescript-eslint', 'react', 'react-hooks'],
   rules: {
     'no-undef': 'error',
-    quotes: ['error', 'single', { avoidEscape: true }],
+    quotes: ['warn', 'single', { avoidEscape: true }],
     semi: 'warn',
     'no-var': 'warn',
     curly: ['warn', 'multi-line'],

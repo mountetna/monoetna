@@ -30,6 +30,9 @@ const useStyles = makeStyles((theme) => ({
     border: '2px solid #0c0',
     background: '#cfc',
   },
+  templated: {
+    border: '2px solid orange'
+  },
   disabled: {
     background: '#eee',
     border: 'none',
@@ -37,14 +40,14 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const ModelNode = ({model_name, center, size, selected, handler, disabled, numSiblings}) => {
+const ModelNode = ({model_name, center, size, selected, handler, disabled, numSiblings, templated = false}) => {
 
   const classes = useStyles();
   if (!center) return null;
   return <div
       className={`${classes.model_node} ${selected ? classes.selected : ''} ${
-        disabled ? classes.disabled : ''
-      }`}
+        templated && !disabled ? classes.templated : ''
+      } ${disabled ? classes.disabled : ''}`}
 
       style={{
         top: center.y,

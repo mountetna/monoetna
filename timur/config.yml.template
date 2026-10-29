@@ -36,6 +36,7 @@ default: &default
   :token_algo: RS256
   :token_name: JANUS_DEV_TOKEN
   :metis_uid_name: METIS_DEV_UID
+  :template_project: coprojects_template
   :log_level: info
   :log_file: /dev/stdout
   :rsa_public: |
@@ -74,4 +75,5 @@ default: &default
   :timur:
     :host: https://timur.test
     :hmac_key: haggis
+  :template_project: coprojects_template
   :log_file: /dev/stdout

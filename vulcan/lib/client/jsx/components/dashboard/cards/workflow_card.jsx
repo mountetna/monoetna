@@ -2,15 +2,11 @@ import React from 'react';
 
 import Icon from 'etna-js/components/icon';
 
-import {workflowName} from '../../selectors/workflow_selectors';
-import {Workflow} from '../../api_types'
+import {workflowName} from '../../../selectors/workflow_selectors';
+import {Workflow} from '../../../api_types'
 import ImageMemo from './image_memo';
-import Tag from './tag';
 import Typography from '@material-ui/core/Typography';
-import Link from 'etna-js/components/link';
-
-// To get webpack to pick up the files.
-require('../../../img/default.png');
+import Link from '@material-ui/core/Link';
 
 function MultiLineOutput(iterator) {
   return iterator.map((item, ind) => (
@@ -114,7 +110,7 @@ export default function Card({workflow, onClick, selected}) {
         <div className={classes.row}>
           <div className={classes.value}>
             {'Source: '}
-            <Link link={workflow.repo_remote_url}>
+            <Link href={workflow.repo_remote_url} target="_blank" rel="noopener" style={{textDecoration: 'underline'}}>
               {workflow.repo_remote_url.replace(/^https:\/\//,'')}
             </Link>
           </div>

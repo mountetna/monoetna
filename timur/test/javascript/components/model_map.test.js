@@ -1,6 +1,6 @@
 import React from 'react';
 import {Provider} from 'react-redux';
-import {render, screen, waitFor, fireEvent} from '@testing-library/react';
+import {render, screen, waitFor, fireEvent, within} from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import renderer from 'react-test-renderer';
 import {mockStore, stubUrl} from '../helpers';
@@ -97,6 +97,506 @@ describe('ModelMap for model with no records', () => {
     expect(screen.getByTitle('Determining if reparenting is possible')).toBeTruthy();
     expect(screen.getByTitle('Cannot remove a model with any attribute of the types: table, child, collection')).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
+  });
+
+  it('runs and displays the project audit returned by the API', async () => {
+    stubUrl({
+      verb: 'get',
+      path: '/cross_project_search_audit/labors',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        project: 'labors',
+        conforming: false,
+        template_mapping: {
+          mapped_models: [{model: 'labor', template_model: 'labor'}],
+          unmapped_models: ['monster'],
+          invalid_mappings: [
+            {model: 'prize', template_model: 'award'},
+            {model: 'cup', template_model: null}
+          ],
+          required_column_results: [
+            {model: 'labor', template_model: 'labor', column: 'name', present: true},
+            {model: 'labor', template_model: 'labor', column: 'species', present: false}
+          ],
+          ontology_value_results: [
+            {model: 'labor', template_model: 'labor', column: 'organism', value: 'PBMC', valid: false}
+          ],
+          ontology_valid_count: 1,
+          ontology_mismatches: [{
+            model: 'labor',
+            column: 'tissue',
+            expected: {project_name: 'ontologies', model_name: 'uberon', attribute_name: 'name'},
+            actual: null
+          }],
+          missing_ontology_columns: [
+            {model: 'labor', template_model: 'labor', column: 'disease'}
+          ]
+        },
+        model_relationships: {
+          hierarchy: {
+            conforming: false,
+            issues: [
+              {model: 'tube', template_model: 'sc_seq', parent: 'pool', expected_parent: 'specimen'}
+            ]
+          },
+          single_cell: {
+            applicable: true,
+            conforming: false,
+            child_models: {subject: 'labor', biospecimen: 'specimen', sc_seq: 'tube', sc_seq_pool: 'pool'},
+            pool_link: null,
+            subject_path: null,
+            issues: ['tube has no link attribute to pool'],
+            counts: {
+              pools: {total: 4, depooled: 3},
+              sc_seq: {total: 6, pool_linked: 5, depooled: 3, missing_subject: 2},
+              subjects: 2
+            }
+          }
+        }
+      }
+    });
+
+    global.CONFIG.template_project = 'coprojects_template';
+
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {permissions: {labors: {role: 'administrator'}}}
+    });
+
+    render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('Run audit'));
+
+    expect(await screen.findByText('labor → coprojects_template.labor')).toBeTruthy();
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getByText('Project audit')).toBeTruthy();
+    expect(dialog.queryByText('Needs attention')).toBeNull();
+    expect(dialog.queryByText('Conforming')).toBeNull();
+    expect(dialog.queryByText('labors')).toBeNull();
+    expect(dialog.getByText('Template mappings')).toBeTruthy();
+    expect(dialog.getByText('3 mapped')).toBeTruthy();
+    expect(dialog.getByText('1 unmapped')).toBeTruthy();
+    expect(dialog.queryByText('1 mapped, 1 unmapped, 2 invalid')).toBeNull();
+    expect(dialog.getByText('Mapped')).toBeTruthy();
+    expect(dialog.getByText('labor → coprojects_template.labor')).toBeTruthy();
+    expect(dialog.getByText('Unmapped')).toBeTruthy();
+    expect(dialog.getByText('monster')).toBeTruthy();
+    expect(dialog.queryByText('labors.monster')).toBeNull();
+    expect(dialog.getByText('prize → coprojects_template.award')).toBeTruthy();
+    expect(dialog.getByText('cup → template model missing')).toBeTruthy();
+    expect(dialog.getByText('Required columns')).toBeTruthy();
+    expect(dialog.getByText('1 present')).toBeTruthy();
+    expect(dialog.getByText('1 missing')).toBeTruthy();
+    expect(dialog.queryByText(/present, .*missing/)).toBeNull();
+    const requiredText = dialog.getByText('Required columns').closest('section').textContent;
+    expect(requiredText.indexOf('1 present')).toBeLessThan(requiredText.indexOf('1 missing'));
+    expect(dialog.getByText('labor.name')).toBeTruthy();
+    expect(dialog.getByText('labor.species')).toBeTruthy();
+    expect(dialog.getByText('Ontology validation')).toBeTruthy();
+    expect(dialog.getByText('3 failed')).toBeTruthy();
+    expect(dialog.getByText('1 valid')).toBeTruthy();
+    expect(dialog.queryByText('human')).toBeNull();
+    expect(dialog.getByText('PBMC')).toBeTruthy();
+    expect(dialog.getByText('must set an ontology validation')).toBeTruthy();
+    expect(dialog.queryByText(/found none/)).toBeNull();
+    expect(dialog.getByText('column missing')).toBeTruthy();
+
+    fireEvent.click(dialog.getByText('Ontology validation'));
+    expect(dialog.queryByText('PBMC')).toBeNull();
+    expect(dialog.queryByText('column missing')).toBeNull();
+    expect(dialog.getByText('Ontology validation')).toBeTruthy();
+    expect(dialog.getByText('3 failed')).toBeTruthy();
+    expect(dialog.getByText('1 valid')).toBeTruthy();
+    expect(dialog.getByText('labor.name')).toBeTruthy();
+
+    fireEvent.click(dialog.getByText('Ontology validation'));
+    expect(dialog.getByText('PBMC')).toBeTruthy();
+    expect(dialog.getByText('Single cell models')).toBeTruthy();
+    expect(dialog.getByText('Subject relationship: subject → biospecimen → sc_seq')).toBeTruthy();
+    expect(dialog.getByText('Pooled relationship: sc_seq → sc_seq_pool')).toBeTruthy();
+    expect(dialog.getByText('tube: parent pool, expected specimen')).toBeTruthy();
+    expect(dialog.getByText('tube has no link attribute to pool')).toBeTruthy();
+    expect(dialog.getByText('2 subjects can be found in search')).toBeTruthy();
+    expect(dialog.getByText('1 sc_seq record has no pool')).toBeTruthy();
+    expect(dialog.getByText('2 sc_seq records have no subject')).toBeTruthy();
+    const singleCellText = dialog.getByText('Single cell models').closest('section').textContent;
+    expect(singleCellText.indexOf('2 subjects can be found in search')).toBeLessThan(
+      singleCellText.indexOf('1 sc_seq record has no pool')
+    );
+    expect(singleCellText.indexOf('1 sc_seq record has no pool')).toBeLessThan(
+      singleCellText.indexOf('2 sc_seq records have no subject')
+    );
+    expect(dialog.queryByText(/have a pool but no subject/)).toBeNull();
+    expect(dialog.queryByText('Sequencing records')).toBeNull();
+    expect(dialog.queryByText('Pools')).toBeNull();
+    expect(dialog.queryByText('Subjects reached')).toBeNull();
+    expect(dialog.queryByText(/with none/)).toBeNull();
+    expect(dialog.queryByText(/depooled|pool_linked/)).toBeNull();
+    expect(dialog.queryByText('1/2')).toBeNull();
+  });
+
+  it('hides column and ontology checks when the audit has no mapped models', async () => {
+    stubUrl({
+      verb: 'get',
+      path: '/cross_project_search_audit/labors',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        project: 'labors',
+        conforming: false,
+        template_mapping: {
+          mapped_models: [],
+          unmapped_models: ['monster'],
+          invalid_mappings: [],
+          required_column_results: [
+            {model: 'labor', template_model: 'labor', column: 'species', present: false}
+          ],
+          ontology_value_results: [],
+          ontology_valid_count: 1,
+          ontology_mismatches: [],
+          missing_ontology_columns: []
+        },
+        model_relationships: {
+          hierarchy: {conforming: true, issues: []},
+          single_cell: {
+            applicable: true,
+            conforming: true,
+            pool_link: 'pool',
+            subject_path: ['tube', 'specimen', 'labor'],
+            issues: [],
+            counts: {
+              pools: {total: 1, depooled: 1},
+              sc_seq: {total: 1, pool_linked: 1, depooled: 1, missing_subject: 0},
+              subjects: 1
+            }
+          }
+        }
+      }
+    });
+
+    global.CONFIG.template_project = 'coprojects_template';
+
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {permissions: {labors: {role: 'administrator'}}}
+    });
+
+    render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('Run audit'));
+
+    expect(await screen.findByText('No models are mapped. Map models to the template first.')).toBeTruthy();
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getByText('Project audit')).toBeTruthy();
+    expect(dialog.getByText('1 unmapped')).toBeTruthy();
+    expect(dialog.getByText('Mapped')).toBeTruthy();
+    expect(dialog.getByText('Unmapped')).toBeTruthy();
+    expect(dialog.getByText('monster')).toBeTruthy();
+    expect(dialog.queryByText('labors.monster')).toBeNull();
+    expect(dialog.queryByText('Required columns')).toBeNull();
+    expect(dialog.queryByText('Ontology validation')).toBeNull();
+    expect(dialog.queryByText('labor.species')).toBeNull();
+    expect(dialog.getByText('Single cell models')).toBeTruthy();
+    expect(dialog.getByText('Subject relationship: subject → biospecimen → sc_seq')).toBeTruthy();
+    expect(dialog.getByText('Pooled relationship: sc_seq → sc_seq_pool')).toBeTruthy();
+    expect(dialog.getByText('1 subject can be found in search')).toBeTruthy();
+    expect(dialog.queryByText(/sc_seq record/)).toBeNull();
+    expect(dialog.queryByText('Sequencing records')).toBeNull();
+    expect(dialog.queryByText('Pools')).toBeNull();
+    expect(dialog.queryByText('Subjects reached')).toBeNull();
+    expect(dialog.queryByText(/with none/)).toBeNull();
+    expect(dialog.queryByText(/linked to a pool only/)).toBeNull();
+    expect(dialog.queryByText(/not linked to a pool/)).toBeNull();
+    expect(dialog.queryByText(/depooled|pool_linked/)).toBeNull();
+  });
+
+  it('counts sc_seq rows with no subject in the project audit even when the pool is empty', async () => {
+    stubUrl({
+      verb: 'get',
+      path: '/cross_project_search_audit/labors',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        project: 'labors',
+        conforming: true,
+        template_mapping: {
+          mapped_models: [],
+          unmapped_models: [],
+          invalid_mappings: [],
+          required_column_results: [],
+          ontology_value_results: [],
+          ontology_valid_count: 0,
+          ontology_mismatches: [],
+          missing_ontology_columns: []
+        },
+        model_relationships: {
+          hierarchy: {conforming: true, issues: []},
+          single_cell: {
+            applicable: true,
+            conforming: true,
+            pool_link: 'pool',
+            subject_path: ['tube', 'specimen', 'labor'],
+            issues: [],
+            counts: {
+              pools: {total: 2, depooled: 2},
+              sc_seq: {total: 4, pool_linked: 3, depooled: 2, missing_subject: 2},
+              subjects: 2
+            }
+          }
+        }
+      }
+    });
+
+    global.CONFIG.template_project = 'coprojects_template';
+
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {permissions: {labors: {role: 'administrator'}}}
+    });
+
+    render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('Run audit'));
+
+    expect(await screen.findByText('2 subjects can be found in search')).toBeTruthy();
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getByText('1 sc_seq record has no pool')).toBeTruthy();
+    expect(dialog.getByText('2 sc_seq records have no subject')).toBeTruthy();
+    expect(dialog.queryByText('1 sc_seq record has no subject')).toBeNull();
+    expect(dialog.queryByText(/have a pool but no subject/)).toBeNull();
+  });
+
+  it('explains single-cell counts that could not be computed in the project audit', async () => {
+    stubUrl({
+      verb: 'get',
+      path: '/cross_project_search_audit/labors',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        project: 'labors',
+        conforming: false,
+        template_mapping: {
+          mapped_models: [],
+          unmapped_models: [],
+          invalid_mappings: [],
+          required_column_results: [],
+          ontology_value_results: [],
+          ontology_valid_count: 0,
+          ontology_mismatches: [],
+          missing_ontology_columns: []
+        },
+        model_relationships: {
+          hierarchy: {conforming: true, issues: []},
+          single_cell: {
+            applicable: true,
+            conforming: false,
+            pool_link: null,
+            subject_path: ['tube', 'specimen', 'labor'],
+            issues: ['tube has no link attribute to pool'],
+            counts: {
+              pools: {total: 1, depooled: null},
+              sc_seq: {total: null, pool_linked: 4, depooled: null, missing_subject: 0},
+              subjects: null
+            }
+          }
+        }
+      }
+    });
+
+    global.CONFIG.template_project = 'coprojects_template';
+
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {permissions: {labors: {role: 'administrator'}}}
+    });
+
+    render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('Run audit'));
+
+    expect(await screen.findByText('tube has no link attribute to pool')).toBeTruthy();
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getByText('Subjects in search could not be counted because the pooled relationship does not match')).toBeTruthy();
+    expect(dialog.getByText('sc_seq records with no pool could not be counted because the sc_seq total is missing')).toBeTruthy();
+    expect(dialog.queryByText('not available')).toBeNull();
+    expect(dialog.queryByText(/no subject/)).toBeNull();
+    expect(dialog.queryByText(/can be found in search/)).toBeNull();
+    expect(dialog.queryByText(/0 subject/)).toBeNull();
+  });
+
+  it('explains single-cell counts blocked by the subject relationship in the project audit', async () => {
+    stubUrl({
+      verb: 'get',
+      path: '/cross_project_search_audit/labors',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        project: 'labors',
+        conforming: false,
+        template_mapping: {
+          mapped_models: [],
+          unmapped_models: [],
+          invalid_mappings: [],
+          required_column_results: [],
+          ontology_value_results: [],
+          ontology_valid_count: 0,
+          ontology_mismatches: [],
+          missing_ontology_columns: []
+        },
+        model_relationships: {
+          hierarchy: {
+            conforming: false,
+            issues: [
+              {model: 'sc_seq', template_model: 'sc_seq', parent: 'biospecimen', expected_parent: null}
+            ]
+          },
+          single_cell: {
+            applicable: true,
+            conforming: false,
+            pool_link: 'pool',
+            subject_path: null,
+            issues: [],
+            counts: {
+              pools: {total: 10, depooled: null},
+              sc_seq: {total: 200, pool_linked: 12, depooled: null, missing_subject: null},
+              subjects: null
+            }
+          }
+        }
+      }
+    });
+
+    global.CONFIG.template_project = 'coprojects_template';
+
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {permissions: {labors: {role: 'administrator'}}}
+    });
+
+    render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('Run audit'));
+
+    expect(await screen.findByText('sc_seq: parent biospecimen, expected none')).toBeTruthy();
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getByText('Subjects in search could not be counted because the subject relationship does not match')).toBeTruthy();
+    expect(dialog.getByText('188 sc_seq records have no pool')).toBeTruthy();
+    expect(dialog.getByText('sc_seq records with no subject could not be counted because the subject relationship does not match')).toBeTruthy();
+    expect(dialog.queryByText('not available')).toBeNull();
+  });
+
+  it('shows intermediate models on a matching single-cell subject path in the project audit', async () => {
+    stubUrl({
+      verb: 'get',
+      path: '/cross_project_search_audit/labors',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        project: 'labors',
+        conforming: false,
+        template_mapping: {
+          mapped_models: [],
+          unmapped_models: [],
+          invalid_mappings: [],
+          required_column_results: [],
+          ontology_value_results: [],
+          ontology_valid_count: 0,
+          ontology_mismatches: [],
+          missing_ontology_columns: []
+        },
+        model_relationships: {
+          hierarchy: {
+            conforming: false,
+            issues: [
+              {model: 'specimen', template_model: 'biospecimen', parent: 'timepoint', expected_parent: 'labor'}
+            ]
+          },
+          single_cell: {
+            applicable: true,
+            conforming: true,
+            child_models: {subject: 'labor', biospecimen: 'specimen', sc_seq: 'tube', sc_seq_pool: 'pool'},
+            pool_link: 'pool',
+            subject_path: ['tube', 'specimen', 'timepoint', 'labor'],
+            issues: [],
+            counts: {
+              pools: {total: 1, depooled: 1},
+              sc_seq: {total: 2, pool_linked: 2, depooled: 2, missing_subject: 0},
+              subjects: 1
+            }
+          }
+        }
+      }
+    });
+
+    global.CONFIG.template_project = 'coprojects_template';
+
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {permissions: {labors: {role: 'administrator'}}}
+    });
+
+    render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('Run audit'));
+
+    expect(await screen.findByText('Subject relationship: subject → timepoint → biospecimen → sc_seq')).toBeTruthy();
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.queryByText('Subject relationship: subject → biospecimen → sc_seq')).toBeNull();
+    expect(dialog.queryByText('specimen: parent timepoint, expected labor')).toBeNull();
+    expect(dialog.getByText('Pooled relationship: sc_seq → sc_seq_pool')).toBeTruthy();
+    expect(dialog.getByText('1 subject can be found in search')).toBeTruthy();
+    expect(dialog.queryByText(/sc_seq record/)).toBeNull();
+  });
+
+  it('hides the project audit button on the template project', async () => {
+    global.CONFIG.project_name = 'coprojects_template';
+    global.CONFIG.template_project = 'coprojects_template';
+
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {permissions: {coprojects_template: {role: 'administrator'}}}
+    });
+
+    render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    await waitFor(() => screen.findByText('Attribute'));
+    expect(screen.queryByText('Run audit')).toBeNull();
   });
 
   it('renders with action buttons and reparent model enabled for admin user', async () => {  

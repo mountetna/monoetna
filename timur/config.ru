@@ -7,7 +7,7 @@ Bundler.require(:default)
 require_relative 'lib/timur'
 require_relative 'lib/server'
 
-Timur.instance.configure(YAML.load(File.read('config.yml')))
+Timur.instance.configure(YAML.load(File.read('config.yml'), aliases: true))
 
 use Etna::MetricsExporter
 use Etna::ParseBody

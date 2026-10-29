@@ -96,7 +96,7 @@ const IMAGES = [
 
 
 async function getData() {
-  const janusToken = cookies().get(process.env.JANUS_TOKEN_COOKIE_NAME)?.value
+  const janusToken = (await cookies()).get(process.env.JANUS_TOKEN_COOKIE_NAME)?.value
   const userCookie = janusToken ? parseToken(janusToken) : null
 
   let user: User | null = null

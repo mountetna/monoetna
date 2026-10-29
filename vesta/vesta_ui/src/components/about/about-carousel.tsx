@@ -28,7 +28,7 @@ interface Props {
 }
 
 
-export function _AboutCarousel({ items }: Props) {
+export function BaseAboutCarousel({ items }: Props) {
     // Manage search params sync
     const router = useRouter()
     const pathname = usePathname()
@@ -316,7 +316,7 @@ export function _AboutCarousel({ items }: Props) {
 export default function AboutCarousel(props: Props) {
     return (
         <React.Suspense fallback={null}>
-            <_AboutCarousel
+            <BaseAboutCarousel
                 {...props}
             />
         </React.Suspense>

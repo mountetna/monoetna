@@ -4,6 +4,7 @@ require 'yaml'
 require 'logger'
 require 'factory_bot'
 require 'database_cleaner'
+require 'database_cleaner/sequel'
 require 'simplecov'
 require 'timecop'
 require 'nokogiri'
@@ -164,12 +165,13 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     FactoryBot.find_definitions
-    DatabaseCleaner.strategy = :transaction
-    DatabaseCleaner.clean_with(:truncation)
+    DatabaseCleaner[:sequel].db = Janus.instance.db
+    DatabaseCleaner[:sequel].strategy = :transaction
+    DatabaseCleaner[:sequel].clean_with(:truncation)
   end
 
   config.around(:each) do |example|
-    DatabaseCleaner.cleaning do
+    DatabaseCleaner[:sequel].cleaning do
       example.run
     end
   end

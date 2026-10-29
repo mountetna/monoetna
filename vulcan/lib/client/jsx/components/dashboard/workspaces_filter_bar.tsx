@@ -10,8 +10,8 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import SearchIcon from '@material-ui/icons/Search';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
-import {WorkspaceMinimal} from '../../../api_types';
-import Tag from '../tag';
+import {WorkspaceMinimal} from '../../api_types';
+import Tag from './cards/tag';
 
 const useStyles = makeStyles((theme) => ({
   controls: {
@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function WorkspacesControls({
+export default function WorkspacesFilterBar({
   workspaces,
   setSearchString,
   setTags,

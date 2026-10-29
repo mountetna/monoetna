@@ -95,12 +95,12 @@ describe Etna::Command do
   describe 'with flags' do
     it 'supports flags at executor level' do
       run_command("--switch-1", "other", "inner", "vardic", "args")
-      expect(@output[0]).to eql('in here ["vardic", "args", {:switch_1=>true}]')
+      expect(@output[0]).to eql('in here ["vardic", "args", {switch_1: true}]')
     end
 
     it 'supports flags positioned further down args' do
       run_command("other", "inner", "vardic", "args", "--switch-1")
-      expect(@output[0]).to eql('in here ["vardic", "args", {:switch_1=>true}]')
+      expect(@output[0]).to eql('in here ["vardic", "args", {switch_1: true}]')
     end
 
     it 'does not support flags positioned above own scope' do
@@ -111,7 +111,7 @@ describe Etna::Command do
 
     it 'supports nested contexts having their own flags' do
       run_command("--switch-2", "other", "inner", "vardic", "args", "--string-flag-2", "value")
-      expect(@output[0]).to eql('in here ["vardic", "args", {:switch_2=>true, :string_flag_2=>"value"}]')
+      expect(@output[0]).to eql('in here ["vardic", "args", {switch_2: true, string_flag_2: "value"}]')
     end
   end
 end

@@ -84,6 +84,7 @@ export function Search({
         attribute_names: queryableAttributes,
         filter: filter_string,
         show_disconnected,
+	event_log: true,
         page: page,
         page_size: pageSize,
         collapse_tables: true,

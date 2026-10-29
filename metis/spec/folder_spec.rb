@@ -435,8 +435,8 @@ describe FolderController do
         # Sets up a 'race condition' in which, just after reading other folders, but before creating a missing
         # folder, another folder is created by a sepeaate connection (and not visible on the original transaction)
         # that violates the unique constraint.
-        expect(Metis::Folder).to receive(:from_path).and_wrap_original do |m, *args|
-          m.call(*args).tap do
+        expect(Metis::Folder).to receive(:from_path).and_wrap_original do |m, *args, **kwargs|
+          m.call(*args, **kwargs).tap do
             connection_two = Sequel.connect(Metis.instance.config(:db))
             expect(Metis::Folder).to receive(:db).and_return(connection_two)
             create_folder('athena', 'blueprints')

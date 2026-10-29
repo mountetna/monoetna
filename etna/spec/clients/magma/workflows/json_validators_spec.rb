@@ -111,13 +111,13 @@ describe Etna::Clients::Magma::AttributeActionsValidator do
     expect(validator.valid?).to eq(false)
     expect(validator.errors.length).to eq(8)
     expect(validator.errors).to eq([
-      "Links {:model_name=>\"assay_name\", :attribute_name=>\"document\", :type=>\"link\"} and {:model_name=>\"patient\", :attribute_name=>\"assay_name\", :type=>\"collection\"} must point to each other.",
+      "Links {model_name: \"assay_name\", attribute_name: \"document\", type: \"link\"} and {model_name: \"patient\", attribute_name: \"assay_name\", type: \"collection\"} must point to each other.",
       "Model \"patient_demographics\" does not exist in project.",
-      "Links {:model_name=>\"assay_name\", :attribute_name=>\"document_two\", :type=>\"link\"} and {:model_name=>\"patient_demographics\", :attribute_name=>\"assay_name_too\", :type=>\"collection\"} must point to each other.",
+      "Links {model_name: \"assay_name\", attribute_name: \"document_two\", type: \"link\"} and {model_name: \"patient_demographics\", attribute_name: \"assay_name_too\", type: \"collection\"} must point to each other.",
       "You must have one \"link\" and one \"collection\" type in the links.",
       "Must include two link entries, each with \"model_name\", \"attribute_name\", and \"type\".",
-      "Missing required key for link {:model_name=>\"assay_name\", :attribute_name=>\"document\", :type=>nil}: \"type\".",
-      "Missing required key for link {:model_name=>\"assay_name\", :attribute_name=>\"document\", :type=>nil}: \"type\".",
+      "Missing required key for link {model_name: \"assay_name\", attribute_name: \"document\", type: nil}: \"type\".",
+      "Missing required key for link {model_name: \"assay_name\", attribute_name: \"document\", type: nil}: \"type\".",
       "You must have one \"link\" and one \"collection\" type in the links."
     ])
   end
@@ -142,7 +142,7 @@ describe Etna::Clients::Magma::AttributeActionsValidator do
   end
 
   it 'reports errors for invalid rename_attribute keyword' do
-    expected_message = %{Exception while parsing {:action_name=>"rename_attribute", :model_name=>"assay_name", :old_attribute_name=>"vendor", :attribute_name=>"vendor_2"}.
+    expected_message = %{Exception while parsing {action_name: "rename_attribute", model_name: "assay_name", old_attribute_name: "vendor", attribute_name: "vendor_2"}.
 unknown keywords: old_attribute_name}
 
     expect {

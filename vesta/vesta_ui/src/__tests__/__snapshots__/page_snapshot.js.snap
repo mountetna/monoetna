@@ -48,7 +48,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                   />
                   <button
                     aria-label="Restart video"
-                    class="MuiButtonBase-root Mui-disabled mui-1ffx3aa-MuiButtonBase-root"
+                    class="MuiButtonBase-root Mui-disabled mui-19me49n-MuiButtonBase-root"
                     disabled=""
                     tabindex="-1"
                     type="button"
@@ -67,7 +67,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                   </button>
                   <button
                     aria-label="Next video"
-                    class="MuiButtonBase-root Mui-disabled mui-1ffx3aa-MuiButtonBase-root"
+                    class="MuiButtonBase-root Mui-disabled mui-19me49n-MuiButtonBase-root"
                     disabled=""
                     tabindex="-1"
                     type="button"
@@ -90,7 +90,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                 class="MuiBox-root mui-15yxpa7"
               >
                 <h3
-                  class="MuiTypography-root MuiTypography-h3 mui-bzfrh0-MuiTypography-root"
+                  class="MuiTypography-root MuiTypography-h3 mui-oyf7le-MuiTypography-root"
                 >
                   A library capturing, curating, and sharing biological data — creating a foundation for transformative collaborative research.
                 </h3>
@@ -98,7 +98,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                   class="MuiBox-root mui-0"
                 >
                   <button
-                    class="MuiButtonBase-root mui-10d1a0h-MuiButtonBase-root"
+                    class="MuiButtonBase-root mui-1i1o7bi-MuiButtonBase-root"
                     tabindex="0"
                     type="button"
                   >
@@ -118,7 +118,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                       />
                     </span>
                     <span
-                      class="MuiTypography-root MuiTypography-pMedium mui-c3tgdv-MuiTypography-root"
+                      class="MuiTypography-root MuiTypography-pMedium mui-1u10xyv-MuiTypography-root"
                     >
                       Scroll to explore
                     </span>
@@ -150,7 +150,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                               class="stat-card MuiBox-root mui-19935ou"
                             >
                               <h5
-                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                                class="MuiTypography-root MuiTypography-h5 mui-as2dgz-MuiTypography-root"
                               >
                                 Total Data Stored
                               </h5>
@@ -161,7 +161,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                                   class="stat stat-primary MuiBox-root mui-k008qs"
                                 >
                                   <h3
-                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-pujhk0-MuiTypography-root"
                                   >
                                     0TB
                                   </h3>
@@ -180,7 +180,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                               class="stat-card MuiBox-root mui-1hsvz7x"
                             >
                               <h5
-                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                                class="MuiTypography-root MuiTypography-h5 mui-as2dgz-MuiTypography-root"
                               >
                                 Assays
                               </h5>
@@ -191,7 +191,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                                   class="stat stat-primary MuiBox-root mui-k008qs"
                                 >
                                   <h3
-                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-pujhk0-MuiTypography-root"
                                   >
                                     100
                                   </h3>
@@ -210,7 +210,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                               class="stat-card MuiBox-root mui-1hsvz7x"
                             >
                               <h5
-                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                                class="MuiTypography-root MuiTypography-h5 mui-as2dgz-MuiTypography-root"
                               >
                                 Subjects
                               </h5>
@@ -221,7 +221,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                                   class="stat stat-primary MuiBox-root mui-k008qs"
                                 >
                                   <h3
-                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-pujhk0-MuiTypography-root"
                                   >
                                     148
                                   </h3>
@@ -240,7 +240,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                               class="stat-card MuiBox-root mui-1hsvz7x"
                             >
                               <h5
-                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                                class="MuiTypography-root MuiTypography-h5 mui-as2dgz-MuiTypography-root"
                               >
                                 Files
                               </h5>
@@ -251,7 +251,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                                   class="stat stat-primary MuiBox-root mui-k008qs"
                                 >
                                   <h3
-                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-pujhk0-MuiTypography-root"
                                   >
                                     597
                                   </h3>
@@ -270,7 +270,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                               class="stat-card MuiBox-root mui-19935ou"
                             >
                               <h5
-                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                                class="MuiTypography-root MuiTypography-h5 mui-as2dgz-MuiTypography-root"
                               >
                                 Samples
                               </h5>
@@ -281,7 +281,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                                   class="stat stat-primary MuiBox-root mui-k008qs"
                                 >
                                   <h3
-                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-pujhk0-MuiTypography-root"
                                   >
                                     1,000
                                   </h3>
@@ -300,7 +300,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                               class="stat-card MuiBox-root mui-19935ou"
                             >
                               <h5
-                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                                class="MuiTypography-root MuiTypography-h5 mui-as2dgz-MuiTypography-root"
                               >
                                 Users
                               </h5>
@@ -311,7 +311,7 @@ exports[`Renderable homepage elements Hero 1`] = `
                                   class="stat stat-primary MuiBox-root mui-k008qs"
                                 >
                                   <h3
-                                    class="MuiTypography-root MuiTypography-h3Digits mui-1tv4rcs-MuiTypography-root"
+                                    class="MuiTypography-root MuiTypography-h3Digits mui-pujhk0-MuiTypography-root"
                                   >
                                     50
                                   </h3>
@@ -326,32 +326,32 @@ exports[`Renderable homepage elements Hero 1`] = `
                       class="MuiBox-root mui-wiexpe"
                     >
                       <button
-                        class="MuiButtonBase-root carousel-index-indicator active mui-10d1a0h-MuiButtonBase-root"
+                        class="MuiButtonBase-root carousel-index-indicator active mui-1i1o7bi-MuiButtonBase-root"
                         tabindex="0"
                         type="button"
                       />
                       <button
-                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        class="MuiButtonBase-root carousel-index-indicator mui-1i1o7bi-MuiButtonBase-root"
                         tabindex="0"
                         type="button"
                       />
                       <button
-                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        class="MuiButtonBase-root carousel-index-indicator mui-1i1o7bi-MuiButtonBase-root"
                         tabindex="0"
                         type="button"
                       />
                       <button
-                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        class="MuiButtonBase-root carousel-index-indicator mui-1i1o7bi-MuiButtonBase-root"
                         tabindex="0"
                         type="button"
                       />
                       <button
-                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        class="MuiButtonBase-root carousel-index-indicator mui-1i1o7bi-MuiButtonBase-root"
                         tabindex="0"
                         type="button"
                       />
                       <button
-                        class="MuiButtonBase-root carousel-index-indicator mui-10d1a0h-MuiButtonBase-root"
+                        class="MuiButtonBase-root carousel-index-indicator mui-1i1o7bi-MuiButtonBase-root"
                         tabindex="0"
                         type="button"
                       />
@@ -359,12 +359,12 @@ exports[`Renderable homepage elements Hero 1`] = `
                   </div>
                 </div>
                 <a
-                  class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-ayjyg5-MuiTypography-root-MuiLink-root"
+                  class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-18lqisg-MuiTypography-root-MuiLink-root"
                   href="https://example.com"
                   tabindex="0"
                 >
                   <h5
-                    class="MuiTypography-root MuiTypography-h5 mui-b15gk3-MuiTypography-root"
+                    class="MuiTypography-root MuiTypography-h5 mui-fzsi6-MuiTypography-root"
                   >
                     Get Access
                   </h5>
@@ -412,12 +412,12 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
             class="MuiContainer-root MuiContainer-maxWidthDesktopLg mui-1jg98ud-MuiContainer-root"
           >
             <h1
-              class="MuiTypography-root MuiTypography-h1 mui-hnozgm-MuiTypography-root"
+              class="MuiTypography-root MuiTypography-h1 mui-38ghn1-MuiTypography-root"
             >
               Our Themes
             </h1>
             <div
-              class="MuiTypography-root MuiTypography-pLarge mui-1688cwk-MuiTypography-root"
+              class="MuiTypography-root MuiTypography-pLarge mui-1eulf70-MuiTypography-root"
             >
               Our research themes serve as broad categories that encompass the foundational biology of our projects.
             </div>
@@ -431,7 +431,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
               role="listitem"
             >
               <button
-                class="MuiButtonBase-root mui-ystb2t-MuiButtonBase-root"
+                class="MuiButtonBase-root mui-1oajsey-MuiButtonBase-root"
                 tabindex="0"
                 type="button"
               >
@@ -439,26 +439,26 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                   class="MuiBox-root mui-221hns"
                 >
                   <span
-                    class="MuiTypography-root MuiTypography-pSubtitleMonoCaps mui-ds0nlo-MuiTypography-root"
+                    class="MuiTypography-root MuiTypography-pSubtitleMonoCaps mui-f6g55t-MuiTypography-root"
                   >
                     Infe
                   </span>
                   <span
-                    class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                    class="MuiTypography-root MuiTypography-h5 mui-as2dgz-MuiTypography-root"
                   >
                     Infection
                   </span>
                 </div>
               </button>
               <div
-                class="MuiCollapse-root MuiCollapse-vertical MuiCollapse-entered mui-wz2cs5-MuiCollapse-root"
+                class="MuiCollapse-root MuiCollapse-vertical MuiCollapse-entered mui-qr6njo-MuiCollapse-root"
                 style="min-height: 0px;"
               >
                 <div
-                  class="MuiCollapse-wrapper MuiCollapse-vertical mui-smkl36-MuiCollapse-wrapper"
+                  class="MuiCollapse-wrapper MuiCollapse-vertical mui-1x6hinx-MuiCollapse-wrapper"
                 >
                   <div
-                    class="MuiCollapse-wrapperInner MuiCollapse-vertical mui-9l5vo-MuiCollapse-wrapperInner"
+                    class="MuiCollapse-wrapperInner MuiCollapse-vertical mui-1i4ywhz-MuiCollapse-wrapperInner"
                   >
                     <div
                       class="MuiBox-root mui-ha6v5"
@@ -468,7 +468,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                         class="MuiBox-root mui-2gyp5w"
                       >
                         <div
-                          class="MuiTypography-root MuiTypography-pMediumMonoCaps mui-1sjy41m-MuiTypography-root"
+                          class="MuiTypography-root MuiTypography-pMediumMonoCaps mui-bmm437-MuiTypography-root"
                         >
                           <span
                             class="MuiBox-root mui-xi3ir8"
@@ -508,12 +508,12 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                           class="MuiBox-root mui-fccqxc"
                         >
                           <h5
-                            class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                            class="MuiTypography-root MuiTypography-h5 mui-as2dgz-MuiTypography-root"
                           >
                             Infection
                           </h5>
                           <span
-                            class="MuiTypography-root MuiTypography-pLarge mui-nhkwq8-MuiTypography-root"
+                            class="MuiTypography-root MuiTypography-pLarge mui-8u5nyo-MuiTypography-root"
                           >
                             Infection is bad
                           </span>
@@ -522,13 +522,13 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                           class="MuiBox-root mui-1bvc4cc"
                         >
                           <a
-                            class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-4pgmj9-MuiTypography-root-MuiLink-root"
+                            class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-npiuoo-MuiTypography-root-MuiLink-root"
                             href=""
-                            id=":r0:"
+                            id=":r2:"
                             tabindex="0"
                           >
                             <span
-                              class="MuiTypography-root MuiTypography-pLarge mui-1er6243-MuiTypography-root"
+                              class="MuiTypography-root MuiTypography-pLarge mui-f5j2dh-MuiTypography-root"
                             >
                               See projects
                             </span>
@@ -560,7 +560,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
               role="listitem"
             >
               <button
-                class="MuiButtonBase-root mui-ystb2t-MuiButtonBase-root"
+                class="MuiButtonBase-root mui-1oajsey-MuiButtonBase-root"
                 tabindex="0"
                 type="button"
               >
@@ -568,26 +568,26 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                   class="MuiBox-root mui-221hns"
                 >
                   <span
-                    class="MuiTypography-root MuiTypography-pSubtitleMonoCaps mui-ds0nlo-MuiTypography-root"
+                    class="MuiTypography-root MuiTypography-pSubtitleMonoCaps mui-f6g55t-MuiTypography-root"
                   >
                     Canc
                   </span>
                   <span
-                    class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                    class="MuiTypography-root MuiTypography-h5 mui-as2dgz-MuiTypography-root"
                   >
                     Cancer
                   </span>
                 </div>
               </button>
               <div
-                class="MuiCollapse-root MuiCollapse-vertical MuiCollapse-hidden mui-1ev76c2-MuiCollapse-root"
+                class="MuiCollapse-root MuiCollapse-vertical MuiCollapse-hidden mui-cwrbtg-MuiCollapse-root"
                 style="min-height: 0px;"
               >
                 <div
-                  class="MuiCollapse-wrapper MuiCollapse-vertical mui-smkl36-MuiCollapse-wrapper"
+                  class="MuiCollapse-wrapper MuiCollapse-vertical mui-1x6hinx-MuiCollapse-wrapper"
                 >
                   <div
-                    class="MuiCollapse-wrapperInner MuiCollapse-vertical mui-9l5vo-MuiCollapse-wrapperInner"
+                    class="MuiCollapse-wrapperInner MuiCollapse-vertical mui-1i4ywhz-MuiCollapse-wrapperInner"
                   >
                     <div
                       class="MuiBox-root mui-ha6v5"
@@ -597,7 +597,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                         class="MuiBox-root mui-6snbnz"
                       >
                         <div
-                          class="MuiTypography-root MuiTypography-pMediumMonoCaps mui-1sjy41m-MuiTypography-root"
+                          class="MuiTypography-root MuiTypography-pMediumMonoCaps mui-bmm437-MuiTypography-root"
                         >
                           <span
                             class="MuiBox-root mui-xi3ir8"
@@ -637,12 +637,12 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                           class="MuiBox-root mui-fccqxc"
                         >
                           <h5
-                            class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                            class="MuiTypography-root MuiTypography-h5 mui-as2dgz-MuiTypography-root"
                           >
                             Cancer
                           </h5>
                           <span
-                            class="MuiTypography-root MuiTypography-pLarge mui-nhkwq8-MuiTypography-root"
+                            class="MuiTypography-root MuiTypography-pLarge mui-8u5nyo-MuiTypography-root"
                           >
                             cancer lorem ipsum
                           </span>
@@ -651,13 +651,13 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                           class="MuiBox-root mui-1bvc4cc"
                         >
                           <a
-                            class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-4pgmj9-MuiTypography-root-MuiLink-root"
+                            class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-npiuoo-MuiTypography-root-MuiLink-root"
                             href=""
-                            id=":r1:"
+                            id=":r3:"
                             tabindex="0"
                           >
                             <span
-                              class="MuiTypography-root MuiTypography-pLarge mui-1er6243-MuiTypography-root"
+                              class="MuiTypography-root MuiTypography-pLarge mui-f5j2dh-MuiTypography-root"
                             >
                               See projects
                             </span>
@@ -702,7 +702,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                   class="spacer MuiBox-root mui-0"
                 />
                 <div
-                  class="MuiTypography-root MuiTypography-h4SmallCaps mui-joas7g-MuiTypography-root"
+                  class="MuiTypography-root MuiTypography-h4SmallCaps mui-12sddcv-MuiTypography-root"
                 >
                   THEMES
                 </div>
@@ -711,14 +711,14 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                   role="listitem"
                 >
                   <div
-                    class="MuiCollapse-root MuiCollapse-horizontal MuiCollapse-entered mui-1vrhb3m-MuiCollapse-root"
+                    class="MuiCollapse-root MuiCollapse-horizontal MuiCollapse-entered mui-1uiyv8z-MuiCollapse-root"
                     style="min-width: 0px;"
                   >
                     <div
-                      class="MuiCollapse-wrapper MuiCollapse-horizontal mui-1kjcp9i-MuiCollapse-wrapper"
+                      class="MuiCollapse-wrapper MuiCollapse-horizontal mui-gquduo-MuiCollapse-wrapper"
                     >
                       <div
-                        class="MuiCollapse-wrapperInner MuiCollapse-horizontal mui-hrodc9-MuiCollapse-wrapperInner"
+                        class="MuiCollapse-wrapperInner MuiCollapse-horizontal mui-3cp540-MuiCollapse-wrapperInner"
                       >
                         <div
                           class="MuiBox-root mui-4nuj1i"
@@ -731,12 +731,12 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                               class="MuiBox-root mui-1r3tkmy"
                             >
                               <h5
-                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                                class="MuiTypography-root MuiTypography-h5 mui-as2dgz-MuiTypography-root"
                               >
                                 Infection
                               </h5>
                               <div
-                                class="MuiTypography-root MuiTypography-pLarge mui-nhkwq8-MuiTypography-root"
+                                class="MuiTypography-root MuiTypography-pLarge mui-8u5nyo-MuiTypography-root"
                               >
                                 Infection is bad
                               </div>
@@ -745,13 +745,13 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                               class="MuiBox-root mui-1bvc4cc"
                             >
                               <a
-                                class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-4pgmj9-MuiTypography-root-MuiLink-root"
+                                class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-npiuoo-MuiTypography-root-MuiLink-root"
                                 href=""
-                                id=":r2:"
+                                id=":r4:"
                                 tabindex="0"
                               >
                                 <span
-                                  class="MuiTypography-root MuiTypography-pLarge mui-1er6243-MuiTypography-root"
+                                  class="MuiTypography-root MuiTypography-pLarge mui-f5j2dh-MuiTypography-root"
                                 >
                                   See projects
                                 </span>
@@ -781,7 +781,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                     class="MuiBox-root mui-1xhj18k"
                   >
                     <button
-                      class="MuiButtonBase-root mui-84zxbe-MuiButtonBase-root"
+                      class="MuiButtonBase-root mui-qbjvc3-MuiButtonBase-root"
                       tabindex="0"
                       type="button"
                     >
@@ -789,7 +789,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                         class="MuiBox-root mui-ekljqq"
                       >
                         <span
-                          class="MuiTypography-root MuiTypography-h5 name mui-6sn1yr-MuiTypography-root"
+                          class="MuiTypography-root MuiTypography-h5 name mui-1mwn97k-MuiTypography-root"
                         >
                           Infection
                         </span>
@@ -797,12 +797,12 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                           class="MuiBox-root mui-n9l0x2"
                         >
                           <span
-                            class="MuiTypography-root MuiTypography-pSubtitleMonoCaps short-code mui-1cv4cul-MuiTypography-root"
+                            class="MuiTypography-root MuiTypography-pSubtitleMonoCaps short-code mui-18iisai-MuiTypography-root"
                           >
                             Infe
                           </span>
                           <div
-                            class="MuiTypography-root MuiTypography-pSubtitleMonoCaps mui-jjcn81-MuiTypography-root"
+                            class="MuiTypography-root MuiTypography-pSubtitleMonoCaps mui-1ihf31e-MuiTypography-root"
                           >
                             <span
                               class="MuiBox-root mui-xi3ir8"
@@ -823,14 +823,14 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                       </div>
                     </button>
                     <div
-                      class="MuiCollapse-root MuiCollapse-horizontal MuiCollapse-entered mui-1vrhb3m-MuiCollapse-root"
+                      class="MuiCollapse-root MuiCollapse-horizontal MuiCollapse-entered mui-1uiyv8z-MuiCollapse-root"
                       style="min-width: 0px;"
                     >
                       <div
-                        class="MuiCollapse-wrapper MuiCollapse-horizontal mui-1kjcp9i-MuiCollapse-wrapper"
+                        class="MuiCollapse-wrapper MuiCollapse-horizontal mui-gquduo-MuiCollapse-wrapper"
                       >
                         <div
-                          class="MuiCollapse-wrapperInner MuiCollapse-horizontal mui-hrodc9-MuiCollapse-wrapperInner"
+                          class="MuiCollapse-wrapperInner MuiCollapse-horizontal mui-3cp540-MuiCollapse-wrapperInner"
                         >
                           <div
                             class="MuiBox-root mui-0"
@@ -862,14 +862,14 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                   role="listitem"
                 >
                   <div
-                    class="MuiCollapse-root MuiCollapse-horizontal MuiCollapse-hidden mui-1ssmexg-MuiCollapse-root"
+                    class="MuiCollapse-root MuiCollapse-horizontal MuiCollapse-hidden mui-ukha9x-MuiCollapse-root"
                     style="min-width: 0px;"
                   >
                     <div
-                      class="MuiCollapse-wrapper MuiCollapse-horizontal mui-1kjcp9i-MuiCollapse-wrapper"
+                      class="MuiCollapse-wrapper MuiCollapse-horizontal mui-gquduo-MuiCollapse-wrapper"
                     >
                       <div
-                        class="MuiCollapse-wrapperInner MuiCollapse-horizontal mui-hrodc9-MuiCollapse-wrapperInner"
+                        class="MuiCollapse-wrapperInner MuiCollapse-horizontal mui-3cp540-MuiCollapse-wrapperInner"
                       >
                         <div
                           class="MuiBox-root mui-4nuj1i"
@@ -882,12 +882,12 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                               class="MuiBox-root mui-1r3tkmy"
                             >
                               <h5
-                                class="MuiTypography-root MuiTypography-h5 mui-1r01j8y-MuiTypography-root"
+                                class="MuiTypography-root MuiTypography-h5 mui-as2dgz-MuiTypography-root"
                               >
                                 Cancer
                               </h5>
                               <div
-                                class="MuiTypography-root MuiTypography-pLarge mui-nhkwq8-MuiTypography-root"
+                                class="MuiTypography-root MuiTypography-pLarge mui-8u5nyo-MuiTypography-root"
                               >
                                 cancer lorem ipsum
                               </div>
@@ -896,13 +896,13 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                               class="MuiBox-root mui-1bvc4cc"
                             >
                               <a
-                                class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-4pgmj9-MuiTypography-root-MuiLink-root"
+                                class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone mui-npiuoo-MuiTypography-root-MuiLink-root"
                                 href=""
-                                id=":r3:"
+                                id=":r5:"
                                 tabindex="0"
                               >
                                 <span
-                                  class="MuiTypography-root MuiTypography-pLarge mui-1er6243-MuiTypography-root"
+                                  class="MuiTypography-root MuiTypography-pLarge mui-f5j2dh-MuiTypography-root"
                                 >
                                   See projects
                                 </span>
@@ -932,7 +932,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                     class="MuiBox-root mui-1xhj18k"
                   >
                     <button
-                      class="MuiButtonBase-root mui-fklaf6-MuiButtonBase-root"
+                      class="MuiButtonBase-root mui-1ur7bfh-MuiButtonBase-root"
                       tabindex="0"
                       type="button"
                     >
@@ -940,7 +940,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                         class="MuiBox-root mui-ekljqq"
                       >
                         <span
-                          class="MuiTypography-root MuiTypography-h5 name mui-1cmq3le-MuiTypography-root"
+                          class="MuiTypography-root MuiTypography-h5 name mui-u1zr15-MuiTypography-root"
                         >
                           Cancer
                         </span>
@@ -948,12 +948,12 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                           class="MuiBox-root mui-n9l0x2"
                         >
                           <span
-                            class="MuiTypography-root MuiTypography-pSubtitleMonoCaps short-code mui-wytr79-MuiTypography-root"
+                            class="MuiTypography-root MuiTypography-pSubtitleMonoCaps short-code mui-q8mm3a-MuiTypography-root"
                           >
                             Canc
                           </span>
                           <div
-                            class="MuiTypography-root MuiTypography-pSubtitleMonoCaps mui-jjcn81-MuiTypography-root"
+                            class="MuiTypography-root MuiTypography-pSubtitleMonoCaps mui-1ihf31e-MuiTypography-root"
                           >
                             <span
                               class="MuiBox-root mui-xi3ir8"
@@ -974,14 +974,14 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                       </div>
                     </button>
                     <div
-                      class="MuiCollapse-root MuiCollapse-horizontal MuiCollapse-hidden mui-1ssmexg-MuiCollapse-root"
+                      class="MuiCollapse-root MuiCollapse-horizontal MuiCollapse-hidden mui-ukha9x-MuiCollapse-root"
                       style="min-width: 0px;"
                     >
                       <div
-                        class="MuiCollapse-wrapper MuiCollapse-horizontal mui-1kjcp9i-MuiCollapse-wrapper"
+                        class="MuiCollapse-wrapper MuiCollapse-horizontal mui-gquduo-MuiCollapse-wrapper"
                       >
                         <div
-                          class="MuiCollapse-wrapperInner MuiCollapse-horizontal mui-hrodc9-MuiCollapse-wrapperInner"
+                          class="MuiCollapse-wrapperInner MuiCollapse-horizontal mui-3cp540-MuiCollapse-wrapperInner"
                         >
                           <div
                             class="MuiBox-root mui-0"
@@ -1023,7 +1023,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                 class="MuiBox-root mui-k7uznk"
               >
                 <div
-                  class="MuiTypography-root MuiTypography-h4SmallCaps mui-1ozyngy-MuiTypography-root"
+                  class="MuiTypography-root MuiTypography-h4SmallCaps mui-v5qwga-MuiTypography-root"
                 >
                   EXPLORE OUR THEMES
                 </div>
@@ -1031,7 +1031,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                   class="MuiBox-root mui-1i27l4i"
                 >
                   <button
-                    class="MuiButtonBase-root Mui-disabled mui-wutn5a-MuiButtonBase-root"
+                    class="MuiButtonBase-root Mui-disabled mui-1nuhkx1-MuiButtonBase-root"
                     disabled=""
                     tabindex="-1"
                     type="button"
@@ -1049,7 +1049,7 @@ exports[`Renderable homepage elements ThemeShelf 1`] = `
                     />
                   </button>
                   <button
-                    class="MuiButtonBase-root mui-1x95knz-MuiButtonBase-root"
+                    class="MuiButtonBase-root mui-1otme8z-MuiButtonBase-root"
                     tabindex="0"
                     type="button"
                   >

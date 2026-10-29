@@ -41,7 +41,7 @@ import { hasScheduledSteps, workflowName, workspaceFromRaw } from '../../selecto
 import {useWorkspace} from '../../contexts/workspace_context';
 // import {json_get} from 'etna-js/utils/fetch';
 import useUserHooks from '../../contexts/useUserHooks';
-import Tag from '../dashboard/tag';
+import Tag from '../dashboard/cards/tag';
 import Grid from '@material-ui/core/Grid';
 import { useDataSync, useRunSyncing } from './data_sync';
 import Vignette from './drawers/vignette';

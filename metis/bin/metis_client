@@ -616,7 +616,7 @@ EOT
     def run(command=nil)
       if command
         command = Command.list.find { |c| c.command_name == command.to_s }
-        puts command.usage ? "Usage:\n#{command.usage}" : "No help for #{command.command_name}"
+        puts command.usage ? "Minimal Usage:\n#{command.usage}\nFor additional detail on optional flags:\n#{command.command_name} --help" : "No help for #{command.command_name}"
         return
       else
         puts "Commands:\n#{Command.list.map(&:command_name).join("\t")}"
@@ -1418,7 +1418,7 @@ EOT
     def parse(args)
       options[:file] = "md5checksum.txt"
       parse_opts(args) do |opts|
-        opts.on("-f", "--file FILE", "Use FILE as the pattern to find and write checksum files") do |file|
+        opts.on("-f", "--file FILE", "Use FILE as the pattern to find previous checksum files or to provide an alternative checksum file output location.") do |file|
           options[:file] = file
         end
       end
@@ -1526,7 +1526,7 @@ EOT
     def parse(args)
       options[:file] = "md5checksum.txt"
       parse_opts(args) do |opts|
-        opts.on("-f", "--file FILE", "Use FILE as the pattern to find and write checksum files") do |file|
+        opts.on("-f", "--file FILE", "Use FILE as the pattern to find previous checksum files or to provide an alternative checksum file output location.") do |file|
           options[:file] = file
         end
 
@@ -1595,7 +1595,7 @@ EOT
           options[:list] = true
         end
 
-        opts.on("-f", "--file FILE", "Use FILE as the pattern to find and write checksum files") do |file|
+        opts.on("-f", "--file FILE", "Use FILE as the pattern to find previous checksum files or to provide an alternative checksum file output location.") do |file|
           options[:file] = file
         end
 
