@@ -57,46 +57,43 @@ const useStyles = makeStyles((theme) => ({
     position: 'absolute',
     display: 'flex',
     gap: 5,
-    right: 5,
-    width: '100%',
-    justifyContent: 'flex-end'
+    right: 0,
+    width: 'calc(100% - 10px)',
+    justifyContent: 'flex-end',
+    padding: '5px'
   },
   input: {
     width: '10px',
     height: '10px',
-    background: '#1ce31c',
-    borderRadius: '50%',
     position: 'relative',
     boxShadow: '0 0 2px #444',
+    '&:hover': {
+      '& $wire path': {
+        strokeWidth: 5,
+        strokeOpacity: 1
+      }
+    }
   },
   resource: {
-    width: '10px',
-    height: '10px',
     background: '#88f',
     borderRadius: '50%',
-    position: 'relative',
-    boxShadow: '0 0 2px #444',
   },
   pending: {
-    width: '10px',
-    height: '10px',
     background: 'red',
-    position: 'relative',
-    boxShadow: '0 0 2px #444',
   },
   missing: {
     width: '8px',
     height: '8px',
     border: '1px solid red',
     background: 'none',
-    position: 'relative',
-    boxShadow: '0 0 2px #444',
+  },
+  ok: {
+    background: '#1ce31c',
+    borderRadius: '50%'
   },
   output: {
     width: '10px',
     height: '10px',
-    background: 'goldenrod',
-    borderRadius: '50%',
     boxShadow: '0 0 2px #444',
   },
   wire: {
@@ -108,12 +105,19 @@ const useStyles = makeStyles((theme) => ({
 
 const snakemakeSummaryStyle = (summary, classes) => {
   if (!summary) return classes.resource;
-  if (summary.status == "ok") return classes.input;
+  if (summary.status == "ok") return classes.ok;
   if (summary.status == "missing") {
     if (summary.plan == "update pending") return classes.pending;
     return classes.missing;
   }
   return classes.pending;
+}
+
+const FileOutput = ({output, summary}) => {
+  const classes = useStyles();
+  let { status, plan } = summary || { status: 'resource' }
+  let outputStyle = snakemakeSummaryStyle(summary, classes);
+  return <div className={ `${outputStyle} ${classes.output}` } title={ `${output} - ${status}${ plan ? ` - ${plan}` : '' }` }/>
 }
 
 const FileInput = ({input, pos, stepPos, stepRow, wireTo, summary}) => {
@@ -125,11 +129,11 @@ const FileInput = ({input, pos, stepPos, stepRow, wireTo, summary}) => {
 
   const [ path, bounds ] = wireTo( pos, stepPos, stepRow, input );
   return <>
-    <div className={ inputStyle } title={ `${input} - ${status}${ plan ? ` - ${plan}` : '' }` }>
+    <div className={ `${inputStyle} ${classes.input}` } title={ `${input} - ${status}${ plan ? ` - ${plan}` : '' }` }>
     {
       bounds && <div className={ classes.wire } style={{ right: bounds.flip ? undefined : 0, left: bounds.flip ? 0 : undefined }}>
       <svg width={ bounds.width + 2*PAD } height={ bounds.height + 2*PAD } viewBox={ `${bounds.x-PAD} ${bounds.y-PAD} ${bounds.width+2*PAD} ${bounds.height+2*PAD}` }>
-        <path fill="none" stroke="goldenrod" strokeOpacity="0.5" strokeWidth="2" d={ path }/>
+        <path fill="none" stroke="goldenrod" strokeOpacity="0.1" strokeWidth="2" d={ path }/>
       </svg>
     </div>
     }
@@ -147,16 +151,16 @@ const Step = ({name, files, summary, config, wireTo, stepPos, row}) => {
   return <div className={ classes.step }>
     <div className={ classes.stepLabel } title={label}>{label}</div>
     {
-      files.outputs.length > 0 && <div className={ classes.connections} style={{ bottom: 5 }}>
+      files.outputs.length > 0 && <div className={ classes.connections} style={{ bottom: 0 }}>
         {
           files.outputs.map(
-            output => <div key={output} className={ classes.output } title={ output }/>
+            output => <FileOutput key={output} summary={summary[output]} output={ output }/>
           )
         }
       </div>
     }
     {
-      files.inputs.length > 0 && <div className={ classes.connections} style={{ top: 5 }}>
+      files.inputs.length > 0 && <div className={ classes.connections} style={{ top: 0, background: "#fda" }}>
         {
           files.inputs.map(
             (input,pos) => <FileInput key={input} 
@@ -225,8 +229,8 @@ export default function StepsList() {
     if (!rowPos[input]) return [ '', null ];
     const [ toRow, toStepPos, toPos ] = rowPos[input];
 
-    const NODE_GAP = 17;
-    const yDiff = (toRow - fromRow) * 86 + 55;
+    const NODE_GAP = 15;
+    const yDiff = (toRow - fromRow) * 86 + 57;
     const xDiff = (toStepPos - fromStepPos) * 227 - (toPos - fromPos) * NODE_GAP;
     const startX = (xDiff > 0) ? -6 : 0;
     const startY = 0;
