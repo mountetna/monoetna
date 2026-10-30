@@ -10,11 +10,13 @@ import FlatButton from 'etna-js/components/flat-button'
 import Grid from '@material-ui/core/Grid';
 import Drawer from '@material-ui/core/Drawer';
 import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Typography from '@material-ui/core/Typography';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 
 const useStyles = makeStyles((theme) => ({
   steps: {
@@ -25,11 +27,15 @@ const useStyles = makeStyles((theme) => ({
     overflow: 'auto'
   },
   stepsClosed: {
-    width: '60px'
+    width: '48px'
   },
   stepRow: {
     display: 'flex',
     gap: '5px'
+  },
+  stepSummary: {
+    width: '48px',
+    height: '48px'
   },
   step: {
     border: '1px solid red',
@@ -43,15 +49,24 @@ const useStyles = makeStyles((theme) => ({
     cursor: 'pointer',
     boxShadow: '0 0 2px #ccc',
     '&:hover': {
-      background: '#fee',
     }
   },
   stepLabel: {
     width: '200px',
     overflow: 'hidden',
-    display: 'block',
-    textOverflow: 'ellipsis',
-    textWrap: 'nowrap'
+    display: 'flex',
+    textWrap: 'nowrap',
+    position: 'relative',
+    '&:before': {
+      content:"''",
+      width: '100%',
+      height: '100%',
+      position: 'absolute',
+      pointerEvents: 'none',
+      left:0,
+      top:0,
+      background: 'linear-gradient(to right, transparent 180px, #f2eeee)'
+    }
   },
   connections: {
     position: 'absolute',
@@ -113,14 +128,16 @@ const snakemakeSummaryStyle = (summary, classes) => {
   return classes.pending;
 }
 
-const FileOutput = ({output, summary}) => {
+const FileOutput = ({output, summary, highlight, setHighlight}) => {
   const classes = useStyles();
   let { status, plan } = summary || { status: 'resource' }
   let outputStyle = snakemakeSummaryStyle(summary, classes);
-  return <div className={ `${outputStyle} ${classes.output}` } title={ `${output} - ${status}${ plan ? ` - ${plan}` : '' }` }/>
+  return <Tooltip title={ `${output} - ${status}${ plan ? ` - ${plan}` : '' }` }>
+    <div className={ `${outputStyle} ${classes.output}` } onMouseOver={ () => setHighlight(new Set([output]))} onMouseOut={ () => setHighlight(new Set([])) }/>
+  </Tooltip>
 }
 
-const FileInput = ({input, pos, stepPos, stepRow, wireTo, summary}) => {
+const FileInput = ({input, pos, stepPos, stepRow, wireTo, summary, highlight}) => {
   const classes = useStyles();
   const PAD = 5;
 
@@ -128,33 +145,39 @@ const FileInput = ({input, pos, stepPos, stepRow, wireTo, summary}) => {
   let { status, plan } = summary || { status: 'resource' }
 
   const [ path, bounds ] = wireTo( pos, stepPos, stepRow, input );
-  return <>
-    <div className={ `${inputStyle} ${classes.input}` } title={ `${input} - ${status}${ plan ? ` - ${plan}` : '' }` }>
+  return <Tooltip title={ `${input} - ${status}${ plan ? ` - ${plan}` : '' }` }>
+    <div className={ `${inputStyle} ${classes.input}` }>
     {
       bounds && <div className={ classes.wire } style={{ right: bounds.flip ? undefined : 0, left: bounds.flip ? 0 : undefined }}>
-      <svg width={ bounds.width + 2*PAD } height={ bounds.height + 2*PAD } viewBox={ `${bounds.x-PAD} ${bounds.y-PAD} ${bounds.width+2*PAD} ${bounds.height+2*PAD}` }>
-        <path fill="none" stroke="goldenrod" strokeOpacity="0.1" strokeWidth="2" d={ path }/>
-      </svg>
-    </div>
+        <svg width={ bounds.width + 2*PAD } height={ bounds.height + 2*PAD } viewBox={ `${bounds.x-PAD} ${bounds.y-PAD} ${bounds.width+2*PAD} ${bounds.height+2*PAD}` }>
+          <path fill="none" stroke="goldenrod" strokeOpacity={ highlight.has(input) ? 1 : 0.1 } strokeWidth={ highlight.has(input) ? 5 : 2 } d={ path }/>
+        </svg>
+      </div>
     }
     </div>
-  </>
+  </Tooltip>
 }
 
+const UIStepIndicator = () => <Tooltip title="This step requires user input"><ArrowRightIcon fontSize="small"/></Tooltip>
 
+const StepSummary = ({name, files, summary, config}) => {
+  const classes = useStyles();
 
-const Step = ({name, files, summary, config, wireTo, stepPos, row}) => {
+  return <div className={ classes.stepSummary }/>
+}
+
+const Step = ({name, files, summary, config, wireTo, stepPos, row, highlight, setHighlight}) => {
   const classes = useStyles();
 
   const label = config ? config.display : name.replace(/_/g,' ');
 
   return <div className={ classes.step }>
-    <div className={ classes.stepLabel } title={label}>{label}</div>
+    <div className={ classes.stepLabel }>{ config?.name ? <UIStepIndicator/> : null }<Tooltip title={label}><span>{label}</span></Tooltip></div>
     {
       files.outputs.length > 0 && <div className={ classes.connections} style={{ bottom: 0 }}>
         {
           files.outputs.map(
-            output => <FileOutput key={output} summary={summary[output]} output={ output }/>
+            output => <FileOutput key={output} summary={summary[output]} output={ output } highlight={highlight} setHighlight={setHighlight}/>
           )
         }
       </div>
@@ -163,7 +186,7 @@ const Step = ({name, files, summary, config, wireTo, stepPos, row}) => {
       files.inputs.length > 0 && <div className={ classes.connections} style={{ top: 0, background: "#fda" }}>
         {
           files.inputs.map(
-            (input,pos) => <FileInput key={input} 
+            (input,pos) => <FileInput key={input} highlight={highlight} setHighlight={setHighlight} 
               input={ input }
               pos={files.inputs.length - pos - 1}
               summary={summary[input]}
@@ -230,7 +253,7 @@ export default function StepsList() {
     const [ toRow, toStepPos, toPos ] = rowPos[input];
 
     const NODE_GAP = 15;
-    const yDiff = (toRow - fromRow) * 86 + 57;
+    const yDiff = (toRow - fromRow) * 86 + 59;
     const xDiff = (toStepPos - fromStepPos) * 227 - (toPos - fromPos) * NODE_GAP;
     const startX = (xDiff > 0) ? -6 : 0;
     const startY = 0;
@@ -241,6 +264,8 @@ export default function StepsList() {
     ]
   }
 
+  const [ highlight, setHighlight ] = useState(new Set([]));
+
   return (
     <Grid className={ `${classes.steps} ${open ? classes.stepsOpen : classes.stepsClosed}` } >
       <Grid alignItems='center' container>
@@ -249,16 +274,21 @@ export default function StepsList() {
         </IconButton>
       </Grid>
       <List>
-        {rows.map(
-          (row,i) => <ListItem key={i}>
-            <div className={ classes.stepRow }>
-            {
-              row.map( (stepName,pos) => <Step key={stepName} row={i} stepPos={pos} name={stepName} files={workspace.filegraph[stepName]} summary={workspace.summary} config={workspace.vulcan_config[stepName]} wireTo={wireTo}/>
-              )
-            }
-            </div>
-          </ListItem>
-        )}
+        {
+          open ? rows.map(
+            (row,i) => <ListItem key={i}>
+              <div className={ classes.stepRow }>
+              {
+                row.map(
+                  (stepName,pos) => <Step highlight={highlight} setHighlight={setHighlight} key={stepName} row={i} stepPos={pos} name={stepName} files={workspace.filegraph[stepName]} summary={workspace.summary} config={workspace.vulcan_config[stepName]} wireTo={wireTo}/>
+                )
+              }
+              </div>
+            </ListItem>
+          ) : workspace.dag_flattened.map(
+              (stepName,pos) => <StepSummary key={stepName} files={workspace.filegraph[stepName]} summary={workspace.summary} config={workspace.vulcan_config[stepName]}/>
+          )
+        }
       </List>
     </Grid>
   );
