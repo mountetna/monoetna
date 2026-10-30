@@ -5,7 +5,7 @@ import {VulcanContext} from '../../contexts/vulcan_context';
 import {outputUINames, outputUIsWithInputsReady, stepOfName} from '../../selectors/workflow_selectors';
 import {useWorkspace} from '../../contexts/workspace_context';
 import { VulcanConfig } from '../../api_types';
-import StepIconName from './drawers/step_elements/step_icon_name';
+import StepIcon from './drawers/step_elements/step_icon';
 import FlatButton from 'etna-js/components/flat-button'
 import Grid from '@material-ui/core/Grid';
 import Drawer from '@material-ui/core/Drawer';
@@ -20,14 +20,25 @@ import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 
 const useStyles = makeStyles((theme) => ({
   steps: {
-    borderLeft: '1px solid #ccc'
+    borderLeft: '1px solid #ccc',
+    height: '100%',
+    overflow: 'hidden'
+  },
+  stepsHeader: {
+    borderBottom: '1px solid #eee'
   },
   stepsOpen: {
     width: '800px',
-    overflow: 'auto'
   },
   stepsClosed: {
     width: '48px'
+  },
+  stepGraph: {
+    overflow: 'auto'
+  },
+  stepList: {
+    overflow: 'auto',
+    height: '100%'
   },
   stepRow: {
     display: 'flex',
@@ -35,7 +46,11 @@ const useStyles = makeStyles((theme) => ({
   },
   stepSummary: {
     width: '48px',
-    height: '48px'
+    height: '47px',
+    borderBottom: '1px solid #eee',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   step: {
     border: '1px solid red',
@@ -163,7 +178,11 @@ const UIStepIndicator = () => <Tooltip title="This step requires user input"><Ar
 const StepSummary = ({name, files, summary, config}) => {
   const classes = useStyles();
 
-  return <div className={ classes.stepSummary }/>
+  return <div className={ classes.stepSummary }>
+    <StepIcon step={
+      stepOfName(name, config ? { [name]: config } : {} )
+    }/>
+  </div>
 }
 
 const Step = ({name, files, summary, config, wireTo, stepPos, row, highlight, setHighlight}) => {
@@ -172,7 +191,12 @@ const Step = ({name, files, summary, config, wireTo, stepPos, row, highlight, se
   const label = config ? config.display : name.replace(/_/g,' ');
 
   return <div className={ classes.step }>
-    <div className={ classes.stepLabel }>{ config?.name ? <UIStepIndicator/> : null }<Tooltip title={label}><span>{label}</span></Tooltip></div>
+    <div className={ classes.stepLabel }>
+      <StepIcon step={
+        stepOfName(name, config ? { [name]: config } : {} )
+      }/>
+      { config?.name ? <UIStepIndicator/> : null }<Tooltip title={label}><span>{label}</span></Tooltip>
+    </div>
     {
       files.outputs.length > 0 && <div className={ classes.connections} style={{ bottom: 0 }}>
         {
@@ -201,7 +225,7 @@ const Step = ({name, files, summary, config, wireTo, stepPos, row, highlight, se
 }
 
 export default function StepsList() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const {state} = useContext(VulcanContext);
   const {status, workspace, refreshingProgress} = state;
 
@@ -268,28 +292,33 @@ export default function StepsList() {
 
   return (
     <Grid className={ `${classes.steps} ${open ? classes.stepsOpen : classes.stepsClosed}` } >
-      <Grid alignItems='center' container>
+      <Grid alignItems='center' container className={ classes.stepsHeader }>
         <IconButton onClick={ () => setOpen(!open) }>
           { open ? <ChevronRightIcon/> : <ChevronLeftIcon/> }
         </IconButton>
       </Grid>
-      <List>
-        {
-          open ? rows.map(
-            (row,i) => <ListItem key={i}>
-              <div className={ classes.stepRow }>
-              {
-                row.map(
-                  (stepName,pos) => <Step highlight={highlight} setHighlight={setHighlight} key={stepName} row={i} stepPos={pos} name={stepName} files={workspace.filegraph[stepName]} summary={workspace.summary} config={workspace.vulcan_config[stepName]} wireTo={wireTo}/>
-                )
-              }
-              </div>
-            </ListItem>
-          ) : workspace.dag_flattened.map(
-              (stepName,pos) => <StepSummary key={stepName} files={workspace.filegraph[stepName]} summary={workspace.summary} config={workspace.vulcan_config[stepName]}/>
-          )
-        }
-      </List>
+      {
+        open ?
+        <div className={ classes.stepGraph }>
+          {
+            rows.map(
+              (row,i) => <div key={i} className={ classes.stepRow }>
+                {
+                  row.map(
+                    (stepName,pos) => <Step highlight={highlight} setHighlight={setHighlight} key={stepName} row={i} stepPos={pos} name={stepName} files={workspace.filegraph[stepName]} summary={workspace.summary} config={workspace.vulcan_config[stepName]} wireTo={wireTo}/>
+                  )
+                }
+                </div>
+            )
+          }
+        </div> : <div className={ classes.stepList }>
+          {
+            workspace.dag_flattened.map(
+            (stepName,pos) => <StepSummary key={ stepName } files={workspace.filegraph[stepName]} summary={workspace.summary} config={workspace.vulcan_config[stepName]}/>
+            )
+          }
+        </div>
+      }
     </Grid>
   );
 };
