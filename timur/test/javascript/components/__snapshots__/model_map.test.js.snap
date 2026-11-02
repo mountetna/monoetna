@@ -1458,7 +1458,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
         >
           <button
             aria-label="Add Attribute"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-136"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-156"
             tabindex="0"
             title="Add Attribute"
             type="button"
@@ -1488,7 +1488,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
           </button>
           <button
             aria-label="Add Link"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-136"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-156"
             tabindex="0"
             title="Add Link"
             type="button"
@@ -1518,7 +1518,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
           </button>
           <button
             aria-label="Add Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-136"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-156"
             tabindex="0"
             title="Add Model"
             type="button"
@@ -1548,7 +1548,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
           </button>
           <button
             aria-label="Copy Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-136"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-156"
             tabindex="0"
             title="Copy Model"
             type="button"
@@ -1582,7 +1582,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
             title="Reparent Model"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-136"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-156"
               tabindex="0"
               type="button"
             >
@@ -1616,7 +1616,7 @@ exports[`ModelMap for model with no records renders with action buttons and repa
             title="Cannot remove a model with any attribute of the types: table, child, collection"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-136 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-156 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
@@ -2945,7 +2945,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
         >
           <button
             aria-label="Add Attribute"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-146"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-166"
             tabindex="0"
             title="Add Attribute"
             type="button"
@@ -2975,7 +2975,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
           </button>
           <button
             aria-label="Add Link"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-146"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-166"
             tabindex="0"
             title="Add Link"
             type="button"
@@ -3005,7 +3005,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
           </button>
           <button
             aria-label="Add Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-146"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-166"
             tabindex="0"
             title="Add Model"
             type="button"
@@ -3035,7 +3035,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
           </button>
           <button
             aria-label="Copy Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-146"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-166"
             tabindex="0"
             title="Copy Model"
             type="button"
@@ -3069,7 +3069,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
             title="Determining if reparenting is possible"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-146 Mui-disabled Mui-disabled"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-166 Mui-disabled Mui-disabled"
               disabled=""
               tabindex="-1"
               type="button"
@@ -3101,7 +3101,7 @@ exports[`ModelMap for model with no records renders with remove model enabled fo
             title="Remove Model"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-146"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-166"
               tabindex="0"
               type="button"
             >
