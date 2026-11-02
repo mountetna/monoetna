@@ -23,6 +23,7 @@ import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+import SettingsApplicationsIcon from '@material-ui/icons/SettingsApplications';
 import IconButton from '@material-ui/core/IconButton';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
@@ -176,7 +177,8 @@ export default function ParamInputs() {
           justifyContent='space-between'
           onClick={() => setOpen(!open)}
         >
-          <Grid item>
+          <Grid item style={{ display: 'flex', gap: '5px', alignItems: 'center'}}>
+            <SettingsApplicationsIcon style={{ color: '#888' }}/>
             <Typography variant='h6'>Analysis Setup</Typography>
           </Grid>
           <Grid item>

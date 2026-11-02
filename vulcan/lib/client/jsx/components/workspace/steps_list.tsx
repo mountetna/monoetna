@@ -16,7 +16,10 @@ import ListItem from '@material-ui/core/ListItem';
 import Typography from '@material-ui/core/Typography';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ArrowRightIcon from '@material-ui/icons/ArrowRight';
+import LiveHelpIcon from '@material-ui/icons/LiveHelp';
+import ExploreIcon from '@material-ui/icons/Explore';
+import CloseIcon from '@material-ui/icons/Close';
+import SettingsApplicationsIcon from '@material-ui/icons/SettingsApplications';
 
 const useStyles = makeStyles((theme) => ({
   steps: {
@@ -33,8 +36,38 @@ const useStyles = makeStyles((theme) => ({
   stepsClosed: {
     width: '48px'
   },
+  stepsLegendIcon: {
+    color: '#888', position: 'absolute', top: '95px', right: '10px',
+    cursor: 'pointer',
+    '&:hover': {
+      color: '#ccc'
+    }
+  },
+  stepsLegendDismiss: {
+    color: '#888', position: 'absolute', top: '5px', right: '5px',
+    cursor: 'pointer',
+    '&:hover': {
+      color: '#ccc'
+    }
+  },
+  stepsLegend: {
+    position: 'absolute', top: '100px', right: '10px',
+    border: '1px solid #888',
+    boxShadow: '0 0 2px #ccc',
+    display: 'flex',
+    flexDirection: 'column',
+    zIndex: 2,
+    background: 'rgb(from white r g b / 85%)',
+    width: '110px',
+    padding: '10px'
+  },
   stepGraph: {
-    overflow: 'auto'
+    overflow: 'auto',
+    padding: '15px',
+    display: 'flex',
+    flexDirection: 'column',
+    height: 'calc( 100% - 49px - 30px )',
+    gap: '25px'
   },
   stepList: {
     overflow: 'auto',
@@ -42,7 +75,7 @@ const useStyles = makeStyles((theme) => ({
   },
   stepRow: {
     display: 'flex',
-    gap: '5px'
+    gap: '25px'
   },
   stepSummary: {
     width: '48px',
@@ -72,6 +105,7 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     textWrap: 'nowrap',
     position: 'relative',
+    gap: '5px',
     '&:before': {
       content:"''",
       width: '100%',
@@ -92,6 +126,15 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'flex-end',
     padding: '5px'
   },
+  infobox: {
+    position: 'absolute',
+    display: 'flex',
+    gap: 5,
+    left: 0,
+    top: 0,
+    color: '#888',
+    justifyContent: 'flex-start'
+  },
   input: {
     width: '10px',
     height: '10px',
@@ -102,6 +145,15 @@ const useStyles = makeStyles((theme) => ({
         strokeWidth: 5,
         strokeOpacity: 1
       }
+    }
+  },
+  legendItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+    '& div': {
+      width: '10px',
+      height: '10px'
     }
   },
   resource: {
@@ -120,6 +172,11 @@ const useStyles = makeStyles((theme) => ({
   ok: {
     background: '#1ce31c',
     borderRadius: '50%'
+  },
+  feed: {
+    borderRadius: '2px',
+    border: '1px solid purple',
+    transform: 'rotate(45deg)'
   },
   output: {
     width: '10px',
@@ -143,12 +200,12 @@ const snakemakeSummaryStyle = (summary, classes) => {
   return classes.pending;
 }
 
-const FileOutput = ({output, summary, highlight, setHighlight}) => {
+const FileOutput = ({output, summary, highlight, setHighlight, feedOutput}) => {
   const classes = useStyles();
   let { status, plan } = summary || { status: 'resource' }
   let outputStyle = snakemakeSummaryStyle(summary, classes);
   return <Tooltip title={ `${output} - ${status}${ plan ? ` - ${plan}` : '' }` }>
-    <div className={ `${outputStyle} ${classes.output}` } onMouseOver={ () => setHighlight(new Set([output]))} onMouseOut={ () => setHighlight(new Set([])) }/>
+    <div className={ `${outputStyle} ${classes.output} ${feedOutput ? classes.feed : ''}` } onMouseOver={ () => setHighlight(new Set([output]))} onMouseOut={ () => setHighlight(new Set([])) }/>
   </Tooltip>
 }
 
@@ -173,7 +230,26 @@ const FileInput = ({input, pos, stepPos, stepRow, wireTo, summary, highlight}) =
   </Tooltip>
 }
 
-const UIStepIndicator = () => <Tooltip title="This step requires user input"><ArrowRightIcon fontSize="small"/></Tooltip>
+const UIStepIndicator = () => <Tooltip title="This step requires user input"><SettingsApplicationsIcon fontSize="small"/></Tooltip>
+
+const StepsLegend = () => {
+  const [ shown, setShown ] = React.useState(false);
+  const classes = useStyles();
+  if (!shown) return <div className={ classes.stepsLegendIcon } onClick={ () => setShown(true) }>
+    <ExploreIcon/>
+  </div>
+
+  return <div className={ `${classes.stepsLegend}` }>
+    <IconButton size="small" onClick={ () => setShown(false) } className={ classes.stepsLegendDismiss }>
+      <CloseIcon fontSize="small"/>
+    </IconButton>
+    <div className={ classes.legendItem }><div className={ classes.missing}/> missing</div>
+    <div className={ classes.legendItem }><div className={ classes.pending}/> pending</div>
+    <div className={ classes.legendItem }><div className={ classes.ok}/> present</div>
+    <div className={ classes.legendItem }><div className={ classes.resource}/> resource</div>
+    <div className={ classes.legendItem }><div className={ `${classes.feed} ${classes.ok}` }/> output</div>
+  </div>
+}
 
 const StepSummary = ({name, files, summary, config}) => {
   const classes = useStyles();
@@ -181,11 +257,11 @@ const StepSummary = ({name, files, summary, config}) => {
   return <div className={ classes.stepSummary }>
     <StepIcon step={
       stepOfName(name, config ? { [name]: config } : {} )
-    }/>
+    } showName={true}/>
   </div>
 }
 
-const Step = ({name, files, summary, config, wireTo, stepPos, row, highlight, setHighlight}) => {
+const Step = ({name, files, summary, config, wireTo, stepPos, row, highlight, setHighlight,outputFeedFiles}) => {
   const classes = useStyles();
 
   const label = config ? config.display : name.replace(/_/g,' ');
@@ -195,13 +271,13 @@ const Step = ({name, files, summary, config, wireTo, stepPos, row, highlight, se
       <StepIcon step={
         stepOfName(name, config ? { [name]: config } : {} )
       }/>
-      { config?.name ? <UIStepIndicator/> : null }<Tooltip title={label}><span>{label}</span></Tooltip>
+      <Tooltip title={label}><span>{label}</span></Tooltip>
     </div>
     {
       files.outputs.length > 0 && <div className={ classes.connections} style={{ bottom: 0 }}>
         {
           files.outputs.map(
-            output => <FileOutput key={output} summary={summary[output]} output={ output } highlight={highlight} setHighlight={setHighlight}/>
+            output => <FileOutput key={output} summary={summary[output]} output={ output } highlight={highlight} feedOutput={ outputFeedFiles.has(output) } setHighlight={setHighlight}/>
           )
         }
       </div>
@@ -221,6 +297,9 @@ const Step = ({name, files, summary, config, wireTo, stepPos, row, highlight, se
         }
       </div>
     }
+    <div className={ classes.infobox }>
+      { config?.name ? <UIStepIndicator/> : null }
+    </div>
   </div>
 }
 
@@ -243,6 +322,19 @@ export default function StepsList() {
   let currentRow = 0;
 
   const { dag } = workspace;
+
+  const outputFeedFiles = new Set([]);
+
+  Object.keys(workspace.vulcan_config).forEach(
+    outputName => {
+      const config = workspace.vulcan_config[outputName];
+      if (config.output) return null;
+      if (!config?.input?.files) return null;
+      config.input.files.forEach(
+        file => outputFeedFiles.add(`output/${file}`)
+      )
+    }
+  );
 
   while ( (visited.size < Object.keys(dag).length)) {
     rows[currentRow] = []
@@ -277,8 +369,8 @@ export default function StepsList() {
     const [ toRow, toStepPos, toPos ] = rowPos[input];
 
     const NODE_GAP = 15;
-    const yDiff = (toRow - fromRow) * 86 + 59;
-    const xDiff = (toStepPos - fromStepPos) * 227 - (toPos - fromPos) * NODE_GAP;
+    const yDiff = (toRow - fromRow) * (72 + 25) + 59;
+    const xDiff = (toStepPos - fromStepPos) * (222 + 25) - (toPos - fromPos) * NODE_GAP;
     const startX = (xDiff > 0) ? -6 : 0;
     const startY = 0;
 
@@ -292,6 +384,7 @@ export default function StepsList() {
 
   return (
     <Grid className={ `${classes.steps} ${open ? classes.stepsOpen : classes.stepsClosed}` } >
+      { open && <StepsLegend/> }
       <Grid alignItems='center' container className={ classes.stepsHeader }>
         <IconButton onClick={ () => setOpen(!open) }>
           { open ? <ChevronRightIcon/> : <ChevronLeftIcon/> }
@@ -305,7 +398,18 @@ export default function StepsList() {
               (row,i) => <div key={i} className={ classes.stepRow }>
                 {
                   row.map(
-                    (stepName,pos) => <Step highlight={highlight} setHighlight={setHighlight} key={stepName} row={i} stepPos={pos} name={stepName} files={workspace.filegraph[stepName]} summary={workspace.summary} config={workspace.vulcan_config[stepName]} wireTo={wireTo}/>
+                    (stepName,pos) => <Step
+                      key={stepName}
+                      highlight={highlight}
+                      setHighlight={setHighlight}
+                      row={i}
+                      stepPos={pos}
+                      name={stepName}
+                      files={workspace.filegraph[stepName]}
+                      summary={workspace.summary}
+                      config={workspace.vulcan_config[stepName]}
+                      outputFeedFiles={outputFeedFiles}
+                      wireTo={wireTo}/>
                   )
                 }
                 </div>
@@ -314,7 +418,7 @@ export default function StepsList() {
         </div> : <div className={ classes.stepList }>
           {
             workspace.dag_flattened.map(
-            (stepName,pos) => <StepSummary key={ stepName } files={workspace.filegraph[stepName]} summary={workspace.summary} config={workspace.vulcan_config[stepName]}/>
+            (stepName,pos) => <StepSummary key={ stepName } name={stepName} files={workspace.filegraph[stepName]} summary={workspace.summary} config={workspace.vulcan_config[stepName]}/>
             )
           }
         </div>
