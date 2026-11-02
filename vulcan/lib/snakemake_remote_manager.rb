@@ -157,7 +157,7 @@ class Vulcan
 
         snakemake_exec(
           dir,
-          args: ['--configfile', config_path, '--detailed-summary' ],
+          args: ['--configfile', config_path, '--summary' ],
           output: 'summary.tsv'
         )
 
