@@ -12,7 +12,6 @@ import {
 } from '../../selectors/workflow_selectors';
 
 import WorkspaceManager from './workspace_manager';
-import StepsList from './steps_list';
 import { defaultWorkspaceStatus } from '../../api_types';
 import {
   setWorkflow,
@@ -149,7 +148,6 @@ export default function WorkspaceInitializer({
   return (
     <div className='workspace-manager'>
       <WorkspaceManager key={workspaceId} />
-      <StepsList />
     </div>
   );
 }

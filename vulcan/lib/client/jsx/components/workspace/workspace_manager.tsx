@@ -35,6 +35,7 @@ import {
 } from '../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
+import StepsList from './steps_list';
 // import Vignette from '../vignette';
 import VulcanHelp from './drawers/vulcan_help';
 import { hasScheduledSteps, workflowName, workspaceFromRaw } from '../../selectors/workflow_selectors';
@@ -612,6 +613,7 @@ export default function WorkspaceManager() {
       <div className='session-feed-container'>
         <InputFeed />
         <OutputFeed />
+        <StepsList />
       </div>
     </div>
   );
