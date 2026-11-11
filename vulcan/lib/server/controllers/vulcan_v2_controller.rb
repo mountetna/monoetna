@@ -474,8 +474,8 @@ class VulcanV2Controller < Vulcan::Controller
     file_name = @params[:file_name].to_s
     raise Etna::BadRequest, "No file provided" if file_name.empty?
 
-    file_path = File.join(Vulcan::Path.workspace_output_dir(workspace.path), file_name)
-    raise Etna::BadRequest, "File not found" unless @remote_manager.file_exists?(file_path)
+    file_path = File.join(workspace.path, file_name)
+    raise Etna::BadRequest, "File not found #{file_path}" unless @remote_manager.file_exists?(file_path)
 
     # Create a lazy streaming body that yields chunks on demand
     # This streams to the frontend without loading the entire file into memory
@@ -484,13 +484,20 @@ class VulcanV2Controller < Vulcan::Controller
         yielder << chunk
       end
     end
+
+    file_length = @remote_manager.file_size(file_path)
     
     # Return response with streaming body
-    [200, {
+    [
+      200, 
+      {
+      'Content-Length' => file_length,
       'Content-Type' => 'application/octet-stream',
       'Content-Disposition' => "attachment; filename=#{File.basename(file_name)}",
       'Cache-Control' => 'no-cache'
-    }, streaming_body]
+      },
+      streaming_body
+    ]
   end
 
   def cluster_latency

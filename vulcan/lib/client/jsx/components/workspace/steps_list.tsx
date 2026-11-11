@@ -20,6 +20,14 @@ import LiveHelpIcon from '@material-ui/icons/LiveHelp';
 import ExploreIcon from '@material-ui/icons/Explore';
 import CloseIcon from '@material-ui/icons/Close';
 import SettingsApplicationsIcon from '@material-ui/icons/SettingsApplications';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import Dialog from '@material-ui/core/Dialog';
+import Link from '@material-ui/core/Link';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+
+const StepsContext = React.createContext(null);
 
 const useStyles = makeStyles((theme) => ({
   steps: {
@@ -30,11 +38,20 @@ const useStyles = makeStyles((theme) => ({
   stepsHeader: {
     borderBottom: '1px solid #eee'
   },
+  stepsCardHeader: {
+    margin: '10px 0px 5px',
+    borderBottom: '1px solid #eee'
+  },
   stepsOpen: {
     width: '800px',
   },
   stepsClosed: {
     width: '48px'
+  },
+  fileInfo: {
+    display: 'flex',
+    gap: 5,
+    alignItems: 'center'
   },
   stepsLegendIcon: {
     color: '#888', position: 'absolute', top: '95px', right: '10px',
@@ -97,6 +114,7 @@ const useStyles = makeStyles((theme) => ({
     cursor: 'pointer',
     boxShadow: '0 0 2px #ccc',
     '&:hover': {
+      outline: '2px solid #f00',
     }
   },
   stepLabel: {
@@ -200,34 +218,50 @@ const snakemakeSummaryStyle = (summary, classes) => {
   return classes.pending;
 }
 
-const FileOutput = ({output, summary, highlight, setHighlight, feedOutput}) => {
+const InputChip = ({className, file, feed=false, children}) => {
   const classes = useStyles();
-  let { status, plan } = summary || { status: 'resource' }
-  let outputStyle = snakemakeSummaryStyle(summary, classes);
-  return <Tooltip title={ `${output} - ${status}${ plan ? ` - ${plan}` : '' }` }>
-    <div className={ `${outputStyle} ${classes.output} ${feedOutput ? classes.feed : ''}` } onMouseOver={ () => setHighlight(new Set([output]))} onMouseOut={ () => setHighlight(new Set([])) }/>
+
+  const { summary, outputFeedFiles } = useContext(StepsContext);
+
+  let inputStyle = snakemakeSummaryStyle(summary[file], classes);
+  let { status, plan } = summary[file] || { status: 'resource' }
+
+  return <Tooltip title={ `${file} - ${status}${ plan ? ` - ${plan}` : '' }` }>
+    <div className={ `${inputStyle} ${ (feed && outputFeedFiles.has(file)) ? classes.feed : '' } ${className}` }>
+      { children }
+    </div>
   </Tooltip>
 }
 
-const FileInput = ({input, pos, stepPos, stepRow, wireTo, summary, highlight}) => {
+const FileOutput = ({output}) => {
+  const classes = useStyles();
+  const { setHighlight } = useContext(StepsContext);
+
+  return <InputChip file={output} className={classes.output} feed={true}>
+    <div
+      style={{ width: '100%', height: '100%' }}
+      onMouseOver={ () => setHighlight(new Set([output]))}
+      onMouseOut={ () => setHighlight(new Set([])) }
+    />
+  </InputChip>
+}
+
+const FileInput = ({input, pos, stepPos, stepRow }) => {
   const classes = useStyles();
   const PAD = 5;
 
-  let inputStyle = snakemakeSummaryStyle(summary, classes);
-  let { status, plan } = summary || { status: 'resource' }
+  const { highlight, summary, wireTo } = useContext(StepsContext);
 
   const [ path, bounds ] = wireTo( pos, stepPos, stepRow, input );
-  return <Tooltip title={ `${input} - ${status}${ plan ? ` - ${plan}` : '' }` }>
-    <div className={ `${inputStyle} ${classes.input}` }>
+  return <InputChip className={ classes.input } file={input}>
     {
       bounds && <div className={ classes.wire } style={{ right: bounds.flip ? undefined : 0, left: bounds.flip ? 0 : undefined }}>
         <svg width={ bounds.width + 2*PAD } height={ bounds.height + 2*PAD } viewBox={ `${bounds.x-PAD} ${bounds.y-PAD} ${bounds.width+2*PAD} ${bounds.height+2*PAD}` }>
-          <path fill="none" stroke="goldenrod" strokeOpacity={ highlight.has(input) ? 1 : 0.1 } strokeWidth={ highlight.has(input) ? 5 : 2 } d={ path }/>
+          <path fill="none" stroke="goldenrod" strokeOpacity={ highlight?.has(input) ? 1 : 0.1 } strokeWidth={ highlight?.has(input) ? 5 : 2 } d={ path }/>
         </svg>
       </div>
     }
-    </div>
-  </Tooltip>
+  </InputChip>
 }
 
 const UIStepIndicator = () => <Tooltip title="This step requires user input"><SettingsApplicationsIcon fontSize="small"/></Tooltip>
@@ -251,8 +285,10 @@ const StepsLegend = () => {
   </div>
 }
 
-const StepSummary = ({name, files, summary, config}) => {
+const StepSummary = ({name}) => {
   const classes = useStyles();
+
+  const { configs: { [name] : config } } = useContext(StepsContext)
 
   return <div className={ classes.stepSummary }>
     <StepIcon step={
@@ -261,12 +297,88 @@ const StepSummary = ({name, files, summary, config}) => {
   </div>
 }
 
-const Step = ({name, files, summary, config, wireTo, stepPos, row, highlight, setHighlight,outputFeedFiles}) => {
+const StepCardHeading = ({title}) => {
   const classes = useStyles();
+  return <div className={classes.stepsCardHeader}>
+    <Typography>{title}</Typography>
+  </div>
+}
+
+const StepFileLink = ({file}) => {
+  const { summary, projectName, workspace_id } = useContext(StepsContext)
+
+  if (!(file in summary) || summary[file]?.status == "ok")
+    return <Link variant="body1" href={
+      `/api/v2/${projectName}/workspace/${workspace_id}/file/stream-download/${file}`
+    }>{ file }</Link>
+  else
+    return <Link title="File is not present" variant="body1" style={{ color: "gray" }}>{ file }</Link>
+}
+
+const StepCard = ({name, dismiss}) => {
+  const classes = useStyles();
+
+  const {
+    configs: { [name] : config },
+    filegraph: { [name]: files },
+  } = useContext(StepsContext)
 
   const label = config ? config.display : name.replace(/_/g,' ');
 
-  return <div className={ classes.step }>
+  const [ tab, setTab ] = React.useState(0);
+
+  return  <Dialog onClose={dismiss} open={true} PaperProps={{ style: {
+    minHeight: '75%',
+    maxHeight: '75%',
+    minWidth: '500px'
+  }}}>
+      <DialogTitle>{ label }</DialogTitle>
+      <DialogContent>
+        <Tabs value={tab} onChange={ (e,v) => setTab(v) } style={{
+            '& .MuiTabs-root': {
+              boxShadow: '0 2 4px #ccc'
+            }
+          }}>
+          <Tab disableRipple label="Files"/>
+          <Tab disableRipple label="Logs"/>
+        </Tabs>
+        {
+          tab == 0 && <div style={{ padding: '5px' }}>
+          <StepCardHeading title="Input Files"/>
+          {
+            files.inputs.length > 0 && files.inputs.map(
+              (input,pos) => <div className={ classes.fileInfo} key={input}>
+                <InputChip file={ input } className={ classes.output }/>
+                <StepFileLink file={input}/>
+              </div>
+            )
+          }
+          <StepCardHeading title="Output Files"/>
+          {
+            files.outputs.length > 0 && files.outputs.map(
+              output => <div className={ classes.fileInfo} InputChip key={output}>
+                <InputChip file={ output } className={ classes.output }/>
+                <StepFileLink file={output}/>
+              </div>
+            )
+          }
+          </div>
+        }
+      </DialogContent>
+    </Dialog>
+}
+
+const Step = ({name, stepPos, row, onClick}) => {
+  const classes = useStyles();
+
+  const {
+    configs: { [name] : config },
+    filegraph: { [name]: files },
+  } = useContext(StepsContext);
+
+  const label = config ? config.display : name.replace(/_/g,' ');
+
+  return <div className={ classes.step } onClick={onClick}>
     <div className={ classes.stepLabel }>
       <StepIcon step={
         stepOfName(name, config ? { [name]: config } : {} )
@@ -277,7 +389,7 @@ const Step = ({name, files, summary, config, wireTo, stepPos, row, highlight, se
       files.outputs.length > 0 && <div className={ classes.connections} style={{ bottom: 0 }}>
         {
           files.outputs.map(
-            output => <FileOutput key={output} summary={summary[output]} output={ output } highlight={highlight} feedOutput={ outputFeedFiles.has(output) } setHighlight={setHighlight}/>
+            output => <FileOutput key={output} output={ output } />
           )
         }
       </div>
@@ -286,13 +398,11 @@ const Step = ({name, files, summary, config, wireTo, stepPos, row, highlight, se
       files.inputs.length > 0 && <div className={ classes.connections} style={{ top: 0, background: "#fda" }}>
         {
           files.inputs.map(
-            (input,pos) => <FileInput key={input} highlight={highlight} setHighlight={setHighlight} 
+            (input,pos) => <FileInput key={input}
               input={ input }
               pos={files.inputs.length - pos - 1}
-              summary={summary[input]}
               stepPos={stepPos}
-              stepRow={row}
-              wireTo={wireTo}/>
+              stepRow={row} />
           )
         }
       </div>
@@ -306,13 +416,9 @@ const Step = ({name, files, summary, config, wireTo, stepPos, row, highlight, se
 export default function StepsList() {
   const [open, setOpen] = useState(false);
   const {state} = useContext(VulcanContext);
-  const {status, workspace, refreshingProgress} = state;
+  const {status, workspace, refreshingProgress, projectName} = state;
 
   const classes = useStyles();
-
-  function handleToggle() {
-    setOpen(!open);
-  }
 
   if (!workspace || Object.keys(workspace).length == 0) return null;
 
@@ -362,8 +468,6 @@ export default function StepsList() {
     currentRow += 1;
   }
 
-  console.log({rowPos});
-
   const wireTo = ( fromPos, fromStepPos, fromRow, input ) => {
     if (!rowPos[input]) return [ '', null ];
     const [ toRow, toStepPos, toPos ] = rowPos[input];
@@ -382,47 +486,62 @@ export default function StepsList() {
 
   const [ highlight, setHighlight ] = useState(new Set([]));
 
+  const [ shownStep, setShownStep ] = useState(null);
+
   return (
-    <Grid className={ `${classes.steps} ${open ? classes.stepsOpen : classes.stepsClosed}` } >
-      { open && <StepsLegend/> }
-      <Grid alignItems='center' container className={ classes.stepsHeader }>
-        <IconButton onClick={ () => setOpen(!open) }>
-          { open ? <ChevronRightIcon/> : <ChevronLeftIcon/> }
-        </IconButton>
+    <StepsContext.Provider value={ {
+      highlight, setHighlight,
+      wireTo,
+      outputFeedFiles,
+      projectName,
+      workspace_id: workspace.workspace_id,
+      summary: workspace.summary,
+      filegraph: workspace.filegraph,
+      configs: workspace.vulcan_config
+      } }>
+      <Grid className={ `${classes.steps} ${open ? classes.stepsOpen : classes.stepsClosed}` } >
+        { open && <StepsLegend/> }
+        <Grid alignItems='center' container className={ classes.stepsHeader }>
+          <IconButton onClick={ () => setOpen(!open) }>
+            { open ? <ChevronRightIcon/> : <ChevronLeftIcon/> }
+          </IconButton>
+        </Grid>
+        { 
+          shownStep && <StepCard
+            dismiss={ () => setShownStep(false) } 
+            name={shownStep} />
+        }
+        {
+          open ?
+          <div className={ classes.stepGraph }>
+            {
+              rows.map(
+                (row,i) => <div key={i} className={ classes.stepRow }>
+                  {
+                    row.map(
+                      (stepName,pos) => <Step
+                        key={stepName}
+                        onClick={ () => setShownStep(stepName) }
+                        row={i}
+                        stepPos={pos}
+                        name={stepName} />
+                    )
+                  }
+                  </div>
+              )
+            }
+          </div> : <div className={ classes.stepList }>
+            {
+              workspace.dag_flattened.map(
+                (stepName,pos) => <StepSummary
+                  key={ stepName }
+                  name={stepName}
+                />
+              )
+            }
+          </div>
+        }
       </Grid>
-      {
-        open ?
-        <div className={ classes.stepGraph }>
-          {
-            rows.map(
-              (row,i) => <div key={i} className={ classes.stepRow }>
-                {
-                  row.map(
-                    (stepName,pos) => <Step
-                      key={stepName}
-                      highlight={highlight}
-                      setHighlight={setHighlight}
-                      row={i}
-                      stepPos={pos}
-                      name={stepName}
-                      files={workspace.filegraph[stepName]}
-                      summary={workspace.summary}
-                      config={workspace.vulcan_config[stepName]}
-                      outputFeedFiles={outputFeedFiles}
-                      wireTo={wireTo}/>
-                  )
-                }
-                </div>
-            )
-          }
-        </div> : <div className={ classes.stepList }>
-          {
-            workspace.dag_flattened.map(
-            (stepName,pos) => <StepSummary key={ stepName } name={stepName} files={workspace.filegraph[stepName]} summary={workspace.summary} config={workspace.vulcan_config[stepName]}/>
-            )
-          }
-        </div>
-      }
-    </Grid>
+    </StepsContext.Provider>
   );
 };

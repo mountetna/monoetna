@@ -284,6 +284,19 @@ class Vulcan
       nil
     end
 
+    def file_size(file_path)
+      return nil unless file_exists?(file_path)
+      
+      result = invoke_ssh_command(
+        build_command.add('stat', '-c', '%s', file_path).to_s
+      )
+      
+      return result[:stdout].strip.to_i
+    rescue => e
+      Vulcan.instance.logger.error("Error getting size for #{file_path}: #{e.message}")
+      nil
+    end
+
     def invoke_and_close(command)
       # Immediately run ssh command and close the ssh channel.
       @ssh_pool.with_conn do |ssh|
