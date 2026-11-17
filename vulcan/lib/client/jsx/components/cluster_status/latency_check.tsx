@@ -30,7 +30,7 @@ export default function LatencyCheck({projectName}: {
     }
 
     getLatency();
-    const timer = setInterval( getLatency, 5000 );
+    const timer = setInterval( getLatency, 300000 );
 
     return () => clearInterval(timer);
   }, [] );

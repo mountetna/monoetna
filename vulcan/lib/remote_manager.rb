@@ -133,6 +133,19 @@ class Vulcan
       invoke_ssh_command(command.to_s)[:stdout].split("\n")
     end
 
+    def list_logs(workflow_path, step_name)
+      slurm_path = ".snakemake/slurm_logs/rule_#{step_name}"
+
+      full_path = ::File.join(workflow_path, slurm_path)
+
+      return [] unless dir_exists?(full_path)
+
+      file_path = ::File.join(slurm_path, "*")
+
+      command = build_command.add_raw("cd #{workflow_path} && stat -c %Y:%n #{file_path}")
+      return invoke_ssh_command(command.to_s)[:stdout].split("\n").map do |i| i.split(":") end
+    end
+
     def md5sum(file)
       command = build_command.add('md5sum', file)
       invoke_ssh_command(command.to_s)[:stdout].split("\n")
@@ -227,38 +240,47 @@ class Vulcan
       result[:stdout].chomp
     end
 
-    def file_exists?(file_path, wait = false)
-      def remote_file_exists?(file_path)
-        begin
-          command = build_command
-            .add('test', '-f', file_path)
-            .add_raw('echo "exists" || echo "not exists"')
-          result = invoke_ssh_command(command.to_s)
-          result[:stdout].strip == 'exists'
-        rescue => e
-          raise e unless e.message.include?("timed out")
+    def remote_file_exists?(file_path)
+      begin
+        command = build_command
+          .add('test', '-f', file_path)
+          .add_raw('echo "exists" || echo "not exists"')
+        result = invoke_ssh_command(command.to_s)
+        result[:stdout].strip == 'exists'
+      rescue => e
+        raise e unless e.message.include?("timed out")
+      end
+    end
+
+    def buffered_retry(max_retries=5, warn=false,&block)
+      attempt = 0
+      condition = false
+
+      while attempt <= max_retries && !condition
+        if yield
+          condition = true
+        else
+          attempt += 1
+          sleep_time = 0.5 * (2 ** attempt) 
+
+          Vulcan.instance.logger.warn(
+            "Attempt #{attempt}/#{max_retries}, retrying in #{sleep_time}s…"
+          ) if warn
+
+          sleep sleep_time
         end
+
+        break if condition
       end
 
-      if wait
-        max_retries = 5
-        attempt = 0
-        file_found = false
+      return condition
+    end
 
-        while attempt <= max_retries && !file_found
-          if remote_file_exists?(file_path)
-            file_found = true
-          else
-            attempt += 1
-            # Exponential backoff - sleep longer each retry
-            sleep_time = 0.5 * (2 ** attempt) 
-            sleep sleep_time
-          end
-          if file_found
-            break
-          end
+    def file_exists?(file_path, wait = false)
+      if wait
+        file_found = buffered_retry(max_retries=5) do
+          remote_file_exists?(file_path)
         end
-        file_found
       else
         file_found = remote_file_exists?(file_path)
       end
@@ -266,6 +288,7 @@ class Vulcan
       if !file_found
         Vulcan.instance.logger.warn("File #{file_path} not found")
       end
+
       file_found
     end
 
@@ -321,21 +344,16 @@ class Vulcan
     
     def invoke_ssh_command(command, timeout: 10, retries: 5, retry_delay: 2)
       last_error  = nil
-      retry_count = 0
-      backoff     = retry_delay
 
-      while retry_count < retries
+      buffered_retry(max_retries=retries,warn=true) do
         begin
           return exec_with_timeout(command, timeout)
         rescue => e
           last_error  = e
-          retry_count += 1
           Vulcan.instance.logger.warn(
-            "Command `#{command}` failed (#{e.class}: #{e.message}) " \
-            "– attempt #{retry_count}/#{retries}, retrying in #{backoff}s…"
+            "Command `#{command}` failed (#{e.class}: #{e.message.force_encoding("UTF-8")}) "
           )
-          sleep(backoff) if retry_count < retries
-          backoff *= 2
+          false
         end
       end
 

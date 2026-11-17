@@ -18,6 +18,7 @@ class Vulcan
     delete 'api/v2/:project_name/workspace/:workspace_id', action: 'vulcan_v2#delete_workspace', auth: { user: { is_admin?: :project_name }}
     get 'api/v2/:project_name/workspace', action: 'vulcan_v2#list_workspaces',  auth: { user: { can_view?: :project_name }}
     get 'api/v2/:project_name/workspace/:workspace_id', action: 'vulcan_v2#get_workspace',  auth: { user: { can_view?: :project_name }}
+    get 'api/v2/:project_name/workspace/:workspace_id/logs/:step_name', action: 'vulcan_v2#workspace_logs',  auth: { user: { can_view?: :project_name }}
 
     # Config API
     post 'api/v2/:project_name/workspace/:workspace_id/config', action: 'vulcan_v2#save_config', auth: { user: { can_view?: :project_name }}

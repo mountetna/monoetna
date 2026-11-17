@@ -6,13 +6,14 @@ import {outputUINames, outputUIsWithInputsReady, stepOfName} from '../../selecto
 import {useWorkspace} from '../../contexts/workspace_context';
 import { VulcanConfig } from '../../api_types';
 import StepIcon from './drawers/step_elements/step_icon';
-import FlatButton from 'etna-js/components/flat-button'
+import {formatTime} from 'etna-js/utils/format';
 import Grid from '@material-ui/core/Grid';
 import Drawer from '@material-ui/core/Drawer';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import Typography from '@material-ui/core/Typography';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
@@ -26,6 +27,7 @@ import Dialog from '@material-ui/core/Dialog';
 import Link from '@material-ui/core/Link';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+
 
 const StepsContext = React.createContext(null);
 
@@ -51,6 +53,11 @@ const useStyles = makeStyles((theme) => ({
   fileInfo: {
     display: 'flex',
     gap: 5,
+    alignItems: 'center'
+  },
+  fileLog: {
+    display: 'flex',
+    justifyContent: 'space-between',
     alignItems: 'center'
   },
   stepsLegendIcon: {
@@ -321,11 +328,28 @@ const StepCard = ({name, dismiss}) => {
   const {
     configs: { [name] : config },
     filegraph: { [name]: files },
+    workspace_id,
+    projectName
   } = useContext(StepsContext)
 
   const label = config ? config.display : name.replace(/_/g,' ');
 
   const [ tab, setTab ] = React.useState(0);
+  const [ logs, setLogs ] = React.useState([]);
+
+  const refreshLogList = async () => {
+    const response = await fetch(`/api/v2/${projectName}/workspace/${workspace_id}/logs/${name}`);
+    const { logs } = await response.json();
+
+    setLogs(logs);
+  }
+
+  const loadTab = (e,v) => {
+    setTab(v);
+    if (v == 1) {
+      refreshLogList();
+    }
+  }
 
   return  <Dialog onClose={dismiss} open={true} PaperProps={{ style: {
     minHeight: '75%',
@@ -334,8 +358,8 @@ const StepCard = ({name, dismiss}) => {
   }}}>
       <DialogTitle>{ label }</DialogTitle>
       <DialogContent>
-        <Tabs value={tab} onChange={ (e,v) => setTab(v) } style={{
-            '& .MuiTabs-root': {
+        <Tabs value={tab} onChange={ loadTab } style={{
+            '& .MuiTabsRoot': {
               boxShadow: '0 2 4px #ccc'
             }
           }}>
@@ -344,25 +368,46 @@ const StepCard = ({name, dismiss}) => {
         </Tabs>
         {
           tab == 0 && <div style={{ padding: '5px' }}>
-          <StepCardHeading title="Input Files"/>
           {
-            files.inputs.length > 0 && files.inputs.map(
-              (input,pos) => <div className={ classes.fileInfo} key={input}>
-                <InputChip file={ input } className={ classes.output }/>
-                <StepFileLink file={input}/>
-              </div>
-            )
+            files.inputs.length > 0 && <>
+              <StepCardHeading title="Input Files"/>
+              {
+                files.inputs.map(
+                (input,pos) => <div className={ classes.fileInfo} key={input}>
+                  <InputChip file={ input } className={ classes.output }/>
+                  <StepFileLink file={input}/>
+                </div>)
+              }
+            </>
           }
-          <StepCardHeading title="Output Files"/>
           {
-            files.outputs.length > 0 && files.outputs.map(
-              output => <div className={ classes.fileInfo} InputChip key={output}>
-                <InputChip file={ output } className={ classes.output }/>
-                <StepFileLink file={output}/>
-              </div>
-            )
+            files.outputs.length > 0 && <>
+              <StepCardHeading title="Output Files"/>
+              {
+                files.outputs.map(
+                  output => <div className={ classes.fileInfo} key={output}>
+                    <InputChip file={ output } className={ classes.output }/>
+                    <StepFileLink file={output}/>
+                  </div>
+                )
+              }
+            </>
           }
           </div>
+        }
+        {
+          tab == 1 && <List style={{padding: '5px' }}>
+            {
+              logs.map( ([time,file]) => 
+                <ListItem className={classes.fileLog} key={file}>
+                  <Link variant="body1" href={
+                    `/api/v2/${projectName}/workspace/${workspace_id}/file/stream-download/${file}`
+                  }>{ file.split('/').pop() }</Link>
+                  <Typography>{formatTime(parseInt(time)*1000)}</Typography>
+                </ListItem>
+              )
+            }
+          </List>
         }
       </DialogContent>
     </Dialog>

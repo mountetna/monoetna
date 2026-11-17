@@ -51,6 +51,13 @@
   :advisory_lock_file: /app/storage.lock
   :latency_time: 600
   :snakemake_profile_dir: /app/spec/fixtures/v2/profiles/
+  :workspace_whitelist:
+  - Snakefile
+  - output/,
+  - resources/
+  - tmp/
+  - temp/
+  - .snakemake/slurm_logs/
   # Remote = vulcan_c4_env
   :base_dir: /app/vulcan
   :conda_env: conda-vulcan

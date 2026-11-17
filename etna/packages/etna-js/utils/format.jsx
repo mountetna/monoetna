@@ -22,6 +22,12 @@ export const dateFormat = (timestamp, missing='Unknown') => {
   }
 };
 
+export const formatTime = (time) => Intl.DateTimeFormat('en-US', {
+   year: 'numeric', month: 'short', day: 'numeric',
+   hour: 'numeric', minute: 'numeric'
+}).format(new Date(time));
+
+
 export const jsonFormat = obj => JSON.stringify(obj, null, 2);
 
 /*

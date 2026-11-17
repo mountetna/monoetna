@@ -170,6 +170,16 @@ class VulcanV2Controller < Vulcan::Controller
     end
     success_json(response)
   end
+
+  def workspace_logs
+    workspace = Vulcan::Workspace[id: @params[:workspace_id]]
+
+    logs = @remote_manager.list_logs(workspace.path, @params[:step_name])
+
+    success_json(logs: logs)
+  end
+
+
   # Update workspace name and tags
   def update_workspace
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id])

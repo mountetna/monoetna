@@ -964,6 +964,22 @@ describe VulcanV2Controller do
 
   end
 
+  context 'workspace logs' do
+    before do
+      setup_workspace
+    end
+
+    it 'lists the logs for a given step name in a workspace' do
+      workspace_id = Vulcan::Workspace.all[0].id
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/logs/new_tag")
+      expect(last_response.status).to eq(200)
+      workspace = Vulcan::Workspace.first(id: workspace_id)
+      expect(workspace.name).to eq("new_name")
+      expect(workspace.tags).to eq(["new_tag", "new_tag_2"])
+    end
+
+  end
+
   context 'get config' do
     before do
       setup_workspace
