@@ -964,6 +964,22 @@ describe VulcanV2Controller do
 
   end
 
+  context 'workspace logs' do
+    before do
+      setup_workspace
+    end
+
+    it 'lists the logs for a given step name in a workspace' do
+      workspace_id = Vulcan::Workspace.all[0].id
+      get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/logs/new_tag")
+      expect(last_response.status).to eq(200)
+      workspace = Vulcan::Workspace.first(id: workspace_id)
+      expect(workspace.name).to eq("new_name")
+      expect(workspace.tags).to eq(["new_tag", "new_tag_2"])
+    end
+
+  end
+
   context 'get config' do
     before do
       setup_workspace
@@ -1262,17 +1278,15 @@ describe VulcanV2Controller do
 
     #TODO: For some reason these tests do not work with other tests. Probably a connection hanging somewhere. 
     #TODO: Investigate why this is happening.
-    xit 'streams the file for download' do
+    it 'streams the file for download' do
       auth_header(:editor)
 
       workspace = Vulcan::Workspace.first
       write_files_to_workspace(workspace.id)
 
       streamed = nil
-      Timeout.timeout(30) do
-        get "/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/stream-download/poem.txt"
-        streamed = response_body_string(last_response)
-      end
+      get "/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/stream-download/output/poem.txt"
+      streamed = response_body_string(last_response)
 
       expect(last_response.status).to eq(200)
 
@@ -1286,7 +1300,7 @@ describe VulcanV2Controller do
       expect(streamed.bytesize).to be < (256 * 1024)
     end
 
-    xit 'streams larger files in multiple chunks' do
+    it 'streams larger files in multiple chunks' do
       auth_header(:editor)
 
       workspace = Vulcan::Workspace.first
@@ -1315,10 +1329,8 @@ describe VulcanV2Controller do
       end
 
       streamed = nil
-      Timeout.timeout(60) do
-        get "/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/stream-download/#{file_name}"
-        streamed = response_body_string(last_response)
-      end
+      get "/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/stream-download/output/#{file_name}"
+      streamed = response_body_string(last_response)
 
       expect(last_response.status).to eq(200)
       

@@ -12,7 +12,7 @@ function _LinkOutput({data, stream}) {
   return <React.Fragment>
     {Object.keys(data).map(file_name =>
         <React.Fragment key={file_name}>
-          <Link link={vulcanPath(`/api/v2/${target}/${file_name}`)}>{file_name}</Link>
+          <Link link={vulcanPath(`/api/v2/${target}/output/${file_name}`)}>{file_name}</Link>
         </React.Fragment>
     )}
   </React.Fragment>;
