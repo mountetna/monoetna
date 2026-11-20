@@ -43,12 +43,14 @@ class Vulcan
 
     def stream_file_simple(remote_path, chunk: 256 * 1024, max_duration: 300)
       bytes_read = 0
+      last_prog = 0
       start_time = Time.now
       
       # Wrap the entire SFTP operation in a timeout to prevent hanging
       Timeout.timeout(max_duration) do
         @ssh_pool.with_conn do |ssh|
-          sftp = ssh.sftp
+          sftp = Net::SFTP::Session.new(ssh)
+          sftp.connect!
           sftp.file.open(remote_path, 'r') do |file|
             loop do
               # Check timeout
@@ -67,13 +69,19 @@ class Vulcan
               yield data
               
               # Log progress every 100MB for large files
-              if bytes_read % (100 * 1024 * 1024) < chunk
+              prog = bytes_read / (100 * 1024 * 1024)
+              if prog > last_prog
                 Vulcan.instance.logger.info(
-                  "Streaming progress: #{(bytes_read / 1024.0 / 1024.0).round(1)}MB from #{remote_path}"
+                  "Streaming progress: #{Etna::Formatting.as_size(bytes_read)} from #{remote_path}"
                 )
+                last_prog = prog
               end
             end
           end
+          sftp.close_channel
+          Vulcan.instance.logger.info(
+            "Streaming finished: #{Etna::Formatting.as_size(bytes_read)} from #{remote_path}"
+          )
         end
       end
     rescue Timeout::Error => e
