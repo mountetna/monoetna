@@ -99,6 +99,8 @@ class Magma
     require_relative 'magma/model'
     require_relative 'magma/gnomon'
     require_relative 'magma/flag'
+    require_relative 'magma/search/search_modality'
+    require_relative 'magma/search/search_field'
   end
 
   class Magma::ValidationError < StandardError

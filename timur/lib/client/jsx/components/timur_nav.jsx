@@ -2,12 +2,18 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
+import SearchIcon from '@material-ui/icons/Search';
+import {makeStyles} from '@material-ui/core/styles';
+
 import Nav from 'etna-js/components/Nav';
 import IdentifierSearch from './identifier_search';
 import Link from 'etna-js/components/link';
 import {selectUser} from 'etna-js/selectors/user-selector';
-import {isAdmin} from 'etna-js/utils/janus';
+import {isAdmin, isSuperEditor, isSuperViewer} from 'etna-js/utils/janus';
 import {useFeatureFlag} from 'etna-js/hooks/useFeatureFlag';
+import CrossProjectSearchModal from './cross_project_search/search_modal';
 
 const Halo = ({radius}) => (
   <div className='halo'>
@@ -81,12 +87,46 @@ const ModeBar = ({mode, user}) => {
   );
 };
 
-const TimurNav = ({mode, user}) => (
-  <Nav user={user} logo={Logo} app='timur'>
-    {mode !== 'home' && <IdentifierSearch />}
-    {mode !== 'home' && <ModeBar mode={mode} user={user} />}
-  </Nav>
-);
+const useStyles = makeStyles(() => ({
+  search: {
+    marginLeft: 15
+  },
+  spacer: {
+    flex: 1
+  }
+}));
+
+const CrossProjectSearchButton = ({canEdit}) => {
+  const classes = useStyles();
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <React.Fragment>
+      <Tooltip title='Cross-project search'>
+        <IconButton className={classes.search} aria-label='Cross-project search' onClick={() => setOpen(true)}>
+          <SearchIcon />
+        </IconButton>
+      </Tooltip>
+      <CrossProjectSearchModal open={open} canEdit={canEdit} onClose={() => setOpen(false)} />
+    </React.Fragment>
+  );
+};
+
+const TimurNav = ({mode, user}) => {
+  const classes = useStyles();
+  const superViewer = Boolean(user.permissions && isSuperViewer(user));
+  const superEditor = Boolean(user.permissions && isSuperEditor(user));
+  const showModeBar = mode !== 'home';
+
+  return (
+    <Nav user={user} logo={Logo} app='timur'>
+      {superViewer && mode === 'home' && <CrossProjectSearchButton canEdit={superEditor} />}
+      {showModeBar && <IdentifierSearch />}
+      {showModeBar && <ModeBar mode={mode} user={user} />}
+      {!showModeBar && <div className={classes.spacer} />}
+    </Nav>
+  );
+};
 
 export default connect((state) => ({
   user: selectUser(state)
