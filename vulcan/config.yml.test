@@ -23,3 +23,10 @@
   :janus:
     :host: https://janus.test
   :snakemake_profile_dir: /app/spec/fixtures/v2/profiles/
+  :workspace_whitelist:
+  - Snakefile
+  - resources/
+  - tmp/
+  - temp/
+  - output/
+  - .snakemake/slurm_logs/
