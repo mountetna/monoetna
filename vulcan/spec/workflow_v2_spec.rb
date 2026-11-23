@@ -970,12 +970,16 @@ describe VulcanV2Controller do
     end
 
     it 'lists the logs for a given step name in a workspace' do
-      workspace_id = Vulcan::Workspace.all[0].id
+      workspace = Vulcan::Workspace.first
+      workspace_id = workspace.id
+      remote_manager.write_file(
+        ::File.join(workspace.path, ".snakemake/slurm_logs/rule_new_tag/1.log"),
+        "Shit happened."
+      )
       get("/api/v2/#{PROJECT}/workspace/#{workspace_id}/logs/new_tag")
       expect(last_response.status).to eq(200)
-      workspace = Vulcan::Workspace.first(id: workspace_id)
-      expect(workspace.name).to eq("new_name")
-      expect(workspace.tags).to eq(["new_tag", "new_tag_2"])
+      expect(json_body[:logs][0].length).to eq(2)
+      expect(json_body[:logs][0].last).to eq('.snakemake/slurm_logs/rule_new_tag/1.log')
     end
 
   end
@@ -1217,42 +1221,6 @@ describe VulcanV2Controller do
     
   end
 
-  context 'download file' do
-
-    before do
-      setup_workspace
-    end
-
-    it 'returns the file for download' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      write_files_to_workspace(workspace.id)
-      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/download/poem.txt")
-      expect(last_response.status).to eq(200)
-      # Check headers
-      expect(last_response.headers["content-type"]).to eq({file_type: "application/octet-stream", disposition: "attachment; filename=poem.txt"})
-      expect(last_response.headers["content-length"]).to eq("142")
-    end
-
-    it 'returns a file nested in a directory' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      write_nested_file_to_workspace(workspace.id)
-      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/download/nested_dir/poem.txt")
-      expect(last_response.status).to eq(200)
-      # Check headers for nested file
-      expect(last_response.headers["content-type"]).to eq({file_type: "application/octet-stream", disposition: "attachment; filename=nested_dir/poem.txt"})
-      expect(last_response.headers["content-length"]).to eq("142")
-    end
-
-    it 'raises an error if the file does not exist' do
-      auth_header(:editor)
-      workspace = Vulcan::Workspace.all[0]
-      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/download/does_not_exist.txt") 
-      expect(last_response.status).to eq(422)
-    end
-  end
-
   context 'stream file' do
 
     before do
@@ -1347,8 +1315,32 @@ describe VulcanV2Controller do
     it 'raises an error if the file does not exist' do
       auth_header(:editor)
       workspace = Vulcan::Workspace.all[0]
-      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/stream-download/does_not_exist.txt") 
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/stream-download/output/does_not_exist.txt") 
       expect(last_response.status).to eq(422)
+    end
+
+    it 'raises an error if the file is not in the whitelist' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+
+      remote_manager.write_file(
+        ::File.join(workspace.path, "Cakefile"),
+        "RECIPE FOR CAKE\n- flour\n- eggs\n- water\n- sugar"
+      )
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/stream-download/Cakefile") 
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'raises an error if the folder is not in the whitelist' do
+      auth_header(:editor)
+      workspace = Vulcan::Workspace.all[0]
+
+      remote_manager.write_file(
+        ::File.join(workspace.path, "input/recipe.txt"),
+        "RECIPE FOR CAKE\n- flour\n- eggs\n- water\n- sugar"
+      )
+      get("/api/v2/#{PROJECT}/workspace/#{workspace.id}/file/stream-download/input/recipe.txt") 
+      expect(last_response.status).to eq(403)
     end
   end
 

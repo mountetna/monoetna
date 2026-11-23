@@ -473,16 +473,14 @@ class VulcanV2Controller < Vulcan::Controller
     retrieve_file(@params[:file_name], "image/png")
   end
 
-  def download_file
-    retrieve_file(@params[:file_name], "application/octet-stream", disposition: "attachment; filename=#{@params[:file_name]}")
-  end
-
   def stream_download_file
     workspace = Vulcan::Workspace.first(id: @params[:workspace_id]) or
                 raise Etna::BadRequest, "Workspace not found"
 
     file_name = @params[:file_name].to_s
     raise Etna::BadRequest, "No file provided" if file_name.empty?
+
+    raise Etna::Forbidden, "Cannot read from #{file_name}" unless workspace.can_read?(file_name)
 
     file_path = File.join(workspace.path, file_name)
     raise Etna::BadRequest, "File not found #{file_path}" unless @remote_manager.file_exists?(file_path)

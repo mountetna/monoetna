@@ -181,45 +181,39 @@ def poem_2_text
   TEXT
 end
 
-def write_files_to_workspace(workspace_id)
+def post_files_to_workspace(workspace_id, files)
   # The first step in the test workflow involves the UI writing files to the workspace
   auth_header(:editor)
-  request = {
-    files: [{
+  request = { files: files }
+  post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
+  expect(last_response.status).to eq(200)
+end
+
+def write_files_to_workspace(workspace_id)
+  post_files_to_workspace(workspace_id, [{
       filename: "poem.txt",
       content: poem_1_text
     }, {
       filename: "poem_2.txt",
       content: poem_2_text
     }]
-  }
-  post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
-  expect(last_response.status).to eq(200)
+  )
 end
 
 def write_nested_file_to_workspace(workspace_id)
-  # The first step in the test workflow involves the UI writing files to the workspace
-  auth_header(:editor)
-  request = {
-    files: [{
+  post_files_to_workspace(workspace_id, [{
       filename: "nested_dir/poem.txt",
       content: poem_1_text
     }]
-  }
-  post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
-  expect(last_response.status).to eq(200)
+  )
 end
 
 def write_image_to_workspace(workspace_id)
-  auth_header(:editor)
-  request = {
-    files: [{
+  post_files_to_workspace(workspace_id, [{
       filename: "image.png",
       content: "image content"
     }]
-  }
-  post("/api/v2/#{PROJECT}/workspace/#{workspace_id}/file/write", request)
-  expect(last_response.status).to eq(200)
+  )
 end
 
 def remove_all_dirs

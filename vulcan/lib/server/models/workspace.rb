@@ -18,5 +18,11 @@ class Vulcan
         updated_at: updated_at
       }
     end
+
+    def can_read?(file_path)
+      Vulcan.instance.config(:workspace_whitelist).any? do |path|
+        path[-1] == '/' ? file_path.start_with?(path) : file_path == path
+      end
+    end
   end
 end
