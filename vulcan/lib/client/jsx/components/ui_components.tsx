@@ -26,7 +26,7 @@ import { MetisFileValidator, MetisFolderValidator, MetisPathValidator } from "./
 import { NotEmptyValidator, StronglyNotEmptyValidator } from "./workspace/ui_definitions/inputs/validators/not_empty_validator";
 import PlusSubsetValidator from "./workspace/ui_definitions/inputs/validators/PlusSubsetValidator";
 
-import { LinkOutputCat, LinkOutputStream } from './workspace/ui_definitions/outputs/link';
+import { LinkOutput } from './workspace/ui_definitions/outputs/link';
 import { PlotlyOutput, PlotOutput, PngOutput } from './workspace/ui_definitions/outputs/plot';
 import ConsignmentOutput from './workspace/ui_definitions/outputs/consignment';
 import RawOutput from './workspace/ui_definitions/outputs/raw';
@@ -139,10 +139,10 @@ How they work:
 */
 
 export const OUTPUTS = {
-  'default': LinkOutputStream,
-  'link': LinkOutputStream, // (deprecated)
-  'text-file-link': LinkOutputCat,
-  'any-file-link': LinkOutputStream,
+  'default': LinkOutput,
+  'link': LinkOutput, // (deprecated)
+  'text-file-link': LinkOutput,
+  'any-file-link': LinkOutput,
   'plotly': PlotlyOutput,
   'plot': PlotOutput,
   'png': PngOutput,
