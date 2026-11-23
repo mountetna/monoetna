@@ -2,13 +2,13 @@ import React, {useContext} from 'react';
 import {VulcanContext} from '../../../../contexts/vulcan_context';
 import Link from 'etna-js/components/link';
 
-function _LinkOutput({data, stream}) {
+export function LinkOutput({data}) {
   let {state, vulcanPath} = useContext(VulcanContext);
   let {workspace, projectName} = state;
   if (!workspace) {
     return
   }
-  const target = `${projectName}/workspace/${workspace.workspace_id}/file/${stream ? 'stream-download' : 'download'}`
+  const target = `${projectName}/workspace/${workspace.workspace_id}/file/stream-download`
   return <React.Fragment>
     {Object.keys(data).map(file_name =>
         <React.Fragment key={file_name}>
@@ -16,12 +16,4 @@ function _LinkOutput({data, stream}) {
         </React.Fragment>
     )}
   </React.Fragment>;
-}
-
-export function LinkOutputCat({data}) {
-  return _LinkOutput({data, stream: false})
-}
-
-export function LinkOutputStream({data}) {
-  return _LinkOutput({data, stream: true})
 }
