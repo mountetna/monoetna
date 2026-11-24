@@ -58,6 +58,12 @@ class Magma
       Magma.instance.db
     end
 
+    def template_model_names
+      @template_model_names ||= db[:models].
+        where(project_name: @template_project).
+        select_map(:model_name)
+    end
+
     private
 
     def partition_models
@@ -72,12 +78,6 @@ class Magma
 
         { valid: valid, unmapped: unmapped, invalid: invalid }
       end
-    end
-
-    def template_model_names
-      @template_model_names ||= db[:models].
-        where(project_name: @template_project).
-        select_map(:model_name)
     end
 
     def blank?(value)

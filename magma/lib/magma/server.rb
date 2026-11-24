@@ -8,6 +8,9 @@ require_relative '../magma/server/gnomon'
 require_relative '../magma/server/update_model'
 require_relative '../magma/server/flag'
 require_relative '../magma/server/cross_project_search_audit'
+require_relative '../magma/server/search_modalities'
+require_relative '../magma/server/search_fields'
+require_relative '../magma/server/cross_project_search'
 
 class Magma
   class Server < Etna::Server
@@ -26,6 +29,16 @@ class Magma
     post '/update', as: :update, action: 'update#action', auth: { user: { can_edit?: :project_name } }
 
     post '/update_model', action: 'update_model#action', auth: { user: { is_admin?: :project_name } }
+
+    get '/cross_project_search/modalities', action: 'search_modalities#get', auth: { user: { is_superviewer?: true } }
+    post '/cross_project_search/modalities', action: 'search_modalities#create', auth: { user: { is_supereditor?: true } }
+    post '/cross_project_search/modalities/:id/delete', action: 'search_modalities#delete', auth: { user: { is_supereditor?: true } }
+    post '/cross_project_search/modalities/:id', action: 'search_modalities#set', auth: { user: { is_supereditor?: true } }
+    get '/cross_project_search/fields', action: 'search_fields#get', auth: { user: { is_superviewer?: true } }
+    post '/cross_project_search/fields', action: 'search_fields#create', auth: { user: { is_supereditor?: true } }
+    post '/cross_project_search/fields/:id/delete', action: 'search_fields#delete', auth: { user: { is_supereditor?: true } }
+    post '/cross_project_search/fields/:id', action: 'search_fields#set', auth: { user: { is_supereditor?: true } }
+    post '/cross_project_search/query', action: 'cross_project_search#query', auth: { user: { is_superviewer?: true } }
 
     get '/cross_project_search_audit/:project_name', action: 'cross_project_search_audit#report', auth: { user: { is_admin?: :project_name } }
 
